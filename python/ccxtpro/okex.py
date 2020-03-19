@@ -59,10 +59,7 @@ class okex(Exchange, ccxt.okex):
 
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
         future = self.subscribe('trade', symbol, params)
-        return await self.after(future, self.filter_array_by_since_limit, since, limit, 'timestamp', True)
-
-    def filter_array_by_since_limit(self, array, since=None, limit=None, key='timestamp', tail=False):
-        return self.filter_by_since_limit(array, since, limit, key, tail)
+        return await self.after(future, self.filter_by_since_limit, since, limit, 'timestamp', True)
 
     async def watch_ticker(self, symbol, params={}):
         return await self.subscribe('ticker', symbol, params)
@@ -138,7 +135,7 @@ class okex(Exchange, ccxt.okex):
         interval = self.timeframes[timeframe]
         name = 'candle' + interval + 's'
         future = self.subscribe(name, symbol, params)
-        return await self.after(future, self.filter_array_by_since_limit, since, limit, 0, True)
+        return await self.after(future, self.filter_by_since_limit, since, limit, 0, True)
 
     def find_timeframe(self, timeframe):
         # redo to use reverse lookups in a static map instead

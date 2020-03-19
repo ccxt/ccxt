@@ -68,7 +68,7 @@ class huobipro extends \ccxt\huobipro {
             'symbol' => $symbol,
             'params' => $params,
         );
-        return $this->watch ($url, $messageHash, array_merge($request, $params), $messageHash, $subscription);
+        return $this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription);
     }
 
     public function handle_ticker ($client, $message) {
@@ -125,12 +125,8 @@ class huobipro extends \ccxt\huobipro {
             'symbol' => $symbol,
             'params' => $params,
         );
-        $future = $this->watch ($url, $messageHash, array_merge($request, $params), $messageHash, $subscription);
-        return $this->after ($future, array($this, 'filter_array_by_since_limit'), $since, $limit, 'timestamp', true);
-    }
-
-    public function filter_array_by_since_limit ($array, $since = null, $limit = null, $key = 'timestamp', $tail = false) {
-        return $this->filter_by_since_limit($array, $since, $limit, $key, $tail);
+        $future = $this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription);
+        return $this->after ($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
     public function handle_trades ($client, $message) {
@@ -197,8 +193,8 @@ class huobipro extends \ccxt\huobipro {
             'timeframe' => $timeframe,
             'params' => $params,
         );
-        $future = $this->watch ($url, $messageHash, array_merge($request, $params), $messageHash, $subscription);
-        return $this->after ($future, array($this, 'filter_array_by_since_limit'), $since, $limit, 0, true);
+        $future = $this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription);
+        return $this->after ($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
     }
 
     public function find_timeframe ($timeframe) {
@@ -237,7 +233,7 @@ class huobipro extends \ccxt\huobipro {
             $market = $this->markets_by_id[$marketId];
             $symbol = $market['symbol'];
             $interval = $this->safe_string($parts, 3);
-            $timeframe = $this->find_timeframe ($interval);
+            $timeframe = $this->find_timeframe($interval);
             $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
             $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe, array());
             $tick = $this->safe_value($message, 'tick');
@@ -282,7 +278,7 @@ class huobipro extends \ccxt\huobipro {
             'params' => $params,
             'method' => array($this, 'handle_order_book_subscription'),
         );
-        $future = $this->watch ($url, $messageHash, array_merge($request, $params), $messageHash, $subscription);
+        $future = $this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription);
         return $this->after ($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
@@ -322,7 +318,7 @@ class huobipro extends \ccxt\huobipro {
         $messages = $orderbook->cache;
         for ($i = 0; $i < count($messages); $i++) {
             $message = $messages[$i];
-            $this->handle_order_book_message ($client, $message, $orderbook);
+            $this->handle_order_book_message($client, $message, $orderbook);
         }
         $this->orderbooks[$symbol] = $orderbook;
         $client->resolve ($orderbook, $messageHash);
@@ -351,7 +347,7 @@ class huobipro extends \ccxt\huobipro {
             'params' => $params,
             'method' => array($this, 'handle_order_book_snapshot'),
         );
-        $future = $this->watch ($url, $requestId, $request, $requestId, $snapshotSubscription);
+        $future = $this->watch($url, $requestId, $request, $requestId, $snapshotSubscription);
         return $this->after ($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
@@ -363,7 +359,7 @@ class huobipro extends \ccxt\huobipro {
 
     public function handle_deltas ($bookside, $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
-            $this->handle_delta ($bookside, $deltas[$i]);
+            $this->handle_delta($bookside, $deltas[$i]);
         }
     }
 
@@ -394,8 +390,8 @@ class huobipro extends \ccxt\huobipro {
         if (($prevSeqNum <= $orderbook['nonce']) && ($seqNum > $orderbook['nonce'])) {
             $asks = $this->safe_value($tick, 'asks', array());
             $bids = $this->safe_value($tick, 'bids', array());
-            $this->handle_deltas ($orderbook['asks'], $asks);
-            $this->handle_deltas ($orderbook['bids'], $bids);
+            $this->handle_deltas($orderbook['asks'], $asks);
+            $this->handle_deltas($orderbook['bids'], $bids);
             $orderbook['nonce'] = $seqNum;
             $timestamp = $this->safe_integer($message, 'ts');
             $orderbook['timestamp'] = $timestamp;
@@ -443,7 +439,7 @@ class huobipro extends \ccxt\huobipro {
         if ($orderbook['nonce'] === null) {
             $orderbook->cache[] = $message;
         } else {
-            $this->handle_order_book_message ($client, $message, $orderbook);
+            $this->handle_order_book_message($client, $message, $orderbook);
             $client->resolve ($orderbook, $messageHash);
         }
     }
@@ -459,7 +455,7 @@ class huobipro extends \ccxt\huobipro {
         if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
             unset($this->orderbooks[$symbol]);
         }
-        $this->orderbooks[$symbol] = $this->order_book (array(), $limit);
+        $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
         // watch the snapshot in a separate async call
         $this->spawn (array($this, 'watch_order_book_snapshot'), $client, $message, $subscription);
     }
@@ -561,17 +557,17 @@ class huobipro extends \ccxt\huobipro {
     }
 
     public function handle_message ($client, $message) {
-        if ($this->handle_error_message ($client, $message)) {
+        if ($this->handle_error_message($client, $message)) {
             //
             //     array("id":1583414227,"status":"ok","subbed":"market.btcusdt.mbp.150","ts":1583414229143)
             //
             if (is_array($message) && array_key_exists('id', $message)) {
-                $this->handle_subscription_status ($client, $message);
+                $this->handle_subscription_status($client, $message);
             } else if (is_array($message) && array_key_exists('ch', $message)) {
                 // route by channel aka topic aka subject
-                $this->handle_subject ($client, $message);
+                $this->handle_subject($client, $message);
             } else if (is_array($message) && array_key_exists('ping', $message)) {
-                $this->handle_ping ($client, $message);
+                $this->handle_ping($client, $message);
             }
         }
     }

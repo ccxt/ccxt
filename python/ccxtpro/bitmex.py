@@ -399,10 +399,7 @@ class bitmex(Exchange, ccxt.bitmex):
             ],
         }
         future = self.watch(url, messageHash, self.extend(request, params), messageHash)
-        return await self.after(future, self.filter_array_by_since_limit, since, limit, 'timestamp', True)
-
-    def filter_array_by_since_limit(self, array, since=None, limit=None, key='timestamp', tail=False):
-        return self.filter_by_since_limit(array, since, limit, key, tail)
+        return await self.after(future, self.filter_by_since_limit, since, limit, 'timestamp', True)
 
     async def watch_order_book(self, symbol, limit=None, params={}):
         table = None
@@ -443,7 +440,7 @@ class bitmex(Exchange, ccxt.bitmex):
             ],
         }
         future = self.watch(url, messageHash, self.extend(request, params), messageHash)
-        return await self.after(future, self.filter_array_by_since_limit, since, limit, 0, True)
+        return await self.after(future, self.filter_by_since_limit, since, limit, 0, True)
 
     def find_timeframe(self, timeframe):
         keys = list(self.timeframes.keys())

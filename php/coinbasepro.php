@@ -46,27 +46,23 @@ class coinbasepro extends \ccxt\coinbasepro {
             ),
         );
         $request = array_merge($subscribe, $params);
-        return $this->watch ($url, $messageHash, $request, $messageHash);
+        return $this->watch($url, $messageHash, $request, $messageHash);
     }
 
     public function watch_ticker ($symbol, $params = array ()) {
         $name = 'ticker';
-        return $this->subscribe ($name, $symbol, $params);
+        return $this->subscribe($name, $symbol, $params);
     }
 
     public function watch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $name = 'matches';
-        $future = $this->subscribe ($name, $symbol, $params);
-        return $this->after ($future, array($this, 'filter_array_by_since_limit'), $since, $limit, 'timestamp', true);
-    }
-
-    public function filter_array_by_since_limit ($array, $since = null, $limit = null, $key = 'timestamp', $tail = false) {
-        return $this->filter_by_since_limit($array, $since, $limit, $key, $tail);
+        $future = $this->subscribe($name, $symbol, $params);
+        return $this->after ($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
     public function watch_order_book ($symbol, $limit = null, $params = array ()) {
         $name = 'level2';
-        $future = $this->subscribe ($name, $symbol, $params);
+        $future = $this->subscribe($name, $symbol, $params);
         return $this->after ($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
@@ -216,7 +212,7 @@ class coinbasepro extends \ccxt\coinbasepro {
 
     public function handle_deltas ($bookside, $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
-            $this->handle_delta ($bookside, $deltas[$i]);
+            $this->handle_delta($bookside, $deltas[$i]);
         }
     }
 
@@ -264,10 +260,10 @@ class coinbasepro extends \ccxt\coinbasepro {
             $messageHash = $name . ':' . $marketId;
             if ($type === 'snapshot') {
                 $depth = 50; // default $depth is 50
-                $this->orderbooks[$symbol] = $this->order_book (array(), $depth);
+                $this->orderbooks[$symbol] = $this->order_book(array(), $depth);
                 $orderbook = $this->orderbooks[$symbol];
-                $this->handle_deltas ($orderbook['asks'], $this->safe_value($message, 'asks', array()));
-                $this->handle_deltas ($orderbook['bids'], $this->safe_value($message, 'bids', array()));
+                $this->handle_deltas($orderbook['asks'], $this->safe_value($message, 'asks', array()));
+                $this->handle_deltas($orderbook['bids'], $this->safe_value($message, 'bids', array()));
                 $orderbook['timestamp'] = null;
                 $orderbook['datetime'] = null;
                 $client->resolve ($orderbook, $messageHash);

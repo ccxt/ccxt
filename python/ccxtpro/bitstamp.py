@@ -186,10 +186,7 @@ class bitstamp(Exchange, ccxt.bitstamp):
         }
         message = self.extend(request, params)
         future = self.watch(url, messageHash, message, messageHash, subscription)
-        return await self.after(future, self.filter_array_by_since_limit, since, limit, 'timestamp', True)
-
-    def filter_array_by_since_limit(self, array, since=None, limit=None, key='timestamp', tail=False):
-        return self.filter_by_since_limit(array, since, limit, key, tail)
+        return await self.after(future, self.filter_by_since_limit, since, limit, 'timestamp', True)
 
     def parse_trade(self, trade, market=None):
         #

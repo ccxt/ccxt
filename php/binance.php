@@ -105,7 +105,7 @@ class binance extends \ccxt\binance {
         $name = 'depth';
         $messageHash = $market['lowercaseId'] . '@' . $name;
         $url = $this->urls['api']['ws'][$type]; // . '/' . $messageHash;
-        $requestId = $this->request_id ($url);
+        $requestId = $this->request_id($url);
         $watchOrderBookRate = $this->safe_string($this->options, 'watchOrderBookRate', '100');
         $request = array(
             'method' => 'SUBSCRIBE',
@@ -125,7 +125,7 @@ class binance extends \ccxt\binance {
         );
         $message = array_merge($request, $query);
         // 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
-        $future = $this->watch ($url, $messageHash, $message, $messageHash, $subscription);
+        $future = $this->watch($url, $messageHash, $message, $messageHash, $subscription);
         return $this->after ($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
@@ -155,7 +155,7 @@ class binance extends \ccxt\binance {
                 }
                 // 5. The first processed event should have $U <= lastUpdateId AND $u >= lastUpdateId
                 if (($U <= $orderbook['nonce']) && ($u >= $orderbook['nonce'])) {
-                    $this->handle_order_book_message ($client, $message, $orderbook);
+                    $this->handle_order_book_message($client, $message, $orderbook);
                 }
             } else {
                 // 4. Drop any event where $u is <= lastUpdateId in the $snapshot
@@ -164,7 +164,7 @@ class binance extends \ccxt\binance {
                 }
                 // 5. The first processed event should have $U <= lastUpdateId+1 AND $u >= lastUpdateId+1
                 if ((($U - 1) <= $orderbook['nonce']) && (($u - 1) >= $orderbook['nonce'])) {
-                    $this->handle_order_book_message ($client, $message, $orderbook);
+                    $this->handle_order_book_message($client, $message, $orderbook);
                 }
             }
         }
@@ -180,14 +180,14 @@ class binance extends \ccxt\binance {
 
     public function handle_deltas ($bookside, $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
-            $this->handle_delta ($bookside, $deltas[$i]);
+            $this->handle_delta($bookside, $deltas[$i]);
         }
     }
 
     public function handle_order_book_message ($client, $message, $orderbook) {
         $u = $this->safe_integer($message, 'u');
-        $this->handle_deltas ($orderbook['asks'], $this->safe_value($message, 'a', array()));
-        $this->handle_deltas ($orderbook['bids'], $this->safe_value($message, 'b', array()));
+        $this->handle_deltas($orderbook['asks'], $this->safe_value($message, 'a', array()));
+        $this->handle_deltas($orderbook['bids'], $this->safe_value($message, 'b', array()));
         $orderbook['nonce'] = $u;
         $timestamp = $this->safe_integer($message, 'E');
         $orderbook['timestamp'] = $timestamp;
@@ -242,7 +242,7 @@ class binance extends \ccxt\binance {
                         // 5. The first processed event should have $U <= lastUpdateId+1 AND $u >= lastUpdateId+1
                         // 6. While listening to the stream, each new event's $U should be equal to the previous event's $u+1.
                         if (($U < $orderbook['nonce']) || (($U - 1) === $orderbook['nonce'])) {
-                            $this->handle_order_book_message ($client, $message, $orderbook);
+                            $this->handle_order_book_message($client, $message, $orderbook);
                             if ($nonce < $orderbook['nonce']) {
                                 $client->resolve ($orderbook, $messageHash);
                             }
@@ -258,7 +258,7 @@ class binance extends \ccxt\binance {
                         // 5. The first processed event should have $U <= lastUpdateId AND $u >= lastUpdateId
                         // 6. While listening to the stream, each new event's $pu should be equal to the previous event's $u, otherwise initialize the process from step 3
                         if (($U <= $orderbook['nonce']) || ($pu === $orderbook['nonce'])) {
-                            $this->handle_order_book_message ($client, $message, $orderbook);
+                            $this->handle_order_book_message($client, $message, $orderbook);
                             if ($nonce <= $orderbook['nonce']) {
                                 $client->resolve ($orderbook, $messageHash);
                             }
@@ -287,7 +287,7 @@ class binance extends \ccxt\binance {
         if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
             unset($this->orderbooks[$symbol]);
         }
-        $this->orderbooks[$symbol] = $this->order_book (array(), $limit);
+        $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
         // fetch the snapshot in a separate async call
         $this->spawn (array($this, 'fetch_order_book_snapshot'), $client, $message, $subscription);
     }
@@ -314,12 +314,8 @@ class binance extends \ccxt\binance {
         $market = $this->market ($symbol);
         $name = 'trade';
         $messageHash = $market['lowercaseId'] . '@' . $name;
-        $future = $this->watch_public ($messageHash, $params);
-        return $this->after ($future, array($this, 'filter_array_by_since_limit'), $since, $limit, 'timestamp', true);
-    }
-
-    public function filter_array_by_since_limit ($array, $since = null, $limit = null, $key = 'timestamp', $tail = false) {
-        return $this->filter_by_since_limit($array, $since, $limit, $key, $tail);
+        $future = $this->watch_public($messageHash, $params);
+        return $this->after ($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
     public function parse_trade ($trade, $market = null) {
@@ -413,8 +409,8 @@ class binance extends \ccxt\binance {
         $interval = $this->timeframes[$timeframe];
         $name = 'kline';
         $messageHash = $marketId . '@' . $name . '_' . $interval;
-        $future = $this->watch_public ($messageHash, $params);
-        return $this->after ($future, array($this, 'filter_array_by_since_limit'), $since, $limit, 0, true);
+        $future = $this->watch_public($messageHash, $params);
+        return $this->after ($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
     }
 
     public function find_timeframe ($timeframe) {
@@ -462,7 +458,7 @@ class binance extends \ccxt\binance {
         $kline = $this->safe_value($message, 'k');
         $interval = $this->safe_string($kline, 'i');
         // use a reverse lookup in a static map instead
-        $timeframe = $this->find_timeframe ($interval);
+        $timeframe = $this->find_timeframe($interval);
         $messageHash = $lowercaseMarketId . '@' . $event . '_' . $interval;
         $parsed = array(
             $this->safe_integer($kline, 't'),
@@ -498,7 +494,7 @@ class binance extends \ccxt\binance {
         $type = $this->safe_string($params, 'type', $defaultType);
         $query = $this->omit ($params, 'type');
         $url = $this->urls['api']['ws'][$type];
-        $requestId = $this->request_id ($url);
+        $requestId = $this->request_id($url);
         $request = array(
             'method' => 'SUBSCRIBE',
             'params' => array(
@@ -509,7 +505,7 @@ class binance extends \ccxt\binance {
         $subscribe = array(
             'id' => $requestId,
         );
-        return $this->watch ($url, $messageHash, array_merge($request, $query), $messageHash, $subscribe);
+        return $this->watch($url, $messageHash, array_merge($request, $query), $messageHash, $subscribe);
     }
 
     public function watch_ticker ($symbol, $params = array ()) {
@@ -518,7 +514,7 @@ class binance extends \ccxt\binance {
         $marketId = $market['lowercaseId'];
         $name = 'ticker';
         $messageHash = $marketId . '@' . $name;
-        return $this->watch_public ($messageHash, $params);
+        return $this->watch_public($messageHash, $params);
     }
 
     public function handle_ticker ($client, $message) {
@@ -604,12 +600,12 @@ class binance extends \ccxt\binance {
 
     public function watch_balance ($params = array ()) {
         $this->load_markets();
-        $this->authenticate ();
+        $this->authenticate();
         $defaultType = $this->safe_string_2($this->options, 'watchBalance', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
         $query = $this->omit ($params, 'type');
         $url = $this->urls['api']['ws'][$type] . '/' . $this->options['listenKey'];
-        $requestId = $this->request_id ($url);
+        $requestId = $this->request_id($url);
         $request = array(
             'method' => 'SUBSCRIBE',
             'params' => array(
@@ -620,7 +616,7 @@ class binance extends \ccxt\binance {
             'id' => $requestId,
         );
         $messageHash = 'outboundAccountInfo';
-        return $this->watch ($url, $messageHash, array_merge($request, $query), 1, $subscribe);
+        return $this->watch($url, $messageHash, array_merge($request, $query), 1, $subscribe);
     }
 
     public function handle_balance ($client, $message) {
@@ -672,12 +668,12 @@ class binance extends \ccxt\binance {
 
     public function watch_orders ($params = array ()) {
         $this->load_markets();
-        $this->authenticate ();
+        $this->authenticate();
         $defaultType = $this->safe_string_2($this->options, 'watchOrders', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
         $query = $this->omit ($params, 'type');
         $url = $this->urls['api']['ws'][$type] . '/' . $this->options['listenKey'];
-        $requestId = $this->request_id ($url);
+        $requestId = $this->request_id($url);
         $request = array(
             'method' => 'SUBSCRIBE',
             'params' => array(
@@ -688,7 +684,7 @@ class binance extends \ccxt\binance {
             'id' => $requestId,
         );
         $messageHash = 'executionReport';
-        return $this->watch ($url, $messageHash, array_merge($request, $query), 1, $subscribe);
+        return $this->watch($url, $messageHash, array_merge($request, $query), 1, $subscribe);
     }
 
     public function handle_order ($client, $message) {
@@ -798,7 +794,7 @@ class binance extends \ccxt\binance {
         if ($method === null) {
             $requestId = $this->safe_string($message, 'id');
             if ($requestId !== null) {
-                return $this->handle_subscription_status ($client, $message);
+                return $this->handle_subscription_status($client, $message);
             }
             return $message;
         } else {

@@ -120,10 +120,7 @@ class huobipro(Exchange, ccxt.huobipro):
             'params': params,
         }
         future = self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
-        return await self.after(future, self.filter_array_by_since_limit, since, limit, 'timestamp', True)
-
-    def filter_array_by_since_limit(self, array, since=None, limit=None, key='timestamp', tail=False):
-        return self.filter_by_since_limit(array, since, limit, key, tail)
+        return await self.after(future, self.filter_by_since_limit, since, limit, 'timestamp', True)
 
     def handle_trades(self, client, message):
         #
@@ -186,7 +183,7 @@ class huobipro(Exchange, ccxt.huobipro):
             'params': params,
         }
         future = self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
-        return await self.after(future, self.filter_array_by_since_limit, since, limit, 0, True)
+        return await self.after(future, self.filter_by_since_limit, since, limit, 0, True)
 
     def find_timeframe(self, timeframe):
         # redo to use reverse lookups in a static map instead
