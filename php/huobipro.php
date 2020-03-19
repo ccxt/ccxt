@@ -255,7 +255,7 @@ class huobipro extends \ccxt\huobipro {
 
     public function watch_order_book ($symbol, $limit = null, $params = array ()) {
         if (($limit !== null) && ($limit !== 150)) {
-            throw ExchangeError ($this->id . ' watchOrderBook accepts $limit = 150 only');
+            throw new ExchangeError($this->id . ' watchOrderBook accepts $limit = 150 only');
         }
         $this->load_markets();
         $market = $this->market ($symbol);
