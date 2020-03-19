@@ -246,7 +246,7 @@ class lakebtc extends Exchange {
             }
         } else {
             $this->check_required_credentials();
-            $nonce = $this->nonce ();
+            $nonce = $this->nonce();
             $queryParams = '';
             if (is_array($params) && array_key_exists('params', $params)) {
                 $paramsList = $params['params'];

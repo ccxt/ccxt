@@ -482,7 +482,7 @@ class adara extends Exchange {
         //                         serializedAt => 1543109275996 ),
         //       relationships => array( $symbol => array( data => array( type => "$symbol", id => "ETHBTC" ) ) ) }
         //
-        $symbol = $this->get_symbol_from_market_id ($this->safe_string($ticker, 'id'), $market);
+        $symbol = $this->get_symbol_from_market_id($this->safe_string($ticker, 'id'), $market);
         $attributes = $this->safe_value($ticker, 'attributes', array());
         $timestamp = $this->safe_integer($attributes, 'serializedAt');
         $last = $this->safe_float($attributes, 'currentPrice');
@@ -1061,7 +1061,7 @@ class adara extends Exchange {
         //                                   createdAt => "2018-11-28T19:47:57.451Z" } }                ),
         //           meta => array( total => 1 )                                                                         }
         //
-        return $this->parse_orders_response ($response, $market, $since, $limit);
+        return $this->parse_orders_response($response, $market, $since, $limit);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -1183,7 +1183,7 @@ class adara extends Exchange {
         $data = $this->safe_value($response, 'data');
         $response['data'] = array();
         $response['data'][] = $data;
-        $orders = $this->parse_orders_response ($response);
+        $orders = $this->parse_orders_response($response);
         $ordersById = $this->index_by($orders, 'id');
         if (is_array($ordersById) && array_key_exists($id, $ordersById)) {
             return $ordersById[$id];
@@ -1205,7 +1205,7 @@ class adara extends Exchange {
             }
         }
         if ($api === 'private') {
-            $nonce = $this->nonce ();
+            $nonce = $this->nonce();
             $expiredAt = $this->sum ($nonce, $this->safe_integer($this->options, 'expiredAt', 10000));
             $expiredAt = (string) $expiredAt;
             if (($method === 'POST') || ($method === 'PATCH')) {

@@ -482,7 +482,7 @@ class crex24 extends Exchange {
         //                   bid =>  0.0007,
         //             timestamp => "2018-10-31T09:21:25Z" }   )
         //
-        return $this->parse_tickers ($response, $symbols);
+        return $this->parse_tickers($response, $symbols);
     }
 
     public function parse_tickers ($tickers, $symbols = null) {
@@ -1134,14 +1134,14 @@ class crex24 extends Exchange {
         $request = array(
             'type' => 'deposit',
         );
-        return $this->fetch_transactions ($code, $since, $limit, array_merge($request, $params));
+        return $this->fetch_transactions($code, $since, $limit, array_merge($request, $params));
     }
 
     public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
         $request = array(
             'type' => 'withdrawal',
         );
-        return $this->fetch_transactions ($code, $since, $limit, array_merge($request, $params));
+        return $this->fetch_transactions($code, $since, $limit, array_merge($request, $params));
     }
 
     public function parse_transaction_status ($status) {
@@ -1181,7 +1181,7 @@ class crex24 extends Exchange {
         $type = $this->safe_string($transaction, 'type');
         $timestamp = $this->parse8601 ($this->safe_string($transaction, 'createdAt'));
         $updated = $this->parse8601 ($this->safe_string($transaction, 'processedAt'));
-        $status = $this->parse_transaction_status ($this->safe_string($transaction, 'status'));
+        $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         $amount = $this->safe_float($transaction, 'amount');
         $feeCost = $this->safe_float($transaction, 'fee');
         $fee = array(
@@ -1260,7 +1260,7 @@ class crex24 extends Exchange {
         $url = $this->urls['api'] . $request;
         if (($api === 'trading') || ($api === 'account')) {
             $this->check_required_credentials();
-            $nonce = (string) $this->nonce ();
+            $nonce = (string) $this->nonce();
             $secret = base64_decode($this->secret);
             $auth = $request . $nonce;
             $headers = array(

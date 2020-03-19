@@ -183,7 +183,7 @@ class bitmart extends Exchange {
             throw new AuthenticationError($this->id . ' signIn() failed to authenticate. Access token missing from $response->');
         }
         $expiresIn = $this->safe_integer($response, 'expires_in');
-        $this->options['expires'] = $this->sum ($this->nonce (), $expiresIn * 1000);
+        $this->options['expires'] = $this->sum ($this->nonce(), $expiresIn * 1000);
         $this->options['accessToken'] = $accessToken;
         return $response;
     }
@@ -818,17 +818,17 @@ class bitmart extends Exchange {
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         // 5 = pending & partially filled orders
-        return $this->fetch_orders_by_status (5, $symbol, $since, $limit, $params);
+        return $this->fetch_orders_by_status(5, $symbol, $since, $limit, $params);
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         // 3 = closed orders
-        return $this->fetch_orders_by_status (3, $symbol, $since, $limit, $params);
+        return $this->fetch_orders_by_status(3, $symbol, $since, $limit, $params);
     }
 
     public function fetch_canceled_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         // 4 = canceled orders
-        return $this->fetch_orders_by_status (4, $symbol, $since, $limit, $params);
+        return $this->fetch_orders_by_status(4, $symbol, $since, $limit, $params);
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
@@ -872,7 +872,7 @@ class bitmart extends Exchange {
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );
         } else {
-            $nonce = $this->nonce ();
+            $nonce = $this->nonce();
             $this->check_required_credentials();
             $token = $this->safe_string($this->options, 'accessToken');
             if ($token === null) {

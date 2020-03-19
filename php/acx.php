@@ -437,8 +437,8 @@ class acx extends Exchange {
             }
         } else {
             $this->check_required_credentials();
-            $nonce = (string) $this->nonce ();
-            $query = $this->encode_params (array_merge(array(
+            $nonce = (string) $this->nonce();
+            $query = $this->encode_params(array_merge(array(
                 'access_key' => $this->apiKey,
                 'tonce' => $nonce,
             ), $params));

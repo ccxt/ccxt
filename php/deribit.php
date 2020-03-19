@@ -1604,7 +1604,7 @@ class deribit extends Exchange {
         $code = $this->safe_currency_code($currencyId, $currency);
         $timestamp = $this->safe_integer($transaction, 'created_timestamp', 'received_timestamp');
         $updated = $this->safe_integer($transaction, 'updated_timestamp');
-        $status = $this->parse_transaction_status ($this->safe_string($transaction, 'state'));
+        $status = $this->parse_transaction_status($this->safe_string($transaction, 'state'));
         $address = $this->safe_string($transaction, 'address');
         $feeCost = $this->safe_float($transaction, 'fee');
         $type = 'deposit';
@@ -1671,7 +1671,7 @@ class deribit extends Exchange {
         }
         if ($api === 'private') {
             $this->check_required_credentials();
-            $nonce = (string) $this->nonce ();
+            $nonce = (string) $this->nonce();
             $timestamp = (string) $this->milliseconds ();
             $requestBody = '';
             if ($params) {

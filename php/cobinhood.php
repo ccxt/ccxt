@@ -805,7 +805,7 @@ class cobinhood extends Exchange {
             'type' => $type,
             'amount' => $this->safe_float($transaction, 'amount'),
             'currency' => $code,
-            'status' => $this->parse_transaction_status ($transaction['status']),
+            'status' => $this->parse_transaction_status($transaction['status']),
             'updated' => null,
             'fee' => array(
                 'cost' => $this->safe_float($transaction, 'fee'),
@@ -821,7 +821,7 @@ class cobinhood extends Exchange {
         if ($api === 'private') {
             $this->check_required_credentials();
             // $headers['device_id'] = $this->apiKey;
-            $headers['nonce'] = (string) $this->nonce ();
+            $headers['nonce'] = (string) $this->nonce();
             $headers['Authorization'] = $this->apiKey;
         }
         if ($method === 'GET') {

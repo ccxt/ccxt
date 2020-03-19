@@ -308,7 +308,7 @@ class anxpro extends Exchange {
         $currencyId = $this->safe_string($transaction, 'ccy');
         $code = $this->safe_currency_code($currencyId);
         $transactionState = $this->safe_string($transaction, 'transactionState');
-        $status = $this->parse_transaction_status ($transactionState);
+        $status = $this->parse_transaction_status($transactionState);
         $feeCost = $this->safe_float($transaction, 'fee');
         $netAmount = $amount - $feeCost;
         return array(
@@ -888,9 +888,9 @@ class anxpro extends Exchange {
 
     public function parse_order ($order, $market = null) {
         if (is_array($order) && array_key_exists('orderId', $order)) {
-            return $this->parse_order_v3 ($order, $market);
+            return $this->parse_order_v3($order, $market);
         } else {
-            return $this->parse_order_v2 ($order, $market);
+            return $this->parse_order_v2($order, $market);
         }
     }
 
@@ -1126,7 +1126,7 @@ class anxpro extends Exchange {
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency ($code);
-        $multiplier = $this->get_amount_multiplier ($code);
+        $multiplier = $this->get_amount_multiplier($code);
         $request = array(
             'currency' => $currency,
             'amount_int' => intval ($amount * $multiplier),
@@ -1174,7 +1174,7 @@ class anxpro extends Exchange {
             }
         } else {
             $this->check_required_credentials();
-            $nonce = $this->nonce ();
+            $nonce = $this->nonce();
             $auth = null;
             $contentType = null;
             if ($api === 'v3private') {

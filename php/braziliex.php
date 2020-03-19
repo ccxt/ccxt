@@ -99,7 +99,7 @@ class braziliex extends Exchange {
     }
 
     public function fetch_currencies ($params = array ()) {
-        $response = $this->fetch_currencies_from_cache ($params);
+        $response = $this->fetch_currencies_from_cache($params);
         //
         //     {
         //         brl => array(
@@ -218,7 +218,7 @@ class braziliex extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        $currencies = $this->fetch_currencies_from_cache ($params);
+        $currencies = $this->fetch_currencies_from_cache($params);
         $response = $this->publicGetTicker ();
         //
         //     {

@@ -220,7 +220,7 @@ class timex extends Exchange {
         //
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
-            $result[] = $this->parse_market ($response[$i]);
+            $result[] = $this->parse_market($response[$i]);
         }
         return $result;
     }
@@ -255,7 +255,7 @@ class timex extends Exchange {
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $currency = $response[$i];
-            $result[] = $this->parse_currency ($currency);
+            $result[] = $this->parse_currency($currency);
         }
         return $this->index_by($result, 'code');
     }
@@ -284,7 +284,7 @@ class timex extends Exchange {
         //         }
         //     )
         //
-        return $this->parse_tickers ($response, $symbols);
+        return $this->parse_tickers($response, $symbols);
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {
@@ -565,7 +565,7 @@ class timex extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        return $this->cancel_orders (array( $id ), $symbol, $params);
+        return $this->cancel_orders(array( $id ), $symbol, $params);
     }
 
     public function cancel_orders ($ids, $symbol = null, $params = array ()) {

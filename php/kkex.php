@@ -548,7 +548,7 @@ class kkex extends Exchange {
             $headers = array( 'Content-Type' => 'application/json' );
         } else {
             $this->check_required_credentials();
-            $nonce = $this->nonce ();
+            $nonce = $this->nonce();
             $signature = array_merge(array(
                 'nonce' => $nonce,
                 'api_key' => $this->apiKey,

@@ -307,7 +307,7 @@ class btcturk extends Exchange {
             }
         } else {
             $this->check_required_credentials();
-            $nonce = (string) $this->nonce ();
+            $nonce = (string) $this->nonce();
             $body = $this->urlencode ($params);
             $secret = base64_decode($this->secret);
             $auth = $this->apiKey . $nonce;

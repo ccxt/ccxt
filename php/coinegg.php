@@ -460,7 +460,7 @@ class coinegg extends Exchange {
             $this->check_required_credentials();
             $query = $this->urlencode (array_merge(array(
                 'key' => $this->apiKey,
-                'nonce' => $this->nonce (),
+                'nonce' => $this->nonce(),
             ), $query));
             $secret = $this->hash ($this->encode ($this->secret));
             $signature = $this->hmac ($this->encode ($query), $this->encode ($secret));

@@ -421,13 +421,13 @@ class bytetrade extends Exchange {
     public function fetch_bids_asks ($symbols = null, $params = array ()) {
         $this->load_markets();
         $rawTickers = $this->marketGetDepth ($params);
-        return $this->parse_tickers ($rawTickers, $symbols);
+        return $this->parse_tickers($rawTickers, $symbols);
     }
 
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
         $rawTickers = $this->marketGetTickers ($params);
-        return $this->parse_tickers ($rawTickers, $symbols);
+        return $this->parse_tickers($rawTickers, $symbols);
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
@@ -1114,7 +1114,7 @@ class bytetrade extends Exchange {
         $timestamp = $this->safe_integer($transaction, 'timestamp');
         $datetime = $this->safe_string($transaction, 'datetime');
         $type = $this->safe_string($transaction, 'type');
-        $status = $this->parse_transaction_status ($this->safe_string($transaction, 'status'));
+        $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         $amount = $this->safe_float($transaction, 'amount');
         $feeInfo = $this->safe_value($transaction, 'fee');
         $feeCost = $this->safe_float($feeInfo, 'cost');
@@ -1172,7 +1172,7 @@ class bytetrade extends Exchange {
         if ($this->apiKey === null) {
             throw new ArgumentsRequired('withdraw requires $this->apiKey');
         }
-        $addressResponse = $this->fetch_deposit_address ($code);
+        $addressResponse = $this->fetch_deposit_address($code);
         $chainTypeString = $this->safe_string($addressResponse, 'chainType');
         $chainId = $this->safe_string($addressResponse['info'][0], 'chainId');
         $middleAddress = '';

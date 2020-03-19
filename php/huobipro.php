@@ -209,7 +209,7 @@ class huobipro extends Exchange {
         $result = array();
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];
-            $result[$symbol] = $this->fetch_trading_limits_by_id ($this->market_id($symbol), $params);
+            $result[$symbol] = $this->fetch_trading_limits_by_id($this->market_id($symbol), $params);
         }
         return $result;
     }
@@ -235,7 +235,7 @@ class huobipro extends Exchange {
         //                 'market-sell-order-rate-must-less-than' =>  0.1,
         //                  'market-buy-order-rate-must-less-than' =>  0.1        } }
         //
-        return $this->parse_trading_limits ($this->safe_value($response, 'data', array()));
+        return $this->parse_trading_limits($this->safe_value($response, 'data', array()));
     }
 
     public function parse_trading_limits ($limits, $symbol = null, $params = array ()) {
@@ -826,7 +826,7 @@ class huobipro extends Exchange {
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders_by_states ('pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled', $symbol, $since, $limit, $params);
+        return $this->fetch_orders_by_states('pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled', $symbol, $since, $limit, $params);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -838,11 +838,11 @@ class huobipro extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOpenOrdersV1 requires a $symbol argument');
         }
-        return $this->fetch_orders_by_states ('pre-submitted,submitted,partial-filled', $symbol, $since, $limit, $params);
+        return $this->fetch_orders_by_states('pre-submitted,submitted,partial-filled', $symbol, $since, $limit, $params);
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders_by_states ('filled,partial-canceled,canceled', $symbol, $since, $limit, $params);
+        return $this->fetch_orders_by_states('filled,partial-canceled,canceled', $symbol, $since, $limit, $params);
     }
 
     public function fetch_open_orders_v2 ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -1289,7 +1289,7 @@ class huobipro extends Exchange {
         if ($type === 'withdraw') {
             $type = 'withdrawal';
         }
-        $status = $this->parse_transaction_status ($this->safe_string($transaction, 'state'));
+        $status = $this->parse_transaction_status($this->safe_string($transaction, 'state'));
         $tag = $this->safe_string($transaction, 'address-tag');
         $feeCost = $this->safe_float($transaction, 'fee');
         if ($feeCost !== null) {

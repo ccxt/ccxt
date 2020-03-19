@@ -1050,7 +1050,7 @@ class bw extends Exchange {
         }
         $type = (is_array($transaction) && array_key_exists('depositId', $transaction)) ? 'deposit' : 'withdrawal';
         $amount = $this->safe_float_2($transaction, 'actuallyAmount', 'amount');
-        $status = $this->parse_transaction_status ($this->safe_string_2($transaction, 'verifyStatus', 'state'));
+        $status = $this->parse_transaction_status($this->safe_string_2($transaction, 'verifyStatus', 'state'));
         $timestamp = $this->safe_integer($transaction, 'createTime');
         $txid = $this->safe_string($transaction, 'txId');
         $fee = null;

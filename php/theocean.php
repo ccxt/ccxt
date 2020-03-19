@@ -269,7 +269,7 @@ class theocean extends Exchange {
         $result = array();
         for ($i = 0; $i < count($codes); $i++) {
             $code = $codes[$i];
-            $result[$code] = $this->fetch_balance_by_code ($code);
+            $result[$code] = $this->fetch_balance_by_code($code);
         }
         return $this->parse_balance($result);
     }
@@ -518,14 +518,14 @@ class theocean extends Exchange {
         if (!$this->privateKey || (mb_strpos($this->privateKey, '0x') !== 0)) {
             throw new InvalidAddress($errorMessage);
         }
-        $orderParams = $this->fetch_order_params_to_sign ($symbol, $type, $side, $amount, $price, $params);
+        $orderParams = $this->fetch_order_params_to_sign($symbol, $type, $side, $amount, $price, $params);
         $unsignedOrder = $orderParams['unsignedZeroExOrder'];
         if ($unsignedOrder === null) {
             throw new OrderNotFillable($this->id . ' ' . $type . ' $order to ' . $side . ' ' . $symbol . ' is not fillable at the moment');
         }
         $signedOrder = $this->signZeroExOrderV2 ($unsignedOrder, $this->privateKey);
         $id = $this->safe_string($signedOrder, 'orderHash');
-        $this->post_signed_order ($signedOrder, $orderParams, $params);
+        $this->post_signed_order($signedOrder, $orderParams, $params);
         $order = $this->fetch_order($id);
         $order['type'] = $type;
         return $order;

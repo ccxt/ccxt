@@ -597,7 +597,7 @@ class stex extends Exchange {
         //     }
         //
         $tickers = $this->safe_value($response, 'data', array());
-        return $this->parse_tickers ($tickers, $symbols);
+        return $this->parse_tickers($tickers, $symbols);
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1d', $since = null, $limit = null) {
@@ -1085,7 +1085,7 @@ class stex extends Exchange {
     }
 
     public function fetch_order_trades ($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
-        $order = $this->fetch_closed_order ($id, $symbol, $params);
+        $order = $this->fetch_closed_order($id, $symbol, $params);
         return $order['trades'];
     }
 
@@ -1337,7 +1337,7 @@ class stex extends Exchange {
 
     public function fetch_deposit_address ($code, $params = array ()) {
         $this->load_markets();
-        $balance = $this->fetch_balance ();
+        $balance = $this->fetch_balance();
         $wallets = $this->safe_value($balance['info'], 'data', array());
         $walletsByCurrencyId = $this->index_by($wallets, 'currency_id');
         $currency = $this->currency ($code);
@@ -1530,7 +1530,7 @@ class stex extends Exchange {
         }
         $type = (is_array($transaction) && array_key_exists('deposit_status_id', $transaction)) ? 'deposit' : 'withdrawal';
         $amount = $this->safe_float($transaction, 'amount');
-        $status = $this->parse_transaction_status ($this->safe_string_lower($transaction, 'status'));
+        $status = $this->parse_transaction_status($this->safe_string_lower($transaction, 'status'));
         $timestamp = $this->safe_timestamp_2($transaction, 'timestamp', 'created_ts');
         $updated = $this->safe_timestamp($transaction, 'updated_ts');
         $txid = $this->safe_string($transaction, 'txid');

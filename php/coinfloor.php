@@ -312,7 +312,7 @@ class coinfloor extends Exchange {
         }
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
-        $type = $this->parse_ledger_entry_type ($this->safe_string($item, 'type'));
+        $type = $this->parse_ledger_entry_type($this->safe_string($item, 'type'));
         $referenceId = $this->safe_string($item, 'id');
         $timestamp = $this->parse8601 ($this->safe_string($item, 'datetime'));
         $fee = null;

@@ -430,7 +430,7 @@ class bitstamp extends Exchange {
             // if the $market is still not defined
             // try to deduce it from used $keys
             if ($market === null) {
-                $market = $this->get_market_from_trade ($trade);
+                $market = $this->get_market_from_trade($trade);
             }
         }
         $feeCost = $this->safe_float($trade, 'fee');
@@ -762,7 +762,7 @@ class bitstamp extends Exchange {
         //
         $timestamp = $this->parse8601 ($this->safe_string($transaction, 'datetime'));
         $id = $this->safe_string($transaction, 'id');
-        $currencyId = $this->get_currency_id_from_transaction ($transaction);
+        $currencyId = $this->get_currency_id_from_transaction($transaction);
         $code = $this->safe_currency_code($currencyId, $currency);
         $feeCost = $this->safe_float($transaction, 'fee');
         $feeCurrency = null;
@@ -782,7 +782,7 @@ class bitstamp extends Exchange {
         }
         $status = 'ok';
         if (is_array($transaction) && array_key_exists('status', $transaction)) {
-            $status = $this->parse_transaction_status ($this->safe_string($transaction, 'status'));
+            $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         }
         $type = null;
         if (is_array($transaction) && array_key_exists('type', $transaction)) {
@@ -942,7 +942,7 @@ class bitstamp extends Exchange {
         }
         $price = $this->safe_float($order, 'price');
         if ($market === null) {
-            $market = $this->get_market_from_trades ($trades);
+            $market = $this->get_market_from_trades($trades);
         }
         $feeCurrency = null;
         if ($market !== null) {
@@ -1039,10 +1039,10 @@ class bitstamp extends Exchange {
     }
 
     public function fetch_deposit_address ($code, $params = array ()) {
-        if ($this->is_fiat ($code)) {
+        if ($this->is_fiat($code)) {
             throw new NotSupported($this->id . ' fiat fetchDepositAddress() for ' . $code . ' is not implemented yet');
         }
-        $name = $this->get_currency_name ($code);
+        $name = $this->get_currency_name($code);
         $v1 = ($code === 'BTC');
         $method = $v1 ? 'v1' : 'private'; // $v1 or v2
         $method .= 'Post' . $this->capitalize ($name);
@@ -1065,10 +1065,10 @@ class bitstamp extends Exchange {
 
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
-        if ($this->is_fiat ($code)) {
+        if ($this->is_fiat($code)) {
             throw new NotSupported($this->id . ' fiat withdraw() for ' . $code . ' is not implemented yet');
         }
-        $name = $this->get_currency_name ($code);
+        $name = $this->get_currency_name($code);
         $request = array(
             'amount' => $amount,
             'address' => $address,
@@ -1107,7 +1107,7 @@ class bitstamp extends Exchange {
             $this->check_required_credentials();
             $authVersion = $this->safe_value($this->options, 'auth', 'v2');
             if (($authVersion === 'v1') || ($api === 'v1')) {
-                $nonce = (string) $this->nonce ();
+                $nonce = (string) $this->nonce();
                 $auth = $nonce . $this->uid . $this->apiKey;
                 $signature = $this->encode ($this->hmac ($this->encode ($auth), $this->encode ($this->secret)));
                 $query = array_merge(array(

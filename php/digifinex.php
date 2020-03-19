@@ -1053,7 +1053,7 @@ class digifinex extends Exchange {
         //
         $id = $this->safe_string($item, 'num');
         $account = null;
-        $type = $this->parse_ledger_entry_type ($this->safe_string($item, 'type'));
+        $type = $this->parse_ledger_entry_type($this->safe_string($item, 'type'));
         $code = $this->safe_currency_code($this->safe_string($item, 'currency_mark'), $currency);
         $timestamp = $this->safe_timestamp($item, 'time');
         $before = null;

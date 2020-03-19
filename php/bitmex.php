@@ -504,7 +504,7 @@ class bitmex extends Exchange {
         $account = $this->safe_string($item, 'account');
         $referenceId = $this->safe_string($item, 'tx');
         $referenceAccount = null;
-        $type = $this->parse_ledger_entry_type ($this->safe_string($item, 'transactType'));
+        $type = $this->parse_ledger_entry_type($this->safe_string($item, 'transactType'));
         $currencyId = $this->safe_string($item, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
         $amount = $this->safe_float($item, 'amount');
@@ -538,7 +538,7 @@ class bitmex extends Exchange {
         } else {
             $direction = 'in';
         }
-        $status = $this->parse_transaction_status ($this->safe_string($item, 'transactStatus'));
+        $status = $this->parse_transaction_status($this->safe_string($item, 'transactStatus'));
         return array(
             'id' => $id,
             'info' => $item,
@@ -678,7 +678,7 @@ class bitmex extends Exchange {
         );
         $status = $this->safe_string($transaction, 'transactStatus');
         if ($status !== null) {
-            $status = $this->parse_transaction_status ($status);
+            $status = $this->parse_transaction_status($status);
         }
         return array(
             'info' => $transaction,

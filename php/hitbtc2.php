@@ -985,7 +985,7 @@ class hitbtc2 extends hitbtc {
         $updated = $this->parse8601 ($this->safe_string($transaction, 'updatedAt'));
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $status = $this->parse_transaction_status ($this->safe_string($transaction, 'status'));
+        $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         $amount = $this->safe_float($transaction, 'amount');
         $address = $this->safe_string($transaction, 'address');
         $txid = $this->safe_string($transaction, 'hash');
@@ -997,7 +997,7 @@ class hitbtc2 extends hitbtc {
                 'currency' => $code,
             );
         }
-        $type = $this->parse_transaction_type ($this->safe_string($transaction, 'type'));
+        $type = $this->parse_transaction_type($this->safe_string($transaction, 'type'));
         return array(
             'info' => $transaction,
             'id' => $id,

@@ -262,7 +262,7 @@ class bybit extends Exchange {
     }
 
     public function load_time_difference () {
-        $serverTime = $this->fetch_time ();
+        $serverTime = $this->fetch_time();
         $after = $this->milliseconds ();
         $this->options['timeDifference'] = $after - $serverTime;
         return $this->options['timeDifference'];
@@ -285,7 +285,7 @@ class bybit extends Exchange {
 
     public function fetch_markets ($params = array ()) {
         if ($this->options['adjustForTimeDifference']) {
-            $this->load_time_difference ();
+            $this->load_time_difference();
         }
         $response = $this->publicGetSymbols ($params);
         //
@@ -1680,7 +1680,7 @@ class bybit extends Exchange {
         $code = $this->safe_currency_code($currencyId, $currency);
         $timestamp = $this->parse8601 ($this->safe_string($transaction, 'submited_at'));
         $updated = $this->parse8601 ($this->safe_string($transaction, 'updated_at'));
-        $status = $this->parse_transaction_status ($this->safe_string($transaction, 'status'));
+        $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         $address = $this->safe_string($transaction, 'address');
         $feeCost = $this->safe_float($transaction, 'fee');
         $fee = null;
@@ -1795,7 +1795,7 @@ class bybit extends Exchange {
             $before = $this->sum ($after, $difference);
         }
         $timestamp = $this->parse8601 ($this->safe_string($item, 'exec_time'));
-        $type = $this->parse_ledger_entry_type ($this->safe_string($item, 'type'));
+        $type = $this->parse_ledger_entry_type($this->safe_string($item, 'type'));
         $id = $this->safe_string($item, 'id');
         $referenceId = $this->safe_string($item, 'tx_id');
         return array(
@@ -1851,7 +1851,7 @@ class bybit extends Exchange {
                 // position, user
                 $request .= '/' . $api . '/' . $request;
             }
-            $timestamp = $this->nonce ();
+            $timestamp = $this->nonce();
             $query = array_merge($params, array(
                 'api_key' => $this->apiKey,
                 'recvWindow' => $this->options['recvWindow'],

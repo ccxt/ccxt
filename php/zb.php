@@ -271,7 +271,7 @@ class zb extends Exchange {
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $marketFieldName = $this->get_market_field_name ();
+        $marketFieldName = $this->get_market_field_name();
         $request = array();
         $request[$marketFieldName] = $market['id'];
         if ($limit !== null) {
@@ -302,7 +302,7 @@ class zb extends Exchange {
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $marketFieldName = $this->get_market_field_name ();
+        $marketFieldName = $this->get_market_field_name();
         $request = array();
         $request[$marketFieldName] = $market['id'];
         $response = $this->publicGetTicker (array_merge($request, $params));
@@ -397,7 +397,7 @@ class zb extends Exchange {
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $marketFieldName = $this->get_market_field_name ();
+        $marketFieldName = $this->get_market_field_name();
         $request = array();
         $request[$marketFieldName] = $market['id'];
         $response = $this->publicGetTrades (array_merge($request, $params));
@@ -533,7 +533,7 @@ class zb extends Exchange {
         $side = ($side === 1) ? 'buy' : 'sell';
         $type = 'limit'; // $market $order is not availalbe in ZB
         $timestamp = null;
-        $createDateField = $this->get_create_date_field ();
+        $createDateField = $this->get_create_date_field();
         if (is_array($order) && array_key_exists($createDateField, $order)) {
             $timestamp = $order[$createDateField];
         }
@@ -612,7 +612,7 @@ class zb extends Exchange {
                 'method' => $path,
                 'accesskey' => $this->apiKey,
             ), $params));
-            $nonce = $this->nonce ();
+            $nonce = $this->nonce();
             $query = $this->keysort ($query);
             $auth = $this->rawencode ($query);
             $secret = $this->hash ($this->encode ($this->secret), 'sha1');

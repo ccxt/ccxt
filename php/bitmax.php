@@ -443,7 +443,7 @@ class bitmax extends Exchange {
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
         $response = $this->publicGetTicker24hr ($params);
-        return $this->parse_tickers ($response, $symbols);
+        return $this->parse_tickers($response, $symbols);
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
@@ -754,7 +754,7 @@ class bitmax extends Exchange {
         $this->load_accounts();
         $market = $this->market ($symbol);
         $request = array(
-            'coid' => $this->coid (), // a unique identifier of length 32
+            'coid' => $this->coid(), // a unique identifier of length 32
             // 'time' => $this->milliseconds (), // milliseconds since UNIX epoch in UTC, this is filled in the private section of the sign() method below
             'symbol' => $market['id'],
             // 'orderPrice' => $this->price_to_precision($symbol, $price), // optional, limit $price of the order. This field is required for limit orders and stop limit orders
@@ -1016,7 +1016,7 @@ class bitmax extends Exchange {
         $market = $this->market ($symbol);
         $request = array(
             'symbol' => $market['id'],
-            'coid' => $this->coid (),
+            'coid' => $this->coid(),
             'origCoid' => $id,
             // 'time' => $this->milliseconds (), // this is filled in the private section of the sign() method below
         );
@@ -1068,7 +1068,7 @@ class bitmax extends Exchange {
         $this->load_accounts();
         $currency = $this->currency ($code);
         $request = array(
-            'requestId' => $this->coid (),
+            'requestId' => $this->coid(),
             // 'time' => $this->milliseconds (), // this is filled in the private section of the sign() method below
             'assetCode' => $currency['id'],
         );

@@ -714,7 +714,7 @@ class yobit extends Exchange {
         if (is_array($response) && array_key_exists('return', $response)) {
             $openOrders = $this->parse_orders($response['return'], $market);
         }
-        $allOrders = $this->update_cached_orders ($openOrders, $symbol);
+        $allOrders = $this->update_cached_orders($openOrders, $symbol);
         $result = $this->filter_by_symbol($allOrders, $symbol);
         return $this->filter_by_since_limit($result, $since, $limit);
     }
@@ -770,7 +770,7 @@ class yobit extends Exchange {
         $request = array(
             'need_new' => 1,
         );
-        $response = $this->fetch_deposit_address ($code, array_merge($request, $params));
+        $response = $this->fetch_deposit_address($code, array_merge($request, $params));
         $address = $this->safe_string($response, 'address');
         $this->check_address($address);
         return array(

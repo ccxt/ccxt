@@ -490,7 +490,7 @@ class bittrex extends Exchange {
             if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$marketId];
             } else {
-                $symbol = $this->parse_symbol ($marketId);
+                $symbol = $this->parse_symbol($marketId);
             }
         }
         if (($symbol === null) && ($market !== null)) {
@@ -735,7 +735,7 @@ class bittrex extends Exchange {
         //         updatedAt => '2020-03-18T02:37:33.42Z'
         //       }
         //
-        return $this->parse_order_v3 ($response, $market);
+        return $this->parse_order_v3($response, $market);
     }
 
     public function create_order_v1 ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -753,7 +753,7 @@ class bittrex extends Exchange {
         // if ($type == 'limit')
         //     order['rate'] = $this->price_to_precision($symbol, $price);
         $response = $this->$method (array_merge($request, $params));
-        $orderIdField = $this->get_order_id_field ();
+        $orderIdField = $this->get_order_id_field();
         $orderId = $this->safe_string($response['result'], $orderIdField);
         return array(
             'info' => $response,
@@ -771,7 +771,7 @@ class bittrex extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $orderIdField = $this->get_order_id_field ();
+        $orderIdField = $this->get_order_id_field();
         $request = array();
         $request[$orderIdField] = $id;
         $response = $this->marketGetCancel (array_merge($request, $params));
@@ -968,9 +968,9 @@ class bittrex extends Exchange {
 
     public function parse_order ($order, $market = null) {
         if (is_array($order) && array_key_exists('marketSymbol', $order)) {
-            return $this->parse_order_v3 ($order, $market);
+            return $this->parse_order_v3($order, $market);
         } else {
-            return $this->parse_order_v2 ($order, $market);
+            return $this->parse_order_v2($order, $market);
         }
     }
 
@@ -1128,7 +1128,7 @@ class bittrex extends Exchange {
                     $market = $this->markets_by_id[$marketId];
                     $symbol = $market['symbol'];
                 } else {
-                    $symbol = $this->parse_symbol ($marketId);
+                    $symbol = $this->parse_symbol($marketId);
                 }
             }
         } else {
@@ -1218,7 +1218,7 @@ class bittrex extends Exchange {
         $this->load_markets();
         $response = null;
         try {
-            $orderIdField = $this->get_order_id_field ();
+            $orderIdField = $this->get_order_id_field();
             $request = array();
             $request[$orderIdField] = $id;
             $response = $this->accountGetOrder (array_merge($request, $params));
@@ -1260,14 +1260,14 @@ class bittrex extends Exchange {
         // this entire method should be moved to the base class
         $result = array();
         for ($i = 0; $i < count($orders); $i++) {
-            $result[] = $this->order_to_trade ($orders[$i]);
+            $result[] = $this->order_to_trade($orders[$i]);
         }
         return $result;
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $orders = $this->fetch_closed_orders ($symbol, $since, $limit, $params);
-        return $this->orders_to_trades ($orders);
+        $orders = $this->fetch_closed_orders($symbol, $since, $limit, $params);
+        return $this->orders_to_trades($orders);
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {

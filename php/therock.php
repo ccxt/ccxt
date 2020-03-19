@@ -504,8 +504,8 @@ class therock extends Exchange {
         $id = $this->safe_string($item, 'id');
         $referenceId = null;
         $type = $this->safe_string($item, 'type');
-        $direction = $this->parse_ledger_entry_direction ($type);
-        $type = $this->parse_ledger_entry_type ($type);
+        $direction = $this->parse_ledger_entry_direction($type);
+        $type = $this->parse_ledger_entry_type($type);
         if ($type === 'trade' || $type === 'fee') {
             $referenceId = $this->safe_string($item, 'trade_id');
         }
@@ -730,7 +730,7 @@ class therock extends Exchange {
         //     }
         //
         $id = $this->safe_string($transaction, 'id');
-        $type = $this->parse_transaction_type ($this->safe_string($transaction, 'type'));
+        $type = $this->parse_transaction_type($this->safe_string($transaction, 'type'));
         $detail = $this->safe_value($transaction, 'transfer_detail', array());
         $method = $this->safe_string($detail, 'method');
         $txid = null;
@@ -772,14 +772,14 @@ class therock extends Exchange {
         $request = array(
             'type' => 'withdraw',
         );
-        return $this->fetch_transactions ($code, $since, $limit, array_merge($request, $params));
+        return $this->fetch_transactions($code, $since, $limit, array_merge($request, $params));
     }
 
     public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
         $request = array(
             'type' => 'atm_payment',
         );
-        return $this->fetch_transactions ($code, $since, $limit, array_merge($request, $params));
+        return $this->fetch_transactions($code, $since, $limit, array_merge($request, $params));
     }
 
     public function fetch_transactions ($code = null, $since = null, $limit = null, $params = array ()) {

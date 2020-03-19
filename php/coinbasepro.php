@@ -820,7 +820,7 @@ class coinbasepro extends Exchange {
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
         $fee = null;
-        $status = $this->parse_transaction_status ($transaction);
+        $status = $this->parse_transaction_status($transaction);
         $amount = $this->safe_float($transaction, 'amount');
         $type = $this->safe_string($transaction, 'type');
         $address = $this->safe_string($details, 'crypto_address');
