@@ -212,7 +212,7 @@ class btctradeua extends Exchange {
     public function parse_cyrillic_datetime ($cyrillic) {
         $parts = explode(' ', $cyrillic);
         $day = $parts[0];
-        $month = $this->convert_cyrillic_month_name_to_string ($parts[1]);
+        $month = $this->convert_cyrillic_month_name_to_string($parts[1]);
         if (!$month) {
             throw new ExchangeError($this->id . ' parseTrade() null $month name => ' . $cyrillic);
         }
@@ -241,7 +241,7 @@ class btctradeua extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $this->parse_cyrillic_datetime ($this->safe_string($trade, 'pub_date'));
+        $timestamp = $this->parse_cyrillic_datetime($this->safe_string($trade, 'pub_date'));
         $id = $this->safe_string($trade, 'id');
         $type = 'limit';
         $side = $this->safe_string($trade, 'type');
@@ -366,7 +366,7 @@ class btctradeua extends Exchange {
             }
         } else {
             $this->check_required_credentials();
-            $nonce = $this->nonce ();
+            $nonce = $this->nonce();
             $body = $this->urlencode (array_merge(array(
                 'out_order_id' => $nonce,
                 'nonce' => $nonce,

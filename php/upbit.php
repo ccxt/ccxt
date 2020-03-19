@@ -159,7 +159,7 @@ class upbit extends Exchange {
         // it requires private access and API keys properly set up
         $this->load_markets();
         $currency = $this->currency ($code);
-        return $this->fetch_currency_by_id ($currency['id'], $params);
+        return $this->fetch_currency_by_id($currency['id'], $params);
     }
 
     public function fetch_currency_by_id ($id, $params = array ()) {
@@ -258,7 +258,7 @@ class upbit extends Exchange {
         // it requires private access and API keys properly set up
         $this->load_markets();
         $market = $this->market ($symbol);
-        return $this->fetch_market_by_id ($market['id'], $params);
+        return $this->fetch_market_by_id($market['id'], $params);
     }
 
     public function fetch_market_by_id ($id, $params = array ()) {
@@ -498,7 +498,7 @@ class upbit extends Exchange {
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $orderbook = $response[$i];
-            $symbol = $this->get_symbol_from_market_id ($this->safe_string($orderbook, 'market'));
+            $symbol = $this->get_symbol_from_market_id($this->safe_string($orderbook, 'market'));
             $timestamp = $this->safe_integer($orderbook, 'timestamp');
             $result[$symbol] = array(
                 'bids' => $this->sort_by($this->parse_bids_asks($orderbook['orderbook_units'], 'bid_price', 'bid_size'), 0, true),
@@ -512,7 +512,7 @@ class upbit extends Exchange {
     }
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
-        $orderbooks = $this->fetch_order_books (array( $symbol ), $limit, $params);
+        $orderbooks = $this->fetch_order_books(array( $symbol ), $limit, $params);
         return $this->safe_value($orderbooks, $symbol);
     }
 
@@ -546,7 +546,7 @@ class upbit extends Exchange {
         //                     $timestamp =>  1542883543813  }
         //
         $timestamp = $this->safe_integer($ticker, 'trade_timestamp');
-        $symbol = $this->get_symbol_from_market_id ($this->safe_string_2($ticker, 'market', 'code'), $market);
+        $symbol = $this->get_symbol_from_market_id($this->safe_string_2($ticker, 'market', 'code'), $market);
         $previous = $this->safe_float($ticker, 'prev_closing_price');
         $last = $this->safe_float($ticker, 'trade_price');
         $change = $this->safe_float($ticker, 'signed_change_price');
@@ -1057,7 +1057,7 @@ class upbit extends Exchange {
         }
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId);
-        $status = $this->parse_transaction_status ($this->safe_string($transaction, 'state'));
+        $status = $this->parse_transaction_status($this->safe_string($transaction, 'state'));
         $feeCost = $this->safe_float($transaction, 'fee');
         return array(
             'info' => $transaction,
@@ -1262,15 +1262,15 @@ class upbit extends Exchange {
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders_by_state ('wait', $symbol, $since, $limit, $params);
+        return $this->fetch_orders_by_state('wait', $symbol, $since, $limit, $params);
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders_by_state ('done', $symbol, $since, $limit, $params);
+        return $this->fetch_orders_by_state('done', $symbol, $since, $limit, $params);
     }
 
     public function fetch_canceled_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders_by_state ('cancel', $symbol, $since, $limit, $params);
+        return $this->fetch_orders_by_state('cancel', $symbol, $since, $limit, $params);
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
@@ -1328,7 +1328,7 @@ class upbit extends Exchange {
     public function parse_deposit_addresses ($addresses) {
         $result = array();
         for ($i = 0; $i < count($addresses); $i++) {
-            $result[] = $this->parse_deposit_address ($addresses[$i]);
+            $result[] = $this->parse_deposit_address($addresses[$i]);
         }
         return $result;
     }
@@ -1355,7 +1355,7 @@ class upbit extends Exchange {
         //         }
         //     )
         //
-        return $this->parse_deposit_addresses ($response);
+        return $this->parse_deposit_addresses($response);
     }
 
     public function parse_deposit_address ($depositAddress, $currency = null) {
@@ -1392,7 +1392,7 @@ class upbit extends Exchange {
         //         "secondary_address" => null
         //     }
         //
-        return $this->parse_deposit_address ($response);
+        return $this->parse_deposit_address($response);
     }
 
     public function create_deposit_address ($code, $params = array ()) {
@@ -1422,7 +1422,7 @@ class upbit extends Exchange {
         if ($message !== null) {
             throw new AddressPending($this->id . ' is generating ' . $code . ' deposit address, call fetchDepositAddress or createDepositAddress one more time later to retrieve the generated address');
         }
-        return $this->parse_deposit_address ($response);
+        return $this->parse_deposit_address($response);
     }
 
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
@@ -1478,7 +1478,7 @@ class upbit extends Exchange {
         }
         if ($api === 'private') {
             $this->check_required_credentials();
-            $nonce = $this->nonce ();
+            $nonce = $this->nonce();
             $request = array(
                 'access_key' => $this->apiKey,
                 'nonce' => $nonce,

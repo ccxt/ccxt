@@ -271,7 +271,7 @@ class kraken extends Exchange {
 
     public function fetch_markets ($params = array ()) {
         $response = $this->publicGetAssetPairs ($params);
-        $limits = $this->fetch_min_order_amounts ();
+        $limits = $this->fetch_min_order_amounts();
         $keys = is_array($response['result']) ? array_keys($response['result']) : array();
         $result = array();
         for ($i = 0; $i < count($keys); $i++) {
@@ -603,7 +603,7 @@ class kraken extends Exchange {
         $account = null;
         $referenceId = $this->safe_string($item, 'refid');
         $referenceAccount = null;
-        $type = $this->parse_ledger_entry_type ($this->safe_string($item, 'type'));
+        $type = $this->parse_ledger_entry_type($this->safe_string($item, 'type'));
         $code = $this->safe_currency_code($this->safe_string($item, 'asset'), $currency);
         $amount = $this->safe_float($item, 'amount');
         if ($amount < 0) {
@@ -708,7 +708,7 @@ class kraken extends Exchange {
     }
 
     public function fetch_ledger_entry ($id, $code = null, $params = array ()) {
-        $items = $this->fetch_ledger_entries_by_ids (array( $id ), $code, $params);
+        $items = $this->fetch_ledger_entries_by_ids(array( $id ), $code, $params);
         return $items[0];
     }
 
@@ -722,13 +722,13 @@ class kraken extends Exchange {
         $order = null;
         $fee = null;
         $marketId = $this->safe_string($trade, 'pair');
-        $foundMarket = $this->find_market_by_altname_or_id ($marketId);
+        $foundMarket = $this->find_market_by_altname_or_id($marketId);
         $symbol = null;
         if ($foundMarket !== null) {
             $market = $foundMarket;
         } else if ($marketId !== null) {
             // delisted $market ids go here
-            $market = $this->get_delisted_market_by_id ($marketId);
+            $market = $this->get_delisted_market_by_id($marketId);
         }
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -948,13 +948,13 @@ class kraken extends Exchange {
         $side = $this->safe_string($description, 'type');
         $type = $this->safe_string($description, 'ordertype');
         $marketId = $this->safe_string($description, 'pair');
-        $foundMarket = $this->find_market_by_altname_or_id ($marketId);
+        $foundMarket = $this->find_market_by_altname_or_id($marketId);
         $symbol = null;
         if ($foundMarket !== null) {
             $market = $foundMarket;
         } else if ($marketId !== null) {
             // delisted $market ids go here
-            $market = $this->get_delisted_market_by_id ($marketId);
+            $market = $this->get_delisted_market_by_id($marketId);
         }
         $timestamp = $this->safe_timestamp($order, 'opentm');
         $amount = $this->safe_float($order, 'vol');
@@ -1208,7 +1208,7 @@ class kraken extends Exchange {
         $code = $this->safe_currency_code($currencyId, $currency);
         $address = $this->safe_string($transaction, 'info');
         $amount = $this->safe_float($transaction, 'amount');
-        $status = $this->parse_transaction_status ($this->safe_string($transaction, 'status'));
+        $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         $type = $this->safe_string($transaction, 'type'); // injected from the outside
         $feeCost = $this->safe_float($transaction, 'fee');
         if ($feeCost === null) {
@@ -1271,7 +1271,7 @@ class kraken extends Exchange {
         //                     time =>  1529223212,
         //                   status => "Success"                                                       } ) }
         //
-        return $this->parse_transactions_by_type ('deposit', $response['result'], $code, $since, $limit);
+        return $this->parse_transactions_by_type('deposit', $response['result'], $code, $since, $limit);
     }
 
     public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
@@ -1298,14 +1298,14 @@ class kraken extends Exchange {
         //                     time =>  1530481750,
         //                   status => "Success"                                                             } ) }
         //
-        return $this->parse_transactions_by_type ('withdrawal', $response['result'], $code, $since, $limit);
+        return $this->parse_transactions_by_type('withdrawal', $response['result'], $code, $since, $limit);
     }
 
     public function create_deposit_address ($code, $params = array ()) {
         $request = array(
             'new' => 'true',
         );
-        $response = $this->fetch_deposit_address ($code, array_merge($request, $params));
+        $response = $this->fetch_deposit_address($code, array_merge($request, $params));
         $address = $this->safe_string($response, 'address');
         $this->check_address($address);
         return array(
@@ -1324,7 +1324,7 @@ class kraken extends Exchange {
             if ($this->options['cacheDepositMethodsOnFetchDepositAddress']) {
                 // cache depositMethods
                 if (!(is_array($this->options['depositMethods']) && array_key_exists($code, $this->options['depositMethods']))) {
-                    $this->options['depositMethods'][$code] = $this->fetch_deposit_methods ($code);
+                    $this->options['depositMethods'][$code] = $this->fetch_deposit_methods($code);
                 }
                 $method = $this->options['depositMethods'][$code][0]['method'];
             } else {
@@ -1379,7 +1379,7 @@ class kraken extends Exchange {
             }
         } else if ($api === 'private') {
             $this->check_required_credentials();
-            $nonce = (string) $this->nonce ();
+            $nonce = (string) $this->nonce();
             $body = $this->urlencode (array_merge(array( 'nonce' => $nonce ), $params));
             $auth = $this->encode ($nonce . $body);
             $hash = $this->hash ($auth, 'sha256', 'binary');

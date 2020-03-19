@@ -965,7 +965,7 @@ class bigone extends Exchange {
             }
         } else {
             $this->check_required_credentials();
-            $nonce = (string) $this->nonce ();
+            $nonce = (string) $this->nonce();
             $request = array(
                 'type' => 'OpenAPIV2',
                 'sub' => $this->apiKey,
@@ -1077,7 +1077,7 @@ class bigone extends Exchange {
         $code = $this->safe_currency_code($currencyId);
         $id = $this->safe_integer($transaction, 'id');
         $amount = $this->safe_float($transaction, 'amount');
-        $status = $this->parse_transaction_status ($this->safe_string($transaction, 'state'));
+        $status = $this->parse_transaction_status($this->safe_string($transaction, 'state'));
         $timestamp = $this->parse8601 ($this->safe_string($transaction, 'inserted_at'));
         $updated = $this->parse8601 ($this->safe_string_2($transaction, 'updated_at', 'completed_at'));
         $txid = $this->safe_string($transaction, 'txid');

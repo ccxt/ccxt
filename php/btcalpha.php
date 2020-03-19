@@ -445,7 +445,7 @@ class btcalpha extends Exchange {
             }
             $headers['X-KEY'] = $this->apiKey;
             $headers['X-SIGN'] = $this->hmac ($this->encode ($payload), $this->encode ($this->secret));
-            $headers['X-NONCE'] = (string) $this->nonce ();
+            $headers['X-NONCE'] = (string) $this->nonce();
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

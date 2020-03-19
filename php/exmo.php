@@ -503,12 +503,12 @@ class exmo extends Exchange {
             $depositFee = $this->safe_string($item, 'dep');
             if ($withdrawalFee !== null) {
                 if (strlen($withdrawalFee) > 0) {
-                    $withdraw[$code] = $this->parse_fixed_float_value ($withdrawalFee);
+                    $withdraw[$code] = $this->parse_fixed_float_value($withdrawalFee);
                 }
             }
             if ($depositFee !== null) {
                 if (strlen($depositFee) > 0) {
-                    $deposit[$code] = $this->parse_fixed_float_value ($depositFee);
+                    $deposit[$code] = $this->parse_fixed_float_value($depositFee);
                 }
             }
         }
@@ -1029,7 +1029,7 @@ class exmo extends Exchange {
             $parsedOrders = $this->parse_orders($response[$marketId], $market);
             $orders = $this->array_concat($orders, $parsedOrders);
         }
-        $this->update_cached_orders ($orders, $symbol);
+        $this->update_cached_orders($orders, $symbol);
         return $this->filter_by_symbol_since_limit($this->to_array($this->orders), $symbol, $since, $limit);
     }
 
@@ -1144,7 +1144,7 @@ class exmo extends Exchange {
             $status = 'open';
         }
         if ($market === null) {
-            $market = $this->get_market_from_trades ($trades);
+            $market = $this->get_market_from_trades($trades);
         }
         $feeCurrency = null;
         if ($market !== null) {
@@ -1289,7 +1289,7 @@ class exmo extends Exchange {
         if ($amount !== null) {
             $amount = abs($amount);
         }
-        $status = $this->parse_transaction_status ($this->safe_string($transaction, 'status'));
+        $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         $txid = $this->safe_string($transaction, 'txid');
         $type = $this->safe_string($transaction, 'type');
         $currencyId = $this->safe_string($transaction, 'curr');
@@ -1397,7 +1397,7 @@ class exmo extends Exchange {
             }
         } else if ($api === 'private') {
             $this->check_required_credentials();
-            $nonce = $this->nonce ();
+            $nonce = $this->nonce();
             $body = $this->urlencode (array_merge(array( 'nonce' => $nonce ), $params));
             $headers = array(
                 'Content-Type' => 'application/x-www-form-urlencoded',

@@ -460,7 +460,7 @@ class tidebit extends Exchange {
             }
         } else {
             $this->check_required_credentials();
-            $nonce = (string) $this->nonce ();
+            $nonce = (string) $this->nonce();
             $sortedByKey = $this->keysort (array_merge(array(
                 'access_key' => $this->apiKey,
                 'tonce' => $nonce,

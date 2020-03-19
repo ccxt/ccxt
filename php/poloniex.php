@@ -888,14 +888,14 @@ class poloniex extends Exchange {
         $response = $this->privatePostReturnOpenOrders (array_merge($request, $params));
         $openOrders = array();
         if ($market !== null) {
-            $openOrders = $this->parse_open_orders ($response, $market, $openOrders);
+            $openOrders = $this->parse_open_orders($response, $market, $openOrders);
         } else {
             $marketIds = is_array($response) ? array_keys($response) : array();
             for ($i = 0; $i < count($marketIds); $i++) {
                 $marketId = $marketIds[$i];
                 $orders = $response[$marketId];
                 $m = $this->markets_by_id[$marketId];
-                $openOrders = $this->parse_open_orders ($orders, $m, $openOrders);
+                $openOrders = $this->parse_open_orders($orders, $m, $openOrders);
             }
         }
         for ($j = 0; $j < count($openOrders); $j++) {
@@ -962,12 +962,12 @@ class poloniex extends Exchange {
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $orders = $this->fetch_orders($symbol, $since, $limit, $params);
-        return $this->filter_orders_by_status ($orders, 'open');
+        return $this->filter_orders_by_status($orders, 'open');
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $orders = $this->fetch_orders($symbol, $since, $limit, $params);
-        return $this->filter_orders_by_status ($orders, 'closed');
+        return $this->filter_orders_by_status($orders, 'closed');
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -1286,7 +1286,7 @@ class poloniex extends Exchange {
 
     public function fetch_transactions ($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->fetch_transactions_helper ($code, $since, $limit, $params);
+        $response = $this->fetch_transactions_helper($code, $since, $limit, $params);
         for ($i = 0; $i < count($response['deposits']); $i++) {
             $response['deposits'][$i]['type'] = 'deposit';
         }
@@ -1304,7 +1304,7 @@ class poloniex extends Exchange {
     }
 
     public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
-        $response = $this->fetch_transactions_helper ($code, $since, $limit, $params);
+        $response = $this->fetch_transactions_helper($code, $since, $limit, $params);
         for ($i = 0; $i < count($response['withdrawals']); $i++) {
             $response['withdrawals'][$i]['type'] = 'withdrawal';
         }
@@ -1317,7 +1317,7 @@ class poloniex extends Exchange {
     }
 
     public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
-        $response = $this->fetch_transactions_helper ($code, $since, $limit, $params);
+        $response = $this->fetch_transactions_helper($code, $since, $limit, $params);
         for ($i = 0; $i < count($response['deposits']); $i++) {
             $response['deposits'][$i]['type'] = 'deposit';
         }
@@ -1381,7 +1381,7 @@ class poloniex extends Exchange {
             if (($numParts > 1) && ($txid === null)) {
                 $txid = $parts[1];
             }
-            $status = $this->parse_transaction_status ($status);
+            $status = $this->parse_transaction_status($status);
         }
         $type = $this->safe_string($transaction, 'type');
         $id = $this->safe_string_2($transaction, 'withdrawalNumber', 'depositNumber');
@@ -1427,7 +1427,7 @@ class poloniex extends Exchange {
             $url .= '?' . $this->urlencode ($query);
         } else {
             $this->check_required_credentials();
-            $query['nonce'] = $this->nonce ();
+            $query['nonce'] = $this->nonce();
             $body = $this->urlencode ($query);
             $headers = array(
                 'Content-Type' => 'application/x-www-form-urlencoded',

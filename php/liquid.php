@@ -834,7 +834,7 @@ class liquid extends Exchange {
         $timestamp = $this->safe_timestamp($transaction, 'created_at');
         $updated = $this->safe_timestamp($transaction, 'updated_at');
         $type = 'withdrawal';
-        $status = $this->parse_transaction_status ($this->safe_string($transaction, 'state'));
+        $status = $this->parse_transaction_status($this->safe_string($transaction, 'state'));
         $amount = $this->safe_float($transaction, 'amount');
         return array(
             'info' => $transaction,
@@ -873,7 +873,7 @@ class liquid extends Exchange {
             } else if ($query) {
                 $body = $this->json ($query);
             }
-            $nonce = $this->nonce ();
+            $nonce = $this->nonce();
             $request = array(
                 'path' => $url,
                 'nonce' => $nonce,

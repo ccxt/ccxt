@@ -170,8 +170,8 @@ class buda extends Exchange {
             $quoteId = $this->safe_string($market, 'quote_currency');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $baseInfo = $this->fetch_currency_info ($baseId, $currencies);
-            $quoteInfo = $this->fetch_currency_info ($quoteId, $currencies);
+            $baseInfo = $this->fetch_currency_info($baseId, $currencies);
+            $quoteInfo = $this->fetch_currency_info($quoteId, $currencies);
             $symbol = $base . '/' . $quote;
             $precision = array(
                 'amount' => $baseInfo['input_decimals'],
@@ -270,8 +270,8 @@ class buda extends Exchange {
             $request = array( 'currency' => $currency['id'] );
             $withdrawResponse = $this->publicGetCurrenciesCurrencyFeesWithdrawal ($request);
             $depositResponse = $this->publicGetCurrenciesCurrencyFeesDeposit ($request);
-            $withdrawFees[$code] = $this->parse_funding_fee ($withdrawResponse['fee']);
-            $depositFees[$code] = $this->parse_funding_fee ($depositResponse['fee']);
+            $withdrawFees[$code] = $this->parse_funding_fee($withdrawResponse['fee']);
+            $depositFees[$code] = $this->parse_funding_fee($depositResponse['fee']);
             $info[$code] = array(
                 'withdraw' => $withdrawResponse,
                 'deposit' => $depositResponse,
@@ -598,7 +598,7 @@ class buda extends Exchange {
     public function fetch_deposit_address ($code, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency ($code);
-        if ($this->is_fiat ($code)) {
+        if ($this->is_fiat($code)) {
             throw new NotSupported($this->id . ' fetchDepositAddress() for fiat ' . $code . ' is not supported');
         }
         $request = array(
@@ -631,7 +631,7 @@ class buda extends Exchange {
     public function create_deposit_address ($code, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency ($code);
-        if ($this->is_fiat ($code)) {
+        if ($this->is_fiat($code)) {
             throw new NotSupported($this->id . ' => fiat fetchDepositAddress() for ' . $code . ' is not supported');
         }
         $request = array(
@@ -666,7 +666,7 @@ class buda extends Exchange {
         $amount = floatval ($transaction['amount'][0]);
         $fee = floatval ($transaction['fee'][0]);
         $feeCurrency = $transaction['fee'][1];
-        $status = $this->parse_transaction_status ($this->safe_string($transaction, 'state'));
+        $status = $this->parse_transaction_status($this->safe_string($transaction, 'state'));
         $type = (is_array($transaction) && array_key_exists('deposit_data', $transaction)) ? 'deposit' : 'withdrawal';
         $data = $this->safe_value($transaction, $type . '_data', array());
         $address = $this->safe_value($data, 'target_address');
@@ -754,7 +754,7 @@ class buda extends Exchange {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $request;
         if ($api === 'private') {
             $this->check_required_credentials();
-            $nonce = (string) $this->nonce ();
+            $nonce = (string) $this->nonce();
             $components = array( $method, '/api/' . $this->version . '/' . $request );
             if ($body) {
                 $base64Body = base64_encode($this->encode ($body));

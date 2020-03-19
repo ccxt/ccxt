@@ -340,11 +340,11 @@ class btcbox extends Exchange {
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders_by_type ('all', $symbol, $since, $limit, $params);
+        return $this->fetch_orders_by_type('all', $symbol, $since, $limit, $params);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders_by_type ('open', $symbol, $since, $limit, $params);
+        return $this->fetch_orders_by_type('open', $symbol, $since, $limit, $params);
     }
 
     public function nonce () {
@@ -359,7 +359,7 @@ class btcbox extends Exchange {
             }
         } else {
             $this->check_required_credentials();
-            $nonce = (string) $this->nonce ();
+            $nonce = (string) $this->nonce();
             $query = array_merge(array(
                 'key' => $this->apiKey,
                 'nonce' => $nonce,

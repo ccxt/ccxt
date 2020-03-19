@@ -239,7 +239,7 @@ class livecoin extends Exchange {
                 ),
             );
         }
-        $result = $this->append_fiat_currencies ($result);
+        $result = $this->append_fiat_currencies($result);
         return $result;
     }
 

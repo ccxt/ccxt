@@ -675,7 +675,7 @@ class okex extends Exchange {
         $types = $this->safe_value($this->options, 'fetchMarkets');
         $result = array();
         for ($i = 0; $i < count($types); $i++) {
-            $markets = $this->fetch_markets_by_type ($types[$i], $params);
+            $markets = $this->fetch_markets_by_type($types[$i], $params);
             $result = $this->array_concat($result, $markets);
         }
         return $result;
@@ -684,7 +684,7 @@ class okex extends Exchange {
     public function parse_markets ($markets) {
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
-            $result[] = $this->parse_market ($markets[$i]);
+            $result[] = $this->parse_market($markets[$i]);
         }
         return $result;
     }
@@ -872,7 +872,7 @@ class okex extends Exchange {
                 //
                 $result = $this->array_concat($result, $response);
             }
-            return $this->parse_markets ($result);
+            return $this->parse_markets($result);
         } else if (($type === 'spot') || ($type === 'futures') || ($type === 'swap')) {
             $method = $type . 'GetInstruments';
             $response = $this->$method ($params);
@@ -932,7 +932,7 @@ class okex extends Exchange {
             //         }
             //     )
             //
-            return $this->parse_markets ($response);
+            return $this->parse_markets($response);
         } else {
             throw new NotSupported($this->id . ' fetchMarketsByType does not support market $type ' . $type);
         }
@@ -1124,7 +1124,7 @@ class okex extends Exchange {
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $defaultType = $this->safe_string_2($this->options, 'fetchTickers', 'defaultType');
         $type = $this->safe_string($params, 'type', $defaultType);
-        return $this->fetch_tickers_by_type ($type, $symbols, $this->omit ($params, 'type'));
+        return $this->fetch_tickers_by_type($type, $symbols, $this->omit ($params, 'type'));
     }
 
     public function parse_trade ($trade, $market = null) {
@@ -1767,18 +1767,18 @@ class okex extends Exchange {
         //         )
         //     }
         //
-        return $this->parse_balance_by_type ($type, $response);
+        return $this->parse_balance_by_type($type, $response);
     }
 
     public function parse_balance_by_type ($type, $response) {
         if (($type === 'account') || ($type === 'spot')) {
-            return $this->parse_account_balance ($response);
+            return $this->parse_account_balance($response);
         } else if ($type === 'margin') {
-            return $this->parse_margin_balance ($response);
+            return $this->parse_margin_balance($response);
         } else if ($type === 'futures') {
-            return $this->parse_futures_balance ($response);
+            return $this->parse_futures_balance($response);
         } else if ($type === 'swap') {
-            return $this->parse_swap_balance ($response);
+            return $this->parse_swap_balance($response);
         }
         throw new NotSupported($this->id . " fetchBalance does not support the '" . $type . "' $type (the $type must be one of 'account', 'spot', 'margin', 'futures', 'swap')");
     }
@@ -2015,7 +2015,7 @@ class okex extends Exchange {
         $side = $this->safe_string($order, 'side');
         $type = $this->safe_string($order, 'type');
         if (($side !== 'buy') && ($side !== 'sell')) {
-            $side = $this->parse_order_side ($type);
+            $side = $this->parse_order_side($type);
         }
         if (($type !== 'limit') && ($type !== 'market')) {
             if (is_array($order) && array_key_exists('pnl', $order)) {
@@ -2284,7 +2284,7 @@ class okex extends Exchange {
         //  '4' => cancelling,
         //  '6' => incomplete（open+partially filled),
         //  '7' => complete（cancelled+fully filled),
-        return $this->fetch_orders_by_state ('6', $symbol, $since, $limit, $params);
+        return $this->fetch_orders_by_state('6', $symbol, $since, $limit, $params);
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -2297,13 +2297,13 @@ class okex extends Exchange {
         //  '4' => cancelling,
         //  '6' => incomplete（open+partially filled),
         //  '7' => complete（cancelled+fully filled),
-        return $this->fetch_orders_by_state ('7', $symbol, $since, $limit, $params);
+        return $this->fetch_orders_by_state('7', $symbol, $since, $limit, $params);
     }
 
     public function parse_deposit_addresses ($addresses) {
         $result = array();
         for ($i = 0; $i < count($addresses); $i++) {
-            $result[] = $this->parse_deposit_address ($addresses[$i]);
+            $result[] = $this->parse_deposit_address($addresses[$i]);
         }
         return $result;
     }
@@ -2348,7 +2348,7 @@ class okex extends Exchange {
         //         }
         //     )
         //
-        $addresses = $this->parse_deposit_addresses ($response);
+        $addresses = $this->parse_deposit_addresses($response);
         $numAddresses = is_array($addresses) ? count($addresses) : 0;
         if ($numAddresses < 1) {
             throw new InvalidAddress($this->id . ' fetchDepositAddress cannot return nonexistent $addresses, you should create withdrawal $addresses with the exchange website first');
@@ -2521,7 +2521,7 @@ class okex extends Exchange {
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId);
         $amount = $this->safe_float($transaction, 'amount');
-        $status = $this->parse_transaction_status ($this->safe_string($transaction, 'status'));
+        $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         $txid = $this->safe_string($transaction, 'txid');
         $timestamp = $this->parse8601 ($this->safe_string($transaction, 'timestamp'));
         $feeCost = null;
@@ -2919,7 +2919,7 @@ class okex extends Exchange {
         $details = $this->safe_value($item, 'details', array());
         $referenceId = $this->safe_string($details, 'order_id');
         $referenceAccount = null;
-        $type = $this->parse_ledger_entry_type ($this->safe_string($item, 'type'));
+        $type = $this->parse_ledger_entry_type($this->safe_string($item, 'type'));
         $code = $this->safe_currency_code($this->safe_string($item, 'currency'), $currency);
         $amount = $this->safe_float($item, 'amount');
         $timestamp = $this->parse8601 ($this->safe_string($item, 'timestamp'));
@@ -2954,7 +2954,7 @@ class okex extends Exchange {
         $request .= $isArray ? $path : $this->implode_params($path, $params);
         $query = $isArray ? $params : $this->omit ($params, $this->extract_params($path));
         $url = $this->implode_params($this->urls['api']['rest'], array( 'hostname' => $this->hostname )) . $request;
-        $type = $this->get_path_authentication_type ($path);
+        $type = $this->get_path_authentication_type($path);
         if ($type === 'public') {
             if ($query) {
                 $url .= '?' . $this->urlencode ($query);

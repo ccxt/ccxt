@@ -594,11 +594,11 @@ class coinex extends Exchange {
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders_by_status ('pending', $symbol, $since, $limit, $params);
+        return $this->fetch_orders_by_status('pending', $symbol, $since, $limit, $params);
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders_by_status ('finished', $symbol, $since, $limit, $params);
+        return $this->fetch_orders_by_status('finished', $symbol, $since, $limit, $params);
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -727,7 +727,7 @@ class coinex extends Exchange {
         $code = $this->safe_currency_code($currencyId, $currency);
         $timestamp = $this->safe_timestamp($transaction, 'create_time');
         $type = (is_array($transaction) && array_key_exists('coin_withdraw_id', $transaction)) ? 'withdraw' : 'deposit';
-        $status = $this->parse_transaction_status ($this->safe_string($transaction, 'status'), $type);
+        $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'), $type);
         $amount = $this->safe_float($transaction, 'amount');
         $feeCost = $this->safe_float($transaction, 'tx_fee');
         if ($type === 'deposit') {
@@ -871,7 +871,7 @@ class coinex extends Exchange {
             }
         } else {
             $this->check_required_credentials();
-            $nonce = $this->nonce ();
+            $nonce = $this->nonce();
             $query = array_merge(array(
                 'access_id' => $this->apiKey,
                 'tonce' => (string) $nonce,

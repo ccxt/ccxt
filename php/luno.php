@@ -230,15 +230,15 @@ class luno extends Exchange {
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders_by_state (null, $symbol, $since, $limit, $params);
+        return $this->fetch_orders_by_state(null, $symbol, $since, $limit, $params);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders_by_state ('PENDING', $symbol, $since, $limit, $params);
+        return $this->fetch_orders_by_state('PENDING', $symbol, $since, $limit, $params);
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders_by_state ('COMPLETE', $symbol, $since, $limit, $params);
+        return $this->fetch_orders_by_state('COMPLETE', $symbol, $since, $limit, $params);
     }
 
     public function parse_ticker ($ticker, $market = null) {

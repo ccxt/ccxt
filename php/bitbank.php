@@ -463,7 +463,7 @@ class bitbank extends Exchange {
             }
         } else {
             $this->check_required_credentials();
-            $nonce = (string) $this->nonce ();
+            $nonce = (string) $this->nonce();
             $auth = $nonce;
             $url .= $this->version . '/' . $this->implode_params($path, $params);
             if ($method === 'POST') {

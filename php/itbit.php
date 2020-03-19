@@ -294,7 +294,7 @@ class itbit extends Exchange {
             $txnHash = $this->safe_string($item, 'txnHash');
             $transactionType = $this->safe_string_lower($item, 'transactionType');
             $transactionStatus = $this->safe_string($item, 'status');
-            $status = $this->parse_transfer_status ($transactionStatus);
+            $status = $this->parse_transfer_status($transactionStatus);
             $result[] = array(
                 'id' => $this->safe_string($item, 'withdrawalId'),
                 'timestamp' => $timestamp,
@@ -397,7 +397,7 @@ class itbit extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $response = $this->fetch_wallets ($params);
+        $response = $this->fetch_wallets($params);
         $balances = $response[0]['balances'];
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($balances); $i++) {
@@ -574,7 +574,7 @@ class itbit extends Exchange {
         }
         if ($api === 'private') {
             $this->check_required_credentials();
-            $nonce = (string) $this->nonce ();
+            $nonce = (string) $this->nonce();
             $timestamp = $nonce;
             $authBody = ($method === 'POST') ? $body : '';
             $auth = array( $method, $url, $authBody, $nonce, $timestamp );

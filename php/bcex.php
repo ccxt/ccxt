@@ -240,7 +240,7 @@ class bcex extends Exchange {
         $result = array();
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];
-            $result[$symbol] = $this->fetch_trading_limits_by_id ($this->market_id($symbol), $params);
+            $result[$symbol] = $this->fetch_trading_limits_by_id($this->market_id($symbol), $params);
         }
         return $result;
     }
@@ -264,7 +264,7 @@ class bcex extends Exchange {
         //                number_float => "4",
         //                 price_float => "8"             } } }
         //
-        return $this->parse_trading_limits ($this->safe_value($response, 'data', array()));
+        return $this->parse_trading_limits($this->safe_value($response, 'data', array()));
     }
 
     public function parse_trading_limits ($limits, $symbol = null, $params = array ()) {
@@ -583,7 +583,7 @@ class bcex extends Exchange {
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders_by_type ('open', $symbol, $since, $limit, $params);
+        return $this->fetch_orders_by_type('open', $symbol, $since, $limit, $params);
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -592,7 +592,7 @@ class bcex extends Exchange {
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders_by_type ('all', $symbol, $since, $limit, $params);
+        return $this->fetch_orders_by_type('all', $symbol, $since, $limit, $params);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {

@@ -673,7 +673,7 @@ class fcoin extends Exchange {
         $url .= $request;
         if ($privateAPI) {
             $this->check_required_credentials();
-            $timestamp = (string) $this->nonce ();
+            $timestamp = (string) $this->nonce();
             $query = $this->keysort ($query);
             if ($method === 'GET') {
                 if ($query) {

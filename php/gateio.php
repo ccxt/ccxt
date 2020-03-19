@@ -617,11 +617,11 @@ class gateio extends Exchange {
     }
 
     public function create_deposit_address ($code, $params = array ()) {
-        return $this->query_deposit_address ('New', $code, $params);
+        return $this->query_deposit_address('New', $code, $params);
     }
 
     public function fetch_deposit_address ($code, $params = array ()) {
-        return $this->query_deposit_address ('Deposit', $code, $params);
+        return $this->query_deposit_address('Deposit', $code, $params);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -726,15 +726,15 @@ class gateio extends Exchange {
     }
 
     public function fetch_transactions ($code = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_transactions_by_type (null, $code, $since, $limit, $params);
+        return $this->fetch_transactions_by_type(null, $code, $since, $limit, $params);
     }
 
     public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_transactions_by_type ('deposits', $code, $since, $limit, $params);
+        return $this->fetch_transactions_by_type('deposits', $code, $since, $limit, $params);
     }
 
     public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_transactions_by_type ('withdraws', $code, $since, $limit, $params);
+        return $this->fetch_transactions_by_type('withdraws', $code, $since, $limit, $params);
     }
 
     public function parse_transaction ($transaction, $currency = null) {
@@ -775,8 +775,8 @@ class gateio extends Exchange {
             $address = null;
         }
         $timestamp = $this->safe_timestamp($transaction, 'timestamp');
-        $status = $this->parse_transaction_status ($this->safe_string($transaction, 'status'));
-        $type = $this->parse_transaction_type ($id[0]);
+        $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
+        $type = $this->parse_transaction_type($id[0]);
         return array(
             'info' => $transaction,
             'id' => $id,

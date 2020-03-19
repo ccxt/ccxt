@@ -317,7 +317,7 @@ class coinmate extends Exchange {
         $currencyId = $this->safe_string($item, 'amountCurrency');
         $code = $this->safe_currency_code($currencyId, $currency);
         $type = $this->safe_string_lower($item, 'transferType');
-        $status = $this->parse_transaction_status ($this->safe_string($item, 'transferStatus'));
+        $status = $this->parse_transaction_status($this->safe_string($item, 'transferStatus'));
         $id = $this->safe_string($item, 'transactionId');
         return array(
             'id' => $id,
@@ -563,7 +563,7 @@ class coinmate extends Exchange {
         $amount = $this->safe_float_2($order, 'originalAmount', 'amount');
         $remaining = $this->safe_float($order, 'remainingAmount', $amount);
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $type = $this->parse_order_type ($this->safe_string($order, 'orderTradeType'));
+        $type = $this->parse_order_type($this->safe_string($order, 'orderTradeType'));
         $filled = null;
         $cost = null;
         if (($amount !== null) && ($remaining !== null)) {
@@ -669,7 +669,7 @@ class coinmate extends Exchange {
             }
         } else {
             $this->check_required_credentials();
-            $nonce = (string) $this->nonce ();
+            $nonce = (string) $this->nonce();
             $auth = $nonce . $this->uid . $this->apiKey;
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret));
             $body = $this->urlencode (array_merge(array(

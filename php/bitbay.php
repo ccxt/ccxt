@@ -719,7 +719,7 @@ class bitbay extends Exchange {
         // there are 2 undocumented api calls => (v1_01PrivateGetPaymentsDepositDetailId and v1_01PrivateGetPaymentsWithdrawalDetailId)
         // that can be used to enrich the transfers with txid, address etc (you need to use info.detailId as a parameter)
         $referenceId = $this->safe_string($item, 'detailId');
-        $type = $this->parse_ledger_entry_type ($this->safe_string($item, 'type'));
+        $type = $this->parse_ledger_entry_type($this->safe_string($item, 'type'));
         $fundsBefore = $this->safe_value($item, 'fundsBefore', array());
         $before = $this->safe_float($fundsBefore, 'total');
         $fundsAfter = $this->safe_value($item, 'fundsAfter', array());
@@ -1091,7 +1091,7 @@ class bitbay extends Exchange {
             'currency' => $currency['id'],
             'quantity' => $amount,
         );
-        if ($this->is_fiat ($code)) {
+        if ($this->is_fiat($code)) {
             $method = 'privatePostWithdraw';
             // $request['account'] = $params['account']; // they demand an account number
             // $request['express'] = $params['express']; // whatever it means, they don't explain

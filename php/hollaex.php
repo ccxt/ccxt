@@ -360,7 +360,7 @@ class hollaex extends Exchange {
         //         // ...
         //     }
         //
-        return $this->parse_tickers ($response, $symbols);
+        return $this->parse_tickers($response, $symbols);
     }
 
     public function parse_tickers ($response, $symbols = null) {

@@ -379,7 +379,7 @@ class idex extends Exchange {
         $market = $this->market ($symbol);
         if ($type === 'limit') {
             $expires = 100000;
-            $contractAddress = $this->get_contract_address ();
+            $contractAddress = $this->get_contract_address();
             $tokenBuy = null;
             $tokenSell = null;
             $amountBuy = null;
@@ -396,7 +396,7 @@ class idex extends Exchange {
                 $amountBuy = $this->toWei ($quoteAmount, 18);
                 $amountSell = $this->toWei ($amount, $market['precision']['amount']);
             }
-            $nonce = $this->get_nonce ();
+            $nonce = $this->get_nonce();
             $orderToHash = array(
                 'contractAddress' => $contractAddress,
                 'tokenBuy' => $tokenBuy,
@@ -407,7 +407,7 @@ class idex extends Exchange {
                 'nonce' => $nonce,
                 'address' => $this->walletAddress,
             );
-            $orderHash = $this->get_idex_create_order_hash ($orderToHash);
+            $orderHash = $this->get_idex_create_order_hash($orderToHash);
             $signature = $this->signMessage ($orderHash, $this->privateKey);
             $request = array(
                 'tokenBuy' => $tokenBuy,
@@ -465,11 +465,11 @@ class idex extends Exchange {
                 'address' => $params['params']['user'],
                 'nonce' => $params['params']['nonce'],
             );
-            $orderHash = $this->get_idex_market_order_hash ($orderToSign);
+            $orderHash = $this->get_idex_market_order_hash($orderToSign);
             $signature = $this->signMessage ($orderHash, $this->privateKey);
             $signedOrder = array_merge($orderToSign, $signature);
             $signedOrder['address'] = $this->walletAddress;
-            $signedOrder['nonce'] = $this->get_nonce ();
+            $signedOrder['nonce'] = $this->get_nonce();
             //   array( {
             //     "$amount" => "0.07",
             //     "date" => "2017-10-13 16:25:36",
@@ -508,12 +508,12 @@ class idex extends Exchange {
     }
 
     public function cancel_order ($orderId, $symbol = null, $params = array ()) {
-        $nonce = $this->get_nonce ();
+        $nonce = $this->get_nonce();
         $orderToHash = array(
             'orderHash' => $orderId,
             'nonce' => $nonce,
         );
-        $orderHash = $this->get_idex_cancel_order_hash ($orderToHash);
+        $orderHash = $this->get_idex_cancel_order_hash($orderToHash);
         $signature = $this->signMessage ($orderHash, $this->privateKey);
         $request = array(
             'orderHash' => $orderId,
@@ -590,7 +590,7 @@ class idex extends Exchange {
         } else if (is_array($item) && array_key_exists('withdrawalNumber', $item)) {
             $id = $this->safe_string($item, 'withdrawalNumber');
             $type = 'withdrawal';
-            $status = $this->parse_transaction_status ($this->safe_string($item, 'status'));
+            $status = $this->parse_transaction_status($this->safe_string($item, 'status'));
             $addressFrom = $this->options['contractAddress'];
             $addressTo = $this->walletAddress;
         }
@@ -996,16 +996,16 @@ class idex extends Exchange {
         $this->load_markets();
         $currency = $this->currency ($code);
         $tokenAddress = $currency['id'];
-        $nonce = $this->get_nonce ();
+        $nonce = $this->get_nonce();
         $amount = $this->toWei ($amount, $currency['precision']);
         $requestToHash = array(
-            'contractAddress' => $this->get_contract_address (),
+            'contractAddress' => $this->get_contract_address(),
             'token' => $tokenAddress,
             'amount' => $amount,
             'address' => $address,
             'nonce' => $nonce,
         );
-        $hash = $this->get_idex_withdraw_hash ($requestToHash);
+        $hash = $this->get_idex_withdraw_hash($requestToHash);
         $signature = $this->signMessage ($hash, $this->privateKey);
         $request = array(
             'address' => $address,

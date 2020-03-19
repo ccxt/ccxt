@@ -654,9 +654,9 @@ class hitbtc extends Exchange {
 
     public function parse_trade ($trade, $market = null) {
         if (gettype($trade) === 'array' && count(array_filter(array_keys($trade), 'is_string')) == 0) {
-            return $this->parse_public_trade ($trade, $market);
+            return $this->parse_public_trade($trade, $market);
         }
-        return $this->parse_order_trade ($trade, $market);
+        return $this->parse_order_trade($trade, $market);
     }
 
     public function parse_public_trade ($trade, $market = null) {
@@ -988,7 +988,7 @@ class hitbtc extends Exchange {
             }
         } else {
             $this->check_required_credentials();
-            $nonce = $this->nonce ();
+            $nonce = $this->nonce();
             $payload = array( 'nonce' => $nonce, 'apikey' => $this->apiKey );
             $query = array_merge($payload, $query);
             if ($method === 'GET') {

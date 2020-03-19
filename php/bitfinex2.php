@@ -348,8 +348,8 @@ class bitfinex2 extends bitfinex {
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $id = 't' . $id;
-            $baseId = $this->get_currency_id ($baseId);
-            $quoteId = $this->get_currency_id ($quoteId);
+            $baseId = $this->get_currency_id($baseId);
+            $quoteId = $this->get_currency_id($quoteId);
             $precision = array(
                 'price' => $this->safe_integer($market, 'price_precision'),
                 'amount' => $this->safe_integer($market, 'price_precision'),
@@ -861,7 +861,7 @@ class bitfinex2 extends bitfinex {
         $request = array(
             'id' => array( intval ($id) ),
         );
-        $orders = $this->fetch_closed_orders ($symbol, null, null, array_merge($request, $params));
+        $orders = $this->fetch_closed_orders($symbol, null, null, array_merge($request, $params));
         $order = $this->safe_value($orders, 0);
         if ($order === null) {
             throw new OrderNotFound($this->id . ' $order ' . $id . ' not found');
@@ -949,7 +949,7 @@ class bitfinex2 extends bitfinex {
         $request = array(
             'op_renew' => 1,
         );
-        $response = $this->fetch_deposit_address ($code, array_merge($request, $params));
+        $response = $this->fetch_deposit_address($code, array_merge($request, $params));
         return $response;
     }
 
@@ -1128,7 +1128,7 @@ class bitfinex2 extends bitfinex {
         }
         if ($api === 'private') {
             $this->check_required_credentials();
-            $nonce = (string) $this->nonce ();
+            $nonce = (string) $this->nonce();
             $body = $this->json ($query);
             $auth = '/api/' . $request . $nonce . $body;
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha384');

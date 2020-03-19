@@ -504,7 +504,7 @@ class gemini extends Exchange {
         if ($type === 'market') {
             throw new ExchangeError($this->id . ' allows limit orders only');
         }
-        $nonce = $this->nonce ();
+        $nonce = $this->nonce();
         $request = array(
             'client_order_id' => (string) $nonce,
             'symbol' => $this->market_id($symbol),
@@ -621,7 +621,7 @@ class gemini extends Exchange {
         $query = $this->omit ($params, $this->extract_params($path));
         if ($api === 'private') {
             $this->check_required_credentials();
-            $nonce = $this->nonce ();
+            $nonce = $this->nonce();
             $request = array_merge(array(
                 'request' => $url,
                 'nonce' => $nonce,

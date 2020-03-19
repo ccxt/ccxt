@@ -796,11 +796,11 @@ class kucoin extends Exchange {
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders_by_status ('done', $symbol, $since, $limit, $params);
+        return $this->fetch_orders_by_status('done', $symbol, $since, $limit, $params);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders_by_status ('active', $symbol, $since, $limit, $params);
+        return $this->fetch_orders_by_status('active', $symbol, $since, $limit, $params);
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
@@ -1279,7 +1279,7 @@ class kucoin extends Exchange {
         }
         $type = ($txid === null) ? 'withdrawal' : 'deposit';
         $rawStatus = $this->safe_string($transaction, 'status');
-        $status = $this->parse_transaction_status ($rawStatus);
+        $status = $this->parse_transaction_status($rawStatus);
         $fee = null;
         $feeCost = $this->safe_float($transaction, 'fee');
         if ($feeCost !== null) {
@@ -1593,7 +1593,7 @@ class kucoin extends Exchange {
             $before = $this->sum ($after, $difference);
         }
         $timestamp = $this->safe_integer($item, 'createdAt');
-        $type = $this->parse_ledger_entry_type ($this->safe_string($item, 'bizType'));
+        $type = $this->parse_ledger_entry_type($this->safe_string($item, 'bizType'));
         $contextString = $this->safe_string($item, 'context');
         $id = null;
         $referenceId = null;
@@ -1662,7 +1662,7 @@ class kucoin extends Exchange {
         $url = $this->urls['api'][$api] . $endpoint;
         if ($api === 'private') {
             $this->check_required_credentials();
-            $timestamp = (string) $this->nonce ();
+            $timestamp = (string) $this->nonce();
             $headers = array_merge(array(
                 'KC-API-KEY' => $this->apiKey,
                 'KC-API-TIMESTAMP' => $timestamp,

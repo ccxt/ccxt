@@ -632,9 +632,9 @@ class coss extends Exchange {
             'cost' => $cost,
             'fee' => null,
         );
-        $fee = $this->parse_trade_fee ($this->safe_string($trade, 'fee'));
+        $fee = $this->parse_trade_fee($this->safe_string($trade, 'fee'));
         if ($fee !== null) {
-            $additionalFee = $this->parse_trade_fee ($this->safe_string($trade, 'additional_fee'));
+            $additionalFee = $this->parse_trade_fee($this->safe_string($trade, 'additional_fee'));
             if ($additionalFee === null) {
                 $result['fee'] = $fee;
             } else {
@@ -717,15 +717,15 @@ class coss extends Exchange {
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders_by_type ('All', $symbol, $since, $limit, $params);
+        return $this->fetch_orders_by_type('All', $symbol, $since, $limit, $params);
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders_by_type ('Completed', $symbol, $since, $limit, $params);
+        return $this->fetch_orders_by_type('Completed', $symbol, $since, $limit, $params);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders_by_type ('Open', $symbol, $since, $limit, $params);
+        return $this->fetch_orders_by_type('Open', $symbol, $since, $limit, $params);
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
@@ -916,7 +916,7 @@ class coss extends Exchange {
         $url = $this->urls['api'][$api] . '/' . $path;
         if ($api === 'trade') {
             $this->check_required_credentials();
-            $timestamp = $this->nonce ();
+            $timestamp = $this->nonce();
             $query = array_merge(array(
                 'timestamp' => $timestamp, // required (int64)
                 // 'recvWindow' => 10000, // optional (int32)

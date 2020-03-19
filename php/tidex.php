@@ -705,7 +705,7 @@ class tidex extends Exchange {
         // it can only return 'open' $orders (i.e. no way to fetch 'closed' $orders)
         $orders = $this->safe_value($response, 'return', array());
         $openOrders = $this->parse_orders($orders, $market);
-        $allOrders = $this->update_cached_orders ($openOrders, $symbol);
+        $allOrders = $this->update_cached_orders($openOrders, $symbol);
         $result = $this->filter_by_symbol($allOrders, $symbol);
         return $this->filter_by_since_limit($result, $since, $limit);
     }

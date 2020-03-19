@@ -169,7 +169,7 @@ class cex extends Exchange {
     }
 
     public function fetch_currencies ($params = array ()) {
-        $response = $this->fetch_currencies_from_cache ($params);
+        $response = $this->fetch_currencies_from_cache($params);
         $this->options['currencies'] = array(
             'timestamp' => $this->milliseconds (),
             'response' => $response,
@@ -276,7 +276,7 @@ class cex extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        $currenciesResponse = $this->fetch_currencies_from_cache ($params);
+        $currenciesResponse = $this->fetch_currencies_from_cache($params);
         $currenciesData = $this->safe_value($currenciesResponse, 'data', array());
         $currencies = $this->safe_value($currenciesData, 'symbols', array());
         $currenciesById = $this->index_by($currencies, 'code');
@@ -1141,7 +1141,7 @@ class cex extends Exchange {
             }
         } else {
             $this->check_required_credentials();
-            $nonce = (string) $this->nonce ();
+            $nonce = (string) $this->nonce();
             $auth = $nonce . $this->uid . $this->apiKey;
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret));
             $body = $this->json (array_merge(array(

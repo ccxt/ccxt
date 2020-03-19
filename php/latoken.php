@@ -367,7 +367,7 @@ class latoken extends Exchange {
             $change = $close - $open;
         }
         $percentage = $this->safe_float($ticker, 'priceChange');
-        $timestamp = $this->nonce ();
+        $timestamp = $this->nonce();
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -671,22 +671,22 @@ class latoken extends Exchange {
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders_with_method ('private_get_order_active', $symbol, $since, $limit, $params);
+        return $this->fetch_orders_with_method('private_get_order_active', $symbol, $since, $limit, $params);
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders_by_status ('filled', $symbol, $since, $limit, $params);
+        return $this->fetch_orders_by_status('filled', $symbol, $since, $limit, $params);
     }
 
     public function fetch_canceled_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders_by_status ('cancelled', $symbol, $since, $limit, $params);
+        return $this->fetch_orders_by_status('cancelled', $symbol, $since, $limit, $params);
     }
 
     public function fetch_orders_by_status ($status, $symbol = null, $since = null, $limit = null, $params = array ()) {
         $request = array(
             'status' => $status,
         );
-        return $this->fetch_orders_with_method ('private_get_order_status', $symbol, $since, $limit, array_merge($request, $params));
+        return $this->fetch_orders_with_method('private_get_order_status', $symbol, $since, $limit, array_merge($request, $params));
     }
 
     public function fetch_orders_with_method ($method, $symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -841,7 +841,7 @@ class latoken extends Exchange {
         $request = '/api/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
         if ($api === 'private') {
-            $nonce = $this->nonce ();
+            $nonce = $this->nonce();
             $query = array_merge(array(
                 'timestamp' => $nonce,
             ), $query);

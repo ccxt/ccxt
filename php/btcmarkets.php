@@ -188,7 +188,7 @@ class btcmarkets extends Exchange {
             $type = $transferType;
         }
         $fee = $this->safe_float($item, 'fee');
-        $status = $this->parse_transaction_status ($this->safe_string($item, 'status'));
+        $status = $this->parse_transaction_status($this->safe_string($item, 'status'));
         $ccy = $this->safe_string($item, 'currency');
         $code = $this->safe_currency_code($ccy);
         // todo => this logic is duplicated below
@@ -475,7 +475,7 @@ class btcmarkets extends Exchange {
         $request['volume'] = intval ($amount * $multiplier);
         $request['orderSide'] = $orderSide;
         $request['ordertype'] = $this->capitalize ($type);
-        $request['clientRequestId'] = (string) $this->nonce ();
+        $request['clientRequestId'] = (string) $this->nonce();
         $response = $this->privatePostOrderCreate (array_merge($request, $params));
         $id = $this->safe_string($response, 'id');
         return array(
@@ -497,7 +497,7 @@ class btcmarkets extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        return $this->cancel_orders (array( $id ));
+        return $this->cancel_orders(array( $id ));
     }
 
     public function calculate_fee ($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
@@ -574,7 +574,7 @@ class btcmarkets extends Exchange {
     public function parse_my_trades ($trades, $market = null, $since = null, $limit = null) {
         $result = array();
         for ($i = 0; $i < count($trades); $i++) {
-            $trade = $this->parse_my_trade ($trades[$i], $market);
+            $trade = $this->parse_my_trade($trades[$i], $market);
             $result[] = $trade;
         }
         return $result;
@@ -598,7 +598,7 @@ class btcmarkets extends Exchange {
         $amount = $this->safe_float($order, 'volume') / $multiplier;
         $remaining = $this->safe_float($order, 'openVolume', 0.0) / $multiplier;
         $filled = $amount - $remaining;
-        $trades = $this->parse_my_trades ($order['trades'], $market);
+        $trades = $this->parse_my_trades($order['trades'], $market);
         $numTrades = is_array($trades) ? count($trades) : 0;
         $cost = $filled * $price;
         $average = null;
@@ -669,7 +669,7 @@ class btcmarkets extends Exchange {
         }
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = $this->create_paginated_request ($market, $since, $limit);
+        $request = $this->create_paginated_request($market, $since, $limit);
         $response = $this->privatePostOrderHistory (array_merge($request, $params));
         return $this->parse_orders($response['orders'], $market);
     }
@@ -680,7 +680,7 @@ class btcmarkets extends Exchange {
         }
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = $this->create_paginated_request ($market, $since, $limit);
+        $request = $this->create_paginated_request($market, $since, $limit);
         $response = $this->privatePostOrderOpen (array_merge($request, $params));
         return $this->parse_orders($response['orders'], $market);
     }
@@ -696,9 +696,9 @@ class btcmarkets extends Exchange {
         }
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = $this->create_paginated_request ($market, $since, $limit);
+        $request = $this->create_paginated_request($market, $since, $limit);
         $response = $this->privatePostOrderTradeHistory (array_merge($request, $params));
-        return $this->parse_my_trades ($response['trades'], $market);
+        return $this->parse_my_trades($response['trades'], $market);
     }
 
     public function nonce () {
@@ -710,7 +710,7 @@ class btcmarkets extends Exchange {
         $url = $this->urls['api'][$api] . $uri;
         if ($api === 'private') {
             $this->check_required_credentials();
-            $nonce = (string) $this->nonce ();
+            $nonce = (string) $this->nonce();
             $auth = null;
             $headers = array(
                 'apikey' => $this->apiKey,

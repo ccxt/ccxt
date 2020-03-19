@@ -463,7 +463,7 @@ class zaif extends Exchange {
             } else {
                 $url .= 'tapi';
             }
-            $nonce = $this->nonce ();
+            $nonce = $this->nonce();
             $body = $this->urlencode (array_merge(array(
                 'method' => $path,
                 'nonce' => $nonce,

@@ -389,7 +389,7 @@ class exx extends Exchange {
             $this->check_required_credentials();
             $query = $this->urlencode ($this->keysort (array_merge(array(
                 'accesskey' => $this->apiKey,
-                'nonce' => $this->nonce (),
+                'nonce' => $this->nonce(),
             ), $params)));
             $signed = $this->hmac ($this->encode ($query), $this->encode ($this->secret), 'sha512');
             $url .= '?' . $query . '&signature=' . $signed;

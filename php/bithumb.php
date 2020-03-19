@@ -401,7 +401,7 @@ class bithumb extends Exchange {
             $body = $this->urlencode (array_merge(array(
                 'endpoint' => $endpoint,
             ), $query));
-            $nonce = (string) $this->nonce ();
+            $nonce = (string) $this->nonce();
             $auth = $endpoint . "\0" . $body . "\0" . $nonce; // eslint-disable-line quotes
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha512');
             $signature64 = $this->decode (base64_encode($this->encode ($signature)));

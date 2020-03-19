@@ -592,11 +592,11 @@ class lbank extends Exchange {
             if ($cacheSecretAsPem) {
                 $pem = $this->safe_value($this->options, 'pem');
                 if ($pem === null) {
-                    $pem = $this->convert_secret_to_pem ($this->secret);
+                    $pem = $this->convert_secret_to_pem($this->secret);
                     $this->options['pem'] = $pem;
                 }
             } else {
-                $pem = $this->convert_secret_to_pem ($this->secret);
+                $pem = $this->convert_secret_to_pem($this->secret);
             }
             $sign = $this->binaryToBase64 ($this->rsa ($message, $this->encode ($pem), 'RS256'));
             $query['sign'] = $sign;

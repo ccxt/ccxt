@@ -275,7 +275,7 @@ class bibox extends Exchange {
             'cmd' => 'marketAll',
         );
         $response = $this->publicGetMdata (array_merge($request, $params));
-        $tickers = $this->parse_tickers ($response['result'], $symbols);
+        $tickers = $this->parse_tickers($response['result'], $symbols);
         return $this->index_by($tickers, 'symbol');
     }
 
@@ -577,7 +577,7 @@ class bibox extends Exchange {
         $timestamp = $this->safe_string($transaction, 'createdAt');
         $tag = $this->safe_string($transaction, 'addr_remark');
         $type = $this->safe_string($transaction, 'type');
-        $status = $this->parse_transaction_status_by_type ($this->safe_string($transaction, 'status'), $type);
+        $status = $this->parse_transaction_status_by_type($this->safe_string($transaction, 'status'), $type);
         $amount = $this->safe_float($transaction, 'amount');
         $feeCost = $this->safe_float($transaction, 'fee');
         if ($type === 'deposit') {

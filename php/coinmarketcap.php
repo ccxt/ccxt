@@ -161,7 +161,7 @@ class coinmarketcap extends Exchange {
                 $quote = $currencies[$j];
                 $quoteId = strtolower($quote);
                 $baseId = $market['id'];
-                $base = $this->currency_code ($market['symbol'], $market['name']);
+                $base = $this->currency_code($market['symbol'], $market['name']);
                 $symbol = $base . '/' . $quote;
                 $id = $baseId . '/' . $quoteId;
                 $result[] = array(
@@ -278,7 +278,7 @@ class coinmarketcap extends Exchange {
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
             $precision = 8; // default $precision, todo => fix "magic constants"
-            $code = $this->currency_code ($id, $name);
+            $code = $this->currency_code($id, $name);
             $result[$code] = array(
                 'id' => $id,
                 'code' => $code,

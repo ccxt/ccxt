@@ -766,7 +766,7 @@ class bitfinex extends Exchange {
             'sell_price_oco' => 0,
         );
         if ($type === 'market') {
-            $request['price'] = (string) $this->nonce ();
+            $request['price'] = (string) $this->nonce();
         } else {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
@@ -947,14 +947,14 @@ class bitfinex extends Exchange {
         $request = array(
             'renew' => 1,
         );
-        $response = $this->fetch_deposit_address ($code, array_merge($request, $params));
+        $response = $this->fetch_deposit_address($code, array_merge($request, $params));
         return $response;
     }
 
     public function fetch_deposit_address ($code, $params = array ()) {
         $this->load_markets();
         // todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
-        $name = $this->get_currency_name ($code);
+        $name = $this->get_currency_name($code);
         $request = array(
             'method' => $name,
             'wallet_name' => 'exchange',
@@ -1057,7 +1057,7 @@ class bitfinex extends Exchange {
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
         $type = $this->safe_string_lower($transaction, 'type'); // DEPOSIT or WITHDRAWAL
-        $status = $this->parse_transaction_status ($this->safe_string($transaction, 'status'));
+        $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         $feeCost = $this->safe_float($transaction, 'fee');
         if ($feeCost !== null) {
             $feeCost = abs($feeCost);
@@ -1097,7 +1097,7 @@ class bitfinex extends Exchange {
         $this->check_address($address);
         $this->load_markets();
         // todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
-        $name = $this->get_currency_name ($code);
+        $name = $this->get_currency_name($code);
         $request = array(
             'withdraw_type' => $name,
             'walletselected' => 'exchange',
@@ -1147,7 +1147,7 @@ class bitfinex extends Exchange {
         }
         if ($api === 'private') {
             $this->check_required_credentials();
-            $nonce = $this->nonce ();
+            $nonce = $this->nonce();
             $query = array_merge(array(
                 'nonce' => (string) $nonce,
                 'request' => $request,

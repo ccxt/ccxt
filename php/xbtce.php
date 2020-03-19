@@ -342,7 +342,7 @@ class xbtce extends Exchange {
         } else {
             $this->check_required_credentials();
             $headers = array( 'Accept-Encoding' => 'gzip, deflate' );
-            $nonce = (string) $this->nonce ();
+            $nonce = (string) $this->nonce();
             if ($method === 'POST') {
                 if ($query) {
                     $headers['Content-Type'] = 'application/json';
