@@ -734,14 +734,14 @@ class kraken extends Exchange {
             $symbol = $market['symbol'];
         }
         if (gettype($trade) === 'array' && count(array_filter(array_keys($trade), 'is_string')) == 0) {
-            $timestamp = intval ($trade[2] * 1000);
+            $timestamp = $this->safe_timestamp($trade, 2);
             $side = ($trade[3] === 's') ? 'sell' : 'buy';
             $type = ($trade[4] === 'l') ? 'limit' : 'market';
-            $price = floatval ($trade[0]);
-            $amount = floatval ($trade[1]);
+            $price = $this->safe_float($trade, 0);
+            $amount = $this->safe_float($trade, 1);
             $tradeLength = is_array($trade) ? count($trade) : 0;
             if ($tradeLength > 6) {
-                $id = $trade[6]; // artificially added as per #1794
+                $id = $this->safe_string($trade, 6); // artificially added as per #1794
             }
         } else if (is_array($trade) && array_key_exists('ordertxid', $trade)) {
             $order = $trade['ordertxid'];

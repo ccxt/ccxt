@@ -696,14 +696,14 @@ class kraken(Exchange):
         if market is not None:
             symbol = market['symbol']
         if isinstance(trade, list):
-            timestamp = int(trade[2] * 1000)
+            timestamp = self.safe_timestamp(trade, 2)
             side = 'sell' if (trade[3] == 's') else 'buy'
             type = 'limit' if (trade[4] == 'l') else 'market'
-            price = float(trade[0])
-            amount = float(trade[1])
+            price = self.safe_float(trade, 0)
+            amount = self.safe_float(trade, 1)
             tradeLength = len(trade)
             if tradeLength > 6:
-                id = trade[6]  # artificially added as per  #1794
+                id = self.safe_string(trade, 6)  # artificially added as per  #1794
         elif 'ordertxid' in trade:
             order = trade['ordertxid']
             id = self.safe_string_2(trade, 'id', 'postxid')
