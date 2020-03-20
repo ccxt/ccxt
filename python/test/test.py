@@ -12,7 +12,7 @@ from traceback import format_tb
 # from ccxt import NetworkError, RequestTimeout
 from exchange.test_watch_order_book import test_watch_order_book
 from exchange.test_watch_ticker import test_watch_ticker
-# from exchange.test_watch_ohlcv import test_watch_ohlcv
+from exchange.test_watch_ohlcv import test_watch_ohlcv
 
 root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(root)
@@ -85,7 +85,7 @@ async def test_public(exchange, symbol):
     await test_watch_order_book(exchange, symbol)
     await test_watch_ticker(exchange, symbol)
     # await test_watch_trades(exchange, symbol)
-    # await test_watch_ohlcv(exchange, symbol)
+    await test_watch_ohlcv(exchange, symbol)
     # await test_watch_tickers(exchange, symbol)
 
 
@@ -144,23 +144,15 @@ async def test():
     apiKeys = config.get(argv.exchange_id, {})
     exchange = getattr(ccxtpro, argv.exchange_id)(Exchange.deep_extend({
         'enableRateLimit': True,
-        'urls': {
-            # 'api': {
-            #     'ws': 'ws://127.0.0.1:8080',
-            # },
-        },
-        'verbose': argv.verbose,
     }, apiKeys))
 
     if hasattr(exchange, 'skip') and exchange.skip:
-        # sys.stderr.write(exchange.id + ' [Skipped]')
-        # sys.stderr.flush()
-        # print(exchange.id, '[Skipped]')
         sys.stdout.write(exchange.id + ' [Skipped]\n')
         sys.stdout.flush()
     else:
         print(exchange.id, argv.verbose)
         await exchange.load_markets()
+        exchange.verbose = argv.verbose
         await test_exchange(exchange)
     await exchange.close()
 
