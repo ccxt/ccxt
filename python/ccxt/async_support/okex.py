@@ -665,7 +665,6 @@ class okex(Exchange):
                     'currencies': 'private',
                     'instruments': 'public',
                     'rate': 'public',
-                    'underlying': 'public',
                     '{instrument_id}/constituents': 'public',
                 },
             },
@@ -2876,6 +2875,11 @@ class okex(Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def get_path_authentication_type(self, path):
+        # https://github.com/ccxt/ccxt/issues/6651
+        # a special case to handle the optionGetUnderlying interefering with
+        # other endpoints containing self keyword
+        if path == 'underlying':
+            return 'public'
         auth = self.safe_value(self.options, 'auth', {})
         key = self.find_broadly_matched_key(auth, path)
         return self.safe_string(auth, key, 'private')
