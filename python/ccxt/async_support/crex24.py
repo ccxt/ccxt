@@ -134,6 +134,7 @@ class crex24(Exchange):
             },
             'commonCurrencies': {
                 'YOYO': 'YOYOW',
+                'BULL': 'BuySell',
                 'BCC': 'BCH',
             },
             # exchange-specific options

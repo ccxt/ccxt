@@ -129,6 +129,7 @@ class crex24 extends Exchange {
             ),
             'commonCurrencies' => array(
                 'YOYO' => 'YOYOW',
+                'BULL' => 'BuySell',
                 'BCC' => 'BCH',
             ),
             // exchange-specific options
