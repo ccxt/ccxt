@@ -1442,6 +1442,36 @@ module.exports = class hitbtc2 extends hitbtc {
         };
     }
 
+    async transferToExchange (code, amount, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+            'amount': parseFloat (amount),
+            'type': 'bankToExchange',
+        };
+        const response = await this.privatePostAccountTransfer (this.extend (request, params));
+        return {
+            'info': response,
+            'id': response['id'],
+        };
+    }
+
+    async transferToBank (code, amount, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+            'amount': parseFloat (amount),
+            'type': 'exchangeToBank',
+        };
+        const response = await this.privatePostAccountTransfer (this.extend (request, params));
+        return {
+            'info': response,
+            'id': response['id'],
+        };
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/api/' + this.version + '/';
         const query = this.omit (params, this.extractParams (path));
