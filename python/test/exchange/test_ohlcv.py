@@ -5,13 +5,6 @@ __all__ = ['test_ohlcv']
 
 def test_ohlcv(exchange, ohlcv, method, symbol):
 
-    print(
-        exchange.id,
-        symbol,
-        method,
-        [exchange.iso8601(ohlcv[0])] + ohlcv[1:],
-    )
-
     assert isinstance(ohlcv, list)
     assert len(ohlcv) >= 6
 
