@@ -94,7 +94,8 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
             const array = this.safeValue (this.trades, symbol, []);
             array.push (trade);
             const length = array.length;
-            if (length > this.options['tradesLimit']) {
+            const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            if (length > tradesLimit) {
                 array.shift ();
             }
             this.trades[symbol] = array;
