@@ -639,7 +639,6 @@ module.exports = class okex extends Exchange {
                     'currencies': 'private',
                     'instruments': 'public',
                     'rate': 'public',
-                    'underlying': 'public',
                     '{instrument_id}/constituents': 'public',
                 },
             },
@@ -2986,6 +2985,12 @@ module.exports = class okex extends Exchange {
     }
 
     getPathAuthenticationType (path) {
+        // https://github.com/ccxt/ccxt/issues/6651
+        // a special case to handle the optionGetUnderlying interefering with
+        // other endpoints containing this keyword
+        if (path === 'underlying') {
+            return 'public';
+        }
         const auth = this.safeValue (this.options, 'auth', {});
         const key = this.findBroadlyMatchedKey (auth, path);
         return this.safeString (auth, key, 'private');
