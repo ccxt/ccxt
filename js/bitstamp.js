@@ -197,7 +197,6 @@ module.exports = class bitstamp extends ccxt.bitstamp {
             'messageHash': messageHash,
             'type': type,
             'symbol': symbol,
-            'method': this.handleOrderBookSubscription,
             'limit': limit,
             'params': params,
         };
