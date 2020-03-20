@@ -98,7 +98,8 @@ class coinbasepro extends \ccxt\coinbasepro {
             $array = $this->safe_value($this->trades, $symbol, $array());
             $array[] = $trade;
             $length = is_array($array) ? count($array) : 0;
-            if ($length > $this->options['tradesLimit']) {
+            $tradesLimit = $this->safe_integer($this->options, 'tradesLimit', 1000);
+            if ($length > $tradesLimit) {
                 array_shift($array);
             }
             $this->trades[$symbol] = $array;

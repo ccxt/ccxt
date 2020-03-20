@@ -90,7 +90,8 @@ class coinbasepro(Exchange, ccxt.coinbasepro):
             array = self.safe_value(self.trades, symbol, [])
             array.append(trade)
             length = len(array)
-            if length > self.options['tradesLimit']:
+            tradesLimit = self.safe_integer(self.options, 'tradesLimit', 1000)
+            if length > tradesLimit:
                 array.pop(0)
             self.trades[symbol] = array
             client.resolve(array, messageHash)
