@@ -313,7 +313,7 @@ class okex extends Exchange {
                     'failure to get a peer from the ring-balancer' => '\\ccxt\\ExchangeNotAvailable', // array( "message" => "failure to get a peer from the ring-balancer" )
                     '4010' => '\\ccxt\\PermissionDenied', // array( "code" => 4010, "message" => "For the security of your funds, withdrawals are not permitted within 24 hours after changing fund password  / mobile number / Google Authenticator settings " )
                     // common
-                    '0' => '\\ccxt\\ExchangeError', // 200 successful,when the order placement / cancellation / operation is successful
+                    // '0' => '\\ccxt\\ExchangeError', // 200 successful,when the order placement / cancellation / operation is successful
                     '4001' => '\\ccxt\\ExchangeError', // no data received in 30s
                     '4002' => '\\ccxt\\ExchangeError', // Buffer full. cannot write data
                     // --------------------------------------------------------

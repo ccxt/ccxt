@@ -334,7 +334,7 @@ class okex(Exchange):
                     'failure to get a peer from the ring-balancer': ExchangeNotAvailable,  # {"message": "failure to get a peer from the ring-balancer"}
                     '4010': PermissionDenied,  # {"code": 4010, "message": "For the security of your funds, withdrawals are not permitted within 24 hours after changing fund password  / mobile number / Google Authenticator settings "}
                     # common
-                    '0': ExchangeError,  # 200 successful,when the order placement / cancellation / operation is successful
+                    # '0': ExchangeError,  # 200 successful,when the order placement / cancellation / operation is successful
                     '4001': ExchangeError,  # no data received in 30s
                     '4002': ExchangeError,  # Buffer full. cannot write data
                     # --------------------------------------------------------
