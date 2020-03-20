@@ -166,6 +166,10 @@ class gateio(Exchange):
                     },
                 },
             },
+            'commonCurrencies': {
+                'BTCBEAR': 'BEAR',
+                'BTCBULL': 'BULL',
+            },
         })
 
     async def fetch_markets(self, params={}):
