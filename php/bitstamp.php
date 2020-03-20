@@ -213,27 +213,26 @@ class bitstamp extends \ccxt\bitstamp {
     public function parse_trade ($trade, $market = null) {
         //
         //     {
-        //         e => 'trade',       // $event type
-        //         E => 1579481530911, // $event time
-        //         s => 'ETHBTC',      // $symbol
-        //         t => 158410082,     // $trade $id
-        //         p => '0.01914100',  // $price
-        //         q => '0.00700000',  // quantity
-        //         b => 586187049,     // buyer order $id
-        //         a => 586186710,     // seller order $id
-        //         T => 1579481530910, // $trade time
-        //         m => false,         // is the buyer the $market maker
-        //         M => true           // binance docs say it should be ignored
+        //         buy_order_id => 1211625836466176,
+        //         amount_str => '1.08000000',
+        //         $timestamp => '1584642064',
+        //         $microtimestamp => '1584642064685000',
+        //         $id => 108637852,
+        //         $amount => 1.08,
+        //         sell_order_id => 1211625840754689,
+        //         price_str => '6294.77',
+        //         type => 1,
+        //         $price => 6294.77
         //     }
         //
-        $event = $this->safe_string($trade, 'e');
-        if ($event === null) {
+        $microtimestamp = $this->safe_integer($trade, 'microtimestamp');
+        if ($microtimestamp === null) {
             return parent::parse_trade($trade, $market);
         }
-        $id = $this->safe_string($trade, 't');
-        $timestamp = $this->safe_integer($trade, 'T');
-        $price = $this->safe_float($trade, 'p');
-        $amount = $this->safe_float($trade, 'q');
+        $id = $this->safe_string($trade, 'id');
+        $timestamp = intval ($microtimestamp / 1000);
+        $price = $this->safe_float($trade, 'price');
+        $amount = $this->safe_float($trade, 'amount');
         $cost = null;
         if (($price !== null) && ($amount !== null)) {
             $cost = $price * $amount;
@@ -246,22 +245,17 @@ class bitstamp extends \ccxt\bitstamp {
         if (($symbol === null) && ($market !== null)) {
             $symbol = $market['symbol'];
         }
-        $side = null;
-        $takerOrMaker = null;
-        $orderId = null;
-        if (is_array($trade) && array_key_exists('m', $trade)) {
-            $side = $trade['m'] ? 'sell' : 'buy'; // this is reversed intentionally
-            $takerOrMaker = $trade['m'] ? 'maker' : 'taker';
-        }
+        $side = $this->safe_integer($trade, 'type');
+        $side = ($side === 0) ? 'buy' : 'sell';
         return array(
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
             'id' => $id,
-            'order' => $orderId,
+            'order' => null,
             'type' => null,
-            'takerOrMaker' => $takerOrMaker,
+            'takerOrMaker' => null,
             'side' => $side,
             'price' => $price,
             'amount' => $amount,

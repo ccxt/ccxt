@@ -191,26 +191,25 @@ class bitstamp(Exchange, ccxt.bitstamp):
     def parse_trade(self, trade, market=None):
         #
         #     {
-        #         e: 'trade',       # event type
-        #         E: 1579481530911,  # event time
-        #         s: 'ETHBTC',      # symbol
-        #         t: 158410082,     # trade id
-        #         p: '0.01914100',  # price
-        #         q: '0.00700000',  # quantity
-        #         b: 586187049,     # buyer order id
-        #         a: 586186710,     # seller order id
-        #         T: 1579481530910,  # trade time
-        #         m: False,         # is the buyer the market maker
-        #         M: True           # binance docs say it should be ignored
+        #         buy_order_id: 1211625836466176,
+        #         amount_str: '1.08000000',
+        #         timestamp: '1584642064',
+        #         microtimestamp: '1584642064685000',
+        #         id: 108637852,
+        #         amount: 1.08,
+        #         sell_order_id: 1211625840754689,
+        #         price_str: '6294.77',
+        #         type: 1,
+        #         price: 6294.77
         #     }
         #
-        event = self.safe_string(trade, 'e')
-        if event is None:
+        microtimestamp = self.safe_integer(trade, 'microtimestamp')
+        if microtimestamp is None:
             return super(bitstamp, self).parse_trade(trade, market)
-        id = self.safe_string(trade, 't')
-        timestamp = self.safe_integer(trade, 'T')
-        price = self.safe_float(trade, 'p')
-        amount = self.safe_float(trade, 'q')
+        id = self.safe_string(trade, 'id')
+        timestamp = int(microtimestamp / 1000)
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'amount')
         cost = None
         if (price is not None) and (amount is not None):
             cost = price * amount
@@ -220,21 +219,17 @@ class bitstamp(Exchange, ccxt.bitstamp):
             market = self.markets_by_id[marketId]
         if (symbol is None) and (market is not None):
             symbol = market['symbol']
-        side = None
-        takerOrMaker = None
-        orderId = None
-        if 'm' in trade:
-            side = 'sell' if trade['m'] else 'buy'  # self is reversed intentionally
-            takerOrMaker = 'maker' if trade['m'] else 'taker'
+        side = self.safe_integer(trade, 'type')
+        side = 'buy' if (side == 0) else 'sell'
         return {
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
             'id': id,
-            'order': orderId,
+            'order': None,
             'type': None,
-            'takerOrMaker': takerOrMaker,
+            'takerOrMaker': None,
             'side': side,
             'price': price,
             'amount': amount,
