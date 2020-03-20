@@ -180,7 +180,6 @@ class bitstamp(Exchange, ccxt.bitstamp):
             'messageHash': messageHash,
             'type': type,
             'symbol': symbol,
-            'method': self.handle_order_book_subscription,
             'limit': limit,
             'params': params,
         }

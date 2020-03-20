@@ -201,7 +201,6 @@ class bitstamp extends \ccxt\bitstamp {
             'messageHash' => $messageHash,
             'type' => $type,
             'symbol' => $symbol,
-            'method' => array($this, 'handle_order_book_subscription'),
             'limit' => $limit,
             'params' => $params,
         );
