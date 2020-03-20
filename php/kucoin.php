@@ -169,7 +169,7 @@ class kucoin extends \ccxt\kucoin {
         $this->load_markets();
         $negotiate = $this->negotiate();
         $topic = '/market/match';
-        $future = $this->after_async($negotiate, array($this, 'subscribe'), $topic, null, $symbol, $since, $params);
+        $future = $this->after_async($negotiate, array($this, 'subscribe'), $topic, null, $symbol, $params);
         return $this->after ($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
