@@ -12,6 +12,7 @@ from traceback import format_tb
 # from ccxt import NetworkError, RequestTimeout
 from exchange.test_watch_order_book import test_watch_order_book
 from exchange.test_watch_ticker import test_watch_ticker
+from exchange.test_watch_trades import test_watch_trades
 from exchange.test_watch_ohlcv import test_watch_ohlcv
 
 root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -84,7 +85,7 @@ async def test_public(exchange, symbol):
     print(exchange.id, symbol, 'test_public')
     await test_watch_order_book(exchange, symbol)
     await test_watch_ticker(exchange, symbol)
-    # await test_watch_trades(exchange, symbol)
+    await test_watch_trades(exchange, symbol)
     await test_watch_ohlcv(exchange, symbol)
     # await test_watch_tickers(exchange, symbol)
 
