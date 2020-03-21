@@ -19,6 +19,7 @@ from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import ROUND
+from ccxt.base.decimal_to_precision import TRUNCATE
 
 
 class binance(Exchange):
@@ -1043,11 +1044,12 @@ class binance(Exchange):
         }
         if uppercaseType == 'MARKET':
             quoteOrderQty = self.safe_float(params, 'quoteOrderQty')
+            precision = market['price']['precision']
             if quoteOrderQty is not None:
-                request['quoteOrderQty'] = self.cost_to_precision(symbol, quoteOrderQty)
+                request['quoteOrderQty'] = self.decimal_to_precision(quoteOrderQty, TRUNCATE, precision, self.precisionMode)
                 params = self.omit(params, 'quoteOrderQty')
             elif price is not None:
-                request['quoteOrderQty'] = self.cost_to_precision(symbol, amount * price)
+                request['quoteOrderQty'] = self.decimal_to_precision(amount * price, TRUNCATE, precision, self.precisionMode)
             else:
                 request['quantity'] = self.amount_to_precision(symbol, amount)
         else:
