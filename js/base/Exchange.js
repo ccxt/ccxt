@@ -174,4 +174,8 @@ module.exports = class Exchange extends ccxt.Exchange {
     signMessage (client, messageHash, message, params = {}) {
         throw new ccxt.NotSupported (this.id + ' signMessage () not implemented yet')
     }
+
+    limitOrderBook (orderbook, symbol, limit = undefined, params = {}) {
+        return orderbook.limit (limit);
+    }
 }
