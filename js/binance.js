@@ -1101,7 +1101,7 @@ module.exports = class binance extends Exchange {
         };
         if (uppercaseType === 'MARKET') {
             const quoteOrderQty = this.safeFloat (params, 'quoteOrderQty');
-            const precision = market['price']['precision'];
+            const precision = market['precision']['price'];
             if (quoteOrderQty !== undefined) {
                 request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQty, TRUNCATE, precision, this.precisionMode);
                 params = this.omit (params, 'quoteOrderQty');
