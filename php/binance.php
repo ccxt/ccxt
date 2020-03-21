@@ -1107,7 +1107,7 @@ class binance extends Exchange {
         );
         if ($uppercaseType === 'MARKET') {
             $quoteOrderQty = $this->safe_float($params, 'quoteOrderQty');
-            $precision = $market['price']['precision'];
+            $precision = $market['precision']['price'];
             if ($quoteOrderQty !== null) {
                 $request['quoteOrderQty'] = $this->decimal_to_precision($quoteOrderQty, TRUNCATE, $precision, $this->precisionMode);
                 $params = $this->omit ($params, 'quoteOrderQty');

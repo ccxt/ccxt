@@ -1044,7 +1044,7 @@ class binance(Exchange):
         }
         if uppercaseType == 'MARKET':
             quoteOrderQty = self.safe_float(params, 'quoteOrderQty')
-            precision = market['price']['precision']
+            precision = market['precision']['price']
             if quoteOrderQty is not None:
                 request['quoteOrderQty'] = self.decimal_to_precision(quoteOrderQty, TRUNCATE, precision, self.precisionMode)
                 params = self.omit(params, 'quoteOrderQty')
