@@ -18,6 +18,7 @@ module.exports = class braziliex extends Exchange {
                 'fetchCurrencies': true,
                 'fetchTickers': true,
                 'fetchOpenOrders': true,
+                'fetchClosedOrders': true,
                 'fetchMyTrades': true,
                 'fetchDepositAddress': true,
                 'fetchOrder': true,
@@ -541,6 +542,16 @@ module.exports = class braziliex extends Exchange {
         };
         const response = await this.privatePostOpenOrders (this.extend (request, params));
         return this.parseOrders (response['order_open'], market, since, limit);
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+        };
+        const response = await this.privatePostTradeHistory (this.extend (request, params));
+        return this.parseOrders (response['trade_history'], market, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
