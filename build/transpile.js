@@ -386,6 +386,7 @@ class Transpiler {
             [ /super\./g, 'parent::'],
             [ /\sdelete\s([^\n]+)\;/g, ' unset($1);' ],
             [ /\~([a-zA-Z0-9_]+?)\~/g, '{$1}' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
+            [ /([^:+=\/\*\s-]+) \(/g, '$1(' ], // remove whitespaces before left ( round bracket
         ])
     }
 
@@ -846,7 +847,7 @@ class Transpiler {
 
             // compile signature + body for PHP
             php.push ('');
-            php.push ('    public function ' + method + ' (' + phpArgs + ') {');
+            php.push ('    public function ' + method + '(' + phpArgs + ') {');
             php.push (phpBody);
             php.push ('    }')
 
