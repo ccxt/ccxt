@@ -21,6 +21,7 @@ const fs = require ('fs')
         replaceInFile,
         overwriteFile,
     } = require ('./fs.js')
+    , Exchange = require ('../js/base/Exchange.js')
 
 class Transpiler {
 
@@ -389,12 +390,27 @@ class Transpiler {
         ])
     }
 
+    getBaseClass () {
+        return new Exchange ()
+    }
+
+    getBaseMethods () {
+        const baseExchange = this.getBaseClass ()
+        let object = baseExchange
+        let properties = []
+        while (object !== Object.prototype) {
+            properties = properties.concat (Object.getOwnPropertyNames (object))
+            object = Object.getPrototypeOf (object)
+        }
+        return properties.filter (x => typeof baseExchange[x] === 'function')
+    }
+
     getPythonBaseMethods () {
-        return []
+        return this.getBaseMethods ()
     }
 
     getPHPBaseMethods () {
-        return []
+        return this.getBaseMethods ()
     }
 
     //-------------------------------------------------------------------------
