@@ -122,7 +122,7 @@ class kuna extends acx {
             throw new ArgumentsRequired($this->id . ' fetchOpenOrders requires a $symbol argument');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
         );
@@ -134,7 +134,7 @@ class kuna extends acx {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $this->parse8601 ($this->safe_string($trade, 'created_at'));
+        $timestamp = $this->parse8601($this->safe_string($trade, 'created_at'));
         $symbol = null;
         if ($market) {
             $symbol = $market['symbol'];
@@ -156,7 +156,7 @@ class kuna extends acx {
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'type' => null,
             'side' => $side,
@@ -171,7 +171,7 @@ class kuna extends acx {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
         );
@@ -184,7 +184,7 @@ class kuna extends acx {
             throw new ArgumentsRequired($this->id . ' fetchOpenOrders requires a $symbol argument');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
         );

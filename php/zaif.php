@@ -211,7 +211,7 @@ class zaif extends Exchange {
             'pair' => $this->market_id($symbol),
         );
         $ticker = $this->publicGetTickerPair (array_merge($request, $params));
-        $timestamp = $this->milliseconds ();
+        $timestamp = $this->milliseconds();
         $vwap = $this->safe_float($ticker, 'vwap');
         $baseVolume = $this->safe_float($ticker, 'volume');
         $quoteVolume = null;
@@ -222,7 +222,7 @@ class zaif extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
             'bid' => $this->safe_float($ticker, 'bid'),
@@ -270,7 +270,7 @@ class zaif extends Exchange {
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'type' => null,
             'side' => $side,
@@ -285,7 +285,7 @@ class zaif extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
         );
@@ -351,7 +351,7 @@ class zaif extends Exchange {
         return array(
             'id' => $id,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'status' => 'open',
             'symbol' => $symbol,
@@ -390,7 +390,7 @@ class zaif extends Exchange {
             // 'is_token_both' => false,
         );
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
             $request['currency_pair'] = $market['id'];
         }
         $response = $this->privatePostActiveOrders (array_merge($request, $params));
@@ -411,7 +411,7 @@ class zaif extends Exchange {
             // 'is_token' => false,
         );
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
             $request['currency_pair'] = $market['id'];
         }
         $response = $this->privatePostTradeHistory (array_merge($request, $params));
@@ -421,7 +421,7 @@ class zaif extends Exchange {
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         if ($code === 'JPY') {
             throw new ExchangeError($this->id . ' withdraw() does not allow ' . $code . ' withdrawals');
         }
@@ -444,7 +444,7 @@ class zaif extends Exchange {
     }
 
     public function nonce () {
-        $nonce = floatval ($this->milliseconds () / 1000);
+        $nonce = floatval ($this->milliseconds() / 1000);
         return sprintf('%.8f', $nonce);
     }
 
@@ -464,14 +464,14 @@ class zaif extends Exchange {
                 $url .= 'tapi';
             }
             $nonce = $this->nonce();
-            $body = $this->urlencode (array_merge(array(
+            $body = $this->urlencode(array_merge(array(
                 'method' => $path,
                 'nonce' => $nonce,
             ), $params));
             $headers = array(
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Key' => $this->apiKey,
-                'Sign' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512'),
+                'Sign' => $this->hmac($this->encode($body), $this->encode($this->secret), 'sha512'),
             );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

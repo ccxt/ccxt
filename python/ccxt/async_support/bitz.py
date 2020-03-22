@@ -1062,7 +1062,7 @@ class bitz(Exchange):
                 'type': type,
             }, transactions[i]))
             result.append(transaction)
-        return self.filterByCurrencySinceLimit(result, code, since, limit)
+        return self.filter_by_currency_since_limit(result, code, since, limit)
 
     def parse_transaction_type(self, type):
         types = {

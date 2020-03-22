@@ -319,7 +319,7 @@ class bitz extends Exchange {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'name');
             $code = $this->safe_currency_code($currencyId);
-            $account = $this->account ();
+            $account = $this->account();
             $account['used'] = $this->safe_float($balance, 'lock');
             $account['total'] = $this->safe_float($balance, 'num');
             $account['free'] = $this->safe_float($balance, 'over');
@@ -367,12 +367,12 @@ class bitz extends Exchange {
         $average = null;
         if ($last !== null && $open !== null) {
             $change = $last - $open;
-            $average = $this->sum ($last, $open) / 2;
+            $average = $this->sum($last, $open) / 2;
         }
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
             'bid' => $this->safe_float($ticker, 'bidPrice'),
@@ -400,13 +400,13 @@ class bitz extends Exchange {
         $parts = explode(' ', $microtime);
         $milliseconds = floatval ($parts[0]);
         $seconds = intval ($parts[1]);
-        $total = $this->sum ($seconds, $milliseconds);
+        $total = $this->sum($seconds, $milliseconds);
         return intval ($total * 1000);
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
@@ -443,7 +443,7 @@ class bitz extends Exchange {
         $timestamp = $this->parse_microtime($this->safe_string($response, 'microtime'));
         return array_merge($ticker, array(
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
         ));
     }
 
@@ -509,7 +509,7 @@ class bitz extends Exchange {
             if ($symbol !== null) {
                 $result[$symbol] = array_merge($ticker, array(
                     'timestamp' => $timestamp,
-                    'datetime' => $this->iso8601 ($timestamp),
+                    'datetime' => $this->iso8601($timestamp),
                 ));
             }
         }
@@ -574,7 +574,7 @@ class bitz extends Exchange {
         $side = $this->safe_string($trade, 's');
         return array(
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'id' => $id,
             'order' => null,
@@ -591,7 +591,7 @@ class bitz extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
@@ -641,7 +641,7 @@ class bitz extends Exchange {
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $duration = $this->parse_timeframe($timeframe) * 1000;
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
             'resolution' => $this->timeframes[$timeframe],
@@ -649,7 +649,7 @@ class bitz extends Exchange {
         if ($limit !== null) {
             $request['size'] = min ($limit, 300); // 1-300
             if ($since !== null) {
-                $request['to'] = $this->sum ($since, $limit * $duration * 1000);
+                $request['to'] = $this->sum($since, $limit * $duration * 1000);
             }
         } else {
             if ($since !== null) {
@@ -757,7 +757,7 @@ class bitz extends Exchange {
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         return array(
             'id' => $id,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => null,
             'status' => $status,
@@ -780,7 +780,7 @@ class bitz extends Exchange {
         if ($type !== 'limit') {
             throw new ExchangeError($this->id . ' createOrder allows limit orders only');
         }
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $orderType = ($side === 'buy') ? '1' : '2';
         if (!$this->password) {
             throw new ExchangeError($this->id . ' createOrder() requires you to set exchange.password = "YOUR_TRADING_PASSWORD" (a trade password is NOT THE SAME as your login password)');
@@ -933,7 +933,7 @@ class bitz extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchOpenOrders requires a $symbol argument');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'coinFrom' => $market['baseId'],
             'coinTo' => $market['quoteId'],
@@ -1092,7 +1092,7 @@ class bitz extends Exchange {
             'id' => $this->safe_string($transaction, 'id'),
             'txid' => $this->safe_string($transaction, 'txid'),
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'address' => $this->safe_string($transaction, 'wallet'),
             'tag' => $this->safe_string($transaction, 'memo'),
             'type' => $type,
@@ -1113,7 +1113,7 @@ class bitz extends Exchange {
             ), $transactions[$i]));
             $result[] = $transaction;
         }
-        return $this->filterByCurrencySinceLimit ($result, $code, $since, $limit);
+        return $this->filter_by_currency_since_limit($result, $code, $since, $limit);
     }
 
     public function parse_transaction_type ($type) {
@@ -1137,7 +1137,7 @@ class bitz extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchTransactions() requires a $currency `$code` argument');
         }
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $request = array(
             'coin' => $currency['id'],
             'type' => $this->parse_transaction_type($type),
@@ -1155,32 +1155,32 @@ class bitz extends Exchange {
     }
 
     public function nonce () {
-        $currentTimestamp = $this->seconds ();
+        $currentTimestamp = $this->seconds();
         if ($currentTimestamp > $this->options['lastNonceTimestamp']) {
             $this->options['lastNonceTimestamp'] = $currentTimestamp;
             $this->options['lastNonce'] = 100000;
         }
-        $this->options['lastNonce'] = $this->sum ($this->options['lastNonce'], 1);
+        $this->options['lastNonce'] = $this->sum($this->options['lastNonce'], 1);
         return $this->options['lastNonce'];
     }
 
     public function sign ($path, $api = 'market', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $baseUrl = $this->implode_params($this->urls['api'][$api], array( 'hostname' => $this->hostname ));
-        $url = $baseUrl . '/' . $this->capitalize ($api) . '/' . $path;
+        $url = $baseUrl . '/' . $this->capitalize($api) . '/' . $path;
         $query = null;
         if ($api === 'market') {
-            $query = $this->urlencode ($params);
+            $query = $this->urlencode($params);
             if (strlen($query)) {
                 $url .= '?' . $query;
             }
         } else {
             $this->check_required_credentials();
-            $body = $this->rawencode ($this->keysort (array_merge(array(
+            $body = $this->rawencode($this->keysort(array_merge(array(
                 'apiKey' => $this->apiKey,
-                'timeStamp' => $this->seconds (),
+                'timeStamp' => $this->seconds(),
                 'nonce' => $this->nonce(),
             ), $params)));
-            $body .= '&sign=' . $this->hash ($this->encode ($body . $this->secret));
+            $body .= '&sign=' . $this->hash($this->encode($body . $this->secret));
             $headers = array( 'Content-type' => 'application/x-www-form-urlencoded' );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

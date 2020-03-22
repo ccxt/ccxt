@@ -74,12 +74,12 @@ class bl3p extends Exchange {
         $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
         for ($i = 0; $i < count($codes); $i++) {
             $code = $codes[$i];
-            $currency = $this->currency ($code);
+            $currency = $this->currency($code);
             $currencyId = $currency['id'];
             $wallet = $this->safe_value($wallets, $currencyId, array());
             $available = $this->safe_value($wallet, 'available', array());
             $balance = $this->safe_value($wallet, 'balance', array());
-            $account = $this->account ();
+            $account = $this->account();
             $account['free'] = $this->safe_float($available, 'value');
             $account['total'] = $this->safe_float($balance, 'value');
             $result[$code] = $account;
@@ -95,7 +95,7 @@ class bl3p extends Exchange {
     }
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
         );
@@ -114,7 +114,7 @@ class bl3p extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
             'bid' => $this->safe_float($ticker, 'bid'),
@@ -160,7 +160,7 @@ class bl3p extends Exchange {
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'type' => null,
             'side' => null,
@@ -174,7 +174,7 @@ class bl3p extends Exchange {
     }
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $response = $this->publicGetMarketTrades (array_merge(array(
             'market' => $market['id'],
         ), $params));
@@ -183,7 +183,7 @@ class bl3p extends Exchange {
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $order = array(
             'market' => $market['id'],
             'amount_int' => intval ($amount * 100000000),
@@ -211,23 +211,23 @@ class bl3p extends Exchange {
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = $this->implode_params($path, $params);
         $url = $this->urls['api'] . '/' . $this->version . '/' . $request;
-        $query = $this->omit ($params, $this->extract_params($path));
+        $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
             if ($query) {
-                $url .= '?' . $this->urlencode ($query);
+                $url .= '?' . $this->urlencode($query);
             }
         } else {
             $this->check_required_credentials();
-            $nonce = $this->nonce ();
-            $body = $this->urlencode (array_merge(array( 'nonce' => $nonce ), $query));
+            $nonce = $this->nonce();
+            $body = $this->urlencode(array_merge(array( 'nonce' => $nonce ), $query));
             $secret = base64_decode($this->secret);
             // eslint-disable-next-line quotes
             $auth = $request . "\0" . $body;
-            $signature = $this->hmac ($this->encode ($auth), $secret, 'sha512', 'base64');
+            $signature = $this->hmac($this->encode($auth), $secret, 'sha512', 'base64');
             $headers = array(
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Rest-Key' => $this->apiKey,
-                'Rest-Sign' => $this->decode ($signature),
+                'Rest-Sign' => $this->decode($signature),
             );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

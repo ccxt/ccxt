@@ -297,7 +297,7 @@ class liquid extends Exchange {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
-            $account = $this->account ();
+            $account = $this->account();
             $account['total'] = $this->safe_float($balance, 'balance');
             $result[$code] = $account;
         }
@@ -314,7 +314,7 @@ class liquid extends Exchange {
     }
 
     public function parse_ticker ($ticker, $market = null) {
-        $timestamp = $this->milliseconds ();
+        $timestamp = $this->milliseconds();
         $last = null;
         if (is_array($ticker) && array_key_exists('last_traded_price', $ticker)) {
             if ($ticker['last_traded_price']) {
@@ -348,7 +348,7 @@ class liquid extends Exchange {
         $open = $this->safe_float($ticker, 'last_price_24h');
         if ($open !== null && $last !== null) {
             $change = $last - $open;
-            $average = $this->sum ($last, $open) / 2;
+            $average = $this->sum($last, $open) / 2;
             if ($open > 0) {
                 $percentage = $change / $open * 100;
             }
@@ -356,7 +356,7 @@ class liquid extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'high_market_ask'),
             'low' => $this->safe_float($ticker, 'low_market_bid'),
             'bid' => $this->safe_float($ticker, 'market_bid'),
@@ -391,7 +391,7 @@ class liquid extends Exchange {
 
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'id' => $market['id'],
         );
@@ -431,7 +431,7 @@ class liquid extends Exchange {
             'id' => $id,
             'order' => $orderId,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $market['symbol'],
             'type' => null,
             'side' => $side,
@@ -445,7 +445,7 @@ class liquid extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'product_id' => $market['id'],
         );
@@ -463,7 +463,7 @@ class liquid extends Exchange {
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         // the `with_details` param is undocumented - it adds the order_id to the results
         $request = array(
             'product_id' => $market['id'],
@@ -522,7 +522,7 @@ class liquid extends Exchange {
         $order = $this->parse_order($response);
         if ($order['status'] === 'closed') {
             if ($this->options['cancelOrderException']) {
-                throw new OrderNotFound($this->id . ' $order closed already => ' . $this->json ($response));
+                throw new OrderNotFound($this->id . ' $order closed already => ' . $this->json($response));
             }
         }
         return $order;
@@ -640,8 +640,8 @@ class liquid extends Exchange {
             $trade = $trades[$i];
             $trade['order'] = $orderId;
             $trade['type'] = $type;
-            $tradeFilled = $this->sum ($tradeFilled, $trade['amount']);
-            $tradeCost = $this->sum ($tradeCost, $trade['cost']);
+            $tradeFilled = $this->sum($tradeFilled, $trade['amount']);
+            $tradeCost = $this->sum($tradeCost, $trade['cost']);
         }
         $cost = null;
         $lastTradeTimestamp = null;
@@ -665,7 +665,7 @@ class liquid extends Exchange {
         return array(
             'id' => $orderId,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'type' => $type,
             'status' => $status,
@@ -706,7 +706,7 @@ class liquid extends Exchange {
             'with_details' => 1, // return full order details including executions
         );
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
             $request['product_id'] = $market['id'];
         }
         if ($limit !== null) {
@@ -759,7 +759,7 @@ class liquid extends Exchange {
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $request = array(
             // 'auth_code' => '', // optional 2fa $code
             'currency' => $currency['id'],
@@ -841,7 +841,7 @@ class liquid extends Exchange {
             'id' => $id,
             'txid' => $txid,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'address' => $address,
             'tag' => $tag,
             'type' => $type,
@@ -854,12 +854,12 @@ class liquid extends Exchange {
     }
 
     public function nonce () {
-        return $this->milliseconds ();
+        return $this->milliseconds();
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = '/' . $this->implode_params($path, $params);
-        $query = $this->omit ($params, $this->extract_params($path));
+        $query = $this->omit($params, $this->extract_params($path));
         $headers = array(
             'X-Quoine-API-Version' => $this->version,
             'Content-Type' => 'application/json',
@@ -868,10 +868,10 @@ class liquid extends Exchange {
             $this->check_required_credentials();
             if ($method === 'GET') {
                 if ($query) {
-                    $url .= '?' . $this->urlencode ($query);
+                    $url .= '?' . $this->urlencode($query);
                 }
             } else if ($query) {
-                $body = $this->json ($query);
+                $body = $this->json($query);
             }
             $nonce = $this->nonce();
             $request = array(
@@ -880,10 +880,10 @@ class liquid extends Exchange {
                 'token_id' => $this->apiKey,
                 'iat' => (int) floor($nonce / 1000), // issued at
             );
-            $headers['X-Quoine-Auth'] = $this->jwt ($request, $this->encode ($this->secret));
+            $headers['X-Quoine-Auth'] = $this->jwt($request, $this->encode($this->secret));
         } else {
             if ($query) {
-                $url .= '?' . $this->urlencode ($query);
+                $url .= '?' . $this->urlencode($query);
             }
         }
         $url = $this->urls['api'] . $url;

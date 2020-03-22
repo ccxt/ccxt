@@ -243,7 +243,7 @@ class dsx extends Exchange {
             $currencyId = $currencyIds[$i];
             $code = $this->safe_currency_code($currencyId);
             $balance = $this->safe_value($funds, $currencyId, array());
-            $account = $this->account ();
+            $account = $this->account();
             $account['free'] = $this->safe_float($balance, 'available');
             $account['total'] = $this->safe_float($balance, 'total');
             $result[$code] = $account;
@@ -282,7 +282,7 @@ class dsx extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
             'bid' => $this->safe_float($ticker, 'buy'),
@@ -379,7 +379,7 @@ class dsx extends Exchange {
             'id' => $id,
             'order' => $orderId,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
@@ -431,7 +431,7 @@ class dsx extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
         );
@@ -552,7 +552,7 @@ class dsx extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
         );
@@ -592,7 +592,7 @@ class dsx extends Exchange {
 
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
             'period' => $this->timeframes[$timeframe],
@@ -610,10 +610,10 @@ class dsx extends Exchange {
             // however, it does work properly with seconds
             $request['start'] = intval ($since / 1000);
             if ($limit === null) {
-                $request['end'] = $this->seconds ();
+                $request['end'] = $this->seconds();
             } else {
                 $duration = $this->parse_timeframe($timeframe) * 1000;
-                $end = $this->sum ($since, $duration * $limit);
+                $end = $this->sum($since, $duration * $limit);
                 $request['end'] = intval ($end / 1000);
             }
         }
@@ -646,7 +646,7 @@ class dsx extends Exchange {
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         if ($type === 'market' && $price === null) {
             throw new ArgumentsRequired($this->id . ' createOrder requires a $price argument even for $market orders, that is the worst $price that you agree to fill your order for');
         }
@@ -699,12 +699,12 @@ class dsx extends Exchange {
         }
         $filled = $this->safe_float($responseReturn, 'received', 0.0);
         $remaining = $this->safe_float($responseReturn, 'remains', $amount);
-        $timestamp = $this->milliseconds ();
+        $timestamp = $this->milliseconds();
         return array(
             'info' => $response,
             'id' => $id,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
@@ -814,7 +814,7 @@ class dsx extends Exchange {
                 if ($feeCost === null) {
                     $feeCost = 0;
                 }
-                $feeCost = $this->sum ($feeCost, $trade['fee']['cost']);
+                $feeCost = $this->sum($feeCost, $trade['fee']['cost']);
                 $feeCurrency = $trade['fee']['currency'];
                 $lastTradeTimestamp = $trade['timestamp'];
             }
@@ -830,7 +830,7 @@ class dsx extends Exchange {
             'id' => $id,
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'type' => $orderType,
             'side' => $side,
@@ -1004,7 +1004,7 @@ class dsx extends Exchange {
             // 'pair' => 'eth_btc', // default = all markets
         );
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
             $request['pair'] = $market['id'];
         }
         if ($limit !== null) {
@@ -1026,7 +1026,7 @@ class dsx extends Exchange {
         $currency = null;
         $request = array();
         if ($code !== null) {
-            $currency = $this->currency ($code);
+            $currency = $this->currency($code);
             $request['currency'] = $currency['id'];
         }
         if ($since !== null) {
@@ -1098,7 +1098,7 @@ class dsx extends Exchange {
             'id' => $this->safe_string($transaction, 'id'),
             'txid' => $this->safe_string($transaction, 'txid'),
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'address' => $this->safe_string($transaction, 'address'),
             'type' => $type,
             'amount' => $this->safe_float($transaction, 'amount'),
@@ -1123,7 +1123,7 @@ class dsx extends Exchange {
 
     public function fetch_deposit_address ($code, $params = array ()) {
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $request = array(
             'currency' => $currency['id'],
         );
@@ -1142,12 +1142,12 @@ class dsx extends Exchange {
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $commission = $this->safe_value($params, 'commission');
         if ($commission === null) {
             throw new ArgumentsRequired($this->id . ' withdraw() requires a `$commission` (withdrawal fee) parameter (string)');
         }
-        $params = $this->omit ($params, $commission);
+        $params = $this->omit($params, $commission);
         $request = array(
             'currency' => $currency['id'],
             'amount' => floatval ($amount),
@@ -1178,15 +1178,15 @@ class dsx extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api];
-        $query = $this->omit ($params, $this->extract_params($path));
+        $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'private' || $api === 'dwapi') {
             $url .= '/' . $this->version . '/' . $this->implode_params($path, $params);
             $this->check_required_credentials();
-            $nonce = $this->nonce ();
-            $body = $this->urlencode (array_merge(array(
+            $nonce = $this->nonce();
+            $body = $this->urlencode(array_merge(array(
                 'nonce' => $nonce,
             ), $query));
-            $signature = $this->decode ($this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512', 'base64'));
+            $signature = $this->decode($this->hmac($this->encode($body), $this->encode($this->secret), 'sha512', 'base64'));
             $headers = array(
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Key' => $this->apiKey,
@@ -1195,17 +1195,17 @@ class dsx extends Exchange {
         } else if ($api === 'public') {
             $url .= '/' . $this->implode_params($path, $params);
             if ($query) {
-                $url .= '?' . $this->urlencode ($query);
+                $url .= '?' . $this->urlencode($query);
             }
         } else {
             $url .= '/' . $this->implode_params($path, $params);
             if ($method === 'GET') {
                 if ($query) {
-                    $url .= '?' . $this->urlencode ($query);
+                    $url .= '?' . $this->urlencode($query);
                 }
             } else {
                 if ($query) {
-                    $body = $this->json ($query);
+                    $body = $this->json($query);
                     $headers = array(
                         'Content-Type' => 'application/json',
                     );

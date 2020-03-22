@@ -157,7 +157,7 @@ class anxpro extends Exchange {
         if ($limit !== null) {
             $request['max'] = $limit;
         }
-        $currency = ($code === null) ? null : $this->currency ($code);
+        $currency = ($code === null) ? null : $this->currency($code);
         if ($currency !== null) {
             $request['ccy'] = $currency['id'];
         }
@@ -313,7 +313,7 @@ class anxpro extends Exchange {
         $netAmount = $amount - $feeCost;
         return array(
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'id' => $this->safe_string($transaction, 'uuid'),
             'currency' => $code,
             'amount' => $netAmount,
@@ -411,7 +411,7 @@ class anxpro extends Exchange {
         $method = $this->safe_string($this->options, 'fetchMyTradesMethod', 'private_post_money_trade_list');
         $response = $this->$method (array_merge($request, $params));
         $trades = $this->safe_value_2($response, 'trades', 'data', array());
-        $market = ($symbol === null) ? null : $this->market ($symbol);
+        $market = ($symbol === null) ? null : $this->market($symbol);
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
@@ -463,7 +463,7 @@ class anxpro extends Exchange {
             'id' => $id,
             'order' => $orderId,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'type' => null,
             'side' => $side,
@@ -764,7 +764,7 @@ class anxpro extends Exchange {
         for ($c = 0; $c < count($currencyIds); $c++) {
             $currencyId = $currencyIds[$c];
             $code = $this->safe_currency_code($currencyId);
-            $account = $this->account ();
+            $account = $this->account();
             $wallet = $this->safe_value($wallets, $currencyId);
             $account['free'] = $this->safe_float($wallet['Available_Balance'], 'value');
             $account['total'] = $this->safe_float($wallet['Balance'], 'value');
@@ -799,7 +799,7 @@ class anxpro extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker['high'], 'value'),
             'low' => $this->safe_float($ticker['low'], 'value'),
             'bid' => $bid,
@@ -832,13 +832,13 @@ class anxpro extends Exchange {
         }
         $response = $this->v3privatePostOrderList (array_merge($request, $params));
         $orders = $this->safe_value($response, 'orders', array());
-        $market = ($symbol === null) ? null : $this->market ($symbol);
+        $market = ($symbol === null) ? null : $this->market($symbol);
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'currency_pair' => $market['id'],
         );
@@ -964,7 +964,7 @@ class anxpro extends Exchange {
             }
             $parsedTrade = array_merge($this->parse_trade($trade), array( 'side' => $side, 'type' => $type ));
             $trades[] = $parsedTrade;
-            $filled = $this->sum ($filled, $parsedTrade['amount']);
+            $filled = $this->sum($filled, $parsedTrade['amount']);
         }
         $price = $this->safe_float($order, 'limitPriceInSettlementCurrency');
         $executedAverageRate = $this->safe_float($order, 'executedAverageRate');
@@ -979,7 +979,7 @@ class anxpro extends Exchange {
             'id' => $this->safe_string($order, 'orderId'),
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'type' => $type,
             'side' => $side,
@@ -1071,7 +1071,7 @@ class anxpro extends Exchange {
             'id' => $id,
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'type' => $orderType,
             'side' => $side,
@@ -1088,7 +1088,7 @@ class anxpro extends Exchange {
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $amountMultiplier = pow(10, $market['precision']['amount']);
         $request = array(
             'currency_pair' => $market['id'],
@@ -1125,7 +1125,7 @@ class anxpro extends Exchange {
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $multiplier = $this->get_amount_multiplier($code);
         $request = array(
             'currency' => $currency,
@@ -1144,7 +1144,7 @@ class anxpro extends Exchange {
 
     public function fetch_deposit_address ($code, $params = array ()) {
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $request = array(
             'currency' => $currency['id'],
         );
@@ -1161,16 +1161,16 @@ class anxpro extends Exchange {
     }
 
     public function nonce () {
-        return $this->milliseconds ();
+        return $this->milliseconds();
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = $this->implode_params($path, $params);
-        $query = $this->omit ($params, $this->extract_params($path));
+        $query = $this->omit($params, $this->extract_params($path));
         $url = $this->urls['api'][$api] . '/' . $request;
         if ($api === 'public' || $api === 'v3public') {
             if ($query) {
-                $url .= '?' . $this->urlencode ($query);
+                $url .= '?' . $this->urlencode($query);
             }
         } else {
             $this->check_required_credentials();
@@ -1178,22 +1178,22 @@ class anxpro extends Exchange {
             $auth = null;
             $contentType = null;
             if ($api === 'v3private') {
-                $body = $this->json (array_merge(array( 'tonce' => $nonce * 1000 ), $query));
+                $body = $this->json(array_merge(array( 'tonce' => $nonce * 1000 ), $query));
                 $path = str_replace('https://anxpro.com/', '', $url);
                 $auth = $path . '\0' . $body;
                 $contentType = 'application/json';
             } else {
-                $body = $this->urlencode (array_merge(array( 'nonce' => $nonce ), $query));
+                $body = $this->urlencode(array_merge(array( 'nonce' => $nonce ), $query));
                 // eslint-disable-next-line quotes
                 $auth = $request . "\0" . $body;
                 $contentType = 'application/x-www-form-urlencoded';
             }
             $secret = base64_decode($this->secret);
-            $signature = $this->hmac ($this->encode ($auth), $secret, 'sha512', 'base64');
+            $signature = $this->hmac($this->encode($auth), $secret, 'sha512', 'base64');
             $headers = array(
                 'Content-Type' => $contentType,
                 'Rest-Key' => $this->apiKey,
-                'Rest-Sign' => $this->decode ($signature),
+                'Rest-Sign' => $this->decode($signature),
             );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

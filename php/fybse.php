@@ -60,10 +60,10 @@ class fybse extends Exchange {
         $quote = $this->markets[$symbol]['quote'];
         $lowercase = strtolower($quote) . 'Bal';
         $fiat = $this->safe_float($response, $lowercase);
-        $crypto = $this->account ();
+        $crypto = $this->account();
         $crypto['total'] = $btc;
         $result = array( 'BTC' => $crypto );
-        $result[$quote] = $this->account ();
+        $result[$quote] = $this->account();
         $result[$quote]['total'] = $fiat;
         $result['info'] = $response;
         return $this->parse_balance($result);
@@ -78,13 +78,13 @@ class fybse extends Exchange {
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $ticker = $this->publicGetTickerdetailed ($params);
-        $timestamp = $this->milliseconds ();
+        $timestamp = $this->milliseconds();
         $last = $this->safe_float($ticker, 'last');
         $volume = $this->safe_float($ticker, 'vol');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => null,
             'low' => null,
             'bid' => $this->safe_float($ticker, 'bid'),
@@ -125,7 +125,7 @@ class fybse extends Exchange {
             'info' => $trade,
             'order' => null,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'type' => null,
             'side' => null,
@@ -139,7 +139,7 @@ class fybse extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $response = $this->publicGetTrades ($params);
         return $this->parse_trades($response, $market, $since, $limit);
     }
@@ -172,23 +172,23 @@ class fybse extends Exchange {
             $url .= '.json';
         } else {
             $this->check_required_credentials();
-            $nonce = $this->nonce ();
-            $body = $this->urlencode (array_merge(array( 'timestamp' => $nonce ), $params));
+            $nonce = $this->nonce();
+            $body = $this->urlencode(array_merge(array( 'timestamp' => $nonce ), $params));
             $headers = array(
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'key' => $this->apiKey,
-                'sig' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha1'),
+                'sig' => $this->hmac($this->encode($body), $this->encode($this->secret), 'sha1'),
             );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
+        $response = $this->fetch2($path, $api, $method, $params, $headers, $body);
         if ($api === 'private') {
             if (is_array($response) && array_key_exists('error', $response)) {
                 if ($response['error']) {
-                    throw new ExchangeError($this->id . ' ' . $this->json ($response));
+                    throw new ExchangeError($this->id . ' ' . $this->json($response));
                 }
             }
         }

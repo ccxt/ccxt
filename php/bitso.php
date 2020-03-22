@@ -173,7 +173,7 @@ class bitso extends Exchange {
         );
         $response = $this->publicGetOrderBook (array_merge($request, $params));
         $orderbook = $this->safe_value($response, 'payload');
-        $timestamp = $this->parse8601 ($this->safe_string($orderbook, 'updated_at'));
+        $timestamp = $this->parse8601($this->safe_string($orderbook, 'updated_at'));
         return $this->parse_order_book($orderbook, $timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
@@ -184,7 +184,7 @@ class bitso extends Exchange {
         );
         $response = $this->publicGetTicker (array_merge($request, $params));
         $ticker = $this->safe_value($response, 'payload');
-        $timestamp = $this->parse8601 ($this->safe_string($ticker, 'created_at'));
+        $timestamp = $this->parse8601($this->safe_string($ticker, 'created_at'));
         $vwap = $this->safe_float($ticker, 'vwap');
         $baseVolume = $this->safe_float($ticker, 'volume');
         $quoteVolume = null;
@@ -195,7 +195,7 @@ class bitso extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
             'bid' => $this->safe_float($ticker, 'bid'),
@@ -217,7 +217,7 @@ class bitso extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $this->parse8601 ($this->safe_string($trade, 'created_at'));
+        $timestamp = $this->parse8601($this->safe_string($trade, 'created_at'));
         $symbol = null;
         if ($market === null) {
             $marketId = $this->safe_string($trade, 'book');
@@ -254,7 +254,7 @@ class bitso extends Exchange {
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'order' => $orderId,
             'type' => null,
@@ -269,7 +269,7 @@ class bitso extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'book' => $market['id'],
         );
@@ -279,7 +279,7 @@ class bitso extends Exchange {
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = 25, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         // the don't support fetching trades starting from a date yet
         // use the `marker` extra param for that
         // this is not a typo, the variable name is 'marker' (don't confuse with 'market')
@@ -362,7 +362,7 @@ class bitso extends Exchange {
             }
         }
         $orderType = $this->safe_string($order, 'type');
-        $timestamp = $this->parse8601 ($this->safe_string($order, 'created_at'));
+        $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'original_amount');
         $remaining = $this->safe_float($order, 'unfilled_amount');
@@ -376,7 +376,7 @@ class bitso extends Exchange {
             'info' => $order,
             'id' => $id,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $orderType,
@@ -393,7 +393,7 @@ class bitso extends Exchange {
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = 25, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         // the don't support fetching trades starting from a date yet
         // use the `marker` extra param for that
         // this is not a typo, the variable name is 'marker' (don't confuse with 'market')
@@ -437,7 +437,7 @@ class bitso extends Exchange {
 
     public function fetch_order_trades ($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'oid' => $id,
         );
@@ -447,7 +447,7 @@ class bitso extends Exchange {
 
     public function fetch_deposit_address ($code, $params = array ()) {
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $request = array(
             'fund_currency' => $currency['id'],
         );
@@ -497,24 +497,24 @@ class bitso extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $endpoint = '/' . $this->version . '/' . $this->implode_params($path, $params);
-        $query = $this->omit ($params, $this->extract_params($path));
+        $query = $this->omit($params, $this->extract_params($path));
         if ($method === 'GET') {
             if ($query) {
-                $endpoint .= '?' . $this->urlencode ($query);
+                $endpoint .= '?' . $this->urlencode($query);
             }
         }
         $url = $this->urls['api'] . $endpoint;
         if ($api === 'private') {
             $this->check_required_credentials();
-            $nonce = (string) $this->nonce ();
+            $nonce = (string) $this->nonce();
             $request = implode('', array($nonce, $method, $endpoint));
             if ($method !== 'GET') {
                 if ($query) {
-                    $body = $this->json ($query);
+                    $body = $this->json($query);
                     $request .= $body;
                 }
             }
-            $signature = $this->hmac ($this->encode ($request), $this->encode ($this->secret));
+            $signature = $this->hmac($this->encode($request), $this->encode($this->secret));
             $auth = $this->apiKey . ':' . $nonce . ':' . $signature;
             $headers = array(
                 'Authorization' => 'Bitso ' . $auth,
@@ -541,7 +541,7 @@ class bitso extends Exchange {
                 }
             }
             if (!$success) {
-                $feedback = $this->id . ' ' . $this->json ($response);
+                $feedback = $this->id . ' ' . $this->json($response);
                 $error = $this->safe_value($response, 'error');
                 if ($error === null) {
                     throw new ExchangeError($feedback);
@@ -554,12 +554,12 @@ class bitso extends Exchange {
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
+        $response = $this->fetch2($path, $api, $method, $params, $headers, $body);
         if (is_array($response) && array_key_exists('success', $response)) {
             if ($response['success']) {
                 return $response;
             }
         }
-        throw new ExchangeError($this->id . ' ' . $this->json ($response));
+        throw new ExchangeError($this->id . ' ' . $this->json($response));
     }
 }

@@ -119,7 +119,7 @@ class btcturk extends Exchange {
             $total = $currency['id'] . '_balance';
             $used = $currency['id'] . '_reserved';
             if (is_array($response) && array_key_exists($free, $response)) {
-                $account = $this->account ();
+                $account = $this->account();
                 $account['free'] = $this->safe_float($response, $free);
                 $account['total'] = $this->safe_float($response, $total);
                 $account['used'] = $this->safe_float($response, $used);
@@ -131,7 +131,7 @@ class btcturk extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'pairSymbol' => $market['id'],
         );
@@ -150,7 +150,7 @@ class btcturk extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
             'bid' => $this->safe_float($ticker, 'bid'),
@@ -191,7 +191,7 @@ class btcturk extends Exchange {
 
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $tickers = $this->fetch_tickers($params);
         return $this->safe_value_2($tickers, $market['id'], $symbol);
     }
@@ -215,7 +215,7 @@ class btcturk extends Exchange {
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'type' => null,
             'side' => null,
@@ -230,7 +230,7 @@ class btcturk extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         // $maxCount = 50;
         $request = array(
             'pairSymbol' => $market['id'],
@@ -240,7 +240,7 @@ class btcturk extends Exchange {
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1d', $since = null, $limit = null) {
-        $timestamp = $this->parse8601 ($this->safe_string($ohlcv, 'Time'));
+        $timestamp = $this->parse8601($this->safe_string($ohlcv, 'Time'));
         return array(
             $timestamp,
             $this->safe_float($ohlcv, 'Open'),
@@ -253,7 +253,7 @@ class btcturk extends Exchange {
 
     public function fetch_ohlcv ($symbol, $timeframe = '1d', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array();
         if ($limit !== null) {
             $request['last'] = $limit;
@@ -293,7 +293,7 @@ class btcturk extends Exchange {
     }
 
     public function nonce () {
-        return $this->milliseconds ();
+        return $this->milliseconds();
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -303,18 +303,18 @@ class btcturk extends Exchange {
         $url = $this->urls['api'] . '/' . $path;
         if ($api === 'public') {
             if ($params) {
-                $url .= '?' . $this->urlencode ($params);
+                $url .= '?' . $this->urlencode($params);
             }
         } else {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();
-            $body = $this->urlencode ($params);
+            $body = $this->urlencode($params);
             $secret = base64_decode($this->secret);
             $auth = $this->apiKey . $nonce;
             $headers = array(
                 'X-PCK' => $this->apiKey,
                 'X-Stamp' => $nonce,
-                'X-Signature' => base64_encode($this->hmac ($this->encode ($auth), $secret, 'sha256', 'binary')),
+                'X-Signature' => base64_encode($this->hmac($this->encode($auth), $secret, 'sha256', 'binary')),
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );
         }

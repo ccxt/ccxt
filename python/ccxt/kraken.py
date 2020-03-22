@@ -1150,7 +1150,7 @@ class kraken(Exchange):
                 'type': type,
             }, transactions[i]))
             result.append(transaction)
-        return self.filterByCurrencySinceLimit(result, code, since, limit)
+        return self.filter_by_currency_since_limit(result, code, since, limit)
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         self.load_markets()

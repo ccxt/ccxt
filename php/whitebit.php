@@ -259,7 +259,7 @@ class whitebit extends Exchange {
 
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
         );
@@ -317,7 +317,7 @@ class whitebit extends Exchange {
         //         }
         //     }
         //
-        $timestamp = $this->safe_timestamp($ticker, 'at', $this->milliseconds ());
+        $timestamp = $this->safe_timestamp($ticker, 'at', $this->milliseconds());
         $ticker = $this->safe_value($ticker, 'ticker', $ticker);
         $symbol = null;
         if ($market !== null) {
@@ -332,7 +332,7 @@ class whitebit extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
             'bid' => $this->safe_float($ticker, 'bid'),
@@ -401,7 +401,7 @@ class whitebit extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
         );
@@ -429,13 +429,13 @@ class whitebit extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        $timestamp = $this->parse8601 ($this->safe_string($result, 'lastUpdateTimestamp'));
+        $timestamp = $this->parse8601($this->safe_string($result, 'lastUpdateTimestamp'));
         return $this->parse_order_book($result, $timestamp);
     }
 
     public function fetch_trades_v1 ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
             'lastId' => 1, // todo add $since
@@ -465,7 +465,7 @@ class whitebit extends Exchange {
 
     public function fetch_trades_v2 ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
         );
@@ -521,7 +521,7 @@ class whitebit extends Exchange {
         //
         $timestamp = $this->safe_value($trade, 'time');
         if (gettype($timestamp) === 'string') {
-            $timestamp = $this->parse8601 ($timestamp);
+            $timestamp = $this->parse8601($timestamp);
         } else {
             $timestamp = intval ($timestamp * 1000);
         }
@@ -544,7 +544,7 @@ class whitebit extends Exchange {
         return array(
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'id' => $id,
             'order' => null,
@@ -560,7 +560,7 @@ class whitebit extends Exchange {
 
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
             'interval' => $this->timeframes[$timeframe],
@@ -596,16 +596,16 @@ class whitebit extends Exchange {
         }
         $this->status = array_merge($this->status, array(
             'status' => $formattedStatus,
-            'updated' => $this->milliseconds (),
+            'updated' => $this->milliseconds(),
         ));
         return $this->status;
     }
 
     public function sign ($path, $api = 'publicV1', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $query = $this->omit ($params, $this->extract_params($path));
+        $query = $this->omit($params, $this->extract_params($path));
         $url = $this->urls['api'][$api] . '/' . $this->implode_params($path, $params);
         if ($query) {
-            $url .= '?' . $this->urlencode ($query);
+            $url .= '?' . $this->urlencode($query);
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

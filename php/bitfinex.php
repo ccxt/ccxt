@@ -569,7 +569,7 @@ class bitfinex extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $balanceType = $this->safe_string($params, 'type', 'exchange');
-        $query = $this->omit ($params, 'type');
+        $query = $this->omit($params, 'type');
         $response = $this->privatePostBalances ($query);
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
@@ -583,7 +583,7 @@ class bitfinex extends Exchange {
                 // would not override the new BAB $balance (BAB is unified to BCH)
                 // https://github.com/ccxt/ccxt/issues/4989
                 if (!(is_array($result) && array_key_exists($code, $result))) {
-                    $account = $this->account ();
+                    $account = $this->account();
                     $account['free'] = $this->safe_float($balance, 'available');
                     $account['total'] = $this->safe_float($balance, 'amount');
                     $result[$code] = $account;
@@ -620,7 +620,7 @@ class bitfinex extends Exchange {
 
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
@@ -656,7 +656,7 @@ class bitfinex extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
             'bid' => $this->safe_float($ticker, 'bid'),
@@ -708,7 +708,7 @@ class bitfinex extends Exchange {
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $market['symbol'],
             'type' => $type,
             'order' => $orderId,
@@ -723,7 +723,7 @@ class bitfinex extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = 50, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
             'limit_trades' => $limit,
@@ -740,7 +740,7 @@ class bitfinex extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a `$symbol` argument');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
@@ -849,7 +849,7 @@ class bitfinex extends Exchange {
             'info' => $order,
             'id' => $id,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $orderType,
@@ -919,7 +919,7 @@ class bitfinex extends Exchange {
         if ($limit === null) {
             $limit = 100;
         }
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $v2id = 't' . $market['id'];
         $request = array(
             'symbol' => $v2id,
@@ -981,7 +981,7 @@ class bitfinex extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchTransactions() requires a $currency `$code` argument');
         }
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $request = array(
             'currency' => $currency['id'],
         );
@@ -1067,7 +1067,7 @@ class bitfinex extends Exchange {
             'id' => $this->safe_string($transaction, 'id'),
             'txid' => $this->safe_string($transaction, 'txid'),
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'address' => $this->safe_string($transaction, 'address'), // todo => this is actually the tag for XRP transfers (the address is missing)
             'tag' => null, // refix it properly for the tag from description
             'type' => $type,
@@ -1117,7 +1117,7 @@ class bitfinex extends Exchange {
                 $ExceptionClass = $this->exceptions['broad'][$errorMessage];
                 throw new $ExceptionClass($this->id . ' ' . $message);
             }
-            throw new ExchangeError($this->id . ' withdraw returned an $id of zero => ' . $this->json ($response));
+            throw new ExchangeError($this->id . ' withdraw returned an $id of zero => ' . $this->json($response));
         }
         return array(
             'info' => $response,
@@ -1126,7 +1126,7 @@ class bitfinex extends Exchange {
     }
 
     public function nonce () {
-        return $this->milliseconds ();
+        return $this->milliseconds();
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -1136,11 +1136,11 @@ class bitfinex extends Exchange {
         } else {
             $request = '/' . $this->version . $request;
         }
-        $query = $this->omit ($params, $this->extract_params($path));
+        $query = $this->omit($params, $this->extract_params($path));
         $url = $this->urls['api'][$api] . $request;
         if (($api === 'public') || (mb_strpos($path, '/hist') !== false)) {
             if ($query) {
-                $suffix = '?' . $this->urlencode ($query);
+                $suffix = '?' . $this->urlencode($query);
                 $url .= $suffix;
                 $request .= $suffix;
             }
@@ -1152,14 +1152,14 @@ class bitfinex extends Exchange {
                 'nonce' => (string) $nonce,
                 'request' => $request,
             ), $query);
-            $body = $this->json ($query);
-            $query = $this->encode ($body);
+            $body = $this->json($query);
+            $query = $this->encode($body);
             $payload = base64_encode($query);
-            $secret = $this->encode ($this->secret);
-            $signature = $this->hmac ($payload, $secret, 'sha384');
+            $secret = $this->encode($this->secret);
+            $signature = $this->hmac($payload, $secret, 'sha384');
             $headers = array(
                 'X-BFX-APIKEY' => $this->apiKey,
-                'X-BFX-PAYLOAD' => $this->decode ($payload),
+                'X-BFX-PAYLOAD' => $this->decode($payload),
                 'X-BFX-SIGNATURE' => $signature,
             );
         }

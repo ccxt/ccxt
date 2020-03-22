@@ -291,7 +291,7 @@ class livecoin extends Exchange {
             if (is_array($result) && array_key_exists($code, $result)) {
                 $account = $result[$code];
             } else {
-                $account = $this->account ();
+                $account = $this->account();
             }
             if ($balance['type'] === 'total') {
                 $account['total'] = $this->safe_float($balance, 'value');
@@ -333,7 +333,7 @@ class livecoin extends Exchange {
     }
 
     public function parse_ticker ($ticker, $market = null) {
-        $timestamp = $this->milliseconds ();
+        $timestamp = $this->milliseconds();
         $symbol = null;
         if ($market) {
             $symbol = $market['symbol'];
@@ -348,7 +348,7 @@ class livecoin extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
             'bid' => $this->safe_float($ticker, 'best_bid'),
@@ -387,7 +387,7 @@ class livecoin extends Exchange {
 
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'currencyPair' => $market['id'],
         );
@@ -448,7 +448,7 @@ class livecoin extends Exchange {
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'order' => $orderId,
             'type' => null,
@@ -466,7 +466,7 @@ class livecoin extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a $symbol argument');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'currencyPair' => $market['id'],
             // orderDesc' => 'true', // or 'false', if true then new orders will be first, otherwise old orders will be first.
@@ -505,7 +505,7 @@ class livecoin extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'currencyPair' => $market['id'],
         );
@@ -557,7 +557,7 @@ class livecoin extends Exchange {
             $timestamp = $this->safe_string($order, 'lastModificationTime');
             if ($timestamp !== null) {
                 if (mb_strpos($timestamp, 'T') !== false) {
-                    $timestamp = $this->parse8601 ($timestamp);
+                    $timestamp = $this->parse8601($timestamp);
                 } else {
                     $timestamp = $this->safe_integer($order, 'lastModificationTime');
                 }
@@ -609,7 +609,7 @@ class livecoin extends Exchange {
             'info' => $order,
             'id' => $order['id'],
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
@@ -634,7 +634,7 @@ class livecoin extends Exchange {
         $market = null;
         $request = array();
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
             $request['currencyPair'] = $market['id'];
         }
         if ($since !== null) {
@@ -672,8 +672,8 @@ class livecoin extends Exchange {
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        $method = 'privatePostExchange' . $this->capitalize ($side) . $type;
-        $market = $this->market ($symbol);
+        $method = 'privatePostExchange' . $this->capitalize($side) . $type;
+        $market = $this->market($symbol);
         $request = array(
             'quantity' => $this->amount_to_precision($symbol, $amount),
             'currencyPair' => $market['id'],
@@ -698,13 +698,13 @@ class livecoin extends Exchange {
             throw new ArgumentsRequired($this->id . ' cancelOrder requires a $symbol argument');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'orderId' => $id,
             'currencyPair' => $market['id'],
         );
         $response = $this->privatePostExchangeCancellimit (array_merge($request, $params));
-        $message = $this->safe_string($response, 'message', $this->json ($response));
+        $message = $this->safe_string($response, 'message', $this->json($response));
         if (is_array($response) && array_key_exists('success', $response)) {
             if (!$response['success']) {
                 throw new InvalidOrder($message);
@@ -719,7 +719,7 @@ class livecoin extends Exchange {
                 }
             }
         }
-        throw new ExchangeError($this->id . ' cancelOrder() failed => ' . $this->json ($response));
+        throw new ExchangeError($this->id . ' cancelOrder() failed => ' . $this->json($response));
     }
 
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
@@ -727,7 +727,7 @@ class livecoin extends Exchange {
         // An example is if you attempt to withdraw more than is allowed when withdrawal fees are considered.
         $this->check_address($address);
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $wallet = $address;
         if ($tag !== null) {
             $wallet .= '::' . $tag;
@@ -740,7 +740,7 @@ class livecoin extends Exchange {
         $response = $this->privatePostPaymentOutCoin (array_merge($request, $params));
         $id = $this->safe_integer($response, 'id');
         if ($id === null) {
-            throw new InsufficientFunds($this->id . ' insufficient funds to cover requested withdrawal $amount post fees ' . $this->json ($response));
+            throw new InsufficientFunds($this->id . ' insufficient funds to cover requested withdrawal $amount post fees ' . $this->json($response));
         }
         return array(
             'info' => $response,
@@ -796,7 +796,7 @@ class livecoin extends Exchange {
             'updated' => null,
             'txid' => $txid,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'fee' => array(
                 'currency' => $code,
                 'cost' => $feeCost,
@@ -807,7 +807,7 @@ class livecoin extends Exchange {
     public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $endtime = 2505600000; // 29 days - exchange has maximum 30 days.
-        $now = $this->milliseconds ();
+        $now = $this->milliseconds();
         $request = array(
             'types' => 'DEPOSIT',
             'end' => $now,
@@ -815,7 +815,7 @@ class livecoin extends Exchange {
         );
         $currency = null;
         if ($code !== null) {
-            $currency = $this->currency ($code);
+            $currency = $this->currency($code);
         }
         if ($limit !== null) {
             $request['limit'] = $limit; // default is 100
@@ -827,7 +827,7 @@ class livecoin extends Exchange {
     public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $endtime = 2505600000; // 29 days - exchange has maximum 30 days.
-        $now = $this->milliseconds ();
+        $now = $this->milliseconds();
         $request = array(
             'types' => 'WITHDRAWAL',
             'end' => $now,
@@ -835,7 +835,7 @@ class livecoin extends Exchange {
         );
         $currency = null;
         if ($code !== null) {
-            $currency = $this->currency ($code);
+            $currency = $this->currency($code);
         }
         if ($limit !== null) {
             $request['limit'] = $limit; // default is 100
@@ -870,7 +870,7 @@ class livecoin extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $path;
-        $query = $this->urlencode ($this->keysort ($params));
+        $query = $this->urlencode($this->keysort($params));
         if ($method === 'GET') {
             if ($params) {
                 $url .= '?' . $query;
@@ -881,7 +881,7 @@ class livecoin extends Exchange {
             if ($method === 'POST') {
                 $body = $query;
             }
-            $signature = $this->hmac ($this->encode ($query), $this->encode ($this->secret), 'sha256');
+            $signature = $this->hmac($this->encode($query), $this->encode($this->secret), 'sha256');
             $headers = array(
                 'Api-Key' => $this->apiKey,
                 'Sign' => strtoupper($signature),

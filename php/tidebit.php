@@ -123,7 +123,7 @@ class tidebit extends Exchange {
 
     public function fetch_deposit_address ($code, $params = array ()) {
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $request = array(
             'currency' => $currency['id'],
         );
@@ -174,7 +174,7 @@ class tidebit extends Exchange {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
-            $account = $this->account ();
+            $account = $this->account();
             $account['free'] = $this->safe_float($balance, 'balance');
             $account['used'] = $this->safe_float($balance, 'locked');
             $result[$code] = $account;
@@ -184,7 +184,7 @@ class tidebit extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
         );
@@ -208,7 +208,7 @@ class tidebit extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
             'bid' => $this->safe_float($ticker, 'buy'),
@@ -256,7 +256,7 @@ class tidebit extends Exchange {
 
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
         );
@@ -265,7 +265,7 @@ class tidebit extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $this->parse8601 ($this->safe_string($trade, 'created_at'));
+        $timestamp = $this->parse8601($this->safe_string($trade, 'created_at'));
         $id = $this->safe_string($trade, 'id');
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'volume');
@@ -278,7 +278,7 @@ class tidebit extends Exchange {
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'type' => null,
             'side' => null,
@@ -293,7 +293,7 @@ class tidebit extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
         );
@@ -314,7 +314,7 @@ class tidebit extends Exchange {
 
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         if ($limit === null) {
             $limit = 30; // default is 30
         }
@@ -352,7 +352,7 @@ class tidebit extends Exchange {
             $marketId = $order['market'];
             $symbol = $this->markets_by_id[$marketId]['symbol'];
         }
-        $timestamp = $this->parse8601 ($this->safe_string($order, 'created_at'));
+        $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
         $id = $this->safe_string($order, 'id');
         $type = $this->safe_string($order, 'ord_type');
@@ -370,7 +370,7 @@ class tidebit extends Exchange {
         return array(
             'id' => $id,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
@@ -412,7 +412,7 @@ class tidebit extends Exchange {
         $order = $this->parse_order($result);
         $status = $this->safe_string($order, 'status');
         if ($status === 'closed' || $status === 'canceled') {
-            throw new OrderNotFound($this->id . ' ' . $this->json ($order));
+            throw new OrderNotFound($this->id . ' ' . $this->json($order));
         }
         return $order;
     }
@@ -420,7 +420,7 @@ class tidebit extends Exchange {
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $id = $this->safe_string($params, 'id');
         if ($id === null) {
             throw new ExchangeError($this->id . ' withdraw() requires an extra `$id` param (withdraw account $id according to withdraws/bind_account_list endpoint');
@@ -443,31 +443,31 @@ class tidebit extends Exchange {
     }
 
     public function nonce () {
-        return $this->milliseconds ();
+        return $this->milliseconds();
     }
 
     public function encode_params ($params) {
-        return $this->urlencode ($this->keysort ($params));
+        return $this->urlencode($this->keysort($params));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = '/' . 'api/' . $this->version . '/' . $this->implode_params($path, $params) . '.json';
-        $query = $this->omit ($params, $this->extract_params($path));
+        $query = $this->omit($params, $this->extract_params($path));
         $url = $this->urls['api'] . $request;
         if ($api === 'public') {
             if ($query) {
-                $url .= '?' . $this->urlencode ($query);
+                $url .= '?' . $this->urlencode($query);
             }
         } else {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();
-            $sortedByKey = $this->keysort (array_merge(array(
+            $sortedByKey = $this->keysort(array_merge(array(
                 'access_key' => $this->apiKey,
                 'tonce' => $nonce,
             ), $params));
-            $query = $this->urlencode ($sortedByKey);
+            $query = $this->urlencode($sortedByKey);
             $payload = $method . '|' . $request . '|' . $query;
-            $signature = $this->hmac ($this->encode ($payload), $this->encode ($this->secret));
+            $signature = $this->hmac($this->encode($payload), $this->encode($this->secret));
             $suffix = $query . '&$signature=' . $signature;
             if ($method === 'GET') {
                 $url .= '?' . $suffix;

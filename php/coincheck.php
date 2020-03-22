@@ -119,9 +119,9 @@ class coincheck extends Exchange {
         $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
         for ($i = 0; $i < count($codes); $i++) {
             $code = $codes[$i];
-            $currencyId = $this->currencyId ($code);
+            $currencyId = $this->currency_id($code);
             if (is_array($balances) && array_key_exists($currencyId, $balances)) {
-                $account = $this->account ();
+                $account = $this->account();
                 $reserved = $currencyId . '_reserved';
                 $account['free'] = $this->safe_float($balances, $currencyId);
                 $account['used'] = $this->safe_float($balances, $reserved);
@@ -136,7 +136,7 @@ class coincheck extends Exchange {
         // Only BTC/JPY is meaningful
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
         }
         $response = $this->privateGetExchangeOrdersOpens ($params);
         $rawOrders = $this->safe_value($response, 'orders', array());
@@ -165,7 +165,7 @@ class coincheck extends Exchange {
         //
         $id = $this->safe_string($order, 'id');
         $side = $this->safe_string($order, 'order_type');
-        $timestamp = $this->parse8601 ($this->safe_string($order, 'created_at'));
+        $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
         $amount = $this->safe_float($order, 'pending_amount');
         $remaining = $this->safe_float($order, 'pending_amount');
         $price = $this->safe_float($order, 'rate');
@@ -196,7 +196,7 @@ class coincheck extends Exchange {
         return array(
             'id' => $id,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'amount' => $amount,
             'remaining' => $remaining,
@@ -232,7 +232,7 @@ class coincheck extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
             'bid' => $this->safe_float($ticker, 'bid'),
@@ -254,7 +254,7 @@ class coincheck extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $this->parse8601 ($this->safe_string($trade, 'created_at'));
+        $timestamp = $this->parse8601($this->safe_string($trade, 'created_at'));
         $id = $this->safe_string($trade, 'id');
         $price = $this->safe_float($trade, 'rate');
         $marketId = $this->safe_string($trade, 'pair');
@@ -317,7 +317,7 @@ class coincheck extends Exchange {
         return array(
             'id' => $id,
             'info' => $trade,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'timestamp' => $timestamp,
             'symbol' => $symbol,
             'type' => null,
@@ -333,7 +333,7 @@ class coincheck extends Exchange {
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $response = $this->privateGetExchangeOrdersTransactions (array_merge(array(), $params));
         $transactions = $this->safe_value($response, 'transactions', array());
         return $this->parse_trades($transactions, $market, $since, $limit);
@@ -344,7 +344,7 @@ class coincheck extends Exchange {
             throw new BadSymbol($this->id . ' fetchTrades () supports BTC/JPY only');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
         );
@@ -388,22 +388,22 @@ class coincheck extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->implode_params($path, $params);
-        $query = $this->omit ($params, $this->extract_params($path));
+        $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
             if ($query) {
-                $url .= '?' . $this->urlencode ($query);
+                $url .= '?' . $this->urlencode($query);
             }
         } else {
             $this->check_required_credentials();
-            $nonce = (string) $this->nonce ();
+            $nonce = (string) $this->nonce();
             $queryString = '';
             if ($method === 'GET') {
                 if ($query) {
-                    $url .= '?' . $this->urlencode ($this->keysort ($query));
+                    $url .= '?' . $this->urlencode($this->keysort($query));
                 }
             } else {
                 if ($query) {
-                    $body = $this->urlencode ($this->keysort ($query));
+                    $body = $this->urlencode($this->keysort($query));
                     $queryString = $body;
                 }
             }
@@ -412,14 +412,14 @@ class coincheck extends Exchange {
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'ACCESS-KEY' => $this->apiKey,
                 'ACCESS-NONCE' => $nonce,
-                'ACCESS-SIGNATURE' => $this->hmac ($this->encode ($auth), $this->encode ($this->secret)),
+                'ACCESS-SIGNATURE' => $this->hmac($this->encode($auth), $this->encode($this->secret)),
             );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
+        $response = $this->fetch2($path, $api, $method, $params, $headers, $body);
         if ($api === 'public') {
             return $response;
         }
@@ -428,6 +428,6 @@ class coincheck extends Exchange {
                 return $response;
             }
         }
-        throw new ExchangeError($this->id . ' ' . $this->json ($response));
+        throw new ExchangeError($this->id . ' ' . $this->json($response));
     }
 }

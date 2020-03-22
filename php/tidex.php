@@ -262,7 +262,7 @@ class tidex extends Exchange {
             $currencyId = $currencyIds[$i];
             $code = $this->safe_currency_code($currencyId);
             $balance = $this->safe_value($funds, $currencyId, array());
-            $account = $this->account ();
+            $account = $this->account();
             $account['free'] = $this->safe_float($balance, 'value');
             $account['used'] = $this->safe_float($balance, 'inOrders');
             $result[$code] = $account;
@@ -272,7 +272,7 @@ class tidex extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
         );
@@ -346,7 +346,7 @@ class tidex extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
             'bid' => $this->safe_float($ticker, 'buy'),
@@ -458,7 +458,7 @@ class tidex extends Exchange {
             'id' => $id,
             'order' => $orderId,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
@@ -473,7 +473,7 @@ class tidex extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
         );
@@ -495,7 +495,7 @@ class tidex extends Exchange {
             throw new ExchangeError($this->id . ' allows limit orders only');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
             'type' => $side,
@@ -518,11 +518,11 @@ class tidex extends Exchange {
             $filled = $this->safe_float($response['return'], 'received', 0.0);
             $remaining = $this->safe_float($response['return'], 'remains', $amount);
         }
-        $timestamp = $this->milliseconds ();
+        $timestamp = $this->milliseconds();
         $order = array(
             'id' => $id,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
@@ -602,7 +602,7 @@ class tidex extends Exchange {
             'id' => $id,
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'type' => 'limit',
             'side' => $order['type'],
@@ -698,7 +698,7 @@ class tidex extends Exchange {
         $request = array();
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
             $request['pair'] = $market['id'];
         }
         $response = $this->privatePostActiveOrders (array_merge($request, $params));
@@ -735,7 +735,7 @@ class tidex extends Exchange {
             // 'pair' => 'eth_btc', // default = all markets
         );
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
             $request['pair'] = $market['id'];
         }
         if ($limit !== null) {
@@ -752,7 +752,7 @@ class tidex extends Exchange {
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $request = array(
             'coinName' => $currency['id'],
             'amount' => floatval ($amount),
@@ -771,15 +771,15 @@ class tidex extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api];
-        $query = $this->omit ($params, $this->extract_params($path));
+        $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'private') {
             $this->check_required_credentials();
-            $nonce = $this->nonce ();
-            $body = $this->urlencode (array_merge(array(
+            $nonce = $this->nonce();
+            $body = $this->urlencode(array_merge(array(
                 'nonce' => $nonce,
                 'method' => $path,
             ), $query));
-            $signature = $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512');
+            $signature = $this->hmac($this->encode($body), $this->encode($this->secret), 'sha512');
             $headers = array(
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Key' => $this->apiKey,
@@ -788,17 +788,17 @@ class tidex extends Exchange {
         } else if ($api === 'public') {
             $url .= '/' . $this->implode_params($path, $params);
             if ($query) {
-                $url .= '?' . $this->urlencode ($query);
+                $url .= '?' . $this->urlencode($query);
             }
         } else {
             $url .= '/' . $this->implode_params($path, $params);
             if ($method === 'GET') {
                 if ($query) {
-                    $url .= '?' . $this->urlencode ($query);
+                    $url .= '?' . $this->urlencode($query);
                 }
             } else {
                 if ($query) {
-                    $body = $this->json ($query);
+                    $body = $this->json($query);
                     $headers = array(
                         'Content-Type' => 'application/json',
                     );

@@ -393,7 +393,7 @@ class adara extends Exchange {
                 $currencyRelationshipData = $this->safe_value($currencyRelationship, 'data');
                 $currencyId = $this->safe_string($currencyRelationshipData, 'id');
                 $code = $this->common_currency_code($currencyId);
-                $account = $this->account ();
+                $account = $this->account();
                 $account['total'] = $this->safe_float($attributes, 'totalBalance');
                 $account['used'] = $this->safe_float($attributes, 'onOrders');
                 $result[$code] = $account;
@@ -434,21 +434,21 @@ class adara extends Exchange {
             } else if (mb_strpos($id, 'OSID') !== false) {
                 $asks[] = $this->parse_bid_ask($bidask['attributes'], $priceKey, $amountKey);
             } else {
-                throw new ExchangeError($this->id . ' parseOrderBook encountered an unrecognized $bidask format => ' . $this->json ($bidask));
+                throw new ExchangeError($this->id . ' parseOrderBook encountered an unrecognized $bidask format => ' . $this->json($bidask));
             }
         }
         return array(
             'bids' => $this->sort_by($bids, 0, true),
             'asks' => $this->sort_by($asks, 0),
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'nonce' => null,
         );
     }
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $filters = 'filters[$symbol]';
         $request = array();
         $request[$filters] = $market['id'];
@@ -497,7 +497,7 @@ class adara extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($attributes, 'high'),
             'low' => $this->safe_float($attributes, 'low'),
             'bid' => null,
@@ -566,7 +566,7 @@ class adara extends Exchange {
 
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'id' => $market['id'],
         );
@@ -654,7 +654,7 @@ class adara extends Exchange {
             $feeCurrency = $quote;
         }
         $orderId = null;
-        $timestamp = $this->parse8601 ($this->safe_string($attributes, 'createdAt'));
+        $timestamp = $this->parse8601($this->safe_string($attributes, 'createdAt'));
         $side = $this->safe_string($attributes, 'operation');
         $price = $this->safe_float($attributes, 'price');
         $amount = $this->safe_float($attributes, 'amount');
@@ -679,7 +679,7 @@ class adara extends Exchange {
             'info' => $trade,
             'order' => $orderId,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'type' => null,
             'side' => $side,
@@ -695,7 +695,7 @@ class adara extends Exchange {
         $this->load_markets();
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
         }
         $request = array(
             // 'id' => $market['id'],
@@ -743,7 +743,7 @@ class adara extends Exchange {
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'data' => array(
                 'type' => 'order',
@@ -934,11 +934,11 @@ class adara extends Exchange {
             $symbol = $base . '/' . $quote;
             $feeCurrency = $quote;
         }
-        $timestamp = $this->parse8601 ($this->safe_string($attributes, 'timeOpen'));
+        $timestamp = $this->parse8601($this->safe_string($attributes, 'timeOpen'));
         $side = $this->safe_string($attributes, 'operation');
         $type = $this->safe_string($attributes, 'orderType');
         $status = $this->parse_order_status($this->safe_string($attributes, 'status'));
-        $lastTradeTimestamp = $this->parse8601 ($this->safe_string($attributes, 'timeClose'));
+        $lastTradeTimestamp = $this->parse8601($this->safe_string($attributes, 'timeClose'));
         $price = $this->safe_float($attributes, 'price');
         $amount = $this->safe_float($attributes, 'amount');
         $filled = $this->safe_float($attributes, 'filled');
@@ -974,7 +974,7 @@ class adara extends Exchange {
             'info' => $order,
             'id' => $id,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $symbol,
             'type' => $type,
@@ -999,7 +999,7 @@ class adara extends Exchange {
         );
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
             $filters = 'filters[$symbol]';
             $request[$filters] = $market['id'];
         }
@@ -1192,24 +1192,24 @@ class adara extends Exchange {
     }
 
     public function nonce () {
-        return $this->milliseconds ();
+        return $this->milliseconds();
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $payload = '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'] . '/' . $this->version . $payload;
-        $query = $this->omit ($params, $this->extract_params($path));
+        $query = $this->omit($params, $this->extract_params($path));
         if ($method === 'GET') {
             if ($query) {
-                $url .= '?' . $this->urlencode ($query);
+                $url .= '?' . $this->urlencode($query);
             }
         }
         if ($api === 'private') {
             $nonce = $this->nonce();
-            $expiredAt = $this->sum ($nonce, $this->safe_integer($this->options, 'expiredAt', 10000));
+            $expiredAt = $this->sum($nonce, $this->safe_integer($this->options, 'expiredAt', 10000));
             $expiredAt = (string) $expiredAt;
             if (($method === 'POST') || ($method === 'PATCH')) {
-                $body = $this->json ($query);
+                $body = $this->json($query);
                 $payload = $body;
             }
             if ($this->token) {
@@ -1219,7 +1219,7 @@ class adara extends Exchange {
             } else {
                 $this->check_required_credentials();
                 $auth = $method . $payload . 'expiredAt=' . $expiredAt;
-                $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha512', 'base64');
+                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha512', 'base64');
                 $headers = array(
                     'X-ADX-EXPIRE' => $expiredAt,
                     'X-ADX-APIKEY' => $this->apiKey,
@@ -1245,7 +1245,7 @@ class adara extends Exchange {
             $status = $this->safe_string($error, 'status');
             $title = $this->safe_string($error, 'title');
             $detail = $this->safe_string($error, 'detail');
-            $feedback = $this->id . ' ' . $this->json ($response);
+            $feedback = $this->id . ' ' . $this->json($response);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $status, $feedback);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $title, $feedback);

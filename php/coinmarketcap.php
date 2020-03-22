@@ -190,7 +190,7 @@ class coinmarketcap extends Exchange {
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = $this->safe_timestamp($ticker, 'last_updated');
         if ($timestamp === null) {
-            $timestamp = $this->milliseconds ();
+            $timestamp = $this->milliseconds();
         }
         $change = $this->safe_float($ticker, 'percent_change_24h');
         $last = null;
@@ -206,7 +206,7 @@ class coinmarketcap extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => null,
             'low' => null,
             'bid' => null,
@@ -254,7 +254,7 @@ class coinmarketcap extends Exchange {
 
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'convert' => $market['quote'],
             'id' => $market['baseId'],
@@ -312,18 +312,18 @@ class coinmarketcap extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api] . '/' . $this->version . '/' . $this->implode_params($path, $params);
-        $query = $this->omit ($params, $this->extract_params($path));
+        $query = $this->omit($params, $this->extract_params($path));
         if ($query) {
-            $url .= '?' . $this->urlencode ($query);
+            $url .= '?' . $this->urlencode($query);
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
+        $response = $this->fetch2($path, $api, $method, $params, $headers, $body);
         if (is_array($response) && array_key_exists('error', $response)) {
             if ($response['error']) {
-                throw new ExchangeError($this->id . ' ' . $this->json ($response));
+                throw new ExchangeError($this->id . ' ' . $this->json($response));
             }
         }
         return $response;

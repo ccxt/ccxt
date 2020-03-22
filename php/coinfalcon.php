@@ -119,12 +119,12 @@ class coinfalcon extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        $timestamp = $this->milliseconds ();
+        $timestamp = $this->milliseconds();
         $last = floatval ($ticker['last_price']);
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => null,
             'low' => null,
             'bid' => null,
@@ -175,7 +175,7 @@ class coinfalcon extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $this->parse8601 ($this->safe_string($trade, 'created_at'));
+        $timestamp = $this->parse8601($this->safe_string($trade, 'created_at'));
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'size');
         $symbol = $market['symbol'];
@@ -200,7 +200,7 @@ class coinfalcon extends Exchange {
         return array(
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'id' => $tradeId,
             'order' => $orderId,
@@ -219,12 +219,12 @@ class coinfalcon extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a $symbol argument');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
         );
         if ($since !== null) {
-            $request['start_time'] = $this->iso8601 ($since);
+            $request['start_time'] = $this->iso8601($since);
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -235,12 +235,12 @@ class coinfalcon extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
         );
         if ($since !== null) {
-            $request['since'] = $this->iso8601 ($since);
+            $request['since'] = $this->iso8601($since);
         }
         $response = $this->publicGetMarketsMarketTrades (array_merge($request, $params));
         return $this->parse_trades($response['data'], $market, $since, $limit);
@@ -287,7 +287,7 @@ class coinfalcon extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        $timestamp = $this->parse8601 ($this->safe_string($order, 'created_at'));
+        $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'size');
         $filled = $this->safe_float($order, 'size_filled');
@@ -310,7 +310,7 @@ class coinfalcon extends Exchange {
         $side = $this->safe_string($order, 'order_type');
         return array(
             'id' => $this->safe_string($order, 'id'),
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'timestamp' => $timestamp,
             'status' => $status,
             'symbol' => $symbol,
@@ -329,7 +329,7 @@ class coinfalcon extends Exchange {
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         // price/size must be string
         $request = array(
             'market' => $market['id'],
@@ -354,7 +354,7 @@ class coinfalcon extends Exchange {
             'id' => $id,
         );
         $response = $this->privateDeleteUserOrdersId (array_merge($request, $params));
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         return $this->parse_order($response['data'], $market);
     }
 
@@ -374,7 +374,7 @@ class coinfalcon extends Exchange {
             $request['market'] = $this->market_id($symbol);
         }
         if ($since !== null) {
-            $request['since_time'] = $this->iso8601 ($this->milliseconds ());
+            $request['since_time'] = $this->iso8601($this->milliseconds());
         }
         // TODO => test status=all if it works for closed orders too
         $response = $this->privateGetUserOrders (array_merge($request, $params));
@@ -382,31 +382,31 @@ class coinfalcon extends Exchange {
     }
 
     public function nonce () {
-        return $this->milliseconds ();
+        return $this->milliseconds();
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = '/api/' . $this->version . '/' . $this->implode_params($path, $params);
-        $query = $this->omit ($params, $this->extract_params($path));
+        $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
             if ($query) {
-                $request .= '?' . $this->urlencode ($query);
+                $request .= '?' . $this->urlencode($query);
             }
         } else {
             $this->check_required_credentials();
             if ($method === 'GET') {
                 if ($query) {
-                    $request .= '?' . $this->urlencode ($query);
+                    $request .= '?' . $this->urlencode($query);
                 }
             } else {
-                $body = $this->json ($query);
+                $body = $this->json($query);
             }
-            $seconds = (string) $this->seconds ();
+            $seconds = (string) $this->seconds();
             $payload = implode('|', array($seconds, $method, $request));
             if ($body) {
                 $payload .= '|' . $body;
             }
-            $signature = $this->hmac ($this->encode ($payload), $this->encode ($this->secret));
+            $signature = $this->hmac($this->encode($payload), $this->encode($this->secret));
             $headers = array(
                 'CF-API-KEY' => $this->apiKey,
                 'CF-API-TIMESTAMP' => $seconds,

@@ -94,7 +94,7 @@ class lakebtc extends Exchange {
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $code = $this->safe_currency_code($currencyId);
-            $account = $this->account ();
+            $account = $this->account();
             $account['total'] = $this->safe_float($balances, $currencyId);
             $result[$code] = $account;
         }
@@ -111,7 +111,7 @@ class lakebtc extends Exchange {
     }
 
     public function parse_ticker ($ticker, $market = null) {
-        $timestamp = $this->milliseconds ();
+        $timestamp = $this->milliseconds();
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -120,7 +120,7 @@ class lakebtc extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
             'bid' => $this->safe_float($ticker, 'bid'),
@@ -161,7 +161,7 @@ class lakebtc extends Exchange {
 
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $tickers = $this->publicGetTicker ($params);
         return $this->parse_ticker($tickers[$market['id']], $market);
     }
@@ -185,7 +185,7 @@ class lakebtc extends Exchange {
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'order' => null,
             'type' => null,
@@ -200,7 +200,7 @@ class lakebtc extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
@@ -213,8 +213,8 @@ class lakebtc extends Exchange {
         if ($type === 'market') {
             throw new ExchangeError($this->id . ' allows limit orders only');
         }
-        $method = 'privatePost' . $this->capitalize ($side) . 'Order';
-        $market = $this->market ($symbol);
+        $method = 'privatePost' . $this->capitalize($side) . 'Order';
+        $market = $this->market($symbol);
         $order = array(
             'params' => [ $price, $amount, $market['id'] ],
         );
@@ -234,7 +234,7 @@ class lakebtc extends Exchange {
     }
 
     public function nonce () {
-        return $this->microseconds ();
+        return $this->microseconds();
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -242,7 +242,7 @@ class lakebtc extends Exchange {
         if ($api === 'public') {
             $url .= '/' . $path;
             if ($params) {
-                $url .= '?' . $this->urlencode ($params);
+                $url .= '?' . $this->urlencode($params);
             }
         } else {
             $this->check_required_credentials();
@@ -252,7 +252,7 @@ class lakebtc extends Exchange {
                 $paramsList = $params['params'];
                 $queryParams = implode(',', $paramsList);
             }
-            $query = $this->urlencode (array(
+            $query = $this->urlencode(array(
                 'tonce' => $nonce,
                 'accesskey' => $this->apiKey,
                 'requestmethod' => strtolower($method),
@@ -260,16 +260,16 @@ class lakebtc extends Exchange {
                 'method' => $path,
                 'params' => $queryParams,
             ));
-            $body = $this->json (array(
+            $body = $this->json(array(
                 'method' => $path,
                 'params' => $queryParams,
                 'id' => $nonce,
             ));
-            $signature = $this->hmac ($this->encode ($query), $this->encode ($this->secret), 'sha1');
-            $auth = $this->encode ($this->apiKey . ':' . $signature);
+            $signature = $this->hmac($this->encode($query), $this->encode($this->secret), 'sha1');
+            $auth = $this->encode($this->apiKey . ':' . $signature);
             $headers = array(
                 'Json-Rpc-Tonce' => (string) $nonce,
-                'Authorization' => 'Basic ' . $this->decode (base64_encode($auth)),
+                'Authorization' => 'Basic ' . $this->decode(base64_encode($auth)),
                 'Content-Type' => 'application/json',
             );
         }
@@ -277,9 +277,9 @@ class lakebtc extends Exchange {
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
+        $response = $this->fetch2($path, $api, $method, $params, $headers, $body);
         if (is_array($response) && array_key_exists('error', $response)) {
-            throw new ExchangeError($this->id . ' ' . $this->json ($response));
+            throw new ExchangeError($this->id . ' ' . $this->json($response));
         }
         return $response;
     }

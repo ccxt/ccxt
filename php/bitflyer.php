@@ -180,7 +180,7 @@ class bitflyer extends Exchange {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'currency_code');
             $code = $this->safe_currency_code($currencyId);
-            $account = $this->account ();
+            $account = $this->account();
             $account['total'] = $this->safe_float($balance, 'amount');
             $account['free'] = $this->safe_float($balance, 'available');
             $result[$code] = $account;
@@ -203,12 +203,12 @@ class bitflyer extends Exchange {
             'product_code' => $this->market_id($symbol),
         );
         $ticker = $this->publicGetGetticker (array_merge($request, $params));
-        $timestamp = $this->parse8601 ($this->safe_string($ticker, 'timestamp'));
+        $timestamp = $this->parse8601($this->safe_string($ticker, 'timestamp'));
         $last = $this->safe_float($ticker, 'ltp');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => null,
             'low' => null,
             'bid' => $this->safe_float($ticker, 'best_bid'),
@@ -246,7 +246,7 @@ class bitflyer extends Exchange {
         if ($order === null) {
             $order = $this->safe_string($trade, 'child_order_acceptance_id');
         }
-        $timestamp = $this->parse8601 ($this->safe_string($trade, 'exec_date'));
+        $timestamp = $this->parse8601($this->safe_string($trade, 'exec_date'));
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'size');
         $cost = null;
@@ -264,7 +264,7 @@ class bitflyer extends Exchange {
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'order' => $order,
             'type' => null,
@@ -279,7 +279,7 @@ class bitflyer extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'product_code' => $market['id'],
         );
@@ -329,7 +329,7 @@ class bitflyer extends Exchange {
     }
 
     public function parse_order ($order, $market = null) {
-        $timestamp = $this->parse8601 ($this->safe_string($order, 'child_order_date'));
+        $timestamp = $this->parse8601($this->safe_string($order, 'child_order_date'));
         $amount = $this->safe_float($order, 'size');
         $remaining = $this->safe_float($order, 'outstanding_size');
         $filled = $this->safe_float($order, 'executed_size');
@@ -362,7 +362,7 @@ class bitflyer extends Exchange {
             'id' => $id,
             'info' => $order,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
@@ -382,7 +382,7 @@ class bitflyer extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchOrders() requires a `$symbol` argument');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'product_code' => $market['id'],
             'count' => $limit,
@@ -426,7 +426,7 @@ class bitflyer extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a `$symbol` argument');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'product_code' => $market['id'],
         );
@@ -443,7 +443,7 @@ class bitflyer extends Exchange {
         if ($code !== 'JPY' && $code !== 'USD' && $code !== 'EUR') {
             throw new ExchangeError($this->id . ' allows withdrawing JPY, USD, EUR only, ' . $code . ' is not supported');
         }
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $request = array(
             'currency_code' => $currency['id'],
             'amount' => $amount,
@@ -465,24 +465,24 @@ class bitflyer extends Exchange {
         $request .= $path;
         if ($method === 'GET') {
             if ($params) {
-                $request .= '?' . $this->urlencode ($params);
+                $request .= '?' . $this->urlencode($params);
             }
         }
         $url = $this->urls['api'] . $request;
         if ($api === 'private') {
             $this->check_required_credentials();
-            $nonce = (string) $this->nonce ();
+            $nonce = (string) $this->nonce();
             $auth = implode('', array($nonce, $method, $request));
             if ($params) {
                 if ($method !== 'GET') {
-                    $body = $this->json ($params);
+                    $body = $this->json($params);
                     $auth .= $body;
                 }
             }
             $headers = array(
                 'ACCESS-KEY' => $this->apiKey,
                 'ACCESS-TIMESTAMP' => $nonce,
-                'ACCESS-SIGN' => $this->hmac ($this->encode ($auth), $this->encode ($this->secret)),
+                'ACCESS-SIGN' => $this->hmac($this->encode($auth), $this->encode($this->secret)),
                 'Content-Type' => 'application/json',
             );
         }

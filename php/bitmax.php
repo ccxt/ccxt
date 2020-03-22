@@ -329,7 +329,7 @@ class bitmax extends Exchange {
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
             $code = $this->safe_currency_code($this->safe_string($balance, 'assetCode'));
-            $account = $this->account ();
+            $account = $this->account();
             $account['free'] = $this->safe_float($balance, 'availableAmount');
             $account['used'] = $this->safe_float($balance, 'inOrderAmount');
             $account['total'] = $this->safe_float($balance, 'totalAmount');
@@ -340,7 +340,7 @@ class bitmax extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
@@ -401,7 +401,7 @@ class bitmax extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'highPrice'),
             'low' => $this->safe_float($ticker, 'lowPrice'),
             'bid' => null,
@@ -432,7 +432,7 @@ class bitmax extends Exchange {
 
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
@@ -474,7 +474,7 @@ class bitmax extends Exchange {
 
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
             'interval' => $this->timeframes[$timeframe],
@@ -485,10 +485,10 @@ class bitmax extends Exchange {
         if ($since !== null) {
             $request['from'] = $since;
             if ($limit !== null) {
-                $request['to'] = $this->sum ($since, $limit * $duration * 1000, 1);
+                $request['to'] = $this->sum($since, $limit * $duration * 1000, 1);
             }
         } else if ($limit !== null) {
-            $request['to'] = $this->milliseconds ();
+            $request['to'] = $this->milliseconds();
             $request['from'] = $request['to'] - $limit * $duration * 1000 - 1;
         }
         $response = $this->publicGetBarhist (array_merge($request, $params));
@@ -579,7 +579,7 @@ class bitmax extends Exchange {
         return array(
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'id' => null,
             'order' => $orderId,
@@ -595,7 +595,7 @@ class bitmax extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
@@ -732,7 +732,7 @@ class bitmax extends Exchange {
             'info' => $order,
             'id' => $id,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
@@ -752,10 +752,10 @@ class bitmax extends Exchange {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $this->load_accounts();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'coid' => $this->coid(), // a unique identifier of length 32
-            // 'time' => $this->milliseconds (), // milliseconds since UNIX epoch in UTC, this is filled in the private section of the sign() method below
+            // 'time' => $this->milliseconds(), // milliseconds since UNIX epoch in UTC, this is filled in the private section of the sign() method below
             'symbol' => $market['id'],
             // 'orderPrice' => $this->price_to_precision($symbol, $price), // optional, limit $price of the order. This field is required for limit orders and stop limit orders
             // 'stopPrice' => '15.7', // optional, stopPrice of the order. This field is required for stop_market orders and stop limit orders
@@ -790,7 +790,7 @@ class bitmax extends Exchange {
         $this->load_accounts();
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
         }
         $request = array(
             'coid' => $id,
@@ -838,7 +838,7 @@ class bitmax extends Exchange {
         $this->load_accounts();
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
         }
         $request = array(
             'coid' => $id,
@@ -892,7 +892,7 @@ class bitmax extends Exchange {
             // 'side' => 'buy', // or 'sell', optional
         );
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
         $response = $this->privateGetOrderOpen (array_merge($request, $params));
@@ -951,7 +951,7 @@ class bitmax extends Exchange {
             // 'status' => 'Filled', // optional, can only be one of "Filled", "Canceled", "Rejected"
         );
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
         if ($since !== null) {
@@ -1013,12 +1013,12 @@ class bitmax extends Exchange {
         }
         $this->load_markets();
         $this->load_accounts();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
             'coid' => $this->coid(),
             'origCoid' => $id,
-            // 'time' => $this->milliseconds (), // this is filled in the private section of the sign() method below
+            // 'time' => $this->milliseconds(), // this is filled in the private section of the sign() method below
         );
         $response = $this->privateDeleteOrder (array_merge($request, $params));
         //
@@ -1045,7 +1045,7 @@ class bitmax extends Exchange {
         );
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
             $request['symbol'] = $market['id']; // optional
         }
         $response = $this->privateDeleteOrderAll (array_merge($request, $params));
@@ -1056,7 +1056,7 @@ class bitmax extends Exchange {
     }
 
     public function coid () {
-        $uuid = $this->uuid ();
+        $uuid = $this->uuid();
         $parts = explode('-', $uuid);
         $clientOrderId = implode('', $parts);
         $coid = mb_substr($clientOrderId, 0, 32 - 0);
@@ -1066,10 +1066,10 @@ class bitmax extends Exchange {
     public function fetch_deposit_address ($code, $params = array ()) {
         $this->load_markets();
         $this->load_accounts();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $request = array(
             'requestId' => $this->coid(),
-            // 'time' => $this->milliseconds (), // this is filled in the private section of the sign() method below
+            // 'time' => $this->milliseconds(), // this is filled in the private section of the sign() method below
             'assetCode' => $currency['id'],
         );
         // note => it is highly recommended to use V2 version of this route,
@@ -1122,10 +1122,10 @@ class bitmax extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = '/api/' . $this->version . '/' . $this->implode_params($path, $params);
-        $query = $this->omit ($params, $this->extract_params($path));
+        $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
             if ($query) {
-                $url .= '?' . $this->urlencode ($query);
+                $url .= '?' . $this->urlencode($query);
             }
         } else {
             $this->check_required_credentials();
@@ -1139,7 +1139,7 @@ class bitmax extends Exchange {
                 $url = '/' . $accountGroup . $url;
             }
             $coid = $this->safe_string($query, 'coid');
-            $query['time'] = (string) $this->milliseconds ();
+            $query['time'] = (string) $this->milliseconds();
             $auth = $query['time'] . '+' . str_replace('/{$coid}', '', $path); // fix sign error
             $headers = array(
                 'x-$auth-key' => $this->apiKey,
@@ -1150,14 +1150,14 @@ class bitmax extends Exchange {
                 $auth .= '+' . $coid;
                 $headers['x-$auth-coid'] = $coid;
             }
-            $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha256', 'base64');
-            $headers['x-$auth-signature'] = $this->decode ($signature);
+            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64');
+            $headers['x-$auth-signature'] = $this->decode($signature);
             if ($method === 'GET') {
                 if ($query) {
-                    $url .= '?' . $this->urlencode ($query);
+                    $url .= '?' . $this->urlencode($query);
                 }
             } else {
-                $body = $this->json ($query);
+                $body = $this->json($query);
             }
         }
         $url = $this->urls['api'] . $url;

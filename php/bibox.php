@@ -227,7 +227,7 @@ class bibox extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
             'bid' => $this->safe_float($ticker, 'buy'),
@@ -250,7 +250,7 @@ class bibox extends Exchange {
 
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'cmd' => 'ticker',
             'pair' => $market['id'],
@@ -330,7 +330,7 @@ class bibox extends Exchange {
             'id' => $id,
             'order' => null, // Bibox does not have it (documented) yet
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'type' => 'limit',
             'takerOrMaker' => null,
@@ -344,7 +344,7 @@ class bibox extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'cmd' => 'deals',
             'pair' => $market['id'],
@@ -358,7 +358,7 @@ class bibox extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'cmd' => 'depth',
             'pair' => $market['id'],
@@ -383,7 +383,7 @@ class bibox extends Exchange {
 
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = 1000, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'cmd' => 'kline',
             'pair' => $market['id'],
@@ -448,7 +448,7 @@ class bibox extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $type = $this->safe_string($params, 'type', 'assets');
-        $params = $this->omit ($params, 'type');
+        $params = $this->omit($params, 'type');
         $request = array(
             'cmd' => 'transfer/' . $type, // assets, mainAssets
             'body' => array_merge(array(
@@ -474,7 +474,7 @@ class bibox extends Exchange {
             if (is_array($this->currencies_by_id) && array_key_exists($code, $this->currencies_by_id)) {
                 $code = $this->currencies_by_id[$code]['code'];
             }
-            $account = $this->account ();
+            $account = $this->account();
             $balance = $indexed[$id];
             if (gettype($balance) === 'string') {
                 $balance = floatval ($balance);
@@ -497,7 +497,7 @@ class bibox extends Exchange {
             'page' => 1,
         );
         if ($code !== null) {
-            $currency = $this->currency ($code);
+            $currency = $this->currency($code);
             $request['symbol'] = $currency['id'];
         }
         if ($limit !== null) {
@@ -523,7 +523,7 @@ class bibox extends Exchange {
             'page' => 1,
         );
         if ($code !== null) {
-            $currency = $this->currency ($code);
+            $currency = $this->currency($code);
             $request['symbol'] = $currency['id'];
         }
         if ($limit !== null) {
@@ -593,7 +593,7 @@ class bibox extends Exchange {
             'id' => $id,
             'txid' => null,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'address' => $address,
             'tag' => $tag,
             'type' => $type,
@@ -621,7 +621,7 @@ class bibox extends Exchange {
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $orderType = ($type === 'limit') ? 2 : 1;
         $orderSide = ($side === 'buy') ? 1 : 2;
         $request = array(
@@ -719,7 +719,7 @@ class bibox extends Exchange {
             'info' => $order,
             'id' => $id,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
@@ -753,7 +753,7 @@ class bibox extends Exchange {
         $market = null;
         $pair = null;
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
             $pair = $market['id'];
         }
         $size = $limit ? $limit : 200;
@@ -776,7 +776,7 @@ class bibox extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchClosedOrders requires a `$symbol` argument');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'cmd' => 'orderpending/pendingHistoryList',
             'body' => array_merge(array(
@@ -796,7 +796,7 @@ class bibox extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a `$symbol` argument');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $size = $limit ? $limit : 200;
         $request = array(
             'cmd' => 'orderpending/orderHistoryList',
@@ -816,7 +816,7 @@ class bibox extends Exchange {
 
     public function fetch_deposit_address ($code, $params = array ()) {
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $request = array(
             'cmd' => 'transfer/transferIn',
             'body' => array_merge(array(
@@ -852,7 +852,7 @@ class bibox extends Exchange {
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         if ($this->password === null) {
             if (!(is_array($params) && array_key_exists('trade_pwd', $params))) {
                 throw new ExchangeError($this->id . ' withdraw() requires $this->password set on the exchange instance or a trade_pwd parameter');
@@ -891,7 +891,7 @@ class bibox extends Exchange {
         }
         for ($i = 0; $i < count($codes); $i++) {
             $code = $codes[$i];
-            $currency = $this->currency ($code);
+            $currency = $this->currency($code);
             $request = array(
                 'cmd' => 'transfer/coinConfig',
                 'body' => array_merge(array(
@@ -911,32 +911,32 @@ class bibox extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
-        $cmds = $this->json (array( $params ));
+        $cmds = $this->json(array( $params ));
         if ($api === 'public') {
             if ($method !== 'GET') {
                 $body = array( 'cmds' => $cmds );
             } else if ($params) {
-                $url .= '?' . $this->urlencode ($params);
+                $url .= '?' . $this->urlencode($params);
             }
         } else if ($api === 'v2private') {
             $this->check_required_credentials();
             $url = $this->urls['api'] . '/v2/' . $path;
-            $json_params = $this->json ($params);
+            $json_params = $this->json($params);
             $body = array(
                 'body' => $json_params,
                 'apikey' => $this->apiKey,
-                'sign' => $this->hmac ($this->encode ($json_params), $this->encode ($this->secret), 'md5'),
+                'sign' => $this->hmac($this->encode($json_params), $this->encode($this->secret), 'md5'),
             );
         } else {
             $this->check_required_credentials();
             $body = array(
                 'cmds' => $cmds,
                 'apikey' => $this->apiKey,
-                'sign' => $this->hmac ($this->encode ($cmds), $this->encode ($this->secret), 'md5'),
+                'sign' => $this->hmac($this->encode($cmds), $this->encode($this->secret), 'md5'),
             );
         }
         if ($body !== null) {
-            $body = $this->json ($body, array( 'convertArraysToObjects' => true ));
+            $body = $this->json($body, array( 'convertArraysToObjects' => true ));
         }
         $headers = array( 'Content-Type' => 'application/json' );
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
@@ -961,7 +961,7 @@ class bibox extends Exchange {
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
+        $response = $this->fetch2($path, $api, $method, $params, $headers, $body);
         if ($method === 'GET') {
             return $response;
         } else {

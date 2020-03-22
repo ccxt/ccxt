@@ -123,9 +123,9 @@ class luno extends Exchange {
             $reserved = $this->safe_float($wallet, 'reserved');
             $unconfirmed = $this->safe_float($wallet, 'unconfirmed');
             $balance = $this->safe_float($wallet, 'balance');
-            $account = $this->account ();
-            $account['used'] = $this->sum ($reserved, $unconfirmed);
-            $account['total'] = $this->sum ($balance, $unconfirmed);
+            $account = $this->account();
+            $account['used'] = $this->sum($reserved, $unconfirmed);
+            $account['total'] = $this->sum($balance, $unconfirmed);
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -186,7 +186,7 @@ class luno extends Exchange {
         $id = $this->safe_string($order, 'order_id');
         return array(
             'id' => $id,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => null,
             'status' => $status,
@@ -221,7 +221,7 @@ class luno extends Exchange {
             $request['state'] = $state;
         }
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
             $request['pair'] = $market['id'];
         }
         $response = $this->privateGetListorders (array_merge($request, $params));
@@ -251,7 +251,7 @@ class luno extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => null,
             'low' => null,
             'bid' => $this->safe_float($ticker, 'bid'),
@@ -290,7 +290,7 @@ class luno extends Exchange {
 
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
         );
@@ -337,7 +337,7 @@ class luno extends Exchange {
             'info' => $trade,
             'id' => null,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $market['symbol'],
             'order' => $orderId,
             'type' => null,
@@ -356,7 +356,7 @@ class luno extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
         );
@@ -373,7 +373,7 @@ class luno extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a $symbol argument');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
         );
@@ -435,23 +435,23 @@ class luno extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
-        $query = $this->omit ($params, $this->extract_params($path));
+        $query = $this->omit($params, $this->extract_params($path));
         if ($query) {
-            $url .= '?' . $this->urlencode ($query);
+            $url .= '?' . $this->urlencode($query);
         }
         if ($api === 'private') {
             $this->check_required_credentials();
-            $auth = $this->encode ($this->apiKey . ':' . $this->secret);
+            $auth = $this->encode($this->apiKey . ':' . $this->secret);
             $auth = base64_encode($auth);
-            $headers = array( 'Authorization' => 'Basic ' . $this->decode ($auth) );
+            $headers = array( 'Authorization' => 'Basic ' . $this->decode($auth) );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
+        $response = $this->fetch2($path, $api, $method, $params, $headers, $body);
         if (is_array($response) && array_key_exists('error', $response)) {
-            throw new ExchangeError($this->id . ' ' . $this->json ($response));
+            throw new ExchangeError($this->id . ' ' . $this->json($response));
         }
         return $response;
     }

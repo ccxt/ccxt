@@ -158,7 +158,7 @@ class xbtce extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'filter' => $market['id'],
         );
@@ -184,7 +184,7 @@ class xbtce extends Exchange {
             }
         }
         if (!$timestamp) {
-            $timestamp = $this->milliseconds ();
+            $timestamp = $this->milliseconds();
         }
         $symbol = null;
         if ($market) {
@@ -193,7 +193,7 @@ class xbtce extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $ticker['DailyBestBuyPrice'],
             'low' => $ticker['DailyBestSellPrice'],
             'bid' => $ticker['BestBid'],
@@ -242,7 +242,7 @@ class xbtce extends Exchange {
 
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'filter' => $market['id'],
         );
@@ -277,9 +277,9 @@ class xbtce extends Exchange {
         //     $minutes = intval ($timeframe / 60); // 1 minute by default
         //     $periodicity = (string) $minutes;
         //     $this->load_markets();
-        //     $market = $this->market ($symbol);
+        //     $market = $this->market($symbol);
         //     if ($since === null)
-        //         $since = $this->seconds () - 86400 * 7; // last day by defulat
+        //         $since = $this->seconds() - 86400 * 7; // last day by defulat
         //     if ($limit === null)
         //         $limit = 1000; // default
         //     $response = $this->privateGetQuotehistorySymbolPeriodicityBarsBid (array_merge(array(
@@ -319,7 +319,7 @@ class xbtce extends Exchange {
     }
 
     public function nonce () {
-        return $this->milliseconds ();
+        return $this->milliseconds();
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -334,10 +334,10 @@ class xbtce extends Exchange {
             $url .= '/' . $api;
         }
         $url .= '/' . $this->implode_params($path, $params);
-        $query = $this->omit ($params, $this->extract_params($path));
+        $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
             if ($query) {
-                $url .= '?' . $this->urlencode ($query);
+                $url .= '?' . $this->urlencode($query);
             }
         } else {
             $this->check_required_credentials();
@@ -346,17 +346,17 @@ class xbtce extends Exchange {
             if ($method === 'POST') {
                 if ($query) {
                     $headers['Content-Type'] = 'application/json';
-                    $body = $this->json ($query);
+                    $body = $this->json($query);
                 } else {
-                    $url .= '?' . $this->urlencode ($query);
+                    $url .= '?' . $this->urlencode($query);
                 }
             }
             $auth = $nonce . $this->uid . $this->apiKey . $method . $url;
             if ($body) {
                 $auth .= $body;
             }
-            $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha256', 'base64');
-            $credentials = $this->uid . ':' . $this->apiKey . ':' . $nonce . ':' . $this->decode ($signature);
+            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64');
+            $credentials = $this->uid . ':' . $this->apiKey . ':' . $nonce . ':' . $this->decode($signature);
             $headers['Authorization'] = 'HMAC ' . $credentials;
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

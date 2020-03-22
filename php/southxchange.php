@@ -103,9 +103,9 @@ class southxchange extends Exchange {
             $code = $this->safe_currency_code($currencyId);
             $deposited = $this->safe_float($balance, 'Deposited');
             $unconfirmed = $this->safe_float($balance, 'Unconfirmed');
-            $account = $this->account ();
+            $account = $this->account();
             $account['free'] = $this->safe_float($balance, 'Available');
-            $account['total'] = $this->sum ($deposited, $unconfirmed);
+            $account['total'] = $this->sum($deposited, $unconfirmed);
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -121,7 +121,7 @@ class southxchange extends Exchange {
     }
 
     public function parse_ticker ($ticker, $market = null) {
-        $timestamp = $this->milliseconds ();
+        $timestamp = $this->milliseconds();
         $symbol = null;
         if ($market) {
             $symbol = $market['symbol'];
@@ -130,7 +130,7 @@ class southxchange extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => null,
             'low' => null,
             'bid' => $this->safe_float($ticker, 'Bid'),
@@ -173,7 +173,7 @@ class southxchange extends Exchange {
 
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
@@ -199,7 +199,7 @@ class southxchange extends Exchange {
         return array(
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'id' => null,
             'order' => null,
@@ -215,7 +215,7 @@ class southxchange extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
@@ -249,7 +249,7 @@ class southxchange extends Exchange {
             'info' => $order,
             'id' => $id,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
@@ -269,7 +269,7 @@ class southxchange extends Exchange {
         $this->load_markets();
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
         }
         $response = $this->privatePostListOrders ($params);
         return $this->parse_orders($response, $market, $since, $limit);
@@ -277,7 +277,7 @@ class southxchange extends Exchange {
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'listingCurrency' => $market['base'],
             'referenceCurrency' => $market['quote'],
@@ -304,7 +304,7 @@ class southxchange extends Exchange {
 
     public function create_deposit_address ($code, $params = array ()) {
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $request = array(
             'currency' => $currency['id'],
         );
@@ -328,7 +328,7 @@ class southxchange extends Exchange {
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $request = array(
             'currency' => $currency['id'],
             'address' => $address,
@@ -346,18 +346,18 @@ class southxchange extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->implode_params($path, $params);
-        $query = $this->omit ($params, $this->extract_params($path));
+        $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'private') {
             $this->check_required_credentials();
-            $nonce = $this->nonce ();
+            $nonce = $this->nonce();
             $query = array_merge(array(
                 'key' => $this->apiKey,
                 'nonce' => $nonce,
             ), $query);
-            $body = $this->json ($query);
+            $body = $this->json($query);
             $headers = array(
                 'Content-Type' => 'application/json',
-                'Hash' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512'),
+                'Hash' => $this->hmac($this->encode($body), $this->encode($this->secret), 'sha512'),
             );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

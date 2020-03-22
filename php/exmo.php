@@ -513,7 +513,7 @@ class exmo extends Exchange {
             }
         }
         // sets fiat fees to null
-        $fiatGroups = $this->to_array($this->omit ($groupsByGroup, 'crypto'));
+        $fiatGroups = $this->to_array($this->omit($groupsByGroup, 'crypto'));
         for ($i = 0; $i < count($fiatGroups); $i++) {
             $code = $this->safe_currency_code($this->safe_string($fiatGroups[$i], 'title'));
             $withdraw[$code] = null;
@@ -646,8 +646,8 @@ class exmo extends Exchange {
         $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
         for ($i = 0; $i < count($codes); $i++) {
             $code = $codes[$i];
-            $currencyId = $this->currencyId ($code);
-            $account = $this->account ();
+            $currencyId = $this->currency_id($code);
+            $account = $this->account();
             if (is_array($response['balances']) && array_key_exists($currencyId, $response['balances'])) {
                 $account['free'] = $this->safe_float($response['balances'], $currencyId);
             }
@@ -661,7 +661,7 @@ class exmo extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
         );
@@ -718,7 +718,7 @@ class exmo extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
             'bid' => $this->safe_float($ticker, 'buy_price'),
@@ -757,7 +757,7 @@ class exmo extends Exchange {
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $response = $this->publicGetTicker ($params);
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         return $this->parse_ticker($response[$market['id']], $market);
     }
 
@@ -795,7 +795,7 @@ class exmo extends Exchange {
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'order' => $orderId,
             'type' => $type,
@@ -810,7 +810,7 @@ class exmo extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
         );
@@ -835,7 +835,7 @@ class exmo extends Exchange {
             $marketIds = $this->market_ids($symbol);
             $pair = implode(',', $marketIds);
         } else {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
             $pair = $market['id'];
         }
         $request = array(
@@ -871,7 +871,7 @@ class exmo extends Exchange {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $prefix = ($type === 'market') ? ($type . '_') : '';
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         if (($type === 'market') && ($price === null)) {
             $price = 0;
         }
@@ -883,7 +883,7 @@ class exmo extends Exchange {
         );
         $response = $this->privatePostOrderCreate (array_merge($request, $params));
         $id = $this->safe_string($response, 'order_id');
-        $timestamp = $this->milliseconds ();
+        $timestamp = $this->milliseconds();
         $amount = floatval ($amount);
         $price = floatval ($price);
         $status = 'open';
@@ -891,7 +891,7 @@ class exmo extends Exchange {
             'id' => $id,
             'info' => $response,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
@@ -964,7 +964,7 @@ class exmo extends Exchange {
     public function fetch_order_trades ($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
         }
         $request = array(
             'order_id' => (string) $id,
@@ -1127,8 +1127,8 @@ class exmo extends Exchange {
                 if ($timestamp > $trade['timestamp']) {
                     $timestamp = $trade['timestamp'];
                 }
-                $filled = $this->sum ($filled, $trade['amount']);
-                $feeCost = $this->sum ($feeCost, $trade['fee']['cost']);
+                $filled = $this->sum($filled, $trade['amount']);
+                $feeCost = $this->sum($feeCost, $trade['fee']['cost']);
                 $trades[] = $trade;
             }
             $lastTradeTimestamp = $trades[$numTransactions - 1]['timestamp'];
@@ -1171,7 +1171,7 @@ class exmo extends Exchange {
         );
         return array(
             'id' => $id,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'status' => $status,
@@ -1243,7 +1243,7 @@ class exmo extends Exchange {
 
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $request = array(
             'amount' => $amount,
             'currency' => $currency['id'],
@@ -1336,7 +1336,7 @@ class exmo extends Exchange {
             'updated' => null,
             'txid' => $txid,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'fee' => $fee,
         );
     }
@@ -1349,7 +1349,7 @@ class exmo extends Exchange {
         }
         $currency = null;
         if ($code !== null) {
-            $currency = $this->currency ($code);
+            $currency = $this->currency($code);
         }
         $response = $this->privatePostWalletHistory (array_merge($request, $params));
         //
@@ -1393,23 +1393,23 @@ class exmo extends Exchange {
         $url .= $path;
         if (($api === 'public') || ($api === 'web')) {
             if ($params) {
-                $url .= '?' . $this->urlencode ($params);
+                $url .= '?' . $this->urlencode($params);
             }
         } else if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = $this->nonce();
-            $body = $this->urlencode (array_merge(array( 'nonce' => $nonce ), $params));
+            $body = $this->urlencode(array_merge(array( 'nonce' => $nonce ), $params));
             $headers = array(
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Key' => $this->apiKey,
-                'Sign' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512'),
+                'Sign' => $this->hmac($this->encode($body), $this->encode($this->secret), 'sha512'),
             );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function nonce () {
-        return $this->milliseconds ();
+        return $this->milliseconds();
     }
 
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

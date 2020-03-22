@@ -131,7 +131,7 @@ class coinone extends Exchange {
         $this->load_markets();
         $response = $this->privatePostAccountBalance ($params);
         $result = array( 'info' => $response );
-        $balances = $this->omit ($response, array(
+        $balances = $this->omit($response, array(
             'errorCode',
             'result',
             'normalWallets',
@@ -141,7 +141,7 @@ class coinone extends Exchange {
             $currencyId = $currencyIds[$i];
             $balance = $balances[$currencyId];
             $code = $this->safe_currency_code($currencyId);
-            $account = $this->account ();
+            $account = $this->account();
             $account['free'] = $this->safe_float($balance, 'avail');
             $account['total'] = $this->safe_float($balance, 'balance');
             $result[$code] = $account;
@@ -151,7 +151,7 @@ class coinone extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'currency' => $market['id'],
             'format' => 'json',
@@ -185,7 +185,7 @@ class coinone extends Exchange {
 
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'currency' => $market['id'],
             'format' => 'json',
@@ -195,7 +195,7 @@ class coinone extends Exchange {
     }
 
     public function parse_ticker ($ticker, $market = null) {
-        $timestamp = $this->milliseconds ();
+        $timestamp = $this->milliseconds();
         $last = $this->safe_float($ticker, 'last');
         $previousClose = $this->safe_float($ticker, 'yesterday_last');
         $change = null;
@@ -206,7 +206,7 @@ class coinone extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
             'bid' => null,
@@ -249,7 +249,7 @@ class coinone extends Exchange {
             'id' => null,
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'order' => null,
             'symbol' => $symbol,
             'type' => null,
@@ -264,7 +264,7 @@ class coinone extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'currency' => $market['id'],
             'period' => 'hour',
@@ -285,19 +285,19 @@ class coinone extends Exchange {
             'currency' => $this->market_id($symbol),
             'qty' => $amount,
         );
-        $method = 'privatePostOrder' . $this->capitalize ($type) . $this->capitalize ($side);
+        $method = 'privatePostOrder' . $this->capitalize($type) . $this->capitalize($side);
         $response = $this->$method (array_merge($request, $params));
         $id = $this->safe_string($response, 'orderId');
         if ($id !== null) {
             $id = strtoupper($id);
         }
-        $timestamp = $this->milliseconds ();
+        $timestamp = $this->milliseconds();
         $cost = $price * $amount;
         $order = array(
             'info' => $response,
             'id' => $id,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
@@ -321,12 +321,12 @@ class coinone extends Exchange {
         $market = null;
         if ($symbol === null) {
             if (is_array($this->orders) && array_key_exists($id, $this->orders)) {
-                $market = $this->market ($this->orders[$id]['symbol']);
+                $market = $this->market($this->orders[$id]['symbol']);
             } else {
                 throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument for order ids missing in the .orders cache (the order was created with a different instance of this class or within a different run of this code).');
             }
         } else {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
         }
         try {
             $request = array(
@@ -404,7 +404,7 @@ class coinone extends Exchange {
             'info' => $order,
             'id' => $id,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => 'limit',
@@ -464,25 +464,25 @@ class coinone extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = $this->implode_params($path, $params);
-        $query = $this->omit ($params, $this->extract_params($path));
+        $query = $this->omit($params, $this->extract_params($path));
         $url = $this->urls['api'] . '/';
         if ($api === 'public') {
             $url .= $request;
             if ($query) {
-                $url .= '?' . $this->urlencode ($query);
+                $url .= '?' . $this->urlencode($query);
             }
         } else {
             $this->check_required_credentials();
             $url .= $this->version . '/' . $request;
-            $nonce = (string) $this->nonce ();
-            $json = $this->json (array_merge(array(
+            $nonce = (string) $this->nonce();
+            $json = $this->json(array_merge(array(
                 'access_token' => $this->apiKey,
                 'nonce' => $nonce,
             ), $params));
-            $payload = base64_encode($this->encode ($json));
-            $body = $this->decode ($payload);
+            $payload = base64_encode($this->encode($json));
+            $body = $this->decode($payload);
             $secret = strtoupper($this->secret);
-            $signature = $this->hmac ($payload, $this->encode ($secret), 'sha512');
+            $signature = $this->hmac($payload, $this->encode($secret), 'sha512');
             $headers = array(
                 'content-type' => 'application/json',
                 'X-COINONE-PAYLOAD' => $payload,

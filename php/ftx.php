@@ -343,11 +343,11 @@ class ftx extends Exchange {
             $symbol = $market['symbol'];
         }
         $last = $this->safe_float($ticker, 'last');
-        $timestamp = $this->milliseconds ();
+        $timestamp = $this->milliseconds();
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
             'bid' => $this->safe_float($ticker, 'bid'),
@@ -370,7 +370,7 @@ class ftx extends Exchange {
 
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'market_name' => $market['id'],
         );
@@ -446,7 +446,7 @@ class ftx extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'market_name' => $market['id'],
         );
@@ -499,7 +499,7 @@ class ftx extends Exchange {
 
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'market_name' => $market['id'],
             'resolution' => $this->timeframes[$timeframe],
@@ -507,13 +507,13 @@ class ftx extends Exchange {
         // max 1501 candles, including the current candle when $since is not specified
         $limit = ($limit === null) ? 1501 : $limit;
         if ($since === null) {
-            $request['end_time'] = $this->seconds ();
+            $request['end_time'] = $this->seconds();
             $request['limit'] = $limit;
             $request['start_time'] = $request['end_time'] - $limit * $this->parse_timeframe($timeframe);
         } else {
             $request['start_time'] = intval ($since / 1000);
             $request['limit'] = $limit;
-            $request['end_time'] = $this->sum ($request['start_time'], $limit * $this->parse_timeframe($timeframe));
+            $request['end_time'] = $this->sum($request['start_time'], $limit * $this->parse_timeframe($timeframe));
         }
         $response = $this->publicGetMarketsMarketNameCandles (array_merge($request, $params));
         //
@@ -595,7 +595,7 @@ class ftx extends Exchange {
                 }
             }
         }
-        $timestamp = $this->parse8601 ($this->safe_string($trade, 'time'));
+        $timestamp = $this->parse8601($this->safe_string($trade, 'time'));
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'size');
         if (($symbol === null) && ($market !== null)) {
@@ -618,7 +618,7 @@ class ftx extends Exchange {
         return array(
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'id' => $id,
             'order' => $orderId,
@@ -634,14 +634,14 @@ class ftx extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'market_name' => $market['id'],
         );
         if ($since !== null) {
             $request['start_time'] = intval ($since / 1000);
             // start_time doesn't work without end_time
-            $request['end_time'] = $this->seconds ();
+            $request['end_time'] = $this->seconds();
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -744,7 +744,7 @@ class ftx extends Exchange {
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
             $code = $this->safe_currency_code($this->safe_string($balance, 'coin'));
-            $account = $this->account ();
+            $account = $this->account();
             $account['free'] = $this->safe_float($balance, 'free');
             $account['total'] = $this->safe_float($balance, 'total');
             $result[$code] = $account;
@@ -824,7 +824,7 @@ class ftx extends Exchange {
         //     }
         //
         $id = $this->safe_string($order, 'id');
-        $timestamp = $this->parse8601 ($this->safe_string($order, 'createdAt'));
+        $timestamp = $this->parse8601($this->safe_string($order, 'createdAt'));
         $filled = $this->safe_float($order, 'filledSize');
         $remaining = $this->safe_float($order, 'remainingSize');
         $symbol = null;
@@ -846,12 +846,12 @@ class ftx extends Exchange {
         if ($filled !== null && $price !== null) {
             $cost = $filled * $price;
         }
-        $lastTradeTimestamp = $this->parse8601 ($this->safe_string($order, 'triggeredAt'));
+        $lastTradeTimestamp = $this->parse8601($this->safe_string($order, 'triggeredAt'));
         return array(
             'info' => $order,
             'id' => $id,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $symbol,
             'type' => $type,
@@ -870,7 +870,7 @@ class ftx extends Exchange {
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
             'side' => $side, // "buy" or "sell"
@@ -982,7 +982,7 @@ class ftx extends Exchange {
         );
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
             $request['market'] = $market['id'];
         }
         $response = $this->privateDeleteOrders (array_merge($request, $params));
@@ -1034,7 +1034,7 @@ class ftx extends Exchange {
         $request = array();
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
             $request['market'] = $market['id'];
         }
         $response = $this->privateGetOrders (array_merge($request, $params));
@@ -1072,7 +1072,7 @@ class ftx extends Exchange {
         $request = array();
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
             $request['market'] = $market['id'];
         }
         if ($limit !== null) {
@@ -1113,7 +1113,7 @@ class ftx extends Exchange {
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
         );
@@ -1154,7 +1154,7 @@ class ftx extends Exchange {
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->load_markets();
         $this->check_address($address);
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $request = array(
             'coin' => $currency['id'],
             'size' => $amount,
@@ -1188,7 +1188,7 @@ class ftx extends Exchange {
 
     public function fetch_deposit_address ($code, $params = array ()) {
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $request = array(
             'coin' => $currency['id'],
         );
@@ -1258,7 +1258,7 @@ class ftx extends Exchange {
         $id = $this->safe_integer($transaction, 'id');
         $amount = $this->safe_float($transaction, 'size');
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
-        $timestamp = $this->parse8601 ($this->safe_string($transaction, 'time'));
+        $timestamp = $this->parse8601($this->safe_string($transaction, 'time'));
         $txid = $this->safe_string($transaction, 'txid');
         $address = $this->safe_string($transaction, 'address');
         $tag = $this->safe_string($transaction, 'tag');
@@ -1268,7 +1268,7 @@ class ftx extends Exchange {
             'id' => $id,
             'txid' => $txid,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'addressFrom' => null,
             'address' => null,
             'addressTo' => $address,
@@ -1337,29 +1337,29 @@ class ftx extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = '/api/' . $this->implode_params($path, $params);
-        $query = $this->omit ($params, $this->extract_params($path));
+        $query = $this->omit($params, $this->extract_params($path));
         $url = $this->urls['api'] . $request;
         if ($method !== 'POST') {
             if ($query) {
-                $suffix = '?' . $this->urlencode ($query);
+                $suffix = '?' . $this->urlencode($query);
                 $url .= $suffix;
                 $request .= $suffix;
             }
         }
         if ($api === 'private') {
             $this->check_required_credentials();
-            $timestamp = (string) $this->milliseconds ();
+            $timestamp = (string) $this->milliseconds();
             $auth = $timestamp . $method . $request;
             $headers = array(
                 'FTX-KEY' => $this->apiKey,
                 'FTX-TS' => $timestamp,
             );
             if ($method === 'POST') {
-                $body = $this->json ($query);
+                $body = $this->json($query);
                 $auth .= $body;
                 $headers['Content-Type'] = 'application/json';
             }
-            $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha256');
+            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
             $headers['FTX-SIGN'] = $signature;
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

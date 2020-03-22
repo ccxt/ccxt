@@ -147,7 +147,7 @@ class exx extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
             'bid' => $this->safe_float($ticker, 'buy'),
@@ -170,7 +170,7 @@ class exx extends Exchange {
 
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'currency' => $market['id'],
         );
@@ -182,7 +182,7 @@ class exx extends Exchange {
         $this->load_markets();
         $response = $this->publicGetTickers ($params);
         $result = array();
-        $timestamp = $this->milliseconds ();
+        $timestamp = $this->milliseconds();
         $ids = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
@@ -231,7 +231,7 @@ class exx extends Exchange {
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'order' => null,
             'type' => $type,
@@ -246,7 +246,7 @@ class exx extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'currency' => $market['id'],
         );
@@ -299,7 +299,7 @@ class exx extends Exchange {
         }
         return array(
             'id' => $this->safe_string($order, 'id'),
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => null,
             'status' => $status,
@@ -319,7 +319,7 @@ class exx extends Exchange {
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'currency' => $market['id'],
             'type' => $side,
@@ -330,7 +330,7 @@ class exx extends Exchange {
         $id = $this->safe_string($response, 'id');
         $order = $this->parse_order(array(
             'id' => $id,
-            'trade_date' => $this->milliseconds (),
+            'trade_date' => $this->milliseconds(),
             'total_amount' => $amount,
             'price' => $price,
             'type' => $side,
@@ -342,7 +342,7 @@ class exx extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'id' => $id,
             'currency' => $market['id'],
@@ -353,7 +353,7 @@ class exx extends Exchange {
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'id' => $id,
             'currency' => $market['id'],
@@ -364,7 +364,7 @@ class exx extends Exchange {
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'currency' => $market['id'],
         );
@@ -376,22 +376,22 @@ class exx extends Exchange {
     }
 
     public function nonce () {
-        return $this->milliseconds ();
+        return $this->milliseconds();
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api] . '/' . $path;
         if ($api === 'public') {
             if ($params) {
-                $url .= '?' . $this->urlencode ($params);
+                $url .= '?' . $this->urlencode($params);
             }
         } else {
             $this->check_required_credentials();
-            $query = $this->urlencode ($this->keysort (array_merge(array(
+            $query = $this->urlencode($this->keysort(array_merge(array(
                 'accesskey' => $this->apiKey,
                 'nonce' => $this->nonce(),
             ), $params)));
-            $signed = $this->hmac ($this->encode ($query), $this->encode ($this->secret), 'sha512');
+            $signed = $this->hmac($this->encode($query), $this->encode($this->secret), 'sha512');
             $url .= '?' . $query . '&signature=' . $signed;
             $headers = array(
                 'Content-Type' => 'application/x-www-form-urlencoded',

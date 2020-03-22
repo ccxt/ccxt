@@ -240,14 +240,14 @@ class bleutrade extends Exchange {
         $response = $this->v3PublicGetGetorderbook (array_merge($request, $params));
         $orderbook = $this->safe_value($response, 'result');
         if (!$orderbook) {
-            throw new ExchangeError($this->id . ' no $orderbook data in ' . $this->json ($response));
+            throw new ExchangeError($this->id . ' no $orderbook data in ' . $this->json($response));
         }
         return $this->parse_order_book($orderbook, null, 'buy', 'sell', 'Rate', 'Quantity');
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
         );
@@ -288,7 +288,7 @@ class bleutrade extends Exchange {
         //     InfoMessage => '',
         //     MarketCurrency => 'Litecoin',
         //     BaseCurrency => 'Tether' }
-        $timestamp = $this->parse8601 ($this->safe_string($ticker, 'TimeStamp'));
+        $timestamp = $this->parse8601($this->safe_string($ticker, 'TimeStamp'));
         $symbol = null;
         $marketId = $this->safe_string($ticker, 'MarketName');
         if ($marketId !== null) {
@@ -316,7 +316,7 @@ class bleutrade extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'High'),
             'low' => $this->safe_float($ticker, 'Low'),
             'bid' => $this->safe_float($ticker, 'Bid'),
@@ -338,7 +338,7 @@ class bleutrade extends Exchange {
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1d', $since = null, $limit = null) {
-        $timestamp = $this->parse8601 ($ohlcv['TimeStamp'] . '+00:00');
+        $timestamp = $this->parse8601($ohlcv['TimeStamp'] . '+00:00');
         return array(
             $timestamp,
             $this->safe_float($ohlcv, 'Open'),
@@ -351,7 +351,7 @@ class bleutrade extends Exchange {
 
     public function fetch_ohlcv ($symbol, $timeframe = '15m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'period' => $this->timeframes[$timeframe],
             'market' => $market['id'],
@@ -402,7 +402,7 @@ class bleutrade extends Exchange {
         $market = null;
         $request = array();
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
             $request['market'] = $market['id'];
         }
         $response = $this->v3PrivatePostGetopenorders (array_merge($request, $params));
@@ -426,7 +426,7 @@ class bleutrade extends Exchange {
             $item = $items[$i];
             $currencyId = $this->safe_string($item, 'Asset');
             $code = $this->safe_currency_code($currencyId);
-            $account = $this->account ();
+            $account = $this->account();
             $account['free'] = $this->safe_float($item, 'Available');
             $account['total'] = $this->safe_float($item, 'Balance');
             $result[$code] = $account;
@@ -439,7 +439,7 @@ class bleutrade extends Exchange {
         $request = array();
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
             $request['market'] = $market['id'];
         }
         $response = $this->v3PrivatePostGetcloseorders (array_merge($request, $params));
@@ -464,7 +464,7 @@ class bleutrade extends Exchange {
 
     public function fetch_deposit_address ($code, $params = array ()) {
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $request = array(
             'asset' => $currency['id'],
         );
@@ -573,7 +573,7 @@ class bleutrade extends Exchange {
             //     }
             //
         }
-        $timestamp = $this->parse8601 ($this->safe_string($item, 'TimeStamp'));
+        $timestamp = $this->parse8601($this->safe_string($item, 'TimeStamp'));
         $amount = $this->safe_float($item, 'Amount');
         $direction = null;
         if ($amount !== null) {
@@ -588,7 +588,7 @@ class bleutrade extends Exchange {
             'id' => $id,
             'info' => $item,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'direction' => $direction,
             'account' => null,
             'referenceId' => $referenceId,
@@ -658,7 +658,7 @@ class bleutrade extends Exchange {
         }
         $timestamp = null;
         if (is_array($order) && array_key_exists('Created', $order)) {
-            $timestamp = $this->parse8601 ($order['Created'] . '+00:00');
+            $timestamp = $this->parse8601($order['Created'] . '+00:00');
         }
         $price = $this->safe_float($order, 'Price');
         $cost = null;
@@ -684,7 +684,7 @@ class bleutrade extends Exchange {
             'info' => $order,
             'id' => $id,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => 'limit',
@@ -743,7 +743,7 @@ class bleutrade extends Exchange {
         $currencyId = $this->safe_string($transaction, 'Asset');
         $code = $this->safe_currency_code($currencyId, $currency);
         $label = $this->safe_string($transaction, 'Label');
-        $timestamp = $this->parse8601 ($this->safe_string($transaction, 'Timestamp'));
+        $timestamp = $this->parse8601($this->safe_string($transaction, 'Timestamp'));
         $txid = $this->safe_string($transaction, 'TransactionID');
         $address = null;
         $feeCost = null;
@@ -770,7 +770,7 @@ class bleutrade extends Exchange {
         return array(
             'info' => $transaction,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'id' => $id,
             'currency' => $code,
             'amount' => $amount,
@@ -785,7 +785,7 @@ class bleutrade extends Exchange {
     }
 
     public function nonce () {
-        return $this->milliseconds ();
+        return $this->milliseconds();
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -798,11 +798,11 @@ class bleutrade extends Exchange {
                 'apikey' => $this->apiKey,
                 'nonce' => $this->nonce(),
             );
-            $url .= $path . '?' . $this->urlencode (array_merge($request, $params));
-            $signature = $this->hmac ($this->encode ($url), $this->encode ($this->secret), 'sha512');
+            $url .= $path . '?' . $this->urlencode(array_merge($request, $params));
+            $signature = $this->hmac($this->encode($url), $this->encode($this->secret), 'sha512');
             $headers = array( 'apisign' => $signature );
         } else {
-            $url .= $path . '?' . $this->urlencode ($params);
+            $url .= $path . '?' . $this->urlencode($params);
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
@@ -819,7 +819,7 @@ class bleutrade extends Exchange {
         if ($body[0] === '{') {
             $success = $this->safe_value($response, 'success');
             if ($success === null) {
-                throw new ExchangeError($this->id . ' => malformed $response => ' . $this->json ($response));
+                throw new ExchangeError($this->id . ' => malformed $response => ' . $this->json($response));
             }
             if (!$success) {
                 $feedback = $this->id . ' ' . $body;

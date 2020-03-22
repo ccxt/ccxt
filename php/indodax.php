@@ -171,7 +171,7 @@ class indodax extends Exchange {
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $code = $this->safe_currency_code($currencyId);
-            $account = $this->account ();
+            $account = $this->account();
             $account['free'] = $this->safe_float($free, $currencyId);
             $account['used'] = $this->safe_float($used, $currencyId);
             $result[$code] = $account;
@@ -190,7 +190,7 @@ class indodax extends Exchange {
 
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
         );
@@ -217,7 +217,7 @@ class indodax extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
             'bid' => $this->safe_float($ticker, 'buy'),
@@ -259,7 +259,7 @@ class indodax extends Exchange {
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
@@ -274,7 +274,7 @@ class indodax extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
         );
@@ -335,7 +335,7 @@ class indodax extends Exchange {
             'info' => $order,
             'id' => $id,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => 'limit',
@@ -356,7 +356,7 @@ class indodax extends Exchange {
             throw new ExchangeError($this->id . ' fetchOrder requires a symbol');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
             'order_id' => $id,
@@ -372,7 +372,7 @@ class indodax extends Exchange {
         $market = null;
         $request = array();
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
             $request['pair'] = $market['id'];
         }
         $response = $this->privatePostOpenOrders (array_merge($request, $params));
@@ -406,7 +406,7 @@ class indodax extends Exchange {
         $request = array();
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
             $request['pair'] = $market['id'];
         }
         $response = $this->privatePostOrderHistory (array_merge($request, $params));
@@ -423,7 +423,7 @@ class indodax extends Exchange {
             throw new ExchangeError($this->id . ' allows limit orders only');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
             'type' => $side,
@@ -452,7 +452,7 @@ class indodax extends Exchange {
             throw new ExchangeError($this->id . ' cancelOrder requires an extra "$side" param');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'order_id' => $id,
             'pair' => $market['id'],
@@ -464,14 +464,14 @@ class indodax extends Exchange {
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         // Custom string you need to provide to identify each withdrawal.
         // Will be passed to callback URL (assigned via website to the API key)
         // so your system can identify the $request and confirm it.
         // Alphanumeric, max length 255.
-        $requestId = $this->milliseconds ();
+        $requestId = $this->milliseconds();
         // Alternatively:
-        // $requestId = $this->uuid ();
+        // $requestId = $this->uuid();
         $request = array(
             'currency' => $currency['id'],
             'withdraw_amount' => $amount,
@@ -513,14 +513,14 @@ class indodax extends Exchange {
             $url .= '/' . $this->implode_params($path, $params);
         } else {
             $this->check_required_credentials();
-            $body = $this->urlencode (array_merge(array(
+            $body = $this->urlencode(array_merge(array(
                 'method' => $path,
-                'nonce' => $this->nonce (),
+                'nonce' => $this->nonce(),
             ), $params));
             $headers = array(
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Key' => $this->apiKey,
-                'Sign' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512'),
+                'Sign' => $this->hmac($this->encode($body), $this->encode($this->secret), 'sha512'),
             );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
@@ -543,7 +543,7 @@ class indodax extends Exchange {
         if ($this->safe_integer($response, 'success', 0) === 1) {
             // array( success => 1, return => array( orders => array() ))
             if (!(is_array($response) && array_key_exists('return', $response))) {
-                throw new ExchangeError($this->id . ' => malformed $response => ' . $this->json ($response));
+                throw new ExchangeError($this->id . ' => malformed $response => ' . $this->json($response));
             } else {
                 return;
             }

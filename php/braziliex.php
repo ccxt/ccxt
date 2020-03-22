@@ -87,7 +87,7 @@ class braziliex extends Exchange {
         $options = $this->safe_value($this->options, 'fetchCurrencies', array());
         $timestamp = $this->safe_integer($options, 'timestamp');
         $expires = $this->safe_integer($options, 'expires', 1000);
-        $now = $this->milliseconds ();
+        $now = $this->milliseconds();
         if (($timestamp === null) || (($now - $timestamp) > $expires)) {
             $response = $this->publicGetCurrencies ($params);
             $this->options['fetchCurrencies'] = array_merge($options, array(
@@ -153,7 +153,7 @@ class braziliex extends Exchange {
         //     }
         //
         $this->options['currencies'] = array(
-            'timestamp' => $this->milliseconds (),
+            'timestamp' => $this->milliseconds(),
             'response' => $response,
         );
         $ids = is_array($response) ? array_keys($response) : array();
@@ -299,12 +299,12 @@ class braziliex extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        $timestamp = $this->milliseconds ();
+        $timestamp = $this->milliseconds();
         $last = $this->safe_float($ticker, 'last');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'highestBid24'),
             'low' => $this->safe_float($ticker, 'lowestAsk24'),
             'bid' => $this->safe_float($ticker, 'highestBid'),
@@ -327,7 +327,7 @@ class braziliex extends Exchange {
 
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
         );
@@ -359,7 +359,7 @@ class braziliex extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $this->parse8601 ($this->safe_string_2($trade, 'date_exec', 'date'));
+        $timestamp = $this->parse8601($this->safe_string_2($trade, 'date_exec', 'date'));
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
         $symbol = null;
@@ -375,7 +375,7 @@ class braziliex extends Exchange {
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'order' => $orderId,
             'type' => $type,
@@ -390,7 +390,7 @@ class braziliex extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
         );
@@ -407,7 +407,7 @@ class braziliex extends Exchange {
             $currencyId = $currencyIds[$i];
             $balance = $balances[$currencyId];
             $code = $this->safe_currency_code($currencyId);
-            $account = $this->account ();
+            $account = $this->account();
             $account['free'] = $this->safe_float($balance, 'available');
             $account['total'] = $this->safe_float($balance, 'total');
             $result[$code] = $account;
@@ -440,7 +440,7 @@ class braziliex extends Exchange {
         }
         $timestamp = $this->safe_integer($order, 'timestamp');
         if ($timestamp === null) {
-            $timestamp = $this->parse8601 ($this->safe_string($order, 'date'));
+            $timestamp = $this->parse8601($this->safe_string($order, 'date'));
         }
         $price = $this->safe_float($order, 'price');
         $cost = $this->safe_float($order, 'total', 0.0);
@@ -457,7 +457,7 @@ class braziliex extends Exchange {
         $status = ($filledPercentage === 1.0) ? 'closed' : 'open';
         return array(
             'id' => $id,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => null,
             'status' => $status,
@@ -477,8 +477,8 @@ class braziliex extends Exchange {
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
-        $method = 'privatePost' . $this->capitalize ($side);
+        $market = $this->market($symbol);
+        $method = 'privatePost' . $this->capitalize($side);
         $request = array(
             'market' => $market['id'],
             // 'price' => $this->price_to_precision($symbol, $price),
@@ -489,13 +489,13 @@ class braziliex extends Exchange {
         $response = $this->$method (array_merge($request, $params));
         $success = $this->safe_integer($response, 'success');
         if ($success !== 1) {
-            throw new InvalidOrder($this->id . ' ' . $this->json ($response));
+            throw new InvalidOrder($this->id . ' ' . $this->json($response));
         }
         $parts = explode(' / ', $response['message']);
         $parts = mb_substr($parts, 1);
         $feeParts = explode(' ', $parts[5]);
         $order = $this->parse_order(array(
-            'timestamp' => $this->milliseconds (),
+            'timestamp' => $this->milliseconds(),
             'order_number' => $response['order_number'],
             'type' => strtolower($parts[0]),
             'market' => strtolower($parts[0]),
@@ -516,7 +516,7 @@ class braziliex extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'order_number' => $id,
             'market' => $market['id'],
@@ -529,7 +529,7 @@ class braziliex extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'order_number' => $id,
             'market' => $market['id'],
@@ -540,7 +540,7 @@ class braziliex extends Exchange {
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
         );
@@ -550,7 +550,7 @@ class braziliex extends Exchange {
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
         );
@@ -560,7 +560,7 @@ class braziliex extends Exchange {
 
     public function fetch_deposit_address ($code, $params = array ()) {
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $request = array(
             'currency' => $currency['id'],
         );
@@ -578,20 +578,20 @@ class braziliex extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $api;
-        $query = $this->omit ($params, $this->extract_params($path));
+        $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
             $url .= '/' . $this->implode_params($path, $params);
             if ($query) {
-                $url .= '?' . $this->urlencode ($query);
+                $url .= '?' . $this->urlencode($query);
             }
         } else {
             $this->check_required_credentials();
             $query = array_merge(array(
                 'command' => $path,
-                'nonce' => $this->nonce (),
+                'nonce' => $this->nonce(),
             ), $query);
-            $body = $this->urlencode ($query);
-            $signature = $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512');
+            $body = $this->urlencode($query);
+            $signature = $this->hmac($this->encode($body), $this->encode($this->secret), 'sha512');
             $headers = array(
                 'Content-type' => 'application/x-www-form-urlencoded',
                 'Key' => $this->apiKey,
@@ -602,7 +602,7 @@ class braziliex extends Exchange {
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
+        $response = $this->fetch2($path, $api, $method, $params, $headers, $body);
         if ((gettype($response) === 'string') && (strlen($response) < 1)) {
             throw new ExchangeError($this->id . ' returned empty response');
         }

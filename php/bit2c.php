@@ -141,8 +141,8 @@ class bit2c extends Exchange {
         $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
         for ($i = 0; $i < count($codes); $i++) {
             $code = $codes[$i];
-            $account = $this->account ();
-            $currencyId = $this->currencyId ($code);
+            $account = $this->account();
+            $currencyId = $this->currency_id($code);
             $uppercase = strtoupper($currencyId);
             if (is_array($balance) && array_key_exists($uppercase, $balance)) {
                 $account['free'] = $this->safe_float($balance, 'AVAILABLE_' . $uppercase);
@@ -168,7 +168,7 @@ class bit2c extends Exchange {
             'pair' => $this->market_id($symbol),
         );
         $ticker = $this->publicGetExchangesPairTicker (array_merge($request, $params));
-        $timestamp = $this->milliseconds ();
+        $timestamp = $this->milliseconds();
         $averagePrice = $this->safe_float($ticker, 'av');
         $baseVolume = $this->safe_float($ticker, 'a');
         $quoteVolume = null;
@@ -179,7 +179,7 @@ class bit2c extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => null,
             'low' => null,
             'bid' => $this->safe_float($ticker, 'h'),
@@ -202,7 +202,7 @@ class bit2c extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $method = $this->options['fetchTradesMethod'];
         $request = array(
             'pair' => $market['id'],
@@ -222,7 +222,7 @@ class bit2c extends Exchange {
             'Pair' => $this->market_id($symbol),
         );
         if ($type === 'market') {
-            $method .= 'MarketPrice' . $this->capitalize ($side);
+            $method .= 'MarketPrice' . $this->capitalize($side);
         } else {
             $request['Price'] = $price;
             $request['Total'] = $amount * $price;
@@ -247,7 +247,7 @@ class bit2c extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
         );
@@ -283,7 +283,7 @@ class bit2c extends Exchange {
         return array(
             'id' => $id,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
@@ -309,11 +309,11 @@ class bit2c extends Exchange {
         }
         $request['take'] = $limit;
         if ($since !== null) {
-            $request['toTime'] = $this->ymd ($this->milliseconds (), '.');
-            $request['fromTime'] = $this->ymd ($since, '.');
+            $request['toTime'] = $this->ymd($this->milliseconds(), '.');
+            $request['fromTime'] = $this->ymd($since, '.');
         }
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
             $request['pair'] = $market['id'];
         }
         $response = $this->privateGetOrderOrderHistory (array_merge($request, $params));
@@ -373,7 +373,7 @@ class bit2c extends Exchange {
             'info' => $trade,
             'id' => $id,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'order' => $orderId,
             'type' => null,
@@ -396,11 +396,11 @@ class bit2c extends Exchange {
             $url .= '.json';
         } else {
             $this->check_required_credentials();
-            $nonce = $this->nonce ();
+            $nonce = $this->nonce();
             $query = array_merge(array(
                 'nonce' => $nonce,
             ), $params);
-            $auth = $this->urlencode ($query);
+            $auth = $this->urlencode($query);
             if ($method === 'GET') {
                 if ($query) {
                     $url .= '?' . $auth;
@@ -408,11 +408,11 @@ class bit2c extends Exchange {
             } else {
                 $body = $auth;
             }
-            $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha512', 'base64');
+            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha512', 'base64');
             $headers = array(
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'key' => $this->apiKey,
-                'sign' => $this->decode ($signature),
+                'sign' => $this->decode($signature),
             );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

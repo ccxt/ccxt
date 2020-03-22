@@ -219,7 +219,7 @@ class yobit extends Exchange {
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $code = $this->safe_currency_code($currencyId);
-            $account = $this->account ();
+            $account = $this->account();
             $account['free'] = $this->safe_float($free, $currencyId);
             $account['total'] = $this->safe_float($total, $currencyId);
             $result[$code] = $account;
@@ -282,7 +282,7 @@ class yobit extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
         );
@@ -355,7 +355,7 @@ class yobit extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
             'bid' => $this->safe_float($ticker, 'buy'),
@@ -468,7 +468,7 @@ class yobit extends Exchange {
             'id' => $id,
             'order' => $order,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
@@ -483,7 +483,7 @@ class yobit extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
         );
@@ -505,7 +505,7 @@ class yobit extends Exchange {
             throw new ExchangeError($this->id . ' allows limit orders only');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
             'type' => $side,
@@ -528,11 +528,11 @@ class yobit extends Exchange {
             $filled = $this->safe_float($response['return'], 'received', 0.0);
             $remaining = $this->safe_float($response['return'], 'remains', $amount);
         }
-        $timestamp = $this->milliseconds ();
+        $timestamp = $this->milliseconds();
         $order = array(
             'id' => $id,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
@@ -612,7 +612,7 @@ class yobit extends Exchange {
             'id' => $id,
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'type' => $type,
             'side' => $side,
@@ -705,7 +705,7 @@ class yobit extends Exchange {
         $request = array();
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
             $request['pair'] = $market['id'];
         }
         $response = $this->privatePostActiveOrders (array_merge($request, $params));
@@ -734,7 +734,7 @@ class yobit extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a `$symbol` argument');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         // some derived classes use camelcase notation for $request fields
         $request = array(
             // 'from' => 123456789, // $trade ID, from which the display starts numerical 0 (test $result => liqui ignores this field)
@@ -783,7 +783,7 @@ class yobit extends Exchange {
 
     public function fetch_deposit_address ($code, $params = array ()) {
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $request = array(
             'coinName' => $currency['id'],
             'need_new' => 0,
@@ -802,7 +802,7 @@ class yobit extends Exchange {
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $request = array(
             'coinName' => $currency['id'],
             'amount' => $amount,
@@ -839,15 +839,15 @@ class yobit extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api];
-        $query = $this->omit ($params, $this->extract_params($path));
+        $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'private') {
             $this->check_required_credentials();
-            $nonce = $this->nonce ();
-            $body = $this->urlencode (array_merge(array(
+            $nonce = $this->nonce();
+            $body = $this->urlencode(array_merge(array(
                 'nonce' => $nonce,
                 'method' => $path,
             ), $query));
-            $signature = $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512');
+            $signature = $this->hmac($this->encode($body), $this->encode($this->secret), 'sha512');
             $headers = array(
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Key' => $this->apiKey,
@@ -856,17 +856,17 @@ class yobit extends Exchange {
         } else if ($api === 'public') {
             $url .= '/' . $this->version . '/' . $this->implode_params($path, $params);
             if ($query) {
-                $url .= '?' . $this->urlencode ($query);
+                $url .= '?' . $this->urlencode($query);
             }
         } else {
             $url .= '/' . $this->implode_params($path, $params);
             if ($method === 'GET') {
                 if ($query) {
-                    $url .= '?' . $this->urlencode ($query);
+                    $url .= '?' . $this->urlencode($query);
                 }
             } else {
                 if ($query) {
-                    $body = $this->json ($query);
+                    $body = $this->json($query);
                     $headers = array(
                         'Content-Type' => 'application/json',
                     );

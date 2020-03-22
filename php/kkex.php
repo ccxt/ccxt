@@ -179,7 +179,7 @@ class kkex extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
             'bid' => $this->safe_float($ticker, 'buy'),
@@ -207,7 +207,7 @@ class kkex extends Exchange {
             'symbol' => $market['id'],
         );
         $response = $this->publicGetTicker (array_merge($request, $params));
-        $ticker = array_merge($response['ticker'], $this->omit ($response, 'ticker'));
+        $ticker = array_merge($response['ticker'], $this->omit($response, 'ticker'));
         return $this->parse_ticker($ticker, $market);
     }
 
@@ -240,7 +240,7 @@ class kkex extends Exchange {
             $market = $this->safe_value($this->markets_by_id, $id);
             if ($market !== null) {
                 $symbol = $market['symbol'];
-                $ticker = array_merge($tickers[$i][$id], $this->omit ($response, 'tickers'));
+                $ticker = array_merge($tickers[$i][$id], $this->omit($response, 'tickers'));
                 $result[$symbol] = $this->parse_ticker($ticker, $market);
             }
         }
@@ -261,7 +261,7 @@ class kkex extends Exchange {
 
     public function parse_trade ($trade, $market = null) {
         $timestamp = $this->safe_integer($trade, 'date_ms');
-        $datetime = $this->iso8601 ($timestamp);
+        $datetime = $this->iso8601($timestamp);
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
         $cost = null;
@@ -296,7 +296,7 @@ class kkex extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
@@ -316,7 +316,7 @@ class kkex extends Exchange {
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $code = $this->safe_currency_code($currencyId);
-            $account = $this->account ();
+            $account = $this->account();
             $account['free'] = $this->safe_float($free, $currencyId);
             $account['used'] = $this->safe_float($freezed, $currencyId);
             $result[$code] = $account;
@@ -329,7 +329,7 @@ class kkex extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchOrder requires a $symbol argument');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'order_id' => $id,
             'symbol' => $market['id'],
@@ -354,13 +354,13 @@ class kkex extends Exchange {
 
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
             'type' => $this->timeframes[$timeframe],
         );
         if ($since !== null) {
-            // $since = $this->milliseconds () - $this->parse_timeframe($timeframe) * $limit * 1000;
+            // $since = $this->milliseconds() - $this->parse_timeframe($timeframe) * $limit * 1000;
             $request['since'] = intval ($since / 1000);
         }
         if ($limit !== null) {
@@ -432,7 +432,7 @@ class kkex extends Exchange {
         return array(
             'id' => $id,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
@@ -451,7 +451,7 @@ class kkex extends Exchange {
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
             'type' => $side,
@@ -502,7 +502,7 @@ class kkex extends Exchange {
             throw new ArgumentsRequired($this->id . ' cancelOrder requires a $symbol argument');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'order_id' => $id,
             'symbol' => $market['id'],
@@ -512,7 +512,7 @@ class kkex extends Exchange {
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
@@ -538,13 +538,13 @@ class kkex extends Exchange {
     }
 
     public function nonce () {
-        return $this->milliseconds ();
+        return $this->milliseconds();
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api] . '/' . $path;
         if ($api === 'public') {
-            $url .= '?' . $this->urlencode ($params);
+            $url .= '?' . $this->urlencode($params);
             $headers = array( 'Content-Type' => 'application/json' );
         } else {
             $this->check_required_credentials();
@@ -553,16 +553,16 @@ class kkex extends Exchange {
                 'nonce' => $nonce,
                 'api_key' => $this->apiKey,
             ), $params);
-            $signature = $this->urlencode ($this->keysort ($signature));
+            $signature = $this->urlencode($this->keysort($signature));
             $signature .= '&secret_key=' . $this->secret;
-            $signature = $this->hash ($this->encode ($signature), 'md5');
+            $signature = $this->hash($this->encode($signature), 'md5');
             $signature = strtoupper($signature);
             $body = array_merge(array(
                 'api_key' => $this->apiKey,
                 'sign' => $signature,
                 'nonce' => $nonce,
             ), $params);
-            $body = $this->urlencode ($body);
+            $body = $this->urlencode($body);
             $headers = array( 'Content-Type' => 'application/x-www-form-urlencoded' );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

@@ -98,7 +98,7 @@ class vaultoro extends Exchange {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'currency_code');
             $code = $this->safe_currency_code($currencyId);
-            $account = $this->account ();
+            $account = $this->account();
             $account['free'] = $this->safe_float($balance, 'cash');
             $account['used'] = $this->safe_float($balance, 'reserved');
             $result[$code] = $account;
@@ -117,7 +117,7 @@ class vaultoro extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $this->parse8601 ($this->safe_string($trade, 'Time'));
+        $timestamp = $this->parse8601($this->safe_string($trade, 'Time'));
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -134,7 +134,7 @@ class vaultoro extends Exchange {
             'id' => null,
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'order' => null,
             'type' => null,
@@ -149,15 +149,15 @@ class vaultoro extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $response = $this->publicGetTransactionsDay ($params);
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
-        $method = 'privatePost' . $this->capitalize ($side) . 'SymbolType';
+        $market = $this->market($symbol);
+        $method = 'privatePost' . $this->capitalize($side) . 'SymbolType';
         $request = array(
             'symbol' => strtolower($market['quoteId']),
             'type' => $type,
@@ -185,16 +185,16 @@ class vaultoro extends Exchange {
             $url .= $path;
         } else {
             $this->check_required_credentials();
-            $nonce = $this->nonce ();
+            $nonce = $this->nonce();
             $url .= $this->version . '/' . $this->implode_params($path, $params);
             $query = array_merge(array(
                 'nonce' => $nonce,
                 'apikey' => $this->apiKey,
-            ), $this->omit ($params, $this->extract_params($path)));
-            $url .= '?' . $this->urlencode ($query);
+            ), $this->omit($params, $this->extract_params($path)));
+            $url .= '?' . $this->urlencode($query);
             $headers = array(
                 'Content-Type' => 'application/json',
-                'X-Signature' => $this->hmac ($this->encode ($url), $this->encode ($this->secret)),
+                'X-Signature' => $this->hmac($this->encode($url), $this->encode($this->secret)),
             );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

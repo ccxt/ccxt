@@ -315,7 +315,7 @@ class fcoin extends Exchange {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
-            $account = $this->account ();
+            $account = $this->account();
             $account['free'] = $this->safe_float($balance, 'available');
             $account['total'] = $this->safe_float($balance, 'balance');
             $account['used'] = $this->safe_float($balance, 'frozen');
@@ -331,8 +331,8 @@ class fcoin extends Exchange {
         // .= 2 in the for loop below won't transpile
         for ($i = 0; $i < $halfLength; $i++) {
             $index = $i * 2;
-            $priceField = $this->sum ($index, $priceKey);
-            $amountField = $this->sum ($index, $amountKey);
+            $priceField = $this->sum($index, $priceKey);
+            $amountField = $this->sum($index, $amountKey);
             $result[] = array(
                 $this->safe_float($orders, $priceField),
                 $this->safe_float($orders, $amountField),
@@ -363,7 +363,7 @@ class fcoin extends Exchange {
 
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
@@ -392,7 +392,7 @@ class fcoin extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($values, 7),
             'low' => $this->safe_float($values, 8),
             'bid' => $this->safe_float($values, 2),
@@ -434,7 +434,7 @@ class fcoin extends Exchange {
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'type' => null,
             'order' => null,
@@ -449,7 +449,7 @@ class fcoin extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = 50, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
             'limit' => $limit,
@@ -567,7 +567,7 @@ class fcoin extends Exchange {
             'info' => $order,
             'id' => $id,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $orderType,
@@ -611,7 +611,7 @@ class fcoin extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchOrders() requires a `$symbol` argument');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
             'states' => 'submitted,partial_filled,partial_canceled,filled,canceled',
@@ -636,7 +636,7 @@ class fcoin extends Exchange {
 
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         if ($limit === null) {
             $limit = 20; // default is 20
         }
@@ -648,14 +648,14 @@ class fcoin extends Exchange {
         if ($since !== null) {
             $sinceInSeconds = intval ($since / 1000);
             $timerange = $limit * $this->parse_timeframe($timeframe);
-            $request['before'] = $this->sum ($sinceInSeconds, $timerange) - 1;
+            $request['before'] = $this->sum($sinceInSeconds, $timerange) - 1;
         }
         $response = $this->marketGetCandlesTimeframeSymbol (array_merge($request, $params));
         return $this->parse_ohlcvs($response['data'], $market, $timeframe, $since, $limit);
     }
 
     public function nonce () {
-        return $this->milliseconds ();
+        return $this->milliseconds();
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -666,7 +666,7 @@ class fcoin extends Exchange {
         $request .= $this->version . '/';
         $request .= ($privateAPI || $openAPI) ? '' : ($api . '/');
         $request .= $this->implode_params($path, $params);
-        $query = $this->omit ($params, $this->extract_params($path));
+        $query = $this->omit($params, $this->extract_params($path));
         $url = $this->implode_params($this->urls['api'][$api], array(
             'hostname' => $this->hostname,
         ));
@@ -674,23 +674,23 @@ class fcoin extends Exchange {
         if ($privateAPI) {
             $this->check_required_credentials();
             $timestamp = (string) $this->nonce();
-            $query = $this->keysort ($query);
+            $query = $this->keysort($query);
             if ($method === 'GET') {
                 if ($query) {
-                    $url .= '?' . $this->rawencode ($query);
+                    $url .= '?' . $this->rawencode($query);
                 }
             }
             // HTTP_METHOD . HTTP_REQUEST_URI . TIMESTAMP . POST_BODY
             $auth = $method . $url . $timestamp;
             if ($method === 'POST') {
                 if ($query) {
-                    $body = $this->json ($query);
-                    $auth .= $this->urlencode ($query);
+                    $body = $this->json($query);
+                    $auth .= $this->urlencode($query);
                 }
             }
-            $payload = base64_encode($this->encode ($auth));
-            $signature = $this->hmac ($payload, $this->encode ($this->secret), 'sha1', 'binary');
-            $signature = $this->decode (base64_encode($signature));
+            $payload = base64_encode($this->encode($auth));
+            $signature = $this->hmac($payload, $this->encode($this->secret), 'sha1', 'binary');
+            $signature = $this->decode(base64_encode($signature));
             $headers = array(
                 'FC-ACCESS-KEY' => $this->apiKey,
                 'FC-ACCESS-SIGNATURE' => $signature,
@@ -699,7 +699,7 @@ class fcoin extends Exchange {
             );
         } else {
             if ($query) {
-                $url .= '?' . $this->urlencode ($query);
+                $url .= '?' . $this->urlencode($query);
             }
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

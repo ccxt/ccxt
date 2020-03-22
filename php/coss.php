@@ -346,7 +346,7 @@ class coss extends Exchange {
 
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
             'tt' => $this->timeframes[$timeframe],
@@ -412,7 +412,7 @@ class coss extends Exchange {
         //               Bid => "0.00063400",
         //           PrevDay =>  0.000636                   }
         //
-        $timestamp = $this->parse8601 ($this->safe_string($ticker, 'TimeStamp'));
+        $timestamp = $this->parse8601($this->safe_string($ticker, 'TimeStamp'));
         $symbol = null;
         $marketId = $this->safe_string($ticker, 'MarketName');
         if ($marketId !== null) {
@@ -445,7 +445,7 @@ class coss extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'High'),
             'low' => $this->safe_float($ticker, 'Low'),
             'bid' => $this->safe_float($ticker, 'Bid'),
@@ -523,7 +523,7 @@ class coss extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
@@ -621,7 +621,7 @@ class coss extends Exchange {
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'order' => $orderId,
             'type' => null,
@@ -652,7 +652,7 @@ class coss extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchOrders requires a $symbol argument');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             // 'from_id' => 'b2a2d379-f9b6-418b-9414-cbf8330b20d1', // string (uuid), fetchOrders (all $orders) only
             // 'page' => 0, // different pagination in fetchOpenOrders and fetchClosedOrders
@@ -741,7 +741,7 @@ class coss extends Exchange {
         $this->load_markets();
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
         }
         $request = array(
             'order_id' => $id,
@@ -836,7 +836,7 @@ class coss extends Exchange {
             'info' => $order,
             'id' => $id,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
@@ -855,7 +855,7 @@ class coss extends Exchange {
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'order_symbol' => $market['id'],
             'order_size' => $this->amount_to_precision($symbol, $amount),
@@ -891,7 +891,7 @@ class coss extends Exchange {
             throw new ArgumentsRequired($this->id . ' cancelOrder requires a $symbol argument');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'order_id' => $id,
             'order_symbol' => $market['id'],
@@ -909,7 +909,7 @@ class coss extends Exchange {
     }
 
     public function nonce () {
-        return $this->milliseconds ();
+        return $this->milliseconds();
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -923,20 +923,20 @@ class coss extends Exchange {
             ), $params);
             $request = null;
             if ($method === 'GET') {
-                $request = $this->urlencode ($query);
+                $request = $this->urlencode($query);
                 $url .= '?' . $request;
             } else {
-                $request = $this->json ($query);
+                $request = $this->json($query);
                 $body = $request;
             }
             $headers = array(
-                'Signature' => $this->hmac ($this->encode ($request), $this->encode ($this->secret)),
+                'Signature' => $this->hmac($this->encode($request), $this->encode($this->secret)),
                 'Authorization' => $this->apiKey,
                 'X-Requested-With' => 'XMLHttpRequest',
             );
         } else {
             if ($params) {
-                $url .= '?' . $this->urlencode ($params);
+                $url .= '?' . $this->urlencode($params);
             }
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

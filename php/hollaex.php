@@ -284,7 +284,7 @@ class hollaex extends Exchange {
                 $quote = $this->safe_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
             }
-            $timestamp = $this->parse8601 ($this->safe_string($orderbook, 'timestamp'));
+            $timestamp = $this->parse8601($this->safe_string($orderbook, 'timestamp'));
             $result[$symbol] = $this->parse_order_book($response[$marketId], $timestamp);
         }
         return $result;
@@ -317,13 +317,13 @@ class hollaex extends Exchange {
         //     }
         //
         $orderbook = $this->safe_value($response, $marketId);
-        $timestamp = $this->parse8601 ($this->safe_string($orderbook, 'timestamp'));
+        $timestamp = $this->parse8601($this->safe_string($orderbook, 'timestamp'));
         return $this->parse_order_book($orderbook, $timestamp);
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
@@ -429,13 +429,13 @@ class hollaex extends Exchange {
         if (($symbol === null) && ($market !== null)) {
             $symbol = $market['symbol'];
         }
-        $timestamp = $this->parse8601 ($this->safe_string_2($ticker, 'time', 'timestamp'));
+        $timestamp = $this->parse8601($this->safe_string_2($ticker, 'time', 'timestamp'));
         $close = $this->safe_float($ticker, 'close');
         $result = array(
             'symbol' => $symbol,
             'info' => $ticker,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
             'bid' => null,
@@ -458,7 +458,7 @@ class hollaex extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
@@ -520,7 +520,7 @@ class hollaex extends Exchange {
             $symbol = $market['symbol'];
         }
         $datetime = $this->safe_string($trade, 'timestamp');
-        $timestamp = $this->parse8601 ($datetime);
+        $timestamp = $this->parse8601($datetime);
         $side = $this->safe_string($trade, 'side');
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'size');
@@ -559,7 +559,7 @@ class hollaex extends Exchange {
 
     public function fetch_ohlcv ($symbol, $timeframe = '1h', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
             'resolution' => $this->timeframes[$timeframe],
@@ -569,7 +569,7 @@ class hollaex extends Exchange {
             if ($limit === null) {
                 throw new ArgumentsRequired($this->id . " fetchOHLCV requires a 'since' or a 'limit' argument");
             } else {
-                $end = $this->seconds ();
+                $end = $this->seconds();
                 $start = $end - $duration * $limit;
                 $request['to'] = $end;
                 $request['from'] = $start;
@@ -577,11 +577,11 @@ class hollaex extends Exchange {
         } else {
             if ($limit === null) {
                 $request['from'] = intval ($since / 1000);
-                $request['to'] = $this->seconds ();
+                $request['to'] = $this->seconds();
             } else {
                 $start = intval ($since / 1000);
                 $request['from'] = $start;
-                $request['to'] = $this->sum ($start, $duration * $limit);
+                $request['to'] = $this->sum($start, $duration * $limit);
             }
         }
         $response = $this->publicGetChart (array_merge($request, $params));
@@ -614,7 +614,7 @@ class hollaex extends Exchange {
         //     }
         //
         return array(
-            $this->parse8601 ($this->safe_string($response, 'time')),
+            $this->parse8601($this->safe_string($response, 'time')),
             $this->safe_float($response, 'open'),
             $this->safe_float($response, 'high'),
             $this->safe_float($response, 'low'),
@@ -643,7 +643,7 @@ class hollaex extends Exchange {
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $code = $this->safe_currency_code($currencyId);
-            $account = $this->account ();
+            $account = $this->account();
             $account['free'] = $this->safe_float($response, $currencyId . '_available');
             $account['total'] = $this->safe_float($response, $currencyId . '_balance');
             $result[$code] = $account;
@@ -679,7 +679,7 @@ class hollaex extends Exchange {
         $market = null;
         $request = array();
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
         $response = $this->privateGetUserOrders (array_merge($request, $params));
@@ -736,7 +736,7 @@ class hollaex extends Exchange {
             $symbol = $market['symbol'];
         }
         $id = $this->safe_string($order, 'id');
-        $timestamp = $this->parse8601 ($this->safe_string($order, 'created_at'));
+        $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
         $type = $this->safe_string($order, 'type');
         $side = $this->safe_string($order, 'side');
         $price = $this->safe_float($order, 'price');
@@ -756,7 +756,7 @@ class hollaex extends Exchange {
         $result = array(
             'id' => $id,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
@@ -776,7 +776,7 @@ class hollaex extends Exchange {
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $order = array(
             'symbol' => $market['id'],
             'side' => $side,
@@ -865,14 +865,14 @@ class hollaex extends Exchange {
         );
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
         if ($limit !== null) {
             $request['limit'] = $limit; // default 50, max 100
         }
         if ($since !== null) {
-            $request['start_date'] = $this->iso8601 ($since);
+            $request['start_date'] = $this->iso8601($since);
         }
         $response = $this->privateGetUserTrades (array_merge($request, $params));
         //
@@ -896,7 +896,7 @@ class hollaex extends Exchange {
 
     public function fetch_deposit_address ($code, $params = array ()) {
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $response = $this->privateGetUser ($params);
         //
         //     {
@@ -988,14 +988,14 @@ class hollaex extends Exchange {
         );
         $currency = null;
         if ($code !== null) {
-            $currency = $this->currency ($code);
+            $currency = $this->currency($code);
             $request['currency'] = $currency['id'];
         }
         if ($limit !== null) {
             $request['limit'] = $limit; // default 50, max 100
         }
         if ($since !== null) {
-            $request['start_date'] = $this->iso8601 ($since);
+            $request['start_date'] = $this->iso8601($since);
         }
         $response = $this->privateGetUserDeposits (array_merge($request, $params));
         //
@@ -1038,14 +1038,14 @@ class hollaex extends Exchange {
         );
         $currency = null;
         if ($code !== null) {
-            $currency = $this->currency ($code);
+            $currency = $this->currency($code);
             $request['currency'] = $currency['id'];
         }
         if ($limit !== null) {
             $request['limit'] = $limit; // default 50, max 100
         }
         if ($since !== null) {
-            $request['start_date'] = $this->iso8601 ($since);
+            $request['start_date'] = $this->iso8601($since);
         }
         $response = $this->privateGetUserWithdrawals (array_merge($request, $params));
         //
@@ -1096,8 +1096,8 @@ class hollaex extends Exchange {
         //
         $id = $this->safe_string($transaction, 'id');
         $txid = $this->safe_string($transaction, 'transaction_id');
-        $timestamp = $this->parse8601 ($this->safe_string($transaction, 'created_at'));
-        $updated = $this->parse8601 ($this->safe_string($transaction, 'updated_at'));
+        $timestamp = $this->parse8601($this->safe_string($transaction, 'created_at'));
+        $updated = $this->parse8601($this->safe_string($transaction, 'updated_at'));
         $type = $this->safe_string($transaction, 'type');
         $amount = $this->safe_float($transaction, 'amount');
         $address = $this->safe_string($transaction, 'address');
@@ -1136,7 +1136,7 @@ class hollaex extends Exchange {
             'id' => $id,
             'txid' => $txid,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'addressFrom' => $addressFrom,
             'address' => $address,
             'addressTo' => $addressTo,
@@ -1155,7 +1155,7 @@ class hollaex extends Exchange {
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         if ($tag !== null) {
             $address .= ':' . $tag;
         }
@@ -1168,7 +1168,7 @@ class hollaex extends Exchange {
         $otp = $this->safe_string($params, 'otp_code');
         if (($otp !== null) || ($this->twofa !== null)) {
             if ($otp === null) {
-                $otp = $this->oath ();
+                $otp = $this->oath();
             }
             $request['otp_code'] = $otp;
         }
@@ -1180,32 +1180,32 @@ class hollaex extends Exchange {
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $query = $this->omit ($params, $this->extract_params($path));
+        $query = $this->omit($params, $this->extract_params($path));
         $path = '/' . $this->version . '/' . $this->implode_params($path, $params);
         if ($method === 'GET') {
             if ($query) {
-                $path .= '?' . $this->urlencode ($query);
+                $path .= '?' . $this->urlencode($query);
             }
         }
         $url = $this->urls['api'] . $path;
         if ($api === 'private') {
             $this->check_required_credentials();
             $defaultExpires = $this->safe_integer_2($this->options, 'api-expires', 'expires', intval ($this->timeout / 1000));
-            $expires = $this->sum ($this->seconds (), $defaultExpires);
+            $expires = $this->sum($this->seconds(), $defaultExpires);
             $expiresString = (string) $expires;
             $auth = $method . $path . $expiresString;
             $headers = array(
-                'api-key' => $this->encode ($this->apiKey),
+                'api-key' => $this->encode($this->apiKey),
                 'api-expires' => $expiresString,
             );
             if ($method === 'POST') {
                 $headers['Content-type'] = 'application/json';
                 if ($query) {
-                    $body = $this->json ($query);
+                    $body = $this->json($query);
                     $auth .= $body;
                 }
             }
-            $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret));
+            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
             $headers['api-signature'] = $signature;
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

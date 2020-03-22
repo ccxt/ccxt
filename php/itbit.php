@@ -100,9 +100,9 @@ class itbit extends Exchange {
         $ticker = $this->publicGetMarketsSymbolTicker (array_merge($request, $params));
         $serverTimeUTC = $this->safe_string($ticker, 'serverTimeUTC');
         if (!$serverTimeUTC) {
-            throw new ExchangeError($this->id . ' fetchTicker returned a bad response => ' . $this->json ($ticker));
+            throw new ExchangeError($this->id . ' fetchTicker returned a bad response => ' . $this->json($ticker));
         }
-        $timestamp = $this->parse8601 ($serverTimeUTC);
+        $timestamp = $this->parse8601($serverTimeUTC);
         $vwap = $this->safe_float($ticker, 'vwap24h');
         $baseVolume = $this->safe_float($ticker, 'volume24h');
         $quoteVolume = null;
@@ -113,7 +113,7 @@ class itbit extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'high24h'),
             'low' => $this->safe_float($ticker, 'low24h'),
             'bid' => $this->safe_float($ticker, 'bid'),
@@ -165,7 +165,7 @@ class itbit extends Exchange {
         //     }
         //
         $id = $this->safe_string_2($trade, 'executionId', 'matchNumber');
-        $timestamp = $this->parse8601 ($this->safe_string($trade, 'timestamp'));
+        $timestamp = $this->parse8601($this->safe_string($trade, 'timestamp'));
         $side = $this->safe_string($trade, 'direction');
         $orderId = $this->safe_string($trade, 'orderId');
         $feeCost = $this->safe_float($trade, 'commissionPaid');
@@ -207,7 +207,7 @@ class itbit extends Exchange {
             'info' => $trade,
             'id' => $id,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'order' => $orderId,
             'type' => null,
@@ -220,7 +220,7 @@ class itbit extends Exchange {
         if ($feeCost !== null) {
             if ($rebatesApplied !== null) {
                 if ($feeCurrency === $rebateCurrency) {
-                    $feeCost = $this->sum ($feeCost, $rebatesApplied);
+                    $feeCost = $this->sum($feeCost, $rebatesApplied);
                     $result['fee'] = array(
                         'cost' => $feeCost,
                         'currency' => $feeCurrency,
@@ -288,7 +288,7 @@ class itbit extends Exchange {
         for ($i = 0; $i < count($items); $i++) {
             $item = $items[$i];
             $time = $this->safe_string($item, 'time');
-            $timestamp = $this->parse8601 ($time);
+            $timestamp = $this->parse8601($time);
             $currency = $this->safe_string($item, 'currency');
             $destinationAddress = $this->safe_string($item, 'destinationAddress');
             $txnHash = $this->safe_string($item, 'txnHash');
@@ -298,7 +298,7 @@ class itbit extends Exchange {
             $result[] = array(
                 'id' => $this->safe_string($item, 'withdrawalId'),
                 'timestamp' => $timestamp,
-                'datetime' => $this->iso8601 ($timestamp),
+                'datetime' => $this->iso8601($timestamp),
                 'currency' => $this->safe_currency_code($currency),
                 'address' => $destinationAddress,
                 'tag' => null,
@@ -331,7 +331,7 @@ class itbit extends Exchange {
             'walletId' => $walletId,
         );
         if ($since !== null) {
-            $request['rangeStart'] = $this->ymdhms ($since, 'T');
+            $request['rangeStart'] = $this->ymdhms($since, 'T');
         }
         if ($limit !== null) {
             $request['perPage'] = $limit; // default 50, max 50
@@ -366,14 +366,14 @@ class itbit extends Exchange {
         $trades = $this->safe_value($response, 'tradingHistory', array());
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
         }
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
@@ -404,7 +404,7 @@ class itbit extends Exchange {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
-            $account = $this->account ();
+            $account = $this->account();
             $account['free'] = $this->safe_float($balance, 'availableBalance');
             $account['total'] = $this->safe_float($balance, 'totalBalance');
             $result[$code] = $account;
@@ -449,7 +449,7 @@ class itbit extends Exchange {
         $this->load_markets();
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
         }
         $walletIdInParams = (is_array($params) && array_key_exists('walletId', $params));
         if (!$walletIdInParams) {
@@ -478,7 +478,7 @@ class itbit extends Exchange {
         $side = $order['side'];
         $type = $order['type'];
         $symbol = $this->markets_by_id[$order['instrument']]['symbol'];
-        $timestamp = $this->parse8601 ($order['createdTime']);
+        $timestamp = $this->parse8601($order['createdTime']);
         $amount = $this->safe_float($order, 'amount');
         $filled = $this->safe_float($order, 'amountFilled');
         $remaining = $amount - $filled;
@@ -490,7 +490,7 @@ class itbit extends Exchange {
             'id' => $order['id'],
             'info' => $order,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'status' => $this->parse_order_status($this->safe_string($order, 'status')),
             'symbol' => $symbol,
@@ -508,7 +508,7 @@ class itbit extends Exchange {
     }
 
     public function nonce () {
-        return $this->milliseconds ();
+        return $this->milliseconds();
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -522,7 +522,7 @@ class itbit extends Exchange {
         }
         $amount = (string) $amount;
         $price = (string) $price;
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'side' => $side,
             'type' => $type,
@@ -565,12 +565,12 @@ class itbit extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
-        $query = $this->omit ($params, $this->extract_params($path));
+        $query = $this->omit($params, $this->extract_params($path));
         if ($method === 'GET' && $query) {
-            $url .= '?' . $this->urlencode ($query);
+            $url .= '?' . $this->urlencode($query);
         }
         if ($method === 'POST' && $query) {
-            $body = $this->json ($query);
+            $body = $this->json($query);
         }
         if ($api === 'private') {
             $this->check_required_credentials();
@@ -578,13 +578,13 @@ class itbit extends Exchange {
             $timestamp = $nonce;
             $authBody = ($method === 'POST') ? $body : '';
             $auth = array( $method, $url, $authBody, $nonce, $timestamp );
-            $message = $nonce . str_replace('\\/', '/', $this->json ($auth));
-            $hash = $this->hash ($this->encode ($message), 'sha256', 'binary');
-            $binaryUrl = $this->encode ($url);
+            $message = $nonce . str_replace('\\/', '/', $this->json($auth));
+            $hash = $this->hash($this->encode($message), 'sha256', 'binary');
+            $binaryUrl = $this->encode($url);
             $binhash = $this->binary_concat($binaryUrl, $hash);
-            $signature = $this->hmac ($binhash, $this->encode ($this->secret), 'sha512', 'base64');
+            $signature = $this->hmac($binhash, $this->encode($this->secret), 'sha512', 'base64');
             $headers = array(
-                'Authorization' => $this->apiKey . ':' . $this->decode ($signature),
+                'Authorization' => $this->apiKey . ':' . $this->decode($signature),
                 'Content-Type' => 'application/json',
                 'X-Auth-Timestamp' => $timestamp,
                 'X-Auth-Nonce' => $nonce,
@@ -594,9 +594,9 @@ class itbit extends Exchange {
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
+        $response = $this->fetch2($path, $api, $method, $params, $headers, $body);
         if (is_array($response) && array_key_exists('code', $response)) {
-            throw new ExchangeError($this->id . ' ' . $this->json ($response));
+            throw new ExchangeError($this->id . ' ' . $this->json($response));
         }
         return $response;
     }

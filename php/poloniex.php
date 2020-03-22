@@ -224,13 +224,13 @@ class poloniex extends Exchange {
 
     public function fetch_ohlcv ($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'currencyPair' => $market['id'],
             'period' => $this->timeframes[$timeframe],
         );
         if ($since === null) {
-            $request['end'] = $this->seconds ();
+            $request['end'] = $this->seconds();
             if ($limit === null) {
                 $request['start'] = $request['end'] - $this->parse_timeframe('1w'); // max range = 1 week
             } else {
@@ -239,7 +239,7 @@ class poloniex extends Exchange {
         } else {
             $request['start'] = intval ($since / 1000);
             if ($limit !== null) {
-                $end = $this->sum ($request['start'], $limit * $this->parse_timeframe($timeframe));
+                $end = $this->sum($request['start'], $limit * $this->parse_timeframe($timeframe));
                 $request['end'] = $end;
             }
         }
@@ -294,7 +294,7 @@ class poloniex extends Exchange {
             $currencyId = $currencyIds[$i];
             $balance = $this->safe_value($response, $currencyId, array());
             $code = $this->safe_currency_code($currencyId);
-            $account = $this->account ();
+            $account = $this->account();
             $account['free'] = $this->safe_float($balance, 'available');
             $account['used'] = $this->safe_float($balance, 'onOrders');
             $result[$code] = $account;
@@ -358,7 +358,7 @@ class poloniex extends Exchange {
     }
 
     public function parse_ticker ($ticker, $market = null) {
-        $timestamp = $this->milliseconds ();
+        $timestamp = $this->milliseconds();
         $symbol = null;
         if ($market) {
             $symbol = $market['symbol'];
@@ -369,14 +369,14 @@ class poloniex extends Exchange {
         $last = $this->safe_float($ticker, 'last');
         $relativeChange = $this->safe_float($ticker, 'percentChange');
         if ($relativeChange !== -1) {
-            $open = $last / $this->sum (1, $relativeChange);
+            $open = $last / $this->sum(1, $relativeChange);
             $change = $last - $open;
-            $average = $this->sum ($last, $open) / 2;
+            $average = $this->sum($last, $open) / 2;
         }
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'high24hr'),
             'low' => $this->safe_float($ticker, 'low24hr'),
             'bid' => $this->safe_float($ticker, 'highestBid'),
@@ -467,7 +467,7 @@ class poloniex extends Exchange {
 
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $response = $this->publicGetReturnTicker ($params);
         $ticker = $response[$market['id']];
         return $this->parse_ticker($ticker, $market);
@@ -516,7 +516,7 @@ class poloniex extends Exchange {
         //
         $id = $this->safe_string_2($trade, 'globalTradeID', 'tradeID');
         $orderId = $this->safe_string($trade, 'orderNumber');
-        $timestamp = $this->parse8601 ($this->safe_string($trade, 'date'));
+        $timestamp = $this->parse8601($this->safe_string($trade, 'date'));
         $symbol = null;
         $base = null;
         $quote = null;
@@ -570,7 +570,7 @@ class poloniex extends Exchange {
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'order' => $orderId,
             'type' => 'limit',
@@ -585,13 +585,13 @@ class poloniex extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'currencyPair' => $market['id'],
         );
         if ($since !== null) {
             $request['start'] = intval ($since / 1000);
-            $request['end'] = $this->seconds (); // last 50000 $trades by default
+            $request['end'] = $this->seconds(); // last 50000 $trades by default
         }
         $trades = $this->publicGetReturnTradeHistory (array_merge($request, $params));
         return $this->parse_trades($trades, $market, $since, $limit);
@@ -601,13 +601,13 @@ class poloniex extends Exchange {
         $this->load_markets();
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
         }
         $pair = $market ? $market['id'] : 'all';
         $request = array( 'currencyPair' => $pair );
         if ($since !== null) {
             $request['start'] = intval ($since / 1000);
-            $request['end'] = $this->sum ($this->seconds (), 1); // adding 1 is a fix for #3411
+            $request['end'] = $this->sum($this->seconds(), 1); // adding 1 is a fix for #3411
         }
         // $limit is disabled (does not really work as expected)
         if ($limit !== null) {
@@ -767,7 +767,7 @@ class poloniex extends Exchange {
         //
         $timestamp = $this->safe_integer($order, 'timestamp');
         if (!$timestamp) {
-            $timestamp = $this->parse8601 ($order['date']);
+            $timestamp = $this->parse8601($order['date']);
         }
         $trades = null;
         if (is_array($order) && array_key_exists('resultingTrades', $order)) {
@@ -808,8 +808,8 @@ class poloniex extends Exchange {
                         $trade = $trades[$i];
                         $tradeAmount = $trade['amount'];
                         $tradePrice = $trade['price'];
-                        $filled = $this->sum ($filled, $tradeAmount);
-                        $cost = $this->sum ($cost, $tradePrice * $tradeAmount);
+                        $filled = $this->sum($filled, $tradeAmount);
+                        $cost = $this->sum($cost, $tradePrice * $tradeAmount);
                         $lastTradeTimestamp = max ($lastTradeTimestamp, $trade['timestamp']);
                     }
                 }
@@ -844,7 +844,7 @@ class poloniex extends Exchange {
             'info' => $order,
             'id' => $id,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'status' => $status,
             'symbol' => $symbol,
@@ -879,7 +879,7 @@ class poloniex extends Exchange {
         $this->load_markets();
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
         }
         $pair = $market ? $market['id'] : 'all';
         $request = array(
@@ -940,7 +940,7 @@ class poloniex extends Exchange {
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         $since = $this->safe_value($params, 'since');
         $limit = $this->safe_value($params, 'limit');
-        $request = $this->omit ($params, array( 'since', 'limit' ));
+        $request = $this->omit($params, array( 'since', 'limit' ));
         $orders = $this->fetch_orders($symbol, $since, $limit, $request);
         for ($i = 0; $i < count($orders); $i++) {
             if ($orders[$i]['id'] === $id) {
@@ -975,8 +975,8 @@ class poloniex extends Exchange {
             throw new ExchangeError($this->id . ' allows limit orders only');
         }
         $this->load_markets();
-        $method = 'privatePost' . $this->capitalize ($side);
-        $market = $this->market ($symbol);
+        $method = 'privatePost' . $this->capitalize($side);
+        $market = $this->market($symbol);
         $amount = $this->amount_to_precision($symbol, $amount);
         $request = array(
             'currencyPair' => $market['id'],
@@ -984,7 +984,7 @@ class poloniex extends Exchange {
             'amount' => $amount,
         );
         // remember the $timestamp before issuing the $request
-        $timestamp = $this->milliseconds ();
+        $timestamp = $this->milliseconds();
         $response = $this->$method (array_merge($request, $params));
         //
         //     {
@@ -1044,7 +1044,7 @@ class poloniex extends Exchange {
         } else {
             $market = null;
             if ($symbol !== null) {
-                $market = $this->market ($symbol);
+                $market = $this->market($symbol);
             }
             $result = $this->parse_order($response, $market);
             $this->orders[$result['id']] = $result;
@@ -1087,7 +1087,7 @@ class poloniex extends Exchange {
         $request = array();
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
             $request['currencyPair'] = $market['id'];
         }
         $response = $this->privatePostCancelAllOrders (array_merge($request, $params));
@@ -1164,7 +1164,7 @@ class poloniex extends Exchange {
 
     public function create_deposit_address ($code, $params = array ()) {
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $request = array(
             'currency' => $currency['id'],
         );
@@ -1190,7 +1190,7 @@ class poloniex extends Exchange {
 
     public function fetch_deposit_address ($code, $params = array ()) {
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $response = $this->privatePostReturnDepositAddresses ($params);
         $currencyId = $currency['id'];
         $address = $this->safe_string($response, $currencyId);
@@ -1212,7 +1212,7 @@ class poloniex extends Exchange {
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $request = array(
             'currency' => $currency['id'],
             'amount' => $amount,
@@ -1231,7 +1231,7 @@ class poloniex extends Exchange {
     public function fetch_transactions_helper ($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $year = 31104000; // 60 * 60 * 24 * 30 * 12 = one $year of history, why not
-        $now = $this->seconds ();
+        $now = $this->seconds();
         $start = ($since !== null) ? intval ($since / 1000) : $now - 10 * $year;
         $request = array(
             'start' => $start, // UNIX timestamp, required
@@ -1295,12 +1295,12 @@ class poloniex extends Exchange {
         }
         $currency = null;
         if ($code !== null) {
-            $currency = $this->currency ($code);
+            $currency = $this->currency($code);
         }
         $withdrawals = $this->parse_transactions($response['withdrawals'], $currency, $since, $limit);
         $deposits = $this->parse_transactions($response['deposits'], $currency, $since, $limit);
         $transactions = $this->array_concat($deposits, $withdrawals);
-        return $this->filterByCurrencySinceLimit ($this->sort_by($transactions, 'timestamp'), $code, $since, $limit);
+        return $this->filter_by_currency_since_limit($this->sort_by($transactions, 'timestamp'), $code, $since, $limit);
     }
 
     public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
@@ -1310,10 +1310,10 @@ class poloniex extends Exchange {
         }
         $currency = null;
         if ($code !== null) {
-            $currency = $this->currency ($code);
+            $currency = $this->currency($code);
         }
         $withdrawals = $this->parse_transactions($response['withdrawals'], $currency, $since, $limit);
-        return $this->filterByCurrencySinceLimit ($withdrawals, $code, $since, $limit);
+        return $this->filter_by_currency_since_limit($withdrawals, $code, $since, $limit);
     }
 
     public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
@@ -1323,10 +1323,10 @@ class poloniex extends Exchange {
         }
         $currency = null;
         if ($code !== null) {
-            $currency = $this->currency ($code);
+            $currency = $this->currency($code);
         }
         $deposits = $this->parse_transactions($response['deposits'], $currency, $since, $limit);
-        return $this->filterByCurrencySinceLimit ($deposits, $code, $since, $limit);
+        return $this->filter_by_currency_since_limit($deposits, $code, $since, $limit);
     }
 
     public function parse_transaction_status ($status) {
@@ -1408,7 +1408,7 @@ class poloniex extends Exchange {
             'updated' => null,
             'txid' => $txid,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'fee' => array(
                 'currency' => $code,
                 'cost' => $feeCost,
@@ -1417,22 +1417,22 @@ class poloniex extends Exchange {
     }
 
     public function nonce () {
-        return $this->milliseconds ();
+        return $this->milliseconds();
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api];
         $query = array_merge(array( 'command' => $path ), $params);
         if ($api === 'public') {
-            $url .= '?' . $this->urlencode ($query);
+            $url .= '?' . $this->urlencode($query);
         } else {
             $this->check_required_credentials();
             $query['nonce'] = $this->nonce();
-            $body = $this->urlencode ($query);
+            $body = $this->urlencode($query);
             $headers = array(
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Key' => $this->apiKey,
-                'Sign' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512'),
+                'Sign' => $this->hmac($this->encode($body), $this->encode($this->secret), 'sha512'),
             );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

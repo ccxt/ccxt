@@ -75,7 +75,7 @@ class coinspot extends Exchange {
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $code = $this->safe_currency_code($currencyId);
-            $account = $this->account ();
+            $account = $this->account();
             $account['total'] = $this->safe_float($balances, $currencyId);
             $result[$code] = $account;
         }
@@ -84,7 +84,7 @@ class coinspot extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'cointype' => $market['id'],
         );
@@ -98,12 +98,12 @@ class coinspot extends Exchange {
         $id = $this->market_id($symbol);
         $id = strtolower($id);
         $ticker = $response['prices'][$id];
-        $timestamp = $this->milliseconds ();
+        $timestamp = $this->milliseconds();
         $last = $this->safe_float($ticker, 'last');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => null,
             'low' => null,
             'bid' => $this->safe_float($ticker, 'bid'),
@@ -126,7 +126,7 @@ class coinspot extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'cointype' => $market['id'],
         );
@@ -137,7 +137,7 @@ class coinspot extends Exchange {
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        $method = 'privatePostMy' . $this->capitalize ($side);
+        $method = 'privatePostMy' . $this->capitalize($side);
         if ($type === 'market') {
             throw new ExchangeError($this->id . ' allows limit orders only');
         }
@@ -162,12 +162,12 @@ class coinspot extends Exchange {
         $url = $this->urls['api'][$api] . '/' . $path;
         if ($api === 'private') {
             $this->check_required_credentials();
-            $nonce = $this->nonce ();
-            $body = $this->json (array_merge(array( 'nonce' => $nonce ), $params));
+            $nonce = $this->nonce();
+            $body = $this->json(array_merge(array( 'nonce' => $nonce ), $params));
             $headers = array(
                 'Content-Type' => 'application/json',
                 'key' => $this->apiKey,
-                'sign' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512'),
+                'sign' => $this->hmac($this->encode($body), $this->encode($this->secret), 'sha512'),
             );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

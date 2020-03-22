@@ -267,14 +267,14 @@ class bigone extends Exchange {
         if (($symbol === null) && ($market !== null)) {
             $symbol = $market['symbol'];
         }
-        $timestamp = $this->milliseconds ();
+        $timestamp = $this->milliseconds();
         $close = $this->safe_float($ticker, 'close');
         $bid = $this->safe_value($ticker, 'bid', array());
         $ask = $this->safe_value($ticker, 'ask', array());
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
             'bid' => $this->safe_float($bid, 'price'),
@@ -297,7 +297,7 @@ class bigone extends Exchange {
 
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'asset_pair_name' => $market['id'],
         );
@@ -371,7 +371,7 @@ class bigone extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'asset_pair_name' => $market['id'],
         );
@@ -439,7 +439,7 @@ class bigone extends Exchange {
         //         "inserted_at" => "2019-04-15T06:20:57Z"
         //     }
         //
-        $timestamp = $this->parse8601 ($this->safe_string_2($trade, 'created_at', 'inserted_at'));
+        $timestamp = $this->parse8601($this->safe_string_2($trade, 'created_at', 'inserted_at'));
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
         $marketId = $this->safe_string($trade, 'asset_pair_name');
@@ -496,7 +496,7 @@ class bigone extends Exchange {
         $result = array(
             'id' => $id,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'order' => $orderId,
             'type' => 'limit',
@@ -557,7 +557,7 @@ class bigone extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'asset_pair_name' => $market['id'],
         );
@@ -599,7 +599,7 @@ class bigone extends Exchange {
         //     }
         //
         return array(
-            $this->parse8601 ($this->safe_string($ohlcv, 'time')),
+            $this->parse8601($this->safe_string($ohlcv, 'time')),
             $this->safe_float($ohlcv, 'open'),
             $this->safe_float($ohlcv, 'high'),
             $this->safe_float($ohlcv, 'low'),
@@ -610,7 +610,7 @@ class bigone extends Exchange {
 
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         if ($limit === null) {
             $limit = 100; // default 100, max 500
         }
@@ -621,8 +621,8 @@ class bigone extends Exchange {
         );
         if ($since !== null) {
             // $start = intval ($since / 1000);
-            $end = $this->sum ($since, $limit * $this->parse_timeframe($timeframe) * 1000);
-            $request['time'] = $this->iso8601 ($end);
+            $end = $this->sum($since, $limit * $this->parse_timeframe($timeframe) * 1000);
+            $request['time'] = $this->iso8601($end);
         }
         $response = $this->publicGetAssetPairsAssetPairNameCandles (array_merge($request, $params));
         //
@@ -671,7 +671,7 @@ class bigone extends Exchange {
             $balance = $balances[$i];
             $symbol = $this->safe_string($balance, 'asset_symbol');
             $code = $this->safe_currency_code($symbol);
-            $account = $this->account ();
+            $account = $this->account();
             $account['total'] = $this->safe_float($balance, 'balance');
             $account['used'] = $this->safe_float($balance, 'locked_balance');
             $result[$code] = $account;
@@ -712,7 +712,7 @@ class bigone extends Exchange {
         if (($symbol === null) && ($market !== null)) {
             $symbol = $market['symbol'];
         }
-        $timestamp = $this->parse8601 ($this->safe_string($order, 'created_at'));
+        $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'amount');
         $filled = $this->safe_float($order, 'filled_amount');
@@ -733,13 +733,13 @@ class bigone extends Exchange {
                 $cost = $filled * $price;
             }
         }
-        $lastTradeTimestamp = $this->parse8601 ($this->safe_string($order, 'updated_at'));
+        $lastTradeTimestamp = $this->parse8601($this->safe_string($order, 'updated_at'));
         $average = $this->safe_float($order, 'avg_deal_price');
         return array(
             'info' => $order,
             'id' => $id,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $symbol,
             'type' => null,
@@ -758,7 +758,7 @@ class bigone extends Exchange {
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $side = ($side === 'buy') ? 'BID' : 'ASK';
         $request = array(
             'asset_pair_name' => $market['id'], // asset pair name BTC-USDT, required
@@ -807,7 +807,7 @@ class bigone extends Exchange {
 
     public function cancel_all_orders ($symbol = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'asset_pair_name' => $market['id'],
         );
@@ -840,7 +840,7 @@ class bigone extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'asset_pair_name' => $market['id'],
             // 'page_token' => 'dxzef', // $request page after this page token
@@ -881,7 +881,7 @@ class bigone extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
         }
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'asset_pair_name' => $market['id'],
             // 'page_token' => 'dxzef', // $request page after this page token
@@ -952,16 +952,16 @@ class bigone extends Exchange {
     }
 
     public function nonce () {
-        return $this->microseconds () * 1000;
+        return $this->microseconds() * 1000;
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $query = $this->omit ($params, $this->extract_params($path));
+        $query = $this->omit($params, $this->extract_params($path));
         $baseUrl = $this->implode_params($this->urls['api'][$api], array( 'hostname' => $this->hostname ));
         $url = $baseUrl . '/' . $this->implode_params($path, $params);
         if ($api === 'public') {
             if ($query) {
-                $url .= '?' . $this->urlencode ($query);
+                $url .= '?' . $this->urlencode($query);
             }
         } else {
             $this->check_required_credentials();
@@ -972,17 +972,17 @@ class bigone extends Exchange {
                 'nonce' => $nonce,
                 // 'recv_window' => '30', // default 30
             );
-            $jwt = $this->jwt ($request, $this->encode ($this->secret));
+            $jwt = $this->jwt($request, $this->encode($this->secret));
             $headers = array(
                 'Authorization' => 'Bearer ' . $jwt,
             );
             if ($method === 'GET') {
                 if ($query) {
-                    $url .= '?' . $this->urlencode ($query);
+                    $url .= '?' . $this->urlencode($query);
                 }
             } else if ($method === 'POST') {
                 $headers['Content-Type'] = 'application/json';
-                $body = $this->json ($query);
+                $body = $this->json($query);
             }
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
@@ -990,7 +990,7 @@ class bigone extends Exchange {
 
     public function fetch_deposit_address ($code, $params = array ()) {
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $request = array(
             'asset_symbol' => $currency['id'],
         );
@@ -1078,8 +1078,8 @@ class bigone extends Exchange {
         $id = $this->safe_integer($transaction, 'id');
         $amount = $this->safe_float($transaction, 'amount');
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'state'));
-        $timestamp = $this->parse8601 ($this->safe_string($transaction, 'inserted_at'));
-        $updated = $this->parse8601 ($this->safe_string_2($transaction, 'updated_at', 'completed_at'));
+        $timestamp = $this->parse8601($this->safe_string($transaction, 'inserted_at'));
+        $updated = $this->parse8601($this->safe_string_2($transaction, 'updated_at', 'completed_at'));
         $txid = $this->safe_string($transaction, 'txid');
         $address = $this->safe_string($transaction, 'target_address');
         $tag = $this->safe_string($transaction, 'memo');
@@ -1089,7 +1089,7 @@ class bigone extends Exchange {
             'id' => $id,
             'txid' => $txid,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'addressFrom' => null,
             'address' => null,
             'addressTo' => $address,
@@ -1115,7 +1115,7 @@ class bigone extends Exchange {
         );
         $currency = null;
         if ($code !== null) {
-            $currency = $this->currency ($code);
+            $currency = $this->currency($code);
             $request['asset_symbol'] = $currency['id'];
         }
         if ($limit !== null) {
@@ -1157,7 +1157,7 @@ class bigone extends Exchange {
         );
         $currency = null;
         if ($code !== null) {
-            $currency = $this->currency ($code);
+            $currency = $this->currency($code);
             $request['asset_symbol'] = $currency['id'];
         }
         if ($limit !== null) {
@@ -1191,7 +1191,7 @@ class bigone extends Exchange {
 
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $request = array(
             'symbol' => $currency['id'],
             'target_address' => $address,

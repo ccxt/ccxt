@@ -101,9 +101,9 @@ class _1btcxe extends Exchange {
         $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
         for ($i = 0; $i < count($codes); $i++) {
             $code = $codes[$i];
-            $currency = $this->currency ($code);
+            $currency = $this->currency($code);
             $currencyId = $currency['id'];
-            $account = $this->account ();
+            $account = $this->account();
             $account['free'] = $this->safe_float($balance['available'], $currencyId);
             $account['used'] = $this->safe_float($balance['on_hold'], $currencyId);
             $result[$code] = $account;
@@ -154,7 +154,7 @@ class _1btcxe extends Exchange {
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1d', $since = null, $limit = null) {
         return [
-            $this->parse8601 ($ohlcv['date'] . ' 00:00:00'),
+            $this->parse8601($ohlcv['date'] . ' 00:00:00'),
             null,
             null,
             null,
@@ -165,12 +165,12 @@ class _1btcxe extends Exchange {
 
     public function fetch_ohlcv ($symbol, $timeframe = '1d', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $response = $this->publicGetHistoricalPrices (array_merge(array(
             'currency' => $market['id'],
             'timeframe' => $this->timeframes[$timeframe],
         ), $params));
-        $ohlcvs = $this->to_array($this->omit ($response['historical-prices'], 'request_currency'));
+        $ohlcvs = $this->to_array($this->omit($response['historical-prices'], 'request_currency'));
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
@@ -195,7 +195,7 @@ class _1btcxe extends Exchange {
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'order' => null,
             'type' => $type,
@@ -210,7 +210,7 @@ class _1btcxe extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'currency' => $market['id'],
         );
@@ -218,7 +218,7 @@ class _1btcxe extends Exchange {
             $request['limit'] = $limit;
         }
         $response = $this->publicGetTransactions (array_merge($request, $params));
-        $trades = $this->to_array($this->omit ($response['transactions'], 'request_currency'));
+        $trades = $this->to_array($this->omit($response['transactions'], 'request_currency'));
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
@@ -251,7 +251,7 @@ class _1btcxe extends Exchange {
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $request = array(
             'currency' => $currency['id'],
             'amount' => floatval ($amount),
@@ -271,24 +271,24 @@ class _1btcxe extends Exchange {
         $url = $this->urls['api'] . '/' . $path;
         if ($api === 'public') {
             if ($params) {
-                $url .= '?' . $this->urlencode ($params);
+                $url .= '?' . $this->urlencode($params);
             }
         } else {
             $this->check_required_credentials();
             $query = array_merge(array(
                 'api_key' => $this->apiKey,
-                'nonce' => $this->nonce (),
+                'nonce' => $this->nonce(),
             ), $params);
-            $request = $this->json ($query);
-            $query['signature'] = $this->hmac ($this->encode ($request), $this->encode ($this->secret));
-            $body = $this->json ($query);
+            $request = $this->json($query);
+            $query['signature'] = $this->hmac($this->encode($request), $this->encode($this->secret));
+            $body = $this->json($query);
             $headers = array( 'Content-Type' => 'application/json' );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
+        $response = $this->fetch2($path, $api, $method, $params, $headers, $body);
         if (gettype($response) === 'string') {
             if (mb_strpos($response, 'Maintenance') !== false) {
                 throw new ExchangeNotAvailable($this->id . ' on maintenance');

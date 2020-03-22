@@ -101,7 +101,7 @@ class btctradeua extends Exchange {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
-            $account = $this->account ();
+            $account = $this->account();
             $account['total'] = $this->safe_float($balance, 'balance');
             $result[$code] = $account;
         }
@@ -110,7 +110,7 @@ class btctradeua extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
@@ -140,11 +140,11 @@ class btctradeua extends Exchange {
         );
         $response = $this->publicGetJapanStatHighSymbol (array_merge($request, $params));
         $ticker = $this->safe_value($response, 'trades');
-        $timestamp = $this->milliseconds ();
+        $timestamp = $this->milliseconds();
         $result = array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => null,
             'low' => null,
             'bid' => null,
@@ -227,7 +227,7 @@ class btctradeua extends Exchange {
         }
         $ymd = implode('-', array($year, $month, $day));
         $ymdhms = $ymd . 'T' . $hms;
-        $timestamp = $this->parse8601 ($ymdhms);
+        $timestamp = $this->parse8601($ymdhms);
         // server reports local time, adjust to UTC
         $md = implode('', array($month, $day));
         $md = intval ($md);
@@ -261,7 +261,7 @@ class btctradeua extends Exchange {
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
@@ -276,7 +276,7 @@ class btctradeua extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
@@ -297,8 +297,8 @@ class btctradeua extends Exchange {
             throw new ExchangeError($this->id . ' allows limit orders only');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
-        $method = 'privatePost' . $this->capitalize ($side) . 'Id';
+        $market = $this->market($symbol);
+        $method = 'privatePost' . $this->capitalize($side) . 'Id';
         $request = array(
             'count' => $amount,
             'currency1' => $market['quoteId'],
@@ -316,7 +316,7 @@ class btctradeua extends Exchange {
     }
 
     public function parse_order ($order, $market = null) {
-        $timestamp = $this->milliseconds ();
+        $timestamp = $this->milliseconds();
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -324,7 +324,7 @@ class btctradeua extends Exchange {
         return array(
             'id' => $this->safe_string($order, 'id'),
             'timestamp' => $timestamp, // until they fix their $timestamp
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'status' => 'open',
             'symbol' => $symbol,
@@ -344,7 +344,7 @@ class btctradeua extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchOpenOrders requires a $symbol argument');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
@@ -354,12 +354,12 @@ class btctradeua extends Exchange {
     }
 
     public function nonce () {
-        return $this->milliseconds ();
+        return $this->milliseconds();
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->implode_params($path, $params);
-        $query = $this->omit ($params, $this->extract_params($path));
+        $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
             if ($query) {
                 $url .= $this->implode_params($path, $query);
@@ -367,14 +367,14 @@ class btctradeua extends Exchange {
         } else {
             $this->check_required_credentials();
             $nonce = $this->nonce();
-            $body = $this->urlencode (array_merge(array(
+            $body = $this->urlencode(array_merge(array(
                 'out_order_id' => $nonce,
                 'nonce' => $nonce,
             ), $query));
             $auth = $body . $this->secret;
             $headers = array(
                 'public-key' => $this->apiKey,
-                'api-sign' => $this->hash ($this->encode ($auth), 'sha256'),
+                'api-sign' => $this->hash($this->encode($auth), 'sha256'),
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );
         }

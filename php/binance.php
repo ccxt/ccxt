@@ -331,7 +331,7 @@ class binance extends Exchange {
     }
 
     public function nonce () {
-        return $this->milliseconds () - $this->options['timeDifference'];
+        return $this->milliseconds() - $this->options['timeDifference'];
     }
 
     public function fetch_time ($params = array ()) {
@@ -343,7 +343,7 @@ class binance extends Exchange {
 
     public function load_time_difference () {
         $serverTime = $this->fetch_time();
-        $after = $this->milliseconds ();
+        $after = $this->milliseconds();
         $this->options['timeDifference'] = $after - $serverTime;
         return $this->options['timeDifference'];
     }
@@ -351,7 +351,7 @@ class binance extends Exchange {
     public function fetch_markets ($params = array ()) {
         $defaultType = $this->safe_string_2($this->options, 'fetchMarkets', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
-        $query = $this->omit ($params, 'type');
+        $query = $this->omit($params, 'type');
         $method = ($type === 'spot') ? 'publicGetExchangeInfo' : 'fapiPublicGetExchangeInfo';
         $response = $this->$method ($query);
         //
@@ -551,7 +551,7 @@ class binance extends Exchange {
         $defaultType = $this->safe_string_2($this->options, 'fetchBalance', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
         $method = ($type === 'spot') ? 'privateGetAccount' : 'fapiPrivateGetAccount';
-        $query = $this->omit ($params, 'type');
+        $query = $this->omit($params, 'type');
         $response = $this->$method ($query);
         //
         // spot
@@ -619,7 +619,7 @@ class binance extends Exchange {
                 $balance = $balances[$i];
                 $currencyId = $this->safe_string($balance, 'asset');
                 $code = $this->safe_currency_code($currencyId);
-                $account = $this->account ();
+                $account = $this->account();
                 $account['free'] = $this->safe_float($balance, 'free');
                 $account['used'] = $this->safe_float($balance, 'locked');
                 $result[$code] = $account;
@@ -630,7 +630,7 @@ class binance extends Exchange {
                 $balance = $balances[$i];
                 $currencyId = $this->safe_string($balance, 'asset');
                 $code = $this->safe_currency_code($currencyId);
-                $account = $this->account ();
+                $account = $this->account();
                 $account['used'] = $this->safe_float($balance, 'initialMargin');
                 $account['total'] = $this->safe_float($balance, 'marginBalance');
                 $result[$code] = $account;
@@ -641,7 +641,7 @@ class binance extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
@@ -669,7 +669,7 @@ class binance extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'highPrice'),
             'low' => $this->safe_float($ticker, 'lowPrice'),
             'bid' => $this->safe_float($ticker, 'bidPrice'),
@@ -697,7 +697,7 @@ class binance extends Exchange {
             $status = ($status === 0) ? 'ok' : 'maintenance';
             $this->status = array_merge($this->status, array(
                 'status' => $status,
-                'updated' => $this->milliseconds (),
+                'updated' => $this->milliseconds(),
             ));
         }
         return $this->status;
@@ -705,7 +705,7 @@ class binance extends Exchange {
 
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
@@ -726,7 +726,7 @@ class binance extends Exchange {
         $this->load_markets();
         $defaultType = $this->safe_string_2($this->options, 'fetchOpenOrders', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
-        $query = $this->omit ($params, 'type');
+        $query = $this->omit($params, 'type');
         $method = ($type === 'spot') ? 'publicGetTickerBookTicker' : 'fapiPublicGetTickerBookTicker';
         $response = $this->$method ($query);
         return $this->parse_tickers($response, $symbols);
@@ -752,7 +752,7 @@ class binance extends Exchange {
 
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
             'interval' => $this->timeframes[$timeframe],
@@ -877,7 +877,7 @@ class binance extends Exchange {
         return array(
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'id' => $id,
             'order' => $orderId,
@@ -893,7 +893,7 @@ class binance extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
             // 'fromId' => 123,    // ID to get aggregate trades from INCLUSIVE.
@@ -903,7 +903,7 @@ class binance extends Exchange {
         );
         $defaultType = $this->safe_string_2($this->options, 'fetchTrades', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
-        $query = $this->omit ($params, 'type');
+        $query = $this->omit($params, 'type');
         $defaultMethod = ($type === 'future') ? 'fapiPublicGetTrades' : 'publicGetTrades';
         $method = $this->safe_string($this->options, 'fetchTradesMethod', $defaultMethod);
         if ($method === 'publicGetAggTrades') {
@@ -911,7 +911,7 @@ class binance extends Exchange {
                 $request['startTime'] = $since;
                 // https://github.com/ccxt/ccxt/issues/6400
                 // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
-                $request['endTime'] = $this->sum ($since, 3600000);
+                $request['endTime'] = $this->sum($since, 3600000);
             }
             if ($type === 'future') {
                 $method = 'fapiPublicGetAggTrades';
@@ -1045,8 +1045,8 @@ class binance extends Exchange {
                     'currency' => $trades[0]['fee']['currency'],
                 );
                 for ($i = 1; $i < count($trades); $i++) {
-                    $cost = $this->sum ($cost, $trades[$i]['cost']);
-                    $fee['cost'] = $this->sum ($fee['cost'], $trades[$i]['fee']['cost']);
+                    $cost = $this->sum($cost, $trades[$i]['cost']);
+                    $fee['cost'] = $this->sum($fee['cost'], $trades[$i]['fee']['cost']);
                 }
             }
         }
@@ -1066,7 +1066,7 @@ class binance extends Exchange {
             'info' => $order,
             'id' => $id,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
@@ -1085,14 +1085,14 @@ class binance extends Exchange {
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         // the next 5 lines are added to support for testing orders
         $method = $market['spot'] ? 'privatePostOrder' : 'fapiPrivatePostOrder';
         if ($market['spot']) {
             $test = $this->safe_value($params, 'test', false);
             if ($test) {
                 $method .= 'Test';
-                $params = $this->omit ($params, 'test');
+                $params = $this->omit($params, 'test');
             }
         }
         $uppercaseType = strtoupper($type);
@@ -1110,7 +1110,7 @@ class binance extends Exchange {
             $precision = $market['precision']['price'];
             if ($quoteOrderQty !== null) {
                 $request['quoteOrderQty'] = $this->decimal_to_precision($quoteOrderQty, TRUNCATE, $precision, $this->precisionMode);
-                $params = $this->omit ($params, 'quoteOrderQty');
+                $params = $this->omit($params, 'quoteOrderQty');
             } else if ($price !== null) {
                 $request['quoteOrderQty'] = $this->decimal_to_precision($amount * $price, TRUNCATE, $precision, $this->precisionMode);
             } else {
@@ -1157,7 +1157,7 @@ class binance extends Exchange {
             if ($stopPrice === null) {
                 throw new InvalidOrder($this->id . ' createOrder $method requires a $stopPrice extra param for a ' . $type . ' order');
             } else {
-                $params = $this->omit ($params, 'stopPrice');
+                $params = $this->omit($params, 'stopPrice');
                 $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
             }
         }
@@ -1170,7 +1170,7 @@ class binance extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchOrder requires a $symbol argument');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $method = $market['spot'] ? 'privateGetOrder' : 'fapiPrivateGetOrder';
         $request = array(
             'symbol' => $market['id'],
@@ -1190,7 +1190,7 @@ class binance extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchOrders requires a $symbol argument');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
@@ -1254,7 +1254,7 @@ class binance extends Exchange {
         $type = null;
         $request = array();
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
             $type = $market['type'];
             $query = $params;
@@ -1266,7 +1266,7 @@ class binance extends Exchange {
         } else {
             $defaultType = $this->safe_string_2($this->options, 'fetchOpenOrders', 'defaultType', 'spot');
             $type = $this->safe_string($params, 'type', $defaultType);
-            $query = $this->omit ($params, 'type');
+            $query = $this->omit($params, 'type');
         }
         $method = ($type === 'spot') ? 'privateGetOpenOrders' : 'fapiPrivateGetOpenOrders';
         $response = $this->$method (array_merge($request, $query));
@@ -1283,7 +1283,7 @@ class binance extends Exchange {
             throw new ArgumentsRequired($this->id . ' cancelOrder requires a $symbol argument');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         // https://github.com/ccxt/ccxt/issues/6507
         $origClientOrderId = $this->safe_value($params, 'origClientOrderId');
         $request = array(
@@ -1306,7 +1306,7 @@ class binance extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a $symbol argument');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $method = $market['spot'] ? 'privateGetMyTrades' : 'fapiPrivateGetUserTrades';
         $request = array(
             'symbol' => $market['id'],
@@ -1405,9 +1405,9 @@ class binance extends Exchange {
         //      transferedAmount => "0.00628141",
         //             fromAsset => "ADA"                  ),
         $orderId = $this->safe_string($trade, 'tranId');
-        $timestamp = $this->parse8601 ($this->safe_string($trade, 'operateTime'));
+        $timestamp = $this->parse8601($this->safe_string($trade, 'operateTime'));
         $tradedCurrency = $this->safe_currency_code($this->safe_string($trade, 'fromAsset'));
-        $earnedCurrency = $this->currency ('BNB')['code'];
+        $earnedCurrency = $this->currency('BNB')['code'];
         $applicantSymbol = $earnedCurrency . '/' . $tradedCurrency;
         $tradedCurrencyIsQuote = false;
         if (is_array($this->markets) && array_key_exists($applicantSymbol, $this->markets)) {
@@ -1430,13 +1430,13 @@ class binance extends Exchange {
         $side = null;
         if ($tradedCurrencyIsQuote) {
             $symbol = $applicantSymbol;
-            $amount = $this->sum ($this->safe_float($trade, 'transferedAmount'), $fee['cost']);
+            $amount = $this->sum($this->safe_float($trade, 'transferedAmount'), $fee['cost']);
             $cost = $this->safe_float($trade, 'amount');
             $side = 'buy';
         } else {
             $symbol = $tradedCurrency . '/' . $earnedCurrency;
             $amount = $this->safe_float($trade, 'amount');
-            $cost = $this->sum ($this->safe_float($trade, 'transferedAmount'), $fee['cost']);
+            $cost = $this->sum($this->safe_float($trade, 'transferedAmount'), $fee['cost']);
             $side = 'sell';
         }
         $price = null;
@@ -1451,7 +1451,7 @@ class binance extends Exchange {
         return array(
             'id' => $id,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'order' => $orderId,
             'type' => $type,
@@ -1470,13 +1470,13 @@ class binance extends Exchange {
         $currency = null;
         $request = array();
         if ($code !== null) {
-            $currency = $this->currency ($code);
+            $currency = $this->currency($code);
             $request['asset'] = $currency['id'];
         }
         if ($since !== null) {
             $request['startTime'] = $since;
             // max 3 months range https://github.com/ccxt/ccxt/issues/6495
-            $request['endTime'] = $this->sum ($since, 7776000000);
+            $request['endTime'] = $this->sum($since, 7776000000);
         }
         $response = $this->wapiGetDepositHistory (array_merge($request, $params));
         //
@@ -1497,13 +1497,13 @@ class binance extends Exchange {
         $currency = null;
         $request = array();
         if ($code !== null) {
-            $currency = $this->currency ($code);
+            $currency = $this->currency($code);
             $request['asset'] = $currency['id'];
         }
         if ($since !== null) {
             $request['startTime'] = $since;
             // max 3 months range https://github.com/ccxt/ccxt/issues/6495
-            $request['endTime'] = $this->sum ($since, 7776000000);
+            $request['endTime'] = $this->sum($since, 7776000000);
         }
         $response = $this->wapiGetWithdrawHistory (array_merge($request, $params));
         //
@@ -1614,7 +1614,7 @@ class binance extends Exchange {
             'id' => $id,
             'txid' => $txid,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'address' => $address,
             'tag' => $tag,
             'type' => $type,
@@ -1628,7 +1628,7 @@ class binance extends Exchange {
 
     public function fetch_deposit_address ($code, $params = array ()) {
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $request = array(
             'asset' => $currency['id'],
         );
@@ -1688,7 +1688,7 @@ class binance extends Exchange {
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         // $name is optional, can be overrided via $params
         $name = mb_substr($address, 0, 20 - 0);
         $request = array(
@@ -1734,7 +1734,7 @@ class binance extends Exchange {
 
     public function fetch_trading_fee ($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
@@ -1799,7 +1799,7 @@ class binance extends Exchange {
         } else if ($userDataStream) {
             if ($this->apiKey) {
                 // v1 special case for $userDataStream
-                $body = $this->urlencode ($params);
+                $body = $this->urlencode($params);
                 $headers = array(
                     'X-MBX-APIKEY' => $this->apiKey,
                     'Content-Type' => 'application/x-www-form-urlencoded',
@@ -1817,12 +1817,12 @@ class binance extends Exchange {
                     'recvWindow' => $this->options['recvWindow'],
                 ), $params));
             } else {
-                $query = $this->urlencode (array_merge(array(
+                $query = $this->urlencode(array_merge(array(
                     'timestamp' => $this->nonce(),
                     'recvWindow' => $this->options['recvWindow'],
                 ), $params));
             }
-            $signature = $this->hmac ($this->encode ($query), $this->encode ($this->secret));
+            $signature = $this->hmac($this->encode($query), $this->encode($this->secret));
             $query .= '&' . 'signature=' . $signature;
             $headers = array(
                 'X-MBX-APIKEY' => $this->apiKey,
@@ -1839,7 +1839,7 @@ class binance extends Exchange {
             // https://github.com/ccxt/ccxt/issues/5224
             if (!$userDataStream) {
                 if ($params) {
-                    $url .= '?' . $this->urlencode ($params);
+                    $url .= '?' . $this->urlencode($params);
                 }
             }
         }
@@ -1913,7 +1913,7 @@ class binance extends Exchange {
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
+        $response = $this->fetch2($path, $api, $method, $params, $headers, $body);
         // a workaround for array("code":-2015,"msg":"Invalid API-key, IP, or permissions for action.")
         if (($api === 'private') || ($api === 'wapi')) {
             $this->options['hasAlreadyAuthenticatedSuccessfully'] = true;

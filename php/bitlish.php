@@ -152,7 +152,7 @@ class bitlish extends Exchange {
     }
 
     public function parse_ticker ($ticker, $market) {
-        $timestamp = $this->milliseconds ();
+        $timestamp = $this->milliseconds();
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -160,7 +160,7 @@ class bitlish extends Exchange {
         $last = $this->safe_float($ticker, 'last');
         return array(
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'high' => $this->safe_float($ticker, 'max'),
             'low' => $this->safe_float($ticker, 'min'),
@@ -208,7 +208,7 @@ class bitlish extends Exchange {
 
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $response = $this->publicGetTickers ($params);
         $marketId = $market['id'];
         return $this->parse_ticker($response[$marketId], $market);
@@ -216,8 +216,8 @@ class bitlish extends Exchange {
 
     public function fetch_ohlcv ($symbol, $timeframe = '1h', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        // $market = $this->market ($symbol);
-        $now = $this->seconds ();
+        // $market = $this->market($symbol);
+        $now = $this->seconds();
         $start = $now - 86400 * 30; // last 30 days
         if ($since !== null) {
             $start = intval ($since / 1000);
@@ -265,7 +265,7 @@ class bitlish extends Exchange {
             'id' => null,
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'order' => null,
             'type' => null,
@@ -280,7 +280,7 @@ class bitlish extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $response = $this->publicGetTradesHistory (array_merge(array(
             'pair_id' => $market['id'],
         ), $params));
@@ -295,7 +295,7 @@ class bitlish extends Exchange {
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $code = $this->safe_currency_code($currencyId);
-            $account = $this->account ();
+            $account = $this->account();
             $balance = $this->safe_value($response, $currencyId, array());
             $account['free'] = $this->safe_float($balance, 'funds');
             $account['used'] = $this->safe_float($balance, 'holded');
@@ -345,7 +345,7 @@ class bitlish extends Exchange {
         }
         $this->check_address($address);
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $request = array(
             'currency' => $currency['id'],
             'amount' => floatval ($amount),
@@ -364,15 +364,15 @@ class bitlish extends Exchange {
         if ($api === 'public') {
             if ($method === 'GET') {
                 if ($params) {
-                    $url .= '?' . $this->urlencode ($params);
+                    $url .= '?' . $this->urlencode($params);
                 }
             } else {
-                $body = $this->json ($params);
+                $body = $this->json($params);
                 $headers = array( 'Content-Type' => 'application/json' );
             }
         } else {
             $this->check_required_credentials();
-            $body = $this->json (array_merge(array( 'token' => $this->apiKey ), $params));
+            $body = $this->json(array_merge(array( 'token' => $this->apiKey ), $params));
             $headers = array( 'Content-Type' => 'application/json' );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

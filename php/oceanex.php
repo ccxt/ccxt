@@ -177,7 +177,7 @@ class oceanex extends Exchange {
 
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
         );
@@ -259,7 +259,7 @@ class oceanex extends Exchange {
         return array(
             'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
             'bid' => $this->safe_float($ticker, 'buy'),
@@ -282,7 +282,7 @@ class oceanex extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
         );
@@ -365,7 +365,7 @@ class oceanex extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
         );
@@ -401,12 +401,12 @@ class oceanex extends Exchange {
         }
         $timestamp = $this->safe_timestamp($trade, 'created_on');
         if ($timestamp === null) {
-            $timestamp = $this->parse8601 ($this->safe_string($trade, 'created_at'));
+            $timestamp = $this->parse8601($this->safe_string($trade, 'created_at'));
         }
         return array(
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'id' => $this->safe_string($trade, 'id'),
             'order' => null,
@@ -466,7 +466,7 @@ class oceanex extends Exchange {
             $balance = $balances[$i];
             $currencyId = $this->safe_value($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
-            $account = $this->account ();
+            $account = $this->account();
             $account['free'] = $this->safe_float($balance, 'balance');
             $account['used'] = $this->safe_float($balance, 'locked');
             $result[$code] = $account;
@@ -476,7 +476,7 @@ class oceanex extends Exchange {
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
             'side' => $side,
@@ -499,7 +499,7 @@ class oceanex extends Exchange {
         $this->load_markets();
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
         }
         $request = array( 'ids' => $ids );
         $response = $this->privateGetOrders (array_merge($request, $params));
@@ -536,9 +536,9 @@ class oceanex extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchOrders requires a `$symbol` argument');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $states = $this->safe_value($params, 'states', array( 'wait', 'done', 'cancel' ));
-        $query = $this->omit ($params, 'states');
+        $query = $this->omit($params, 'states');
         $request = array(
             'market' => $market['id'],
             'states' => $states,
@@ -578,13 +578,13 @@ class oceanex extends Exchange {
         }
         $timestamp = $this->safe_timestamp($order, 'created_on');
         if ($timestamp === null) {
-            $timestamp = $this->parse8601 ($this->safe_string($order, 'created_at'));
+            $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
         }
         return array(
             'info' => $order,
             'id' => $this->safe_string($order, 'id'),
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $this->safe_value($order, 'ord_type'),
@@ -612,7 +612,7 @@ class oceanex extends Exchange {
 
     public function create_orders ($symbol, $orders, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
             'orders' => $orders,
@@ -646,7 +646,7 @@ class oceanex extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
-        $query = $this->omit ($params, $this->extract_params($path));
+        $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
             if ($path === 'tickers_multi' || $path === 'order_book/multi') {
                 $request = '?';
@@ -660,7 +660,7 @@ class oceanex extends Exchange {
                 }
                 $url .= $request;
             } else if ($query) {
-                $url .= '?' . $this->urlencode ($query);
+                $url .= '?' . $this->urlencode($query);
             }
         } else if ($api === 'private') {
             $this->check_required_credentials();
@@ -671,7 +671,7 @@ class oceanex extends Exchange {
             // to set the private key:
             // $fs = require ('fs')
             // exchange.secret = $fs->readFileSync ('oceanex.pem', 'utf8')
-            $jwt_token = $this->jwt ($request, $this->encode ($this->secret), 'RS256');
+            $jwt_token = $this->jwt($request, $this->encode($this->secret), 'RS256');
             $url .= '?user_jwt=' . $jwt_token;
         }
         $headers = array( 'Content-Type' => 'application/json' );

@@ -294,7 +294,7 @@ class bitbay extends Exchange {
             'id' => $this->safe_string($order, 'id'),
             'info' => $order,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'status' => null,
             'symbol' => $symbol,
@@ -318,7 +318,7 @@ class bitbay extends Exchange {
             $markets = array( $this->market_id($symbol) );
             $request['markets'] = $markets;
         }
-        $query = array( 'query' => $this->json (array_merge($request, $params)) );
+        $query = array( 'query' => $this->json(array_merge($request, $params)) );
         $response = $this->v1_01PrivateGetTradingHistoryTransactions ($query);
         //
         //     {
@@ -353,14 +353,14 @@ class bitbay extends Exchange {
         $response = $this->v1_01PrivateGetBalancesBITBAYBalance ($params);
         $balances = $this->safe_value($response, 'balances');
         if ($balances === null) {
-            throw new ExchangeError($this->id . ' empty $balance $response ' . $this->json ($response));
+            throw new ExchangeError($this->id . ' empty $balance $response ' . $this->json($response));
         }
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
-            $account = $this->account ();
+            $account = $this->account();
             $account['used'] = $this->safe_float($balance, 'lockedFunds');
             $account['free'] = $this->safe_float($balance, 'availableFunds');
             $result[$code] = $account;
@@ -383,7 +383,7 @@ class bitbay extends Exchange {
             'id' => $this->market_id($symbol),
         );
         $ticker = $this->publicGetIdTicker (array_merge($request, $params));
-        $timestamp = $this->milliseconds ();
+        $timestamp = $this->milliseconds();
         $baseVolume = $this->safe_float($ticker, 'volume');
         $vwap = $this->safe_float($ticker, 'vwap');
         $quoteVolume = null;
@@ -394,7 +394,7 @@ class bitbay extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'max'),
             'low' => $this->safe_float($ticker, 'min'),
             'bid' => $this->safe_float($ticker, 'bid'),
@@ -418,7 +418,7 @@ class bitbay extends Exchange {
     public function fetch_ledger ($code = null, $since = null, $limit = null, $params = array ()) {
         $balanceCurrencies = array();
         if ($code !== null) {
-            $currency = $this->currency ($code);
+            $currency = $this->currency($code);
             $balanceCurrencies[] = $currency['id'];
         }
         $request = array(
@@ -431,7 +431,7 @@ class bitbay extends Exchange {
             $request['limit'] = $limit;
         }
         $request = array_merge($request, $params);
-        $response = $this->v1_01PrivateGetBalancesBITBAYHistory (array( 'query' => $this->json ($request) ));
+        $response = $this->v1_01PrivateGetBalancesBITBAYHistory (array( 'query' => $this->json($request) ));
         $items = $response['items'];
         return $this->parse_ledger($items, null, $since, $limit);
     }
@@ -738,7 +738,7 @@ class bitbay extends Exchange {
             'after' => $after,
             'status' => 'ok',
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'fee' => null,
         );
     }
@@ -787,7 +787,7 @@ class bitbay extends Exchange {
 
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $tradingSymbol = $market['baseId'] . '-' . $market['quoteId'];
         $request = array(
             'symbol' => $tradingSymbol,
@@ -801,11 +801,11 @@ class bitbay extends Exchange {
         $duration = $this->parse_timeframe($timeframe);
         $timerange = $limit * $duration * 1000;
         if ($since === null) {
-            $request['to'] = $this->milliseconds ();
+            $request['to'] = $this->milliseconds();
             $request['from'] = $request['to'] - $timerange;
         } else {
             $request['from'] = intval ($since);
-            $request['to'] = $this->sum ($request['from'], $timerange);
+            $request['to'] = $this->sum($request['from'], $timerange);
         }
         $response = $this->v1_01PublicGetTradingCandleHistorySymbolResolution (array_merge($request, $params));
         $ohlcvs = $this->safe_value($response, 'items', array());
@@ -906,7 +906,7 @@ class bitbay extends Exchange {
             'id' => $this->safe_string($trade, 'id'),
             'order' => $order,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
@@ -921,7 +921,7 @@ class bitbay extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $tradingSymbol = $market['baseId'] . '-' . $market['quoteId'];
         $request = array(
             'symbol' => $tradingSymbol,
@@ -939,7 +939,7 @@ class bitbay extends Exchange {
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $tradingSymbol = $market['baseId'] . '-' . $market['quoteId'];
         $request = array(
             'symbol' => $tradingSymbol,
@@ -1005,7 +1005,7 @@ class bitbay extends Exchange {
         //         )
         //     }
         //
-        $timestamp = $this->milliseconds (); // the real $timestamp is missing in the $response
+        $timestamp = $this->milliseconds(); // the real $timestamp is missing in the $response
         $id = $this->safe_string($response, 'offerId');
         $completed = $this->safe_value($response, 'completed', false);
         $status = $completed ? 'closed' : 'open';
@@ -1016,7 +1016,7 @@ class bitbay extends Exchange {
         if ($transactions !== null) {
             $trades = $this->parse_trades($transactions, $market, null, null, array(
                 'timestamp' => $timestamp,
-                'datetime' => $this->iso8601 ($timestamp),
+                'datetime' => $this->iso8601($timestamp),
                 'symbol' => $symbol,
                 'side' => $side,
                 'type' => $type,
@@ -1024,8 +1024,8 @@ class bitbay extends Exchange {
             ));
             $cost = 0;
             for ($i = 0; $i < count($trades); $i++) {
-                $filled = $this->sum ($filled, $trades[$i]['amount']);
-                $cost = $this->sum ($cost, $trades[$i]['cost']);
+                $filled = $this->sum($filled, $trades[$i]['amount']);
+                $cost = $this->sum($cost, $trades[$i]['cost']);
             }
         }
         $remaining = $amount - $filled;
@@ -1033,7 +1033,7 @@ class bitbay extends Exchange {
             'id' => $id,
             'info' => $response,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
@@ -1060,7 +1060,7 @@ class bitbay extends Exchange {
             throw new ExchangeError($this->id . ' cancelOrder() requires a `$price` parameter (float or string)');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $tradingSymbol = $market['baseId'] . '-' . $market['quoteId'];
         $request = array(
             'symbol' => $tradingSymbol,
@@ -1086,7 +1086,7 @@ class bitbay extends Exchange {
         $this->check_address($address);
         $this->load_markets();
         $method = null;
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $request = array(
             'currency' => $currency['id'],
             'quantity' => $amount,
@@ -1113,49 +1113,49 @@ class bitbay extends Exchange {
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api];
         if ($api === 'public') {
-            $query = $this->omit ($params, $this->extract_params($path));
+            $query = $this->omit($params, $this->extract_params($path));
             $url .= '/' . $this->implode_params($path, $params) . '.json';
             if ($query) {
-                $url .= '?' . $this->urlencode ($query);
+                $url .= '?' . $this->urlencode($query);
             }
         } else if ($api === 'v1_01Public') {
-            $query = $this->omit ($params, $this->extract_params($path));
+            $query = $this->omit($params, $this->extract_params($path));
             $url .= '/' . $this->implode_params($path, $params);
             if ($query) {
-                $url .= '?' . $this->urlencode ($query);
+                $url .= '?' . $this->urlencode($query);
             }
         } else if ($api === 'v1_01Private') {
             $this->check_required_credentials();
-            $query = $this->omit ($params, $this->extract_params($path));
+            $query = $this->omit($params, $this->extract_params($path));
             $url .= '/' . $this->implode_params($path, $params);
-            $nonce = (string) $this->milliseconds ();
+            $nonce = (string) $this->milliseconds();
             $payload = null;
             if ($method !== 'POST') {
                 if ($query) {
-                    $url .= '?' . $this->urlencode ($query);
+                    $url .= '?' . $this->urlencode($query);
                 }
                 $payload = $this->apiKey . $nonce;
             } else if ($body === null) {
-                $body = $this->json ($query);
+                $body = $this->json($query);
                 $payload = $this->apiKey . $nonce . $body;
             }
             $headers = array(
                 'Request-Timestamp' => $nonce,
-                'Operation-Id' => $this->uuid (),
+                'Operation-Id' => $this->uuid(),
                 'API-Key' => $this->apiKey,
-                'API-Hash' => $this->hmac ($this->encode ($payload), $this->encode ($this->secret), 'sha512'),
+                'API-Hash' => $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha512'),
                 'Content-Type' => 'application/json',
             );
         } else {
             $this->check_required_credentials();
-            $body = $this->urlencode (array_merge(array(
+            $body = $this->urlencode(array_merge(array(
                 'method' => $path,
-                'moment' => $this->nonce (),
+                'moment' => $this->nonce(),
             ), $params));
             $headers = array(
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'API-Key' => $this->apiKey,
-                'API-Hash' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512'),
+                'API-Hash' => $this->hmac($this->encode($body), $this->encode($this->secret), 'sha512'),
             );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

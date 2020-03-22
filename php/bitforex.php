@@ -305,7 +305,7 @@ class bitforex extends Exchange {
             'info' => $trade,
             'id' => $id,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'type' => null,
             'side' => $side,
@@ -325,7 +325,7 @@ class bitforex extends Exchange {
         if ($limit !== null) {
             $request['size'] = $limit;
         }
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $response = $this->publicGetApiV1MarketTrades (array_merge($request, $params));
         return $this->parse_trades($response['data'], $market, $since, $limit);
     }
@@ -339,7 +339,7 @@ class bitforex extends Exchange {
             $balance = $data[$i];
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
-            $account = $this->account ();
+            $account = $this->account();
             $account['used'] = $this->safe_float($balance, 'frozen');
             $account['free'] = $this->safe_float($balance, 'active');
             $account['total'] = $this->safe_float($balance, 'fix');
@@ -360,7 +360,7 @@ class bitforex extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($data, 'high'),
             'low' => $this->safe_float($data, 'low'),
             'bid' => $this->safe_float($data, 'buy'),
@@ -394,7 +394,7 @@ class bitforex extends Exchange {
 
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
             'ktype' => $this->timeframes[$timeframe],
@@ -468,7 +468,7 @@ class bitforex extends Exchange {
             'info' => $order,
             'id' => $id,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $symbol,
             'type' => $type,
@@ -487,7 +487,7 @@ class bitforex extends Exchange {
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $this->market_id($symbol),
             'orderId' => $id,
@@ -499,7 +499,7 @@ class bitforex extends Exchange {
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $this->market_id($symbol),
             'state' => 0,
@@ -510,7 +510,7 @@ class bitforex extends Exchange {
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $this->market_id($symbol),
             'state' => 1,
@@ -557,21 +557,21 @@ class bitforex extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->implode_params($path, $params);
-        $query = $this->omit ($params, $this->extract_params($path));
+        $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
             if ($query) {
-                $url .= '?' . $this->urlencode ($query);
+                $url .= '?' . $this->urlencode($query);
             }
         } else {
             $this->check_required_credentials();
-            $payload = $this->urlencode (array( 'accessKey' => $this->apiKey ));
-            $query['nonce'] = $this->milliseconds ();
+            $payload = $this->urlencode(array( 'accessKey' => $this->apiKey ));
+            $query['nonce'] = $this->milliseconds();
             if ($query) {
-                $payload .= '&' . $this->urlencode ($this->keysort ($query));
+                $payload .= '&' . $this->urlencode($this->keysort($query));
             }
             // $message = '/' . 'api/' . $this->version . '/' . $path . '?' . $payload;
             $message = '/' . $path . '?' . $payload;
-            $signature = $this->hmac ($this->encode ($message), $this->encode ($this->secret));
+            $signature = $this->hmac($this->encode($message), $this->encode($this->secret));
             $body = $payload . '&signData=' . $signature;
             $headers = array(
                 'Content-Type' => 'application/x-www-form-urlencoded',

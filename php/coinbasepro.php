@@ -326,7 +326,7 @@ class coinbasepro extends Exchange {
         //         "volume" => "2.41000000"
         //     }
         //
-        $timestamp = $this->parse8601 ($this->safe_value($ticker, 'time'));
+        $timestamp = $this->parse8601($this->safe_value($ticker, 'time'));
         $bid = $this->safe_float($ticker, 'bid');
         $ask = $this->safe_float($ticker, 'ask');
         $last = $this->safe_float($ticker, 'price');
@@ -334,7 +334,7 @@ class coinbasepro extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
             'bid' => $bid,
@@ -357,7 +357,7 @@ class coinbasepro extends Exchange {
 
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'id' => $market['id'],
         );
@@ -404,7 +404,7 @@ class coinbasepro extends Exchange {
         //         time => '2020-01-31T20:03:41.158814Z'
         //     }
         //
-        $timestamp = $this->parse8601 ($this->safe_string_2($trade, 'time', 'created_at'));
+        $timestamp = $this->parse8601($this->safe_string_2($trade, 'time', 'created_at'));
         $symbol = null;
         $marketId = $this->safe_string($trade, 'product_id');
         if ($marketId !== null) {
@@ -451,7 +451,7 @@ class coinbasepro extends Exchange {
             'order' => $orderId,
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'type' => $type,
             'takerOrMaker' => $takerOrMaker,
@@ -469,7 +469,7 @@ class coinbasepro extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a $symbol argument');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'product_id' => $market['id'],
         );
@@ -482,7 +482,7 @@ class coinbasepro extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'id' => $market['id'], // fixes issue #2
         );
@@ -503,19 +503,19 @@ class coinbasepro extends Exchange {
 
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $granularity = $this->timeframes[$timeframe];
         $request = array(
             'id' => $market['id'],
             'granularity' => $granularity,
         );
         if ($since !== null) {
-            $request['start'] = $this->iso8601 ($since);
+            $request['start'] = $this->iso8601($since);
             if ($limit === null) {
                 // https://docs.pro.coinbase.com/#get-historic-rates
                 $limit = 300; // max = 300
             }
-            $request['end'] = $this->iso8601 ($this->sum (($limit - 1) * $granularity * 1000, $since));
+            $request['end'] = $this->iso8601($this->sum(($limit - 1) * $granularity * 1000, $since));
         }
         $response = $this->publicGetProductsIdCandles (array_merge($request, $params));
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
@@ -523,7 +523,7 @@ class coinbasepro extends Exchange {
 
     public function fetch_time ($params = array ()) {
         $response = $this->publicGetTime ($params);
-        return $this->parse8601 ($this->safe_string($response, 'iso'));
+        return $this->parse8601($this->safe_string($response, 'iso'));
     }
 
     public function parse_order_status ($status) {
@@ -539,7 +539,7 @@ class coinbasepro extends Exchange {
     }
 
     public function parse_order ($order, $market = null) {
-        $timestamp = $this->parse8601 ($this->safe_string($order, 'created_at'));
+        $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
         $symbol = null;
         $marketId = $this->safe_string($order, 'product_id');
         $quote = null;
@@ -589,7 +589,7 @@ class coinbasepro extends Exchange {
             'id' => $id,
             'info' => $order,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
@@ -617,7 +617,7 @@ class coinbasepro extends Exchange {
         $this->load_markets();
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
         }
         $request = array(
             'order_id' => $id,
@@ -633,7 +633,7 @@ class coinbasepro extends Exchange {
         );
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
             $request['product_id'] = $market['id'];
         }
         $response = $this->privateGetOrders (array_merge($request, $params));
@@ -645,7 +645,7 @@ class coinbasepro extends Exchange {
         $request = array();
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
             $request['product_id'] = $market['id'];
         }
         $response = $this->privateGetOrders (array_merge($request, $params));
@@ -659,7 +659,7 @@ class coinbasepro extends Exchange {
         );
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
             $request['product_id'] = $market['id'];
         }
         $response = $this->privateGetOrders (array_merge($request, $params));
@@ -668,7 +668,7 @@ class coinbasepro extends Exchange {
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        // $oid = (string) $this->nonce ();
+        // $oid = (string) $this->nonce();
         $request = array(
             'product_id' => $this->market_id($symbol),
             'side' => $side,
@@ -710,7 +710,7 @@ class coinbasepro extends Exchange {
 
     public function deposit ($code, $amount, $address, $params = array ()) {
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $request = array(
             'currency' => $currency['id'],
             'amount' => $amount,
@@ -730,7 +730,7 @@ class coinbasepro extends Exchange {
         }
         $response = $this->$method (array_merge($request, $params));
         if (!$response) {
-            throw new ExchangeError($this->id . ' deposit() error => ' . $this->json ($response));
+            throw new ExchangeError($this->id . ' deposit() error => ' . $this->json($response));
         }
         return array(
             'info' => $response,
@@ -741,7 +741,7 @@ class coinbasepro extends Exchange {
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $request = array(
             'currency' => $currency['id'],
             'amount' => $amount,
@@ -757,7 +757,7 @@ class coinbasepro extends Exchange {
         }
         $response = $this->$method (array_merge($request, $params));
         if (!$response) {
-            throw new ExchangeError($this->id . ' withdraw() error => ' . $this->json ($response));
+            throw new ExchangeError($this->id . ' withdraw() error => ' . $this->json($response));
         }
         return array(
             'info' => $response,
@@ -774,7 +774,7 @@ class coinbasepro extends Exchange {
             if ($code === null) {
                 throw new ArgumentsRequired($this->id . ' fetchTransactions() requires a $currency $code argument if no $account $id specified in params');
             }
-            $currency = $this->currency ($code);
+            $currency = $this->currency($code);
             $accountsByCurrencyCode = $this->index_by($this->accounts, 'currency');
             $account = $this->safe_value($accountsByCurrencyCode, $code);
             if ($account === null) {
@@ -815,8 +815,8 @@ class coinbasepro extends Exchange {
         $details = $this->safe_value($transaction, 'details', array());
         $id = $this->safe_string($transaction, 'id');
         $txid = $this->safe_string($details, 'crypto_transaction_hash');
-        $timestamp = $this->parse8601 ($this->safe_string($transaction, 'created_at'));
-        $updated = $this->parse8601 ($this->safe_string($transaction, 'processed_at'));
+        $timestamp = $this->parse8601($this->safe_string($transaction, 'created_at'));
+        $updated = $this->parse8601($this->safe_string($transaction, 'processed_at'));
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
         $fee = null;
@@ -835,7 +835,7 @@ class coinbasepro extends Exchange {
             'id' => $id,
             'txid' => $txid,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'address' => $address,
             'tag' => $tag,
             'type' => $type,
@@ -849,29 +849,29 @@ class coinbasepro extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = '/' . $this->implode_params($path, $params);
-        $query = $this->omit ($params, $this->extract_params($path));
+        $query = $this->omit($params, $this->extract_params($path));
         if ($method === 'GET') {
             if ($query) {
-                $request .= '?' . $this->urlencode ($query);
+                $request .= '?' . $this->urlencode($query);
             }
         }
         $url = $this->urls['api'][$api] . $request;
         if ($api === 'private') {
             $this->check_required_credentials();
-            $nonce = (string) $this->nonce ();
+            $nonce = (string) $this->nonce();
             $payload = '';
             if ($method !== 'GET') {
                 if ($query) {
-                    $body = $this->json ($query);
+                    $body = $this->json($query);
                     $payload = $body;
                 }
             }
             $what = $nonce . $method . $request . $payload;
             $secret = base64_decode($this->secret);
-            $signature = $this->hmac ($this->encode ($what), $secret, 'sha256', 'base64');
+            $signature = $this->hmac($this->encode($what), $secret, 'sha256', 'base64');
             $headers = array(
                 'CB-ACCESS-KEY' => $this->apiKey,
-                'CB-ACCESS-SIGN' => $this->decode ($signature),
+                'CB-ACCESS-SIGN' => $this->decode($signature),
                 'CB-ACCESS-TIMESTAMP' => $nonce,
                 'CB-ACCESS-PASSPHRASE' => $this->password,
                 'Content-Type' => 'application/json',
@@ -882,7 +882,7 @@ class coinbasepro extends Exchange {
 
     public function fetch_deposit_address ($code, $params = array ()) {
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $accounts = $this->safe_value($this->options, 'coinbaseAccounts');
         if ($accounts === null) {
             $accounts = $this->privateGetCoinbaseAccounts ();
@@ -911,7 +911,7 @@ class coinbasepro extends Exchange {
 
     public function create_deposit_address ($code, $params = array ()) {
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $accounts = $this->safe_value($this->options, 'coinbaseAccounts');
         if ($accounts === null) {
             $accounts = $this->privateGetCoinbaseAccounts ();
@@ -952,10 +952,10 @@ class coinbasepro extends Exchange {
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
+        $response = $this->fetch2($path, $api, $method, $params, $headers, $body);
         if (gettype($response) !== 'string') {
             if (is_array($response) && array_key_exists('message', $response)) {
-                throw new ExchangeError($this->id . ' ' . $this->json ($response));
+                throw new ExchangeError($this->id . ' ' . $this->json($response));
             }
         }
         return $response;

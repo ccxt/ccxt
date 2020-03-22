@@ -155,7 +155,7 @@ class digifinex extends Exchange {
     }
 
     public function fetch_markets_by_type ($type, $params = array ()) {
-        $method = 'publicGet' . $this->capitalize ($type) . 'Symbols';
+        $method = 'publicGet' . $this->capitalize($type) . 'Symbols';
         $response = $this->$method ($params);
         //
         //     {
@@ -301,8 +301,8 @@ class digifinex extends Exchange {
     public function fetch_balance ($params = array ()) {
         $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
-        $params = $this->omit ($params, 'type');
-        $method = 'privateGet' . $this->capitalize ($type) . 'Assets';
+        $params = $this->omit($params, 'type');
+        $method = 'privateGet' . $this->capitalize($type) . 'Assets';
         $response = $this->$method ($params);
         //
         //     {
@@ -321,7 +321,7 @@ class digifinex extends Exchange {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
-            $account = $this->account ();
+            $account = $this->account();
             $account['used'] = $this->safe_float($balance, 'frozen');
             $account['free'] = $this->safe_float($balance, 'free');
             $account['total'] = $this->safe_float($balance, 'total');
@@ -332,7 +332,7 @@ class digifinex extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
@@ -420,7 +420,7 @@ class digifinex extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchTicker is a private v2 endpoint that requires an `exchange.apiKey` credential or an `$apiKey` extra parameter');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         // reversed base/quote in v2
         $marketId = $market['quoteId'] . '_' . $market['baseId'];
         $request = array(
@@ -479,7 +479,7 @@ class digifinex extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
             'bid' => $this->safe_float($ticker, 'buy'),
@@ -572,7 +572,7 @@ class digifinex extends Exchange {
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'type' => null,
             'order' => $orderId,
@@ -587,7 +587,7 @@ class digifinex extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
@@ -634,7 +634,7 @@ class digifinex extends Exchange {
 
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
             'period' => $this->timeframes[$timeframe],
@@ -646,12 +646,12 @@ class digifinex extends Exchange {
             $request['start_time'] = $startTime;
             if ($limit !== null) {
                 $duration = $this->parse_timeframe($timeframe);
-                $request['end_time'] = $this->sum ($startTime, $limit * $duration);
+                $request['end_time'] = $this->sum($startTime, $limit * $duration);
             }
         } else if ($limit !== null) {
-            $endTime = $this->seconds ();
+            $endTime = $this->seconds();
             $duration = $this->parse_timeframe($timeframe);
-            $request['startTime'] = $this->sum ($endTime, -$limit * $duration);
+            $request['startTime'] = $this->sum($endTime, -$limit * $duration);
         }
         $response = $this->publicGetKline (array_merge($request, $params));
         //
@@ -670,10 +670,10 @@ class digifinex extends Exchange {
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
         $orderType = $this->safe_string($params, 'type', $defaultType);
-        $params = $this->omit ($params, 'type');
+        $params = $this->omit($params, 'type');
         $request = array(
             'market' => $orderType,
             'symbol' => $market['id'],
@@ -708,7 +708,7 @@ class digifinex extends Exchange {
         $this->load_markets();
         $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
         $orderType = $this->safe_string($params, 'type', $defaultType);
-        $params = $this->omit ($params, 'type');
+        $params = $this->omit($params, 'type');
         $request = array(
             'market' => $orderType,
             'order_id' => $id,
@@ -738,7 +738,7 @@ class digifinex extends Exchange {
         $this->load_markets();
         $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
         $orderType = $this->safe_string($params, 'type', $defaultType);
-        $params = $this->omit ($params, 'type');
+        $params = $this->omit($params, 'type');
         $request = array(
             'market' => $orderType,
             'order_id' => implode(',', $ids),
@@ -854,7 +854,7 @@ class digifinex extends Exchange {
             'info' => $order,
             'id' => $id,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $symbol,
             'type' => $type,
@@ -873,14 +873,14 @@ class digifinex extends Exchange {
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
         $orderType = $this->safe_string($params, 'type', $defaultType);
-        $params = $this->omit ($params, 'type');
+        $params = $this->omit($params, 'type');
         $this->load_markets();
         $market = null;
         $request = array(
             'market' => $orderType,
         );
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
         $response = $this->privateGetMarketOrderCurrent (array_merge($request, $params));
@@ -912,14 +912,14 @@ class digifinex extends Exchange {
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
         $orderType = $this->safe_string($params, 'type', $defaultType);
-        $params = $this->omit ($params, 'type');
+        $params = $this->omit($params, 'type');
         $this->load_markets();
         $market = null;
         $request = array(
             'market' => $orderType,
         );
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
         if ($since !== null) {
@@ -957,11 +957,11 @@ class digifinex extends Exchange {
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
         $orderType = $this->safe_string($params, 'type', $defaultType);
-        $params = $this->omit ($params, 'type');
+        $params = $this->omit($params, 'type');
         $this->load_markets();
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
         }
         $request = array(
             'market' => $orderType,
@@ -996,14 +996,14 @@ class digifinex extends Exchange {
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
         $orderType = $this->safe_string($params, 'type', $defaultType);
-        $params = $this->omit ($params, 'type');
+        $params = $this->omit($params, 'type');
         $this->load_markets();
         $market = null;
         $request = array(
             'market' => $orderType,
         );
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
         if ($since !== null) {
@@ -1073,7 +1073,7 @@ class digifinex extends Exchange {
             'after' => $after,
             'status' => $status,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'fee' => null,
         );
     }
@@ -1081,14 +1081,14 @@ class digifinex extends Exchange {
     public function fetch_ledger ($code = null, $since = null, $limit = null, $params = array ()) {
         $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
         $orderType = $this->safe_string($params, 'type', $defaultType);
-        $params = $this->omit ($params, 'type');
+        $params = $this->omit($params, 'type');
         $this->load_markets();
         $request = array(
             'market' => $orderType,
         );
         $currency = null;
         if ($code !== null) {
-            $currency = $this->currency ($code);
+            $currency = $this->currency($code);
             $request['currency_mark'] = $currency['id'];
         }
         if ($since !== null) {
@@ -1123,13 +1123,13 @@ class digifinex extends Exchange {
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $version = ($api === 'v2') ? $api : $this->version;
         $url = $this->urls['api'] . '/' . $version . '/' . $this->implode_params($path, $params);
-        $query = $this->omit ($params, $this->extract_params($path));
-        $urlencoded = $this->urlencode ($this->keysort ($query));
+        $query = $this->omit($params, $this->extract_params($path));
+        $urlencoded = $this->urlencode($this->keysort($query));
         if ($api === 'private') {
-            $nonce = (string) $this->nonce ();
+            $nonce = (string) $this->nonce();
             $auth = $urlencoded;
             // the $signature is not time-limited :\
-            $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret));
+            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
             if ($method === 'GET') {
                 if ($urlencoded) {
                     $url .= '?' . $urlencoded;
@@ -1157,7 +1157,7 @@ class digifinex extends Exchange {
 
     public function date_utc8 ($timestampMS) {
         $timedelta = $this->safe_value($this->options, 'timedelta', 8 * 60 * 60 * 1000); // eight hours
-        return $this->ymd ($timestampMS . $timedelta);
+        return $this->ymd($timestampMS . $timedelta);
     }
 
     public function handle_errors ($statusCode, $statusText, $url, $method, $responseHeaders, $responseBody, $response, $requestHeaders, $requestBody) {

@@ -122,7 +122,7 @@ class latoken extends Exchange {
     }
 
     public function nonce () {
-        return $this->milliseconds ();
+        return $this->milliseconds();
     }
 
     public function fetch_time ($params = array ()) {
@@ -301,7 +301,7 @@ class latoken extends Exchange {
             $code = $this->safe_currency_code($currencyId);
             $frozen = $this->safe_float($balance, 'frozen');
             $pending = $this->safe_float($balance, 'pending');
-            $used = $this->sum ($frozen, $pending);
+            $used = $this->sum($frozen, $pending);
             $account = array(
                 'free' => $this->safe_float($balance, 'available'),
                 'used' => $used,
@@ -314,7 +314,7 @@ class latoken extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
             'limit' => 10,
@@ -371,7 +371,7 @@ class latoken extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'low' => $this->safe_float($ticker, 'low'),
             'high' => $this->safe_float($ticker, 'high'),
             'bid' => null,
@@ -394,7 +394,7 @@ class latoken extends Exchange {
 
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
@@ -499,7 +499,7 @@ class latoken extends Exchange {
         return array(
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'id' => $id,
             'order' => $orderId,
@@ -515,7 +515,7 @@ class latoken extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
@@ -547,7 +547,7 @@ class latoken extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a $symbol argument');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
@@ -654,7 +654,7 @@ class latoken extends Exchange {
             'id' => $id,
             'info' => $order,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'status' => $status,
             'symbol' => $symbol,
@@ -694,7 +694,7 @@ class latoken extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchOrdersWithMethod requires a $symbol argument');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
@@ -839,20 +839,20 @@ class latoken extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = null, $headers = null, $body = null) {
         $request = '/api/' . $this->version . '/' . $this->implode_params($path, $params);
-        $query = $this->omit ($params, $this->extract_params($path));
+        $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'private') {
             $nonce = $this->nonce();
             $query = array_merge(array(
                 'timestamp' => $nonce,
             ), $query);
         }
-        $urlencodedQuery = $this->urlencode ($query);
+        $urlencodedQuery = $this->urlencode($query);
         if ($query) {
             $request .= '?' . $urlencodedQuery;
         }
         if ($api === 'private') {
             $this->check_required_credentials();
-            $signature = $this->hmac ($this->encode ($request), $this->encode ($this->secret));
+            $signature = $this->hmac($this->encode($request), $this->encode($this->secret));
             $headers = array(
                 'X-LA-KEY' => $this->apiKey,
                 'X-LA-SIGNATURE' => $signature,

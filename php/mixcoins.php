@@ -67,7 +67,7 @@ class mixcoins extends Exchange {
             $currencyId = $currencyIds[$i];
             $code = $this->safe_currency_code($currencyId);
             $balance = $this->safe_value($balances, $currencyId, array());
-            $account = $this->account ();
+            $account = $this->account();
             $account['free'] = $this->safe_float($balance, 'avail');
             $account['used'] = $this->safe_float($balance, 'lock');
             $result[$code] = $account;
@@ -91,12 +91,12 @@ class mixcoins extends Exchange {
         );
         $response = $this->publicGetTicker (array_merge($request, $params));
         $ticker = $this->safe_value($response, 'result');
-        $timestamp = $this->milliseconds ();
+        $timestamp = $this->milliseconds();
         $last = $this->safe_float($ticker, 'last');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
             'bid' => $this->safe_float($ticker, 'buy'),
@@ -136,7 +136,7 @@ class mixcoins extends Exchange {
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'type' => null,
             'side' => null,
@@ -151,7 +151,7 @@ class mixcoins extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
         );
@@ -191,25 +191,25 @@ class mixcoins extends Exchange {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
         if ($api === 'public') {
             if ($params) {
-                $url .= '?' . $this->urlencode ($params);
+                $url .= '?' . $this->urlencode($params);
             }
         } else {
             $this->check_required_credentials();
-            $nonce = $this->nonce ();
-            $body = $this->urlencode (array_merge(array(
+            $nonce = $this->nonce();
+            $body = $this->urlencode(array_merge(array(
                 'nonce' => $nonce,
             ), $params));
             $headers = array(
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Key' => $this->apiKey,
-                'Sign' => $this->hmac ($this->encode ($body), $this->secret, 'sha512'),
+                'Sign' => $this->hmac($this->encode($body), $this->secret, 'sha512'),
             );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
+        $response = $this->fetch2($path, $api, $method, $params, $headers, $body);
         if (is_array($response) && array_key_exists('status', $response)) {
             //
             // todo add a unified standard handleErrors with $this->exceptions in describe()
@@ -220,6 +220,6 @@ class mixcoins extends Exchange {
                 return $response;
             }
         }
-        throw new ExchangeError($this->id . ' ' . $this->json ($response));
+        throw new ExchangeError($this->id . ' ' . $this->json($response));
     }
 }

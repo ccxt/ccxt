@@ -232,7 +232,7 @@ class zb extends Exchange {
             //       isCanWithdraw =>  true,  // TODO => should use this
             //           available => "0.00000000",
             //                 key => "btc"         }
-            $account = $this->account ();
+            $account = $this->account();
             $currencyId = $this->safe_string($balance, 'key');
             $code = $this->safe_currency_code($currencyId);
             $account['free'] = $this->safe_float($balance, 'available');
@@ -248,7 +248,7 @@ class zb extends Exchange {
 
     public function fetch_deposit_address ($code, $params = array ()) {
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $request = array(
             'currency' => $currency['id'],
         );
@@ -270,7 +270,7 @@ class zb extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $marketFieldName = $this->get_market_field_name();
         $request = array();
         $request[$marketFieldName] = $market['id'];
@@ -301,7 +301,7 @@ class zb extends Exchange {
 
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $marketFieldName = $this->get_market_field_name();
         $request = array();
         $request[$marketFieldName] = $market['id'];
@@ -311,7 +311,7 @@ class zb extends Exchange {
     }
 
     public function parse_ticker ($ticker, $market = null) {
-        $timestamp = $this->milliseconds ();
+        $timestamp = $this->milliseconds();
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -320,7 +320,7 @@ class zb extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
             'bid' => $this->safe_float($ticker, 'buy'),
@@ -343,7 +343,7 @@ class zb extends Exchange {
 
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         if ($limit === null) {
             $limit = 1000;
         }
@@ -381,7 +381,7 @@ class zb extends Exchange {
             'info' => $trade,
             'id' => $id,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'type' => null,
             'side' => $side,
@@ -396,7 +396,7 @@ class zb extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $marketFieldName = $this->get_market_field_name();
         $request = array();
         $request[$marketFieldName] = $market['id'];
@@ -462,7 +462,7 @@ class zb extends Exchange {
             throw new ExchangeError($this->id . 'fetchOrders requires a $symbol parameter');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'currency' => $market['id'],
             'pageIndex' => 1, // default pageIndex is 1
@@ -490,7 +490,7 @@ class zb extends Exchange {
             throw new ExchangeError($this->id . 'fetchOpenOrders requires a $symbol parameter');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'currency' => $market['id'],
             'pageIndex' => 1, // default pageIndex is 1
@@ -566,7 +566,7 @@ class zb extends Exchange {
             'info' => $order,
             'id' => $id,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
@@ -597,7 +597,7 @@ class zb extends Exchange {
     }
 
     public function nonce () {
-        return $this->milliseconds ();
+        return $this->milliseconds();
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -605,18 +605,18 @@ class zb extends Exchange {
         if ($api === 'public') {
             $url .= '/' . $this->version . '/' . $path;
             if ($params) {
-                $url .= '?' . $this->urlencode ($params);
+                $url .= '?' . $this->urlencode($params);
             }
         } else {
-            $query = $this->keysort (array_merge(array(
+            $query = $this->keysort(array_merge(array(
                 'method' => $path,
                 'accesskey' => $this->apiKey,
             ), $params));
             $nonce = $this->nonce();
-            $query = $this->keysort ($query);
-            $auth = $this->rawencode ($query);
-            $secret = $this->hash ($this->encode ($this->secret), 'sha1');
-            $signature = $this->hmac ($this->encode ($auth), $this->encode ($secret), 'md5');
+            $query = $this->keysort($query);
+            $auth = $this->rawencode($query);
+            $secret = $this->hash($this->encode($this->secret), 'sha1');
+            $signature = $this->hmac($this->encode($auth), $this->encode($secret), 'md5');
             $suffix = 'sign=' . $signature . '&reqTime=' . (string) $nonce;
             $url .= '/' . $path . '?' . $auth . '&' . $suffix;
         }

@@ -448,7 +448,7 @@ class kraken extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         if ($market['darkpool']) {
             throw new ExchangeError($this->id . ' does not provide an order book for darkpool $symbol ' . $symbol);
         }
@@ -464,7 +464,7 @@ class kraken extends Exchange {
     }
 
     public function parse_ticker ($ticker, $market = null) {
-        $timestamp = $this->milliseconds ();
+        $timestamp = $this->milliseconds();
         $symbol = null;
         if ($market) {
             $symbol = $market['symbol'];
@@ -479,7 +479,7 @@ class kraken extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => floatval ($ticker['h'][1]),
             'low' => floatval ($ticker['l'][1]),
             'bid' => floatval ($ticker['b'][0]),
@@ -536,7 +536,7 @@ class kraken extends Exchange {
         if ($darkpool) {
             throw new ExchangeError($this->id . ' does not provide a $ticker for $darkpool $symbol ' . $symbol);
         }
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
         );
@@ -558,7 +558,7 @@ class kraken extends Exchange {
 
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
             'interval' => $this->timeframes[$timeframe],
@@ -638,7 +638,7 @@ class kraken extends Exchange {
             'after' => $after,
             'status' => $status,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'fee' => $fee,
         );
     }
@@ -649,7 +649,7 @@ class kraken extends Exchange {
         $request = array();
         $currency = null;
         if ($code !== null) {
-            $currency = $this->currency ($code);
+            $currency = $this->currency($code);
             $request['asset'] = $currency['id'];
         }
         if ($since !== null) {
@@ -767,7 +767,7 @@ class kraken extends Exchange {
             'order' => $order,
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
@@ -781,7 +781,7 @@ class kraken extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $id = $market['id'];
         $request = array(
             'pair' => $id,
@@ -834,7 +834,7 @@ class kraken extends Exchange {
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $code = $this->safe_currency_code($currencyId);
-            $account = $this->account ();
+            $account = $this->account();
             $account['total'] = $this->safe_float($balances, $currencyId);
             $result[$code] = $account;
         }
@@ -843,7 +843,7 @@ class kraken extends Exchange {
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
             'type' => $side,
@@ -992,7 +992,7 @@ class kraken extends Exchange {
             'id' => $id,
             'info' => $order,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
@@ -1152,7 +1152,7 @@ class kraken extends Exchange {
 
     public function fetch_deposit_methods ($code, $params = array ()) {
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $request = array(
             'asset' => $currency['id'],
         );
@@ -1228,7 +1228,7 @@ class kraken extends Exchange {
             'updated' => null,
             'txid' => $txid,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'fee' => array(
                 'currency' => $code,
                 'cost' => $feeCost,
@@ -1244,7 +1244,7 @@ class kraken extends Exchange {
             ), $transactions[$i]));
             $result[] = $transaction;
         }
-        return $this->filterByCurrencySinceLimit ($result, $code, $since, $limit);
+        return $this->filter_by_currency_since_limit($result, $code, $since, $limit);
     }
 
     public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
@@ -1253,7 +1253,7 @@ class kraken extends Exchange {
         if ($code === null) {
             throw new ArgumentsRequired($this->id . ' fetchDeposits requires a $currency $code argument');
         }
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $request = array(
             'asset' => $currency['id'],
         );
@@ -1280,7 +1280,7 @@ class kraken extends Exchange {
         if ($code === null) {
             throw new ArgumentsRequired($this->id . ' fetchWithdrawals requires a $currency $code argument');
         }
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $request = array(
             'asset' => $currency['id'],
         );
@@ -1317,7 +1317,7 @@ class kraken extends Exchange {
 
     public function fetch_deposit_address ($code, $params = array ()) {
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         // eslint-disable-next-line quotes
         $method = $this->safe_string($params, 'method');
         if ($method === null) {
@@ -1356,7 +1356,7 @@ class kraken extends Exchange {
         $this->check_address($address);
         if (is_array($params) && array_key_exists('key', $params)) {
             $this->load_markets();
-            $currency = $this->currency ($code);
+            $currency = $this->currency($code);
             $request = array(
                 'asset' => $currency['id'],
                 'amount' => $amount,
@@ -1375,21 +1375,21 @@ class kraken extends Exchange {
         $url = '/' . $this->version . '/' . $api . '/' . $path;
         if ($api === 'public') {
             if ($params) {
-                $url .= '?' . $this->urlencode ($params);
+                $url .= '?' . $this->urlencode($params);
             }
         } else if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();
-            $body = $this->urlencode (array_merge(array( 'nonce' => $nonce ), $params));
-            $auth = $this->encode ($nonce . $body);
-            $hash = $this->hash ($auth, 'sha256', 'binary');
-            $binary = $this->encode ($url);
+            $body = $this->urlencode(array_merge(array( 'nonce' => $nonce ), $params));
+            $auth = $this->encode($nonce . $body);
+            $hash = $this->hash($auth, 'sha256', 'binary');
+            $binary = $this->encode($url);
             $binhash = $this->binary_concat($binary, $hash);
             $secret = base64_decode($this->secret);
-            $signature = $this->hmac ($binhash, $secret, 'sha512', 'base64');
+            $signature = $this->hmac($binhash, $secret, 'sha512', 'base64');
             $headers = array(
                 'API-Key' => $this->apiKey,
-                'API-Sign' => $this->decode ($signature),
+                'API-Sign' => $this->decode($signature),
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );
         } else {
@@ -1400,7 +1400,7 @@ class kraken extends Exchange {
     }
 
     public function nonce () {
-        return $this->milliseconds ();
+        return $this->milliseconds();
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
