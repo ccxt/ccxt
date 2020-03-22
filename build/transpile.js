@@ -862,7 +862,7 @@ class Transpiler {
 
             // compile signature + body for PHP
             php.push ('');
-            php.push ('    public function ' + method + ' (' + phpArgs + ') {');
+            php.push ('    public function ' + method + '(' + phpArgs + ') {');
             php.push (phpBody);
             php.push ('    }')
 
