@@ -234,25 +234,26 @@ module.exports = class binance extends ccxt.binance {
                 const pu = this.safeInteger (message, 'pu');
                 if (pu === undefined) {
                     // spot
-                    // // 4. Drop any event where u is <= lastUpdateId in the snapshot
-                    // if (u > orderbook['nonce']) {
-                    const timestamp = this.safeInteger (orderbook, 'timestamp');
-                    let conditional = undefined;
-                    if (timestamp === undefined) {
-                        // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
-                        conditional = ((U - 1) <= orderbook['nonce']) && ((u - 1) >= orderbook['nonce']);
-                    } else {
-                        // 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
-                        conditional = ((U - 1) === orderbook['nonce']);
-                    }
-                    if (conditional) {
-                        this.handleOrderBookMessage (client, message, orderbook);
-                        if (nonce < orderbook['nonce']) {
-                            client.resolve (orderbook, messageHash);
+                    // 4. Drop any event where u is <= lastUpdateId in the snapshot
+                    if (u > orderbook['nonce']) {
+                        const timestamp = this.safeInteger (orderbook, 'timestamp');
+                        let conditional = undefined;
+                        if (timestamp === undefined) {
+                            // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
+                            conditional = ((U - 1) <= orderbook['nonce']) && ((u - 1) >= orderbook['nonce']);
+                        } else {
+                            // 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
+                            conditional = ((U - 1) === orderbook['nonce']);
                         }
-                    } else {
-                        // todo: client.reject from handleOrderBookMessage properly
-                        throw new ExchangeError (this.id + ' handleOrderBook received an out-of-order nonce');
+                        if (conditional) {
+                            this.handleOrderBookMessage (client, message, orderbook);
+                            if (nonce < orderbook['nonce']) {
+                                client.resolve (orderbook, messageHash);
+                            }
+                        } else {
+                            // todo: client.reject from handleOrderBookMessage properly
+                            throw new ExchangeError (this.id + ' handleOrderBook received an out-of-order nonce');
+                        }
                     }
                 } else {
                     // future
