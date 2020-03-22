@@ -37,7 +37,7 @@ class kucoin extends \ccxt\kucoin {
     }
 
     public function negotiate ($params = array ()) {
-        $client = $this->client ('ws');
+        $client = $this->client('ws');
         $messageHash = 'negotiate';
         $future = $this->safe_value($client->subscriptions, $messageHash);
         if ($future === null) {
@@ -79,19 +79,19 @@ class kucoin extends \ccxt\kucoin {
 
     public function subscribe ($negotiation, $topic, $method, $symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $data = $this->safe_value($negotiation, 'data', array());
         $instanceServers = $this->safe_value($data, 'instanceServers', array());
         $firstServer = $this->safe_value($instanceServers, 0, array());
         $endpoint = $this->safe_string($firstServer, 'endpoint');
         $token = $this->safe_string($data, 'token');
-        $nonce = $this->nonce ();
+        $nonce = $this->nonce();
         $query = array(
             'token' => $token,
             'acceptUserMessage' => 'true',
             // 'connectId' => $nonce, // user-defined id is supported, received by handleSystemStatus
         );
-        $url = $endpoint . '?' . $this->urlencode ($query);
+        $url = $endpoint . '?' . $this->urlencode($query);
         // $topic = '/market/snapshot'; // '/market/ticker';
         $messageHash = $topic . ':' . $market['id'];
         $subscribe = array(
@@ -170,7 +170,7 @@ class kucoin extends \ccxt\kucoin {
         $negotiate = $this->negotiate();
         $topic = '/market/match';
         $future = $this->after_async($negotiate, array($this, 'subscribe'), $topic, null, $symbol, $params);
-        return $this->after ($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
+        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
     public function handle_trade ($client, $message) {
@@ -233,7 +233,7 @@ class kucoin extends \ccxt\kucoin {
         $negotiate = $this->negotiate();
         $topic = '/market/level2';
         $future = $this->after_async($negotiate, array($this, 'subscribe'), $topic, array($this, 'handle_order_book_subscription'), $symbol, $params);
-        return $this->after ($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
     public function limit_order_book ($orderbook, $symbol, $limit = null, $params = array ()) {
@@ -378,7 +378,7 @@ class kucoin extends \ccxt\kucoin {
         }
         $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
         // fetch the snapshot in a separate async call
-        $this->spawn (array($this, 'fetch_order_book_snapshot'), $client, $message, $subscription);
+        $this->spawn(array($this, 'fetch_order_book_snapshot'), $client, $message, $subscription);
     }
 
     public function handle_subscription_status ($client, $message) {
@@ -447,7 +447,7 @@ class kucoin extends \ccxt\kucoin {
         // kucoin does not support built-in ws protocol-level ping-pong
         // instead it requires a custom json-based text ping-pong
         // https://docs.kucoin.com/#ping
-        $id = (string) $this->nonce ();
+        $id = (string) $this->nonce();
         return array(
             'id' => $id,
             'type' => 'ping',
@@ -456,7 +456,7 @@ class kucoin extends \ccxt\kucoin {
 
     public function handle_pong ($client, $message) {
         // https://docs.kucoin.com/#ping
-        $client->lastPong = $this->milliseconds ();
+        $client->lastPong = $this->milliseconds();
         return $message;
     }
 

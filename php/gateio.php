@@ -39,10 +39,10 @@ class gateio extends \ccxt\gateio {
 
     public function watch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $marketId = $market['id'];
         $wsMarketId = strtoupper($marketId);
-        $requestId = $this->nonce ();
+        $requestId = $this->nonce();
         $url = $this->urls['api']['ws'];
         if (!$limit) {
             $limit = 30;
@@ -65,7 +65,7 @@ class gateio extends \ccxt\gateio {
             'id' => $requestId,
         );
         $future = $this->watch($url, $messageHash, $subscribeMessage, $messageHash, $subscription);
-        return $this->after ($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
     public function sign_message ($client, $messageHash, $message, $params = array ()) {
@@ -117,10 +117,10 @@ class gateio extends \ccxt\gateio {
 
     public function watch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $marketId = $market['id'];
         $wsMarketId = strtoupper($marketId);
-        $requestId = $this->nonce ();
+        $requestId = $this->nonce();
         $url = $this->urls['api']['ws'];
         $subscribeMessage = array(
             'id' => $requestId,
@@ -171,9 +171,9 @@ class gateio extends \ccxt\gateio {
 
     public function watch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $marketId = strtoupper($market['id']);
-        $requestId = $this->nonce ();
+        $requestId = $this->nonce();
         $url = $this->urls['api']['ws'];
         $subscribeMessage = array(
             'id' => $requestId,
@@ -185,7 +185,7 @@ class gateio extends \ccxt\gateio {
         );
         $messageHash = 'trades.update' . ':' . $marketId;
         $future = $this->watch($url, $messageHash, $subscribeMessage, $messageHash, $subscription);
-        return $this->after ($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
+        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
     public function handle_trades ($client, $message) {
@@ -256,9 +256,9 @@ class gateio extends \ccxt\gateio {
 
     public function watch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $marketId = $market['uppercaseId'];
-        $requestId = $this->nonce ();
+        $requestId = $this->nonce();
         $url = $this->urls['api']['ws'];
         $interval = $this->timeframes[$timeframe];
         $subscribeMessage = array(
@@ -275,7 +275,7 @@ class gateio extends \ccxt\gateio {
         // thus the exchange API is limited to one $timeframe per $symbol
         $messageHash = 'kline.update' . ':' . $marketId;
         $future = $this->watch($url, $messageHash, $subscribeMessage, $messageHash, $subscription);
-        return $this->after ($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
+        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
     }
 
     public function handle_ohlcv ($client, $message) {
@@ -344,24 +344,24 @@ class gateio extends \ccxt\gateio {
 
     public function authenticate () {
         $url = $this->urls['api']['ws'];
-        $client = $this->client ($url);
+        $client = $this->client($url);
         $future = $client->future ('authenticated');
         $method = 'server.sign';
         $authenticate = $this->safe_value($client->subscriptions, $method);
         if ($authenticate === null) {
-            $requestId = $this->milliseconds ();
+            $requestId = $this->milliseconds();
             $requestIdString = (string) $requestId;
-            $signature = $this->hmac ($this->encode ($requestIdString), $this->encode ($this->secret), 'sha512', 'base64');
+            $signature = $this->hmac($this->encode($requestIdString), $this->encode($this->secret), 'sha512', 'base64');
             $authenticateMessage = array(
                 'id' => $requestId,
                 'method' => $method,
-                'params' => array( $this->apiKey, $this->decode ($signature), $requestId ),
+                'params' => array( $this->apiKey, $this->decode($signature), $requestId ),
             );
             $subscribe = array(
                 'id' => $requestId,
                 'method' => array($this, 'handle_authentication_message'),
             );
-            $this->spawn (array($this, 'watch'), $url, $requestId, $authenticateMessage, $method, $subscribe);
+            $this->spawn(array($this, 'watch'), $url, $requestId, $authenticateMessage, $method, $subscribe);
         }
         return $future;
     }
@@ -371,7 +371,7 @@ class gateio extends \ccxt\gateio {
         $this->check_required_credentials();
         $url = $this->urls['api']['ws'];
         $future = $this->authenticate();
-        $requestId = $this->nonce ();
+        $requestId = $this->nonce();
         $method = 'balance.update';
         $subscribeMessage = array(
             'id' => $requestId,
@@ -390,7 +390,7 @@ class gateio extends \ccxt\gateio {
         $this->check_required_credentials();
         $url = $this->urls['api']['ws'];
         $future = $this->authenticate();
-        $requestId = $this->nonce ();
+        $requestId = $this->nonce();
         $method = 'balance.query';
         $subscribeMessage = array(
             'id' => $requestId,
@@ -422,7 +422,7 @@ class gateio extends \ccxt\gateio {
     public function handle_balance_message ($client, $messageHash, $result) {
         $keys = is_array($result) ? array_keys($result) : array();
         for ($i = 0; $i < count($keys); $i++) {
-            $account = $this->account ();
+            $account = $this->account();
             $key = $keys[$i];
             $code = $this->safe_currency_code($key);
             $balance = $result[$key];
@@ -438,7 +438,7 @@ class gateio extends \ccxt\gateio {
         $this->load_markets();
         $url = $this->urls['api']['ws'];
         $future = $this->authenticate();
-        $requestId = $this->nonce ();
+        $requestId = $this->nonce();
         $method = 'order.update';
         $subscribeMessage = array(
             'id' => $requestId,
@@ -495,7 +495,7 @@ class gateio extends \ccxt\gateio {
     }
 
     public function handle_balance_subscription ($client, $message, $subscription) {
-        $this->spawn (array($this, 'fetch_balance_snapshot'));
+        $this->spawn(array($this, 'fetch_balance_snapshot'));
     }
 
     public function handle_subscription_status ($client, $message) {

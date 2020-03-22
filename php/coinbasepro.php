@@ -33,7 +33,7 @@ class coinbasepro extends \ccxt\coinbasepro {
 
     public function subscribe ($name, $symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $messageHash = $name . ':' . $market['id'];
         $url = $this->urls['api']['ws'];
         $subscribe = array(
@@ -57,13 +57,13 @@ class coinbasepro extends \ccxt\coinbasepro {
     public function watch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $name = 'matches';
         $future = $this->subscribe($name, $symbol, $params);
-        return $this->after ($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
+        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
     public function watch_order_book ($symbol, $limit = null, $params = array ()) {
         $name = 'level2';
         $future = $this->subscribe($name, $symbol, $params);
-        return $this->after ($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
     public function limit_order_book ($orderbook, $symbol, $limit = null, $params = array ()) {
@@ -179,12 +179,12 @@ class coinbasepro extends \ccxt\coinbasepro {
         if (($symbol === null) && ($market !== null)) {
             $symbol = $market['symbol'];
         }
-        $timestamp = $this->parse8601 ($this->safe_string($ticker, 'time'));
+        $timestamp = $this->parse8601($this->safe_string($ticker, 'time'));
         $last = $this->safe_float($ticker, 'price');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'high_24h'),
             'low' => $this->safe_float($ticker, 'low_24h'),
             'bid' => $this->safe_float($ticker, 'best_bid'),
@@ -270,7 +270,7 @@ class coinbasepro extends \ccxt\coinbasepro {
                 $client->resolve ($orderbook, $messageHash);
             } else if ($type === 'l2update') {
                 $orderbook = $this->orderbooks[$symbol];
-                $timestamp = $this->parse8601 ($this->safe_string($message, 'time'));
+                $timestamp = $this->parse8601($this->safe_string($message, 'time'));
                 $changes = $this->safe_value($message, 'changes', array());
                 $sides = array(
                     'sell' => 'asks',
@@ -286,7 +286,7 @@ class coinbasepro extends \ccxt\coinbasepro {
                     $bookside->store ($price, $amount);
                 }
                 $orderbook['timestamp'] = $timestamp;
-                $orderbook['datetime'] = $this->iso8601 ($timestamp);
+                $orderbook['datetime'] = $this->iso8601($timestamp);
                 $client->resolve ($orderbook, $messageHash);
             }
         }

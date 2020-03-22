@@ -50,7 +50,7 @@ class okex extends \ccxt\okex {
 
     public function subscribe ($channel, $symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $url = $this->urls['api']['ws'];
         $messageHash = $market['type'] . '/' . $channel . ':' . $market['id'];
         $request = array(
@@ -62,7 +62,7 @@ class okex extends \ccxt\okex {
 
     public function watch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $future = $this->subscribe('trade', $symbol, $params);
-        return $this->after ($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
+        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
     public function watch_ticker ($symbol, $params = array ()) {
@@ -145,7 +145,7 @@ class okex extends \ccxt\okex {
         $interval = $this->timeframes[$timeframe];
         $name = 'candle' . $interval . 's';
         $future = $this->subscribe($name, $symbol, $params);
-        return $this->after ($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
+        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
     }
 
     public function find_timeframe ($timeframe) {
@@ -215,7 +215,7 @@ class okex extends \ccxt\okex {
 
     public function watch_order_book ($symbol, $limit = null, $params = array ()) {
         $future = $this->subscribe('depth', $symbol, $params);
-        return $this->after ($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
     public function limit_order_book ($orderbook, $symbol, $limit = null, $params = array ()) {
@@ -256,9 +256,9 @@ class okex extends \ccxt\okex {
         $bids = $this->safe_value($message, 'bids', array());
         $this->handle_deltas($orderbook['asks'], $asks);
         $this->handle_deltas($orderbook['bids'], $bids);
-        $timestamp = $this->parse8601 ($this->safe_string($message, 'timestamp'));
+        $timestamp = $this->parse8601($this->safe_string($message, 'timestamp'));
         $orderbook['timestamp'] = $timestamp;
-        $orderbook['datetime'] = $this->iso8601 ($timestamp);
+        $orderbook['datetime'] = $this->iso8601($timestamp);
         return $orderbook;
     }
 
@@ -355,25 +355,25 @@ class okex extends \ccxt\okex {
         $this->check_required_credentials();
         $url = $this->urls['api']['ws'];
         $messageHash = 'login';
-        $client = $this->client ($url);
+        $client = $this->client($url);
         $future = $this->safe_value($client->subscriptions, $messageHash);
         if ($future === null) {
             $future = $client->future ('authenticated');
-            $timestamp = (string) $this->seconds ();
+            $timestamp = (string) $this->seconds();
             $method = 'GET';
             $path = '/users/self/verify';
             $auth = $timestamp . $method . $path;
-            $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha256', 'base64');
+            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64');
             $request = array(
                 'op' => $messageHash,
                 'args' => array(
                     $this->apiKey,
                     $this->password,
                     $timestamp,
-                    $this->decode ($signature),
+                    $this->decode($signature),
                 ),
             );
-            $this->spawn (array($this, 'watch'), $url, $messageHash, $request, $messageHash, $future);
+            $this->spawn(array($this, 'watch'), $url, $messageHash, $request, $messageHash, $future);
         }
         return $future;
     }
@@ -384,7 +384,7 @@ class okex extends \ccxt\okex {
         if ($type === null) {
             throw new ArgumentsRequired($this->id . " watchBalance requires a $type parameter (one of 'spot', 'margin', 'futures', 'swap')");
         }
-        // $query = $this->omit ($params, 'type');
+        // $query = $this->omit($params, 'type');
         $future = $this->authenticate();
         return $this->after_async($future, array($this, 'subscribe_to_user_account'), $params);
     }
@@ -400,13 +400,13 @@ class okex extends \ccxt\okex {
         $code = $this->safe_string($params, 'code', $this->safe_currency_code($currencyId));
         $currency = null;
         if ($code !== null) {
-            $currency = $this->currency ($code);
+            $currency = $this->currency($code);
         }
         $marketId = $this->safe_string($params, 'instrument_id');
         $symbol = $this->safe_string($params, 'symbol');
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
         } else if ($marketId !== null) {
             if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$marketId];
@@ -442,7 +442,7 @@ class okex extends \ccxt\okex {
             'op' => 'subscribe',
             'args' => array( $subscriptionHash ),
         );
-        $query = $this->omit ($params, array( 'currency', 'code', 'instrument_id', 'symbol', 'type' ));
+        $query = $this->omit($params, array( 'currency', 'code', 'instrument_id', 'symbol', 'type' ));
         return $this->watch($url, $messageHash, array_replace_recursive($request, $query), $subscriptionHash);
     }
 
@@ -527,7 +527,7 @@ class okex extends \ccxt\okex {
     }
 
     public function handle_pong ($client, $message) {
-        $client->lastPong = $this->milliseconds ();
+        $client->lastPong = $this->milliseconds();
         return $message;
     }
 
@@ -539,7 +539,7 @@ class okex extends \ccxt\okex {
         $errorCode = $this->safe_string($message, 'errorCode');
         try {
             if ($errorCode !== null) {
-                $feedback = $this->id . ' ' . $this->json ($message);
+                $feedback = $this->id . ' ' . $this->json($message);
                 $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
                 $messageString = $this->safe_value($message, 'message');
                 if ($messageString !== null) {

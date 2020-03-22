@@ -51,13 +51,13 @@ class huobipro extends \ccxt\huobipro {
 
     public function watch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         // only supports a limit of 150 at this time
         $messageHash = 'market.' . $market['id'] . '.detail';
         $api = $this->safe_string($this->options, 'api', 'api');
         $hostname = array( 'hostname' => $this->hostname );
         $url = $this->implode_params($this->urls['api']['ws'][$api]['public'], $hostname);
-        $requestId = (string) $this->milliseconds ();
+        $requestId = (string) $this->milliseconds();
         $request = array(
             'sub' => $messageHash,
             'id' => $requestId,
@@ -98,7 +98,7 @@ class huobipro extends \ccxt\huobipro {
             $ticker = $this->parse_ticker($tick, $market);
             $timestamp = $this->safe_value($message, 'ts');
             $ticker['timestamp'] = $timestamp;
-            $ticker['datetime'] = $this->iso8601 ($timestamp);
+            $ticker['datetime'] = $this->iso8601($timestamp);
             $symbol = $ticker['symbol'];
             $this->tickers[$symbol] = $ticker;
             $client->resolve ($ticker, $ch);
@@ -108,13 +108,13 @@ class huobipro extends \ccxt\huobipro {
 
     public function watch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         // only supports a $limit of 150 at this time
         $messageHash = 'market.' . $market['id'] . '.trade.detail';
         $api = $this->safe_string($this->options, 'api', 'api');
         $hostname = array( 'hostname' => $this->hostname );
         $url = $this->implode_params($this->urls['api']['ws'][$api]['public'], $hostname);
-        $requestId = (string) $this->milliseconds ();
+        $requestId = (string) $this->milliseconds();
         $request = array(
             'sub' => $messageHash,
             'id' => $requestId,
@@ -126,7 +126,7 @@ class huobipro extends \ccxt\huobipro {
             'params' => $params,
         );
         $future = $this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription);
-        return $this->after ($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
+        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
     public function handle_trades ($client, $message) {
@@ -175,13 +175,13 @@ class huobipro extends \ccxt\huobipro {
 
     public function watch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $interval = $this->timeframes[$timeframe];
         $messageHash = 'market.' . $market['id'] . '.kline.' . $interval;
         $api = $this->safe_string($this->options, 'api', 'api');
         $hostname = array( 'hostname' => $this->hostname );
         $url = $this->implode_params($this->urls['api']['ws'][$api]['public'], $hostname);
-        $requestId = (string) $this->milliseconds ();
+        $requestId = (string) $this->milliseconds();
         $request = array(
             'sub' => $messageHash,
             'id' => $requestId,
@@ -194,7 +194,7 @@ class huobipro extends \ccxt\huobipro {
             'params' => $params,
         );
         $future = $this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription);
-        return $this->after ($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
+        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
     }
 
     public function find_timeframe ($timeframe) {
@@ -258,14 +258,14 @@ class huobipro extends \ccxt\huobipro {
             throw new ExchangeError($this->id . ' watchOrderBook accepts $limit = 150 only');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         // only supports a $limit of 150 at this time
         $limit = ($limit === null) ? 150 : $limit;
         $messageHash = 'market.' . $market['id'] . '.mbp.' . (string) $limit;
         $api = $this->safe_string($this->options, 'api', 'api');
         $hostname = array( 'hostname' => $this->hostname );
         $url = $this->implode_params($this->urls['api']['ws'][$api]['public'], $hostname);
-        $requestId = (string) $this->milliseconds ();
+        $requestId = (string) $this->milliseconds();
         $request = array(
             'sub' => $messageHash,
             'id' => $requestId,
@@ -279,7 +279,7 @@ class huobipro extends \ccxt\huobipro {
             'method' => array($this, 'handle_order_book_subscription'),
         );
         $future = $this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription);
-        return $this->after ($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
     public function limit_order_book ($orderbook, $symbol, $limit = null, $params = array ()) {
@@ -332,7 +332,7 @@ class huobipro extends \ccxt\huobipro {
         $api = $this->safe_string($this->options, 'api', 'api');
         $hostname = array( 'hostname' => $this->hostname );
         $url = $this->implode_params($this->urls['api']['ws'][$api]['public'], $hostname);
-        $requestId = (string) $this->milliseconds ();
+        $requestId = (string) $this->milliseconds();
         $request = array(
             'req' => $messageHash,
             'id' => $requestId,
@@ -348,7 +348,7 @@ class huobipro extends \ccxt\huobipro {
             'method' => array($this, 'handle_order_book_snapshot'),
         );
         $future = $this->watch($url, $requestId, $request, $requestId, $snapshotSubscription);
-        return $this->after ($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
     public function handle_delta ($bookside, $delta) {
@@ -395,7 +395,7 @@ class huobipro extends \ccxt\huobipro {
             $orderbook['nonce'] = $seqNum;
             $timestamp = $this->safe_integer($message, 'ts');
             $orderbook['timestamp'] = $timestamp;
-            $orderbook['datetime'] = $this->iso8601 ($timestamp);
+            $orderbook['datetime'] = $this->iso8601($timestamp);
         }
         return $orderbook;
     }
@@ -457,7 +457,7 @@ class huobipro extends \ccxt\huobipro {
         }
         $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
         // watch the snapshot in a separate async call
-        $this->spawn (array($this, 'watch_order_book_snapshot'), $client, $message, $subscription);
+        $this->spawn(array($this, 'watch_order_book_snapshot'), $client, $message, $subscription);
     }
 
     public function handle_subscription_status ($client, $message) {
@@ -549,7 +549,7 @@ class huobipro extends \ccxt\huobipro {
     }
 
     public function handle_ping ($client, $message) {
-        $this->spawn (array($this, 'pong'), $client, $message);
+        $this->spawn(array($this, 'pong'), $client, $message);
     }
 
     public function handle_error_message ($client, $message) {

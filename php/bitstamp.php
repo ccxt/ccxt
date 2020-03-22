@@ -38,7 +38,7 @@ class bitstamp extends \ccxt\bitstamp {
 
     public function watch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $options = $this->safe_value($this->options, 'watchOrderBook', array());
         $type = $this->safe_string($options, 'type', 'order_book');
         $messageHash = $type . '_' . $market['id'];
@@ -59,7 +59,7 @@ class bitstamp extends \ccxt\bitstamp {
         );
         $message = array_merge($request, $params);
         $future = $this->watch($url, $messageHash, $message, $messageHash, $subscription);
-        return $this->after ($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
     public function limit_order_book ($orderbook, $symbol, $limit = null, $params = array ()) {
@@ -115,7 +115,7 @@ class bitstamp extends \ccxt\bitstamp {
         $orderbook['nonce'] = $microtimestamp;
         $timestamp = intval ($microtimestamp / 1000);
         $orderbook['timestamp'] = $timestamp;
-        $orderbook['datetime'] = $this->iso8601 ($timestamp);
+        $orderbook['datetime'] = $this->iso8601($timestamp);
         return $orderbook;
     }
 
@@ -186,7 +186,7 @@ class bitstamp extends \ccxt\bitstamp {
 
     public function watch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $options = $this->safe_value($this->options, 'watchTrades', array());
         $type = $this->safe_string($options, 'type', 'live_trades');
         $messageHash = $type . '_' . $market['id'];
@@ -206,7 +206,7 @@ class bitstamp extends \ccxt\bitstamp {
         );
         $message = array_merge($request, $params);
         $future = $this->watch($url, $messageHash, $message, $messageHash, $subscription);
-        return $this->after ($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
+        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
     public function parse_trade ($trade, $market = null) {
@@ -249,7 +249,7 @@ class bitstamp extends \ccxt\bitstamp {
         return array(
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'id' => $id,
             'order' => null,
@@ -288,7 +288,7 @@ class bitstamp extends \ccxt\bitstamp {
         $data = $this->safe_value($message, 'data');
         $subscription = $this->safe_value($client->subscriptions, $channel);
         $symbol = $this->safe_string($subscription, 'symbol');
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $trade = $this->parse_trade($data, $market);
         $array = $this->safe_value($this->trades, $symbol, $array());
         $array[] = $trade;
@@ -321,7 +321,7 @@ class bitstamp extends \ccxt\bitstamp {
             $limit = $this->safe_integer($subscription, 'limit');
             $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
             // fetch the snapshot in a separate async call
-            $this->spawn (array($this, 'fetch_order_book_snapshot'), $client, $message, $subscription);
+            $this->spawn(array($this, 'fetch_order_book_snapshot'), $client, $message, $subscription);
         }
     }
 

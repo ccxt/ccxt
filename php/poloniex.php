@@ -66,21 +66,21 @@ class poloniex extends \ccxt\poloniex {
             return;
         }
         $symbol = $this->safe_string($market, 'symbol');
-        $timestamp = $this->milliseconds ();
+        $timestamp = $this->milliseconds();
         $open = null;
         $change = null;
         $average = null;
         $last = $this->safe_float($ticker, 1);
         $relativeChange = $this->safe_float($ticker, 4);
         if ($relativeChange !== -1) {
-            $open = $last / $this->sum (1, $relativeChange);
+            $open = $last / $this->sum(1, $relativeChange);
             $change = $last - $open;
-            $average = $this->sum ($last, $open) / 2;
+            $average = $this->sum($last, $open) / 2;
         }
         $result = array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 8),
             'low' => $this->safe_float($ticker, 9),
             'bid' => $this->safe_float($ticker, 3),
@@ -119,7 +119,7 @@ class poloniex extends \ccxt\poloniex {
 
     public function watch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $numericId = $this->safe_string($market, 'numericId');
         $channelId = '1002';
         $messageHash = $channelId . ':' . $numericId;
@@ -141,7 +141,7 @@ class poloniex extends \ccxt\poloniex {
             'channel' => $channelId,
         );
         $future = $this->watch($url, $messageHash, $subscribe, $channelId);
-        return $this->after ($future, $this->filterByArray, 'symbol', $symbols);
+        return $this->after($future, array($this, 'filter_by_array'), 'symbol', $symbols);
     }
 
     public function load_markets ($reload = false, $params = array ()) {
@@ -162,7 +162,7 @@ class poloniex extends \ccxt\poloniex {
 
     public function watch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $numericId = $this->safe_string($market, 'numericId');
         $messageHash = 'trades:' . $numericId;
         $url = $this->urls['api']['ws'];
@@ -171,12 +171,12 @@ class poloniex extends \ccxt\poloniex {
             'channel' => $numericId,
         );
         $future = $this->watch($url, $messageHash, $subscribe, $numericId);
-        return $this->after ($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
+        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
     public function watch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $numericId = $this->safe_string($market, 'numericId');
         $messageHash = 'orderbook:' . $numericId;
         $url = $this->urls['api']['ws'];
@@ -185,7 +185,7 @@ class poloniex extends \ccxt\poloniex {
             'channel' => $numericId,
         );
         $future = $this->watch($url, $messageHash, $subscribe, $numericId);
-        return $this->after ($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
     public function limit_order_book ($orderbook, $symbol, $limit = null, $params = array ()) {
@@ -203,9 +203,9 @@ class poloniex extends \ccxt\poloniex {
         if (mb_strpos($messageHash, '1000') === 0) {
             $throwOnError = false;
             if ($this->check_required_credentials($throwOnError)) {
-                $nonce = $this->nonce ();
-                $payload = $this->urlencode (array( 'nonce' => $nonce ));
-                $signature = $this->hmac ($this->encode ($payload), $this->encode ($this->secret), 'sha512');
+                $nonce = $this->nonce();
+                $payload = $this->urlencode(array( 'nonce' => $nonce ));
+                $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha512');
                 $message = array_merge($message, array(
                     'key' => $this->apiKey,
                     'payload' => $payload,
@@ -252,7 +252,7 @@ class poloniex extends \ccxt\poloniex {
         return array(
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'id' => $id,
             'order' => null,
@@ -326,7 +326,7 @@ class poloniex extends \ccxt\poloniex {
                     }
                 }
                 $orderbook['nonce'] = $nonce;
-                $orderbookUpdatesCount = $this->sum ($orderbookUpdatesCount, 1);
+                $orderbookUpdatesCount = $this->sum($orderbookUpdatesCount, 1);
             } else if ($delta[0] === 'o') {
                 $orderbook = $this->orderbooks[$symbol];
                 $side = $delta[1] ? 'bids' : 'asks';
@@ -334,7 +334,7 @@ class poloniex extends \ccxt\poloniex {
                 $price = floatval ($delta[2]);
                 $amount = floatval ($delta[3]);
                 $bookside->store ($price, $amount);
-                $orderbookUpdatesCount = $this->sum ($orderbookUpdatesCount, 1);
+                $orderbookUpdatesCount = $this->sum($orderbookUpdatesCount, 1);
                 $orderbook['nonce'] = $nonce;
             } else if ($delta[0] === 't') {
                 $trade = $this->handle_trade($client, $delta, $market);
@@ -343,7 +343,7 @@ class poloniex extends \ccxt\poloniex {
                 if ($storedLength > $this->options['tradesLimit']) {
                     array_shift($stored);
                 }
-                $tradesCount = $this->sum ($tradesCount, 1);
+                $tradesCount = $this->sum($tradesCount, 1);
             }
         }
         if ($orderbookUpdatesCount) {

@@ -133,7 +133,7 @@ class poloniex(Exchange, ccxt.poloniex):
             'channel': channelId,
         }
         future = self.watch(url, messageHash, subscribe, channelId)
-        return await self.after(future, self.filterByArray, 'symbol', symbols)
+        return await self.after(future, self.filter_by_array, 'symbol', symbols)
 
     async def load_markets(self, reload=False, params={}):
         markets = await super(poloniex, self).load_markets(reload, params)

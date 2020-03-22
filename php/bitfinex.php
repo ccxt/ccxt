@@ -42,7 +42,7 @@ class bitfinex extends \ccxt\bitfinex {
 
     public function subscribe ($channel, $symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $marketId = $market['id'];
         $url = $this->urls['api']['ws']['public'];
         $messageHash = $channel . ':' . $marketId;
@@ -58,7 +58,7 @@ class bitfinex extends \ccxt\bitfinex {
 
     public function watch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $future = $this->subscribe('trades', $symbol, $params);
-        return $this->after ($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
+        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
     public function watch_ticker ($symbol, $params = array ()) {
@@ -176,7 +176,7 @@ class bitfinex extends \ccxt\bitfinex {
         return array(
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'id' => $id,
             'order' => $orderId,
@@ -206,7 +206,7 @@ class bitfinex extends \ccxt\bitfinex {
         //         220.05,        // 10 LOW float Daily low
         //     )
         //
-        $timestamp = $this->milliseconds ();
+        $timestamp = $this->milliseconds();
         $marketId = $this->safe_string($subscription, 'pair');
         $market = $this->markets_by_id[$marketId];
         $symbol = $market['symbol'];
@@ -221,7 +221,7 @@ class bitfinex extends \ccxt\bitfinex {
         $result = array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($message, 9),
             'low' => $this->safe_float($message, 10),
             'bid' => $this->safe_float($message, 1),
@@ -262,7 +262,7 @@ class bitfinex extends \ccxt\bitfinex {
             // 'len' => '25', // string, number of price points, '25', '100', default = '25'
         );
         $future = $this->subscribe('book', $symbol, array_replace_recursive($request, $params));
-        return $this->after ($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
     public function limit_order_book ($orderbook, $symbol, $limit = null, $params = array ()) {

@@ -49,18 +49,18 @@ class bittrex extends \ccxt\bittrex {
         $hubs = array(
             array( 'name' => $hub ),
         );
-        $ms = $this->milliseconds ();
+        $ms = $this->milliseconds();
         return array_merge(array(
             'transport' => 'webSockets',
-            'connectionData' => $this->json ($hubs),
+            'connectionData' => $this->json($hubs),
             'clientProtocol' => 1.5,
             '_' => $ms, // no cache
-            'tid' => $this->sum (fmod($ms, 10), 1), // random
+            'tid' => $this->sum(fmod($ms, 10), 1), // random
         ), $params);
     }
 
     public function negotiate ($params = array ()) {
-        $client = $this->client ($this->urls['api']['ws']);
+        $client = $this->client($this->urls['api']['ws']);
         $messageHash = 'negotiate';
         $future = $this->safe_value($client->subscriptions, $messageHash);
         if ($future === null) {
@@ -110,14 +110,14 @@ class bittrex extends \ccxt\bittrex {
         $query = array_merge($negotiation['request'], array(
             'connectionToken' => $connectionToken,
         ));
-        $url = $this->urls['api']['ws'] . '?' . $this->urlencode ($query);
+        $url = $this->urls['api']['ws'] . '?' . $this->urlencode($query);
         $method = 'GetAuthContext';
-        $client = $this->client ($url);
+        $client = $this->client($url);
         $authenticate = $this->safe_value($client->subscriptions, $method, array());
         $future = $this->safe_value($authenticate, 'future');
         if ($future === null) {
             $future = $client->future ('authenticated');
-            $requestId = (string) $this->milliseconds ();
+            $requestId = (string) $this->milliseconds();
             $hub = $this->safe_string($this->options, 'hub', 'c2');
             $request = array(
                 'H' => $hub,
@@ -131,7 +131,7 @@ class bittrex extends \ccxt\bittrex {
                 'negotiation' => $negotiation,
                 'future' => $future,
             );
-            $this->spawn (array($this, 'watch'), $url, $requestId, $request, $method, $subscription);
+            $this->spawn(array($this, 'watch'), $url, $requestId, $request, $method, $subscription);
         }
         return $future;
     }
@@ -148,10 +148,10 @@ class bittrex extends \ccxt\bittrex {
         $query = array_merge($negotiation['request'], array(
             'connectionToken' => $connectionToken,
         ));
-        $url = $this->urls['api']['ws'] . '?' . $this->urlencode ($query);
+        $url = $this->urls['api']['ws'] . '?' . $this->urlencode($query);
         $challenge = $this->safe_string($message, 'R');
-        $signature = $this->hmac ($this->encode ($challenge), $this->encode ($this->secret), 'sha512');
-        $requestId = (string) $this->milliseconds ();
+        $signature = $this->hmac($this->encode($challenge), $this->encode($this->secret), 'sha512');
+        $requestId = (string) $this->milliseconds();
         $hub = $this->safe_string($this->options, 'hub', 'c2');
         $method = 'Authenticate';
         $request = array(
@@ -165,7 +165,7 @@ class bittrex extends \ccxt\bittrex {
             'method' => array($this, 'handle_authenticate'),
             'negotiation' => $negotiation,
         );
-        $this->spawn (array($this, 'watch'), $url, $requestId, $request, $requestId, $authenticateSubscription);
+        $this->spawn(array($this, 'watch'), $url, $requestId, $request, $requestId, $authenticateSubscription);
         return $message;
     }
 
@@ -193,8 +193,8 @@ class bittrex extends \ccxt\bittrex {
         $query = array_merge($negotiation['request'], array(
             'connectionToken' => $connectionToken,
         ));
-        $url = $this->urls['api']['ws'] . '?' . $this->urlencode ($query);
-        $requestId = (string) $this->milliseconds ();
+        $url = $this->urls['api']['ws'] . '?' . $this->urlencode($query);
+        $requestId = (string) $this->milliseconds();
         $method = 'SubscribeToUserDeltas';
         $messageHash = 'balance';
         $subscribeHash = $method;
@@ -227,7 +227,7 @@ class bittrex extends \ccxt\bittrex {
             'params' => $params,
         );
         $future = $this->subscribe_to_exchange_deltas('trade', $negotiation, $symbol, $subscription);
-        return $this->after ($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
+        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
     public function subscribe_to_order_book_deltas ($negotiation, $symbol, $limit = null, $params = array ()) {
@@ -236,7 +236,7 @@ class bittrex extends \ccxt\bittrex {
             'params' => $params,
         );
         $future = $this->subscribe_to_exchange_deltas('orderbook', $negotiation, $symbol, $subscription);
-        return $this->after ($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
     public function subscribe_to_summary_deltas ($negotiation, $symbol, $params = array ()) {
@@ -244,10 +244,10 @@ class bittrex extends \ccxt\bittrex {
         $connectionToken = $this->safe_string($negotiation['response'], 'ConnectionToken');
         $query = array_merge($negotiation['request'], array(
             'connectionToken' => $connectionToken,
-            // 'tid' => $this->milliseconds (fmod(), 10),
+            // 'tid' => $this->milliseconds(fmod(), 10),
         ));
-        $url = $this->urls['api']['ws'] . '?' . $this->urlencode ($query);
-        $requestId = (string) $this->milliseconds ();
+        $url = $this->urls['api']['ws'] . '?' . $this->urlencode($query);
+        $requestId = (string) $this->milliseconds();
         $name = 'ticker';
         $messageHash = $name . ':' . $symbol;
         $method = 'SubscribeToSummaryDeltas';
@@ -271,14 +271,14 @@ class bittrex extends \ccxt\bittrex {
 
     public function subscribe_to_exchange_deltas ($name, $negotiation, $symbol, $subscription) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $connectionToken = $this->safe_string($negotiation['response'], 'ConnectionToken');
         $query = array_merge($negotiation['request'], array(
             'connectionToken' => $connectionToken,
-            // 'tid' => $this->milliseconds (fmod(), 10),
+            // 'tid' => $this->milliseconds(fmod(), 10),
         ));
-        $url = $this->urls['api']['ws'] . '?' . $this->urlencode ($query);
-        $requestId = (string) $this->milliseconds ();
+        $url = $this->urls['api']['ws'] . '?' . $this->urlencode($query);
+        $requestId = (string) $this->milliseconds();
         $messageHash = $name . ':' . $symbol;
         $method = 'SubscribeToExchangeDeltas';
         $subscribeHash = $method . ':' . $symbol;
@@ -409,7 +409,7 @@ class bittrex extends \ccxt\bittrex {
         return array(
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'id' => $id,
             'order' => null,
@@ -536,7 +536,7 @@ class bittrex extends \ccxt\bittrex {
         //     }
         //
         $d = $this->safe_value($message, 'd');
-        $account = $this->account ();
+        $account = $this->account();
         $account['free'] = $this->safe_float($d, 'a');
         $account['total'] = $this->safe_float($d, 'b');
         $code = $this->safe_currency_code($this->safe_string($d, 'c'));
@@ -569,9 +569,9 @@ class bittrex extends \ccxt\bittrex {
         $query = array_merge($negotiation['request'], array(
             'connectionToken' => $connectionToken,
         ));
-        $url = $this->urls['api']['ws'] . '?' . $this->urlencode ($query);
+        $url = $this->urls['api']['ws'] . '?' . $this->urlencode($query);
         $method = 'QuerySummaryState';
-        $requestId = (string) $this->milliseconds ();
+        $requestId = (string) $this->milliseconds();
         $hub = $this->safe_string($this->options, 'hub', 'c2');
         $request = array(
             'H' => $hub,
@@ -613,7 +613,7 @@ class bittrex extends \ccxt\bittrex {
             //         )
             //     }
             //
-            $inflated = $this->inflate64 ($R);
+            $inflated = $this->inflate64($R);
             $response = json_decode($inflated, $as_associative_array = true);
             $s = $this->safe_value($response, 's', array());
             $this->handle_tickers($client, $message, $s);
@@ -724,7 +724,7 @@ class bittrex extends \ccxt\bittrex {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'H'),
             'low' => $this->safe_float($ticker, 'L'),
             'bid' => $this->safe_float($ticker, 'B'),
@@ -822,9 +822,9 @@ class bittrex extends \ccxt\bittrex {
         $query = array_merge($negotiation['request'], array(
             'connectionToken' => $connectionToken,
         ));
-        $url = $this->urls['api']['ws'] . '?' . $this->urlencode ($query);
+        $url = $this->urls['api']['ws'] . '?' . $this->urlencode($query);
         $method = 'QueryBalanceState';
-        $requestId = (string) $this->milliseconds ();
+        $requestId = (string) $this->milliseconds();
         $hub = $this->safe_string($this->options, 'hub', 'c2');
         $request = array(
             'H' => $hub,
@@ -838,7 +838,7 @@ class bittrex extends \ccxt\bittrex {
         );
         $future = $this->watch($url, $requestId, $request, $requestId, $subscription);
         // has to be fixed here for the reasons explained above
-        return $this->after ($future, array($this, 'limit_order_book'), $params);
+        return $this->after($future, array($this, 'limit_order_book'), $params);
     }
 
     public function handle_balance_state ($client, $message, $subscription) {
@@ -875,7 +875,7 @@ class bittrex extends \ccxt\bittrex {
         //     //         }
         //     //     }
         //     //
-        //     $response = json_decode($this->inflate ($R, $as_associative_array = true));
+        //     $response = json_decode($this->inflate($R, $as_associative_array = true));
         // }
         return $R;
     }
@@ -888,14 +888,14 @@ class bittrex extends \ccxt\bittrex {
 
     public function query_exchange_state ($negotiation, $symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $connectionToken = $this->safe_string($negotiation['response'], 'ConnectionToken');
         $query = array_merge($negotiation['request'], array(
             'connectionToken' => $connectionToken,
         ));
-        $url = $this->urls['api']['ws'] . '?' . $this->urlencode ($query);
+        $url = $this->urls['api']['ws'] . '?' . $this->urlencode($query);
         $method = 'QueryExchangeState';
-        $requestId = (string) $this->milliseconds ();
+        $requestId = (string) $this->milliseconds();
         $marketId = $market['id'];
         $hub = $this->safe_string($this->options, 'hub', 'c2');
         $request = array(
@@ -909,11 +909,11 @@ class bittrex extends \ccxt\bittrex {
             'method' => array($this, 'handle_exchange_state'),
         );
         $future = $this->watch($url, $requestId, $request, $requestId, $subscription);
-        return $this->after ($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
     public function handle_exchange_state ($client, $message, $subscription) {
-        $inflated = $this->inflate64 ($this->safe_value($message, 'R'));
+        $inflated = $this->inflate64($this->safe_value($message, 'R'));
         $R = json_decode($inflated, $as_associative_array = true);
         //
         //     {
@@ -968,17 +968,17 @@ class bittrex extends \ccxt\bittrex {
 
     public function handle_subscribe_to_user_deltas ($client, $message, $subscription) {
         // fetch the snapshot in a separate async call
-        $this->spawn (array($this, 'fetch_balance_snapshot'), $client, $message, $subscription);
+        $this->spawn(array($this, 'fetch_balance_snapshot'), $client, $message, $subscription);
         // the two lines below may work when bittrex fixes the snapshots
         // $params = $this->safe_value($subscription, 'params');
-        // $this->spawn (array($this, 'fetch_balance_state'), $params);
+        // $this->spawn(array($this, 'fetch_balance_state'), $params);
     }
 
     public function handle_subscribe_to_summary_deltas ($client, $message, $subscription) {
         $symbol = $this->safe_string($subscription, 'symbol');
         $params = $this->safe_string($subscription, 'params');
         // fetch the snapshot in a separate async call
-        $this->spawn (array($this, 'fetch_summary_state'), $symbol, $params);
+        $this->spawn(array($this, 'fetch_summary_state'), $symbol, $params);
     }
 
     public function handle_subscribe_to_exchange_deltas ($client, $message, $subscription) {
@@ -990,7 +990,7 @@ class bittrex extends \ccxt\bittrex {
         }
         $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
         // fetch the snapshot in a separate async call
-        $this->spawn (array($this, 'fetch_exchange_state'), $symbol, $limit, $params);
+        $this->spawn(array($this, 'fetch_exchange_state'), $symbol, $limit, $params);
     }
 
     public function handle_subscription_status ($client, $message) {
@@ -1028,7 +1028,7 @@ class bittrex extends \ccxt\bittrex {
     public function handle_system_status ($client, $message) {
         // send signalR protocol start() call
         $future = $this->negotiate();
-        $this->spawn (array($this, 'after_async'), $future, array($this, 'start'));
+        $this->spawn(array($this, 'after_async'), $future, array($this, 'start'));
         return $message;
     }
 
@@ -1059,7 +1059,7 @@ class bittrex extends \ccxt\bittrex {
             if ($method !== null) {
                 $A = $this->safe_value($M[$i], 'A', array());
                 for ($k = 0; $k < count($A); $k++) {
-                    $inflated = $this->inflate64 ($A[$k]);
+                    $inflated = $this->inflate64($A[$k]);
                     $update = json_decode($inflated, $as_associative_array = true);
                     $method($client, $update);
                 }
@@ -1090,7 +1090,7 @@ class bittrex extends \ccxt\bittrex {
                 'hostname' => $this->hostname,
             )) . '/' . $path;
             if ($params) {
-                $url .= '?' . $this->urlencode ($params);
+                $url .= '?' . $this->urlencode($params);
             }
             return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
         } else {

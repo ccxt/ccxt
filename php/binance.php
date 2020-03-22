@@ -46,7 +46,7 @@ class binance extends \ccxt\binance {
     public function request_id ($url) {
         $options = $this->safe_value($this->options, 'requestId', array());
         $previousValue = $this->safe_integer($options, $url, 0);
-        $newValue = $this->sum ($previousValue, 1);
+        $newValue = $this->sum($previousValue, 1);
         $this->options['requestId'][$url] = $newValue;
         return $newValue;
     }
@@ -69,8 +69,8 @@ class binance extends \ccxt\binance {
         $this->load_markets();
         $defaultType = $this->safe_string_2($this->options, 'watchOrderBook', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
-        $query = $this->omit ($params, 'type');
-        $market = $this->market ($symbol);
+        $query = $this->omit($params, 'type');
+        $market = $this->market($symbol);
         //
         // notice the differences between trading futures and spot trading
         // the algorithms use different urls in step 1
@@ -126,7 +126,7 @@ class binance extends \ccxt\binance {
         $message = array_merge($request, $query);
         // 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
         $future = $this->watch($url, $messageHash, $message, $messageHash, $subscription);
-        return $this->after ($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
     public function limit_order_book ($orderbook, $symbol, $limit = null, $params = array ()) {
@@ -191,7 +191,7 @@ class binance extends \ccxt\binance {
         $orderbook['nonce'] = $u;
         $timestamp = $this->safe_integer($message, 'E');
         $orderbook['timestamp'] = $timestamp;
-        $orderbook['datetime'] = $this->iso8601 ($timestamp);
+        $orderbook['datetime'] = $this->iso8601($timestamp);
         return $orderbook;
     }
 
@@ -289,7 +289,7 @@ class binance extends \ccxt\binance {
         }
         $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
         // fetch the snapshot in a separate async call
-        $this->spawn (array($this, 'fetch_order_book_snapshot'), $client, $message, $subscription);
+        $this->spawn(array($this, 'fetch_order_book_snapshot'), $client, $message, $subscription);
     }
 
     public function handle_subscription_status ($client, $message) {
@@ -311,11 +311,11 @@ class binance extends \ccxt\binance {
 
     public function watch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $name = 'trade';
         $messageHash = $market['lowercaseId'] . '@' . $name;
         $future = $this->watch_public($messageHash, $params);
-        return $this->after ($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
+        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
     public function parse_trade ($trade, $market = null) {
@@ -364,7 +364,7 @@ class binance extends \ccxt\binance {
         return array(
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'id' => $id,
             'order' => $orderId,
@@ -404,13 +404,13 @@ class binance extends \ccxt\binance {
 
     public function watch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $marketId = $market['lowercaseId'];
         $interval = $this->timeframes[$timeframe];
         $name = 'kline';
         $messageHash = $marketId . '@' . $name . '_' . $interval;
         $future = $this->watch_public($messageHash, $params);
-        return $this->after ($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
+        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
     }
 
     public function find_timeframe ($timeframe) {
@@ -492,7 +492,7 @@ class binance extends \ccxt\binance {
     public function watch_public ($messageHash, $params = array ()) {
         $defaultType = $this->safe_string_2($this->options, 'watchOrderBook', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
-        $query = $this->omit ($params, 'type');
+        $query = $this->omit($params, 'type');
         $url = $this->urls['api']['ws'][$type];
         $requestId = $this->request_id($url);
         $request = array(
@@ -510,7 +510,7 @@ class binance extends \ccxt\binance {
 
     public function watch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $marketId = $market['lowercaseId'];
         $name = 'ticker';
         $messageHash = $marketId . '@' . $name;
@@ -563,7 +563,7 @@ class binance extends \ccxt\binance {
         $result = array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($message, 'h'),
             'low' => $this->safe_float($message, 'l'),
             'bid' => $this->safe_float($message, 'b'),
@@ -587,7 +587,7 @@ class binance extends \ccxt\binance {
     }
 
     public function authenticate () {
-        $time = $this->seconds ();
+        $time = $this->seconds();
         $lastAuthenticatedTime = $this->safe_integer($this->options, 'lastAuthenticatedTime', 0);
         if ($time - $lastAuthenticatedTime > 1800) {
             $type = $this->safe_string_2($this->options, 'defaultType', 'spot');
@@ -603,7 +603,7 @@ class binance extends \ccxt\binance {
         $this->authenticate();
         $defaultType = $this->safe_string_2($this->options, 'watchBalance', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
-        $query = $this->omit ($params, 'type');
+        $query = $this->omit($params, 'type');
         $url = $this->urls['api']['ws'][$type] . '/' . $this->options['listenKey'];
         $requestId = $this->request_id($url);
         $request = array(
@@ -656,7 +656,7 @@ class binance extends \ccxt\binance {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'a');
             $code = $this->safe_currency_code($currencyId);
-            $account = $this->account ();
+            $account = $this->account();
             $account['free'] = $this->safe_float($balance, 'f');
             $account['used'] = $this->safe_float($balance, 'l');
             $this->balance[$code] = $account;
@@ -671,7 +671,7 @@ class binance extends \ccxt\binance {
         $this->authenticate();
         $defaultType = $this->safe_string_2($this->options, 'watchOrders', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
-        $query = $this->omit ($params, 'type');
+        $query = $this->omit($params, 'type');
         $url = $this->urls['api']['ws'][$type] . '/' . $this->options['listenKey'];
         $requestId = $this->request_id($url);
         $request = array(
@@ -763,7 +763,7 @@ class binance extends \ccxt\binance {
             'symbol' => $symbol,
             'id' => $orderId,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'type' => $type,
             'side' => $side,
