@@ -219,23 +219,23 @@ class binance(Exchange, ccxt.binance):
                 pu = self.safe_integer(message, 'pu')
                 if pu is None:
                     # spot
-                    #  # 4. Drop any event where u is <= lastUpdateId in the snapshot
-                    # if u > orderbook['nonce']:
-                    timestamp = self.safe_integer(orderbook, 'timestamp')
-                    conditional = None
-                    if timestamp is None:
-                        # 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
-                        conditional = ((U - 1) <= orderbook['nonce']) and ((u - 1) >= orderbook['nonce'])
-                    else:
-                        # 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
-                        conditional = ((U - 1) == orderbook['nonce'])
-                    if conditional:
-                        self.handle_order_book_message(client, message, orderbook)
-                        if nonce < orderbook['nonce']:
-                            client.resolve(orderbook, messageHash)
-                    else:
-                        # todo: client.reject from handleOrderBookMessage properly
-                        raise ExchangeError(self.id + ' handleOrderBook received an out-of-order nonce')
+                    # 4. Drop any event where u is <= lastUpdateId in the snapshot
+                    if u > orderbook['nonce']:
+                        timestamp = self.safe_integer(orderbook, 'timestamp')
+                        conditional = None
+                        if timestamp is None:
+                            # 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
+                            conditional = ((U - 1) <= orderbook['nonce']) and ((u - 1) >= orderbook['nonce'])
+                        else:
+                            # 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
+                            conditional = ((U - 1) == orderbook['nonce'])
+                        if conditional:
+                            self.handle_order_book_message(client, message, orderbook)
+                            if nonce < orderbook['nonce']:
+                                client.resolve(orderbook, messageHash)
+                        else:
+                            # todo: client.reject from handleOrderBookMessage properly
+                            raise ExchangeError(self.id + ' handleOrderBook received an out-of-order nonce')
                 else:
                     # future
                     # 4. Drop any event where u is < lastUpdateId in the snapshot
