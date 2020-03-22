@@ -342,26 +342,77 @@ module.exports = class aofex extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.publicGetReturnTicker (params);
-        const ids = Object.keys (response);
-        const result = {};
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            let symbol = undefined;
-            let market = undefined;
-            if (id in this.markets_by_id) {
-                market = this.markets_by_id[id];
-                symbol = market['symbol'];
-            } else {
-                const [ quoteId, baseId ] = id.split ('_');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-                market = { 'symbol': symbol };
-            }
-            const ticker = response[id];
-            result[symbol] = this.parseTicker (ticker, market);
+        const request = {};
+        if (symbols !== undefined) {
+            const ids = this.marketIds (symbols);
+            request['symbol'] = ids.join (',');
         }
+        const response = await this.publicGetMarket24kline (this.extend (request, params));
+        //
+        //     {
+        //         errno: 0,
+        //         errmsg: "success",
+        //         result: [
+        //             {
+        //                 symbol: "HB-AQ",
+        //                 data: {
+        //                     id:  1584893403,
+        //                     amount: "4753751.243400354852648809",
+        //                     count:  4724,
+        //                     open: "6.3497",
+        //                     close: "6.3318",
+        //                     low: "6.011",
+        //                     high: "6.5",
+        //                     vol: "29538384.7873528796542891343493"
+        //                 }
+        //             },
+        //         ]
+        //     }
+        //
+        const tickers = this.safeValue (response, 'result', []);
+        const result = {};
+        for (let i = 0; i < tickers.length; i++) {
+            const marketId = this.safeString (tickers[i], 'symbol');
+            let market = undefined;
+            let symbol = marketId;
+            if (marketId !== undefined) {
+                if (marketId in this.markets_by_id) {
+                    market = this.markets_by_id[marketId];
+                    symbol = market['symbol'];
+                } else {
+                    const [ baseId, quoteId ] = marketId.split ('-');
+                    const base = this.safeCurrencyCode (baseId);
+                    const quote = this.safeCurrencyCode (quoteId);
+                    symbol = base + '/' + quote;
+                }
+            }
+            const data = this.safeValue (tickers[i], 'data', {});
+            const ticker = this.parseTicker (data, market);
+            ticker['symbol'] = symbol;
+            result[symbol] = ticker;
+        }
+        // //   mbp:ccxt igorkroitor$
+        // // const log = require ('ololog').unlimited
+        // log (response);
+        // process.exit ();
+        // const ids = Object.keys (response);
+        // for (let i = 0; i < ids.length; i++) {
+        //     const id = ids[i];
+        //     let symbol = undefined;
+        //     let market = undefined;
+        //     if (id in this.markets_by_id) {
+        //         market = this.markets_by_id[id];
+        //         symbol = market['symbol'];
+        //     } else {
+        //         const [ quoteId, baseId ] = id.split ('_');
+        //         const base = this.safeCurrencyCode (baseId);
+        //         const quote = this.safeCurrencyCode (quoteId);
+        //         symbol = base + '/' + quote;
+        //         market = { 'symbol': symbol };
+        //     }
+        //     const ticker = response[id];
+        //     result[symbol] = this.parseTicker (ticker, market);
+        // }
         return result;
     }
 
