@@ -1,3 +1,6 @@
+// see this issue for details
+// https://github.com/ccxt/ccxt/issues/6659
+
 const ccxtpro = require ('ccxt.pro')
 
 const exchange = new ccxtpro.kraken ({
