@@ -33,7 +33,7 @@ class bcex extends Exchange {
                 'fetchTradingLimits' => true,
             ),
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/43362240-21c26622-92ee-11e8-9464-5801ec526d77.jpg',
+                'logo' => 'https://user-images.githubusercontent.com/51840849/77231516-851c6900-6bac-11ea-8fd6-ee5c23eddbd4.jpg',
                 'api' => 'https://www.bcex.top',
                 'www' => 'https://www.bcex.top',
                 'doc' => 'https://github.com/BCEX-TECHNOLOGY-LIMITED/API_Docs/wiki/Interface',
@@ -79,8 +79,8 @@ class bcex extends Exchange {
                 'trading' => array(
                     'tierBased' => false,
                     'percentage' => true,
-                    'buy' => 0.0,
-                    'sell' => 0.2 / 100,
+                    'maker' => 0.1 / 100,
+                    'taker' => 0.2 / 100,
                 ),
                 'funding' => array(
                     'tierBased' => false,
@@ -674,17 +674,5 @@ class bcex extends Exchange {
                 }
             }
         }
-    }
-
-    public function calculate_fee ($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
-        $market = $this->markets[$symbol];
-        $rate = $market[$side];
-        $cost = floatval ($this->cost_to_precision($symbol, $amount * $price));
-        return array(
-            'type' => $takerOrMaker,
-            'currency' => $market['quote'],
-            'rate' => $rate,
-            'cost' => floatval ($this->fee_to_precision($symbol, $rate * $cost)),
-        );
     }
 }
