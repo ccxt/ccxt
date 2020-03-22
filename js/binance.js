@@ -144,13 +144,14 @@ module.exports = class binance extends ccxt.binance {
             const message = messages[i];
             const U = this.safeInteger (message, 'U');
             const u = this.safeInteger (message, 'u');
+            const pu = this.safeInteger (message, 'pu');
             if (type === 'future') {
                 // 4. Drop any event where u is < lastUpdateId in the snapshot
                 if (u < orderbook['nonce']) {
                     continue;
                 }
                 // 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
-                if ((U <= orderbook['nonce']) && (u >= orderbook['nonce'])) {
+                if ((U <= orderbook['nonce']) && (u >= orderbook['nonce']) || pu === orderbook['nonce']) {
                     this.handleOrderBookMessage (client, message, orderbook);
                 }
             } else {
