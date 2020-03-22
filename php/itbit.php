@@ -11,7 +11,7 @@ use \ccxt\AuthenticationError;
 
 class itbit extends Exchange {
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'id' => 'itbit',
             'name' => 'itBit',
@@ -83,7 +83,7 @@ class itbit extends Exchange {
         ));
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'symbol' => $this->market_id($symbol),
@@ -92,7 +92,7 @@ class itbit extends Exchange {
         return $this->parse_order_book($orderbook);
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
         $request = array(
             'symbol' => $this->market_id($symbol),
@@ -134,7 +134,7 @@ class itbit extends Exchange {
         );
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         //
         // fetchTrades (public)
         //
@@ -252,7 +252,7 @@ class itbit extends Exchange {
         return $result;
     }
 
-    public function fetch_transactions ($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_transactions($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $walletId = $this->safe_string($params, 'walletId');
         if ($walletId === null) {
@@ -313,7 +313,7 @@ class itbit extends Exchange {
         return $result;
     }
 
-    public function parse_transfer_status ($status) {
+    public function parse_transfer_status($status) {
         $options = array(
             'cancelled' => 'canceled',
             'completed' => 'ok',
@@ -321,7 +321,7 @@ class itbit extends Exchange {
         return $this->safe_string($options, $status, 'pending');
     }
 
-    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $walletId = $this->safe_string($params, 'walletId');
         if ($walletId === null) {
@@ -371,7 +371,7 @@ class itbit extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -395,7 +395,7 @@ class itbit extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $response = $this->fetch_wallets($params);
         $balances = $response[0]['balances'];
@@ -412,7 +412,7 @@ class itbit extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_wallets ($params = array ()) {
+    public function fetch_wallets($params = array ()) {
         $this->load_markets();
         if (!$this->uid) {
             throw new AuthenticationError($this->id . ' fetchWallets requires uid API credential');
@@ -423,7 +423,7 @@ class itbit extends Exchange {
         return $this->privateGetWallets (array_merge($request, $params));
     }
 
-    public function fetch_wallet ($walletId, $params = array ()) {
+    public function fetch_wallet($walletId, $params = array ()) {
         $this->load_markets();
         $request = array(
             'walletId' => $walletId,
@@ -431,21 +431,21 @@ class itbit extends Exchange {
         return $this->privateGetWalletsWalletId (array_merge($request, $params));
     }
 
-    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $request = array(
             'status' => 'open',
         );
         return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
-    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $request = array(
             'status' => 'filled',
         );
         return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
-    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = null;
         if ($symbol !== null) {
@@ -463,7 +463,7 @@ class itbit extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function parse_order_status ($status) {
+    public function parse_order_status($status) {
         $statuses = array(
             'submitted' => 'open', // order pending book entry
             'open' => 'open',
@@ -474,7 +474,7 @@ class itbit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order ($order, $market = null) {
+    public function parse_order($order, $market = null) {
         $side = $order['side'];
         $type = $order['type'];
         $symbol = $this->markets_by_id[$order['instrument']]['symbol'];
@@ -507,11 +507,11 @@ class itbit extends Exchange {
         );
     }
 
-    public function nonce () {
+    public function nonce() {
         return $this->milliseconds();
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         if ($type === 'market') {
             throw new ExchangeError($this->id . ' allows limit orders only');
@@ -539,7 +539,7 @@ class itbit extends Exchange {
         );
     }
 
-    public function fetch_order ($id, $symbol = null, $params = array ()) {
+    public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $walletIdInParams = (is_array($params) && array_key_exists('walletId', $params));
         if (!$walletIdInParams) {
@@ -552,7 +552,7 @@ class itbit extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         $walletIdInParams = (is_array($params) && array_key_exists('walletId', $params));
         if (!$walletIdInParams) {
             throw new ExchangeError($this->id . ' cancelOrder requires a walletId parameter');
@@ -563,7 +563,7 @@ class itbit extends Exchange {
         return $this->privateDeleteWalletsWalletIdOrdersId (array_merge($request, $params));
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($method === 'GET' && $query) {
@@ -593,7 +593,7 @@ class itbit extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2($path, $api, $method, $params, $headers, $body);
         if (is_array($response) && array_key_exists('code', $response)) {
             throw new ExchangeError($this->id . ' ' . $this->json($response));

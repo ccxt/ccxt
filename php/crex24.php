@@ -17,7 +17,7 @@ use \ccxt\RequestTimeout;
 
 class crex24 extends Exchange {
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'id' => 'crex24',
             'name' => 'CREX24',
@@ -163,11 +163,11 @@ class crex24 extends Exchange {
         ));
     }
 
-    public function nonce () {
+    public function nonce() {
         return $this->milliseconds();
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         $response = $this->publicGetInstruments ($params);
         //
         //     [ array(              $symbol =>   "$PAC-BTC",
@@ -235,7 +235,7 @@ class crex24 extends Exchange {
         return $result;
     }
 
-    public function fetch_currencies ($params = array ()) {
+    public function fetch_currencies($params = array ()) {
         $response = $this->publicGetCurrencies ($params);
         //
         //     array( array(                   symbol => "$PAC",
@@ -309,7 +309,7 @@ class crex24 extends Exchange {
         return $result;
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $request = array(
             // 'currency' => 'ETH', // comma-separated list of currency ids
@@ -338,7 +338,7 @@ class crex24 extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -369,7 +369,7 @@ class crex24 extends Exchange {
         return $this->parse_order_book($response, null, 'buyLevels', 'sellLevels', 'price', 'volume');
     }
 
-    public function parse_ticker ($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null) {
         //
         //       {    instrument => "ZZC-USD",
         //                  $last =>  0.065,
@@ -421,7 +421,7 @@ class crex24 extends Exchange {
         );
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -449,7 +449,7 @@ class crex24 extends Exchange {
         return $this->parse_ticker($response[0], $market);
     }
 
-    public function fetch_tickers ($symbols = null, $params = array ()) {
+    public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
         $request = array();
         if ($symbols !== null) {
@@ -486,7 +486,7 @@ class crex24 extends Exchange {
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function parse_tickers ($tickers, $symbols = null) {
+    public function parse_tickers($tickers, $symbols = null) {
         $result = array();
         for ($i = 0; $i < count($tickers); $i++) {
             $result[] = $this->parse_ticker($tickers[$i]);
@@ -494,7 +494,7 @@ class crex24 extends Exchange {
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         //
         // public fetchTrades
         //
@@ -563,7 +563,7 @@ class crex24 extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -586,7 +586,7 @@ class crex24 extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
         // { $timestamp => '2019-09-21T10:36:00Z',
         //     open => 0.02152,
         //     high => 0.02156,
@@ -605,7 +605,7 @@ class crex24 extends Exchange {
         );
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -619,7 +619,7 @@ class crex24 extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_order_status ($status) {
+    public function parse_order_status($status) {
         $statuses = array(
             'submitting' => 'open', // A newly created limit order has a $status "submitting" until it has been processed.
             // This $status changes during the lifetime of an order and can have different values depending on the value of the parameter Time In Force.
@@ -632,7 +632,7 @@ class crex24 extends Exchange {
         return (is_array($statuses) && array_key_exists($status, $statuses)) ? $statuses[$status] : $status;
     }
 
-    public function parse_order ($order, $market = null) {
+    public function parse_order($order, $market = null) {
         //
         // createOrder
         //
@@ -733,7 +733,7 @@ class crex24 extends Exchange {
         );
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -795,7 +795,7 @@ class crex24 extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function fetch_order ($id, $symbol = null, $params = array ()) {
+    public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'id' => $id,
@@ -829,7 +829,7 @@ class crex24 extends Exchange {
         return $this->parse_order($response[0]);
     }
 
-    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array();
         if ($since !== null) {
@@ -868,7 +868,7 @@ class crex24 extends Exchange {
         return $this->parse_orders($response);
     }
 
-    public function fetch_orders_by_ids ($ids = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders_by_ids($ids = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'id' => implode(',', $ids),
@@ -898,7 +898,7 @@ class crex24 extends Exchange {
         return $this->parse_orders($response, null, $since, $limit);
     }
 
-    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = null;
         $request = array();
@@ -949,7 +949,7 @@ class crex24 extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = null;
         $request = array();
@@ -1006,7 +1006,7 @@ class crex24 extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'ids' => array(
@@ -1023,7 +1023,7 @@ class crex24 extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function cancel_all_orders ($symbol = null, $params = array ()) {
+    public function cancel_all_orders($symbol = null, $params = array ()) {
         $response = $this->tradingPostCancelAllOrders ($params);
         //
         //     array(
@@ -1034,7 +1034,7 @@ class crex24 extends Exchange {
         return $response;
     }
 
-    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = null;
         $request = array();
@@ -1079,7 +1079,7 @@ class crex24 extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_transactions ($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_transactions($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $currency = null;
         $request = array();
@@ -1131,21 +1131,21 @@ class crex24 extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
         $request = array(
             'type' => 'deposit',
         );
         return $this->fetch_transactions($code, $since, $limit, array_merge($request, $params));
     }
 
-    public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
         $request = array(
             'type' => 'withdrawal',
         );
         return $this->fetch_transactions($code, $since, $limit, array_merge($request, $params));
     }
 
-    public function parse_transaction_status ($status) {
+    public function parse_transaction_status($status) {
         $statuses = array(
             'pending' => 'pending', // transfer is in progress
             'success' => 'ok', // completed successfully
@@ -1154,7 +1154,7 @@ class crex24 extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction ($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null) {
         //
         //     {
         //         "$id" => 756446,
@@ -1206,7 +1206,7 @@ class crex24 extends Exchange {
         );
     }
 
-    public function fetch_deposit_address ($code, $params = array ()) {
+    public function fetch_deposit_address($code, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
@@ -1230,7 +1230,7 @@ class crex24 extends Exchange {
         );
     }
 
-    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency($code);
@@ -1250,7 +1250,7 @@ class crex24 extends Exchange {
         return $this->parse_transaction($response);
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = '/' . $this->version . '/' . $api . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($method === 'GET') {
@@ -1279,7 +1279,7 @@ class crex24 extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if (!$this->is_json_encoded_object($body)) {
             return; // fallback to default error handler
         }

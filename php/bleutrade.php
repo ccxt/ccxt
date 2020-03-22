@@ -11,7 +11,7 @@ use \ccxt\InvalidOrder;
 
 class bleutrade extends Exchange {
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'id' => 'bleutrade',
             'name' => 'Bleutrade',
@@ -132,7 +132,7 @@ class bleutrade extends Exchange {
         // https://bleutrade.com/config contains the fees
     }
 
-    public function fetch_currencies ($params = array ()) {
+    public function fetch_currencies($params = array ()) {
         $response = $this->v3PublicGetGetassets ($params);
         $items = $response['result'];
         $result = array();
@@ -171,7 +171,7 @@ class bleutrade extends Exchange {
         return $result;
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         // https://github.com/ccxt/ccxt/issues/5668
         $response = $this->v3PublicGetGetmarkets ($params);
         $result = array();
@@ -228,7 +228,7 @@ class bleutrade extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'market' => $this->market_id($symbol),
@@ -245,7 +245,7 @@ class bleutrade extends Exchange {
         return $this->parse_order_book($orderbook, null, 'buy', 'sell', 'Rate', 'Quantity');
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -256,7 +256,7 @@ class bleutrade extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function fetch_tickers ($symbols = null, $params = array ()) {
+    public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
         $response = $this->v3PublicGetGetmarketsummaries ($params);
         $result = $this->safe_value($response, 'result');
@@ -268,7 +268,7 @@ class bleutrade extends Exchange {
         return $this->filter_by_array($tickers, 'symbol', $symbols);
     }
 
-    public function parse_ticker ($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null) {
         //   { TimeStamp => '2020-01-14 14:32:28',
         //     MarketName => 'LTC_USDT',
         //     MarketAsset => 'LTC',
@@ -337,7 +337,7 @@ class bleutrade extends Exchange {
         );
     }
 
-    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1d', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1d', $since = null, $limit = null) {
         $timestamp = $this->parse8601($ohlcv['TimeStamp'] . '+00:00');
         return array(
             $timestamp,
@@ -349,7 +349,7 @@ class bleutrade extends Exchange {
         );
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = '15m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '15m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -361,7 +361,7 @@ class bleutrade extends Exchange {
         return $this->parse_ohlcvs($response['result'], $market, $timeframe, $since, $limit);
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         if ($type !== 'limit') {
             // todo => STOP-LIMIT and AMI order types are supported
             throw new InvalidOrder($this->id . ' allows limit orders only');
@@ -388,7 +388,7 @@ class bleutrade extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         $request = array(
             'orderid' => $id,
         );
@@ -397,7 +397,7 @@ class bleutrade extends Exchange {
         return $response;
     }
 
-    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = null;
         $request = array();
@@ -410,14 +410,14 @@ class bleutrade extends Exchange {
         return $this->parse_orders($items, $market, $since, $limit);
     }
 
-    public function parse_symbol ($id) {
+    public function parse_symbol($id) {
         list($base, $quote) = explode($this->options['symbolSeparator'], $id);
         $base = $this->safe_currency_code($base);
         $quote = $this->safe_currency_code($quote);
         return $base . '/' . $quote;
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $response = $this->v3PrivatePostGetbalances ($params);
         $result = array( 'info' => $response );
@@ -434,7 +434,7 @@ class bleutrade extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array();
         $market = null;
@@ -447,22 +447,22 @@ class bleutrade extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_transactions_with_method ($method, $code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_transactions_with_method($method, $code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $response = $this->$method ($params);
         $transactions = $this->safe_value($response, 'result', array());
         return $this->parse_transactions($transactions, $code, $since, $limit);
     }
 
-    public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
         return $this->fetch_transactions_with_method('v3PrivatePostGetdeposithistory', $code, $since, $limit, $params);
     }
 
-    public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
         return $this->fetch_transactions_with_method('v3PrivatePostGetwithdrawhistory', $code, $since, $limit, $params);
     }
 
-    public function fetch_deposit_address ($code, $params = array ()) {
+    public function fetch_deposit_address($code, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
@@ -487,7 +487,7 @@ class bleutrade extends Exchange {
         );
     }
 
-    public function parse_ledger_entry_type ($type) {
+    public function parse_ledger_entry_type($type) {
         // deposits don't seem to appear in here
         $types = array(
             'TRADE' => 'trade',
@@ -496,7 +496,7 @@ class bleutrade extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_entry ($item, $currency = null) {
+    public function parse_ledger_entry($item, $currency = null) {
         //
         // trade (both sides)
         //
@@ -603,7 +603,7 @@ class bleutrade extends Exchange {
         );
     }
 
-    public function fetch_ledger ($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         // only seems to return 100 $items and there is no documented way to change page size or offset
         $request = array(
@@ -613,7 +613,7 @@ class bleutrade extends Exchange {
         return $this->parse_ledger($items, $code, $since, $limit);
     }
 
-    public function parse_order ($order, $market = null) {
+    public function parse_order($order, $market = null) {
         //
         // fetchClosedOrders
         //
@@ -700,7 +700,7 @@ class bleutrade extends Exchange {
         );
     }
 
-    public function parse_order_status ($status) {
+    public function parse_order_status($status) {
         $statuses = array(
             'OK' => 'closed',
             'OPEN' => 'open',
@@ -709,7 +709,7 @@ class bleutrade extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction ($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null) {
         //
         //  deposit:
         //
@@ -784,11 +784,11 @@ class bleutrade extends Exchange {
         );
     }
 
-    public function nonce () {
+    public function nonce() {
         return $this->milliseconds();
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->implode_params($this->urls['api'][$api], array(
             'hostname' => $this->hostname,
         )) . '/';
@@ -807,7 +807,7 @@ class bleutrade extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return; // fallback to default error handler
         }

@@ -13,7 +13,7 @@ use \ccxt\OrderNotFound;
 
 class bibox extends Exchange {
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'id' => 'bibox',
             'name' => 'Bibox',
@@ -123,7 +123,7 @@ class bibox extends Exchange {
         ));
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         $request = array(
             'cmd' => 'marketAll',
         );
@@ -199,7 +199,7 @@ class bibox extends Exchange {
         return $result;
     }
 
-    public function parse_ticker ($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null) {
         // we don't set values that are not defined by the exchange
         $timestamp = $this->safe_integer($ticker, 'timestamp');
         $symbol = null;
@@ -248,7 +248,7 @@ class bibox extends Exchange {
         );
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -259,7 +259,7 @@ class bibox extends Exchange {
         return $this->parse_ticker($response['result'], $market);
     }
 
-    public function parse_tickers ($rawTickers, $symbols = null) {
+    public function parse_tickers($rawTickers, $symbols = null) {
         $tickers = array();
         for ($i = 0; $i < count($rawTickers); $i++) {
             $ticker = $this->parse_ticker($rawTickers[$i]);
@@ -270,7 +270,7 @@ class bibox extends Exchange {
         return $tickers;
     }
 
-    public function fetch_tickers ($symbols = null, $params = array ()) {
+    public function fetch_tickers($symbols = null, $params = array ()) {
         $request = array(
             'cmd' => 'marketAll',
         );
@@ -279,7 +279,7 @@ class bibox extends Exchange {
         return $this->index_by($tickers, 'symbol');
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         $timestamp = $this->safe_integer_2($trade, 'time', 'createdAt');
         $side = $this->safe_integer_2($trade, 'side', 'order_side');
         $side = ($side === 1) ? 'buy' : 'sell';
@@ -342,7 +342,7 @@ class bibox extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -356,7 +356,7 @@ class bibox extends Exchange {
         return $this->parse_trades($response['result'], $market, $since, $limit);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -370,7 +370,7 @@ class bibox extends Exchange {
         return $this->parse_order_book($response['result'], $this->safe_float($response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume');
     }
 
-    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
         return [
             $ohlcv['time'],
             $this->safe_float($ohlcv, 'open'),
@@ -381,7 +381,7 @@ class bibox extends Exchange {
         ];
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = 1000, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = 1000, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -394,7 +394,7 @@ class bibox extends Exchange {
         return $this->parse_ohlcvs($response['result'], $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_currencies ($params = array ()) {
+    public function fetch_currencies($params = array ()) {
         if (!$this->apiKey || !$this->secret) {
             throw new AuthenticationError($this->id . " fetchCurrencies is an authenticated endpoint, therefore it requires 'apiKey' and 'secret' credentials. If you don't need $currency details, set exchange.has['fetchCurrencies'] = false before calling its methods.");
         }
@@ -445,7 +445,7 @@ class bibox extends Exchange {
         return $result;
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $type = $this->safe_string($params, 'type', 'assets');
         $params = $this->omit($params, 'type');
@@ -490,7 +490,7 @@ class bibox extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $currency = null;
         $request = array(
@@ -516,7 +516,7 @@ class bibox extends Exchange {
         return $this->parse_transactions($deposits, $currency, $since, $limit);
     }
 
-    public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $currency = null;
         $request = array(
@@ -542,7 +542,7 @@ class bibox extends Exchange {
         return $this->parse_transactions($withdrawals, $currency, $since, $limit);
     }
 
-    public function parse_transaction ($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null) {
         //
         // fetchDeposits
         //
@@ -605,7 +605,7 @@ class bibox extends Exchange {
         );
     }
 
-    public function parse_transaction_status_by_type ($status, $type = null) {
+    public function parse_transaction_status_by_type($status, $type = null) {
         $statuses = array(
             'deposit' => array(
                 '1' => 'pending',
@@ -619,7 +619,7 @@ class bibox extends Exchange {
         return $this->safe_string($this->safe_value($statuses, $type, array()), $status, $status);
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $orderType = ($type === 'limit') ? 2 : 1;
@@ -643,7 +643,7 @@ class bibox extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         $request = array(
             'cmd' => 'orderpending/cancelTrade',
             'body' => array_merge(array(
@@ -654,7 +654,7 @@ class bibox extends Exchange {
         return $response;
     }
 
-    public function fetch_order ($id, $symbol = null, $params = array ()) {
+    public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'cmd' => 'orderpending/order',
@@ -671,7 +671,7 @@ class bibox extends Exchange {
         return $this->parse_order($order);
     }
 
-    public function parse_order ($order, $market = null) {
+    public function parse_order($order, $market = null) {
         $symbol = null;
         if ($market === null) {
             $marketId = null;
@@ -735,7 +735,7 @@ class bibox extends Exchange {
         );
     }
 
-    public function parse_order_status ($status) {
+    public function parse_order_status($status) {
         $statuses = array(
             // original comments from bibox:
             '1' => 'open', // pending
@@ -748,7 +748,7 @@ class bibox extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = null;
         $pair = null;
@@ -771,7 +771,7 @@ class bibox extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_closed_orders ($symbol = null, $since = null, $limit = 200, $params = array ()) {
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = 200, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchClosedOrders requires a `$symbol` argument');
         }
@@ -791,7 +791,7 @@ class bibox extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a `$symbol` argument');
         }
@@ -814,7 +814,7 @@ class bibox extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_deposit_address ($code, $params = array ()) {
+    public function fetch_deposit_address($code, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
@@ -849,7 +849,7 @@ class bibox extends Exchange {
         );
     }
 
-    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency($code);
@@ -880,7 +880,7 @@ class bibox extends Exchange {
         );
     }
 
-    public function fetch_funding_fees ($codes = null, $params = array ()) {
+    public function fetch_funding_fees($codes = null, $params = array ()) {
         // by default it will try load withdrawal fees of all currencies (with separate requests)
         // however if you define $codes = array( 'ETH', 'BTC' ) in args it will only load those
         $this->load_markets();
@@ -909,7 +909,7 @@ class bibox extends Exchange {
         );
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
         $cmds = $this->json(array( $params ));
         if ($api === 'public') {
@@ -942,7 +942,7 @@ class bibox extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return;
         }
@@ -960,7 +960,7 @@ class bibox extends Exchange {
         }
     }
 
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2($path, $api, $method, $params, $headers, $body);
         if ($method === 'GET') {
             return $response;

@@ -10,7 +10,7 @@ use \ccxt\ExchangeError;
 
 class bitforex extends Exchange {
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'id' => 'bitforex',
             'name' => 'Bitforex',
@@ -235,7 +235,7 @@ class bitforex extends Exchange {
         ));
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         $response = $this->publicGetApiV1MarketSymbols ($params);
         $data = $response['data'];
         $result = array();
@@ -283,7 +283,7 @@ class bitforex extends Exchange {
         return $result;
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -317,7 +317,7 @@ class bitforex extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'symbol' => $this->market_id($symbol),
@@ -330,7 +330,7 @@ class bitforex extends Exchange {
         return $this->parse_trades($response['data'], $market, $since, $limit);
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostApiV1FundAllAccount ($params);
         $data = $response['data'];
@@ -348,7 +348,7 @@ class bitforex extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->markets[$symbol];
         $request = array(
@@ -381,7 +381,7 @@ class bitforex extends Exchange {
         );
     }
 
-    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
         return array(
             $this->safe_integer($ohlcv, 'time'),
             $this->safe_float($ohlcv, 'open'),
@@ -392,7 +392,7 @@ class bitforex extends Exchange {
         );
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -407,7 +407,7 @@ class bitforex extends Exchange {
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $marketId = $this->market_id($symbol);
         $request = array(
@@ -422,7 +422,7 @@ class bitforex extends Exchange {
         return $this->parse_order_book($data, $timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
-    public function parse_order_status ($status) {
+    public function parse_order_status($status) {
         $statuses = array(
             '0' => 'open',
             '1' => 'open',
@@ -433,7 +433,7 @@ class bitforex extends Exchange {
         return (is_array($statuses) && array_key_exists($status, $statuses)) ? $statuses[$status] : $status;
     }
 
-    public function parse_side ($sideId) {
+    public function parse_side($sideId) {
         if ($sideId === 1) {
             return 'buy';
         } else if ($sideId === 2) {
@@ -443,7 +443,7 @@ class bitforex extends Exchange {
         }
     }
 
-    public function parse_order ($order, $market = null) {
+    public function parse_order($order, $market = null) {
         $id = $this->safe_string($order, 'orderId');
         $timestamp = $this->safe_float($order, 'createTime');
         $lastTradeTimestamp = $this->safe_float($order, 'lastTime');
@@ -485,7 +485,7 @@ class bitforex extends Exchange {
         return $result;
     }
 
-    public function fetch_order ($id, $symbol = null, $params = array ()) {
+    public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -497,7 +497,7 @@ class bitforex extends Exchange {
         return $order;
     }
 
-    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -508,7 +508,7 @@ class bitforex extends Exchange {
         return $this->parse_orders($response['data'], $market, $since, $limit);
     }
 
-    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -519,7 +519,7 @@ class bitforex extends Exchange {
         return $this->parse_orders($response['data'], $market, $since, $limit);
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $sideId = null;
         if ($side === 'buy') {
@@ -541,7 +541,7 @@ class bitforex extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'orderId' => $id,
@@ -555,7 +555,7 @@ class bitforex extends Exchange {
         return $returnVal;
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
@@ -580,7 +580,7 @@ class bitforex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if (gettype($body) !== 'string') {
             return; // fallback to default error handler
         }

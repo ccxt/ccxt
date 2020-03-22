@@ -11,7 +11,7 @@ use \ccxt\ArgumentsRequired;
 
 class bitz extends Exchange {
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'id' => 'bitz',
             'name' => 'Bit-Z',
@@ -212,7 +212,7 @@ class bitz extends Exchange {
         ));
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         $response = $this->marketGetSymbolList ($params);
         //
         //     {    status =>    200,
@@ -287,7 +287,7 @@ class bitz extends Exchange {
         return $result;
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $response = $this->assetsPostGetUserAssets ($params);
         //
@@ -328,7 +328,7 @@ class bitz extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function parse_ticker ($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null) {
         //
         //      {          $symbol => "eth_btc",
         //            quoteVolume => "3905.72",
@@ -393,7 +393,7 @@ class bitz extends Exchange {
         );
     }
 
-    public function parse_microtime ($microtime) {
+    public function parse_microtime($microtime) {
         if ($microtime === null) {
             return $microtime;
         }
@@ -404,7 +404,7 @@ class bitz extends Exchange {
         return intval ($total * 1000);
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -447,7 +447,7 @@ class bitz extends Exchange {
         ));
     }
 
-    public function fetch_tickers ($symbols = null, $params = array ()) {
+    public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
         $request = array();
         if ($symbols !== null) {
@@ -516,7 +516,7 @@ class bitz extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'symbol' => $this->market_id($symbol),
@@ -546,7 +546,7 @@ class bitz extends Exchange {
         return $this->parse_order_book($orderbook, $timestamp);
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         //
         // fetchTrades (public)
         //
@@ -589,7 +589,7 @@ class bitz extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -618,7 +618,7 @@ class bitz extends Exchange {
         return $this->parse_trades($response['data'], $market, $since, $limit);
     }
 
-    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
         //
         //      {     time => "1535973420000",
         //            open => "0.03975084",
@@ -638,7 +638,7 @@ class bitz extends Exchange {
         );
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $duration = $this->parse_timeframe($timeframe) * 1000;
         $market = $this->market($symbol);
@@ -690,7 +690,7 @@ class bitz extends Exchange {
         return $this->parse_ohlcvs($bars, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_order_status ($status) {
+    public function parse_order_status($status) {
         $statuses = array(
             '0' => 'open',
             '1' => 'open', // partially filled
@@ -700,7 +700,7 @@ class bitz extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order ($order, $market = null) {
+    public function parse_order($order, $market = null) {
         //
         // createOrder
         //
@@ -775,7 +775,7 @@ class bitz extends Exchange {
         );
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         if ($type !== 'limit') {
             throw new ExchangeError($this->id . ' createOrder allows limit orders only');
@@ -821,7 +821,7 @@ class bitz extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'entrustSheetId' => $id,
@@ -851,7 +851,7 @@ class bitz extends Exchange {
         return $response;
     }
 
-    public function cancel_orders ($ids, $symbol = null, $params = array ()) {
+    public function cancel_orders($ids, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'ids' => implode(',', $ids),
@@ -895,7 +895,7 @@ class bitz extends Exchange {
         return $response;
     }
 
-    public function fetch_order ($id, $symbol = null, $params = array ()) {
+    public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'entrustSheetId' => $id,
@@ -928,7 +928,7 @@ class bitz extends Exchange {
         return $this->parse_order($response['data']);
     }
 
-    public function fetch_orders_with_method ($method, $symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders_with_method($method, $symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOpenOrders requires a $symbol argument');
         }
@@ -1007,19 +1007,19 @@ class bitz extends Exchange {
         return $this->parse_orders($orders, null, $since, $limit);
     }
 
-    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         return $this->fetch_orders_with_method('tradePostGetUserHistoryEntrustSheet', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         return $this->fetch_orders_with_method('tradePostGetUserNowEntrustSheet', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         return $this->fetch_orders_with_method('tradePostGetUserHistoryEntrustSheet', $symbol, $since, $limit, $params);
     }
 
-    public function parse_transaction_status ($status) {
+    public function parse_transaction_status($status) {
         $statuses = array(
             '1' => 'pending',
             '2' => 'pending',
@@ -1030,7 +1030,7 @@ class bitz extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction ($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null) {
         //
         //     {
         //         "id" => '96275',
@@ -1105,7 +1105,7 @@ class bitz extends Exchange {
         );
     }
 
-    public function parse_transactions_by_type ($type, $transactions, $code = null, $since = null, $limit = null) {
+    public function parse_transactions_by_type($type, $transactions, $code = null, $since = null, $limit = null) {
         $result = array();
         for ($i = 0; $i < count($transactions); $i++) {
             $transaction = $this->parse_transaction(array_merge(array(
@@ -1116,7 +1116,7 @@ class bitz extends Exchange {
         return $this->filter_by_currency_since_limit($result, $code, $since, $limit);
     }
 
-    public function parse_transaction_type ($type) {
+    public function parse_transaction_type($type) {
         $types = array(
             'deposit' => 1,
             'withdrawal' => 2,
@@ -1124,15 +1124,15 @@ class bitz extends Exchange {
         return $this->safe_integer($types, $type, $type);
     }
 
-    public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
         return $this->fetch_transactions_for_type('deposit', $code, $since, $limit, $params);
     }
 
-    public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
         return $this->fetch_transactions_for_type('withdrawal', $code, $since, $limit, $params);
     }
 
-    public function fetch_transactions_for_type ($type, $code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_transactions_for_type($type, $code = null, $since = null, $limit = null, $params = array ()) {
         if ($code === null) {
             throw new ArgumentsRequired($this->id . ' fetchTransactions() requires a $currency `$code` argument');
         }
@@ -1154,7 +1154,7 @@ class bitz extends Exchange {
         return $this->parse_transactions_by_type($type, $transactions, $code, $since, $limit);
     }
 
-    public function nonce () {
+    public function nonce() {
         $currentTimestamp = $this->seconds();
         if ($currentTimestamp > $this->options['lastNonceTimestamp']) {
             $this->options['lastNonceTimestamp'] = $currentTimestamp;
@@ -1164,7 +1164,7 @@ class bitz extends Exchange {
         return $this->options['lastNonce'];
     }
 
-    public function sign ($path, $api = 'market', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'market', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $baseUrl = $this->implode_params($this->urls['api'][$api], array( 'hostname' => $this->hostname ));
         $url = $baseUrl . '/' . $this->capitalize($api) . '/' . $path;
         $query = null;
@@ -1186,7 +1186,7 @@ class bitz extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return; // fallback to default error handler
         }

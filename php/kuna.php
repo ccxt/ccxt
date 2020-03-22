@@ -10,7 +10,7 @@ use \ccxt\ArgumentsRequired;
 
 class kuna extends acx {
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'id' => 'kuna',
             'name' => 'Kuna',
@@ -60,7 +60,7 @@ class kuna extends acx {
         ));
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         $quotes = array( 'btc', 'eth', 'eurs', 'rub', 'uah', 'usd', 'usdt' );
         $pricePrecisions = array(
             'UAH' => 0,
@@ -113,11 +113,11 @@ class kuna extends acx {
         return $markets;
     }
 
-    public function fetch_l3_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_l3_order_book($symbol, $limit = null, $params = array ()) {
         return $this->fetch_order_book($symbol, $limit, $params);
     }
 
-    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOpenOrders requires a $symbol argument');
         }
@@ -133,7 +133,7 @@ class kuna extends acx {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         $timestamp = $this->parse8601($this->safe_string($trade, 'created_at'));
         $symbol = null;
         if ($market) {
@@ -169,7 +169,7 @@ class kuna extends acx {
         );
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -179,7 +179,7 @@ class kuna extends acx {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOpenOrders requires a $symbol argument');
         }

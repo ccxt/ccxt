@@ -10,7 +10,7 @@ use \ccxt\NotSupported;
 
 class bitlish extends Exchange {
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'id' => 'bitlish',
             'name' => 'Bitlish',
@@ -125,7 +125,7 @@ class bitlish extends Exchange {
         ));
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         $response = $this->publicGetPairs ($params);
         $result = array();
         $keys = is_array($response) ? array_keys($response) : array();
@@ -151,7 +151,7 @@ class bitlish extends Exchange {
         return $result;
     }
 
-    public function parse_ticker ($ticker, $market) {
+    public function parse_ticker($ticker, $market) {
         $timestamp = $this->milliseconds();
         $symbol = null;
         if ($market !== null) {
@@ -182,7 +182,7 @@ class bitlish extends Exchange {
         );
     }
 
-    public function fetch_tickers ($symbols = null, $params = array ()) {
+    public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
         $tickers = $this->publicGetTickers ($params);
         $ids = is_array($tickers) ? array_keys($tickers) : array();
@@ -206,7 +206,7 @@ class bitlish extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $response = $this->publicGetTickers ($params);
@@ -214,7 +214,7 @@ class bitlish extends Exchange {
         return $this->parse_ticker($response[$marketId], $market);
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = '1h', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '1h', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         // $market = $this->market($symbol);
         $now = $this->seconds();
@@ -229,7 +229,7 @@ class bitlish extends Exchange {
         return $this->publicPostOhlcv (array_merge($request, $params));
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'pair_id' => $this->market_id($symbol),
@@ -243,7 +243,7 @@ class bitlish extends Exchange {
         return $this->parse_order_book($response, $timestamp, 'bid', 'ask', 'price', 'volume');
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         $side = ($trade['dir'] === 'bid') ? 'buy' : 'sell';
         $symbol = null;
         if ($market !== null) {
@@ -278,7 +278,7 @@ class bitlish extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $response = $this->publicGetTradesHistory (array_merge(array(
@@ -287,7 +287,7 @@ class bitlish extends Exchange {
         return $this->parse_trades($response['list'], $market, $since, $limit);
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostBalance ($params);
         $result = array( 'info' => $response );
@@ -304,7 +304,7 @@ class bitlish extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function sign_in ($params = array ()) {
+    public function sign_in($params = array ()) {
         $request = array(
             'login' => $this->login,
             'passwd' => $this->password,
@@ -312,7 +312,7 @@ class bitlish extends Exchange {
         return $this->privatePostSignin (array_merge($request, $params));
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'pair_id' => $this->market_id($symbol),
@@ -330,7 +330,7 @@ class bitlish extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'id' => $id,
@@ -338,7 +338,7 @@ class bitlish extends Exchange {
         return $this->privatePostCancelTrade (array_merge($request, $params));
     }
 
-    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
         if ($code !== 'BTC') {
             // they did not document other types...
             throw new NotSupported($this->id . ' currently supports BTC withdrawals only, until they document other currencies...');
@@ -359,7 +359,7 @@ class bitlish extends Exchange {
         );
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
         if ($api === 'public') {
             if ($method === 'GET') {

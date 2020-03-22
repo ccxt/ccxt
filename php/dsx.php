@@ -11,7 +11,7 @@ use \ccxt\ArgumentsRequired;
 
 class dsx extends Exchange {
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'id' => 'dsx',
             'name' => 'DSX',
@@ -131,7 +131,7 @@ class dsx extends Exchange {
         ));
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         $response = $this->publicGetInfo ($params);
         //
         //     {
@@ -204,7 +204,7 @@ class dsx extends Exchange {
         return $result;
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostInfoAccount ();
         //
@@ -251,7 +251,7 @@ class dsx extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function parse_ticker ($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null) {
         //
         //   {    high =>  0.03492,
         //         low =>  0.03245,
@@ -303,7 +303,7 @@ class dsx extends Exchange {
         );
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         //
         // fetchTrades (public)
         //
@@ -392,7 +392,7 @@ class dsx extends Exchange {
         );
     }
 
-    public function parse_trades ($trades, $market = null, $since = null, $limit = null, $params = array ()) {
+    public function parse_trades($trades, $market = null, $since = null, $limit = null, $params = array ()) {
         $result = array();
         if (gettype($trades) === 'array' && count(array_filter(array_keys($trades), 'is_string')) == 0) {
             for ($i = 0; $i < count($trades); $i++) {
@@ -411,7 +411,7 @@ class dsx extends Exchange {
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
     }
 
-    public function calculate_fee ($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
+    public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
         $market = $this->markets[$symbol];
         $key = 'quote';
         $rate = $market[$takerOrMaker];
@@ -429,7 +429,7 @@ class dsx extends Exchange {
         );
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -447,7 +447,7 @@ class dsx extends Exchange {
         return $this->parse_order_book($orderbook);
     }
 
-    public function fetch_order_books ($symbols = null, $limit = null, $params = array ()) {
+    public function fetch_order_books($symbols = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $ids = null;
         if ($symbols === null) {
@@ -482,7 +482,7 @@ class dsx extends Exchange {
         return $result;
     }
 
-    public function fetch_tickers ($symbols = null, $params = array ()) {
+    public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
         $ids = $this->ids;
         if ($symbols === null) {
@@ -545,12 +545,12 @@ class dsx extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $tickers = $this->fetch_tickers(array( $symbol ), $params);
         return $tickers[$symbol];
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -569,7 +569,7 @@ class dsx extends Exchange {
         return $this->parse_trades($response[$market['id']], $market, $since, $limit);
     }
 
-    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
         //
         //     {
         //         "high" : 0.01955,
@@ -590,7 +590,7 @@ class dsx extends Exchange {
         );
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -644,7 +644,7 @@ class dsx extends Exchange {
         return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         if ($type === 'market' && $price === null) {
@@ -720,7 +720,7 @@ class dsx extends Exchange {
         );
     }
 
-    public function parse_order_status ($status) {
+    public function parse_order_status($status) {
         $statuses = array(
             '0' => 'open', // Active
             '1' => 'closed', // Filled
@@ -731,7 +731,7 @@ class dsx extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_market ($id) {
+    public function parse_market($id) {
         if (is_array($this->markets_by_id) && array_key_exists($id, $this->markets_by_id)) {
             return $this->markets_by_id[$id];
         } else {
@@ -750,7 +750,7 @@ class dsx extends Exchange {
         return null;
     }
 
-    public function parse_order ($order, $market = null) {
+    public function parse_order($order, $market = null) {
         //
         // fetchOrder
         //
@@ -845,7 +845,7 @@ class dsx extends Exchange {
         );
     }
 
-    public function fetch_order ($id, $symbol = null, $params = array ()) {
+    public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'orderId' => intval ($id),
@@ -883,7 +883,7 @@ class dsx extends Exchange {
         ), $response['return']));
     }
 
-    public function parse_orders_by_id ($orders, $symbol = null, $since = null, $limit = null) {
+    public function parse_orders_by_id($orders, $symbol = null, $since = null, $limit = null) {
         $ids = is_array($orders) ? array_keys($orders) : array();
         $result = array();
         for ($i = 0; $i < count($ids); $i++) {
@@ -896,7 +896,7 @@ class dsx extends Exchange {
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
     }
 
-    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             // 'count' => 10, // Decimal, The maximum number of orders to return
@@ -925,7 +925,7 @@ class dsx extends Exchange {
         return $this->parse_orders_by_id($this->safe_value($response, 'return', array()), $symbol, $since, $limit);
     }
 
-    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             // 'count' => 10, // Decimal, The maximum number of orders to return
@@ -957,7 +957,7 @@ class dsx extends Exchange {
         return $this->parse_orders_by_id($this->safe_value($response, 'return', array()), $symbol, $since, $limit);
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'orderId' => $id,
@@ -969,7 +969,7 @@ class dsx extends Exchange {
         return $response;
     }
 
-    public function parse_orders ($orders, $market = null, $since = null, $limit = null, $params = array ()) {
+    public function parse_orders($orders, $market = null, $since = null, $limit = null, $params = array ()) {
         $result = array();
         $ids = is_array($orders) ? array_keys($orders) : array();
         $symbol = null;
@@ -984,12 +984,12 @@ class dsx extends Exchange {
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
     }
 
-    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $orders = $this->fetch_orders($symbol, $since, $limit, $params);
         return $this->filter_by($orders, 'status', 'closed');
     }
 
-    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = null;
         // some derived classes use camelcase notation for $request fields
@@ -1021,7 +1021,7 @@ class dsx extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_transactions ($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_transactions($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $currency = null;
         $request = array();
@@ -1058,7 +1058,7 @@ class dsx extends Exchange {
         return $this->parse_transactions($transactions, $currency, $since, $limit);
     }
 
-    public function parse_transaction_status ($status) {
+    public function parse_transaction_status($status) {
         $statuses = array(
             '1' => 'failed',
             '2' => 'ok',
@@ -1068,7 +1068,7 @@ class dsx extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction ($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null) {
         //
         //     {
         //         "id" => 1,
@@ -1113,7 +1113,7 @@ class dsx extends Exchange {
         );
     }
 
-    public function create_deposit_address ($code, $params = array ()) {
+    public function create_deposit_address($code, $params = array ()) {
         $request = array(
             'new' => 1,
         );
@@ -1121,7 +1121,7 @@ class dsx extends Exchange {
         return $response;
     }
 
-    public function fetch_deposit_address ($code, $params = array ()) {
+    public function fetch_deposit_address($code, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
@@ -1139,7 +1139,7 @@ class dsx extends Exchange {
         );
     }
 
-    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency($code);
@@ -1176,7 +1176,7 @@ class dsx extends Exchange {
         );
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api];
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'private' || $api === 'dwapi') {
@@ -1215,7 +1215,7 @@ class dsx extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return; // fallback to default error handler
         }

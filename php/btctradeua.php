@@ -11,7 +11,7 @@ use \ccxt\ArgumentsRequired;
 
 class btctradeua extends Exchange {
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'id' => 'btctradeua',
             'name' => 'BTC Trade UA',
@@ -88,11 +88,11 @@ class btctradeua extends Exchange {
         ));
     }
 
-    public function sign_in ($params = array ()) {
+    public function sign_in($params = array ()) {
         return $this->privatePostAuth ($params);
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostBalance ($params);
         $result = array( 'info' => $response );
@@ -108,7 +108,7 @@ class btctradeua extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -133,7 +133,7 @@ class btctradeua extends Exchange {
         return $this->parse_order_book($orderbook, null, 'bids', 'asks', 'price', 'currency_trade');
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
         $request = array(
             'symbol' => $this->market_id($symbol),
@@ -191,7 +191,7 @@ class btctradeua extends Exchange {
         return $result;
     }
 
-    public function convert_cyrillic_month_name_to_string ($cyrillic) {
+    public function convert_cyrillic_month_name_to_string($cyrillic) {
         $months = array(
             'января' => '01',
             'февраля' => '02',
@@ -209,7 +209,7 @@ class btctradeua extends Exchange {
         return $this->safe_string($months, $cyrillic);
     }
 
-    public function parse_cyrillic_datetime ($cyrillic) {
+    public function parse_cyrillic_datetime($cyrillic) {
         $parts = explode(' ', $cyrillic);
         $day = $parts[0];
         $month = $this->convert_cyrillic_month_name_to_string($parts[1]);
@@ -240,7 +240,7 @@ class btctradeua extends Exchange {
         return $timestamp - 10800000;
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         $timestamp = $this->parse_cyrillic_datetime($this->safe_string($trade, 'pub_date'));
         $id = $this->safe_string($trade, 'id');
         $type = 'limit';
@@ -274,7 +274,7 @@ class btctradeua extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -292,7 +292,7 @@ class btctradeua extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         if ($type === 'market') {
             throw new ExchangeError($this->id . ' allows limit orders only');
         }
@@ -308,14 +308,14 @@ class btctradeua extends Exchange {
         return $this->$method (array_merge($request, $params));
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         $request = array(
             'id' => $id,
         );
         return $this->privatePostRemoveOrderId (array_merge($request, $params));
     }
 
-    public function parse_order ($order, $market = null) {
+    public function parse_order($order, $market = null) {
         $timestamp = $this->milliseconds();
         $symbol = null;
         if ($market !== null) {
@@ -339,7 +339,7 @@ class btctradeua extends Exchange {
         );
     }
 
-    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOpenOrders requires a $symbol argument');
         }
@@ -353,11 +353,11 @@ class btctradeua extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function nonce () {
+    public function nonce() {
         return $this->milliseconds();
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {

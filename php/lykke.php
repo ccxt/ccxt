@@ -9,7 +9,7 @@ use Exception; // a common import
 
 class lykke extends Exchange {
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'id' => 'lykke',
             'name' => 'Lykke',
@@ -101,7 +101,7 @@ class lykke extends Exchange {
         ));
     }
 
-    public function parse_trade ($trade, $market) {
+    public function parse_trade($trade, $market) {
         //
         //  public fetchTrades
         //
@@ -146,7 +146,7 @@ class lykke extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         if ($limit === null) {
@@ -161,7 +161,7 @@ class lykke extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $response = $this->privateGetWallets ($params);
         $result = array( 'info' => $response );
@@ -177,11 +177,11 @@ class lykke extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         return $this->privatePostOrdersIdCancel (array( 'id' => $id ));
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $query = array(
@@ -202,7 +202,7 @@ class lykke extends Exchange {
         );
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         $markets = $this->publicGetAssetPairs ();
         //
         //     array( array(                Id => "AEBTC",
@@ -262,7 +262,7 @@ class lykke extends Exchange {
         return $result;
     }
 
-    public function parse_ticker ($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null) {
         $timestamp = $this->milliseconds();
         $symbol = null;
         if ($market) {
@@ -293,7 +293,7 @@ class lykke extends Exchange {
         );
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -303,7 +303,7 @@ class lykke extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function parse_order_status ($status) {
+    public function parse_order_status($status) {
         $statuses = array(
             'Open' => 'open',
             'Pending' => 'open',
@@ -317,7 +317,7 @@ class lykke extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order ($order, $market = null) {
+    public function parse_order($order, $market = null) {
         $status = $this->parse_order_status($this->safe_string($order, 'Status'));
         $symbol = null;
         if ($market === null) {
@@ -360,7 +360,7 @@ class lykke extends Exchange {
         );
     }
 
-    public function fetch_order ($id, $symbol = null, $params = array ()) {
+    public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'id' => $id,
@@ -369,13 +369,13 @@ class lykke extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $response = $this->privateGetOrders ($params);
         return $this->parse_orders($response, null, $since, $limit);
     }
 
-    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'status' => 'InOrderBook',
@@ -384,7 +384,7 @@ class lykke extends Exchange {
         return $this->parse_orders($response, null, $since, $limit);
     }
 
-    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'status' => 'Matched',
@@ -393,7 +393,7 @@ class lykke extends Exchange {
         return $this->parse_orders($response, null, $since, $limit);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $response = $this->publicGetOrderBooksAssetPairId (array_merge(array(
             'AssetPairId' => $this->market_id($symbol),
@@ -417,7 +417,7 @@ class lykke extends Exchange {
         return $this->parse_order_book($orderbook, $timestamp, 'bids', 'asks', 'Price', 'Volume');
     }
 
-    public function parse_bid_ask ($bidask, $priceKey = 0, $amountKey = 1) {
+    public function parse_bid_ask($bidask, $priceKey = 0, $amountKey = 1) {
         $price = $this->safe_float($bidask, $priceKey);
         $amount = $this->safe_float($bidask, $amountKey);
         if ($amount < 0) {
@@ -426,7 +426,7 @@ class lykke extends Exchange {
         return array( $price, $amount );
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api] . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'mobile') {

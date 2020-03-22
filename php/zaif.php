@@ -10,7 +10,7 @@ use \ccxt\ExchangeError;
 
 class zaif extends Exchange {
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'id' => 'zaif',
             'name' => 'Zaif',
@@ -120,7 +120,7 @@ class zaif extends Exchange {
         ));
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         $markets = $this->publicGetCurrencyPairsAll ($params);
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
@@ -169,7 +169,7 @@ class zaif extends Exchange {
         return $result;
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostGetInfo ($params);
         $balances = $this->safe_value($response, 'return', array());
@@ -196,7 +196,7 @@ class zaif extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'pair' => $this->market_id($symbol),
@@ -205,7 +205,7 @@ class zaif extends Exchange {
         return $this->parse_order_book($response);
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
         $request = array(
             'pair' => $this->market_id($symbol),
@@ -243,7 +243,7 @@ class zaif extends Exchange {
         );
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         $side = $this->safe_string($trade, 'trade_type');
         $side = ($side === 'bid') ? 'buy' : 'sell';
         $timestamp = $this->safe_timestamp($trade, 'date');
@@ -283,7 +283,7 @@ class zaif extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -300,7 +300,7 @@ class zaif extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         if ($type !== 'limit') {
             throw new ExchangeError($this->id . ' allows limit orders only');
@@ -318,14 +318,14 @@ class zaif extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         $request = array(
             'order_id' => $id,
         );
         return $this->privatePostCancelOrder (array_merge($request, $params));
     }
 
-    public function parse_order ($order, $market = null) {
+    public function parse_order($order, $market = null) {
         $side = $this->safe_string($order, 'action');
         $side = ($side === 'bid') ? 'buy' : 'sell';
         $timestamp = $this->safe_timestamp($order, 'timestamp');
@@ -367,7 +367,7 @@ class zaif extends Exchange {
         );
     }
 
-    public function parse_orders ($orders, $market = null, $since = null, $limit = null, $params = array ()) {
+    public function parse_orders($orders, $market = null, $since = null, $limit = null, $params = array ()) {
         $result = array();
         $ids = is_array($orders) ? array_keys($orders) : array();
         $symbol = null;
@@ -382,7 +382,7 @@ class zaif extends Exchange {
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
     }
 
-    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = null;
         $request = array(
@@ -397,7 +397,7 @@ class zaif extends Exchange {
         return $this->parse_orders($response['return'], $market, $since, $limit);
     }
 
-    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = null;
         $request = array(
@@ -418,7 +418,7 @@ class zaif extends Exchange {
         return $this->parse_orders($response['return'], $market, $since, $limit);
     }
 
-    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency($code);
@@ -443,12 +443,12 @@ class zaif extends Exchange {
         );
     }
 
-    public function nonce () {
+    public function nonce() {
         $nonce = floatval ($this->milliseconds() / 1000);
         return sprintf('%.8f', $nonce);
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/';
         if ($api === 'public') {
             $url .= 'api/' . $this->version . '/' . $this->implode_params($path, $params);
@@ -477,7 +477,7 @@ class zaif extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return;
         }

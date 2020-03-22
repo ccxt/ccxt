@@ -13,7 +13,7 @@ use \ccxt\OrderNotFound;
 
 class coinone extends Exchange {
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'id' => 'coinone',
             'name' => 'CoinOne',
@@ -127,7 +127,7 @@ class coinone extends Exchange {
         ));
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostAccountBalance ($params);
         $result = array( 'info' => $response );
@@ -149,7 +149,7 @@ class coinone extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -160,7 +160,7 @@ class coinone extends Exchange {
         return $this->parse_order_book($response, null, 'bid', 'ask', 'price', 'qty');
     }
 
-    public function fetch_tickers ($symbols = null, $params = array ()) {
+    public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'currency' => 'all',
@@ -183,7 +183,7 @@ class coinone extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -194,7 +194,7 @@ class coinone extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function parse_ticker ($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null) {
         $timestamp = $this->milliseconds();
         $last = $this->safe_float($ticker, 'last');
         $previousClose = $this->safe_float($ticker, 'yesterday_last');
@@ -227,7 +227,7 @@ class coinone extends Exchange {
         );
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         $timestamp = $this->safe_timestamp($trade, 'timestamp');
         $symbol = ($market !== null) ? $market['symbol'] : null;
         $is_ask = $this->safe_string($trade, 'is_ask');
@@ -262,7 +262,7 @@ class coinone extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -274,7 +274,7 @@ class coinone extends Exchange {
         return $this->parse_trades($response['completeOrders'], $market, $since, $limit);
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         if ($type !== 'limit') {
             throw new ExchangeError($this->id . ' allows limit orders only');
@@ -315,7 +315,7 @@ class coinone extends Exchange {
         return $order;
     }
 
-    public function fetch_order ($id, $symbol = null, $params = array ()) {
+    public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $result = null;
         $market = null;
@@ -351,7 +351,7 @@ class coinone extends Exchange {
         return $result;
     }
 
-    public function parse_order_status ($status) {
+    public function parse_order_status($status) {
         $statuses = array(
             'live' => 'open',
             'partially_filled' => 'open',
@@ -360,7 +360,7 @@ class coinone extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order ($order, $market = null) {
+    public function parse_order($order, $market = null) {
         $info = $this->safe_value($order, 'info');
         $id = $this->safe_string_upper($info, 'orderId');
         $timestamp = $this->safe_timestamp($info, 'timestamp');
@@ -419,7 +419,7 @@ class coinone extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $order = $this->safe_value($this->orders, $id);
         $amount = null;
@@ -462,7 +462,7 @@ class coinone extends Exchange {
         return $this->privatePostOrderCancel (array_merge($request, $params));
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $url = $this->urls['api'] . '/';
@@ -492,7 +492,7 @@ class coinone extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return;
         }

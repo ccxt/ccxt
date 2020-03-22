@@ -10,7 +10,7 @@ use \ccxt\ExchangeError;
 
 class lbank extends Exchange {
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'id' => 'lbank',
             'name' => 'LBank',
@@ -112,7 +112,7 @@ class lbank extends Exchange {
         ));
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         $response = $this->publicGetAccuracy ($params);
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
@@ -166,7 +166,7 @@ class lbank extends Exchange {
         return $result;
     }
 
-    public function parse_ticker ($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null) {
         $symbol = null;
         if ($market === null) {
             $marketId = $this->safe_string($ticker, 'symbol');
@@ -236,7 +236,7 @@ class lbank extends Exchange {
         );
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -246,7 +246,7 @@ class lbank extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function fetch_tickers ($symbols = null, $params = array ()) {
+    public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'symbol' => 'all',
@@ -261,7 +261,7 @@ class lbank extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($symbol, $limit = 60, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = 60, $params = array ()) {
         $this->load_markets();
         $size = 60;
         if ($limit !== null) {
@@ -275,7 +275,7 @@ class lbank extends Exchange {
         return $this->parse_order_book($response);
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -309,7 +309,7 @@ class lbank extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -326,7 +326,7 @@ class lbank extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
         return [
             $ohlcv[0] * 1000,
             $ohlcv[1],
@@ -337,7 +337,7 @@ class lbank extends Exchange {
         ];
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = '5m', $since = null, $limit = 1000, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '5m', $since = null, $limit = 1000, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         if ($since === null) {
@@ -356,7 +356,7 @@ class lbank extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostUserInfo ($params);
         //
@@ -399,7 +399,7 @@ class lbank extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function parse_order_status ($status) {
+    public function parse_order_status($status) {
         $statuses = array(
             '-1' => 'cancelled', // cancelled
             '0' => 'open', // not traded
@@ -410,7 +410,7 @@ class lbank extends Exchange {
         return $this->safe_string($statuses, $status);
     }
 
-    public function parse_order ($order, $market = null) {
+    public function parse_order($order, $market = null) {
         $symbol = null;
         $responseMarket = $this->safe_value($this->marketsById, $order['symbol']);
         if ($responseMarket !== null) {
@@ -459,7 +459,7 @@ class lbank extends Exchange {
         );
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $order = array(
@@ -485,7 +485,7 @@ class lbank extends Exchange {
         return $order;
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -496,7 +496,7 @@ class lbank extends Exchange {
         return $response;
     }
 
-    public function fetch_order ($id, $symbol = null, $params = array ()) {
+    public function fetch_order($id, $symbol = null, $params = array ()) {
         // Id can be a list of ids delimited by a comma
         $this->load_markets();
         $market = $this->market($symbol);
@@ -514,7 +514,7 @@ class lbank extends Exchange {
         }
     }
 
-    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         if ($limit === null) {
             $limit = 100;
@@ -529,7 +529,7 @@ class lbank extends Exchange {
         return $this->parse_orders($response['orders'], null, $since, $limit);
     }
 
-    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $orders = $this->fetch_orders($symbol, $since, $limit, $params);
         $closed = $this->filter_by($orders, 'status', 'closed');
         $canceled = $this->filter_by($orders, 'status', 'cancelled'); // cancelled $orders may be partially filled
@@ -537,7 +537,7 @@ class lbank extends Exchange {
         return $this->filter_by_symbol_since_limit($allOrders, $symbol, $since, $limit);
     }
 
-    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
         // mark and fee are optional $params, mark is a note and must be less than 255 characters
         $this->check_address($address);
         $this->load_markets();
@@ -557,7 +557,7 @@ class lbank extends Exchange {
         );
     }
 
-    public function convert_secret_to_pem ($secret) {
+    public function convert_secret_to_pem($secret) {
         $lineLength = 64;
         $secretLength = strlen($secret) - 0;
         $numLines = intval ($secretLength / $lineLength);
@@ -571,7 +571,7 @@ class lbank extends Exchange {
         return $pem . '-----END PRIVATE KEY-----';
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $query = $this->omit($params, $this->extract_params($path));
         $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         // Every endpoint ends with ".do"
@@ -606,7 +606,7 @@ class lbank extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2($path, $api, $method, $params, $headers, $body);
         $success = $this->safe_string($response, 'result');
         if ($success === 'false') {

@@ -10,7 +10,7 @@ use \ccxt\ExchangeError;
 
 class lakebtc extends Exchange {
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'id' => 'lakebtc',
             'name' => 'LakeBTC',
@@ -60,7 +60,7 @@ class lakebtc extends Exchange {
         ));
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         $response = $this->publicGetTicker ($params);
         $result = array();
         $keys = is_array($response) ? array_keys($response) : array();
@@ -85,7 +85,7 @@ class lakebtc extends Exchange {
         return $result;
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostGetAccountInfo ($params);
         $balances = $this->safe_value($response, 'balance', array());
@@ -101,7 +101,7 @@ class lakebtc extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'symbol' => $this->market_id($symbol),
@@ -110,7 +110,7 @@ class lakebtc extends Exchange {
         return $this->parse_order_book($response);
     }
 
-    public function parse_ticker ($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null) {
         $timestamp = $this->milliseconds();
         $symbol = null;
         if ($market !== null) {
@@ -141,7 +141,7 @@ class lakebtc extends Exchange {
         );
     }
 
-    public function fetch_tickers ($symbols = null, $params = array ()) {
+    public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
         $response = $this->publicGetTicker ($params);
         $ids = is_array($response) ? array_keys($response) : array();
@@ -159,14 +159,14 @@ class lakebtc extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $tickers = $this->publicGetTicker ($params);
         return $this->parse_ticker($tickers[$market['id']], $market);
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         $timestamp = $this->safe_timestamp($trade, 'date');
         $id = $this->safe_string($trade, 'tid');
         $price = $this->safe_float($trade, 'price');
@@ -198,7 +198,7 @@ class lakebtc extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -208,7 +208,7 @@ class lakebtc extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         if ($type === 'market') {
             throw new ExchangeError($this->id . ' allows limit orders only');
@@ -225,7 +225,7 @@ class lakebtc extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'params' => array( $id ),
@@ -233,11 +233,11 @@ class lakebtc extends Exchange {
         return $this->privatePostCancelOrder (array_merge($request, $params));
     }
 
-    public function nonce () {
+    public function nonce() {
         return $this->microseconds();
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version;
         if ($api === 'public') {
             $url .= '/' . $path;
@@ -276,7 +276,7 @@ class lakebtc extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2($path, $api, $method, $params, $headers, $body);
         if (is_array($response) && array_key_exists('error', $response)) {
             throw new ExchangeError($this->id . ' ' . $this->json($response));

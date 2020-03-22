@@ -11,7 +11,7 @@ use \ccxt\BadSymbol;
 
 class coincheck extends Exchange {
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'id' => 'coincheck',
             'name' => 'coincheck',
@@ -112,7 +112,7 @@ class coincheck extends Exchange {
         ));
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $balances = $this->privateGetAccountsBalance ($params);
         $result = array( 'info' => $balances );
@@ -131,7 +131,7 @@ class coincheck extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         // Only BTC/JPY is meaningful
         $market = null;
@@ -148,7 +148,7 @@ class coincheck extends Exchange {
         return $result;
     }
 
-    public function parse_order ($order, $market = null) {
+    public function parse_order($order, $market = null) {
         //
         // fetchOpenOrders
         //
@@ -212,7 +212,7 @@ class coincheck extends Exchange {
         );
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         if ($symbol !== 'BTC/JPY') {
             throw new BadSymbol($this->id . ' fetchOrderBook () supports BTC/JPY only');
         }
@@ -221,7 +221,7 @@ class coincheck extends Exchange {
         return $this->parse_order_book($response);
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         if ($symbol !== 'BTC/JPY') {
             throw new BadSymbol($this->id . ' fetchTicker () supports BTC/JPY only');
         }
@@ -253,7 +253,7 @@ class coincheck extends Exchange {
         );
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         $timestamp = $this->parse8601($this->safe_string($trade, 'created_at'));
         $id = $this->safe_string($trade, 'id');
         $price = $this->safe_float($trade, 'rate');
@@ -331,7 +331,7 @@ class coincheck extends Exchange {
         );
     }
 
-    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $response = $this->privateGetExchangeOrdersTransactions (array_merge(array(), $params));
@@ -339,7 +339,7 @@ class coincheck extends Exchange {
         return $this->parse_trades($transactions, $market, $since, $limit);
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         if ($symbol !== 'BTC/JPY') {
             throw new BadSymbol($this->id . ' fetchTrades () supports BTC/JPY only');
         }
@@ -356,7 +356,7 @@ class coincheck extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'pair' => $this->market_id($symbol),
@@ -379,14 +379,14 @@ class coincheck extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         $request = array(
             'id' => $id,
         );
         return $this->privateDeleteExchangeOrdersId (array_merge($request, $params));
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
@@ -418,7 +418,7 @@ class coincheck extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2($path, $api, $method, $params, $headers, $body);
         if ($api === 'public') {
             return $response;

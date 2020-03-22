@@ -14,7 +14,7 @@ use \ccxt\DDoSProtection;
 
 class liquid extends Exchange {
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'id' => 'liquid',
             'name' => 'Liquid',
@@ -121,7 +121,7 @@ class liquid extends Exchange {
         ));
     }
 
-    public function fetch_currencies ($params = array ()) {
+    public function fetch_currencies($params = array ()) {
         $response = $this->publicGetCurrencies ($params);
         //
         //     array(
@@ -182,7 +182,7 @@ class liquid extends Exchange {
         return $result;
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         $markets = $this->publicGetProducts ();
         //
         //     array(
@@ -282,7 +282,7 @@ class liquid extends Exchange {
         return $result;
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $response = $this->privateGetAccountsBalance ($params);
         //
@@ -304,7 +304,7 @@ class liquid extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'id' => $this->market_id($symbol),
@@ -313,7 +313,7 @@ class liquid extends Exchange {
         return $this->parse_order_book($response, null, 'buy_price_levels', 'sell_price_levels');
     }
 
-    public function parse_ticker ($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null) {
         $timestamp = $this->milliseconds();
         $last = null;
         if (is_array($ticker) && array_key_exists('last_traded_price', $ticker)) {
@@ -377,7 +377,7 @@ class liquid extends Exchange {
         );
     }
 
-    public function fetch_tickers ($symbols = null, $params = array ()) {
+    public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
         $response = $this->publicGetProducts ($params);
         $result = array();
@@ -389,7 +389,7 @@ class liquid extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -399,7 +399,7 @@ class liquid extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function parse_trade ($trade, $market) {
+    public function parse_trade($trade, $market) {
         // {             $id =>  12345,
         //         quantity => "6.789",
         //            $price => "98765.4321",
@@ -443,7 +443,7 @@ class liquid extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -461,7 +461,7 @@ class liquid extends Exchange {
         return $this->parse_trades($result, $market, $since, $limit);
     }
 
-    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         // the `with_details` param is undocumented - it adds the order_id to the results
@@ -476,7 +476,7 @@ class liquid extends Exchange {
         return $this->parse_trades($response['models'], $market, $since, $limit);
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'order_type' => $type,
@@ -513,7 +513,7 @@ class liquid extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'id' => $id,
@@ -528,7 +528,7 @@ class liquid extends Exchange {
         return $order;
     }
 
-    public function edit_order ($id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         if ($price === null) {
             throw new ArgumentsRequired($this->id . ' editOrder requires the $price argument');
@@ -544,7 +544,7 @@ class liquid extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function parse_order_status ($status) {
+    public function parse_order_status($status) {
         $statuses = array(
             'live' => 'open',
             'filled' => 'closed',
@@ -553,7 +553,7 @@ class liquid extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order ($order, $market = null) {
+    public function parse_order($order, $market = null) {
         //
         // createOrder
         //
@@ -686,7 +686,7 @@ class liquid extends Exchange {
         );
     }
 
-    public function fetch_order ($id, $symbol = null, $params = array ()) {
+    public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'id' => $id,
@@ -695,7 +695,7 @@ class liquid extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = null;
         $request = array(
@@ -746,17 +746,17 @@ class liquid extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $request = array( 'status' => 'live' );
         return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
-    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $request = array( 'status' => 'filled' );
         return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
-    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency($code);
@@ -796,7 +796,7 @@ class liquid extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function parse_transaction_status ($status) {
+    public function parse_transaction_status($status) {
         $statuses = array(
             'pending' => 'pending',
             'cancelled' => 'canceled',
@@ -805,7 +805,7 @@ class liquid extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction ($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null) {
         //
         // withdraw
         //
@@ -853,11 +853,11 @@ class liquid extends Exchange {
         );
     }
 
-    public function nonce () {
+    public function nonce() {
         return $this->milliseconds();
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $headers = array(
@@ -890,7 +890,7 @@ class liquid extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($code >= 200 && $code < 300) {
             return;
         }

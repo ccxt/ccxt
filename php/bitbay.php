@@ -10,7 +10,7 @@ use \ccxt\ExchangeError;
 
 class bitbay extends Exchange {
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'id' => 'bitbay',
             'name' => 'BitBay',
@@ -165,7 +165,7 @@ class bitbay extends Exchange {
         ));
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         $response = $this->v1_01PublicGetTradingTicker ($params);
         //
         //     {
@@ -237,7 +237,7 @@ class bitbay extends Exchange {
         return $result;
     }
 
-    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array();
         $response = $this->v1_01PrivateGetTradingOffer (array_merge($request, $params));
@@ -245,7 +245,7 @@ class bitbay extends Exchange {
         return $this->parse_orders($items, null, $since, $limit, array( 'status' => 'open' ));
     }
 
-    public function parse_order ($order, $market = null) {
+    public function parse_order($order, $market = null) {
         //
         //     {
         //         $market => 'ETH-EUR',
@@ -311,7 +311,7 @@ class bitbay extends Exchange {
         );
     }
 
-    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array();
         if ($symbol) {
@@ -348,7 +348,7 @@ class bitbay extends Exchange {
         return $this->filter_by_symbol($result, $symbol);
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $response = $this->v1_01PrivateGetBalancesBITBAYBalance ($params);
         $balances = $this->safe_value($response, 'balances');
@@ -368,7 +368,7 @@ class bitbay extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'id' => $this->market_id($symbol),
@@ -377,7 +377,7 @@ class bitbay extends Exchange {
         return $this->parse_order_book($orderbook);
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
         $request = array(
             'id' => $this->market_id($symbol),
@@ -415,7 +415,7 @@ class bitbay extends Exchange {
         );
     }
 
-    public function fetch_ledger ($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
         $balanceCurrencies = array();
         if ($code !== null) {
             $currency = $this->currency($code);
@@ -436,7 +436,7 @@ class bitbay extends Exchange {
         return $this->parse_ledger($items, null, $since, $limit);
     }
 
-    public function parse_ledger_entry ($item, $currency = null) {
+    public function parse_ledger_entry($item, $currency = null) {
         //
         //    FUNDS_MIGRATION
         //    {
@@ -743,7 +743,7 @@ class bitbay extends Exchange {
         );
     }
 
-    public function parse_ledger_entry_type ($type) {
+    public function parse_ledger_entry_type($type) {
         $types = array(
             'ADD_FUNDS' => 'transaction',
             'BITCOIN_GOLD_FORK' => 'transaction',
@@ -763,7 +763,7 @@ class bitbay extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
         // array(
         //     '1582399800000',
         //     {
@@ -785,7 +785,7 @@ class bitbay extends Exchange {
         ];
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $tradingSymbol = $market['baseId'] . '-' . $market['quoteId'];
@@ -812,7 +812,7 @@ class bitbay extends Exchange {
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         //
         // createOrder trades
         //
@@ -919,7 +919,7 @@ class bitbay extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $tradingSymbol = $market['baseId'] . '-' . $market['quoteId'];
@@ -937,7 +937,7 @@ class bitbay extends Exchange {
         return $this->parse_trades($items, $symbol, $since, $limit);
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $tradingSymbol = $market['baseId'] . '-' . $market['quoteId'];
@@ -1050,7 +1050,7 @@ class bitbay extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         $side = $this->safe_string($params, 'side');
         if ($side === null) {
             throw new ExchangeError($this->id . ' cancelOrder() requires a `$side` parameter ("buy" or "sell")');
@@ -1073,7 +1073,7 @@ class bitbay extends Exchange {
         return $this->v1_01PrivateDeleteTradingOfferSymbolIdSidePrice (array_merge($request, $params));
     }
 
-    public function is_fiat ($currency) {
+    public function is_fiat($currency) {
         $fiatCurrencies = array(
             'USD' => true,
             'EUR' => true,
@@ -1082,7 +1082,7 @@ class bitbay extends Exchange {
         return $this->safe_value($fiatCurrencies, $currency, false);
     }
 
-    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
         $method = null;
@@ -1110,7 +1110,7 @@ class bitbay extends Exchange {
         );
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api];
         if ($api === 'public') {
             $query = $this->omit($params, $this->extract_params($path));
@@ -1161,7 +1161,7 @@ class bitbay extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return; // fallback to default $error handler
         }

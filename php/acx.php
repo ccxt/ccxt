@@ -10,7 +10,7 @@ use \ccxt\OrderNotFound;
 
 class acx extends Exchange {
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'id' => 'acx',
             'name' => 'ACX',
@@ -104,7 +104,7 @@ class acx extends Exchange {
         ));
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         $markets = $this->publicGetMarkets ($params);
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
@@ -141,7 +141,7 @@ class acx extends Exchange {
         return $result;
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $response = $this->privateGetMembersMe ($params);
         $balances = $this->safe_value($response, 'accounts');
@@ -158,7 +158,7 @@ class acx extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -172,7 +172,7 @@ class acx extends Exchange {
         return $this->parse_order_book($orderbook, $timestamp);
     }
 
-    public function parse_ticker ($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null) {
         $timestamp = $this->safe_timestamp($ticker, 'at');
         $ticker = $ticker['ticker'];
         $symbol = null;
@@ -204,7 +204,7 @@ class acx extends Exchange {
         );
     }
 
-    public function fetch_tickers ($symbols = null, $params = array ()) {
+    public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
         $response = $this->publicGetTickers ($params);
         $ids = is_array($response) ? array_keys($response) : array();
@@ -230,7 +230,7 @@ class acx extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -240,7 +240,7 @@ class acx extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         $timestamp = $this->parse8601($this->safe_string($trade, 'created_at'));
         $id = $this->safe_string($trade, 'tid');
         $symbol = null;
@@ -264,7 +264,7 @@ class acx extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -274,7 +274,7 @@ class acx extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
         return [
             $ohlcv[0] * 1000,
             $ohlcv[1],
@@ -285,7 +285,7 @@ class acx extends Exchange {
         ];
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         if ($limit === null) {
@@ -303,7 +303,7 @@ class acx extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_order_status ($status) {
+    public function parse_order_status($status) {
         $statuses = array(
             'done' => 'closed',
             'wait' => 'open',
@@ -312,7 +312,7 @@ class acx extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order ($order, $market = null) {
+    public function parse_order($order, $market = null) {
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -344,7 +344,7 @@ class acx extends Exchange {
         );
     }
 
-    public function fetch_order ($id, $symbol = null, $params = array ()) {
+    public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'id' => intval ($id),
@@ -353,7 +353,7 @@ class acx extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'market' => $this->market_id($symbol),
@@ -370,7 +370,7 @@ class acx extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'id' => $id,
@@ -384,7 +384,7 @@ class acx extends Exchange {
         return $order;
     }
 
-    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency($code);
@@ -402,11 +402,11 @@ class acx extends Exchange {
         );
     }
 
-    public function nonce () {
+    public function nonce() {
         return $this->milliseconds();
     }
 
-    public function encode_params ($params) {
+    public function encode_params($params) {
         if (is_array($params) && array_key_exists('orders', $params)) {
             $orders = $params['orders'];
             $query = $this->urlencode($this->keysort($this->omit($params, 'orders')));
@@ -424,7 +424,7 @@ class acx extends Exchange {
         return $this->urlencode($this->keysort($params));
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = '/api/' . $this->version . '/' . $this->implode_params($path, $params);
         if (is_array($this->urls) && array_key_exists('extension', $this->urls)) {
             $request .= $this->urls['extension'];
@@ -455,7 +455,7 @@ class acx extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return;
         }

@@ -12,7 +12,7 @@ use \ccxt\NotSupported;
 
 class xbtce extends Exchange {
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'id' => 'xbtce',
             'name' => 'xBTCe',
@@ -113,7 +113,7 @@ class xbtce extends Exchange {
         ));
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         $response = $this->privateGetSymbol ($params);
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
@@ -138,7 +138,7 @@ class xbtce extends Exchange {
         return $result;
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $balances = $this->privateGetAsset ($params);
         $result = array( 'info' => $balances );
@@ -156,7 +156,7 @@ class xbtce extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -168,7 +168,7 @@ class xbtce extends Exchange {
         return $this->parse_order_book($orderbook, $timestamp, 'Bids', 'Asks', 'Price', 'Volume');
     }
 
-    public function parse_ticker ($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null) {
         $timestamp = 0;
         $last = null;
         if (is_array($ticker) && array_key_exists('LastBuyTimestamp', $ticker)) {
@@ -214,7 +214,7 @@ class xbtce extends Exchange {
         );
     }
 
-    public function fetch_tickers ($symbols = null, $params = array ()) {
+    public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
         $response = $this->publicGetTicker ($params);
         $tickers = $this->index_by($response, 'Symbol');
@@ -240,7 +240,7 @@ class xbtce extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -256,13 +256,13 @@ class xbtce extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         // no method for trades?
         return $this->privateGetTrade ($params);
     }
 
-    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
         return [
             $ohlcv['Timestamp'],
             $ohlcv['Open'],
@@ -273,7 +273,7 @@ class xbtce extends Exchange {
         ];
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         //     $minutes = intval ($timeframe / 60); // 1 minute by default
         //     $periodicity = (string) $minutes;
         //     $this->load_markets();
@@ -292,7 +292,7 @@ class xbtce extends Exchange {
         throw new NotSupported($this->id . ' fetchOHLCV is disabled by the exchange');
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         if ($type === 'market') {
             throw new ExchangeError($this->id . ' allows limit orders only');
@@ -310,7 +310,7 @@ class xbtce extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         $request = array(
             'Type' => 'Cancel',
             'Id' => $id,
@@ -318,11 +318,11 @@ class xbtce extends Exchange {
         return $this->privateDeleteTrade (array_merge($request, $params));
     }
 
-    public function nonce () {
+    public function nonce() {
         return $this->milliseconds();
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         if (!$this->apiKey) {
             throw new AuthenticationError($this->id . ' requires apiKey for all requests, their public API is always busy');
         }

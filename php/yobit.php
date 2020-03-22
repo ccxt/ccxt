@@ -11,7 +11,7 @@ use \ccxt\ArgumentsRequired;
 
 class yobit extends Exchange {
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'id' => 'yobit',
             'name' => 'YoBit',
@@ -183,7 +183,7 @@ class yobit extends Exchange {
         ));
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostGetInfo ($params);
         //
@@ -227,7 +227,7 @@ class yobit extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         $response = $this->publicGetInfo ($params);
         $markets = $this->safe_value($response, 'pairs');
         $keys = is_array($markets) ? array_keys($markets) : array();
@@ -280,7 +280,7 @@ class yobit extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -298,7 +298,7 @@ class yobit extends Exchange {
         return $this->parse_order_book($orderbook);
     }
 
-    public function fetch_order_books ($symbols = null, $limit = null, $params = array ()) {
+    public function fetch_order_books($symbols = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $ids = null;
         if ($symbols === null) {
@@ -334,7 +334,7 @@ class yobit extends Exchange {
         return $result;
     }
 
-    public function parse_ticker ($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null) {
         //
         //   {    high => 0.03497582,
         //         low => 0.03248474,
@@ -376,7 +376,7 @@ class yobit extends Exchange {
         );
     }
 
-    public function fetch_tickers ($symbols = null, $params = array ()) {
+    public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
         $ids = $this->ids;
         if ($symbols === null) {
@@ -411,12 +411,12 @@ class yobit extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $tickers = $this->fetch_tickers(array( $symbol ), $params);
         return $tickers[$symbol];
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         $timestamp = $this->safe_timestamp($trade, 'timestamp');
         $side = $this->safe_string($trade, 'type');
         if ($side === 'ask') {
@@ -481,7 +481,7 @@ class yobit extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -500,7 +500,7 @@ class yobit extends Exchange {
         return $this->parse_trades($response[$market['id']], $market, $since, $limit);
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         if ($type === 'market') {
             throw new ExchangeError($this->id . ' allows limit orders only');
         }
@@ -550,7 +550,7 @@ class yobit extends Exchange {
         return array_merge(array( 'info' => $response ), $order);
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'order_id' => intval ($id),
@@ -562,7 +562,7 @@ class yobit extends Exchange {
         return $response;
     }
 
-    public function parse_order_status ($status) {
+    public function parse_order_status($status) {
         $statuses = array(
             '0' => 'open',
             '1' => 'closed',
@@ -572,7 +572,7 @@ class yobit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order ($order, $market = null) {
+    public function parse_order($order, $market = null) {
         $id = $this->safe_string($order, 'id');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $timestamp = $this->safe_timestamp($order, 'timestamp_created');
@@ -627,7 +627,7 @@ class yobit extends Exchange {
         return $result;
     }
 
-    public function parse_orders ($orders, $market = null, $since = null, $limit = null, $params = array ()) {
+    public function parse_orders($orders, $market = null, $since = null, $limit = null, $params = array ()) {
         $result = array();
         $ids = is_array($orders) ? array_keys($orders) : array();
         $symbol = null;
@@ -642,7 +642,7 @@ class yobit extends Exchange {
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
     }
 
-    public function fetch_order ($id, $symbol = null, $params = array ()) {
+    public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'order_id' => intval ($id),
@@ -655,7 +655,7 @@ class yobit extends Exchange {
         return $this->orders[$id];
     }
 
-    public function update_cached_orders ($openOrders, $symbol) {
+    public function update_cached_orders($openOrders, $symbol) {
         // update local cache with open orders
         // this will add unseen orders and overwrite existing ones
         for ($j = 0; $j < count($openOrders); $j++) {
@@ -697,7 +697,7 @@ class yobit extends Exchange {
         return $this->to_array($this->orders);
     }
 
-    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrders requires a $symbol argument');
         }
@@ -719,17 +719,17 @@ class yobit extends Exchange {
         return $this->filter_by_since_limit($result, $since, $limit);
     }
 
-    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $orders = $this->fetch_orders($symbol, $since, $limit, $params);
         return $this->filter_by($orders, 'status', 'open');
     }
 
-    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $orders = $this->fetch_orders($symbol, $since, $limit, $params);
         return $this->filter_by($orders, 'status', 'closed');
     }
 
-    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a `$symbol` argument');
         }
@@ -766,7 +766,7 @@ class yobit extends Exchange {
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
     }
 
-    public function create_deposit_address ($code, $params = array ()) {
+    public function create_deposit_address($code, $params = array ()) {
         $request = array(
             'need_new' => 1,
         );
@@ -781,7 +781,7 @@ class yobit extends Exchange {
         );
     }
 
-    public function fetch_deposit_address ($code, $params = array ()) {
+    public function fetch_deposit_address($code, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
@@ -799,7 +799,7 @@ class yobit extends Exchange {
         );
     }
 
-    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency($code);
@@ -819,7 +819,7 @@ class yobit extends Exchange {
         );
     }
 
-    public function calculate_fee ($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
+    public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
         $market = $this->markets[$symbol];
         $key = 'quote';
         $rate = $market[$takerOrMaker];
@@ -837,7 +837,7 @@ class yobit extends Exchange {
         );
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api];
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'private') {
@@ -876,7 +876,7 @@ class yobit extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return; // fallback to default error handler
         }

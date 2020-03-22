@@ -11,7 +11,7 @@ use \ccxt\ArgumentsRequired;
 
 class coinbase extends Exchange {
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'id' => 'coinbase',
             'name' => 'Coinbase',
@@ -157,13 +157,13 @@ class coinbase extends Exchange {
         ));
     }
 
-    public function fetch_time ($params = array ()) {
+    public function fetch_time($params = array ()) {
         $response = $this->publicGetTime ($params);
         $data = $this->safe_value($response, 'data', array());
         return $this->parse8601($this->safe_string($data, 'iso'));
     }
 
-    public function fetch_accounts ($params = array ()) {
+    public function fetch_accounts($params = array ()) {
         $response = $this->privateGetAccounts ($params);
         //
         //     {
@@ -212,7 +212,7 @@ class coinbase extends Exchange {
         return $result;
     }
 
-    public function create_deposit_address ($code, $params = array ()) {
+    public function create_deposit_address($code, $params = array ()) {
         $accountId = $this->safe_string($params, 'account_id');
         $params = $this->omit($params, 'account_id');
         if ($accountId === null) {
@@ -279,7 +279,7 @@ class coinbase extends Exchange {
         );
     }
 
-    public function fetch_my_sells ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_sells($symbol = null, $since = null, $limit = null, $params = array ()) {
         // they don't have an endpoint for all historical trades
         $request = $this->prepare_account_request($limit, $params);
         $this->load_markets();
@@ -288,7 +288,7 @@ class coinbase extends Exchange {
         return $this->parse_trades($sells['data'], null, $since, $limit);
     }
 
-    public function fetch_my_buys ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_buys($symbol = null, $since = null, $limit = null, $params = array ()) {
         // they don't have an endpoint for all historical trades
         $request = $this->prepare_account_request($limit, $params);
         $this->load_markets();
@@ -297,7 +297,7 @@ class coinbase extends Exchange {
         return $this->parse_trades($buys['data'], null, $since, $limit);
     }
 
-    public function fetch_transactions_with_method ($method, $code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_transactions_with_method($method, $code = null, $since = null, $limit = null, $params = array ()) {
         $request = $this->prepare_account_request_with_currency_code($code, $limit, $params);
         $this->load_markets();
         $query = $this->omit($params, array( 'account_id', 'accountId' ));
@@ -305,17 +305,17 @@ class coinbase extends Exchange {
         return $this->parse_transactions($response['data'], null, $since, $limit);
     }
 
-    public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
         // fiat only, for crypto transactions use fetchLedger
         return $this->fetch_transactions_with_method('privateGetAccountsAccountIdWithdrawals', $code, $since, $limit, $params);
     }
 
-    public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
         // fiat only, for crypto transactions use fetchLedger
         return $this->fetch_transactions_with_method('privateGetAccountsAccountIdDeposits', $code, $since, $limit, $params);
     }
 
-    public function parse_transaction_status ($status) {
+    public function parse_transaction_status($status) {
         $statuses = array(
             'created' => 'pending',
             'completed' => 'ok',
@@ -324,7 +324,7 @@ class coinbase extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction ($transaction, $market = null) {
+    public function parse_transaction($transaction, $market = null) {
         //
         // fiat deposit
         //
@@ -426,7 +426,7 @@ class coinbase extends Exchange {
         );
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         //
         //     {
         //         "$id" => "67e0eaec-07d7-54c4-a72c-2e92826897df",
@@ -505,7 +505,7 @@ class coinbase extends Exchange {
         );
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         $response = $this->fetch_currencies_from_cache($params);
         $currencies = $this->safe_value($response, 'currencies', array());
         $exchangeRates = $this->safe_value($response, 'exchangeRates', array());
@@ -560,7 +560,7 @@ class coinbase extends Exchange {
         return $result;
     }
 
-    public function fetch_currencies_from_cache ($params = array ()) {
+    public function fetch_currencies_from_cache($params = array ()) {
         $options = $this->safe_value($this->options, 'fetchCurrencies', array());
         $timestamp = $this->safe_integer($options, 'timestamp');
         $expires = $this->safe_integer($options, 'expires', 1000);
@@ -577,7 +577,7 @@ class coinbase extends Exchange {
         return $this->safe_value($this->options, 'fetchCurrencies', array());
     }
 
-    public function fetch_currencies ($params = array ()) {
+    public function fetch_currencies($params = array ()) {
         $response = $this->fetch_currencies_from_cache($params);
         $currencies = $this->safe_value($response, 'currencies', array());
         //
@@ -652,7 +652,7 @@ class coinbase extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
         $timestamp = $this->seconds();
         $market = $this->market($symbol);
@@ -693,7 +693,7 @@ class coinbase extends Exchange {
         );
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $response = $this->privateGetAccounts ($params);
         $balances = $this->safe_value($response, 'data');
@@ -723,7 +723,7 @@ class coinbase extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_ledger ($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = $this->prepare_account_request_with_currency_code($code, $limit, $params);
         $query = $this->omit($params, ['account_id', 'accountId']);
@@ -734,14 +734,14 @@ class coinbase extends Exchange {
         return $this->parse_ledger($response['data'], null, $since, $limit);
     }
 
-    public function parse_ledger_entry_status ($status) {
+    public function parse_ledger_entry_status($status) {
         $types = array(
             'completed' => 'ok',
         );
         return $this->safe_string($types, $status, $status);
     }
 
-    public function parse_ledger_entry_type ($type) {
+    public function parse_ledger_entry_type($type) {
         $types = array(
             'buy' => 'trade',
             'sell' => 'trade',
@@ -756,7 +756,7 @@ class coinbase extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_entry ($item, $currency = null) {
+    public function parse_ledger_entry($item, $currency = null) {
         //
         // crypto deposit transaction
         //
@@ -1065,7 +1065,7 @@ class coinbase extends Exchange {
         );
     }
 
-    public function find_account_id ($code) {
+    public function find_account_id($code) {
         $this->load_markets();
         $this->load_accounts();
         for ($i = 0; $i < count($this->accounts); $i++) {
@@ -1077,7 +1077,7 @@ class coinbase extends Exchange {
         return null;
     }
 
-    public function prepare_account_request ($limit = null, $params = array ()) {
+    public function prepare_account_request($limit = null, $params = array ()) {
         $accountId = $this->safe_string_2($params, 'account_id', 'accountId');
         if ($accountId === null) {
             throw new ArgumentsRequired($this->id . ' method requires an account_id (or $accountId) parameter');
@@ -1091,7 +1091,7 @@ class coinbase extends Exchange {
         return $request;
     }
 
-    public function prepare_account_request_with_currency_code ($code = null, $limit = null, $params = array ()) {
+    public function prepare_account_request_with_currency_code($code = null, $limit = null, $params = array ()) {
         $accountId = $this->safe_string_2($params, 'account_id', 'accountId');
         if ($accountId === null) {
             if ($code === null) {
@@ -1111,7 +1111,7 @@ class coinbase extends Exchange {
         return $request;
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $fullPath = '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($method === 'GET') {
@@ -1142,7 +1142,7 @@ class coinbase extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return; // fallback to default error handler
         }

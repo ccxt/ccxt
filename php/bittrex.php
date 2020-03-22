@@ -15,7 +15,7 @@ use \ccxt\DDoSProtection;
 
 class bittrex extends Exchange {
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'id' => 'bittrex',
             'name' => 'Bittrex',
@@ -278,15 +278,15 @@ class bittrex extends Exchange {
         ));
     }
 
-    public function cost_to_precision ($symbol, $cost) {
+    public function cost_to_precision($symbol, $cost) {
         return $this->decimal_to_precision($cost, TRUNCATE, $this->markets[$symbol]['precision']['price'], DECIMAL_PLACES);
     }
 
-    public function fee_to_precision ($symbol, $fee) {
+    public function fee_to_precision($symbol, $fee) {
         return $this->decimal_to_precision($fee, TRUNCATE, $this->markets[$symbol]['precision']['price'], DECIMAL_PLACES);
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         $response = $this->v3publicGetMarkets ($params);
         //
         //     array(
@@ -358,7 +358,7 @@ class bittrex extends Exchange {
         return $result;
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $response = $this->accountGetBalances ($params);
         $balances = $this->safe_value($response, 'result');
@@ -377,7 +377,7 @@ class bittrex extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'market' => $this->market_id($symbol),
@@ -401,7 +401,7 @@ class bittrex extends Exchange {
         return $this->parse_order_book($orderbook, null, 'buy', 'sell', 'Rate', 'Quantity');
     }
 
-    public function fetch_currencies ($params = array ()) {
+    public function fetch_currencies($params = array ()) {
         $response = $this->publicGetCurrencies ($params);
         //
         //     {
@@ -465,7 +465,7 @@ class bittrex extends Exchange {
         return $result;
     }
 
-    public function parse_ticker ($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null) {
         //
         //     {
         //         "MarketName":"BTC-ETH",
@@ -532,7 +532,7 @@ class bittrex extends Exchange {
         );
     }
 
-    public function fetch_tickers ($symbols = null, $params = array ()) {
+    public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
         $response = $this->publicGetMarketsummaries ($params);
         $result = $this->safe_value($response, 'result');
@@ -544,7 +544,7 @@ class bittrex extends Exchange {
         return $this->filter_by_array($tickers, 'symbol', $symbols);
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -578,7 +578,7 @@ class bittrex extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         $timestamp = $this->parse8601($trade['TimeStamp'] . '+00:00');
         $side = null;
         if ($trade['OrderType'] === 'BUY') {
@@ -616,7 +616,7 @@ class bittrex extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -631,7 +631,7 @@ class bittrex extends Exchange {
         throw new ExchangeError($this->id . ' fetchTrades() returned null response');
     }
 
-    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1d', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1d', $since = null, $limit = null) {
         $timestamp = $this->parse8601($ohlcv['T'] . '+00:00');
         return [
             $timestamp,
@@ -643,7 +643,7 @@ class bittrex extends Exchange {
         ];
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -658,7 +658,7 @@ class bittrex extends Exchange {
         }
     }
 
-    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array();
         $market = null;
@@ -672,7 +672,7 @@ class bittrex extends Exchange {
         return $this->filter_by_symbol($orders, $symbol);
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $uppercaseType = strtoupper($type);
         $isMarket = ($uppercaseType === 'MARKET');
         $isCeilingLimit = ($uppercaseType === 'CEILING_LIMIT');
@@ -683,7 +683,7 @@ class bittrex extends Exchange {
         return $this->$method ($symbol, $type, $side, $amount, $price, $params);
     }
 
-    public function create_order_v3 ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order_v3($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         // A ceiling order is a $market or limit order that allows you to specify
         // the $amount of quote currency you want to spend (or receive, if selling)
         // instead of the quantity of the $market currency (e.g. buy $100 USD of BTC
@@ -738,7 +738,7 @@ class bittrex extends Exchange {
         return $this->parse_order_v3($response, $market);
     }
 
-    public function create_order_v1 ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order_v1($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         if ($type !== 'limit') {
             throw new ExchangeError($this->id . ' allows limit orders only');
         }
@@ -765,11 +765,11 @@ class bittrex extends Exchange {
         );
     }
 
-    public function get_order_id_field () {
+    public function get_order_id_field() {
         return 'uuid';
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $orderIdField = $this->get_order_id_field();
         $request = array();
@@ -792,7 +792,7 @@ class bittrex extends Exchange {
         ));
     }
 
-    public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         // https://support.bittrex.com/hc/en-us/articles/115003723911
         $request = array();
@@ -819,7 +819,7 @@ class bittrex extends Exchange {
         return $this->parse_transactions($response['result'], $currency, null, $limit);
     }
 
-    public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         // https://support.bittrex.com/hc/en-us/articles/115003723911
         $request = array();
@@ -864,7 +864,7 @@ class bittrex extends Exchange {
         return $this->parse_transactions($response['result'], $currency, $since, $limit);
     }
 
-    public function parse_transaction ($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null) {
         //
         // fetchDeposits
         //
@@ -959,14 +959,14 @@ class bittrex extends Exchange {
         );
     }
 
-    public function parse_symbol ($id) {
+    public function parse_symbol($id) {
         list($quoteId, $baseId) = explode($this->options['symbolSeparator'], $id);
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         return $base . '/' . $quote;
     }
 
-    public function parse_order ($order, $market = null) {
+    public function parse_order($order, $market = null) {
         if (is_array($order) && array_key_exists('marketSymbol', $order)) {
             return $this->parse_order_v3($order, $market);
         } else {
@@ -974,7 +974,7 @@ class bittrex extends Exchange {
         }
     }
 
-    public function parse_orders ($orders, $market = null, $since = null, $limit = null, $params = array ()) {
+    public function parse_orders($orders, $market = null, $since = null, $limit = null, $params = array ()) {
         if ($this->options['fetchClosedOrdersFilterBySince']) {
             return parent::parse_orders($orders, $market, $since, $limit, $params);
         } else {
@@ -982,7 +982,7 @@ class bittrex extends Exchange {
         }
     }
 
-    public function parse_order_status ($status) {
+    public function parse_order_status($status) {
         $statuses = array(
             'CLOSED' => 'closed',
             'OPEN' => 'open',
@@ -992,7 +992,7 @@ class bittrex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_v3 ($order, $market = null) {
+    public function parse_order_v3($order, $market = null) {
         //
         //     {
         //         id => '1be35109-b763-44ce-b6ea-05b6b0735c0c',
@@ -1076,7 +1076,7 @@ class bittrex extends Exchange {
         );
     }
 
-    public function parse_order_v2 ($order, $market = null) {
+    public function parse_order_v2($order, $market = null) {
         //
         //     {
         //         "Uuid" => "string (uuid)",
@@ -1214,7 +1214,7 @@ class bittrex extends Exchange {
         );
     }
 
-    public function fetch_order ($id, $symbol = null, $params = array ()) {
+    public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $response = null;
         try {
@@ -1237,7 +1237,7 @@ class bittrex extends Exchange {
         return $this->parse_order($response['result']);
     }
 
-    public function order_to_trade ($order) {
+    public function order_to_trade($order) {
         // this entire method should be moved to the base class
         $timestamp = $this->safe_integer_2($order, 'lastTradeTimestamp', 'timestamp');
         return array(
@@ -1256,7 +1256,7 @@ class bittrex extends Exchange {
         );
     }
 
-    public function orders_to_trades ($orders) {
+    public function orders_to_trades($orders) {
         // this entire method should be moved to the base class
         $result = array();
         for ($i = 0; $i < count($orders); $i++) {
@@ -1265,17 +1265,17 @@ class bittrex extends Exchange {
         return $result;
     }
 
-    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         $orders = $this->fetch_closed_orders($symbol, $since, $limit, $params);
         return $this->orders_to_trades($orders);
     }
 
-    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $method = $this->safe_string($this->options, 'fetchClosedOrdersMethod', 'fetch_closed_orders_v3');
         return $this->$method ($symbol, $since, $limit, $params);
     }
 
-    public function fetch_closed_orders_v2 ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders_v2($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array();
         $market = null;
@@ -1292,7 +1292,7 @@ class bittrex extends Exchange {
         return $orders;
     }
 
-    public function fetch_closed_orders_v3 ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders_v3($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array();
         if ($limit !== null) {
@@ -1321,7 +1321,7 @@ class bittrex extends Exchange {
         return $orders;
     }
 
-    public function fetch_deposit_address ($code, $params = array ()) {
+    public function fetch_deposit_address($code, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
@@ -1355,7 +1355,7 @@ class bittrex extends Exchange {
         );
     }
 
-    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency($code);
@@ -1376,7 +1376,7 @@ class bittrex extends Exchange {
         );
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->implode_params($this->urls['api'][$api], array(
             'hostname' => $this->hostname,
         )) . '/';
@@ -1449,7 +1449,7 @@ class bittrex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return; // fallback to default error handler
         }
@@ -1529,7 +1529,7 @@ class bittrex extends Exchange {
         }
     }
 
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2($path, $api, $method, $params, $headers, $body);
         // a workaround for APIKEY_INVALID
         if (($api === 'account') || ($api === 'market')) {

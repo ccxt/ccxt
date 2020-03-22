@@ -12,7 +12,7 @@ use \ccxt\NotSupported;
 
 class coinspot extends Exchange {
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'id' => 'coinspot',
             'name' => 'CoinSpot',
@@ -66,7 +66,7 @@ class coinspot extends Exchange {
         ));
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostMyBalances ($params);
         $result = array( 'info' => $response );
@@ -82,7 +82,7 @@ class coinspot extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -92,7 +92,7 @@ class coinspot extends Exchange {
         return $this->parse_order_book($orderbook, null, 'buyorders', 'sellorders', 'rate', 'amount');
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
         $response = $this->publicGetLatest ($params);
         $id = $this->market_id($symbol);
@@ -124,7 +124,7 @@ class coinspot extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -135,7 +135,7 @@ class coinspot extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $method = 'privatePostMy' . $this->capitalize($side);
         if ($type === 'market') {
@@ -149,13 +149,13 @@ class coinspot extends Exchange {
         return $this->$method (array_merge($request, $params));
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         throw new NotSupported($this->id . ' cancelOrder () is not fully implemented yet');
         // $method = 'privatePostMyBuy';
         // return $this->$method (array( 'id' => $id ));
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         if (!$this->apiKey) {
             throw new AuthenticationError($this->id . ' requires apiKey for all requests');
         }

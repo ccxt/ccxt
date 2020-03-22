@@ -11,7 +11,7 @@ use \ccxt\OrderNotFound;
 
 class bitso extends Exchange {
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'id' => 'bitso',
             'name' => 'Bitso',
@@ -101,7 +101,7 @@ class bitso extends Exchange {
         ));
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         $response = $this->publicGetAvailableBooks ($params);
         $markets = $this->safe_value($response, 'payload');
         $result = array();
@@ -147,7 +147,7 @@ class bitso extends Exchange {
         return $result;
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $response = $this->privateGetBalance ($params);
         $balances = $this->safe_value($response['payload'], 'balances');
@@ -166,7 +166,7 @@ class bitso extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'book' => $this->market_id($symbol),
@@ -177,7 +177,7 @@ class bitso extends Exchange {
         return $this->parse_order_book($orderbook, $timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
         $request = array(
             'book' => $this->market_id($symbol),
@@ -216,7 +216,7 @@ class bitso extends Exchange {
         );
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         $timestamp = $this->parse8601($this->safe_string($trade, 'created_at'));
         $symbol = null;
         if ($market === null) {
@@ -267,7 +267,7 @@ class bitso extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -277,7 +277,7 @@ class bitso extends Exchange {
         return $this->parse_trades($response['payload'], $market, $since, $limit);
     }
 
-    public function fetch_my_trades ($symbol = null, $since = null, $limit = 25, $params = array ()) {
+    public function fetch_my_trades($symbol = null, $since = null, $limit = 25, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         // the don't support fetching trades starting from a date yet
@@ -305,7 +305,7 @@ class bitso extends Exchange {
         return $this->parse_trades($response['payload'], $market, $since, $limit);
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'book' => $this->market_id($symbol),
@@ -324,7 +324,7 @@ class bitso extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'oid' => $id,
@@ -332,7 +332,7 @@ class bitso extends Exchange {
         return $this->privateDeleteOrdersOid (array_merge($request, $params));
     }
 
-    public function parse_order_status ($status) {
+    public function parse_order_status($status) {
         $statuses = array(
             'partial-fill' => 'open', // this is a common substitution in ccxt
             'completed' => 'closed',
@@ -340,7 +340,7 @@ class bitso extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order ($order, $market = null) {
+    public function parse_order($order, $market = null) {
         $id = $this->safe_string($order, 'oid');
         $side = $this->safe_string($order, 'side');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
@@ -391,7 +391,7 @@ class bitso extends Exchange {
         );
     }
 
-    public function fetch_open_orders ($symbol = null, $since = null, $limit = 25, $params = array ()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = 25, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         // the don't support fetching trades starting from a date yet
@@ -420,7 +420,7 @@ class bitso extends Exchange {
         return $orders;
     }
 
-    public function fetch_order ($id, $symbol = null, $params = array ()) {
+    public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $response = $this->privateGetOrdersOid (array(
             'oid' => $id,
@@ -435,7 +435,7 @@ class bitso extends Exchange {
         throw new OrderNotFound($this->id . ' => The order ' . $id . ' not found.');
     }
 
-    public function fetch_order_trades ($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -445,7 +445,7 @@ class bitso extends Exchange {
         return $this->parse_trades($response['payload'], $market);
     }
 
-    public function fetch_deposit_address ($code, $params = array ()) {
+    public function fetch_deposit_address($code, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
@@ -468,7 +468,7 @@ class bitso extends Exchange {
         );
     }
 
-    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
         $methods = array(
@@ -495,7 +495,7 @@ class bitso extends Exchange {
         );
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $endpoint = '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($method === 'GET') {
@@ -524,7 +524,7 @@ class bitso extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return; // fallback to default $error handler
         }
@@ -553,7 +553,7 @@ class bitso extends Exchange {
         }
     }
 
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2($path, $api, $method, $params, $headers, $body);
         if (is_array($response) && array_key_exists('success', $response)) {
             if ($response['success']) {
