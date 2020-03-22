@@ -151,7 +151,7 @@ module.exports = class binance extends ccxt.binance {
                     continue;
                 }
                 // 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
-                if ((U <= orderbook['nonce']) && (u >= orderbook['nonce']) || pu === orderbook['nonce']) {
+                if ((U <= orderbook['nonce']) && (u >= orderbook['nonce']) || (pu === orderbook['nonce'])) {
                     this.handleOrderBookMessage (client, message, orderbook);
                 }
             } else {
