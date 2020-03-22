@@ -15,34 +15,11 @@ const fs = require ('fs')
     } = require ('ccxt/build/fs.js')
     , errors = require ('ccxt/js/base/errors.js')
     , Transpiler = require ('ccxt/build/transpile.js')
+    , Exchange = require ('../js/base/Exchange.js')
 
 // ============================================================================
 
 class CCXTProTranspiler extends Transpiler {
-
-    getBaseMethods () {
-        return [
-            'filterBySinceLimit',
-            'orderBook',
-            'limitedOrderBook',
-            'indexedOrderBook',
-            'limitedIndexedOrderBook',
-            'limitedCountedOrderBook',
-            'countedOrderBook',
-            'afterAsync',
-            'afterDropped',
-            'watch',
-        ]
-    }
-
-    getPythonBaseMethods () {
-        return this.getBaseMethods ()
-    }
-
-    getPHPBaseMethods () {
-        return this.getBaseMethods ()
-    }
-
     // getCommonRegexes () {
     //     return super.getCommonRegexes ().concat ([
     //         [ /\.orderBook\s/g, '.order_book' ],
@@ -53,6 +30,10 @@ class CCXTProTranspiler extends Transpiler {
     //         [ /\.countedOrderBook\s/g, '.counted_order_book' ],
     //     ])
     // }
+
+    getBaseClass () {
+        return new Exchange ()
+    }
 
     getPHPPreamble () {
         return [
