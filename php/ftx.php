@@ -21,7 +21,10 @@ class ftx extends Exchange {
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/67149189-df896480-f2b0-11e9-8816-41593e17f9ec.jpg',
                 'www' => 'https://ftx.com',
-                'api' => 'https://ftx.com',
+                'api' => array(
+                    'public' => 'https://ftx.com',
+                    'private' => 'https://ftx.com',
+                ),
                 'doc' => 'https://github.com/ftexchange/ftx',
                 'fees' => 'https://ftexchange.zendesk.com/hc/en-us/articles/360024479432-Fees',
                 'referral' => 'https://ftx.com/#a=1623029',
@@ -1338,7 +1341,7 @@ class ftx extends Exchange {
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = '/api/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
-        $url = $this->urls['api'] . $request;
+        $url = $this->urls['api'][$api] . $request;
         if ($method !== 'POST') {
             if ($query) {
                 $suffix = '?' . $this->urlencode($query);
