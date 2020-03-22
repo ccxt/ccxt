@@ -85,11 +85,11 @@ class kraken extends \ccxt\kraken {
             $quoteVolume = $baseVolume * $vwap;
         }
         $last = $this->safe_float($ticker['c'], 0);
-        $timestamp = $this->milliseconds ();
+        $timestamp = $this->milliseconds();
         $result = array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker['h'], 0),
             'low' => $this->safe_float($ticker['l'], 0),
             'bid' => $this->safe_float($ticker['b'], 0),
@@ -221,14 +221,14 @@ class kraken extends \ccxt\kraken {
 
     public function reqid () {
         // their support said that $reqid must be an int32, not documented
-        $reqid = $this->sum ($this->safe_integer($this->options, 'reqid', 0), 1);
+        $reqid = $this->sum($this->safe_integer($this->options, 'reqid', 0), 1);
         $this->options['reqid'] = $reqid;
         return $reqid;
     }
 
     public function watch_public ($name, $symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $wsName = $this->safe_value($market['info'], 'wsname');
         $messageHash = $name . ':' . $wsName;
         $url = $this->urls['api']['ws']['public'];
@@ -254,7 +254,7 @@ class kraken extends \ccxt\kraken {
     public function watch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $name = 'trade';
         $future = $this->watch_public($name, $symbol, $params);
-        return $this->after ($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
+        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
     public function watch_order_book ($symbol, $limit = null, $params = array ()) {
@@ -266,7 +266,7 @@ class kraken extends \ccxt\kraken {
             );
         }
         $future = $this->watch_public($name, $symbol, array_merge($request, $params));
-        return $this->after ($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
     public function limit_order_book ($orderbook, $symbol, $limit = null, $params = array ()) {
@@ -276,7 +276,7 @@ class kraken extends \ccxt\kraken {
     public function watch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $name = 'ohlc';
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $wsName = $this->safe_value($market['info'], 'wsname');
         $messageHash = $name . ':' . $timeframe . ':' . $wsName;
         $url = $this->urls['api']['ws']['public'];
@@ -294,7 +294,7 @@ class kraken extends \ccxt\kraken {
         );
         $request = array_replace_recursive($subscribe, $params);
         $future = $this->watch($url, $messageHash, $request, $messageHash);
-        return $this->after ($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
+        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
     }
 
     public function load_markets ($reload = false, $params = array ()) {
@@ -401,7 +401,7 @@ class kraken extends \ccxt\kraken {
                 $timestamp = $this->handle_deltas($bookside, $deltas, $timestamp);
             }
             $orderbook['timestamp'] = $timestamp;
-            $orderbook['datetime'] = $this->iso8601 ($timestamp);
+            $orderbook['datetime'] = $this->iso8601($timestamp);
             $client->resolve ($orderbook, $messageHash);
         } else {
             $orderbook = $this->orderbooks[$symbol];
@@ -425,7 +425,7 @@ class kraken extends \ccxt\kraken {
                 $timestamp = $this->handle_deltas($orderbook['bids'], $b, $timestamp);
             }
             $orderbook['timestamp'] = $timestamp;
-            $orderbook['datetime'] = $this->iso8601 ($timestamp);
+            $orderbook['datetime'] = $this->iso8601($timestamp);
             $client->resolve ($orderbook, $messageHash);
         }
     }

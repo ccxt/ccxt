@@ -32,12 +32,12 @@ class upbit extends \ccxt\upbit {
 
     public function watch_public ($symbol, $channel, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $marketId = $market['id'];
         $url = $this->urls['api']['ws'];
         $request = array(
             array(
-                'ticket' => $this->uuid (),
+                'ticket' => $this->uuid(),
             ),
             array(
                 'type' => $channel,
@@ -56,12 +56,12 @@ class upbit extends \ccxt\upbit {
 
     public function watch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $future = $this->watch_public($symbol, 'trade');
-        return $this->after ($future, array($this, 'filter_by_since_limit'), $since, $limit, true);
+        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, true);
     }
 
     public function watch_order_book ($symbol, $limit = null, $params = array ()) {
         $future = $this->watch_public($symbol, 'orderbook');
-        return $this->after ($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
     public function limit_order_book ($orderbook, $symbol, $limit = null, $params = array ()) {
@@ -159,7 +159,7 @@ class upbit extends \ccxt\upbit {
             $bids->store ($bid_price, $bid_size);
         }
         $timestamp = $this->safe_integer($message, 'timestamp');
-        $datetime = $this->iso8601 ($timestamp);
+        $datetime = $this->iso8601($timestamp);
         $orderBook['timestamp'] = $timestamp;
         $orderBook['datetime'] = $datetime;
         $messageHash = 'orderbook:' . $marketId;

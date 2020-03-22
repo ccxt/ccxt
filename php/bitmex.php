@@ -49,7 +49,7 @@ class bitmex extends \ccxt\bitmex {
 
     public function watch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $name = 'instrument';
         $messageHash = $name . ':' . $market['id'];
         $url = $this->urls['api']['ws'];
@@ -400,7 +400,7 @@ class bitmex extends \ccxt\bitmex {
 
     public function watch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $table = 'trade';
         $messageHash = $table . ':' . $market['id'];
         $url = $this->urls['api']['ws'];
@@ -411,7 +411,7 @@ class bitmex extends \ccxt\bitmex {
             ),
         );
         $future = $this->watch($url, $messageHash, array_merge($request, $params), $messageHash);
-        return $this->after ($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
+        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
     public function watch_order_book ($symbol, $limit = null, $params = array ()) {
@@ -426,7 +426,7 @@ class bitmex extends \ccxt\bitmex {
             throw new ExchangeError($this->id . ' watchOrderBook $limit argument must be null (L2), 25 (L2) or 10 (L3)');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $messageHash = $table . ':' . $market['id'];
         $url = $this->urls['api']['ws'];
         $request = array(
@@ -436,7 +436,7 @@ class bitmex extends \ccxt\bitmex {
             ),
         );
         $future = $this->watch($url, $messageHash, array_replace_recursive($request, $params), $messageHash);
-        return $this->after ($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
     public function limit_order_book ($orderbook, $symbol, $limit = null, $params = array ()) {
@@ -445,7 +445,7 @@ class bitmex extends \ccxt\bitmex {
 
     public function watch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $table = 'tradeBin' . $this->timeframes[$timeframe];
         $messageHash = $table . ':' . $market['id'];
         $url = $this->urls['api']['ws'];
@@ -456,7 +456,7 @@ class bitmex extends \ccxt\bitmex {
             ),
         );
         $future = $this->watch($url, $messageHash, array_merge($request, $params), $messageHash);
-        return $this->after ($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
+        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
     }
 
     public function find_timeframe ($timeframe) {
@@ -551,7 +551,7 @@ class bitmex extends \ccxt\bitmex {
                 $symbol = $market['symbol'];
                 $messageHash = $table . ':' . $market['id'];
                 $result = array(
-                    $this->parse8601 ($this->safe_string($candle, 'timestamp')) - $duration * 1000,
+                    $this->parse8601($this->safe_string($candle, 'timestamp')) - $duration * 1000,
                     $this->safe_float($candle, 'open'),
                     $this->safe_float($candle, 'high'),
                     $this->safe_float($candle, 'low'),
@@ -670,7 +670,7 @@ class bitmex extends \ccxt\bitmex {
                     if (!(is_array($numUpdatesByMarketId) && array_key_exists($marketId, $numUpdatesByMarketId))) {
                         $numUpdatesByMarketId[$marketId] = 0;
                     }
-                    $numUpdatesByMarketId[$marketId] = $this->sum ($numUpdatesByMarketId, 1);
+                    $numUpdatesByMarketId[$marketId] = $this->sum($numUpdatesByMarketId, 1);
                     $market = $this->markets_by_id[$marketId];
                     $symbol = $market['symbol'];
                     $orderbook = $this->orderbooks[$symbol];
