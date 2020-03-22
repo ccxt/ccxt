@@ -148,13 +148,14 @@ class binance extends \ccxt\binance {
             $message = $messages[$i];
             $U = $this->safe_integer($message, 'U');
             $u = $this->safe_integer($message, 'u');
+            $pu = $this->safe_integer($message, 'pu');
             if ($type === 'future') {
                 // 4. Drop any event where $u is < lastUpdateId in the $snapshot
                 if ($u < $orderbook['nonce']) {
                     continue;
                 }
                 // 5. The first processed event should have $U <= lastUpdateId AND $u >= lastUpdateId
-                if (($U <= $orderbook['nonce']) && ($u >= $orderbook['nonce'])) {
+                if (($U <= $orderbook['nonce']) && ($u >= $orderbook['nonce']) || ($pu === $orderbook['nonce'])) {
                     $this->handle_order_book_message($client, $message, $orderbook);
                 }
             } else {
@@ -237,19 +238,25 @@ class binance extends \ccxt\binance {
                 $pu = $this->safe_integer($message, 'pu');
                 if ($pu === null) {
                     // spot
-                    // 4. Drop any event where $u is <= lastUpdateId in the snapshot
-                    if ($u > $orderbook['nonce']) {
+                    // // 4. Drop any event where $u is <= lastUpdateId in the snapshot
+                    // if ($u > $orderbook['nonce']) {
+                    $timestamp = $this->safe_integer($orderbook, 'timestamp');
+                    $conditional = null;
+                    if ($timestamp === null) {
                         // 5. The first processed event should have $U <= lastUpdateId+1 AND $u >= lastUpdateId+1
+                        $conditional = (($U - 1) <= $orderbook['nonce']) && (($u - 1) >= $orderbook['nonce']);
+                    } else {
                         // 6. While listening to the stream, each new event's $U should be equal to the previous event's $u+1.
-                        if (($U < $orderbook['nonce']) || (($U - 1) === $orderbook['nonce'])) {
-                            $this->handle_order_book_message($client, $message, $orderbook);
-                            if ($nonce < $orderbook['nonce']) {
-                                $client->resolve ($orderbook, $messageHash);
-                            }
-                        } else {
-                            // todo => $client->reject from handleOrderBookMessage properly
-                            throw new ExchangeError($this->id . ' handleOrderBook received an out-of-order nonce');
+                        $conditional = (($U - 1) === $orderbook['nonce']);
+                    }
+                    if ($conditional) {
+                        $this->handle_order_book_message($client, $message, $orderbook);
+                        if ($nonce < $orderbook['nonce']) {
+                            $client->resolve ($orderbook, $messageHash);
                         }
+                    } else {
+                        // todo => $client->reject from handleOrderBookMessage properly
+                        throw new ExchangeError($this->id . ' handleOrderBook received an out-of-order nonce');
                     }
                 } else {
                     // future
