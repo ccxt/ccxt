@@ -11,7 +11,7 @@ use \ccxt\ArgumentsRequired;
 
 class bw extends Exchange {
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'id' => 'bw',
             'name' => 'BW',
@@ -136,7 +136,7 @@ class bw extends Exchange {
         ));
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         $response = $this->publicGetExchangeConfigControllerWebsiteMarketcontrollerGetByWebId ($params);
         //
         //     {
@@ -225,7 +225,7 @@ class bw extends Exchange {
         return $result;
     }
 
-    public function fetch_currencies ($params = array ()) {
+    public function fetch_currencies($params = array ()) {
         $response = $this->publicGetExchangeConfigControllerWebsiteCurrencycontrollerGetCurrencyList ($params);
         //
         //     {
@@ -319,7 +319,7 @@ class bw extends Exchange {
         return $result;
     }
 
-    public function parse_ticker ($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null) {
         //
         //     [
         //         "281",            // $market id
@@ -345,14 +345,14 @@ class bw extends Exchange {
         } else {
             $symbol = $marketId;
         }
-        $timestamp = $this->milliseconds ();
+        $timestamp = $this->milliseconds();
         $close = floatval ($this->safe_value($ticker, 1));
         $bid = $this->safe_value($ticker, 'bid', array());
         $ask = $this->safe_value($ticker, 'ask', array());
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => floatval ($this->safe_value($ticker, 2)),
             'low' => floatval ($this->safe_value($ticker, 3)),
             'bid' => floatval ($this->safe_value($ticker, 7)),
@@ -373,9 +373,9 @@ class bw extends Exchange {
         );
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'marketId' => $market['id'],
         );
@@ -401,7 +401,7 @@ class bw extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function fetch_tickers ($symbols = null, $params = array ()) {
+    public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
         $response = $this->publicGetApiDataV1Tickers ($params);
         //
@@ -435,9 +435,9 @@ class bw extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'marketId' => $market['id'],
         );
@@ -468,7 +468,7 @@ class bw extends Exchange {
         return $this->parse_order_book($orderbook, $timestamp);
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         //
         // fetchTrades (public)
         //
@@ -516,7 +516,7 @@ class bw extends Exchange {
         return array(
             'id' => null,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'order' => null,
             'type' => 'limit',
@@ -530,9 +530,9 @@ class bw extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'marketId' => $market['id'],
         );
@@ -560,7 +560,7 @@ class bw extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
         return array(
             $this->safe_timestamp($ohlcv, 3),
             $this->safe_float($ohlcv, 4),
@@ -571,9 +571,9 @@ class bw extends Exchange {
         );
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'marketId' => $market['id'],
             'type' => $this->timeframes[$timeframe],
@@ -588,7 +588,7 @@ class bw extends Exchange {
         return $this->sort_by($ohlcvs, 0);
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostExchangeFundControllerWebsiteFundcontrollerFindbypage ($params);
         //
@@ -615,7 +615,7 @@ class bw extends Exchange {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'currencyTypeId');
             $code = $this->safe_currency_code($currencyId);
-            $account = $this->account ();
+            $account = $this->account();
             $account['free'] = $this->safe_float($balance, 'amount');
             $account['used'] = $this->safe_float($balance, 'freeze');
             $result[$code] = $account;
@@ -623,12 +623,12 @@ class bw extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         if ($price === null) {
             throw new ExchangeError($this->id . ' allows limit orders only');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'amount' => $this->amount_to_precision($symbol, $amount),
             'price' => $this->price_to_precision($symbol, $price),
@@ -672,7 +672,7 @@ class bw extends Exchange {
         );
     }
 
-    public function parse_order_status ($status) {
+    public function parse_order_status($status) {
         $statuses = array(
             '-3' => 'canceled',
             '-2' => 'canceled',
@@ -686,7 +686,7 @@ class bw extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order ($order, $market = null) {
+    public function parse_order($order, $market = null) {
         //
         // fetchOrder, fetchOpenOrders, fetchClosedOrders
         //
@@ -739,7 +739,7 @@ class bw extends Exchange {
             'info' => $order,
             'id' => $this->safe_string($order, 'entrustId'),
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'symbol' => $this->safe_string($market, 'symbol'),
             'type' => 'limit',
@@ -756,12 +756,12 @@ class bw extends Exchange {
         );
     }
 
-    public function fetch_order ($id, $symbol = null, $params = array ()) {
+    public function fetch_order($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrder requires a $symbol argument');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'marketId' => $market['id'],
             'entrustId' => $id,
@@ -791,12 +791,12 @@ class bw extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder requires a $symbol argument');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'marketId' => $market['id'],
             'entrustId' => $id,
@@ -814,12 +814,12 @@ class bw extends Exchange {
         );
     }
 
-    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'marketId' => $market['id'],
             // 'pageSize' => $limit, // documented as required, but it works without it
@@ -861,12 +861,12 @@ class bw extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'marketId' => $market['id'],
         );
@@ -882,12 +882,12 @@ class bw extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'marketId' => $market['id'],
             // 'pageSize' => $limit, // documented as required, but it works without it
@@ -895,7 +895,7 @@ class bw extends Exchange {
             // 'type' => 0, // 0 = sell, 1 = buy, -1 = cancel
             // 'status' => -1, // -1 = insufficient funds, failed $orders, 0 = pending $orders, 1 = canceled, 2 = closed, 3 = partial
             // 'startDateTime' => $since,
-            // 'endDateTime' => $this->milliseconds (),
+            // 'endDateTime' => $this->milliseconds(),
         );
         if ($since !== null) {
             $request['startDateTime'] = $since;
@@ -936,20 +936,20 @@ class bw extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->implode_params($this->urls['api'], array( 'hostname' => $this->hostname )) . '/' . $path;
         if ($method === 'GET') {
             if ($params) {
-                $url .= '?' . $this->urlencode ($params);
+                $url .= '?' . $this->urlencode($params);
             }
         } else {
-            $body = $this->json ($params);
+            $body = $this->json($params);
         }
         if ($api === 'private') {
-            $ms = (string) $this->milliseconds ();
+            $ms = (string) $this->milliseconds();
             $content = '';
             if ($method === 'GET') {
-                $sortedParams = $this->keysort ($params);
+                $sortedParams = $this->keysort($params);
                 $keys = is_array($sortedParams) ? array_keys($sortedParams) : array();
                 for ($i = 0; $i < count($keys); $i++) {
                     $key = $keys[$i];
@@ -959,7 +959,7 @@ class bw extends Exchange {
                 $content = $body;
             }
             $signature = $this->apiKey . $ms . $content . $this->secret;
-            $hash = $this->hash ($this->encode ($signature), 'md5');
+            $hash = $this->hash($this->encode($signature), 'md5');
             if (!$headers) {
                 $headers = array();
             }
@@ -970,9 +970,9 @@ class bw extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function fetch_deposit_address ($code, $params = array ()) {
+    public function fetch_deposit_address($code, $params = array ()) {
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $request = array(
             'currencyTypeName' => $currency['name'],
         );
@@ -1000,7 +1000,7 @@ class bw extends Exchange {
         );
     }
 
-    public function parse_transaction_status ($status) {
+    public function parse_transaction_status($status) {
         $statuses = array(
             '-1' => 'canceled', // or auditing failed
             '0' => 'pending',
@@ -1009,7 +1009,7 @@ class bw extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction ($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null) {
         //
         // fetchDeposits
         //
@@ -1050,7 +1050,7 @@ class bw extends Exchange {
         }
         $type = (is_array($transaction) && array_key_exists('depositId', $transaction)) ? 'deposit' : 'withdrawal';
         $amount = $this->safe_float_2($transaction, 'actuallyAmount', 'amount');
-        $status = $this->parse_transaction_status ($this->safe_string_2($transaction, 'verifyStatus', 'state'));
+        $status = $this->parse_transaction_status($this->safe_string_2($transaction, 'verifyStatus', 'state'));
         $timestamp = $this->safe_integer($transaction, 'createTime');
         $txid = $this->safe_string($transaction, 'txId');
         $fee = null;
@@ -1066,7 +1066,7 @@ class bw extends Exchange {
             'id' => $id,
             'txid' => $txid,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'addressFrom' => null,
             'address' => $address,
             'addressTo' => null,
@@ -1082,12 +1082,12 @@ class bw extends Exchange {
         );
     }
 
-    public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
         if ($code === null) {
             throw new ArgumentsRequired($this->id . ' fetchDeposits() requires a $currency $code argument');
         }
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $request = array(
             'currencyTypeName' => $currency['name'],
             // 'pageSize' => $limit, // documented as required, but it works without it
@@ -1126,12 +1126,12 @@ class bw extends Exchange {
         return $this->parse_transactions($deposits, $code, $since, $limit);
     }
 
-    public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
         if ($code === null) {
             throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires a $currency $code argument');
         }
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $request = array(
             'currencyId' => $currency['id'],
             // 'pageSize' => $limit, // documented as required, but it works without it
@@ -1171,14 +1171,14 @@ class bw extends Exchange {
         return $this->parse_transactions($withdrawals, $code, $since, $limit);
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if (!$response) {
             return; // default error handler
         }
         $resMsg = $this->safe_value($response, 'resMsg');
         $errorCode = $this->safe_string($resMsg, 'code');
         if ($errorCode !== '1') {
-            $feedback = $this->id . ' ' . $this->json ($response);
+            $feedback = $this->id . ' ' . $this->json($response);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
             throw new ExchangeError($feedback); // unknown error
         }

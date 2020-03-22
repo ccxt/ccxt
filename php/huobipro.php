@@ -12,7 +12,7 @@ use \ccxt\InvalidOrder;
 
 class huobipro extends Exchange {
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'id' => 'huobipro',
             'name' => 'Huobi Pro',
@@ -198,7 +198,7 @@ class huobipro extends Exchange {
         ));
     }
 
-    public function fetch_trading_limits ($symbols = null, $params = array ()) {
+    public function fetch_trading_limits($symbols = null, $params = array ()) {
         // this method should not be called directly, use loadTradingLimits () instead
         //  by default it will try load withdrawal fees of all currencies (with separate requests)
         //  however if you define $symbols = array( 'ETH/BTC', 'LTC/BTC' ) in args it will only load those
@@ -209,12 +209,12 @@ class huobipro extends Exchange {
         $result = array();
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];
-            $result[$symbol] = $this->fetch_trading_limits_by_id ($this->market_id($symbol), $params);
+            $result[$symbol] = $this->fetch_trading_limits_by_id($this->market_id($symbol), $params);
         }
         return $result;
     }
 
-    public function fetch_trading_limits_by_id ($id, $params = array ()) {
+    public function fetch_trading_limits_by_id($id, $params = array ()) {
         $request = array(
             'symbol' => $id,
         );
@@ -235,10 +235,10 @@ class huobipro extends Exchange {
         //                 'market-sell-order-rate-must-less-than' =>  0.1,
         //                  'market-buy-order-rate-must-less-than' =>  0.1        } }
         //
-        return $this->parse_trading_limits ($this->safe_value($response, 'data', array()));
+        return $this->parse_trading_limits($this->safe_value($response, 'data', array()));
     }
 
-    public function parse_trading_limits ($limits, $symbol = null, $params = array ()) {
+    public function parse_trading_limits($limits, $symbol = null, $params = array ()) {
         //
         //   {                                  $symbol => "aidocbtc",
         //                  'buy-limit-must-less-than' =>  1.1,
@@ -265,13 +265,13 @@ class huobipro extends Exchange {
         );
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         $method = $this->options['fetchMarketsMethod'];
         $response = $this->$method ($params);
         $markets = $this->safe_value($response, 'data');
         $numMarkets = is_array($markets) ? count($markets) : 0;
         if ($numMarkets < 1) {
-            throw new ExchangeError($this->id . ' publicGetCommonSymbols returned empty $response => ' . $this->json ($markets));
+            throw new ExchangeError($this->id . ' publicGetCommonSymbols returned empty $response => ' . $this->json($markets));
         }
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
@@ -324,7 +324,7 @@ class huobipro extends Exchange {
         return $result;
     }
 
-    public function parse_ticker ($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null) {
         //
         //     {
         //         "amount" => 26228.672978342216,
@@ -368,7 +368,7 @@ class huobipro extends Exchange {
         $average = null;
         if (($open !== null) && ($close !== null)) {
             $change = $close - $open;
-            $average = $this->sum ($open, $close) / 2;
+            $average = $this->sum($open, $close) / 2;
             if (($close !== null) && ($close > 0)) {
                 $percentage = ($change / $open) * 100;
             }
@@ -382,7 +382,7 @@ class huobipro extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
             'bid' => $bid,
@@ -403,9 +403,9 @@ class huobipro extends Exchange {
         );
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
             'type' => 'step0',
@@ -434,7 +434,7 @@ class huobipro extends Exchange {
         //
         if (is_array($response) && array_key_exists('tick', $response)) {
             if (!$response['tick']) {
-                throw new ExchangeError($this->id . ' fetchOrderBook() returned empty $response => ' . $this->json ($response));
+                throw new ExchangeError($this->id . ' fetchOrderBook() returned empty $response => ' . $this->json($response));
             }
             $tick = $this->safe_value($response, 'tick');
             $timestamp = $this->safe_integer($tick, 'ts', $this->safe_integer($response, 'ts'));
@@ -442,12 +442,12 @@ class huobipro extends Exchange {
             $result['nonce'] = $this->safe_integer($tick, 'version');
             return $result;
         }
-        throw new ExchangeError($this->id . ' fetchOrderBook() returned unrecognized $response => ' . $this->json ($response));
+        throw new ExchangeError($this->id . ' fetchOrderBook() returned unrecognized $response => ' . $this->json($response));
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
@@ -475,11 +475,11 @@ class huobipro extends Exchange {
         $ticker = $this->parse_ticker($response['tick'], $market);
         $timestamp = $this->safe_value($response, 'ts');
         $ticker['timestamp'] = $timestamp;
-        $ticker['datetime'] = $this->iso8601 ($timestamp);
+        $ticker['datetime'] = $this->iso8601($timestamp);
         return $ticker;
     }
 
-    public function fetch_tickers ($symbols = null, $params = array ()) {
+    public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
         $response = $this->marketGetTickers ($params);
         $tickers = $this->safe_value($response, 'data');
@@ -493,14 +493,14 @@ class huobipro extends Exchange {
                 $symbol = $market['symbol'];
                 $ticker = $this->parse_ticker($tickers[$i], $market);
                 $ticker['timestamp'] = $timestamp;
-                $ticker['datetime'] = $this->iso8601 ($timestamp);
+                $ticker['datetime'] = $this->iso8601($timestamp);
                 $result[$symbol] = $ticker;
             }
         }
         return $result;
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         //
         // fetchTrades (public)
         //
@@ -569,7 +569,7 @@ class huobipro extends Exchange {
             'info' => $trade,
             'order' => $order,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
@@ -581,28 +581,28 @@ class huobipro extends Exchange {
         );
     }
 
-    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = null;
         $request = array();
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
         if ($limit !== null) {
             $request['size'] = $limit; // 1-100 orders, default is 100
         }
         if ($since !== null) {
-            $request['start-date'] = $this->ymd ($since); // maximum query window size is 2 days, query window shift should be within past 120 days
+            $request['start-date'] = $this->ymd($since); // maximum query window size is 2 days, query window shift should be within past 120 days
         }
         $response = $this->privateGetOrderMatchresults (array_merge($request, $params));
         $trades = $this->parse_trades($response['data'], $market, $since, $limit);
         return $trades;
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = 1000, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = 1000, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
@@ -647,7 +647,7 @@ class huobipro extends Exchange {
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
     }
 
-    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
         return array(
             $this->safe_timestamp($ohlcv, 'id'),
             $this->safe_float($ohlcv, 'open'),
@@ -658,9 +658,9 @@ class huobipro extends Exchange {
         );
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = 1000, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = 1000, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
             'period' => $this->timeframes[$timeframe],
@@ -672,13 +672,13 @@ class huobipro extends Exchange {
         return $this->parse_ohlcvs($response['data'], $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_accounts ($params = array ()) {
+    public function fetch_accounts($params = array ()) {
         $this->load_markets();
         $response = $this->privateGetAccountAccounts ($params);
         return $response['data'];
     }
 
-    public function fetch_currencies ($params = array ()) {
+    public function fetch_currencies($params = array ()) {
         $request = array(
             'language' => $this->options['language'],
         );
@@ -752,7 +752,7 @@ class huobipro extends Exchange {
         return $result;
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $this->load_accounts();
         $method = $this->options['fetchBalanceMethod'];
@@ -770,7 +770,7 @@ class huobipro extends Exchange {
             if (is_array($result) && array_key_exists($code, $result)) {
                 $account = $result[$code];
             } else {
-                $account = $this->account ();
+                $account = $this->account();
             }
             if ($balance['type'] === 'trade') {
                 $account['free'] = $this->safe_float($balance, 'balance');
@@ -783,14 +783,14 @@ class huobipro extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_orders_by_states ($states, $symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders_by_states($states, $symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'states' => $states,
         );
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
         $method = $this->safe_string($this->options, 'fetchOrdersByStatesMethod', 'private_get_order_orders');
@@ -815,7 +815,7 @@ class huobipro extends Exchange {
         return $this->parse_orders($response['data'], $market, $since, $limit);
     }
 
-    public function fetch_order ($id, $symbol = null, $params = array ()) {
+    public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'id' => $id,
@@ -825,32 +825,32 @@ class huobipro extends Exchange {
         return $this->parse_order($order);
     }
 
-    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders_by_states ('pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled', $symbol, $since, $limit, $params);
+    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_orders_by_states('pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $method = $this->safe_string($this->options, 'fetchOpenOrdersMethod', 'fetch_open_orders_v1');
         return $this->$method ($symbol, $since, $limit, $params);
     }
 
-    public function fetch_open_orders_v1 ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders_v1($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOpenOrdersV1 requires a $symbol argument');
         }
-        return $this->fetch_orders_by_states ('pre-submitted,submitted,partial-filled', $symbol, $since, $limit, $params);
+        return $this->fetch_orders_by_states('pre-submitted,submitted,partial-filled', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders_by_states ('filled,partial-canceled,canceled', $symbol, $since, $limit, $params);
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_orders_by_states('filled,partial-canceled,canceled', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_open_orders_v2 ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders_v2($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOpenOrders requires a $symbol argument');
         }
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $accountId = $this->safe_string($params, 'account-id');
         if ($accountId === null) {
             // pick the first $account
@@ -872,7 +872,7 @@ class huobipro extends Exchange {
         if ($limit !== null) {
             $request['size'] = $limit;
         }
-        $omitted = $this->omit ($params, 'account-id');
+        $omitted = $this->omit($params, 'account-id');
         $response = $this->privateGetOrderOpenOrders (array_merge($request, $omitted));
         //
         //     {
@@ -899,7 +899,7 @@ class huobipro extends Exchange {
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function parse_order_status ($status) {
+    public function parse_order_status($status) {
         $statuses = array(
             'partial-filled' => 'open',
             'partial-canceled' => 'canceled',
@@ -910,7 +910,7 @@ class huobipro extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order ($order, $market = null) {
+    public function parse_order($order, $market = null) {
         //
         //     {                  $id =>  13997833014,
         //                    $symbol => "ethbtc",
@@ -1002,7 +1002,7 @@ class huobipro extends Exchange {
             'info' => $order,
             'id' => $id,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
@@ -1018,10 +1018,10 @@ class huobipro extends Exchange {
         );
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $this->load_accounts();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'account-id' => $this->accounts[0]['id'],
             'symbol' => $market['id'],
@@ -1050,13 +1050,13 @@ class huobipro extends Exchange {
         }
         $method = $this->options['createOrderMethod'];
         $response = $this->$method (array_merge($request, $params));
-        $timestamp = $this->milliseconds ();
+        $timestamp = $this->milliseconds();
         $id = $this->safe_string($response, 'data');
         return array(
             'info' => $response,
             'id' => $id,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'status' => null,
             'symbol' => $symbol,
@@ -1072,7 +1072,7 @@ class huobipro extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         $response = $this->privatePostOrderOrdersIdSubmitcancel (array( 'id' => $id ));
         //
         //     $response = array(
@@ -1086,11 +1086,11 @@ class huobipro extends Exchange {
         ));
     }
 
-    public function currency_to_precision ($currency, $fee) {
+    public function currency_to_precision($currency, $fee) {
         return $this->decimal_to_precision($fee, 0, $this->currencies[$currency]['precision']);
     }
 
-    public function calculate_fee ($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
+    public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
         $market = $this->markets[$symbol];
         $rate = $market[$takerOrMaker];
         $cost = $amount * $rate;
@@ -1108,10 +1108,10 @@ class huobipro extends Exchange {
         );
     }
 
-    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
         $this->load_markets();
         $this->check_address($address);
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $request = array(
             'address' => $address, // only supports existing addresses in your withdraw $address list
             'amount' => $amount,
@@ -1128,7 +1128,7 @@ class huobipro extends Exchange {
         );
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = '/';
         if ($api === 'market') {
             $url .= $api;
@@ -1136,10 +1136,10 @@ class huobipro extends Exchange {
             $url .= $this->version;
         }
         $url .= '/' . $this->implode_params($path, $params);
-        $query = $this->omit ($params, $this->extract_params($path));
+        $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'private') {
             $this->check_required_credentials();
-            $timestamp = $this->ymdhms ($this->milliseconds (), 'T');
+            $timestamp = $this->ymdhms($this->milliseconds(), 'T');
             $request = array(
                 'SignatureMethod' => 'HmacSHA256',
                 'SignatureVersion' => '2',
@@ -1149,16 +1149,16 @@ class huobipro extends Exchange {
             if ($method !== 'POST') {
                 $request = array_merge($request, $query);
             }
-            $request = $this->keysort ($request);
-            $auth = $this->urlencode ($request);
+            $request = $this->keysort($request);
+            $auth = $this->urlencode($request);
             // unfortunately, PHP demands double quotes for the escaped newline symbol
             // eslint-disable-next-line quotes
             $payload = implode("\n", array($method, $this->hostname, $url, $auth));
-            $signature = $this->hmac ($this->encode ($payload), $this->encode ($this->secret), 'sha256', 'base64');
-            $auth .= '&' . $this->urlencode (array( 'Signature' => $signature ));
+            $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
+            $auth .= '&' . $this->urlencode(array( 'Signature' => $signature ));
             $url .= '?' . $auth;
             if ($method === 'POST') {
-                $body = $this->json ($query);
+                $body = $this->json($query);
                 $headers = array(
                     'Content-Type' => 'application/json',
                 );
@@ -1169,7 +1169,7 @@ class huobipro extends Exchange {
             }
         } else {
             if ($params) {
-                $url .= '?' . $this->urlencode ($params);
+                $url .= '?' . $this->urlencode($params);
             }
         }
         $url = $this->implode_params($this->urls['api'][$api], array(
@@ -1178,7 +1178,7 @@ class huobipro extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return; // fallback to default error handler
         }
@@ -1198,14 +1198,14 @@ class huobipro extends Exchange {
         }
     }
 
-    public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
         if ($limit === null || $limit > 100) {
             $limit = 100;
         }
         $this->load_markets();
         $currency = null;
         if ($code !== null) {
-            $currency = $this->currency ($code);
+            $currency = $this->currency($code);
         }
         $request = array(
             'type' => 'deposit',
@@ -1222,14 +1222,14 @@ class huobipro extends Exchange {
         return $this->parse_transactions($response['data'], $currency, $since, $limit);
     }
 
-    public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
         if ($limit === null || $limit > 100) {
             $limit = 100;
         }
         $this->load_markets();
         $currency = null;
         if ($code !== null) {
-            $currency = $this->currency ($code);
+            $currency = $this->currency($code);
         }
         $request = array(
             'type' => 'withdraw',
@@ -1246,7 +1246,7 @@ class huobipro extends Exchange {
         return $this->parse_transactions($response['data'], $currency, $since, $limit);
     }
 
-    public function parse_transaction ($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null) {
         //
         // fetchDeposits
         //
@@ -1289,7 +1289,7 @@ class huobipro extends Exchange {
         if ($type === 'withdraw') {
             $type = 'withdrawal';
         }
-        $status = $this->parse_transaction_status ($this->safe_string($transaction, 'state'));
+        $status = $this->parse_transaction_status($this->safe_string($transaction, 'state'));
         $tag = $this->safe_string($transaction, 'address-tag');
         $feeCost = $this->safe_float($transaction, 'fee');
         if ($feeCost !== null) {
@@ -1300,7 +1300,7 @@ class huobipro extends Exchange {
             'id' => $this->safe_string($transaction, 'id'),
             'txid' => $this->safe_string($transaction, 'tx-hash'),
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'address' => $this->safe_string($transaction, 'address'),
             'tag' => $tag,
             'type' => $type,
@@ -1316,7 +1316,7 @@ class huobipro extends Exchange {
         );
     }
 
-    public function parse_transaction_status ($status) {
+    public function parse_transaction_status($status) {
         $statuses = array(
             // deposit $statuses
             'unknown' => 'failed',

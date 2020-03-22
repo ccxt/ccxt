@@ -57,7 +57,7 @@ module.exports = class bitmax extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/66820319-19710880-ef49-11e9-8fbe-16be62a11992.jpg',
                 'api': 'https://bitmax.io',
-                'test': 'https://bitmax-test.io/api',
+                'test': 'https://bitmax-test.io',
                 'www': 'https://bitmax.io',
                 'doc': [
                     'https://bitmax-exchange.github.io/bitmax-pro-api/#rest-apis',
@@ -150,6 +150,10 @@ module.exports = class bitmax extends Exchange {
                     '600503': InvalidOrder, // {"code":600503,"message":"Notional is too small."}
                 },
                 'broad': {},
+            },
+            'commonCurrencies': {
+                'BTCBEAR': 'BEAR',
+                'BTCBULL': 'BULL',
             },
         });
     }
@@ -1291,7 +1295,7 @@ module.exports = class bitmax extends Exchange {
                 'Content-Type': 'application/json',
             };
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
-            headers['x-auth-signature'] = signature;
+            headers['x-auth-signature'] = this.decode (signature);
             if (method === 'GET') {
                 if (Object.keys (query).length) {
                     url += '?' + this.urlencode (query);

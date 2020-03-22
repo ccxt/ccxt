@@ -65,7 +65,7 @@ class bitmax(Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/66820319-19710880-ef49-11e9-8fbe-16be62a11992.jpg',
                 'api': 'https://bitmax.io',
-                'test': 'https://bitmax-test.io/api',
+                'test': 'https://bitmax-test.io',
                 'www': 'https://bitmax.io',
                 'doc': [
                     'https://bitmax-exchange.github.io/bitmax-pro-api/#rest-apis',
@@ -158,6 +158,10 @@ class bitmax(Exchange):
                     '600503': InvalidOrder,  # {"code":600503,"message":"Notional is too small."}
                 },
                 'broad': {},
+            },
+            'commonCurrencies': {
+                'BTCBEAR': 'BEAR',
+                'BTCBULL': 'BULL',
             },
         })
 
@@ -1212,7 +1216,7 @@ class bitmax(Exchange):
                 'Content-Type': 'application/json',
             }
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
-            headers['x-auth-signature'] = signature
+            headers['x-auth-signature'] = self.decode(signature)
             if method == 'GET':
                 if query:
                     url += '?' + self.urlencode(query)

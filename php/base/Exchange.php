@@ -35,7 +35,7 @@ use kornrunner\Solidity;
 use Elliptic\EC;
 use BN\BN;
 
-$version = '1.23.79';
+$version = '1.24.78';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -54,7 +54,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.23.79';
+    const VERSION = '1.24.78';
 
     public static $exchanges = array(
         '_1btcxe',
@@ -98,6 +98,7 @@ class Exchange {
         'btcturk',
         'buda',
         'bw',
+        'bybit',
         'bytetrade',
         'cex',
         'chilebit',
@@ -155,7 +156,7 @@ class Exchange {
         'mercado',
         'mixcoins',
         'oceanex',
-        'okcoincny',
+        'okcoin',
         'okcoinusd',
         'okex',
         'okex3',
@@ -817,6 +818,8 @@ class Exchange {
         $this->symbols = null;
         $this->ids = null;
         $this->currencies = array();
+        $this->base_currencies = null;
+        $this->quote_currencies = null;
         $this->balance = array();
         $this->orderbooks = array();
         $this->tickers = array();
@@ -1483,7 +1486,11 @@ class Exchange {
             }, array_filter($values, function ($market) {
                 return array_key_exists('quote', $market);
             }));
-            $currencies = static::index_by(array_merge($base_currencies, $quote_currencies), 'code');
+            $base_currencies = static::sort_by($base_currencies, 'code');
+            $quote_currencies = static::sort_by($quote_currencies, 'code');
+            $this->base_currencies = static::index_by($base_currencies, 'code');
+            $this->quote_currencies = static::index_by($quote_currencies, 'code');
+            $currencies = array_merge($this->base_currencies, $this->quote_currencies);
             $this->currencies = array_replace_recursive($currencies, $this->currencies);
         }
         $this->currencies_by_id = static::index_by(array_values($this->currencies), 'id');
@@ -1703,22 +1710,29 @@ class Exchange {
         return $this->markets;
     }
 
-    public function filter_by_since_limit($array, $since = null, $limit = null, $key = 'timestamp') {
+    public function filter_by_since_limit($array, $since = null, $limit = null, $key = 'timestamp', $tail = false) {
         $result = array();
         $array = array_values($array);
-        foreach ($array as $entry) {
-            if ($entry[$key] > $since) {
-                $result[] = $entry;
+        $since_is_set = isset($since);
+        if ($since_is_set) {
+            foreach ($array as $entry) {
+                if ($entry[$key] > $since) {
+                    $result[] = $entry;
+                }
             }
+        } else {
+            $result = $array;
         }
-        if ($limit) {
-            $result = array_slice($result, 0, $limit);
+        if (isset($limit)) {
+            $result = ($tail && !$since_is_set) ?
+                array_slice($result, -$limit) :
+                array_slice($result, 0, $limit);
         }
         return $result;
     }
 
-    public function filterBySinceLimit($array, $since = null, $limit = null, $key = 'timestamp') {
-        return $this->filter_by_since_limit($array, $since, $limit, $key);
+    public function filterBySinceLimit($array, $since = null, $limit = null, $key = 'timestamp', $tail = false) {
+        return $this->filter_by_since_limit($array, $since, $limit, $key, $tail);
     }
 
     public function parse_trades($trades, $market = null, $since = null, $limit = null, $params = array()) {
@@ -1822,15 +1836,20 @@ class Exchange {
         return $this->filter_by_symbol($orders, $symbol);
     }
 
-    public function filter_by_value_since_limit($array, $field, $value = null, $since = null, $limit = null) {
+    public function filter_by_value_since_limit($array, $field, $value = null, $since = null, $limit = null, $key = 'timestamp', $tail = false) {
         $array = array_values($array);
         $valueIsSet = isset($value);
         $sinceIsSet = isset($since);
         $array = array_filter($array, function ($element) use ($valueIsSet, $value, $sinceIsSet, $since, $field) {
             return ($valueIsSet ? ($element[$field] === $value) : true) &&
-                    ($sinceIsSet ? ($element['timestamp'] >= $since) : true);
+                    ($sinceIsSet ? ($element[$key] >= $since) : true);
         });
-        return array_slice($array, 0, isset($limit) ? $limit : count($array));
+        if (isset($limit)) {
+            return ($tail && !$sinceIsSet) ?
+                array_slice($array, -$limit) :
+                array_slice($array, 0, $limit);
+        }
+        return $array;
     }
 
     public function filter_by_symbol_since_limit($array, $symbol = null, $since = null, $limit = null) {
@@ -2068,37 +2087,36 @@ class Exchange {
         return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
     }
 
-    public function convert_trading_view_to_ohlcv($ohlcvs) {
+    public function convert_trading_view_to_ohlcv($ohlcvs, $t = 't', $o = 'o', $h = 'h', $l = 'l', $c = 'c', $v = 'v', $ms = false) {
         $result = array();
-        for ($i = 0; $i < count($ohlcvs['t']); $i++) {
+        for ($i = 0; $i < count($ohlcvs[$t]); $i++) {
             $result[] = array(
-                $ohlcvs['t'][$i] * 1000,
-                $ohlcvs['o'][$i],
-                $ohlcvs['h'][$i],
-                $ohlcvs['l'][$i],
-                $ohlcvs['c'][$i],
-                $ohlcvs['v'][$i],
+                $ms ? $ohlcvs[$t][$i] : ($ohlcvs[$t][$i] * 1000),
+                $ohlcvs[$o][$i],
+                $ohlcvs[$h][$i],
+                $ohlcvs[$l][$i],
+                $ohlcvs[$c][$i],
+                $ohlcvs[$v][$i],
             );
         }
         return $result;
     }
 
-    public function convert_ohlcv_to_trading_view($ohlcvs) {
-        $result = array(
-            't' => array(),
-            'o' => array(),
-            'h' => array(),
-            'l' => array(),
-            'c' => array(),
-            'v' => array(),
-        );
+    public function convert_ohlcv_to_trading_view($ohlcvs, $t = 't', $o = 'o', $h = 'h', $l = 'l', $c = 'c', $v = 'v', $ms = false) {
+        $result = array();
+        $result[$t] = array();
+        $result[$o] = array();
+        $result[$h] = array();
+        $result[$l] = array();
+        $result[$c] = array();
+        $result[$v] = array();
         for ($i = 0; $i < count($ohlcvs); $i++) {
-            $result['t'][] = intval($ohlcvs[$i][0] / 1000);
-            $result['o'][] = $ohlcvs[$i][1];
-            $result['h'][] = $ohlcvs[$i][2];
-            $result['l'][] = $ohlcvs[$i][3];
-            $result['c'][] = $ohlcvs[$i][4];
-            $result['v'][] = $ohlcvs[$i][5];
+            $result[$t][] = $ms ? $ohlcvs[$i][0] : intval($ohlcvs[$i][0] / 1000);
+            $result[$o][] = $ohlcvs[$i][1];
+            $result[$h][] = $ohlcvs[$i][2];
+            $result[$l][] = $ohlcvs[$i][3];
+            $result[$c][] = $ohlcvs[$i][4];
+            $result[$v][] = $ohlcvs[$i][5];
         }
         return $result;
     }

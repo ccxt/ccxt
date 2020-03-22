@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.23.79'
+__version__ = '1.24.78'
 
 # -----------------------------------------------------------------------------
 
@@ -216,6 +216,8 @@ class Exchange(object):
     transactions = None
     ohlcvs = None
     tickers = None
+    base_currencies = None
+    quote_currencies = None
     currencies = None
     options = None  # Python does not allow to define properties in run-time with setattr
     accounts = None
@@ -356,7 +358,9 @@ class Exchange(object):
         for name in dir(self):
             if name[0] != '_' and name[-1] != '_' and '_' in name:
                 parts = name.split('_')
-                camelcase = parts[0] + ''.join(self.capitalize(i) for i in parts[1:])
+                # fetch_ohlcv → fetchOHLCV (not fetchOhlcv!)
+                exceptions = {'ohlcv': 'OHLCV'}
+                camelcase = parts[0] + ''.join(exceptions.get(i, self.capitalize(i)) for i in parts[1:])
                 attr = getattr(self, name)
                 if isinstance(attr, types.MethodType):
                     setattr(cls, camelcase, getattr(cls, name))
@@ -667,8 +671,11 @@ class Exchange(object):
         value = dictionary[key]
         if isinstance(value, Number):
             return int(value * factor)
-        elif isinstance(value, basestring) and value.isnumeric():
-            return int(float(value) * factor)
+        elif isinstance(value, basestring):
+            try:
+                return int(float(value) * factor)
+            except ValueError:
+                pass
         return default_value
 
     @staticmethod
@@ -1255,6 +1262,10 @@ class Exchange(object):
                     )
                 ) if 'precision' in market else 8,
             } for market in values if 'quote' in market]
+            base_currencies = self.sort_by(base_currencies, 'code')
+            quote_currencies = self.sort_by(quote_currencies, 'code')
+            self.base_currencies = self.index_by(base_currencies, 'code')
+            self.quote_currencies = self.index_by(quote_currencies, 'code')
             currencies = self.sort_by(base_currencies + quote_currencies, 'code')
             self.currencies = self.deep_extend(self.index_by(currencies, 'code'), self.currencies)
         self.currencies_by_id = self.index_by(list(self.currencies.values()), 'id')
@@ -1499,35 +1510,34 @@ class Exchange(object):
         result = self.convert_trading_view_to_ohlcv(ohlcvs)
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
-    def convert_trading_view_to_ohlcv(self, ohlcvs):
+    def convert_trading_view_to_ohlcv(self, ohlcvs, t='t', o='o', h='h', l='l', c='c', v='v', ms=False):  # noqa E741
         result = []
-        for i in range(0, len(ohlcvs['t'])):
+        for i in range(0, len(ohlcvs[t])):
             result.append([
-                ohlcvs['t'][i] * 1000,
-                ohlcvs['o'][i],
-                ohlcvs['h'][i],
-                ohlcvs['l'][i],
-                ohlcvs['c'][i],
-                ohlcvs['v'][i],
+                ohlcvs[t][i] if ms else (ohlcvs[t][i] * 1000),
+                ohlcvs[o][i],
+                ohlcvs[h][i],
+                ohlcvs[l][i],
+                ohlcvs[c][i],
+                ohlcvs[v][i],
             ])
         return result
 
-    def convert_ohlcv_to_trading_view(self, ohlcvs):
-        result = {
-            't': [],
-            'o': [],
-            'h': [],
-            'l': [],
-            'c': [],
-            'v': [],
-        }
+    def convert_ohlcv_to_trading_view(self, ohlcvs, t='t', o='o', h='h', l='l', c='c', v='v', ms=False):  # noqa E741
+        result = {}
+        result[t] = []
+        result[o] = []
+        result[h] = []
+        result[l] = []
+        result[c] = []
+        result[v] = []
         for i in range(0, len(ohlcvs)):
-            result['t'].append(int(ohlcvs[i][0] / 1000))
-            result['o'].append(ohlcvs[i][1])
-            result['h'].append(ohlcvs[i][2])
-            result['l'].append(ohlcvs[i][3])
-            result['c'].append(ohlcvs[i][4])
-            result['v'].append(ohlcvs[i][5])
+            result[t].append(ohlcvs[i][0] if ms else int(ohlcvs[i][0] / 1000))
+            result[o].append(ohlcvs[i][1])
+            result[h].append(ohlcvs[i][2])
+            result[l].append(ohlcvs[i][3])
+            result[c].append(ohlcvs[i][4])
+            result[v].append(ohlcvs[i][5])
         return result
 
     def build_ohlcv(self, trades, timeframe='1m', since=None, limit=None):
@@ -1635,14 +1645,14 @@ class Exchange(object):
             code = currency['code']
         return code
 
-    def filter_by_value_since_limit(self, array, field, value=None, since=None, limit=None):
+    def filter_by_value_since_limit(self, array, field, value=None, since=None, limit=None, key='timestamp', tail=False):
         array = self.to_array(array)
-        if value:
+        if value is not None:
             array = [entry for entry in array if entry[field] == value]
-        if since:
-            array = [entry for entry in array if entry['timestamp'] >= since]
-        if limit:
-            array = array[0:limit]
+        if since is not None:
+            array = [entry for entry in array if entry[key] >= since]
+        if limit is not None:
+            array = array[-limit:] if tail and (since is None) else array[:limit]
         return array
 
     def filter_by_symbol_since_limit(self, array, symbol=None, since=None, limit=None):
@@ -1651,12 +1661,12 @@ class Exchange(object):
     def filter_by_currency_since_limit(self, array, code=None, since=None, limit=None):
         return self.filter_by_value_since_limit(array, 'currency', code, since, limit)
 
-    def filter_by_since_limit(self, array, since=None, limit=None, key='timestamp'):
+    def filter_by_since_limit(self, array, since=None, limit=None, key='timestamp', tail=False):
         array = self.to_array(array)
-        if since:
+        if since is not None:
             array = [entry for entry in array if entry[key] >= since]
-        if limit:
-            array = array[0:limit]
+        if limit is not None:
+            array = array[-limit:] if tail and (since is None) else array[:limit]
         return array
 
     def filter_by_symbol(self, array, symbol=None):

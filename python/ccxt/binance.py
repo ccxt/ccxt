@@ -19,6 +19,7 @@ from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import ROUND
+from ccxt.base.decimal_to_precision import TRUNCATE
 
 
 class binance(Exchange):
@@ -510,6 +511,12 @@ class binance(Exchange):
                     'min': self.safe_float(filter, 'minQty'),
                     'max': self.safe_float(filter, 'maxQty'),
                 }
+            if 'MARKET_LOT_SIZE' in filters:
+                filter = self.safe_value(filters, 'MARKET_LOT_SIZE', {})
+                entry['limits']['market'] = {
+                    'min': self.safe_float(filter, 'minQty'),
+                    'max': self.safe_float(filter, 'maxQty'),
+                }
             if 'MIN_NOTIONAL' in filters:
                 entry['limits']['cost']['min'] = self.safe_float(filters['MIN_NOTIONAL'], 'minNotional')
             result.append(entry)
@@ -670,7 +677,7 @@ class binance(Exchange):
         }
 
     def fetch_status(self, params={}):
-        response = self.wapiGetSystemStatus()
+        response = self.wapiGetSystemStatus(params)
         status = self.safe_value(response, 'status')
         if status is not None:
             status = 'ok' if (status == 0) else 'maintenance'
@@ -1037,10 +1044,12 @@ class binance(Exchange):
         }
         if uppercaseType == 'MARKET':
             quoteOrderQty = self.safe_float(params, 'quoteOrderQty')
+            precision = market['precision']['price']
             if quoteOrderQty is not None:
-                request['quoteOrderQty'] = self.cost_to_precision(symbol, quoteOrderQty)
+                request['quoteOrderQty'] = self.decimal_to_precision(quoteOrderQty, TRUNCATE, precision, self.precisionMode)
+                params = self.omit(params, 'quoteOrderQty')
             elif price is not None:
-                request['quoteOrderQty'] = self.cost_to_precision(symbol, amount * price)
+                request['quoteOrderQty'] = self.decimal_to_precision(amount * price, TRUNCATE, precision, self.precisionMode)
             else:
                 request['quantity'] = self.amount_to_precision(symbol, amount)
         else:
@@ -1653,7 +1662,7 @@ class binance(Exchange):
         url += '/' + path
         if api == 'wapi':
             url += '.html'
-        userDataStream = (path == 'userDataStream')
+        userDataStream = (path == 'userDataStream') or (path == 'listenKey')
         if path == 'historicalTrades':
             if self.apiKey:
                 headers = {

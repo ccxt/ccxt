@@ -170,6 +170,7 @@ class bitz(Exchange):
                 # https://github.com/ccxt/ccxt/issues/3881
                 # https://support.bit-z.pro/hc/en-us/articles/360007500654-BOX-BOX-Token-
                 'BOX': 'BOX Token',
+                'LEO': 'LeoCoin',
                 'XRB': 'NANO',
                 'PXC': 'Pixiecoin',
                 'VTC': 'VoteCoin',
@@ -1061,7 +1062,7 @@ class bitz(Exchange):
                 'type': type,
             }, transactions[i]))
             result.append(transaction)
-        return self.filterByCurrencySinceLimit(result, code, since, limit)
+        return self.filter_by_currency_since_limit(result, code, since, limit)
 
     def parse_transaction_type(self, type):
         types = {

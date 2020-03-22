@@ -34,6 +34,7 @@ class bitstamp(Exchange):
             'rateLimit': 1000,
             'version': 'v2',
             'userAgent': self.userAgents['chrome'],
+            'pro': True,
             'has': {
                 'CORS': True,
                 'fetchDepositAddress': True,
@@ -1019,7 +1020,20 @@ class bitstamp(Exchange):
         else:
             self.check_required_credentials()
             authVersion = self.safe_value(self.options, 'auth', 'v2')
-            if authVersion == 'v2':
+            if (authVersion == 'v1') or (api == 'v1'):
+                nonce = str(self.nonce())
+                auth = nonce + self.uid + self.apiKey
+                signature = self.encode(self.hmac(self.encode(auth), self.encode(self.secret)))
+                query = self.extend({
+                    'key': self.apiKey,
+                    'signature': signature.upper(),
+                    'nonce': nonce,
+                }, query)
+                body = self.urlencode(query)
+                headers = {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                }
+            else:
                 xAuth = 'BITSTAMP ' + self.apiKey
                 xAuthNonce = self.uuid()
                 xAuthTimestamp = str(self.milliseconds())
@@ -1040,19 +1054,6 @@ class bitstamp(Exchange):
                 auth = xAuth + method + url.replace('https://', '') + contentType + xAuthNonce + xAuthTimestamp + xAuthVersion + authBody
                 signature = self.encode(self.hmac(self.encode(auth), self.encode(self.secret)))
                 headers['X-Auth-Signature'] = signature
-            else:
-                nonce = str(self.nonce())
-                auth = nonce + self.uid + self.apiKey
-                signature = self.encode(self.hmac(self.encode(auth), self.encode(self.secret)))
-                query = self.extend({
-                    'key': self.apiKey,
-                    'signature': signature.upper(),
-                    'nonce': nonce,
-                }, query)
-                body = self.urlencode(query)
-                headers = {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):

@@ -48,6 +48,12 @@ If you found a security issue or a critical vulnerability and reporting it in pu
   - `/build/*` (these are generated automatically)
   - `/php/*` (except for base classes)
   - `/python/*` (except for base classes)
+  - `/ccxt.js`
+  - `/README.md` (exchange lists are generated automatically)
+  - `/package.json`
+  - `/package.lock`
+  - `/wiki/*` (except for real edits, exchange lists are generated automatically)
+  - `/dist/ccxt.browser.js` (this is also browserified automatically)
 
 
   These files are generated ([explained below](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#multilanguage-support)) and will be overwritten upon build. Please don't commit them to avoid bloating the repository which is already quite large. Most often, you have to commit just one single source file to submit an edit to the implementation of an exchange.
@@ -57,16 +63,20 @@ If you found a security issue or a critical vulnerability and reporting it in pu
 
 ## Pending Tasks
 
-Below is a list of functionality we would like to have implemented in the library in the first place. Most of these tasks are already in progress, implemented for some exchanges, but not all of them:
+Below is a list of functionality we would like to have implemented and fully **unified** in the library in the first place at this time. Most of these tasks are already in progress, implemented for some exchanges, but not all of them:
 
-- Unified fetchOrder
-- Unified fetchOrders, fetchOpenOrders, fetchClosedOrders
-- Unified fetchMyTrades, fetchOrderTrades
-- Unified fetchDepositAddress, createDepositAddress
-- Unified withdraw
-- Unified fees
-- Unified fetchTransactions, fetchDeposits, fetchWithdrawals
-- Improved proxy support
+- Margin trading
+- Leverage
+- Derivatives (futures, options)
+- Main account / subaccounts
+- Conditional orders (stop loss, take profit)
+- `transfer` between subaccounts and main account
+- `fetchTransfer`
+- `fetchTransfers`
+- `fetchLedger`
+- `fetchPositions`
+- `closePosition`
+- `closePositions`
 
 If you want to contribute by submitting partial implementations be sure to look up examples of how it's done inside the library (where implemented already) and copy the adopted practices.
 
@@ -124,7 +134,6 @@ The contents of the repository are structured as follows:
 /.gitignore                # ignore it
 /.npmignore                # files to exclude from the NPM package
 /.travis.yml               # a YAML config for travis-ci (continuous integration)
-/CHANGELOG.md              # self-explanatory
 /CONTRIBUTING.md           # this file
 /LICENSE.txt               # MIT
 /README.md                 # master markdown for GitHub, npmjs.com, npms.io, yarn and others

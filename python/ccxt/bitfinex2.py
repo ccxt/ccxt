@@ -507,6 +507,23 @@ class bitfinex2(bitfinex):
         ticker = self.publicGetTickerSymbol(self.extend(request, params))
         return self.parse_ticker(ticker, market)
 
+    def parse_symbol(self, marketId):
+        if marketId is None:
+            return marketId
+        marketId = marketId.replace('t', '')
+        baseId = None
+        quoteId = None
+        if marketId.find(':') >= 0:
+            parts = marketId.split(':')
+            baseId = parts[0]
+            quoteId = parts[1]
+        else:
+            baseId = marketId[0:3]
+            quoteId = marketId[3:6]
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        return base + '/' + quote
+
     def parse_trade(self, trade, market=None):
         #
         # fetchTrades(public)
@@ -553,19 +570,26 @@ class bitfinex2(bitfinex):
         timestamp = trade[timestampIndex]
         if isPrivate:
             marketId = trade[1]
-            if marketId is not None:
-                if marketId in self.markets_by_id:
-                    market = self.markets_by_id[marketId]
-                    symbol = market['symbol']
-                else:
-                    symbol = marketId
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+                symbol = market['symbol']
+            else:
+                symbol = self.parse_symbol(marketId)
             orderId = str(trade[3])
             takerOrMaker = 'maker' if (trade[8] == 1) else 'taker'
             feeCost = trade[9]
             feeCurrency = self.safe_currency_code(trade[10])
             if feeCost is not None:
+                feeCost = -feeCost
+                if symbol in self.markets:
+                    feeCost = self.fee_to_precision(symbol, feeCost)
+                else:
+                    currencyId = 'f' + feeCurrency
+                    if currencyId in self.currencies_by_id:
+                        currency = self.currencies_by_id[currencyId]
+                        feeCost = self.currency_to_precision(currency['code'], feeCost)
                 fee = {
-                    'cost': float(self.fee_to_precision(symbol, abs(feeCost))),
+                    'cost': float(feeCost),
                     'currency': feeCurrency,
                 }
             orderType = trade[6]
@@ -657,7 +681,9 @@ class bitfinex2(bitfinex):
         marketId = self.safe_string(order, 3)
         if marketId in self.markets_by_id:
             market = self.markets_by_id[marketId]
-        if market is not None:
+        else:
+            symbol = self.parse_symbol(marketId)
+        if (symbol is None) and (market is not None):
             symbol = market['symbol']
         timestamp = self.safe_timestamp(order, 5)
         remaining = abs(self.safe_float(order, 6))

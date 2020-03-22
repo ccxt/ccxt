@@ -585,7 +585,7 @@ module.exports = class whitebit extends Exchange {
     }
 
     async fetchStatus (params = {}) {
-        const response = await this.webGetV1Healthcheck ();
+        const response = await this.webGetV1Healthcheck (params);
         const status = this.safeInteger (response, 'status');
         let formattedStatus = 'ok';
         if (status === 503) {

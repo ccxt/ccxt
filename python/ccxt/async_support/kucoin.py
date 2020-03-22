@@ -205,6 +205,7 @@ class kucoin(Exchange):
                 'HOT': 'HOTNOW',
                 'EDGE': 'DADI',  # https://github.com/ccxt/ccxt/issues/5756
                 'WAX': 'WAXP',
+                'TRY': 'Trias',
             },
             'options': {
                 'version': 'v1',
@@ -379,7 +380,7 @@ class kucoin(Exchange):
         return result
 
     async def fetch_funding_fee(self, code, params={}):
-        currencyId = self.currencyId(code)
+        currencyId = self.currency_id(code)
         request = {
             'currency': currencyId,
         }
@@ -583,7 +584,7 @@ class kucoin(Exchange):
 
     async def create_deposit_address(self, code, params={}):
         await self.load_markets()
-        currencyId = self.currencyId(code)
+        currencyId = self.currency_id(code)
         request = {'currency': currencyId}
         response = await self.privatePostDepositAddresses(self.extend(request, params))
         # BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
@@ -604,7 +605,7 @@ class kucoin(Exchange):
 
     async def fetch_deposit_address(self, code, params={}):
         await self.load_markets()
-        currencyId = self.currencyId(code)
+        currencyId = self.currency_id(code)
         request = {'currency': currencyId}
         response = await self.privateGetDepositAddresses(self.extend(request, params))
         # BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
@@ -1125,7 +1126,7 @@ class kucoin(Exchange):
     async def withdraw(self, code, amount, address, tag=None, params={}):
         await self.load_markets()
         self.check_address(address)
-        currency = self.currencyId(code)
+        currency = self.currency_id(code)
         request = {
             'currency': currency,
             'address': address,

@@ -635,7 +635,7 @@ module.exports = class Exchange {
         if (currencies) {
             this.currencies = deepExtend (currencies, this.currencies)
         } else {
-            const baseCurrencies =
+            let baseCurrencies =
                 values.filter (market => 'base' in market)
                     .map (market => ({
                         id: market.baseId || market.base,
@@ -643,7 +643,7 @@ module.exports = class Exchange {
                         code: market.base,
                         precision: market.precision ? (market.precision.base || market.precision.amount) : 8,
                     }))
-            const quoteCurrencies =
+            let quoteCurrencies =
                 values.filter (market => 'quote' in market)
                     .map (market => ({
                         id: market.quoteId || market.quote,
@@ -651,6 +651,10 @@ module.exports = class Exchange {
                         code: market.quote,
                         precision: market.precision ? (market.precision.quote || market.precision.price) : 8,
                     }))
+            baseCurrencies = sortBy (baseCurrencies, 'code')
+            quoteCurrencies = sortBy (quoteCurrencies, 'code')
+            this.baseCurrencies = indexBy (baseCurrencies, 'code')
+            this.quoteCurrencies = indexBy (quoteCurrencies, 'code')
             const allCurrencies = baseCurrencies.concat (quoteCurrencies)
             const groupedCurrencies = groupBy (allCurrencies, 'code')
             const currencies = Object.keys (groupedCurrencies).map (code =>
@@ -678,27 +682,19 @@ module.exports = class Exchange {
         return this.setMarkets (markets, currencies)
     }
 
-    async loadMarkets (reload = false, params = {}) {
-        if (this.marketsLoaded) {
-            if (reload) {
-                return this.loadMarketsHelper (reload, params)
-            }
-            return this.markets
-        } else {
-            if (!this.marketsLoading) {
-                this.marketsLoading = new Promise (async (resolve, reject) => {
-                    try {
-                        const result = await this.loadMarketsHelper (reload, params)
-                        this.marketsLoaded = true
-                        this.marketsLoading = false
-                        resolve (result)
-                    } catch (e) {
-                        reject (e)
-                    }
-                })
-            }
-            return this.marketsLoading
+    // is async (returns a promise)
+    loadMarkets (reload = false, params = {}) {
+        if ((reload && !this.reloadingMarkets) || !this.marketsLoading) {
+            this.reloadingMarkets = true
+            this.marketsLoading = this.loadMarketsHelper (reload, params).then ((resolved) => {
+                this.reloadingMarkets = false
+                return resolved
+            }, (error) => {
+                this.reloadingMarkets = false
+                throw error
+            })
         }
+        return this.marketsLoading
     }
 
     async loadAccounts (reload = false, params = {}) {
@@ -738,43 +734,42 @@ module.exports = class Exchange {
     }
 
     parseTradingViewOHLCV (ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
-        const result = this.convertTradingViewToOHLCV (ohlcvs);
-        return this.parseOHLCVs (result, market, timeframe, since, limit);
+        const result = this.convertTradingViewToOHLCV (ohlcvs)
+        return this.parseOHLCVs (result, market, timeframe, since, limit)
     }
 
-    convertTradingViewToOHLCV (ohlcvs) {
+    convertTradingViewToOHLCV (ohlcvs, t = 't', o = 'o', h = 'h', l = 'l', c = 'c', v = 'v', ms = false) {
         const result = [];
-        for (let i = 0; i < ohlcvs['t'].length; i++) {
+        for (let i = 0; i < ohlcvs[t].length; i++) {
             result.push ([
-                ohlcvs['t'][i] * 1000,
-                ohlcvs['o'][i],
-                ohlcvs['h'][i],
-                ohlcvs['l'][i],
-                ohlcvs['c'][i],
-                ohlcvs['v'][i],
-            ]);
+                ms ? ohlcvs[t][i] : (ohlcvs[t][i] * 1000),
+                ohlcvs[o][i],
+                ohlcvs[h][i],
+                ohlcvs[l][i],
+                ohlcvs[c][i],
+                ohlcvs[v][i],
+            ])
         }
-        return result;
+        return result
     }
 
-    convertOHLCVToTradingView (ohlcvs) {
-        const result = {
-            't': [],
-            'o': [],
-            'h': [],
-            'l': [],
-            'c': [],
-            'v': [],
-        };
+    convertOHLCVToTradingView (ohlcvs, t = 't', o = 'o', h = 'h', l = 'l', c = 'c', v = 'v', ms = false) {
+        const result = {}
+        result[t] = []
+        result[o] = []
+        result[h] = []
+        result[l] = []
+        result[c] = []
+        result[v] = []
         for (let i = 0; i < ohlcvs.length; i++) {
-            result['t'].push (parseInt (ohlcvs[i][0] / 1000));
-            result['o'].push (ohlcvs[i][1]);
-            result['h'].push (ohlcvs[i][2]);
-            result['l'].push (ohlcvs[i][3]);
-            result['c'].push (ohlcvs[i][4]);
-            result['v'].push (ohlcvs[i][5]);
+            result[t].push (ms ? ohlcvs[i][0] : parseInt (ohlcvs[i][0] / 1000))
+            result[o].push (ohlcvs[i][1])
+            result[h].push (ohlcvs[i][2])
+            result[l].push (ohlcvs[i][3])
+            result[c].push (ohlcvs[i][4])
+            result[v].push (ohlcvs[i][5])
         }
-        return result;
+        return result
     }
 
     fetchTicker (symbol, params = {}) {
@@ -1039,27 +1034,34 @@ module.exports = class Exchange {
         return this.markets;
     }
 
-    filterBySinceLimit (array, since = undefined, limit = undefined, key = 'timestamp') {
-        if (since !== undefined && since !== null)
-            array = array.filter (entry => entry[key] >= since)
-        if (limit !== undefined && limit !== null)
-            array = array.slice (0, limit)
+    filterBySinceLimit (array, since = undefined, limit = undefined, key = 'timestamp', tail = false) {
+        const sinceIsDefined = (since !== undefined && since !== null)
+        if (sinceIsDefined) {
+            array = array.filter ((entry) => entry[key] >= since)
+        }
+        if (limit !== undefined && limit !== null) {
+            array = (tail && !sinceIsDefined) ? array.slice (-limit) : array.slice (0, limit)
+        }
         return array
     }
 
-    filterByValueSinceLimit (array, field, value = undefined, since = undefined, limit = undefined) {
+    filterByValueSinceLimit (array, field, value = undefined, since = undefined, limit = undefined, key = 'timestamp', tail = false) {
 
         const valueIsDefined = value !== undefined && value !== null
         const sinceIsDefined = since !== undefined && since !== null
 
         // single-pass filter for both symbol and since
-        if (valueIsDefined || sinceIsDefined)
-            array = Object.values (array).filter (entry =>
-                ((valueIsDefined ? (entry[field] === value)   : true) &&
-                 (sinceIsDefined ? (entry.timestamp >= since) : true)))
+        if (valueIsDefined || sinceIsDefined) {
+            array = Object.values (array).filter ((entry) =>
+                ((valueIsDefined ? (entry[field] === value) : true) &&
+                 (sinceIsDefined ? (entry[key] >= since) : true)))
+        }
 
-        if (limit !== undefined && limit !== null)
-            array = Object.values (array).slice (0, limit)
+        if (limit !== undefined && limit !== null) {
+            array = ((tail && !sinceIsDefined) ?
+                Object.values (array).slice (-limit) :
+                Object.values (array).slice (0, limit))
+        }
 
         return array
     }
@@ -1077,13 +1079,15 @@ module.exports = class Exchange {
         objects = Object.values (objects)
 
         // return all of them if no values were passed
-        if (values === undefined || values === null)
+        if (values === undefined || values === null) {
             return indexed ? indexBy (objects, key) : objects
+        }
 
         const result = []
         for (let i = 0; i < objects.length; i++) {
-            if (values.includes (objects[i][key]))
+            if (values.includes (objects[i][key])) {
                 result.push (objects[i])
+            }
         }
 
         return indexed ? indexBy (result, key) : result
@@ -1094,7 +1098,7 @@ module.exports = class Exchange {
         // if (!this.isArray (trades)) {
         //     throw new ExchangeError (this.id + ' parseTrades expected an array in the trades argument, but got ' + typeof trades);
         // }
-        let result = Object.values (trades || []).map (trade => this.extend (this.parseTrade (trade, market), params))
+        let result = Object.values (trades || []).map ((trade) => this.extend (this.parseTrade (trade, market), params))
         result = sortBy (result, 'timestamp')
         const symbol = (market !== undefined) ? market['symbol'] : undefined
         return this.filterBySymbolSinceLimit (result, symbol, since, limit)
@@ -1105,7 +1109,7 @@ module.exports = class Exchange {
         // if (!this.isArray (transactions)) {
         //     throw new ExchangeError (this.id + ' parseTransactions expected an array in the transactions argument, but got ' + typeof transactions);
         // }
-        let result = Object.values (transactions || []).map (transaction => this.extend (this.parseTransaction (transaction, currency), params))
+        let result = Object.values (transactions || []).map ((transaction) => this.extend (this.parseTransaction (transaction, currency), params))
         result = this.sortBy (result, 'timestamp');
         const code = (currency !== undefined) ? currency['code'] : undefined;
         return this.filterByCurrencySinceLimit (result, code, since, limit);

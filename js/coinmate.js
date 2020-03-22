@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound, RateLimitExceeded } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -16,8 +16,14 @@ module.exports = class coinmate extends Exchange {
             'rateLimit': 1000,
             'has': {
                 'CORS': true,
+                'fetchBalance': true,
+                'fetchOrders': true,
+                'fetchOrder': true,
                 'fetchMyTrades': true,
                 'fetchTransactions': true,
+                'fetchOpenOrders': true,
+                'createOrder': true,
+                'cancelOrder': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27811229-c1efb510-606c-11e7-9a36-84ba2ce412d8.jpg',
@@ -66,6 +72,7 @@ module.exports = class coinmate extends Exchange {
                         'openOrders',
                         'order',
                         'orderHistory',
+                        'orderById',
                         'pusherAuth',
                         'redeemVoucher',
                         'replaceByBuyLimit',
@@ -94,6 +101,16 @@ module.exports = class coinmate extends Exchange {
                 'trading': {
                     'maker': 0.05 / 100,
                     'taker': 0.15 / 100,
+                },
+            },
+            'exceptions': {
+                'exact': {
+                    'No order with given ID': OrderNotFound,
+                },
+                'broad': {
+                    'Incorrect order ID': InvalidOrder,
+                    'Minimum Order Size ': InvalidOrder,
+                    'TOO MANY REQUESTS': RateLimitExceeded,
                 },
             },
         });
@@ -326,6 +343,10 @@ module.exports = class coinmate extends Exchange {
         const request = {
             'limit': limit,
         };
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            request['currencyPair'] = market['id'];
+        }
         if (since !== undefined) {
             request['timestampFrom'] = since;
         }
@@ -449,6 +470,141 @@ module.exports = class coinmate extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const response = await this.privatePostOpenOrders (this.extend ({}, params));
+        const extension = { 'status': 'open' };
+        return this.parseOrders (response['data'], undefined, since, limit, extension);
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'currencyPair': market['id'],
+        };
+        // offset param that appears in other parts of the API doesn't appear to be supported here
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privatePostOrderHistory (this.extend (request, params));
+        return this.parseOrders (response['data'], market, since, limit);
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            'FILLED': 'closed',
+            'CANCELLED': 'canceled',
+            'OPEN': 'open',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrderType (type) {
+        const types = {
+            'LIMIT': 'limit',
+            'MARKET': 'market',
+        };
+        return this.safeString (types, type, type);
+    }
+
+    parseOrder (order, market = undefined) {
+        //
+        // limit sell
+        //
+        //     {
+        //         id: 781246605,
+        //         timestamp: 1584480015133,
+        //         trailingUpdatedTimestamp: null,
+        //         type: 'SELL',
+        //         currencyPair: 'ETH_BTC',
+        //         price: 0.0345,
+        //         amount: 0.01,
+        //         stopPrice: null,
+        //         originalStopPrice: null,
+        //         marketPriceAtLastUpdate: null,
+        //         marketPriceAtOrderCreation: null,
+        //         orderTradeType: 'LIMIT',
+        //         hidden: false,
+        //         trailing: false,
+        //         clientOrderId: null
+        //     }
+        //
+        // limit buy
+        //
+        //     {
+        //         id: 67527001,
+        //         timestamp: 1517931722613,
+        //         trailingUpdatedTimestamp: null,
+        //         type: 'BUY',
+        //         price: 5897.24,
+        //         remainingAmount: 0.002367,
+        //         originalAmount: 0.1,
+        //         stopPrice: null,
+        //         originalStopPrice: null,
+        //         marketPriceAtLastUpdate: null,
+        //         marketPriceAtOrderCreation: null,
+        //         status: 'CANCELLED',
+        //         orderTradeType: 'LIMIT',
+        //         hidden: false,
+        //         avgPrice: null,
+        //         trailing: false,
+        //     }
+        //
+        const id = this.safeString (order, 'id');
+        const timestamp = this.safeInteger (order, 'timestamp');
+        const side = this.safeStringLower (order, 'type');
+        const price = this.safeFloat (order, 'price');
+        const amount = this.safeFloat2 (order, 'originalAmount', 'amount');
+        const remaining = this.safeFloat (order, 'remainingAmount', amount);
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const type = this.parseOrderType (this.safeString (order, 'orderTradeType'));
+        let filled = undefined;
+        let cost = undefined;
+        if ((amount !== undefined) && (remaining !== undefined)) {
+            filled = amount - remaining;
+            if (price !== undefined) {
+                cost = filled * price;
+            }
+        }
+        const average = this.safeFloat (order, 'avgPrice');
+        let symbol = undefined;
+        const marketId = this.safeString (order, 'currencyPair');
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('_');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
+        return {
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'average': average,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'trades': undefined,
+            'info': order,
+        };
+    }
+
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let method = 'privatePost' + this.capitalize (side);
@@ -457,25 +613,45 @@ module.exports = class coinmate extends Exchange {
         };
         if (type === 'market') {
             if (side === 'buy') {
-                request['total'] = amount; // amount in fiat
+                request['total'] = this.amountToPrecision (symbol, amount); // amount in fiat
             } else {
-                request['amount'] = amount; // amount in fiat
+                request['amount'] = this.amountToPrecision (symbol, amount); // amount in fiat
             }
             method += 'Instant';
         } else {
-            request['amount'] = amount; // amount in crypto
-            request['price'] = price;
+            request['amount'] = this.amountToPrecision (symbol, amount); // amount in crypto
+            request['price'] = this.priceToPrecision (symbol, price);
             method += this.capitalize (type);
         }
         const response = await this[method] (this.extend (request, params));
+        const id = this.safeString (response, 'data');
         return {
             'info': response,
-            'id': response['data'].toString (),
+            'id': id,
         };
     }
 
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'orderId': id,
+        };
+        let market = undefined;
+        if (symbol) {
+            market = this.market (symbol);
+        }
+        const response = await this.privatePostOrderById (this.extend (request, params));
+        const data = this.safeValue (response, 'data');
+        return this.parseOrder (data, market);
+    }
+
     async cancelOrder (id, symbol = undefined, params = {}) {
-        return await this.privatePostCancelOrder ({ 'orderId': id });
+        //   {"error":false,"errorMessage":null,"data":{"success":true,"remainingAmount":0.01}}
+        const request = { 'orderId': id };
+        const response = await this.privatePostCancelOrderWithInfo (this.extend (request, params));
+        return {
+            'info': response,
+        };
     }
 
     nonce () {
@@ -506,13 +682,27 @@ module.exports = class coinmate extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('error' in response) {
-            if (response['error']) {
-                throw new ExchangeError (this.id + ' ' + this.json (response));
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (response !== undefined) {
+            if ('error' in response) {
+                // {"error":true,"errorMessage":"Minimum Order Size 0.01 ETH","data":null}
+                if (response['error']) {
+                    const message = this.safeString (response, 'errorMessage');
+                    const feedback = this.id + ' ' + message;
+                    this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+                    this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+                    throw new ExchangeError (this.id + ' ' + this.json (response));
+                }
             }
         }
-        return response;
+        if (code > 400) {
+            if (body) {
+                const feedback = this.id + ' ' + body;
+                this.throwExactlyMatchedException (this.exceptions['exact'], body, feedback);
+                this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
+                throw new ExchangeError (feedback); // unknown message
+            }
+            throw new ExchangeError (this.id + ' ' + body);
+        }
     }
 };

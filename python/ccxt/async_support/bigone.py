@@ -872,7 +872,7 @@ class bigone(Exchange):
         #     }
         #
         trades = self.safe_value(response, 'data', [])
-        return self.parse_trades(trades, market, since, limit, params)
+        return self.parse_trades(trades, market, since, limit)
 
     def parse_order_status(self, status):
         statuses = {
