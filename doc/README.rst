@@ -1,7 +1,7 @@
 CCXT – CryptoCurrency eXchange Trading Library
 ==============================================
 
-`Build Status <https://travis-ci.org/ccxt/ccxt>`__ `npm <https://npmjs.com/package/ccxt>`__ `PyPI <https://pypi.python.org/pypi/ccxt>`__ `NPM Downloads <https://www.npmjs.com/package/ccxt>`__ |Discord| `Supported Exchanges <https://github.com/ccxt/ccxt/wiki/Exchange-Markets>`__ `Open Collective <https://opencollective.com/ccxt>`__
+`Build Status <https://travis-ci.org/ccxt/ccxt>`__ `npm <https://npmjs.com/package/ccxt>`__ `PyPI <https://pypi.python.org/pypi/ccxt>`__ `NPM Downloads <https://www.npmjs.com/package/ccxt>`__ `Discord <https://discord.gg/dhzSKYU>`__ `Supported Exchanges <https://github.com/ccxt/ccxt/wiki/Exchange-Markets>`__ `Open Collective <https://opencollective.com/ccxt>`__
 `Twitter Follow <https://twitter.com/ccxt_official>`__
 
 A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
@@ -360,14 +360,14 @@ JavaScript (for use with the ``<script>`` tag):
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
--  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.24.77/dist/ccxt.browser.js
--  unpkg: https://unpkg.com/ccxt@1.24.77/dist/ccxt.browser.js
+-  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.24.78/dist/ccxt.browser.js
+-  unpkg: https://unpkg.com/ccxt@1.24.78/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code:: html
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.24.77/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.24.78/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 
@@ -674,7 +674,7 @@ Social
 
 -  `Follow us on Twitter <https://twitter.com/ccxt_official>`__
 -  `Read our blog on Medium <https://medium.com/@ccxt>`__
--  \ |Discord|\ 
+-  \ `Discord <https://discord.gg/dhzSKYU>`__\ 
 
 Team
 ----
@@ -688,6 +688,3 @@ Contact Us
 ----------
 
 For business inquiries: info@ccxt.trade
-
-.. |Discord| image:: https://img.shields.io/discord/690203284119617602?logo=discord&logoColor=white
-
