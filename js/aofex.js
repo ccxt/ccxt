@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, OrderNotFound, OrderNotCached, CancelPending } = require ('./base/errors');
+const { ExchangeError, BadSymbol } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -72,65 +72,12 @@ module.exports = class aofex extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    '20501': BadSymbol, // {"errno":20501,"errmsg":"base symbol error"}
                 },
                 'broad': {
                 },
             },
         });
-    }
-
-    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
-        const market = this.markets[symbol];
-        let key = 'quote';
-        const rate = market[takerOrMaker];
-        let cost = parseFloat (this.costToPrecision (symbol, amount * rate));
-        if (side === 'sell') {
-            cost *= price;
-        } else {
-            key = 'base';
-        }
-        return {
-            'type': takerOrMaker,
-            'currency': market[key],
-            'rate': rate,
-            'cost': parseFloat (this.feeToPrecision (symbol, cost)),
-        };
-    }
-
-    parseOHLCV (ohlcv, market = undefined, timeframe = '5m', since = undefined, limit = undefined) {
-        return [
-            this.safeTimestamp (ohlcv, 'date'),
-            this.safeFloat (ohlcv, 'open'),
-            this.safeFloat (ohlcv, 'high'),
-            this.safeFloat (ohlcv, 'low'),
-            this.safeFloat (ohlcv, 'close'),
-            this.safeFloat (ohlcv, 'quoteVolume'),
-        ];
-    }
-
-    async fetchOHLCV (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'currencyPair': market['id'],
-            'period': this.timeframes[timeframe],
-        };
-        if (since === undefined) {
-            request['end'] = this.seconds ();
-            if (limit === undefined) {
-                request['start'] = request['end'] - this.parseTimeframe ('1w'); // max range = 1 week
-            } else {
-                request['start'] = request['end'] - limit * this.parseTimeframe (timeframe);
-            }
-        } else {
-            request['start'] = parseInt (since / 1000);
-            if (limit !== undefined) {
-                const end = this.sum (request['start'], limit * this.parseTimeframe (timeframe));
-                request['end'] = end;
-            }
-        }
-        const response = await this.publicGetReturnChartData (this.extend (request, params));
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     async fetchMarkets (params = {}) {
@@ -226,6 +173,44 @@ module.exports = class aofex extends Exchange {
         return result;
     }
 
+    parseOHLCV (ohlcv, market = undefined, timeframe = '5m', since = undefined, limit = undefined) {
+        return [
+            this.safeTimestamp (ohlcv, 'date'),
+            this.safeFloat (ohlcv, 'open'),
+            this.safeFloat (ohlcv, 'high'),
+            this.safeFloat (ohlcv, 'low'),
+            this.safeFloat (ohlcv, 'close'),
+            this.safeFloat (ohlcv, 'quoteVolume'),
+        ];
+    }
+
+    async fetchOHLCV (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'currencyPair': market['id'],
+            'period': this.timeframes[timeframe],
+        };
+        if (since === undefined) {
+            request['end'] = this.seconds ();
+            if (limit === undefined) {
+                request['start'] = request['end'] - this.parseTimeframe ('1w'); // max range = 1 week
+            } else {
+                request['start'] = request['end'] - limit * this.parseTimeframe (timeframe);
+            }
+        } else {
+            request['start'] = parseInt (since / 1000);
+            if (limit !== undefined) {
+                const end = this.sum (request['start'], limit * this.parseTimeframe (timeframe));
+                request['end'] = end;
+            }
+        }
+        const response = await this.publicGetReturnChartData (this.extend (request, params));
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
+    }
+
+
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const request = {
@@ -302,30 +287,44 @@ module.exports = class aofex extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        const timestamp = this.milliseconds ();
+        //
+        // fetchTicker
+        //
+        //     {
+        //         id: 1584890087,
+        //         amount: '150032.919',
+        //         count: 134538,
+        //         open: '0.021394',
+        //         close: '0.021177',
+        //         low: '0.021053',
+        //         high: '0.021595',
+        //         vol: '3201.72451442'
+        //     }
+        //
+        const timestamp = this.safeTimestamp (ticker, 'id');
         let symbol = undefined;
         if (market) {
             symbol = market['symbol'];
         }
-        let open = undefined;
+        const open = this.safeFloat (ticker, 'open');
+        const last = this.safeFloat (ticker, 'close');
         let change = undefined;
-        let average = undefined;
-        const last = this.safeFloat (ticker, 'last');
-        const relativeChange = this.safeFloat (ticker, 'percentChange');
-        if (relativeChange !== -1) {
-            open = last / this.sum (1, relativeChange);
+        if (symbol !== undefined) {
+            change = parseFloat (this.priceToPrecision (symbol, last - open));
+        } else {
             change = last - open;
-            average = this.sum (last, open) / 2;
         }
+        const average = this.sum (last, open) / 2;
+        const percentage = change / open * 100;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high24hr'),
-            'low': this.safeFloat (ticker, 'low24hr'),
-            'bid': this.safeFloat (ticker, 'highestBid'),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': undefined,
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'lowestAsk'),
+            'ask': undefined,
             'askVolume': undefined,
             'vwap': undefined,
             'open': open,
@@ -333,10 +332,10 @@ module.exports = class aofex extends Exchange {
             'last': last,
             'previousClose': undefined,
             'change': change,
-            'percentage': relativeChange * 100,
+            'percentage': percentage,
             'average': average,
-            'baseVolume': this.safeFloat (ticker, 'quoteVolume'),
-            'quoteVolume': this.safeFloat (ticker, 'baseVolume'),
+            'baseVolume': this.safeFloat (ticker, 'amount'),
+            'quoteVolume': this.safeFloat (ticker, 'vol'),
             'info': ticker,
         };
     }
@@ -369,9 +368,28 @@ module.exports = class aofex extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const response = await this.publicGetReturnTicker (params);
-        const ticker = response[market['id']];
-        return this.parseTicker (ticker, market);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetMarketDetail (this.extend (request, params));
+        //
+        //     {
+        //         errno: 0,
+        //         errmsg: 'success',
+        //         result: {
+        //             id: 1584890087,
+        //             amount: '150032.919',
+        //             count: 134538,
+        //             open: '0.021394',
+        //             close: '0.021177',
+        //             low: '0.021053',
+        //             high: '0.021595',
+        //             vol: '3201.72451442'
+        //         }
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        return this.parseTicker (result, market);
     }
 
     parseTrade (trade, market = undefined) {
@@ -1337,11 +1355,14 @@ module.exports = class aofex extends Exchange {
         if (response === undefined) {
             return;
         }
-        // {"error":"Permission denied."}
-        if ('error' in response) {
-            const message = response['error'];
+        //
+        //     {"errno":20501,"errmsg":"base symbol error"}
+        //
+        const error = this.safeString (response, 'errno');
+        if ((error !== undefined) && (error !== '0')) {
+            const message = this.safeString (response, 'errmsg');
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
