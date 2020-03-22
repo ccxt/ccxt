@@ -896,12 +896,11 @@ module.exports = class krakenfu extends Exchange {
         // execution_limit_filled  boolean 	          true if the maker order of the execution was filled in its entirety otherwise false
         //
         let details = order;
-        let orderEvents = undefined;
+        const orderEvents = this.safeValue (order, 'orderEvents', []);
         let lastItem = undefined;
         let statusId = undefined;
         let trades = [];
-        if ('orderEvents' in order) {
-            orderEvents = order['orderEvents'];
+        if (orderEvents.length > 0) {
             const executions = [];
             for (let i = 0; i < orderEvents.length; i++) {
                 if (this.safeString (orderEvents[i], 'type') === 'EXECUTION') {
@@ -957,7 +956,7 @@ module.exports = class krakenfu extends Exchange {
         } else {
             filled = this.safeFloat2 (details, 'filled', 'filledSize', 0.0);
         }
-        let remaining = !isClosed ? this.safeFloat(details, 'unfilledSize') : 0.0;
+        let remaining = (!isClosed) ? this.safeFloat(details, 'unfilledSize') : 0.0;
         if (amount !== undefined) {
             if ((remaining === undefined) && (!isClosed) && (filled !== undefined)) {
                 remaining = Math.max (amount - filled, 0.0);
