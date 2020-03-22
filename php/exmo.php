@@ -13,7 +13,7 @@ use \ccxt\NotSupported;
 
 class exmo extends Exchange {
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'id' => 'exmo',
             'name' => 'EXMO',
@@ -439,7 +439,7 @@ class exmo extends Exchange {
         ));
     }
 
-    public function fetch_trading_fees ($params = array ()) {
+    public function fetch_trading_fees($params = array ()) {
         if ($this->options['useWebapiForFetchingFees']) {
             $response = $this->webGetEnDocsFees ($params);
             $parts = explode('<td class="th_fees_2" colspan="2">', $response);
@@ -469,7 +469,7 @@ class exmo extends Exchange {
         }
     }
 
-    public function parse_fixed_float_value ($input) {
+    public function parse_fixed_float_value($input) {
         if (($input === null) || ($input === '-')) {
             return null;
         }
@@ -483,7 +483,7 @@ class exmo extends Exchange {
         return $result;
     }
 
-    public function fetch_funding_fees ($params = array ()) {
+    public function fetch_funding_fees($params = array ()) {
         $response = null;
         if ($this->options['useWebapiForFetchingFees']) {
             $response = $this->webGetCtrlFeesAndLimits ($params);
@@ -529,7 +529,7 @@ class exmo extends Exchange {
         return $result;
     }
 
-    public function fetch_currencies ($params = array ()) {
+    public function fetch_currencies($params = array ()) {
         $fees = $this->fetch_funding_fees($params);
         // todo redesign the 'fee' property in currencies
         $ids = is_array($fees['withdraw']) ? array_keys($fees['withdraw']) : array();
@@ -593,7 +593,7 @@ class exmo extends Exchange {
         return $result;
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         $fees = $this->fetch_trading_fees();
         $response = $this->publicGetPairSettings ($params);
         $keys = is_array($response) ? array_keys($response) : array();
@@ -639,7 +639,7 @@ class exmo extends Exchange {
         return $result;
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostUserInfo ($params);
         $result = array( 'info' => $response );
@@ -659,7 +659,7 @@ class exmo extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -673,7 +673,7 @@ class exmo extends Exchange {
         return $this->parse_order_book($result, null, 'bid', 'ask');
     }
 
-    public function fetch_order_books ($symbols = null, $limit = null, $params = array ()) {
+    public function fetch_order_books($symbols = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $ids = null;
         if ($symbols === null) {
@@ -708,7 +708,7 @@ class exmo extends Exchange {
         return $result;
     }
 
-    public function parse_ticker ($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null) {
         $timestamp = $this->safe_timestamp($ticker, 'updated');
         $symbol = null;
         if ($market !== null) {
@@ -739,7 +739,7 @@ class exmo extends Exchange {
         );
     }
 
-    public function fetch_tickers ($symbols = null, $params = array ()) {
+    public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
         $response = $this->publicGetTicker ($params);
         $result = array();
@@ -754,14 +754,14 @@ class exmo extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
         $response = $this->publicGetTicker ($params);
         $market = $this->market($symbol);
         return $this->parse_ticker($response[$market['id']], $market);
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         $timestamp = $this->safe_timestamp($trade, 'date');
         $fee = null;
         $symbol = null;
@@ -808,7 +808,7 @@ class exmo extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -819,7 +819,7 @@ class exmo extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         // a $symbol is required but it can be a single string, or a non-empty array
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument (a single $symbol or an array)');
@@ -868,7 +868,7 @@ class exmo extends Exchange {
         return $this->filter_by_since_limit($result, $since, $limit);
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $prefix = ($type === 'market') ? ($type . '_') : '';
         $market = $this->market($symbol);
@@ -909,7 +909,7 @@ class exmo extends Exchange {
         return $order;
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array( 'order_id' => $id );
         $response = $this->privatePostOrderCancel (array_merge($request, $params));
@@ -919,7 +919,7 @@ class exmo extends Exchange {
         return $response;
     }
 
-    public function fetch_order ($id, $symbol = null, $params = array ()) {
+    public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         try {
             $request = array(
@@ -961,7 +961,7 @@ class exmo extends Exchange {
         throw new OrderNotFound($this->id . ' fetchOrder $order $id ' . (string) $id . ' not found in cache.');
     }
 
-    public function fetch_order_trades ($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -974,7 +974,7 @@ class exmo extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function update_cached_orders ($openOrders, $symbol) {
+    public function update_cached_orders($openOrders, $symbol) {
         // update local cache with open orders
         for ($j = 0; $j < count($openOrders); $j++) {
             $id = $openOrders[$j]['id'];
@@ -1015,7 +1015,7 @@ class exmo extends Exchange {
         return $this->to_array($this->orders);
     }
 
-    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $response = $this->privatePostUserOpenOrders ($params);
         $marketIds = is_array($response) ? array_keys($response) : array();
@@ -1033,19 +1033,19 @@ class exmo extends Exchange {
         return $this->filter_by_symbol_since_limit($this->to_array($this->orders), $symbol, $since, $limit);
     }
 
-    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->fetch_orders($symbol, $since, $limit, $params);
         $orders = $this->filter_by($this->orders, 'status', 'open');
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
     }
 
-    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->fetch_orders($symbol, $since, $limit, $params);
         $orders = $this->filter_by($this->orders, 'status', 'closed');
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
     }
 
-    public function parse_order ($order, $market = null) {
+    public function parse_order($order, $market = null) {
         //
         // fetchOrders, fetchOpenOrders, fetchClosedOrders
         //
@@ -1190,7 +1190,7 @@ class exmo extends Exchange {
         );
     }
 
-    public function fetch_deposit_address ($code, $params = array ()) {
+    public function fetch_deposit_address($code, $params = array ()) {
         $this->load_markets();
         $response = $this->privatePostDepositAddress ($params);
         $depositAddress = $this->safe_string($response, $code);
@@ -1213,7 +1213,7 @@ class exmo extends Exchange {
         );
     }
 
-    public function get_market_from_trades ($trades) {
+    public function get_market_from_trades($trades) {
         $tradesBySymbol = $this->index_by($trades, 'pair');
         $symbols = is_array($tradesBySymbol) ? array_keys($tradesBySymbol) : array();
         $numSymbols = is_array($symbols) ? count($symbols) : 0;
@@ -1223,7 +1223,7 @@ class exmo extends Exchange {
         return null;
     }
 
-    public function calculate_fee ($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
+    public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
         $market = $this->markets[$symbol];
         $rate = $market[$takerOrMaker];
         $cost = floatval ($this->cost_to_precision($symbol, $amount * $rate));
@@ -1241,7 +1241,7 @@ class exmo extends Exchange {
         );
     }
 
-    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
@@ -1259,7 +1259,7 @@ class exmo extends Exchange {
         );
     }
 
-    public function parse_transaction_status ($status) {
+    public function parse_transaction_status($status) {
         $statuses = array(
             'transferred' => 'ok',
             'paid' => 'ok',
@@ -1269,7 +1269,7 @@ class exmo extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction ($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null) {
         //
         // fetchTransactions
         //
@@ -1341,7 +1341,7 @@ class exmo extends Exchange {
         );
     }
 
-    public function fetch_transactions ($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_transactions($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array();
         if ($since !== null) {
@@ -1385,7 +1385,7 @@ class exmo extends Exchange {
         return $this->parse_transactions($response['history'], $currency, $since, $limit);
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api] . '/';
         if ($api !== 'web') {
             $url .= $this->version . '/';
@@ -1408,11 +1408,11 @@ class exmo extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function nonce () {
+    public function nonce() {
         return $this->milliseconds();
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return; // fallback to default error handler
         }

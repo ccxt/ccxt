@@ -13,7 +13,7 @@ use \ccxt\ExchangeNotAvailable;
 
 class hitbtc2 extends hitbtc {
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'id' => 'hitbtc2',
             'name' => 'HitBTC',
@@ -561,11 +561,11 @@ class hitbtc2 extends hitbtc {
         ));
     }
 
-    public function fee_to_precision ($symbol, $fee) {
+    public function fee_to_precision($symbol, $fee) {
         return $this->decimal_to_precision($fee, TRUNCATE, 8, DECIMAL_PLACES);
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         $response = $this->publicGetSymbol ($params);
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
@@ -617,7 +617,7 @@ class hitbtc2 extends hitbtc {
         return $result;
     }
 
-    public function fetch_currencies ($params = array ()) {
+    public function fetch_currencies($params = array ()) {
         $response = $this->publicGetCurrency ($params);
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
@@ -677,7 +677,7 @@ class hitbtc2 extends hitbtc {
         return $result;
     }
 
-    public function fetch_trading_fee ($symbol, $params = array ()) {
+    public function fetch_trading_fee($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array_merge(array(
@@ -697,7 +697,7 @@ class hitbtc2 extends hitbtc {
         );
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $type = $this->safe_string($params, 'type', 'trading');
         $method = 'privateGet' . $this->capitalize($type) . 'Balance';
@@ -716,7 +716,7 @@ class hitbtc2 extends hitbtc {
         return $this->parse_balance($result);
     }
 
-    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1d', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1d', $since = null, $limit = null) {
         $timestamp = $this->parse8601($ohlcv['timestamp']);
         return [
             $timestamp,
@@ -728,7 +728,7 @@ class hitbtc2 extends hitbtc {
         ];
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -745,7 +745,7 @@ class hitbtc2 extends hitbtc {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'symbol' => $this->market_id($symbol),
@@ -757,7 +757,7 @@ class hitbtc2 extends hitbtc {
         return $this->parse_order_book($response, null, 'bid', 'ask', 'price', 'size');
     }
 
-    public function parse_ticker ($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null) {
         $timestamp = $this->parse8601($ticker['timestamp']);
         $symbol = null;
         if ($market !== null) {
@@ -809,7 +809,7 @@ class hitbtc2 extends hitbtc {
         );
     }
 
-    public function fetch_tickers ($symbols = null, $params = array ()) {
+    public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
         $response = $this->publicGetTicker ($params);
         $result = array();
@@ -829,7 +829,7 @@ class hitbtc2 extends hitbtc {
         return $result;
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -842,7 +842,7 @@ class hitbtc2 extends hitbtc {
         return $this->parse_ticker($response, $market);
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         //
         // createMarketOrder
         //
@@ -907,7 +907,7 @@ class hitbtc2 extends hitbtc {
         );
     }
 
-    public function fetch_transactions ($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_transactions($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $currency = null;
         $request = array();
@@ -922,7 +922,7 @@ class hitbtc2 extends hitbtc {
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function parse_transaction ($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null) {
         //
         //     array(
         //         $id => 'd53ee9df-89bf-4d09-886e-849f8be64647',
@@ -1015,7 +1015,7 @@ class hitbtc2 extends hitbtc {
         );
     }
 
-    public function parse_transaction_status ($status) {
+    public function parse_transaction_status($status) {
         $statuses = array(
             'pending' => 'pending',
             'failed' => 'failed',
@@ -1024,7 +1024,7 @@ class hitbtc2 extends hitbtc {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction_type ($type) {
+    public function parse_transaction_type($type) {
         $types = array(
             'payin' => 'deposit',
             'payout' => 'withdrawal',
@@ -1033,7 +1033,7 @@ class hitbtc2 extends hitbtc {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -1050,7 +1050,7 @@ class hitbtc2 extends hitbtc {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         // we use $clientOrderId as the $order $id with HitBTC intentionally
@@ -1084,7 +1084,7 @@ class hitbtc2 extends hitbtc {
         return $order;
     }
 
-    public function edit_order ($id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order($id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         $this->load_markets();
         // we use clientOrderId as the $order $id with HitBTC intentionally
         // because most of their endpoints will require clientOrderId
@@ -1110,7 +1110,7 @@ class hitbtc2 extends hitbtc {
         return $order;
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         // we use clientOrderId as the order $id with HitBTC intentionally
         // because most of their endpoints will require clientOrderId
@@ -1122,7 +1122,7 @@ class hitbtc2 extends hitbtc {
         return $this->parse_order($response);
     }
 
-    public function parse_order_status ($status) {
+    public function parse_order_status($status) {
         $statuses = array(
             'new' => 'open',
             'suspended' => 'open',
@@ -1134,7 +1134,7 @@ class hitbtc2 extends hitbtc {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order ($order, $market = null) {
+    public function parse_order($order, $market = null) {
         //
         // createMarketOrder
         //
@@ -1253,7 +1253,7 @@ class hitbtc2 extends hitbtc {
         );
     }
 
-    public function fetch_order ($id, $symbol = null, $params = array ()) {
+    public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         // we use clientOrderId as the order $id with HitBTC intentionally
         // because most of their endpoints will require clientOrderId
@@ -1269,7 +1269,7 @@ class hitbtc2 extends hitbtc {
         throw new OrderNotFound($this->id . ' order ' . $id . ' not found');
     }
 
-    public function fetch_open_order ($id, $symbol = null, $params = array ()) {
+    public function fetch_open_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         // we use clientOrderId as the order $id with HitBTC intentionally
         // because most of their endpoints will require clientOrderId
@@ -1281,7 +1281,7 @@ class hitbtc2 extends hitbtc {
         return $this->parse_order($response);
     }
 
-    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = null;
         $request = array();
@@ -1293,7 +1293,7 @@ class hitbtc2 extends hitbtc {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = null;
         $request = array();
@@ -1320,7 +1320,7 @@ class hitbtc2 extends hitbtc {
         return $this->filter_by_since_limit($orders, $since, $limit);
     }
 
-    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             // 'symbol' => 'BTC/USD', // optional
@@ -1372,7 +1372,7 @@ class hitbtc2 extends hitbtc {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_order_trades ($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
         // The $id needed here is the exchange's $id, and not the clientOrderID,
         // which is the $id that is stored in the unified order $id
         // To get the exchange's $id you need to grab it from order['info']['id']
@@ -1392,7 +1392,7 @@ class hitbtc2 extends hitbtc {
         throw new OrderNotFound($this->id . ' order ' . $id . ' not found, ' . $this->id . '.fetchOrderTrades() requires an exchange-specific order $id, you need to grab it from order["info"]["$id"]');
     }
 
-    public function create_deposit_address ($code, $params = array ()) {
+    public function create_deposit_address($code, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
@@ -1410,7 +1410,7 @@ class hitbtc2 extends hitbtc {
         );
     }
 
-    public function fetch_deposit_address ($code, $params = array ()) {
+    public function fetch_deposit_address($code, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
@@ -1428,7 +1428,7 @@ class hitbtc2 extends hitbtc {
         );
     }
 
-    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
         $this->load_markets();
         $this->check_address($address);
         $currency = $this->currency($code);
@@ -1447,7 +1447,7 @@ class hitbtc2 extends hitbtc {
         );
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = '/api/' . $this->version . '/';
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
@@ -1476,7 +1476,7 @@ class hitbtc2 extends hitbtc {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return;
         }

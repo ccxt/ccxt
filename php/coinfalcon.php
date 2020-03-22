@@ -10,7 +10,7 @@ use \ccxt\ArgumentsRequired;
 
 class coinfalcon extends Exchange {
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'id' => 'coinfalcon',
             'name' => 'CoinFalcon',
@@ -67,7 +67,7 @@ class coinfalcon extends Exchange {
         ));
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         $response = $this->publicGetMarkets ($params);
         $markets = $this->safe_value($response, 'data');
         $result = array();
@@ -110,7 +110,7 @@ class coinfalcon extends Exchange {
         return $result;
     }
 
-    public function parse_ticker ($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null) {
         if ($market === null) {
             $marketId = $this->safe_string($ticker, 'name');
             $market = $this->safe_value($this->markets_by_id, $marketId, $market);
@@ -145,13 +145,13 @@ class coinfalcon extends Exchange {
         );
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
         $tickers = $this->fetch_tickers($params);
         return $tickers[$symbol];
     }
 
-    public function fetch_tickers ($symbols = null, $params = array ()) {
+    public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
         $response = $this->publicGetMarkets ($params);
         $tickers = $this->safe_value($response, 'data');
@@ -164,7 +164,7 @@ class coinfalcon extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'market' => $this->market_id($symbol),
@@ -174,7 +174,7 @@ class coinfalcon extends Exchange {
         return $this->parse_order_book($response['data'], null, 'bids', 'asks', 'price', 'size');
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         $timestamp = $this->parse8601($this->safe_string($trade, 'created_at'));
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'size');
@@ -214,7 +214,7 @@ class coinfalcon extends Exchange {
         );
     }
 
-    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a $symbol argument');
         }
@@ -233,7 +233,7 @@ class coinfalcon extends Exchange {
         return $this->parse_trades($response['data'], $market, $since, $limit);
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -246,7 +246,7 @@ class coinfalcon extends Exchange {
         return $this->parse_trades($response['data'], $market, $since, $limit);
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $response = $this->privateGetUserAccounts ($params);
         $result = array( 'info' => $response );
@@ -265,7 +265,7 @@ class coinfalcon extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function parse_order_status ($status) {
+    public function parse_order_status($status) {
         $statuses = array(
             'fulfilled' => 'closed',
             'canceled' => 'canceled',
@@ -276,7 +276,7 @@ class coinfalcon extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order ($order, $market = null) {
+    public function parse_order($order, $market = null) {
         if ($market === null) {
             $marketId = $this->safe_string($order, 'market');
             if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
@@ -327,7 +327,7 @@ class coinfalcon extends Exchange {
         );
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         // price/size must be string
@@ -348,7 +348,7 @@ class coinfalcon extends Exchange {
         return $order;
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'id' => $id,
@@ -358,7 +358,7 @@ class coinfalcon extends Exchange {
         return $this->parse_order($response['data'], $market);
     }
 
-    public function fetch_order ($id, $symbol = null, $params = array ()) {
+    public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'id' => $id,
@@ -367,7 +367,7 @@ class coinfalcon extends Exchange {
         return $this->parse_order($response['data']);
     }
 
-    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array();
         if ($symbol !== null) {
@@ -381,11 +381,11 @@ class coinfalcon extends Exchange {
         return $this->parse_orders($response['data']);
     }
 
-    public function nonce () {
+    public function nonce() {
         return $this->milliseconds();
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = '/api/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
@@ -418,7 +418,7 @@ class coinfalcon extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($code < 400) {
             return;
         }

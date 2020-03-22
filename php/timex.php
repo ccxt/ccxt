@@ -11,7 +11,7 @@ use \ccxt\InvalidOrder;
 
 class timex extends Exchange {
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'id' => 'timex',
             'name' => 'TimeX',
@@ -195,7 +195,7 @@ class timex extends Exchange {
         ));
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         $response = $this->publicGetMarkets ($params);
         //
         //     array(
@@ -225,7 +225,7 @@ class timex extends Exchange {
         return $result;
     }
 
-    public function fetch_currencies ($params = array ()) {
+    public function fetch_currencies($params = array ()) {
         $response = $this->publicGetCurrencies ($params);
         //
         //     array(
@@ -260,7 +260,7 @@ class timex extends Exchange {
         return $this->index_by($result, 'code');
     }
 
-    public function fetch_tickers ($symbols = null, $params = array ()) {
+    public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
         $period = $this->safe_string($this->options['fetchTickers'], 'period', '1d');
         $request = array(
@@ -287,7 +287,7 @@ class timex extends Exchange {
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $period = $this->safe_string($this->options['fetchTickers'], 'period', '1d');
@@ -317,7 +317,7 @@ class timex extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -355,7 +355,7 @@ class timex extends Exchange {
         return $this->parse_order_book($response, $timestamp, 'bid', 'ask', 'price', 'baseTokenAmount');
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $options = $this->safe_value($this->options, 'fetchTrades', array());
@@ -393,7 +393,7 @@ class timex extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -431,7 +431,7 @@ class timex extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $balances = $this->tradingGetBalances ($params);
         //
@@ -456,7 +456,7 @@ class timex extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -511,7 +511,7 @@ class timex extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function edit_order ($id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order($id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -563,12 +563,12 @@ class timex extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         return $this->cancel_orders(array( $id ), $symbol, $params);
     }
 
-    public function cancel_orders ($ids, $symbol = null, $params = array ()) {
+    public function cancel_orders($ids, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'id' => $ids,
@@ -601,7 +601,7 @@ class timex extends Exchange {
         return $response;
     }
 
-    public function fetch_order ($id, $symbol = null, $params = array ()) {
+    public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'orderHash' => $id,
@@ -645,7 +645,7 @@ class timex extends Exchange {
         return $this->parse_order(array_merge($order, array( 'trades' => $trades )));
     }
 
-    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $options = $this->safe_value($this->options, 'fetchOpenOrders', array());
         $defaultSort = $this->safe_value($options, 'sort', 'createdAt,asc');
@@ -690,7 +690,7 @@ class timex extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $options = $this->safe_value($this->options, 'fetchClosedOrders', array());
         $defaultSort = $this->safe_value($options, 'sort', 'createdAt,asc');
@@ -740,7 +740,7 @@ class timex extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $options = $this->safe_value($this->options, 'fetchMyTrades', array());
         $defaultSort = $this->safe_value($options, 'sort', 'timestamp,asc');
@@ -793,7 +793,7 @@ class timex extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_trading_fee ($symbol, $params = array ()) {
+    public function fetch_trading_fee($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -816,7 +816,7 @@ class timex extends Exchange {
         );
     }
 
-    public function parse_market ($market) {
+    public function parse_market($market) {
         //
         //     {
         //         "$symbol" => "ETHBTC",
@@ -877,7 +877,7 @@ class timex extends Exchange {
         );
     }
 
-    public function parse_currency ($currency) {
+    public function parse_currency($currency) {
         //
         //     {
         //         "symbol" => "BTC",
@@ -941,7 +941,7 @@ class timex extends Exchange {
         );
     }
 
-    public function parse_tickers ($rawTickers, $symbols = null) {
+    public function parse_tickers($rawTickers, $symbols = null) {
         $tickers = array();
         for ($i = 0; $i < count($rawTickers); $i++) {
             $tickers[] = $this->parse_ticker($rawTickers[$i]);
@@ -949,7 +949,7 @@ class timex extends Exchange {
         return $this->filter_by_array($tickers, 'symbol', $symbols);
     }
 
-    public function parse_ticker ($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null) {
         //
         //     {
         //         "ask" => 0.017,
@@ -1018,7 +1018,7 @@ class timex extends Exchange {
         );
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         //
         // fetchTrades (public)
         //
@@ -1094,7 +1094,7 @@ class timex extends Exchange {
         );
     }
 
-    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
         //
         //     {
         //         "timestamp":"2019-12-04T23:00:00",
@@ -1116,7 +1116,7 @@ class timex extends Exchange {
         );
     }
 
-    public function parse_order ($order, $market = null) {
+    public function parse_order($order, $market = null) {
         //
         // fetchOrder, createOrder, cancelOrder, cancelOrders, fetchOpenOrders, fetchClosedOrders
         //
@@ -1203,7 +1203,7 @@ class timex extends Exchange {
         );
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $api . '/' . $path;
         if ($params) {
             $url .= '?' . $this->urlencode_with_array_repeat($params);
@@ -1217,7 +1217,7 @@ class timex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($statusCode, $statusText, $url, $method, $responseHeaders, $responseBody, $response, $requestHeaders, $requestBody) {
+    public function handle_errors($statusCode, $statusText, $url, $method, $responseHeaders, $responseBody, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return;
         }

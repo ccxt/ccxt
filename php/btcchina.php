@@ -9,7 +9,7 @@ use Exception; // a common import
 
 class btcchina extends Exchange {
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'id' => 'btcchina',
             'name' => 'BTCChina',
@@ -87,7 +87,7 @@ class btcchina extends Exchange {
         ));
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         $request = array(
             'market' => 'all',
         );
@@ -119,7 +119,7 @@ class btcchina extends Exchange {
         return $result;
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostGetAccountInfo ($params);
         $balances = $this->safe_value($response, 'result');
@@ -141,14 +141,14 @@ class btcchina extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function create_market_request ($market) {
+    public function create_market_request($market) {
         $request = array();
         $field = ($market['plus']) ? 'symbol' : 'market';
         $request[$field] = $market['id'];
         return $request;
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $method = $market['api'] . 'GetOrderbook';
@@ -158,7 +158,7 @@ class btcchina extends Exchange {
         return $this->parse_order_book($response, $timestamp);
     }
 
-    public function parse_ticker ($ticker, $market) {
+    public function parse_ticker($ticker, $market) {
         $timestamp = $this->safe_timestamp($ticker, 'date');
         $last = $this->safe_float($ticker, 'last');
         return array(
@@ -182,7 +182,7 @@ class btcchina extends Exchange {
         );
     }
 
-    public function parse_ticker_plus ($ticker, $market) {
+    public function parse_ticker_plus($ticker, $market) {
         $timestamp = $this->safe_integer($ticker, 'Timestamp');
         $symbol = null;
         if ($market !== null) {
@@ -208,7 +208,7 @@ class btcchina extends Exchange {
         );
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $method = $market['api'] . 'GetTicker';
@@ -221,7 +221,7 @@ class btcchina extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function parse_trade ($trade, $market) {
+    public function parse_trade($trade, $market) {
         $timestamp = $this->safe_timestamp($trade, 'date');
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
@@ -246,7 +246,7 @@ class btcchina extends Exchange {
         );
     }
 
-    public function parse_trade_plus ($trade, $market) {
+    public function parse_trade_plus($trade, $market) {
         $timestamp = $this->parse8601($this->safe_string($trade, 'timestamp'));
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'size');
@@ -271,7 +271,7 @@ class btcchina extends Exchange {
         );
     }
 
-    public function parse_trades_plus ($trades, $market = null) {
+    public function parse_trades_plus($trades, $market = null) {
         $result = array();
         for ($i = 0; $i < count($trades); $i++) {
             $result[] = $this->parse_trade_plus($trades[$i], $market);
@@ -279,7 +279,7 @@ class btcchina extends Exchange {
         return $result;
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $method = $market['api'] . 'GetTrade';
@@ -298,7 +298,7 @@ class btcchina extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $method = 'privatePost' . $this->capitalize($side) . 'Order2';
@@ -317,7 +317,7 @@ class btcchina extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $market = $params['market']; // TODO fixme
         $request = array(
@@ -326,11 +326,11 @@ class btcchina extends Exchange {
         return $this->privatePostCancelOrder (array_merge($request, $params));
     }
 
-    public function nonce () {
+    public function nonce() {
         return $this->microseconds();
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api] . '/' . $path;
         if ($api === 'private') {
             $this->check_required_credentials();

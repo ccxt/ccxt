@@ -9,7 +9,7 @@ use Exception; // a common import
 
 class binanceje extends binance {
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'id' => 'binanceje',
             'name' => 'Binance Jersey',

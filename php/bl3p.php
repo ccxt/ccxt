@@ -9,7 +9,7 @@ use Exception; // a common import
 
 class bl3p extends Exchange {
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'id' => 'bl3p',
             'name' => 'BL3P',
@@ -65,7 +65,7 @@ class bl3p extends Exchange {
         ));
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostGENMKTMoneyInfo ($params);
         $data = $this->safe_value($response, 'data', array());
@@ -87,14 +87,14 @@ class bl3p extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function parse_bid_ask ($bidask, $priceKey = 0, $amountKey = 1) {
+    public function parse_bid_ask($bidask, $priceKey = 0, $amountKey = 1) {
         return [
             $bidask[$priceKey] / 100000.0,
             $bidask[$amountKey] / 100000000.0,
         ];
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
@@ -104,7 +104,7 @@ class bl3p extends Exchange {
         return $this->parse_order_book($orderbook, null, 'bids', 'asks', 'price_int', 'amount_int');
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $request = array(
             'market' => $this->market_id($symbol),
         );
@@ -135,7 +135,7 @@ class bl3p extends Exchange {
         );
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         $id = $this->safe_string($trade, 'trade_id');
         $timestamp = $this->safe_integer($trade, 'date');
         $price = $this->safe_float($trade, 'price_int');
@@ -173,7 +173,7 @@ class bl3p extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $market = $this->market($symbol);
         $response = $this->publicGetMarketTrades (array_merge(array(
             'market' => $market['id'],
@@ -182,7 +182,7 @@ class bl3p extends Exchange {
         return $result;
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $market = $this->market($symbol);
         $order = array(
             'market' => $market['id'],
@@ -201,14 +201,14 @@ class bl3p extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         $request = array(
             'order_id' => $id,
         );
         return $this->privatePostMarketMoneyOrderCancel (array_merge($request, $params));
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = $this->implode_params($path, $params);
         $url = $this->urls['api'] . '/' . $this->version . '/' . $request;
         $query = $this->omit($params, $this->extract_params($path));

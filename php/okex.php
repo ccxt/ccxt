@@ -14,7 +14,7 @@ use \ccxt\NotSupported;
 
 class okex extends Exchange {
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'id' => 'okex',
             'name' => 'OKEX',
@@ -659,7 +659,7 @@ class okex extends Exchange {
         ));
     }
 
-    public function fetch_time ($params = array ()) {
+    public function fetch_time($params = array ()) {
         $response = $this->generalGetTime ($params);
         //
         //     {
@@ -670,7 +670,7 @@ class okex extends Exchange {
         return $this->parse8601($this->safe_string($response, 'iso'));
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         $types = $this->safe_value($this->options, 'fetchMarkets');
         $result = array();
         for ($i = 0; $i < count($types); $i++) {
@@ -680,7 +680,7 @@ class okex extends Exchange {
         return $result;
     }
 
-    public function parse_markets ($markets) {
+    public function parse_markets($markets) {
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
             $result[] = $this->parse_market($markets[$i]);
@@ -688,7 +688,7 @@ class okex extends Exchange {
         return $result;
     }
 
-    public function parse_market ($market) {
+    public function parse_market($market) {
         //
         // $spot markets
         //
@@ -840,7 +840,7 @@ class okex extends Exchange {
         ));
     }
 
-    public function fetch_markets_by_type ($type, $params = array ()) {
+    public function fetch_markets_by_type($type, $params = array ()) {
         if ($type === 'option') {
             $underlying = $this->optionGetUnderlying ($params);
             $result = array();
@@ -937,7 +937,7 @@ class okex extends Exchange {
         }
     }
 
-    public function fetch_currencies ($params = array ()) {
+    public function fetch_currencies($params = array ()) {
         // has['fetchCurrencies'] is currently set to false
         // despite that their docs say these endpoints are public:
         //     https://www.okex.com/api/account/v3/withdrawal/fee
@@ -989,7 +989,7 @@ class okex extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $method = $market['type'] . 'GetInstrumentsInstrumentId';
@@ -1018,7 +1018,7 @@ class okex extends Exchange {
         return $this->parse_order_book($response, $timestamp);
     }
 
-    public function parse_ticker ($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null) {
         //
         //     {         best_ask => "0.02665472",
         //               best_bid => "0.02665221",
@@ -1081,7 +1081,7 @@ class okex extends Exchange {
         );
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $method = $market['type'] . 'GetInstrumentsInstrumentIdTicker';
@@ -1107,7 +1107,7 @@ class okex extends Exchange {
         return $this->parse_ticker($response);
     }
 
-    public function fetch_tickers_by_type ($type, $symbols = null, $params = array ()) {
+    public function fetch_tickers_by_type($type, $symbols = null, $params = array ()) {
         $this->load_markets();
         $method = $type . 'GetInstrumentsTicker';
         $response = $this->$method ($params);
@@ -1120,13 +1120,13 @@ class okex extends Exchange {
         return $result;
     }
 
-    public function fetch_tickers ($symbols = null, $params = array ()) {
+    public function fetch_tickers($symbols = null, $params = array ()) {
         $defaultType = $this->safe_string_2($this->options, 'fetchTickers', 'defaultType');
         $type = $this->safe_string($params, 'type', $defaultType);
         return $this->fetch_tickers_by_type($type, $symbols, $this->omit($params, 'type'));
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         //
         // fetchTrades (public)
         //
@@ -1260,7 +1260,7 @@ class okex extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $method = $market['type'] . 'GetInstrumentsInstrumentIdTrades';
@@ -1304,7 +1304,7 @@ class okex extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
         //
         // spot markets
         //
@@ -1358,7 +1358,7 @@ class okex extends Exchange {
         }
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $method = $market['type'] . 'GetInstrumentsInstrumentIdCandles';
@@ -1408,7 +1408,7 @@ class okex extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_account_balance ($response) {
+    public function parse_account_balance($response) {
         //
         // $account
         //
@@ -1464,7 +1464,7 @@ class okex extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function parse_margin_balance ($response) {
+    public function parse_margin_balance($response) {
         //
         //     array(
         //         array(
@@ -1541,7 +1541,7 @@ class okex extends Exchange {
         return $result;
     }
 
-    public function parse_futures_balance ($response) {
+    public function parse_futures_balance($response) {
         //
         //     {
         //         "$info":{
@@ -1591,7 +1591,7 @@ class okex extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function parse_swap_balance ($response) {
+    public function parse_swap_balance($response) {
         //
         //     {
         //         "$info" => array(
@@ -1630,7 +1630,7 @@ class okex extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $defaultType = $this->safe_string_2($this->options, 'fetchBalance', 'defaultType');
         $type = $this->safe_string($params, 'type', $defaultType);
         if ($type === null) {
@@ -1769,7 +1769,7 @@ class okex extends Exchange {
         return $this->parse_balance_by_type($type, $response);
     }
 
-    public function parse_balance_by_type ($type, $response) {
+    public function parse_balance_by_type($type, $response) {
         if (($type === 'account') || ($type === 'spot')) {
             return $this->parse_account_balance($response);
         } else if ($type === 'margin') {
@@ -1782,7 +1782,7 @@ class okex extends Exchange {
         throw new NotSupported($this->id . " fetchBalance does not support the '" . $type . "' $type (the $type must be one of 'account', 'spot', 'margin', 'futures', 'swap')");
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -1866,7 +1866,7 @@ class okex extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
@@ -1918,7 +1918,7 @@ class okex extends Exchange {
         return $this->parse_order($result, $market);
     }
 
-    public function parse_order_status ($status) {
+    public function parse_order_status($status) {
         $statuses = array(
             '-2' => 'failed',
             '-1' => 'canceled',
@@ -1931,7 +1931,7 @@ class okex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_side ($side) {
+    public function parse_order_side($side) {
         $sides = array(
             '1' => 'buy', // open long
             '2' => 'sell', // open short
@@ -1941,7 +1941,7 @@ class okex extends Exchange {
         return $this->safe_string($sides, $side, $side);
     }
 
-    public function parse_order ($order, $market = null) {
+    public function parse_order($order, $market = null) {
         //
         // createOrder
         //
@@ -2090,7 +2090,7 @@ class okex extends Exchange {
         );
     }
 
-    public function fetch_order ($id, $symbol = null, $params = array ()) {
+    public function fetch_order($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrder requires a $symbol argument');
         }
@@ -2165,7 +2165,7 @@ class okex extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function fetch_orders_by_state ($state, $symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders_by_state($state, $symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrdersByState requires a $symbol argument');
         }
@@ -2273,7 +2273,7 @@ class okex extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         // '-2' => failed,
         // '-1' => cancelled,
         //  '0' => open ,
@@ -2286,7 +2286,7 @@ class okex extends Exchange {
         return $this->fetch_orders_by_state('6', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         // '-2' => failed,
         // '-1' => cancelled,
         //  '0' => open ,
@@ -2299,7 +2299,7 @@ class okex extends Exchange {
         return $this->fetch_orders_by_state('7', $symbol, $since, $limit, $params);
     }
 
-    public function parse_deposit_addresses ($addresses) {
+    public function parse_deposit_addresses($addresses) {
         $result = array();
         for ($i = 0; $i < count($addresses); $i++) {
             $result[] = $this->parse_deposit_address($addresses[$i]);
@@ -2307,7 +2307,7 @@ class okex extends Exchange {
         return $result;
     }
 
-    public function parse_deposit_address ($depositAddress, $currency = null) {
+    public function parse_deposit_address($depositAddress, $currency = null) {
         //
         //     {
         //         $address => '0x696abb81974a8793352cbd33aadcf78eda3cfdfa',
@@ -2332,7 +2332,7 @@ class okex extends Exchange {
         );
     }
 
-    public function fetch_deposit_address ($code, $params = array ()) {
+    public function fetch_deposit_address($code, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
@@ -2355,7 +2355,7 @@ class okex extends Exchange {
         return $addresses[0];
     }
 
-    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency($code);
@@ -2399,7 +2399,7 @@ class okex extends Exchange {
         );
     }
 
-    public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array();
         $method = 'accountGetDepositHistory';
@@ -2413,7 +2413,7 @@ class okex extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit, $params);
     }
 
-    public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array();
         $method = 'accountGetWithdrawalHistory';
@@ -2427,7 +2427,7 @@ class okex extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit, $params);
     }
 
-    public function parse_transaction_status ($status) {
+    public function parse_transaction_status($status) {
         //
         // deposit $statuses
         //
@@ -2465,7 +2465,7 @@ class okex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction ($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null) {
         //
         // withdraw
         //
@@ -2562,7 +2562,7 @@ class okex extends Exchange {
         );
     }
 
-    public function fetch_order_trades ($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
         // okex actually returns ledger entries instead of fills here, so each fill in the order
         // is represented by two trades with opposite buy/sell sides, not one :\
         // this aspect renders the 'fills' endpoint unusable for fetchOrderTrades
@@ -2627,7 +2627,7 @@ class okex extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_ledger ($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $defaultType = $this->safe_string_2($this->options, 'fetchLedger', 'defaultType');
         $type = $this->safe_string($params, 'type', $defaultType);
@@ -2823,7 +2823,7 @@ class okex extends Exchange {
         return $this->parse_ledger($entries, $currency, $since, $limit);
     }
 
-    public function parse_ledger_entry_type ($type) {
+    public function parse_ledger_entry_type($type) {
         $types = array(
             'transfer' => 'transfer', // // funds transfer in/out
             'trade' => 'trade', // funds moved as a result of a trade, spot and margin accounts only
@@ -2838,7 +2838,7 @@ class okex extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_entry ($item, $currency = null) {
+    public function parse_ledger_entry($item, $currency = null) {
         //
         //
         // $account
@@ -2947,7 +2947,7 @@ class okex extends Exchange {
         );
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $isArray = gettype($params) === 'array' && count(array_filter(array_keys($params), 'is_string')) == 0;
         $request = '/api/' . $api . '/' . $this->version . '/';
         $request .= $isArray ? $path : $this->implode_params($path, $params);
@@ -2989,7 +2989,7 @@ class okex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function get_path_authentication_type ($path) {
+    public function get_path_authentication_type($path) {
         // https://github.com/ccxt/ccxt/issues/6651
         // a special case to handle the optionGetUnderlying interefering with
         // other endpoints containing this keyword
@@ -3001,7 +3001,7 @@ class okex extends Exchange {
         return $this->safe_string($auth, $key, 'private');
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         $feedback = $this->id . ' ' . $body;
         if ($code === 503) {
             throw new ExchangeError($feedback);

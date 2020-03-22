@@ -12,7 +12,7 @@ use \ccxt\InvalidOrder;
 
 class bcex extends Exchange {
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'id' => 'bcex',
             'name' => 'BCEX',
@@ -229,7 +229,7 @@ class bcex extends Exchange {
         ));
     }
 
-    public function fetch_trading_limits ($symbols = null, $params = array ()) {
+    public function fetch_trading_limits($symbols = null, $params = array ()) {
         // this method should not be called directly, use loadTradingLimits () instead
         // by default it will try load withdrawal fees of all currencies (with separate requests, sequentially)
         // however if you define $symbols = array( 'ETH/BTC', 'LTC/BTC' ) in args it will only load those
@@ -245,7 +245,7 @@ class bcex extends Exchange {
         return $result;
     }
 
-    public function fetch_trading_limits_by_id ($id, $params = array ()) {
+    public function fetch_trading_limits_by_id($id, $params = array ()) {
         $request = array(
             'symbol' => $id,
         );
@@ -267,7 +267,7 @@ class bcex extends Exchange {
         return $this->parse_trading_limits($this->safe_value($response, 'data', array()));
     }
 
-    public function parse_trading_limits ($limits, $symbol = null, $params = array ()) {
+    public function parse_trading_limits($limits, $symbol = null, $params = array ()) {
         //
         //  {         high =>  0.03721392,
         //             low =>  0.03335362,
@@ -295,7 +295,7 @@ class bcex extends Exchange {
         );
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         $response = $this->publicGetApiMarketGetPriceList ($params);
         $result = array();
         $keys = is_array($response) ? array_keys($response) : array();
@@ -340,7 +340,7 @@ class bcex extends Exchange {
         return $result;
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -376,7 +376,7 @@ class bcex extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'symbol' => $this->market_id($symbol),
@@ -389,7 +389,7 @@ class bcex extends Exchange {
         return $this->parse_trades($response['data'], $market, $since, $limit);
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostApiUserUserBalance ($params);
         $data = $this->safe_value($response, 'data');
@@ -421,7 +421,7 @@ class bcex extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->markets[$symbol];
         $request = array(
@@ -454,7 +454,7 @@ class bcex extends Exchange {
         );
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $marketId = $this->market_id($symbol);
         $request = array(
@@ -466,7 +466,7 @@ class bcex extends Exchange {
         return $this->parse_order_book($data, $timestamp);
     }
 
-    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -476,7 +476,7 @@ class bcex extends Exchange {
         return $this->parse_trades($response['data'], $market, $since, $limit);
     }
 
-    public function parse_order_status ($status) {
+    public function parse_order_status($status) {
         $statuses = array(
             '0' => 'open',
             '1' => 'open', // partially filled
@@ -486,7 +486,7 @@ class bcex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_order ($id, $symbol = null, $params = array ()) {
+    public function fetch_order($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrder requires a `$symbol` argument');
         }
@@ -524,7 +524,7 @@ class bcex extends Exchange {
         );
     }
 
-    public function parse_order ($order, $market = null) {
+    public function parse_order($order, $market = null) {
         $id = $this->safe_string($order, 'id');
         $timestamp = $this->safe_timestamp($order, 'datetime');
         $symbol = null;
@@ -565,7 +565,7 @@ class bcex extends Exchange {
         return $result;
     }
 
-    public function fetch_orders_by_type ($type, $symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders_by_type($type, $symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'type' => $type,
@@ -582,20 +582,20 @@ class bcex extends Exchange {
         return array();
     }
 
-    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         return $this->fetch_orders_by_type('open', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $orders = $this->fetch_orders($symbol, $since, $limit, $params);
         return $this->filter_by($orders, 'status', 'closed');
     }
 
-    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         return $this->fetch_orders_by_type('all', $symbol, $since, $limit, $params);
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'symbol' => $this->market_id($symbol),
@@ -612,7 +612,7 @@ class bcex extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder requires a `$symbol` argument');
         }
@@ -627,7 +627,7 @@ class bcex extends Exchange {
         return $this->privatePostApiOrderCancel (array_merge($request, $params));
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
@@ -650,7 +650,7 @@ class bcex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return; // fallback to default error handler
         }

@@ -13,7 +13,7 @@ use \ccxt\OrderNotFound;
 
 class hitbtc extends Exchange {
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'id' => 'hitbtc',
             'name' => 'HitBTC',
@@ -515,7 +515,7 @@ class hitbtc extends Exchange {
         ));
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         $response = $this->publicGetSymbols ($params);
         $markets = $this->safe_value($response, 'symbols');
         $result = array();
@@ -565,7 +565,7 @@ class hitbtc extends Exchange {
         return $result;
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $method = $this->safe_string($params, 'type', 'trading');
         $method .= 'GetBalance';
@@ -585,7 +585,7 @@ class hitbtc extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $orderbook = $this->publicGetSymbolOrderbook (array_merge(array(
             'symbol' => $this->market_id($symbol),
@@ -593,7 +593,7 @@ class hitbtc extends Exchange {
         return $this->parse_order_book($orderbook);
     }
 
-    public function parse_ticker ($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null) {
         $timestamp = $this->safe_integer($ticker, 'timestamp');
         $symbol = null;
         if ($market) {
@@ -624,7 +624,7 @@ class hitbtc extends Exchange {
         );
     }
 
-    public function fetch_tickers ($symbols = null, $params = array ()) {
+    public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
         $tickers = $this->publicGetTicker ($params);
         $ids = is_array($tickers) ? array_keys($tickers) : array();
@@ -639,7 +639,7 @@ class hitbtc extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -652,14 +652,14 @@ class hitbtc extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         if (gettype($trade) === 'array' && count(array_filter(array_keys($trade), 'is_string')) == 0) {
             return $this->parse_public_trade($trade, $market);
         }
         return $this->parse_order_trade($trade, $market);
     }
 
-    public function parse_public_trade ($trade, $market = null) {
+    public function parse_public_trade($trade, $market = null) {
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -689,7 +689,7 @@ class hitbtc extends Exchange {
         );
     }
 
-    public function parse_order_trade ($trade, $market = null) {
+    public function parse_order_trade($trade, $market = null) {
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -728,7 +728,7 @@ class hitbtc extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -758,7 +758,7 @@ class hitbtc extends Exchange {
         return $this->parse_trades($response['trades'], $market, $since, $limit);
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         // check if $amount can be evenly divided into lots
@@ -790,7 +790,7 @@ class hitbtc extends Exchange {
         return $order;
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         // we use clientOrderId as the order $id with HitBTC intentionally
         // because most of their endpoints will require clientOrderId
@@ -801,7 +801,7 @@ class hitbtc extends Exchange {
         return $this->tradingPostCancelOrder (array_merge($request, $params));
     }
 
-    public function parse_order_status ($status) {
+    public function parse_order_status($status) {
         $statuses = array(
             'new' => 'open',
             'partiallyFilled' => 'open',
@@ -813,7 +813,7 @@ class hitbtc extends Exchange {
         return $this->safe_string($statuses, $status);
     }
 
-    public function parse_order ($order, $market = null) {
+    public function parse_order($order, $market = null) {
         $timestamp = $this->safe_integer($order, 'lastTimestamp');
         if ($timestamp === null) {
             $timestamp = $this->safe_integer($order, 'timestamp');
@@ -892,7 +892,7 @@ class hitbtc extends Exchange {
         );
     }
 
-    public function fetch_order ($id, $symbol = null, $params = array ()) {
+    public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         // we use clientOrderId as the order $id with HitBTC intentionally
         // because most of their endpoints will require clientOrderId
@@ -907,7 +907,7 @@ class hitbtc extends Exchange {
         throw new OrderNotFound($this->id . ' fetchOrder() error => ' . $this->response);
     }
 
-    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $statuses = array( 'new', 'partiallyFiiled' );
         $market = null;
@@ -923,7 +923,7 @@ class hitbtc extends Exchange {
         return $this->parse_orders($response['orders'], $market, $since, $limit);
     }
 
-    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = null;
         $statuses = array( 'filled', 'canceled', 'rejected', 'expired' );
@@ -940,7 +940,7 @@ class hitbtc extends Exchange {
         return $this->parse_orders($response['orders'], $market, $since, $limit);
     }
 
-    public function fetch_order_trades ($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = null;
         if ($symbol !== null) {
@@ -956,7 +956,7 @@ class hitbtc extends Exchange {
         return $this->parse_trades($response['trades'], $market, $since, $limit);
     }
 
-    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency($code);
@@ -975,11 +975,11 @@ class hitbtc extends Exchange {
         );
     }
 
-    public function nonce () {
+    public function nonce() {
         return $this->milliseconds();
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = '/' . 'api' . '/' . $this->version . '/' . $api . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
@@ -1012,7 +1012,7 @@ class hitbtc extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2($path, $api, $method, $params, $headers, $body);
         if (is_array($response) && array_key_exists('code', $response)) {
             if (is_array($response) && array_key_exists('ExecutionReport', $response)) {
@@ -1025,7 +1025,7 @@ class hitbtc extends Exchange {
         return $response;
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if (!$response) {
             return; // fallback to default $error handler
         }

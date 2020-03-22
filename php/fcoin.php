@@ -12,7 +12,7 @@ use \ccxt\InvalidOrder;
 
 class fcoin extends Exchange {
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'id' => 'fcoin',
             'name' => 'FCoin',
@@ -164,12 +164,12 @@ class fcoin extends Exchange {
         ));
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         $method = $this->safe_string($this->options, 'fetchMarketsMethod', 'fetch_markets_from_open_api');
         return $this->$method ($params);
     }
 
-    public function fetch_markets_from_open_api ($params = array ()) {
+    public function fetch_markets_from_open_api($params = array ()) {
         // https://github.com/ccxt/ccxt/issues/5648
         $response = $this->openapiGetSymbols ($params);
         //
@@ -249,7 +249,7 @@ class fcoin extends Exchange {
         return $result;
     }
 
-    public function fetch_markets_from_api ($params = array ()) {
+    public function fetch_markets_from_api($params = array ()) {
         $response = $this->publicGetSymbols ($params);
         //
         //     {
@@ -306,7 +306,7 @@ class fcoin extends Exchange {
         return $result;
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $response = $this->privateGetAccountsBalance ($params);
         $result = array( 'info' => $response );
@@ -324,7 +324,7 @@ class fcoin extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function parse_bids_asks ($orders, $priceKey = 0, $amountKey = 1) {
+    public function parse_bids_asks($orders, $priceKey = 0, $amountKey = 1) {
         $result = array();
         $length = is_array($orders) ? count($orders) : 0;
         $halfLength = intval ($length / 2);
@@ -341,7 +341,7 @@ class fcoin extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($symbol = null, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol = null, $limit = null, $params = array ()) {
         $this->load_markets();
         if ($limit !== null) {
             if (($limit === 20) || ($limit === 150)) {
@@ -361,7 +361,7 @@ class fcoin extends Exchange {
         return $this->parse_order_book($orderbook, $orderbook['ts'], 'bids', 'asks', 0, 1);
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -371,7 +371,7 @@ class fcoin extends Exchange {
         return $this->parse_ticker($ticker['data'], $market);
     }
 
-    public function parse_ticker ($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null) {
         $timestamp = null;
         $symbol = null;
         if ($market === null) {
@@ -413,7 +413,7 @@ class fcoin extends Exchange {
         );
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -447,7 +447,7 @@ class fcoin extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = 50, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = 50, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -461,7 +461,7 @@ class fcoin extends Exchange {
         return $this->parse_trades($response['data'], $market, $since, $limit);
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'symbol' => $this->market_id($symbol),
@@ -492,7 +492,7 @@ class fcoin extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'order_id' => $id,
@@ -505,7 +505,7 @@ class fcoin extends Exchange {
         ));
     }
 
-    public function parse_order_status ($status) {
+    public function parse_order_status($status) {
         $statuses = array(
             'submitted' => 'open',
             'canceled' => 'canceled',
@@ -517,7 +517,7 @@ class fcoin extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order ($order, $market = null) {
+    public function parse_order($order, $market = null) {
         $id = $this->safe_string($order, 'id');
         $side = $this->safe_string($order, 'side');
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
@@ -587,7 +587,7 @@ class fcoin extends Exchange {
         );
     }
 
-    public function fetch_order ($id, $symbol = null, $params = array ()) {
+    public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'order_id' => $id,
@@ -596,17 +596,17 @@ class fcoin extends Exchange {
         return $this->parse_order($response['data']);
     }
 
-    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $request = array( 'states' => 'submitted,partial_filled' );
         return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
-    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $request = array( 'states' => 'partial_canceled,filled' );
         return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
-    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrders() requires a `$symbol` argument');
         }
@@ -623,7 +623,7 @@ class fcoin extends Exchange {
         return $this->parse_orders($response['data'], $market, $since, $limit);
     }
 
-    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
         return array(
             $this->safe_timestamp($ohlcv, 'id'),
             $this->safe_float($ohlcv, 'open'),
@@ -634,7 +634,7 @@ class fcoin extends Exchange {
         );
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         if ($limit === null) {
@@ -654,11 +654,11 @@ class fcoin extends Exchange {
         return $this->parse_ohlcvs($response['data'], $market, $timeframe, $since, $limit);
     }
 
-    public function nonce () {
+    public function nonce() {
         return $this->milliseconds();
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = '/';
         $openAPI = ($api === 'openapi');
         $privateAPI = ($api === 'private');
@@ -705,7 +705,7 @@ class fcoin extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return; // fallback to default error handler
         }

@@ -16,7 +16,7 @@ use \ccxt\NotSupported;
 
 class theocean extends Exchange {
 
-    public function describe () {
+    public function describe() {
         $this->check_required_dependencies();
         return array_replace_recursive(parent::describe (), array(
             'id' => 'theocean',
@@ -102,7 +102,7 @@ class theocean extends Exchange {
         ));
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         $markets = $this->publicGetTokenPairs ($params);
         //
         //     array(
@@ -179,7 +179,7 @@ class theocean extends Exchange {
         return $result;
     }
 
-    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '5m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '5m', $since = null, $limit = null) {
         $baseDecimals = $this->safe_integer($this->options['decimals'], $market['base'], 18);
         return array(
             $this->safe_timestamp($ohlcv, 'startTime'),
@@ -191,7 +191,7 @@ class theocean extends Exchange {
         );
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -229,7 +229,7 @@ class theocean extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_balance_by_code ($code, $params = array ()) {
+    public function fetch_balance_by_code($code, $params = array ()) {
         if (!$this->walletAddress || (mb_strpos($this->walletAddress, '0x') !== 0)) {
             throw new InvalidAddress($this->id . ' fetchBalanceByCode() requires the .walletAddress to be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377"');
         }
@@ -254,7 +254,7 @@ class theocean extends Exchange {
         );
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         if (!$this->walletAddress || (mb_strpos($this->walletAddress, '0x') !== 0)) {
             throw new InvalidAddress($this->id . ' fetchBalance() requires the .walletAddress to be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377"');
         }
@@ -274,7 +274,7 @@ class theocean extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function parse_bid_ask ($bidask, $priceKey = 0, $amountKey = 1, $market = null) {
+    public function parse_bid_ask($bidask, $priceKey = 0, $amountKey = 1, $market = null) {
         if ($market === null) {
             throw new ArgumentsRequired($this->id . ' parseBidAsk requires a $market argument');
         }
@@ -284,7 +284,7 @@ class theocean extends Exchange {
         return array( $price, $amount );
     }
 
-    public function parse_order_book ($orderbook, $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', $priceKey = 0, $amountKey = 1, $market = null) {
+    public function parse_order_book($orderbook, $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', $priceKey = 0, $amountKey = 1, $market = null) {
         $result = array(
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -305,7 +305,7 @@ class theocean extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -339,7 +339,7 @@ class theocean extends Exchange {
         return $this->parse_order_book($response, null, 'bids', 'asks', 'price', 'availableAmount', $market);
     }
 
-    public function parse_ticker ($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null) {
         //
         //     {
         //         "bid" => "0.00050915",
@@ -383,7 +383,7 @@ class theocean extends Exchange {
         );
     }
 
-    public function fetch_tickers ($symbols = null, $params = array ()) {
+    public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
         $tickers = $this->publicGetTickers ($params);
         //
@@ -416,7 +416,7 @@ class theocean extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -427,7 +427,7 @@ class theocean extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         //
         // fetchTrades
         //
@@ -487,7 +487,7 @@ class theocean extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -510,7 +510,7 @@ class theocean extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $errorMessage = $this->id . ' createOrder() requires `exchange.walletAddress` and `exchange.privateKey`. The .walletAddress should be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377". The .privateKey for that wallet should be a "0x"-prefixed hexstring like "0xe4f40d465efa94c98aec1a51f574329344c772c1bce33be07fa20a56795fdd09".';
         if (!$this->walletAddress || (mb_strpos($this->walletAddress, '0x') !== 0)) {
             throw new InvalidAddress($errorMessage);
@@ -531,7 +531,7 @@ class theocean extends Exchange {
         return $order;
     }
 
-    public function fetch_order_params_to_sign ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function fetch_order_params_to_sign($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         if ($side !== 'buy' && $side !== 'sell') {
             throw new ExchangeError($side . ' is not valid $side param. Use \'buy\' or \'sell\'');
         }
@@ -564,7 +564,7 @@ class theocean extends Exchange {
         return $response;
     }
 
-    public function post_signed_order ($signedOrder, $requestParams, $params = array ()) {
+    public function post_signed_order($signedOrder, $requestParams, $params = array ()) {
         $request = $requestParams;
         $request['signedZeroExOrder'] = $signedOrder;
         $request = $this->omit($request, 'unsignedZeroExOrder');
@@ -572,7 +572,7 @@ class theocean extends Exchange {
         return $response;
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'orderHash' => $id,
@@ -595,7 +595,7 @@ class theocean extends Exchange {
         ));
     }
 
-    public function cancel_all_orders ($symbol = null, $params = array ()) {
+    public function cancel_all_orders($symbol = null, $params = array ()) {
         $response = $this->privateDeleteOrder ($params);
         //
         //     [{
@@ -608,7 +608,7 @@ class theocean extends Exchange {
         return $response;
     }
 
-    public function parse_order ($order, $market = null) {
+    public function parse_order($order, $market = null) {
         $zeroExOrder = $this->safe_value($order, 'zeroExOrder');
         $id = $this->safe_string($order, 'orderHash');
         if (($id === null) && ($zeroExOrder !== null)) {
@@ -736,19 +736,19 @@ class theocean extends Exchange {
         return $result;
     }
 
-    public function fetch_open_order ($id, $symbol = null, $params = array ()) {
+    public function fetch_open_order($id, $symbol = null, $params = array ()) {
         $method = $this->options['fetchOrderMethod'];
         return $this->$method ($id, $symbol, array_merge(array(
             'openAmount' => 1,
         ), $params));
     }
 
-    public function fetch_closed_order ($id, $symbol = null, $params = array ()) {
+    public function fetch_closed_order($id, $symbol = null, $params = array ()) {
         $method = $this->options['fetchOrderMethod'];
         return $this->$method ($id, $symbol, array_merge($params));
     }
 
-    public function fetch_order_from_history ($id, $symbol = null, $params = array ()) {
+    public function fetch_order_from_history($id, $symbol = null, $params = array ()) {
         $request = array(
             'orderHash' => $id,
         );
@@ -760,7 +760,7 @@ class theocean extends Exchange {
         throw new OrderNotFound($this->id . ' could not find order ' . $id . ' in order history');
     }
 
-    public function fetch_order_by_id ($id, $symbol = null, $params = array ()) {
+    public function fetch_order_by_id($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'orderHash' => $id,
@@ -797,7 +797,7 @@ class theocean extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function fetch_order ($id, $symbol = null, $params = array ()) {
+    public function fetch_order($id, $symbol = null, $params = array ()) {
         $request = array(
             'orderHash' => $id,
         );
@@ -809,7 +809,7 @@ class theocean extends Exchange {
         return $orders[0];
     }
 
-    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array();
         $market = null;
@@ -849,21 +849,21 @@ class theocean extends Exchange {
         return $this->parse_orders($response, null, $since, $limit);
     }
 
-    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $request = array(
             'openAmount' => 1, // returns open orders with remaining openAmount >= 1
         );
         return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
-    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $request = array(
             'openAmount' => 0, // returns closed orders with remaining openAmount === 0
         );
         return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'private') {
@@ -894,7 +894,7 @@ class theocean extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return; // fallback to default error handler
         }

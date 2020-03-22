@@ -9,7 +9,7 @@ use Exception; // a common import
 
 class vaultoro extends Exchange {
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'id' => 'vaultoro',
             'name' => 'Vaultoro',
@@ -67,7 +67,7 @@ class vaultoro extends Exchange {
         ));
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         $result = array();
         $response = $this->publicGetMarkets ($params);
         $market = $this->safe_value($response, 'data');
@@ -89,7 +89,7 @@ class vaultoro extends Exchange {
         return $result;
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $response = $this->privateGetBalance ($params);
         $balances = $this->safe_value($response, 'data');
@@ -106,7 +106,7 @@ class vaultoro extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $response = $this->publicGetOrderbook ($params);
         $orderbook = array(
@@ -116,7 +116,7 @@ class vaultoro extends Exchange {
         return $this->parse_order_book($orderbook, null, 'bids', 'asks', 'Gold_Price', 'Gold_Amount');
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         $timestamp = $this->parse8601($this->safe_string($trade, 'Time'));
         $symbol = null;
         if ($market !== null) {
@@ -147,14 +147,14 @@ class vaultoro extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $response = $this->publicGetTransactionsDay ($params);
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $method = 'privatePost' . $this->capitalize($side) . 'SymbolType';
@@ -171,7 +171,7 @@ class vaultoro extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'id' => $id,
@@ -179,7 +179,7 @@ class vaultoro extends Exchange {
         return $this->privatePostCancelId (array_merge($request, $params));
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/';
         if ($api === 'public') {
             $url .= $path;
