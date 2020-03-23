@@ -432,43 +432,14 @@ module.exports = class aofex extends Exchange {
 
     parseTrade (trade, market = undefined) {
         //
-        // fetchMyTrades (symbol defined, specific market)
+        // fetchTrades (public)
         //
         //     {
-        //         globalTradeID: 394698946,
-        //         tradeID: 45210255,
-        //         date: '2018-10-23 17:28:55',
-        //         type: 'sell',
-        //         rate: '0.03114126',
-        //         amount: '0.00018753',
-        //         total: '0.00000583'
-        //     }
-        //
-        // fetchMyTrades (symbol undefined, all markets)
-        //
-        //     {
-        //         globalTradeID: 394131412,
-        //         tradeID: '5455033',
-        //         date: '2018-10-16 18:05:17',
-        //         rate: '0.06935244',
-        //         amount: '1.40308443',
-        //         total: '0.09730732',
-        //         fee: '0.00100000',
-        //         orderNumber: '104768235081',
-        //         type: 'sell',
-        //         category: 'exchange'
-        //     }
-        //
-        // createOrder (taker trades)
-        //
-        //     {
-        //         'amount': '200.00000000',
-        //         'date': '2019-12-15 16:04:10',
-        //         'rate': '0.00000355',
-        //         'total': '0.00071000',
-        //         'tradeID': '119871',
-        //         'type': 'buy',
-        //         'takerAdjustment': '200.00000000'
+        //         id: 1584948803298490,
+        //         amount: "2.737",
+        //         price: "0.021209",
+        //         direction: "sell",
+        //         ts: 1584948803
         //     }
         //
         const id = this.safeString2 (trade, 'globalTradeID', 'tradeID');
@@ -544,14 +515,38 @@ module.exports = class aofex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'currencyPair': market['id'],
+            'symbol': market['id'],
         };
-        if (since !== undefined) {
-            request['start'] = parseInt (since / 1000);
-            request['end'] = this.seconds (); // last 50000 trades by default
-        }
-        const trades = await this.publicGetReturnTradeHistory (this.extend (request, params));
-        return this.parseTrades (trades, market, since, limit);
+        const response = await this.publicGetMarketTrade (this.extend (request, params));
+        //
+        //     {
+        //         errno: 0,
+        //         errmsg: "success",
+        //         result: {
+        //             symbol: "ETH-BTC",
+        //             ts: 1584948805439,
+        //             data: [
+        //                 {
+        //                     id: 1584948803300883,
+        //                     amount: "0.583",
+        //                     price: "0.021209",
+        //                     direction: "buy",
+        //                     ts: 1584948803
+        //                 },
+        //                 {
+        //                     id: 1584948803298490,
+        //                     amount: "2.737",
+        //                     price: "0.021209",
+        //                     direction: "sell",
+        //                     ts: 1584948803
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const data = this.safeValue (result, 'data', []);
+        return this.parseTrades (data, market, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
