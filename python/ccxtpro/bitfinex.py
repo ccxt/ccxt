@@ -240,9 +240,6 @@ class bitfinex(Exchange, ccxt.bitfinex):
         future = self.subscribe('book', symbol, self.deep_extend(request, params))
         return await self.after(future, self.limit_order_book, symbol, limit, params)
 
-    def limit_order_book(self, orderbook, symbol, limit=None, params={}):
-        return orderbook.limit(limit)
-
     def handle_order_book(self, client, message, subscription):
         #
         # first message(snapshot)

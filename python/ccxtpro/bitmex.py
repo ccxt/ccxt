@@ -424,9 +424,6 @@ class bitmex(Exchange, ccxt.bitmex):
         future = self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
         return await self.after(future, self.limit_order_book, symbol, limit, params)
 
-    def limit_order_book(self, orderbook, symbol, limit=None, params={}):
-        return orderbook.limit(limit)
-
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)

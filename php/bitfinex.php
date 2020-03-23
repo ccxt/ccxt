@@ -265,10 +265,6 @@ class bitfinex extends \ccxt\bitfinex {
         return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
-    public function limit_order_book ($orderbook, $symbol, $limit = null, $params = array ()) {
-        return $orderbook->limit ($limit);
-    }
-
     public function handle_order_book ($client, $message, $subscription) {
         //
         // first $message (snapshot)
