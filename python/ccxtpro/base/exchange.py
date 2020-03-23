@@ -152,3 +152,6 @@ class Exchange(BaseExchange):
             if key in self.clients:
                 del self.clients[key]
         return await super(Exchange, self).close()
+
+    def limit_order_book(self, orderbook, symbol, limit=None, params={}):
+        return orderbook.limit(limit)
