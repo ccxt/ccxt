@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadSymbol, InvalidOrder, PermissionDenied, InvalidAddress, AuthenticationError, InvalidNonce, BadRequest, InsufficientFunds } = require ('./base/errors');
+const { ExchangeError, BadSymbol, InvalidOrder, PermissionDenied, InvalidAddress, AuthenticationError, InvalidNonce, BadRequest, InsufficientFunds, OrderNotFound } = require ('./base/errors');
 const { TRUNCATE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -718,11 +718,12 @@ module.exports = class aofex extends Exchange {
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
+        const timestamp = undefined;
         return {
             'info': order,
             'id': id,
-            'timestamp': undefined,
-            'datetime': this.iso8601 (undefined),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'status': undefined,
             'symbol': symbol,
@@ -934,13 +935,45 @@ module.exports = class aofex extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.privatePostCancelOrder (this.extend ({
-            'orderNumber': id,
-        }, params));
-        if (id in this.orders) {
-            this.orders[id]['status'] = 'canceled';
+        const request = {
+            'order_ids': id,
+        };
+        const response = await this.privatePostEntrustCancel (this.extend (request, params));
+        //
+        //     {
+        //         "errno": 0,
+        //         "errmsg": "success",
+        //         "result": {
+        //             "success": [ "avl12121", "bl3123123" ],
+        //             "failed": [ "sd24564", "sdf6564564" ]
+        //         }
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const success = this.safeValue (result, 'success', []);
+        if (!this.inArray (id, success)) {
+            throw new OrderNotFound (this.id + ' order id ' + id + ' not found in successfully canceled orders: ' + this.json (response));
         }
-        return response;
+        const timestamp = undefined;
+        return {
+            'info': response,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'status': 'canceled',
+            'symbol': symbol,
+            'type': undefined,
+            'side': undefined,
+            'price': undefined,
+            'cost': undefined,
+            'average': undefined,
+            'amount': undefined,
+            'filled': undefined,
+            'remaining': undefined,
+            'trades': undefined,
+            'fee': undefined,
+        };
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
