@@ -1,8 +1,6 @@
 import ccxtpro
 import asyncio
-import pprint
-import signal
-import sys
+# import pprint
 
 
 def table(values):
