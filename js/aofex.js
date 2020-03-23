@@ -81,7 +81,7 @@ module.exports = class aofex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const marketSymbolsResponse = await this.publicGetMarketSymbols (params);
+        let markets = await this.publicGetMarketSymbols (params);
         //
         //     {
         //         errno: 0,
@@ -105,7 +105,7 @@ module.exports = class aofex extends Exchange {
         //         ]
         //     }
         //
-        const precisionResponse = await this.publicGetMarketPrecision ();
+        let precisions = await this.publicGetMarketPrecision ();
         //
         //     {
         //         errno: 0,
@@ -122,11 +122,11 @@ module.exports = class aofex extends Exchange {
         //         }
         //     }
         //
-        const precisionResult = this.safeValue (precisionResponse, 'result', {});
-        const marketSymbolsResult = this.safeValue (marketSymbolsResponse, 'result', []);
+        precisions = this.safeValue (precisions, 'result', {});
+        markets = this.safeValue (markets, 'result', []);
         const result = [];
-        for (let i = 0; i < marketSymbolsResult.length; i++) {
-            const market = marketSymbolsResult[i];
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
             const id = this.safeString (market, 'symbol');
             const baseId = this.safeString (market, 'base_currency');
             const quoteId = this.safeString (market, 'quote_currency');
@@ -134,11 +134,7 @@ module.exports = class aofex extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const numericId = this.safeInteger (market, 'id');
-            const precisionInfo = this.safeValue (precisionResult, id, {});
-            const precision = {
-                'amount': this.safeInteger (precisionInfo, 'amount'),
-                'price': this.safeInteger (precisionInfo, 'price'),
-            };
+            const precision = this.safeValue (precisions, id, {});
             const makerFee = this.safeFloat (market, 'maker_fee');
             const takerFee = this.safeFloat (market, 'taker_fee');
             result.push ({
@@ -152,7 +148,10 @@ module.exports = class aofex extends Exchange {
                 'active': undefined,
                 'maker': makerFee / 1000,
                 'taker': takerFee / 1000,
-                'precision': precision,
+                'precision': {
+                    'amount': this.safeInteger (precision, 'amount'),
+                    'price': this.safeInteger (precision, 'price'),
+                },
                 'limits': {
                     'amount': {
                         'min': this.safeFloat (market, 'min_size'),
@@ -316,6 +315,16 @@ module.exports = class aofex extends Exchange {
         }
         const average = this.sum (last, open) / 2;
         const percentage = change / open * 100;
+        const baseVolume = this.safeFloat (ticker, 'amount');
+        const quoteVolume = this.safeFloat (ticker, 'vol');
+        let vwap = undefined;
+        if (quoteVolume !== undefined) {
+            if (baseVolume !== undefined) {
+                if (baseVolume > 0) {
+                    vwap = parseFloat (this.priceToPrecision (symbol, quoteVolume / baseVolume));
+                }
+            }
+        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -326,7 +335,7 @@ module.exports = class aofex extends Exchange {
             'bidVolume': undefined,
             'ask': undefined,
             'askVolume': undefined,
-            'vwap': undefined,
+            'vwap': vwap,
             'open': open,
             'close': last,
             'last': last,
@@ -334,8 +343,8 @@ module.exports = class aofex extends Exchange {
             'change': change,
             'percentage': percentage,
             'average': average,
-            'baseVolume': this.safeFloat (ticker, 'amount'),
-            'quoteVolume': this.safeFloat (ticker, 'vol'),
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         };
     }
@@ -391,29 +400,7 @@ module.exports = class aofex extends Exchange {
             ticker['symbol'] = symbol;
             result[symbol] = ticker;
         }
-        // //   mbp:ccxt igorkroitor$
-        // // const log = require ('ololog').unlimited
-        // log (response);
-        // process.exit ();
-        // const ids = Object.keys (response);
-        // for (let i = 0; i < ids.length; i++) {
-        //     const id = ids[i];
-        //     let symbol = undefined;
-        //     let market = undefined;
-        //     if (id in this.markets_by_id) {
-        //         market = this.markets_by_id[id];
-        //         symbol = market['symbol'];
-        //     } else {
-        //         const [ quoteId, baseId ] = id.split ('_');
-        //         const base = this.safeCurrencyCode (baseId);
-        //         const quote = this.safeCurrencyCode (quoteId);
-        //         symbol = base + '/' + quote;
-        //         market = { 'symbol': symbol };
-        //     }
-        //     const ticker = response[id];
-        //     result[symbol] = this.parseTicker (ticker, market);
-        // }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol, params = {}) {
