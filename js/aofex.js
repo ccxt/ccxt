@@ -3,7 +3,8 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadSymbol } = require ('./base/errors');
+const { ExchangeError, BadSymbol, InvalidOrder, PermissionDenied, InvalidAddress, AuthenticationError, InvalidNonce, BadRequest, InsufficientFunds } = require ('./base/errors');
+const { TRUNCATE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -81,7 +82,39 @@ module.exports = class aofex extends Exchange {
             },
             'exceptions': {
                 'exact': {
-                    '20501': BadSymbol, // {"errno":20501,"errmsg":"base symbol error"}
+                    '20001': ExchangeError, // request failure
+                    '20401': PermissionDenied, // no permission
+                    '20500': ExchangeError, // system error
+                    '20501': BadSymbol, // base symbol error
+                    '20502': ExchangeError, // base currency error
+                    '20503': ExchangeError, // base date error
+                    '20504': InsufficientFunds, // account frozen balance insufficient error
+                    '20505': BadRequest, // bad argument
+                    '20506': AuthenticationError, // api signature not valid
+                    '20507': ExchangeError, // gateway internal error
+                    '20508': InvalidAddress, // ad ethereum addresss
+                    '20509': InsufficientFunds, // order accountbalance error
+                    '20510': InvalidOrder, // order limitorder price error
+                    '20511': InvalidOrder, // order limitorder amount error
+                    '20512': InvalidOrder, // order orderprice precision error
+                    '20513': InvalidOrder, // order orderamount precision error
+                    '20514': InvalidOrder, // order marketorder amount error
+                    '20515': InvalidOrder, // order queryorder invalid
+                    '20516': InvalidOrder, // order orderstate error
+                    '20517': InvalidOrder, // order datelimit error
+                    '50518': InvalidOrder, // order update error
+                    '20519': InvalidNonce, // the nonce has been used
+                    '20520': InvalidNonce, // nonce expires, please verify server time
+                    '20521': BadRequest, // incomplete header parameters
+                    '20522': ExchangeError, // not getting the current user
+                    '20523': AuthenticationError, // please authenticate
+                    '20524': PermissionDenied, // btc account lockout
+                    '20525': AuthenticationError, // get API Key error
+                    '20526': PermissionDenied, // no query permission
+                    '20527': PermissionDenied, // no deal permission
+                    '20528': PermissionDenied, // no withdrawal permission
+                    '20529': AuthenticationError, // API Key expired
+                    '20530': PermissionDenied, // no permission
                 },
                 'broad': {
                 },
@@ -676,152 +709,33 @@ module.exports = class aofex extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
-        // fetchOpenOrder
-        //
-        //     {
-        //         status: 'Open',
-        //         rate: '0.40000000',
-        //         amount: '1.00000000',
-        //         currencyPair: 'BTC_ETH',
-        //         date: '2018-10-17 17:04:50',
-        //         total: '0.40000000',
-        //         type: 'buy',
-        //         startingAmount: '1.00000',
-        //     }
-        //
-        // fetchOpenOrders
-        //
-        //     {
-        //         orderNumber: '514514894224',
-        //         type: 'buy',
-        //         rate: '0.00001000',
-        //         startingAmount: '100.00000000',
-        //         amount: '100.00000000',
-        //         total: '0.00100000',
-        //         date: '2018-10-23 17:38:53',
-        //         margin: 0,
-        //     }
-        //
         // createOrder
         //
-        //     {
-        //         'orderNumber': '9805453960',
-        //         'resultingTrades': [
-        //             {
-        //                 'amount': '200.00000000',
-        //                 'date': '2019-12-15 16:04:10',
-        //                 'rate': '0.00000355',
-        //                 'total': '0.00071000',
-        //                 'tradeID': '119871',
-        //                 'type': 'buy',
-        //                 'takerAdjustment': '200.00000000',
-        //             },
-        //         ],
-        //         'fee': '0.00000000',
-        //         'currencyPair': 'BTC_MANA',
-        //         // ---------------------------------------------------------
-        //         // the following fields are injected by createOrder
-        //         'timestamp': timestamp,
-        //         'status': 'open',
-        //         'type': type,
-        //         'side': side,
-        //         'price': price,
-        //         'amount': amount,
-        //     }
+        //     { order_sn: 'BM7442641584965237751ZMAKJ5' }
         //
-        let timestamp = this.safeInteger (order, 'timestamp');
-        if (!timestamp) {
-            timestamp = this.parse8601 (order['date']);
-        }
-        let trades = undefined;
-        if ('resultingTrades' in order) {
-            trades = this.parseTrades (order['resultingTrades'], market);
-        }
+        const id = this.safeString (order, 'order_sn');
         let symbol = undefined;
-        const marketId = this.safeString (order, 'currencyPair');
-        market = this.safeValue (this.markets_by_id, marketId, market);
-        if (market !== undefined) {
+        if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
-        }
-        const price = this.safeFloat2 (order, 'price', 'rate');
-        let remaining = this.safeFloat (order, 'amount');
-        let amount = this.safeFloat (order, 'startingAmount');
-        let filled = undefined;
-        let cost = 0;
-        if (amount !== undefined) {
-            if (remaining !== undefined) {
-                filled = amount - remaining;
-                if (price !== undefined) {
-                    cost = filled * price;
-                }
-            }
-        } else {
-            amount = remaining;
-        }
-        let status = this.parseOrderStatus (this.safeString (order, 'status'));
-        let average = undefined;
-        let lastTradeTimestamp = undefined;
-        if (filled === undefined) {
-            if (trades !== undefined) {
-                filled = 0;
-                cost = 0;
-                const tradesLength = trades.length;
-                if (tradesLength > 0) {
-                    lastTradeTimestamp = trades[0]['timestamp'];
-                    for (let i = 0; i < tradesLength; i++) {
-                        const trade = trades[i];
-                        const tradeAmount = trade['amount'];
-                        const tradePrice = trade['price'];
-                        filled = this.sum (filled, tradeAmount);
-                        cost = this.sum (cost, tradePrice * tradeAmount);
-                        lastTradeTimestamp = Math.max (lastTradeTimestamp, trade['timestamp']);
-                    }
-                }
-                remaining = Math.max (amount - filled, 0);
-                if (filled >= amount) {
-                    status = 'closed';
-                }
-            }
-        }
-        if ((filled !== undefined) && (cost !== undefined) && (filled > 0)) {
-            average = cost / filled;
-        }
-        let type = this.safeString (order, 'type');
-        const side = this.safeString (order, 'side', type);
-        if (type === side) {
-            type = undefined;
-        }
-        const id = this.safeString (order, 'orderNumber');
-        let fee = undefined;
-        const feeCost = this.safeFloat (order, 'fee');
-        if (feeCost !== undefined) {
-            let feeCurrencyCode = undefined;
-            if (market !== undefined) {
-                feeCurrencyCode = (side === 'buy') ? market['base'] : market['quote'];
-            }
-            fee = {
-                'cost': feeCost,
-                'currency': feeCurrencyCode,
-            };
         }
         return {
             'info': order,
             'id': id,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
-            'status': status,
+            'timestamp': undefined,
+            'datetime': this.iso8601 (undefined),
+            'lastTradeTimestamp': undefined,
+            'status': undefined,
             'symbol': symbol,
-            'type': type,
-            'side': side,
-            'price': price,
-            'cost': cost,
-            'average': average,
-            'amount': amount,
-            'filled': filled,
-            'remaining': remaining,
-            'trades': trades,
-            'fee': fee,
+            'type': undefined,
+            'side': undefined,
+            'price': undefined,
+            'cost': undefined,
+            'average': undefined,
+            'amount': undefined,
+            'filled': undefined,
+            'remaining': undefined,
+            'trades': undefined,
+            'fee': undefined,
         };
     }
 
@@ -934,50 +848,53 @@ module.exports = class aofex extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (type !== 'limit') {
-            throw new ExchangeError (this.id + ' allows limit orders only');
-        }
         await this.loadMarkets ();
-        const method = 'privatePost' + this.capitalize (side);
         const market = this.market (symbol);
-        amount = this.amountToPrecision (symbol, amount);
+        const orderType = side + '-' + type;
         const request = {
-            'currencyPair': market['id'],
-            'rate': this.priceToPrecision (symbol, price),
-            'amount': amount,
+            'symbol': market['id'],
+            'type': orderType,
         };
-        // remember the timestamp before issuing the request
-        const timestamp = this.milliseconds ();
-        const response = await this[method] (this.extend (request, params));
+        if (type === 'limit') {
+            request['amount'] = this.amountToPrecision (symbol, amount);
+            request['price'] = this.priceToPrecision (symbol, price);
+        } else if (type === 'market') {
+            // for market buy it requires the amount of quote currency to spend
+            if (side === 'buy') {
+                const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
+                let cost = amount;
+                if (createMarketBuyOrderRequiresPrice) {
+                    if (price !== undefined) {
+                        cost = amount * price;
+                    } else {
+                        throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument");
+                    }
+                }
+                const precision = market['precision']['price'];
+                request['amount'] = this.decimalToPrecision (cost, TRUNCATE, precision, this.precisionMode);
+            } else {
+                request['amount'] = this.amountToPrecision (symbol, amount);
+            }
+        }
+        const response = await this.privatePostEntrustAdd (this.extend (request, params));
         //
         //     {
-        //         'orderNumber': '9805453960',
-        //         'resultingTrades': [
-        //             {
-        //                 'amount': '200.00000000',
-        //                 'date': '2019-12-15 16:04:10',
-        //                 'rate': '0.00000355',
-        //                 'total': '0.00071000',
-        //                 'tradeID': '119871',
-        //                 'type': 'buy',
-        //                 'takerAdjustment': '200.00000000',
-        //             },
-        //         ],
-        //         'fee': '0.00000000',
-        //         'currencyPair': 'BTC_MANA',
+        //         errno: 0,
+        //         errmsg: 'success',
+        //         result: { order_sn: 'BM7442641584965237751ZMAKJ5' }
         //     }
         //
-        const order = this.parseOrder (this.extend ({
+        const result = this.safeValue (response, 'result', {});
+        const order = this.parseOrder (result, market);
+        const timestamp = this.milliseconds ();
+        return this.extend (order, {
             'timestamp': timestamp,
-            'status': 'open',
+            'datetime': this.iso8601 (timestamp),
+            'amount': amount,
+            'price': price,
             'type': type,
             'side': side,
-            'price': price,
-            'amount': amount,
-        }, response), market);
-        const id = order['id'];
-        this.orders[id] = order;
-        return this.extend ({ 'info': response }, order);
+        });
     }
 
     async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
@@ -1388,7 +1305,6 @@ module.exports = class aofex extends Exchange {
                 const key = keys[i];
                 stringToSign += keysorted[key];
             }
-            console.log (stringToSign);
             const signature = this.hash (this.encode (stringToSign), 'sha1');
             headers = {
                 'Nonce': nonceString,
