@@ -265,10 +265,6 @@ module.exports = class kraken extends ccxt.kraken {
         return await this.after (future, this.limitOrderBook, symbol, limit, params);
     }
 
-    limitOrderBook (orderbook, symbol, limit = undefined, params = {}) {
-        return orderbook.limit (limit);
-    }
-
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const name = 'ohlc';

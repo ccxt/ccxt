@@ -125,10 +125,6 @@ module.exports = class binance extends ccxt.binance {
         return await this.after (future, this.limitOrderBook, symbol, limit, params);
     }
 
-    limitOrderBook (orderbook, symbol, limit = undefined, params = {}) {
-        return orderbook.limit (limit);
-    }
-
     async fetchOrderBookSnapshot (client, message, subscription) {
         const type = this.safeValue (subscription, 'type');
         const symbol = this.safeString (subscription, 'symbol');

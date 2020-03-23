@@ -60,10 +60,6 @@ module.exports = class upbit extends ccxt.upbit {
         return await this.after (future, this.limitOrderBook, symbol, limit, params);
     }
 
-    limitOrderBook (orderbook, symbol, limit = undefined, params = {}) {
-        return orderbook.limit (limit);
-    }
-
     signMessage (client, messageHash, message) {
         return message;
     }

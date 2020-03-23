@@ -68,10 +68,6 @@ module.exports = class gateio extends ccxt.gateio {
         return message;
     }
 
-    limitOrderBook (orderbook, symbol, limit = undefined, params = {}) {
-        return orderbook.limit (limit);
-    }
-
     handleDelta (bookside, delta) {
         const price = this.safeFloat (delta, 0);
         const amount = this.safeFloat (delta, 1);

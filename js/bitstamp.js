@@ -58,10 +58,6 @@ module.exports = class bitstamp extends ccxt.bitstamp {
         return await this.after (future, this.limitOrderBook, symbol, limit, params);
     }
 
-    limitOrderBook (orderbook, symbol, limit = undefined, params = {}) {
-        return orderbook.limit (limit);
-    }
-
     async fetchOrderBookSnapshot (client, message, subscription) {
         const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeInteger (subscription, 'limit');

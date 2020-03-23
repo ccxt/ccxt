@@ -184,10 +184,6 @@ module.exports = class poloniex extends ccxt.poloniex {
         return await this.after (future, this.limitOrderBook, symbol, limit, params);
     }
 
-    limitOrderBook (orderbook, symbol, limit = undefined, params = {}) {
-        return orderbook.limit (limit);
-    }
-
     async watchHeartbeat (params = {}) {
         await this.loadMarkets ();
         const channelId = '1010';

@@ -139,7 +139,7 @@ trait ClientTrait {
         }
     }
 
-    public function close () {
+    public function close() {
         // todo: implement ClientTrait.php close
         // const clients = Object.values (this.clients || {})
         // for (let i = 0; i < clients.length; i++) {
@@ -151,5 +151,9 @@ trait ClientTrait {
 
     public function sign_message($client, $messag_hash, $message, $params = array()) {
         throw new \ccxt\NotSupported ($this->id . ' signMessage () not implemented yet');
+    }
+
+    public function limit_order_book($orderbook, $symbol, $limit = null, $params = array()) {
+        return $orderbook->limit($limit);
     }
 }

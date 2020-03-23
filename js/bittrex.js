@@ -313,10 +313,6 @@ module.exports = class bittrex extends ccxt.bittrex {
         return await this.afterAsync (future, this.subscribeToOrderBookDeltas, symbol, limit, params);
     }
 
-    limitOrderBook (orderbook, symbol, limit = undefined, params = {}) {
-        return orderbook.limit (limit);
-    }
-
     handleDelta (bookside, delta) {
         const price = this.safeFloat (delta, 'R');
         const amount = this.safeFloat (delta, 'Q');

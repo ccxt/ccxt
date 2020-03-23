@@ -278,10 +278,6 @@ module.exports = class huobipro extends ccxt.huobipro {
         return await this.after (future, this.limitOrderBook, symbol, limit, params);
     }
 
-    limitOrderBook (orderbook, symbol, limit = undefined, params = {}) {
-        return orderbook.limit (limit);
-    }
-
     handleOrderBookSnapshot (client, message, subscription) {
         //
         //     {

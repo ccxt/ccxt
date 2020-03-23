@@ -261,10 +261,6 @@ module.exports = class bitfinex extends ccxt.bitfinex {
         return await this.after (future, this.limitOrderBook, symbol, limit, params);
     }
 
-    limitOrderBook (orderbook, symbol, limit = undefined, params = {}) {
-        return orderbook.limit (limit);
-    }
-
     handleOrderBook (client, message, subscription) {
         //
         // first message (snapshot)

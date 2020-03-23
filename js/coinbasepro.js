@@ -62,10 +62,6 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
         return await this.after (future, this.limitOrderBook, symbol, limit, params);
     }
 
-    limitOrderBook (orderbook, symbol, limit = undefined, params = {}) {
-        return orderbook.limit (limit);
-    }
-
     handleTrade (client, message) {
         //
         //     {

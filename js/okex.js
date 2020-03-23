@@ -213,10 +213,6 @@ module.exports = class okex extends ccxt.okex {
         return await this.after (future, this.limitOrderBook, symbol, limit, params);
     }
 
-    limitOrderBook (orderbook, symbol, limit = undefined, params = {}) {
-        return orderbook.limit (limit);
-    }
-
     handleDelta (bookside, delta) {
         const price = this.safeFloat (delta, 0);
         const amount = this.safeFloat (delta, 1);
