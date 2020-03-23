@@ -192,6 +192,7 @@ module.exports = class binance extends Exchange {
                         'ticker/24hr',
                         'ticker/price',
                         'ticker/bookTicker',
+                        'openInterest',
                         'leverageBracket',
                     ],
                 },
