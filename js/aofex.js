@@ -28,6 +28,7 @@ module.exports = class aofex extends Exchange {
                 'cancelOrder': true,
                 'cancelAllOrders': true,
                 'fetchOpenOrders': true,
+                'fetchClosedOrders': true,
             },
             'timeframes': {
                 '1m': '1min',
@@ -761,7 +762,7 @@ module.exports = class aofex extends Exchange {
         const amount = this.safeFloat (order, 'number');
         const price = this.safeFloat (order, 'price');
         const cost = this.safeFloat (order, 'total_price');
-        const filled = this.safeFloat (order, 'deal_number', 0);
+        const filled = this.safeFloat (order, 'deal_number');
         let remaining = undefined;
         if ((filled !== undefined) && (amount !== undefined)) {
             remaining = Math.max (amount - filled, 0);
@@ -789,83 +790,9 @@ module.exports = class aofex extends Exchange {
         };
     }
 
-    parseOpenOrders (orders, market, result) {
-        for (let i = 0; i < orders.length; i++) {
-            const order = orders[i];
-            const extended = this.extend (order, {
-                'status': 'open',
-                'type': 'limit',
-                'side': order['type'],
-                'price': order['rate'],
-            });
-            result.push (this.parseOrder (extended, market));
-        }
-        return result;
-    }
-
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-        }
-        const pair = market ? market['id'] : 'all';
-        const request = {
-            'currencyPair': pair,
-        };
-        const response = await this.privatePostReturnOpenOrders (this.extend (request, params));
-        let openOrders = [];
-        if (market !== undefined) {
-            openOrders = this.parseOpenOrders (response, market, openOrders);
-        } else {
-            const marketIds = Object.keys (response);
-            for (let i = 0; i < marketIds.length; i++) {
-                const marketId = marketIds[i];
-                const orders = response[marketId];
-                const m = this.markets_by_id[marketId];
-                openOrders = this.parseOpenOrders (orders, m, openOrders);
-            }
-        }
-        for (let j = 0; j < openOrders.length; j++) {
-            this.orders[openOrders[j]['id']] = openOrders[j];
-        }
-        const openOrdersIndexedById = this.indexBy (openOrders, 'id');
-        const cachedOrderIds = Object.keys (this.orders);
-        const result = [];
-        for (let k = 0; k < cachedOrderIds.length; k++) {
-            const id = cachedOrderIds[k];
-            if (id in openOrdersIndexedById) {
-                this.orders[id] = this.extend (this.orders[id], openOrdersIndexedById[id]);
-            } else {
-                let order = this.orders[id];
-                if (order['status'] === 'open') {
-                    order = this.extend (order, {
-                        'status': 'closed',
-                        'cost': undefined,
-                        'filled': order['amount'],
-                        'remaining': 0.0,
-                    });
-                    if (order['cost'] === undefined) {
-                        if (order['filled'] !== undefined) {
-                            order['cost'] = order['filled'] * order['price'];
-                        }
-                    }
-                    this.orders[id] = order;
-                }
-            }
-            const order = this.orders[id];
-            if (market !== undefined) {
-                if (order['symbol'] === symbol) {
-                    result.push (order);
-                }
-            } else {
-                result.push (order);
-            }
-        }
-        return this.filterBySinceLimit (result, since, limit);
-    }
-
     async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request
         const since = this.safeValue (params, 'since');
         const limit = this.safeValue (params, 'limit');
         const request = this.omit (params, [ 'since', 'limit' ]);
@@ -877,17 +804,7 @@ module.exports = class aofex extends Exchange {
         }
     }
 
-    filterOrdersByStatus (orders, status) {
-        const result = [];
-        for (let i = 0; i < orders.length; i++) {
-            if (orders[i]['status'] === status) {
-                result.push (orders[i]);
-            }
-        }
-        return result;
-    }
-
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrdersWithMethod (method, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             // 'from': 'BM7442641584965237751ZMAKJ5', // query start order_sn
@@ -901,7 +818,7 @@ module.exports = class aofex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 20, max 100
         }
-        const response = await this.privateGetEntrustCurrentList (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "errno": 0,
@@ -927,9 +844,12 @@ module.exports = class aofex extends Exchange {
         return this.parseOrders (result, market, since, limit);
     }
 
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchOrdersWithMethod ('privateGetEntrustCurrentList', symbol, since, limit, params);
+    }
+
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const orders = await this.fetchOrders (symbol, since, limit, params);
-        return this.filterOrdersByStatus (orders, 'closed');
+        return await this.fetchOrdersWithMethod ('privateGetEntrustHistoryList', symbol, since, limit, params);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -1046,36 +966,6 @@ module.exports = class aofex extends Exchange {
         //     }
         //
         return response;
-    }
-
-    async fetchOpenOrder (id, symbol = undefined, params = {}) {
-        await this.loadMarkets ();
-        id = id.toString ();
-        const response = await this.privatePostReturnOrderStatus (this.extend ({
-            'orderNumber': id,
-        }, params));
-        //
-        //     {
-        //         success: 1,
-        //         result: {
-        //             '6071071': {
-        //                 status: 'Open',
-        //                 rate: '0.40000000',
-        //                 amount: '1.00000000',
-        //                 currencyPair: 'BTC_ETH',
-        //                 date: '2018-10-17 17:04:50',
-        //                 total: '0.40000000',
-        //                 type: 'buy',
-        //                 startingAmount: '1.00000',
-        //             },
-        //         },
-        //     }
-        //
-        const result = this.safeValue (response['result'], id);
-        const order = this.parseOrder (result);
-        order['id'] = id;
-        this.orders[id] = order;
-        return order;
     }
 
     nonce () {
