@@ -442,57 +442,18 @@ module.exports = class aofex extends Exchange {
         //         ts: 1584948803
         //     }
         //
-        const id = this.safeString2 (trade, 'globalTradeID', 'tradeID');
-        const orderId = this.safeString (trade, 'orderNumber');
-        const timestamp = this.parse8601 (this.safeString (trade, 'date'));
+        const id = this.safeString (trade, 'id');
+        const timestamp = this.safeTimestamp (trade, 'ts');
         let symbol = undefined;
-        let base = undefined;
-        let quote = undefined;
-        if ((!market) && ('currencyPair' in trade)) {
-            const currencyPair = trade['currencyPair'];
-            if (currencyPair in this.markets_by_id) {
-                market = this.markets_by_id[currencyPair];
-            } else {
-                const parts = currencyPair.split ('_');
-                quote = parts[0];
-                base = parts[1];
-                symbol = base + '/' + quote;
-            }
-        }
-        if (market !== undefined) {
+        if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
-            base = market['base'];
-            quote = market['quote'];
         }
-        const side = this.safeString (trade, 'type');
-        let fee = undefined;
-        const price = this.safeFloat (trade, 'rate');
-        const cost = this.safeFloat (trade, 'total');
+        const side = this.safeString (trade, 'direction');
+        const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
-        if ('fee' in trade) {
-            const rate = this.safeFloat (trade, 'fee');
-            let feeCost = undefined;
-            let currency = undefined;
-            if (side === 'buy') {
-                currency = base;
-                feeCost = amount * rate;
-            } else {
-                currency = quote;
-                if (cost !== undefined) {
-                    feeCost = cost * rate;
-                }
-            }
-            fee = {
-                'type': undefined,
-                'rate': rate,
-                'cost': feeCost,
-                'currency': currency,
-            };
-        }
-        let takerOrMaker = undefined;
-        const takerAdjustment = this.safeFloat (trade, 'takerAdjustment');
-        if (takerAdjustment !== undefined) {
-            takerOrMaker = 'taker';
+        let cost = undefined;
+        if ((price !== undefined) && (amount !== undefined)) {
+            cost = price * amount;
         }
         return {
             'id': id,
@@ -500,14 +461,14 @@ module.exports = class aofex extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'order': orderId,
-            'type': 'limit',
+            'order': undefined,
+            'type': undefined,
             'side': side,
-            'takerOrMaker': takerOrMaker,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': fee,
+            'fee': undefined,
         };
     }
 
