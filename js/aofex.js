@@ -176,42 +176,77 @@ module.exports = class aofex extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '5m', since = undefined, limit = undefined) {
+        //
+        //     {
+        //         id:  1584950100,
+        //         amount: "329.196",
+        //         count:  81,
+        //         open: "0.021155",
+        //         close: "0.021158",
+        //         low: "0.021144",
+        //         high: "0.021161",
+        //         vol: "6.963557767"
+        //     }
+        //
         return [
-            this.safeTimestamp (ohlcv, 'date'),
+            this.safeTimestamp (ohlcv, 'id'),
             this.safeFloat (ohlcv, 'open'),
             this.safeFloat (ohlcv, 'high'),
             this.safeFloat (ohlcv, 'low'),
             this.safeFloat (ohlcv, 'close'),
-            this.safeFloat (ohlcv, 'quoteVolume'),
+            this.safeFloat (ohlcv, 'amount'),
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
-            'currencyPair': market['id'],
-            'period': this.timeframes[timeframe],
-        };
-        if (since === undefined) {
-            request['end'] = this.seconds ();
-            if (limit === undefined) {
-                request['start'] = request['end'] - this.parseTimeframe ('1w'); // max range = 1 week
-            } else {
-                request['start'] = request['end'] - limit * this.parseTimeframe (timeframe);
-            }
-        } else {
-            request['start'] = parseInt (since / 1000);
-            if (limit !== undefined) {
-                const end = this.sum (request['start'], limit * this.parseTimeframe (timeframe));
-                request['end'] = end;
-            }
+        if (limit === undefined) {
+            limit = 150; // default 150, max 2000
         }
-        const response = await this.publicGetReturnChartData (this.extend (request, params));
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        const request = {
+            'symbol': market['id'],
+            'period': this.timeframes[timeframe],
+            'size': limit, // default 150, max 2000
+        };
+        const response = await this.publicGetMarketKline (this.extend (request, params));
+        //
+        //     {
+        //         errno: 0,
+        //         errmsg: "success",
+        //         result: {
+        //             ts:  1584950139003,
+        //             symbol: "ETH-BTC",
+        //             period: "1min",
+        //             data: [
+        //                 {
+        //                     id:  1584950100,
+        //                     amount: "329.196",
+        //                     count:  81,
+        //                     open: "0.021155",
+        //                     close: "0.021158",
+        //                     low: "0.021144",
+        //                     high: "0.021161",
+        //                     vol: "6.963557767"
+        //                 },
+        //                 {
+        //                     id:  1584950040,
+        //                     amount: "513.265",
+        //                     count:  151,
+        //                     open: "0.021165",
+        //                     close: "0.021155",
+        //                     low: "0.021151",
+        //                     high: "0.02118",
+        //                     vol: "10.862806573"
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const data = this.safeValue (result, 'data', []);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
-
-
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
@@ -863,7 +898,6 @@ module.exports = class aofex extends Exchange {
                 return orders[i];
             }
         }
-        throw new OrderNotCached (this.id + ' order id ' + id.toString () + ' is not in "open" state and not found in cache');
     }
 
     filterOrdersByStatus (orders, status) {
@@ -970,29 +1004,9 @@ module.exports = class aofex extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = undefined;
-        try {
-            response = await this.privatePostCancelOrder (this.extend ({
-                'orderNumber': id,
-            }, params));
-        } catch (e) {
-            if (e instanceof CancelPending) {
-                // A request to cancel the order has been sent already.
-                // If we then attempt to cancel the order the second time
-                // before the first request is processed the exchange will
-                // throw a CancelPending exception. Poloniex won't show the
-                // order in the list of active (open) orders and the cached
-                // order will be marked as 'closed' (see #1801 for details).
-                // To avoid that we proactively mark the order as 'canceled'
-                // here. If for some reason the order does not get canceled
-                // and still appears in the active list then the order cache
-                // will eventually get back in sync on a call to `fetchOrder`.
-                if (id in this.orders) {
-                    this.orders[id]['status'] = 'canceled';
-                }
-            }
-            throw e;
-        }
+        const response = await this.privatePostCancelOrder (this.extend ({
+            'orderNumber': id,
+        }, params));
         if (id in this.orders) {
             this.orders[id]['status'] = 'canceled';
         }
@@ -1053,9 +1067,6 @@ module.exports = class aofex extends Exchange {
         //     }
         //
         const result = this.safeValue (response['result'], id);
-        if (result === undefined) {
-            throw new OrderNotFound (this.id + ' order id ' + id + ' not found');
-        }
         const order = this.parseOrder (result);
         order['id'] = id;
         this.orders[id] = order;
