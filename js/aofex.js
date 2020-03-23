@@ -85,6 +85,11 @@ module.exports = class aofex extends Exchange {
                 'broad': {
                 },
             },
+            'options': {
+                'fetchBalance': {
+                    'show_all': '0', // '1' to show zero balances
+                },
+            },
         });
     }
 
@@ -255,21 +260,31 @@ module.exports = class aofex extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
+        const options = this.safeValue (this.options, 'fetchBalance', {});
+        const showAll = this.safeValue (options, 'show_all', '0');
         const request = {
-            'currency': 'BTC,ETH',
-            'show_all': '1', // required to show zero balances
+            // 'currency': 'BTC',
+            'show_all': showAll, // required to show zero balances
         };
         const response = await this.privateGetWalletList (this.extend (request, params));
-        process.exit ();
+        //
+        //     {
+        //         "errno": 0,
+        //         "errmsg": "success",
+        //         "result": [
+        //             { "available": "0", "frozen": "0", "currency": "BTC" }
+        //         ]
+        //     }
+        //
         const result = { 'info': response };
-        const currencyIds = Object.keys (response);
-        for (let i = 0; i < currencyIds.length; i++) {
-            const currencyId = currencyIds[i];
-            const balance = this.safeValue (response, currencyId, {});
+        const balances = this.safeValue (response, 'result', []);
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             account['free'] = this.safeFloat (balance, 'available');
-            account['used'] = this.safeFloat (balance, 'onOrders');
+            account['used'] = this.safeFloat (balance, 'frozen');
             result[code] = account;
         }
         return this.parseBalance (result);
