@@ -192,6 +192,8 @@ module.exports = class binance extends Exchange {
                         'ticker/24hr',
                         'ticker/price',
                         'ticker/bookTicker',
+                        'allForceOrders',
+                        'openInterest',
                         'leverageBracket',
                     ],
                 },
@@ -1891,7 +1893,7 @@ module.exports = class binance extends Exchange {
                     }
                     // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
                     // despite that their message is very confusing, it is raised by Binance
-                    // on a temporary ban (the API key is valid, but disabled for a while)
+                    // on a temporary ban, the API key is valid, but disabled for a while
                     if ((error === '-2015') && this.options['hasAlreadyAuthenticatedSuccessfully']) {
                         throw new DDoSProtection (this.id + ' temporary banned: ' + body);
                     }
