@@ -1824,10 +1824,13 @@ class okex extends Exchange {
                                 $notional = $amount * $price;
                             }
                         } else if ($notional === null) {
-                            throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'notional' extra parameter (the exchange-specific behaviour)");
+                            throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'notional' extra parameter (the exchange-specific behaviour)");
                         }
+                    } else {
+                        $notional = ($notional === null) ? $amount : $notional;
                     }
-                    $request['notional'] = $this->cost_to_precision($symbol, $notional);
+                    $precision = $market['precision']['price'];
+                    $request['notional'] = $this->decimal_to_precision($notional, TRUNCATE, $precision, $this->precisionMode);
                 } else {
                     $request['size'] = $this->amount_to_precision($symbol, $amount);
                 }
