@@ -19,7 +19,7 @@ async def test_watch_trades(exchange, symbol):
             print(exchange.iso8601(now), symbol)
             for trade in trades:
                 test_trade(exchange, trade, method, symbol)
-            print(table([exchange.omit(t, ['info', 'timestamp']) for t in trades]))
+            # print(table([exchange.omit(t, ['info', 'timestamp']) for t in trades]))
         return response
     else:
         print(exchange.id, method, 'is not supported or not implemented yet')
