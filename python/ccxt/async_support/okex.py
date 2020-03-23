@@ -30,6 +30,7 @@ from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
+from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
@@ -1785,8 +1786,11 @@ class okex(Exchange):
                             if notional is None:
                                 notional = amount * price
                         elif notional is None:
-                            raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False and supply the total cost value in the 'notional' extra parameter(the exchange-specific behaviour)")
-                    request['notional'] = self.cost_to_precision(symbol, notional)
+                            raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False and supply the total cost value in the 'amount' argument or in the 'notional' extra parameter(the exchange-specific behaviour)")
+                    else:
+                        notional = amount if (notional is None) else notional
+                    precision = market['precision']['price']
+                    request['notional'] = self.decimal_to_precision(notional, TRUNCATE, precision, self.precisionMode)
                 else:
                     request['size'] = self.amount_to_precision(symbol, amount)
             method = 'marginPostOrders' if (marginTrading == '2') else 'spotPostOrders'
