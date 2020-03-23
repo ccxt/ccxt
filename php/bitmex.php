@@ -439,10 +439,6 @@ class bitmex extends \ccxt\bitmex {
         return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
-    public function limit_order_book ($orderbook, $symbol, $limit = null, $params = array ()) {
-        return $orderbook->limit ($limit);
-    }
-
     public function watch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);

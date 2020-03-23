@@ -198,9 +198,6 @@ class okex(Exchange, ccxt.okex):
         future = self.subscribe('depth', symbol, params)
         return await self.after(future, self.limit_order_book, symbol, limit, params)
 
-    def limit_order_book(self, orderbook, symbol, limit=None, params={}):
-        return orderbook.limit(limit)
-
     def handle_delta(self, bookside, delta):
         price = self.safe_float(delta, 0)
         amount = self.safe_float(delta, 1)

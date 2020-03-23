@@ -73,10 +73,6 @@ class gateio extends \ccxt\gateio {
         return $message;
     }
 
-    public function limit_order_book ($orderbook, $symbol, $limit = null, $params = array ()) {
-        return $orderbook->limit ($limit);
-    }
-
     public function handle_delta ($bookside, $delta) {
         $price = $this->safe_float($delta, 0);
         $amount = $this->safe_float($delta, 1);

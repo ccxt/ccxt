@@ -188,10 +188,6 @@ class poloniex extends \ccxt\poloniex {
         return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
-    public function limit_order_book ($orderbook, $symbol, $limit = null, $params = array ()) {
-        return $orderbook->limit ($limit);
-    }
-
     public function watch_heartbeat ($params = array ()) {
         $this->load_markets();
         $channelId = '1010';

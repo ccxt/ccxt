@@ -68,9 +68,6 @@ class gateio(Exchange, ccxt.gateio):
         # todo: implement gateio signMessage
         return message
 
-    def limit_order_book(self, orderbook, symbol, limit=None, params={}):
-        return orderbook.limit(limit)
-
     def handle_delta(self, bookside, delta):
         price = self.safe_float(delta, 0)
         amount = self.safe_float(delta, 1)

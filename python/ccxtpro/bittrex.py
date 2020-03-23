@@ -296,9 +296,6 @@ class bittrex(Exchange, ccxt.bittrex):
         future = self.negotiate()
         return await self.after_async(future, self.subscribe_to_order_book_deltas, symbol, limit, params)
 
-    def limit_order_book(self, orderbook, symbol, limit=None, params={}):
-        return orderbook.limit(limit)
-
     def handle_delta(self, bookside, delta):
         price = self.safe_float(delta, 'R')
         amount = self.safe_float(delta, 'Q')

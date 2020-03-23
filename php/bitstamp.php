@@ -62,10 +62,6 @@ class bitstamp extends \ccxt\bitstamp {
         return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
-    public function limit_order_book ($orderbook, $symbol, $limit = null, $params = array ()) {
-        return $orderbook->limit ($limit);
-    }
-
     public function fetch_order_book_snapshot ($client, $message, $subscription) {
         $symbol = $this->safe_string($subscription, 'symbol');
         $limit = $this->safe_integer($subscription, 'limit');

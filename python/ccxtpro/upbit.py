@@ -57,9 +57,6 @@ class upbit(Exchange, ccxt.upbit):
         future = self.watch_public(symbol, 'orderbook')
         return await self.after(future, self.limit_order_book, symbol, limit, params)
 
-    def limit_order_book(self, orderbook, symbol, limit=None, params={}):
-        return orderbook.limit(limit)
-
     def sign_message(self, client, messageHash, message):
         return message
 

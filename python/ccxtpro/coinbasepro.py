@@ -59,9 +59,6 @@ class coinbasepro(Exchange, ccxt.coinbasepro):
         future = self.subscribe(name, symbol, params)
         return await self.after(future, self.limit_order_book, symbol, limit, params)
 
-    def limit_order_book(self, orderbook, symbol, limit=None, params={}):
-        return orderbook.limit(limit)
-
     def handle_trade(self, client, message):
         #
         #     {

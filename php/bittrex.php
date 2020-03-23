@@ -317,10 +317,6 @@ class bittrex extends \ccxt\bittrex {
         return $this->after_async($future, array($this, 'subscribe_to_order_book_deltas'), $symbol, $limit, $params);
     }
 
-    public function limit_order_book ($orderbook, $symbol, $limit = null, $params = array ()) {
-        return $orderbook->limit ($limit);
-    }
-
     public function handle_delta ($bookside, $delta) {
         $price = $this->safe_float($delta, 'R');
         $amount = $this->safe_float($delta, 'Q');

@@ -261,9 +261,6 @@ class huobipro(Exchange, ccxt.huobipro):
         future = self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
         return await self.after(future, self.limit_order_book, symbol, limit, params)
 
-    def limit_order_book(self, orderbook, symbol, limit=None, params={}):
-        return orderbook.limit(limit)
-
     def handle_order_book_snapshot(self, client, message, subscription):
         #
         #     {

@@ -124,9 +124,6 @@ class binance(Exchange, ccxt.binance):
         future = self.watch(url, messageHash, message, messageHash, subscription)
         return await self.after(future, self.limit_order_book, symbol, limit, params)
 
-    def limit_order_book(self, orderbook, symbol, limit=None, params={}):
-        return orderbook.limit(limit)
-
     async def fetch_order_book_snapshot(self, client, message, subscription):
         type = self.safe_value(subscription, 'type')
         symbol = self.safe_string(subscription, 'symbol')

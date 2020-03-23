@@ -249,9 +249,6 @@ class kraken(Exchange, ccxt.kraken):
         future = self.watch_public(name, symbol, self.extend(request, params))
         return await self.after(future, self.limit_order_book, symbol, limit, params)
 
-    def limit_order_book(self, orderbook, symbol, limit=None, params={}):
-        return orderbook.limit(limit)
-
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
         name = 'ohlc'

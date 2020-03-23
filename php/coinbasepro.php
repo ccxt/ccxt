@@ -66,10 +66,6 @@ class coinbasepro extends \ccxt\coinbasepro {
         return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
-    public function limit_order_book ($orderbook, $symbol, $limit = null, $params = array ()) {
-        return $orderbook->limit ($limit);
-    }
-
     public function handle_trade ($client, $message) {
         //
         //     {

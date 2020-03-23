@@ -220,9 +220,6 @@ class kucoin(Exchange, ccxt.kucoin):
         future = self.after_async(negotiate, self.subscribe, topic, self.handle_order_book_subscription, symbol, params)
         return await self.after(future, self.limit_order_book, symbol, limit, params)
 
-    def limit_order_book(self, orderbook, symbol, limit=None, params={}):
-        return orderbook.limit(limit)
-
     async def fetch_order_book_snapshot(self, client, message, subscription):
         symbol = self.safe_string(subscription, 'symbol')
         limit = self.safe_integer(subscription, 'limit')
