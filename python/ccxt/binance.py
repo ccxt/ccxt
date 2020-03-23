@@ -207,6 +207,8 @@ class binance(Exchange):
                         'ticker/24hr',
                         'ticker/price',
                         'ticker/bookTicker',
+                        'allForceOrders',
+                        'openInterest',
                         'leverageBracket',
                     ],
                 },
@@ -1752,7 +1754,7 @@ class binance(Exchange):
                         return
                     # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
                     # despite that their message is very confusing, it is raised by Binance
-                    # on a temporary ban(the API key is valid, but disabled for a while)
+                    # on a temporary ban, the API key is valid, but disabled for a while
                     if (error == '-2015') and self.options['hasAlreadyAuthenticatedSuccessfully']:
                         raise DDoSProtection(self.id + ' temporary banned: ' + body)
                     feedback = self.id + ' ' + body
