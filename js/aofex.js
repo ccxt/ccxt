@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadSymbol, InvalidOrder, PermissionDenied, InvalidAddress, AuthenticationError, InvalidNonce, BadRequest, InsufficientFunds, OrderNotFound } = require ('./base/errors');
+const { ArgumentsRequired, ExchangeError, BadSymbol, InvalidOrder, PermissionDenied, InvalidAddress, AuthenticationError, InvalidNonce, BadRequest, InsufficientFunds, OrderNotFound } = require ('./base/errors');
 const { TRUNCATE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -13,7 +13,7 @@ module.exports = class aofex extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'aofex',
             'name': 'AOFEX',
-            'countries': [ 'GB' ],
+            'countries': [ 'GB', 'CN' ],
             'rateLimit': 1000,
             'has': {
                 'fetchMarkets': true,
@@ -24,6 +24,10 @@ module.exports = class aofex extends Exchange {
                 'fetchTickers': true,
                 'fetchOHLCV': true,
                 'fetchBalance': true,
+                'createOrder': true,
+                'cancelOrder': true,
+                'cancelAllOrders': true,
+                'fetchOpenOrders': true,
             },
             'timeframes': {
                 '1m': '1min',
@@ -701,8 +705,12 @@ module.exports = class aofex extends Exchange {
 
     parseOrderStatus (status) {
         const statuses = {
-            'Open': 'open',
-            'Partially filled': 'open',
+            '1': 'open',
+            '2': 'open', // partially filled
+            '3': 'closed',
+            '4': 'canceled', // canceling
+            '5': 'canceled', // partially canceled
+            '6': 'canceled',
         };
         return this.safeString (statuses, status, status);
     }
@@ -713,28 +721,69 @@ module.exports = class aofex extends Exchange {
         //
         //     { order_sn: 'BM7442641584965237751ZMAKJ5' }
         //
+        // fetchOpenOrders
+        //
+        //     {
+        //         "order_sn": "BL74426415849672087836G48N1",
+        //         "symbol": "ETH-USDT",
+        //         "ctime": "2020-03-23 20:40:08",
+        //         "type": 2,
+        //         "side": "buy",
+        //         "price": "90",
+        //         "number": "0.1",
+        //         "total_price": "9.0",
+        //         "deal_number": null,
+        //         "deal_price": null,
+        //         "status": 1,
+        //     }
+        //
         const id = this.safeString (order, 'order_sn');
         let symbol = undefined;
+        const marketId = this.safeString (order, 'symbol');
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+                symbol = market['symbol'];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('-');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
-        const timestamp = undefined;
+        const timestamp = this.parse8601 (this.safeString (order, 'ctime'));
+        const orderType = this.safeString (order, 'type');
+        const type = (orderType === '2') ? 'limit' : 'market';
+        const side = this.safeString (order, 'side');
+        const amount = this.safeFloat (order, 'number');
+        const price = this.safeFloat (order, 'price');
+        const cost = this.safeFloat (order, 'total_price');
+        const filled = this.safeFloat (order, 'deal_number', 0);
+        let remaining = undefined;
+        if ((filled !== undefined) && (amount !== undefined)) {
+            remaining = Math.max (amount - filled, 0);
+        }
+        const average = this.safeFloat (order, 'deal_price');
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
         return {
             'info': order,
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'status': undefined,
+            'status': status,
             'symbol': symbol,
-            'type': undefined,
-            'side': undefined,
-            'price': undefined,
-            'cost': undefined,
-            'average': undefined,
-            'amount': undefined,
-            'filled': undefined,
-            'remaining': undefined,
+            'type': type,
+            'side': side,
+            'price': price,
+            'cost': cost,
+            'average': average,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
             'trades': undefined,
             'fee': undefined,
         };
@@ -839,8 +888,43 @@ module.exports = class aofex extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const orders = await this.fetchOrders (symbol, since, limit, params);
-        return this.filterOrdersByStatus (orders, 'open');
+        await this.loadMarkets ();
+        const request = {
+            // 'from': 'BM7442641584965237751ZMAKJ5', // query start order_sn
+            // 'direct': 'prev', // next
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 20, max 100
+        }
+        const response = await this.privateGetEntrustCurrentList (this.extend (request, params));
+        //
+        //     {
+        //         "errno": 0,
+        //         "errmsg": "success",
+        //         "result": [
+        //             {
+        //                 "order_sn": "BL74426415849672087836G48N1",
+        //                 "symbol": "ETH-USDT",
+        //                 "ctime": "2020-03-23 20:40:08",
+        //                 "type": 2,
+        //                 "side": "buy",
+        //                 "price": "90",
+        //                 "number": "0.1",
+        //                 "total_price": "9.0",
+        //                 "deal_number": null,
+        //                 "deal_price": null,
+        //                 "status": 1,
+        //             }
+        //         ]
+        //     }
+        //
+        const result = this.safeValue (response, 'result', []);
+        return this.parseOrders (result, market, since, limit);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -898,41 +982,6 @@ module.exports = class aofex extends Exchange {
         });
     }
 
-    async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets ();
-        price = parseFloat (price);
-        const request = {
-            'orderNumber': id,
-            'rate': this.priceToPrecision (symbol, price),
-        };
-        if (amount !== undefined) {
-            request['amount'] = this.amountToPrecision (symbol, amount);
-        }
-        const response = await this.privatePostMoveOrder (this.extend (request, params));
-        let result = undefined;
-        if (id in this.orders) {
-            this.orders[id]['status'] = 'canceled';
-            const newid = response['orderNumber'];
-            this.orders[newid] = this.extend (this.orders[id], {
-                'id': newid,
-                'price': price,
-                'status': 'open',
-            });
-            if (amount !== undefined) {
-                this.orders[newid]['amount'] = amount;
-            }
-            result = this.extend (this.orders[newid], { 'info': response });
-        } else {
-            let market = undefined;
-            if (symbol !== undefined) {
-                market = this.market (symbol);
-            }
-            result = this.parseOrder (response, market);
-            this.orders[result['id']] = result;
-        }
-        return result;
-    }
-
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
@@ -977,32 +1026,25 @@ module.exports = class aofex extends Exchange {
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
-        const request = {};
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['currencyPair'] = market['id'];
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
         }
-        const response = await this.privatePostCancelAllOrders (this.extend (request, params));
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.privatePostEntrustCancel (this.extend (request, params));
         //
         //     {
-        //         "success": 1,
-        //         "message": "Orders canceled",
-        //         "orderNumbers": [
-        //             503749,
-        //             888321,
-        //             7315825,
-        //             7316824
-        //         ]
+        //         "errno": 0,
+        //         "errmsg": "success",
+        //         "result": {
+        //             "success": [ "avl12121", "bl3123123" ],
+        //             "failed": [ "sd24564", "sdf6564564" ]
+        //         }
         //     }
         //
-        const orderIds = this.safeValue (response, 'orderNumbers', []);
-        for (let i = 0; i < orderIds.length; i++) {
-            const id = orderIds[i].toString ();
-            if (id in this.orders) {
-                this.orders[id]['status'] = 'canceled';
-            }
-        }
         return response;
     }
 
@@ -1034,276 +1076,6 @@ module.exports = class aofex extends Exchange {
         order['id'] = id;
         this.orders[id] = order;
         return order;
-    }
-
-    async fetchOrderStatus (id, symbol = undefined, params = {}) {
-        await this.loadMarkets ();
-        const orders = await this.fetchOpenOrders (symbol, undefined, undefined, params);
-        const indexed = this.indexBy (orders, 'id');
-        return (id in indexed) ? 'open' : 'closed';
-    }
-
-    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = {
-            'orderNumber': id,
-        };
-        const trades = await this.privatePostReturnOrderTrades (this.extend (request, params));
-        return this.parseTrades (trades);
-    }
-
-    async createDepositAddress (code, params = {}) {
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request = {
-            'currency': currency['id'],
-        };
-        const response = await this.privatePostGenerateNewAddress (this.extend (request, params));
-        let address = undefined;
-        let tag = undefined;
-        if (response['success'] === 1) {
-            address = this.safeString (response, 'response');
-        }
-        this.checkAddress (address);
-        const depositAddress = this.safeString (currency['info'], 'depositAddress');
-        if (depositAddress !== undefined) {
-            tag = address;
-            address = depositAddress;
-        }
-        return {
-            'currency': code,
-            'address': address,
-            'tag': tag,
-            'info': response,
-        };
-    }
-
-    async fetchDepositAddress (code, params = {}) {
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const response = await this.privatePostReturnDepositAddresses (params);
-        const currencyId = currency['id'];
-        let address = this.safeString (response, currencyId);
-        let tag = undefined;
-        this.checkAddress (address);
-        const depositAddress = this.safeString (currency['info'], 'depositAddress');
-        if (depositAddress !== undefined) {
-            tag = address;
-            address = depositAddress;
-        }
-        return {
-            'currency': code,
-            'address': address,
-            'tag': tag,
-            'info': response,
-        };
-    }
-
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
-        this.checkAddress (address);
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request = {
-            'currency': currency['id'],
-            'amount': amount,
-            'address': address,
-        };
-        if (tag) {
-            request['paymentId'] = tag;
-        }
-        const response = await this.privatePostWithdraw (this.extend (request, params));
-        return {
-            'info': response,
-            'id': this.safeString (response, 'withdrawalNumber'),
-        };
-    }
-
-    async fetchTransactionsHelper (code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const year = 31104000; // 60 * 60 * 24 * 30 * 12 = one year of history, why not
-        const now = this.seconds ();
-        const start = (since !== undefined) ? parseInt (since / 1000) : now - 10 * year;
-        const request = {
-            'start': start, // UNIX timestamp, required
-            'end': now, // UNIX timestamp, required
-        };
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
-        const response = await this.privatePostReturnDepositsWithdrawals (this.extend (request, params));
-        //
-        //     {    deposits: [ {      currency: "BTC",
-        //                              address: "1MEtiqJWru53FhhHrfJPPvd2tC3TPDVcmW",
-        //                               amount: "0.01063000",
-        //                        confirmations:  1,
-        //                                 txid: "952b0e1888d6d491591facc0d37b5ebec540ac1efb241fdbc22bcc20d1822fb6",
-        //                            timestamp:  1507916888,
-        //                               status: "COMPLETE"                                                          },
-        //                      {      currency: "ETH",
-        //                              address: "0x20108ba20b65c04d82909e91df06618107460197",
-        //                               amount: "4.00000000",
-        //                        confirmations:  38,
-        //                                 txid: "0x4be260073491fe63935e9e0da42bd71138fdeb803732f41501015a2d46eb479d",
-        //                            timestamp:  1525060430,
-        //                               status: "COMPLETE"                                                            }  ],
-        //       withdrawals: [ { withdrawalNumber:  8224394,
-        //                                currency: "EMC2",
-        //                                 address: "EYEKyCrqTNmVCpdDV8w49XvSKRP9N3EUyF",
-        //                                  amount: "63.10796020",
-        //                                     fee: "0.01000000",
-        //                               timestamp:  1510819838,
-        //                                  status: "COMPLETE: d37354f9d02cb24d98c8c4fc17aa42f475530b5727effdf668ee5a43ce667fd6",
-        //                               ipAddress: "5.220.220.200"                                                               },
-        //                      { withdrawalNumber:  9290444,
-        //                                currency: "ETH",
-        //                                 address: "0x191015ff2e75261d50433fbd05bd57e942336149",
-        //                                  amount: "0.15500000",
-        //                                     fee: "0.00500000",
-        //                               timestamp:  1514099289,
-        //                                  status: "COMPLETE: 0x12d444493b4bca668992021fd9e54b5292b8e71d9927af1f076f554e4bea5b2d",
-        //                               ipAddress: "5.228.227.214"                                                                 },
-        //                      { withdrawalNumber:  11518260,
-        //                                currency: "BTC",
-        //                                 address: "8JoDXAmE1GY2LRK8jD1gmAmgRPq54kXJ4t",
-        //                                  amount: "0.20000000",
-        //                                     fee: "0.00050000",
-        //                               timestamp:  1527918155,
-        //                                  status: "COMPLETE: 1864f4ebb277d90b0b1ff53259b36b97fa1990edc7ad2be47c5e0ab41916b5ff",
-        //                               ipAddress: "211.8.195.26"                                                                }    ] }
-        //
-        return response;
-    }
-
-    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const response = await this.fetchTransactionsHelper (code, since, limit, params);
-        for (let i = 0; i < response['deposits'].length; i++) {
-            response['deposits'][i]['type'] = 'deposit';
-        }
-        for (let i = 0; i < response['withdrawals'].length; i++) {
-            response['withdrawals'][i]['type'] = 'withdrawal';
-        }
-        let currency = undefined;
-        if (code !== undefined) {
-            currency = this.currency (code);
-        }
-        const withdrawals = this.parseTransactions (response['withdrawals'], currency, since, limit);
-        const deposits = this.parseTransactions (response['deposits'], currency, since, limit);
-        const transactions = this.arrayConcat (deposits, withdrawals);
-        return this.filterByCurrencySinceLimit (this.sortBy (transactions, 'timestamp'), code, since, limit);
-    }
-
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
-        const response = await this.fetchTransactionsHelper (code, since, limit, params);
-        for (let i = 0; i < response['withdrawals'].length; i++) {
-            response['withdrawals'][i]['type'] = 'withdrawal';
-        }
-        let currency = undefined;
-        if (code !== undefined) {
-            currency = this.currency (code);
-        }
-        const withdrawals = this.parseTransactions (response['withdrawals'], currency, since, limit);
-        return this.filterByCurrencySinceLimit (withdrawals, code, since, limit);
-    }
-
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
-        const response = await this.fetchTransactionsHelper (code, since, limit, params);
-        for (let i = 0; i < response['deposits'].length; i++) {
-            response['deposits'][i]['type'] = 'deposit';
-        }
-        let currency = undefined;
-        if (code !== undefined) {
-            currency = this.currency (code);
-        }
-        const deposits = this.parseTransactions (response['deposits'], currency, since, limit);
-        return this.filterByCurrencySinceLimit (deposits, code, since, limit);
-    }
-
-    parseTransactionStatus (status) {
-        const statuses = {
-            'COMPLETE': 'ok',
-        };
-        return this.safeString (statuses, status, status);
-    }
-
-    parseTransaction (transaction, currency = undefined) {
-        //
-        // deposits
-        //
-        //     {
-        //         "txid": "f49d489616911db44b740612d19464521179c76ebe9021af85b6de1e2f8d68cd",
-        //         "type": "deposit",
-        //         "amount": "49798.01987021",
-        //         "status": "COMPLETE",
-        //         "address": "DJVJZ58tJC8UeUv9Tqcdtn6uhWobouxFLT",
-        //         "currency": "DOGE",
-        //         "timestamp": 1524321838,
-        //         "confirmations": 3371,
-        //         "depositNumber": 134587098
-        //     }
-        //
-        // withdrawals
-        //
-        //     {
-        //         "fee": "0.00050000",
-        //         "type": "withdrawal",
-        //         "amount": "0.40234387",
-        //         "status": "COMPLETE: fbabb2bf7d81c076f396f3441166d5f60f6cea5fdfe69e02adcc3b27af8c2746",
-        //         "address": "1EdAqY4cqHoJGAgNfUFER7yZpg1Jc9DUa3",
-        //         "currency": "BTC",
-        //         "canCancel": 0,
-        //         "ipAddress": "185.230.101.31",
-        //         "paymentID": null,
-        //         "timestamp": 1523834337,
-        //         "canResendEmail": 0,
-        //         "withdrawalNumber": 11162900
-        //     }
-        //
-        const timestamp = this.safeTimestamp (transaction, 'timestamp');
-        const currencyId = this.safeString (transaction, 'currency');
-        const code = this.safeCurrencyCode (currencyId);
-        let status = this.safeString (transaction, 'status', 'pending');
-        let txid = this.safeString (transaction, 'txid');
-        if (status !== undefined) {
-            const parts = status.split (': ');
-            const numParts = parts.length;
-            status = parts[0];
-            if ((numParts > 1) && (txid === undefined)) {
-                txid = parts[1];
-            }
-            status = this.parseTransactionStatus (status);
-        }
-        const type = this.safeString (transaction, 'type');
-        const id = this.safeString2 (transaction, 'withdrawalNumber', 'depositNumber');
-        let amount = this.safeFloat (transaction, 'amount');
-        const address = this.safeString (transaction, 'address');
-        let feeCost = this.safeFloat (transaction, 'fee');
-        if (feeCost === undefined) {
-            // according to https://poloniex.com/fees/
-            feeCost = 0; // FIXME: remove hardcoded value that may change any time
-        }
-        if (type === 'withdrawal') {
-            // poloniex withdrawal amount includes the fee
-            amount = amount - feeCost;
-        }
-        return {
-            'info': transaction,
-            'id': id,
-            'currency': code,
-            'amount': amount,
-            'address': address,
-            'tag': undefined,
-            'status': status,
-            'type': type,
-            'updated': undefined,
-            'txid': txid,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'fee': {
-                'currency': code,
-                'cost': feeCost,
-            },
-        };
     }
 
     nonce () {
