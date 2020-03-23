@@ -22,6 +22,7 @@ module.exports = class aofex extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchOHLCV': true,
+                'fetchBalance': true,
             },
             'timeframes': {
                 '1m': '1min',
