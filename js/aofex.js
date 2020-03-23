@@ -17,6 +17,11 @@ module.exports = class aofex extends Exchange {
             'has': {
                 'fetchMarkets': true,
                 'fetchCurrencies': false,
+                'fetchOrderBook': true,
+                'fetchTrades': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchOHLCV': true,
             },
             'timeframes': {
                 '1m': '1min',
@@ -283,15 +288,34 @@ module.exports = class aofex extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
-            'currencyPair': this.marketId (symbol),
+            'symbol': this.marketId (symbol),
         };
-        if (limit !== undefined) {
-            request['depth'] = limit; // 100
-        }
-        const response = await this.publicGetReturnOrderBook (this.extend (request, params));
-        const orderbook = this.parseOrderBook (response);
-        orderbook['nonce'] = this.safeInteger (response, 'seq');
-        return orderbook;
+        const response = await this.publicGetMarketDepth (this.extend (request, params));
+        //
+        //     {
+        //         errno: 0,
+        //         errmsg: "success",
+        //         result: {
+        //             buyType: 1,
+        //             sellType: 1,
+        //             ts: 1584950701050,
+        //             symbol: "ETH-BTC",
+        //             asks: [
+        //                 ["0.021227", "0.182"],
+        //                 ["0.021249", "0.035"],
+        //                 ["0.021253", "0.058"],
+        //             ],
+        //             bids: [
+        //                 ["0.021207", "0.039"],
+        //                 ["0.021203", "0.051"],
+        //                 ["0.02117", "2.326"],
+        //             ]
+        //         }
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const timestamp = this.safeInteger (result, 'ts');
+        return this.parseOrderBook (result, timestamp);
     }
 
     async fetchOrderBooks (symbols = undefined, limit = undefined, params = {}) {
