@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from exchange.test_trade import test_trade
-from exchange.table import table
+# from exchange.table import table
 
 
 async def test_watch_trades(exchange, symbol):
