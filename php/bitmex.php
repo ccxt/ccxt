@@ -12,7 +12,7 @@ class bitmex extends \ccxt\bitmex {
 
     use ClientTrait;
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'has' => array(
                 'ws' => true,
@@ -47,7 +47,7 @@ class bitmex extends \ccxt\bitmex {
         ));
     }
 
-    public function watch_ticker ($symbol, $params = array ()) {
+    public function watch_ticker($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $name = 'instrument';
@@ -62,7 +62,7 @@ class bitmex extends \ccxt\bitmex {
         return $this->watch($url, $messageHash, array_merge($request, $params), $messageHash);
     }
 
-    public function handle_ticker ($client, $message) {
+    public function handle_ticker($client, $message) {
         //
         //     {
         //         $table => 'instrument',
@@ -308,12 +308,12 @@ class bitmex extends \ccxt\bitmex {
         return $message;
     }
 
-    public function watch_balance ($params = array ()) {
+    public function watch_balance($params = array ()) {
         $this->load_markets();
         throw new NotImplemented($this->id . ' watchBalance() not implemented yet');
     }
 
-    public function handle_trades ($client, $message) {
+    public function handle_trades($client, $message) {
         //
         // initial snapshot
         //
@@ -398,7 +398,7 @@ class bitmex extends \ccxt\bitmex {
         }
     }
 
-    public function watch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $table = 'trade';
@@ -414,7 +414,7 @@ class bitmex extends \ccxt\bitmex {
         return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
-    public function watch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book($symbol, $limit = null, $params = array ()) {
         $table = null;
         if ($limit === null) {
             $table = $this->safe_string($this->options, 'watchOrderBookLevel', 'orderBookL2');
@@ -439,7 +439,7 @@ class bitmex extends \ccxt\bitmex {
         return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
-    public function watch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $table = 'tradeBin' . $this->timeframes[$timeframe];
@@ -455,7 +455,7 @@ class bitmex extends \ccxt\bitmex {
         return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
     }
 
-    public function find_timeframe ($timeframe) {
+    public function find_timeframe($timeframe) {
         $keys = is_array($this->timeframes) ? array_keys($this->timeframes) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
@@ -466,7 +466,7 @@ class bitmex extends \ccxt\bitmex {
         return null;
     }
 
-    public function handle_ohlcv ($client, $message) {
+    public function handle_ohlcv($client, $message) {
         //
         //     {
         //         $table => 'tradeBin1m',
@@ -577,19 +577,19 @@ class bitmex extends \ccxt\bitmex {
         }
     }
 
-    public function watch_heartbeat ($params = array ()) {
+    public function watch_heartbeat($params = array ()) {
         $this->load_markets();
         $event = 'heartbeat';
         $url = $this->urls['api']['ws'];
         return $this->watch($url, $event);
     }
 
-    public function sign_message ($client, $messageHash, $message, $params = array ()) {
+    public function sign_message($client, $messageHash, $message, $params = array ()) {
         // todo bitmex signMessage not implemented yet
         return $message;
     }
 
-    public function handle_order_book ($client, $message) {
+    public function handle_order_book($client, $message) {
         //
         // first snapshot
         //
@@ -691,7 +691,7 @@ class bitmex extends \ccxt\bitmex {
         }
     }
 
-    public function handle_system_status ($client, $message) {
+    public function handle_system_status($client, $message) {
         //
         // todo answer the question whether handleSystemStatus should be renamed
         // and unified as handleStatus for any usage pattern that
@@ -708,7 +708,7 @@ class bitmex extends \ccxt\bitmex {
         return $message;
     }
 
-    public function handle_subscription_status ($client, $message) {
+    public function handle_subscription_status($client, $message) {
         //
         //     {
         //         success => true,
@@ -719,7 +719,7 @@ class bitmex extends \ccxt\bitmex {
         return $message;
     }
 
-    public function handle_error_message ($client, $message) {
+    public function handle_error_message($client, $message) {
         //
         // generic $error format
         //
@@ -758,7 +758,7 @@ class bitmex extends \ccxt\bitmex {
         return true;
     }
 
-    public function handle_message ($client, $message) {
+    public function handle_message($client, $message) {
         //
         //     {
         //         info => 'Welcome to the BitMEX Realtime API.',

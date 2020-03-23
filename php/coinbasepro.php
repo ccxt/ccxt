@@ -11,7 +11,7 @@ class coinbasepro extends \ccxt\coinbasepro {
 
     use ClientTrait;
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'has' => array(
                 'ws' => true,
@@ -31,7 +31,7 @@ class coinbasepro extends \ccxt\coinbasepro {
         ));
     }
 
-    public function subscribe ($name, $symbol, $params = array ()) {
+    public function subscribe($name, $symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $messageHash = $name . ':' . $market['id'];
@@ -49,24 +49,24 @@ class coinbasepro extends \ccxt\coinbasepro {
         return $this->watch($url, $messageHash, $request, $messageHash);
     }
 
-    public function watch_ticker ($symbol, $params = array ()) {
+    public function watch_ticker($symbol, $params = array ()) {
         $name = 'ticker';
         return $this->subscribe($name, $symbol, $params);
     }
 
-    public function watch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $name = 'matches';
         $future = $this->subscribe($name, $symbol, $params);
         return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
-    public function watch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book($symbol, $limit = null, $params = array ()) {
         $name = 'level2';
         $future = $this->subscribe($name, $symbol, $params);
         return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
-    public function handle_trade ($client, $message) {
+    public function handle_trade($client, $message) {
         //
         //     {
         //         $type => 'match',
@@ -104,7 +104,7 @@ class coinbasepro extends \ccxt\coinbasepro {
         return $message;
     }
 
-    public function handle_ticker ($client, $message) {
+    public function handle_ticker($client, $message) {
         //
         //     {
         //         $type => 'ticker',
@@ -136,7 +136,7 @@ class coinbasepro extends \ccxt\coinbasepro {
         return $message;
     }
 
-    public function parse_ticker ($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null) {
         //
         //     {
         //         $type => 'ticker',
@@ -201,19 +201,19 @@ class coinbasepro extends \ccxt\coinbasepro {
         );
     }
 
-    public function handle_delta ($bookside, $delta) {
+    public function handle_delta($bookside, $delta) {
         $price = $this->safe_float($delta, 0);
         $amount = $this->safe_float($delta, 1);
         $bookside->store ($price, $amount);
     }
 
-    public function handle_deltas ($bookside, $deltas) {
+    public function handle_deltas($bookside, $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->handle_delta($bookside, $deltas[$i]);
         }
     }
 
-    public function handle_order_book ($client, $message) {
+    public function handle_order_book($client, $message) {
         //
         // first $message (snapshot)
         //
@@ -288,12 +288,12 @@ class coinbasepro extends \ccxt\coinbasepro {
         }
     }
 
-    public function sign_message ($client, $messageHash, $message, $params = array ()) {
+    public function sign_message($client, $messageHash, $message, $params = array ()) {
         // todo => implement coinbasepro signMessage() via parent sign()
         return $message;
     }
 
-    public function handle_subscription_status ($client, $message) {
+    public function handle_subscription_status($client, $message) {
         //
         //     {
         //         type => 'subscriptions',
@@ -308,7 +308,7 @@ class coinbasepro extends \ccxt\coinbasepro {
         return $message;
     }
 
-    public function handle_message ($client, $message) {
+    public function handle_message($client, $message) {
         $type = $this->safe_string($message, 'type');
         $methods = array(
             'snapshot' => array($this, 'handle_order_book'),

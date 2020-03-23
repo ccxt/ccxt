@@ -12,7 +12,7 @@ class bitfinex extends \ccxt\bitfinex {
 
     use ClientTrait;
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'has' => array(
                 'ws' => true,
@@ -40,7 +40,7 @@ class bitfinex extends \ccxt\bitfinex {
         ));
     }
 
-    public function subscribe ($channel, $symbol, $params = array ()) {
+    public function subscribe($channel, $symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $marketId = $market['id'];
@@ -56,16 +56,16 @@ class bitfinex extends \ccxt\bitfinex {
         return $this->watch($url, $messageHash, array_replace_recursive($request, $params), $messageHash);
     }
 
-    public function watch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $future = $this->subscribe('trades', $symbol, $params);
         return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
-    public function watch_ticker ($symbol, $params = array ()) {
+    public function watch_ticker($symbol, $params = array ()) {
         return $this->subscribe('ticker', $symbol, $params);
     }
 
-    public function handle_trades ($client, $message, $subscription) {
+    public function handle_trades($client, $message, $subscription) {
         //
         // initial snapshot
         //
@@ -123,7 +123,7 @@ class bitfinex extends \ccxt\bitfinex {
         return $message;
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         //
         // snapshot $trade
         //
@@ -190,7 +190,7 @@ class bitfinex extends \ccxt\bitfinex {
         );
     }
 
-    public function handle_ticker ($client, $message, $subscription) {
+    public function handle_ticker($client, $message, $subscription) {
         //
         //     array(
         //         2,             // 0 CHANNEL_ID integer Channel ID
@@ -244,7 +244,7 @@ class bitfinex extends \ccxt\bitfinex {
         $client->resolve ($result, $messageHash);
     }
 
-    public function watch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book($symbol, $limit = null, $params = array ()) {
         if ($limit !== null) {
             if (($limit !== 25) && ($limit !== 100)) {
                 throw new ExchangeError($this->id . ' watchOrderBook $limit argument must be null, 25 or 100');
@@ -265,7 +265,7 @@ class bitfinex extends \ccxt\bitfinex {
         return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
-    public function handle_order_book ($client, $message, $subscription) {
+    public function handle_order_book($client, $message, $subscription) {
         //
         // first $message (snapshot)
         //
@@ -351,7 +351,7 @@ class bitfinex extends \ccxt\bitfinex {
         }
     }
 
-    public function handle_heartbeat ($client, $message) {
+    public function handle_heartbeat($client, $message) {
         //
         // every second (approx) if no other updates are sent
         //
@@ -361,7 +361,7 @@ class bitfinex extends \ccxt\bitfinex {
         $client->resolve ($message, $event);
     }
 
-    public function handle_system_status ($client, $message) {
+    public function handle_system_status($client, $message) {
         //
         // todo => answer the question whether handleSystemStatus should be renamed
         // and unified as handleStatus for any usage pattern that
@@ -377,7 +377,7 @@ class bitfinex extends \ccxt\bitfinex {
         return $message;
     }
 
-    public function handle_subscription_status ($client, $message) {
+    public function handle_subscription_status($client, $message) {
         //
         //     {
         //         event => 'subscribed',
@@ -395,12 +395,12 @@ class bitfinex extends \ccxt\bitfinex {
         return $message;
     }
 
-    public function sign_message ($client, $messageHash, $message, $params = array ()) {
+    public function sign_message($client, $messageHash, $message, $params = array ()) {
         // todo => bitfinex signMessage not implemented yet
         return $message;
     }
 
-    public function handle_message ($client, $message) {
+    public function handle_message($client, $message) {
         if (gettype($message) === 'array' && count(array_filter(array_keys($message), 'is_string')) == 0) {
             $channelId = $this->safe_string($message, 0);
             //

@@ -12,7 +12,7 @@ class kucoin extends \ccxt\kucoin {
 
     use ClientTrait;
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'has' => array(
                 'ws' => true,
@@ -36,7 +36,7 @@ class kucoin extends \ccxt\kucoin {
         ));
     }
 
-    public function negotiate ($params = array ()) {
+    public function negotiate($params = array ()) {
         $client = $this->client('ws');
         $messageHash = 'negotiate';
         $future = $this->safe_value($client->subscriptions, $messageHash);
@@ -77,7 +77,7 @@ class kucoin extends \ccxt\kucoin {
         return $future;
     }
 
-    public function subscribe ($negotiation, $topic, $method, $symbol, $params = array ()) {
+    public function subscribe($negotiation, $topic, $method, $symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $data = $this->safe_value($negotiation, 'data', array());
@@ -111,14 +111,14 @@ class kucoin extends \ccxt\kucoin {
         return $this->watch($url, $messageHash, $request, $messageHash, $subscription);
     }
 
-    public function watch_ticker ($symbol, $params = array ()) {
+    public function watch_ticker($symbol, $params = array ()) {
         $this->load_markets();
         $negotiate = $this->negotiate();
         $topic = '/market/snapshot';
         return $this->after_async($negotiate, array($this, 'subscribe'), $topic, null, $symbol, $params);
     }
 
-    public function handle_ticker ($client, $message) {
+    public function handle_ticker($client, $message) {
         //
         // updates come in every 2 sec unless there
         // were no changes since the previous update
@@ -165,7 +165,7 @@ class kucoin extends \ccxt\kucoin {
         return $message;
     }
 
-    public function watch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $negotiate = $this->negotiate();
         $topic = '/market/match';
@@ -173,7 +173,7 @@ class kucoin extends \ccxt\kucoin {
         return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
-    public function handle_trade ($client, $message) {
+    public function handle_trade($client, $message) {
         //
         //     {
         //         $data => $array(
@@ -208,7 +208,7 @@ class kucoin extends \ccxt\kucoin {
         return $message;
     }
 
-    public function watch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book($symbol, $limit = null, $params = array ()) {
         //
         // https://docs.kucoin.com/#level-2-market-data
         //
@@ -236,7 +236,7 @@ class kucoin extends \ccxt\kucoin {
         return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
-    public function fetch_order_book_snapshot ($client, $message, $subscription) {
+    public function fetch_order_book_snapshot($client, $message, $subscription) {
         $symbol = $this->safe_string($subscription, 'symbol');
         $limit = $this->safe_integer($subscription, 'limit');
         $messageHash = $this->safe_string($subscription, 'messageHash');
@@ -256,7 +256,7 @@ class kucoin extends \ccxt\kucoin {
         $client->resolve ($orderbook, $messageHash);
     }
 
-    public function handle_delta ($bookside, $delta, $nonce) {
+    public function handle_delta($bookside, $delta, $nonce) {
         $price = $this->safe_float($delta, 0);
         if ($price > 0) {
             $sequence = $this->safe_integer($delta, 2);
@@ -267,13 +267,13 @@ class kucoin extends \ccxt\kucoin {
         }
     }
 
-    public function handle_deltas ($bookside, $deltas, $nonce) {
+    public function handle_deltas($bookside, $deltas, $nonce) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->handle_delta($bookside, $deltas[$i], $nonce);
         }
     }
 
-    public function handle_order_book_message ($client, $message, $orderbook) {
+    public function handle_order_book_message($client, $message, $orderbook) {
         //
         //     {
         //         "type":"$message",
@@ -320,7 +320,7 @@ class kucoin extends \ccxt\kucoin {
         return $orderbook;
     }
 
-    public function handle_order_book ($client, $message) {
+    public function handle_order_book($client, $message) {
         //
         // initial snapshot is fetched with ccxt's fetchOrderBook
         // the feed does not include a snapshot, just the deltas
@@ -361,12 +361,12 @@ class kucoin extends \ccxt\kucoin {
         }
     }
 
-    public function sign_message ($client, $messageHash, $message, $params = array ()) {
+    public function sign_message($client, $messageHash, $message, $params = array ()) {
         // todo => implement kucoin signMessage
         return $message;
     }
 
-    public function handle_order_book_subscription ($client, $message, $subscription) {
+    public function handle_order_book_subscription($client, $message, $subscription) {
         $symbol = $this->safe_string($subscription, 'symbol');
         $limit = $this->safe_string($subscription, 'limit');
         if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
@@ -377,7 +377,7 @@ class kucoin extends \ccxt\kucoin {
         $this->spawn(array($this, 'fetch_order_book_snapshot'), $client, $message, $subscription);
     }
 
-    public function handle_subscription_status ($client, $message) {
+    public function handle_subscription_status($client, $message) {
         //
         //     {
         //         $id => '1578090438322',
@@ -394,7 +394,7 @@ class kucoin extends \ccxt\kucoin {
         return $message;
     }
 
-    public function handle_system_status ($client, $message) {
+    public function handle_system_status($client, $message) {
         //
         // todo => answer the question whether handleSystemStatus should be renamed
         // and unified as handleStatus for any usage pattern that
@@ -408,7 +408,7 @@ class kucoin extends \ccxt\kucoin {
         return $message;
     }
 
-    public function handle_subject ($client, $message) {
+    public function handle_subject($client, $message) {
         //
         //     {
         //         "type":"$message",
@@ -439,7 +439,7 @@ class kucoin extends \ccxt\kucoin {
         }
     }
 
-    public function ping ($client) {
+    public function ping($client) {
         // kucoin does not support built-in ws protocol-level ping-pong
         // instead it requires a custom json-based text ping-pong
         // https://docs.kucoin.com/#ping
@@ -450,17 +450,17 @@ class kucoin extends \ccxt\kucoin {
         );
     }
 
-    public function handle_pong ($client, $message) {
+    public function handle_pong($client, $message) {
         // https://docs.kucoin.com/#ping
         $client->lastPong = $this->milliseconds();
         return $message;
     }
 
-    public function handle_error_message ($client, $message) {
+    public function handle_error_message($client, $message) {
         return $message;
     }
 
-    public function handle_message ($client, $message) {
+    public function handle_message($client, $message) {
         if ($this->handle_error_message($client, $message)) {
             $type = $this->safe_string($message, 'type');
             $methods = array(

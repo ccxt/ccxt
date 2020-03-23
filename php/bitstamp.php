@@ -11,7 +11,7 @@ class bitstamp extends \ccxt\bitstamp {
 
     use ClientTrait;
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'has' => array(
                 'ws' => true,
@@ -36,7 +36,7 @@ class bitstamp extends \ccxt\bitstamp {
         ));
     }
 
-    public function watch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $options = $this->safe_value($this->options, 'watchOrderBook', array());
@@ -62,7 +62,7 @@ class bitstamp extends \ccxt\bitstamp {
         return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
-    public function fetch_order_book_snapshot ($client, $message, $subscription) {
+    public function fetch_order_book_snapshot($client, $message, $subscription) {
         $symbol = $this->safe_string($subscription, 'symbol');
         $limit = $this->safe_integer($subscription, 'limit');
         $params = $this->safe_value($subscription, 'params');
@@ -83,7 +83,7 @@ class bitstamp extends \ccxt\bitstamp {
         }
     }
 
-    public function handle_delta ($bookside, $delta) {
+    public function handle_delta($bookside, $delta) {
         $price = $this->safe_float($delta, 0);
         $amount = $this->safe_float($delta, 1);
         $id = $this->safe_string($delta, 2);
@@ -94,13 +94,13 @@ class bitstamp extends \ccxt\bitstamp {
         }
     }
 
-    public function handle_deltas ($bookside, $deltas) {
+    public function handle_deltas($bookside, $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->handle_delta($bookside, $deltas[$i]);
         }
     }
 
-    public function handle_order_book_message ($client, $message, $orderbook, $nonce = null) {
+    public function handle_order_book_message($client, $message, $orderbook, $nonce = null) {
         $data = $this->safe_value($message, 'data', array());
         $microtimestamp = $this->safe_integer($data, 'microtimestamp');
         if (($nonce !== null) && ($microtimestamp <= $nonce)) {
@@ -115,7 +115,7 @@ class bitstamp extends \ccxt\bitstamp {
         return $orderbook;
     }
 
-    public function handle_order_book ($client, $message) {
+    public function handle_order_book($client, $message) {
         //
         // initial snapshot is fetched with ccxt's fetchOrderBook
         // the feed does not include a snapshot, just the deltas
@@ -180,7 +180,7 @@ class bitstamp extends \ccxt\bitstamp {
         }
     }
 
-    public function watch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $options = $this->safe_value($this->options, 'watchTrades', array());
@@ -205,7 +205,7 @@ class bitstamp extends \ccxt\bitstamp {
         return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         //
         //     {
         //         buy_order_id => 1211625836466176,
@@ -259,7 +259,7 @@ class bitstamp extends \ccxt\bitstamp {
         );
     }
 
-    public function handle_trade ($client, $message) {
+    public function handle_trade($client, $message) {
         //
         //     {
         //         $data => $array(
@@ -296,12 +296,12 @@ class bitstamp extends \ccxt\bitstamp {
         $client->resolve ($array, $channel);
     }
 
-    public function sign_message ($client, $messageHash, $message, $params = array ()) {
+    public function sign_message($client, $messageHash, $message, $params = array ()) {
         // todo => implement binance signMessage
         return $message;
     }
 
-    public function handle_order_book_subscription ($client, $message, $subscription) {
+    public function handle_order_book_subscription($client, $message, $subscription) {
         $type = $this->safe_string($subscription, 'type');
         $symbol = $this->safe_string($subscription, 'symbol');
         if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
@@ -321,7 +321,7 @@ class bitstamp extends \ccxt\bitstamp {
         }
     }
 
-    public function handle_subscription_status ($client, $message) {
+    public function handle_subscription_status($client, $message) {
         //
         //     {
         //         'event' => "bts:subscription_succeeded",
@@ -338,7 +338,7 @@ class bitstamp extends \ccxt\bitstamp {
         return $message;
     }
 
-    public function handle_subject ($client, $message) {
+    public function handle_subject($client, $message) {
         //
         //     {
         //         data => array(
@@ -377,11 +377,11 @@ class bitstamp extends \ccxt\bitstamp {
         }
     }
 
-    public function handle_error_message ($client, $message) {
+    public function handle_error_message($client, $message) {
         return $message;
     }
 
-    public function handle_message ($client, $message) {
+    public function handle_message($client, $message) {
         if (!$this->handle_error_message($client, $message)) {
             return;
         }

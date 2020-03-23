@@ -12,7 +12,7 @@ class kraken extends \ccxt\kraken {
 
     use ClientTrait;
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'has' => array(
                 'ws' => true,
@@ -53,7 +53,7 @@ class kraken extends \ccxt\kraken {
         ));
     }
 
-    public function handle_ticker ($client, $message, $subscription) {
+    public function handle_ticker($client, $message, $subscription) {
         //
         //     array(
         //         0, // channelID
@@ -115,12 +115,12 @@ class kraken extends \ccxt\kraken {
         $client->resolve ($result, $messageHash);
     }
 
-    public function watch_balance ($params = array ()) {
+    public function watch_balance($params = array ()) {
         $this->load_markets();
         throw new NotImplemented($this->id . ' watchBalance() not implemented yet');
     }
 
-    public function handle_trades ($client, $message, $subscription) {
+    public function handle_trades($client, $message, $subscription) {
         //
         //     array(
         //         0, // channelID
@@ -151,7 +151,7 @@ class kraken extends \ccxt\kraken {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function find_timeframe ($timeframe) {
+    public function find_timeframe($timeframe) {
         $keys = is_array($this->timeframes) ? array_keys($this->timeframes) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
@@ -162,7 +162,7 @@ class kraken extends \ccxt\kraken {
         return null;
     }
 
-    public function handle_ohlcv ($client, $message, $subscription) {
+    public function handle_ohlcv($client, $message, $subscription) {
         //
         //     array(
         //         216, // channelID
@@ -219,14 +219,14 @@ class kraken extends \ccxt\kraken {
         }
     }
 
-    public function reqid () {
+    public function reqid() {
         // their support said that $reqid must be an int32, not documented
         $reqid = $this->sum($this->safe_integer($this->options, 'reqid', 0), 1);
         $this->options['reqid'] = $reqid;
         return $reqid;
     }
 
-    public function watch_public ($name, $symbol, $params = array ()) {
+    public function watch_public($name, $symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $wsName = $this->safe_value($market['info'], 'wsname');
@@ -247,17 +247,17 @@ class kraken extends \ccxt\kraken {
         return $this->watch($url, $messageHash, $request, $messageHash);
     }
 
-    public function watch_ticker ($symbol, $params = array ()) {
+    public function watch_ticker($symbol, $params = array ()) {
         return $this->watch_public('ticker', $symbol, $params);
     }
 
-    public function watch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $name = 'trade';
         $future = $this->watch_public($name, $symbol, $params);
         return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
-    public function watch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book($symbol, $limit = null, $params = array ()) {
         $name = 'book';
         $request = array();
         if ($limit !== null) {
@@ -269,7 +269,7 @@ class kraken extends \ccxt\kraken {
         return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
-    public function watch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $name = 'ohlc';
         $market = $this->market($symbol);
@@ -293,7 +293,7 @@ class kraken extends \ccxt\kraken {
         return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
     }
 
-    public function load_markets ($reload = false, $params = array ()) {
+    public function load_markets($reload = false, $params = array ()) {
         $markets = parent::load_markets($reload, $params);
         $marketsByWsName = $this->safe_value($this->options, 'marketsByWsName');
         if (($marketsByWsName === null) || $reload) {
@@ -312,14 +312,14 @@ class kraken extends \ccxt\kraken {
         return $markets;
     }
 
-    public function watch_heartbeat ($params = array ()) {
+    public function watch_heartbeat($params = array ()) {
         $this->load_markets();
         $event = 'heartbeat';
         $url = $this->urls['api']['ws']['public'];
         return $this->watch($url, $event);
     }
 
-    public function handle_heartbeat ($client, $message) {
+    public function handle_heartbeat($client, $message) {
         //
         // every second (approx) if no other updates are sent
         //
@@ -329,7 +329,7 @@ class kraken extends \ccxt\kraken {
         $client->resolve ($message, $event);
     }
 
-    public function handle_order_book ($client, $message, $subscription) {
+    public function handle_order_book($client, $message, $subscription) {
         //
         // first $message (snapshot)
         //
@@ -426,7 +426,7 @@ class kraken extends \ccxt\kraken {
         }
     }
 
-    public function handle_deltas ($bookside, $deltas, $timestamp) {
+    public function handle_deltas($bookside, $deltas, $timestamp) {
         for ($j = 0; $j < count($deltas); $j++) {
             $delta = $deltas[$j];
             $price = floatval ($delta[0]);
@@ -437,7 +437,7 @@ class kraken extends \ccxt\kraken {
         return $timestamp;
     }
 
-    public function handle_system_status ($client, $message) {
+    public function handle_system_status($client, $message) {
         //
         // todo => answer the question whether handleSystemStatus should be renamed
         // and unified as handleStatus for any usage pattern that
@@ -453,7 +453,7 @@ class kraken extends \ccxt\kraken {
         return $message;
     }
 
-    public function handle_subscription_status ($client, $message) {
+    public function handle_subscription_status($client, $message) {
         //
         //     {
         //         channelID => 210,
@@ -473,7 +473,7 @@ class kraken extends \ccxt\kraken {
         // }
     }
 
-    public function handle_error_message ($client, $message) {
+    public function handle_error_message($client, $message) {
         //
         //     {
         //         $errorMessage => 'Currency pair not in ISO 4217-A3 format foobar',
@@ -503,12 +503,12 @@ class kraken extends \ccxt\kraken {
         return true;
     }
 
-    public function sign_message ($client, $messageHash, $message, $params = array ()) {
+    public function sign_message($client, $messageHash, $message, $params = array ()) {
         // todo => kraken signMessage not implemented yet
         return $message;
     }
 
-    public function handle_message ($client, $message) {
+    public function handle_message($client, $message) {
         if (gettype($message) === 'array' && count(array_filter(array_keys($message), 'is_string')) == 0) {
             $channelId = (string) $message[0];
             $subscription = $this->safe_value($client->subscriptions, $channelId, array());

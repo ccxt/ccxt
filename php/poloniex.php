@@ -11,7 +11,7 @@ class poloniex extends \ccxt\poloniex {
 
     use ClientTrait;
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'has' => array(
                 'ws' => true,
@@ -33,7 +33,7 @@ class poloniex extends \ccxt\poloniex {
         ));
     }
 
-    public function handle_tickers ($client, $message) {
+    public function handle_tickers($client, $message) {
         //
         //     array(
         //         1002,
@@ -104,7 +104,7 @@ class poloniex extends \ccxt\poloniex {
         $client->resolve ($result, $messageHash);
     }
 
-    public function watch_balance ($params = array ()) {
+    public function watch_balance($params = array ()) {
         $this->load_markets();
         $this->balance = $this->fetchBalance ($params);
         $channelId = '1000';
@@ -117,7 +117,7 @@ class poloniex extends \ccxt\poloniex {
         return $this->watch($url, $messageHash, $subscribe, $channelId);
     }
 
-    public function watch_ticker ($symbol, $params = array ()) {
+    public function watch_ticker($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $numericId = $this->safe_string($market, 'numericId');
@@ -131,7 +131,7 @@ class poloniex extends \ccxt\poloniex {
         return $this->watch($url, $messageHash, $subscribe, $channelId);
     }
 
-    public function watch_tickers ($symbols = null, $params = array ()) {
+    public function watch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
         $channelId = '1002';
         $messageHash = $channelId;
@@ -144,7 +144,7 @@ class poloniex extends \ccxt\poloniex {
         return $this->after($future, array($this, 'filter_by_array'), 'symbol', $symbols);
     }
 
-    public function load_markets ($reload = false, $params = array ()) {
+    public function load_markets($reload = false, $params = array ()) {
         $markets = parent::load_markets($reload, $params);
         $marketsByNumericId = $this->safe_value($this->options, 'marketsByNumericId');
         if (($marketsByNumericId === null) || $reload) {
@@ -160,7 +160,7 @@ class poloniex extends \ccxt\poloniex {
         return $markets;
     }
 
-    public function watch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $numericId = $this->safe_string($market, 'numericId');
@@ -174,7 +174,7 @@ class poloniex extends \ccxt\poloniex {
         return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
-    public function watch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $numericId = $this->safe_string($market, 'numericId');
@@ -188,14 +188,14 @@ class poloniex extends \ccxt\poloniex {
         return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
-    public function watch_heartbeat ($params = array ()) {
+    public function watch_heartbeat($params = array ()) {
         $this->load_markets();
         $channelId = '1010';
         $url = $this->urls['api']['ws'];
         return $this->watch($url, $channelId);
     }
 
-    public function sign_message ($client, $messageHash, $message, $params = array ()) {
+    public function sign_message($client, $messageHash, $message, $params = array ()) {
         if (mb_strpos($messageHash, '1000') === 0) {
             $throwOnError = false;
             if ($this->check_required_credentials($throwOnError)) {
@@ -212,7 +212,7 @@ class poloniex extends \ccxt\poloniex {
         return $message;
     }
 
-    public function handle_heartbeat ($client, $message) {
+    public function handle_heartbeat($client, $message) {
         //
         // every second (approx) if no other updates are sent
         //
@@ -222,7 +222,7 @@ class poloniex extends \ccxt\poloniex {
         $client->resolve ($message, $channelId);
     }
 
-    public function handle_trade ($client, $trade, $market = null) {
+    public function handle_trade($client, $trade, $market = null) {
         //
         // public trades
         //
@@ -262,7 +262,7 @@ class poloniex extends \ccxt\poloniex {
         );
     }
 
-    public function handle_order_book_and_trades ($client, $message) {
+    public function handle_order_book_and_trades($client, $message) {
         //
         // first response
         //
@@ -357,12 +357,12 @@ class poloniex extends \ccxt\poloniex {
         }
     }
 
-    public function handle_account_notifications ($client, $message) {
+    public function handle_account_notifications($client, $message) {
         // not implemented yet
         return $message;
     }
 
-    public function handle_message ($client, $message) {
+    public function handle_message($client, $message) {
         $channelId = $this->safe_string($message, 0);
         $methods = array(
             // '<numericId>' => 'handleOrderBookAndTrades', // Price Aggregated Book

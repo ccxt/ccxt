@@ -12,7 +12,7 @@ class huobipro extends \ccxt\huobipro {
 
     use ClientTrait;
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'has' => array(
                 'ws' => true,
@@ -49,7 +49,7 @@ class huobipro extends \ccxt\huobipro {
         ));
     }
 
-    public function watch_ticker ($symbol, $params = array ()) {
+    public function watch_ticker($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         // only supports a limit of 150 at this time
@@ -71,7 +71,7 @@ class huobipro extends \ccxt\huobipro {
         return $this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription);
     }
 
-    public function handle_ticker ($client, $message) {
+    public function handle_ticker($client, $message) {
         //
         //     {
         //         $ch => 'market.btcusdt.detail',
@@ -106,7 +106,7 @@ class huobipro extends \ccxt\huobipro {
         return $message;
     }
 
-    public function watch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         // only supports a $limit of 150 at this time
@@ -129,7 +129,7 @@ class huobipro extends \ccxt\huobipro {
         return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
-    public function handle_trades ($client, $message) {
+    public function handle_trades($client, $message) {
         //
         //     {
         //         $ch => "$market->btcusdt.trade.detail",
@@ -173,7 +173,7 @@ class huobipro extends \ccxt\huobipro {
         return $message;
     }
 
-    public function watch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $interval = $this->timeframes[$timeframe];
@@ -197,7 +197,7 @@ class huobipro extends \ccxt\huobipro {
         return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
     }
 
-    public function find_timeframe ($timeframe) {
+    public function find_timeframe($timeframe) {
         // redo to use reverse lookups in a static map instead
         $keys = is_array($this->timeframes) ? array_keys($this->timeframes) : array();
         for ($i = 0; $i < count($keys); $i++) {
@@ -209,7 +209,7 @@ class huobipro extends \ccxt\huobipro {
         return null;
     }
 
-    public function handle_ohlcv ($client, $message) {
+    public function handle_ohlcv($client, $message) {
         //
         //     {
         //         $ch => 'market.btcusdt.kline.1min',
@@ -253,7 +253,7 @@ class huobipro extends \ccxt\huobipro {
         }
     }
 
-    public function watch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book($symbol, $limit = null, $params = array ()) {
         if (($limit !== null) && ($limit !== 150)) {
             throw new ExchangeError($this->id . ' watchOrderBook accepts $limit = 150 only');
         }
@@ -282,7 +282,7 @@ class huobipro extends \ccxt\huobipro {
         return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
-    public function handle_order_book_snapshot ($client, $message, $subscription) {
+    public function handle_order_book_snapshot($client, $message, $subscription) {
         //
         //     {
         //         id => 1583473663565,
@@ -320,7 +320,7 @@ class huobipro extends \ccxt\huobipro {
         $client->resolve ($orderbook, $messageHash);
     }
 
-    public function watch_order_book_snapshot ($client, $message, $subscription) {
+    public function watch_order_book_snapshot($client, $message, $subscription) {
         $symbol = $this->safe_string($subscription, 'symbol');
         $limit = $this->safe_integer($subscription, 'limit');
         $params = $this->safe_value($subscription, 'params');
@@ -347,19 +347,19 @@ class huobipro extends \ccxt\huobipro {
         return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
-    public function handle_delta ($bookside, $delta) {
+    public function handle_delta($bookside, $delta) {
         $price = $this->safe_float($delta, 0);
         $amount = $this->safe_float($delta, 1);
         $bookside->store ($price, $amount);
     }
 
-    public function handle_deltas ($bookside, $deltas) {
+    public function handle_deltas($bookside, $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->handle_delta($bookside, $deltas[$i]);
         }
     }
 
-    public function handle_order_book_message ($client, $message, $orderbook) {
+    public function handle_order_book_message($client, $message, $orderbook) {
         //
         //     {
         //         ch => "market.btcusdt.mbp.150",
@@ -396,7 +396,7 @@ class huobipro extends \ccxt\huobipro {
         return $orderbook;
     }
 
-    public function handle_order_book ($client, $message) {
+    public function handle_order_book($client, $message) {
         //
         // deltas
         //
@@ -440,12 +440,12 @@ class huobipro extends \ccxt\huobipro {
         }
     }
 
-    public function sign_message ($client, $messageHash, $message, $params = array ()) {
+    public function sign_message($client, $messageHash, $message, $params = array ()) {
         // todo => implement huobipro signMessage
         return $message;
     }
 
-    public function handle_order_book_subscription ($client, $message, $subscription) {
+    public function handle_order_book_subscription($client, $message, $subscription) {
         $symbol = $this->safe_string($subscription, 'symbol');
         $limit = $this->safe_integer($subscription, 'limit');
         if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
@@ -456,7 +456,7 @@ class huobipro extends \ccxt\huobipro {
         $this->spawn(array($this, 'watch_order_book_snapshot'), $client, $message, $subscription);
     }
 
-    public function handle_subscription_status ($client, $message) {
+    public function handle_subscription_status($client, $message) {
         //
         //     {
         //         "$id" => 1583414227,
@@ -481,7 +481,7 @@ class huobipro extends \ccxt\huobipro {
         return $message;
     }
 
-    public function handle_system_status ($client, $message) {
+    public function handle_system_status($client, $message) {
         //
         // todo => answer the question whether handleSystemStatus should be renamed
         // and unified as handleStatus for any usage pattern that
@@ -495,7 +495,7 @@ class huobipro extends \ccxt\huobipro {
         return $message;
     }
 
-    public function handle_subject ($client, $message) {
+    public function handle_subject($client, $message) {
         //
         //     {
         //         $ch => "market.btcusdt.mbp.150",
@@ -537,22 +537,22 @@ class huobipro extends \ccxt\huobipro {
         }
     }
 
-    public function pong ($client, $message) {
+    public function pong($client, $message) {
         //
         //     array( ping => 1583491673714 )
         //
         $client->send (array( 'pong' => $this->safe_integer($message, 'ping') ));
     }
 
-    public function handle_ping ($client, $message) {
+    public function handle_ping($client, $message) {
         $this->spawn(array($this, 'pong'), $client, $message);
     }
 
-    public function handle_error_message ($client, $message) {
+    public function handle_error_message($client, $message) {
         return $message;
     }
 
-    public function handle_message ($client, $message) {
+    public function handle_message($client, $message) {
         if ($this->handle_error_message($client, $message)) {
             //
             //     array("id":1583414227,"status":"ok","subbed":"market.btcusdt.mbp.150","ts":1583414229143)

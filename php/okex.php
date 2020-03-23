@@ -13,7 +13,7 @@ class okex extends \ccxt\okex {
 
     use ClientTrait;
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'has' => array(
                 'ws' => true,
@@ -48,7 +48,7 @@ class okex extends \ccxt\okex {
         ));
     }
 
-    public function subscribe ($channel, $symbol, $params = array ()) {
+    public function subscribe($channel, $symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $url = $this->urls['api']['ws'];
@@ -60,16 +60,16 @@ class okex extends \ccxt\okex {
         return $this->watch($url, $messageHash, array_replace_recursive($request, $params), $messageHash);
     }
 
-    public function watch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $future = $this->subscribe('trade', $symbol, $params);
         return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
-    public function watch_ticker ($symbol, $params = array ()) {
+    public function watch_ticker($symbol, $params = array ()) {
         return $this->subscribe('ticker', $symbol, $params);
     }
 
-    public function handle_trade ($client, $message) {
+    public function handle_trade($client, $message) {
         //
         //     {
         //         $table => 'spot/trade',
@@ -105,7 +105,7 @@ class okex extends \ccxt\okex {
         return $message;
     }
 
-    public function handle_ticker ($client, $message) {
+    public function handle_ticker($client, $message) {
         //
         //     {
         //         $table => 'spot/ticker',
@@ -141,14 +141,14 @@ class okex extends \ccxt\okex {
         return $message;
     }
 
-    public function watch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $interval = $this->timeframes[$timeframe];
         $name = 'candle' . $interval . 's';
         $future = $this->subscribe($name, $symbol, $params);
         return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
     }
 
-    public function find_timeframe ($timeframe) {
+    public function find_timeframe($timeframe) {
         // redo to use reverse lookups in a static map instead
         $keys = is_array($this->timeframes) ? array_keys($this->timeframes) : array();
         for ($i = 0; $i < count($keys); $i++) {
@@ -160,7 +160,7 @@ class okex extends \ccxt\okex {
         return null;
     }
 
-    public function handle_ohlcv ($client, $message) {
+    public function handle_ohlcv($client, $message) {
         //
         //     {
         //         $table => "spot/candle60s",
@@ -213,24 +213,24 @@ class okex extends \ccxt\okex {
         }
     }
 
-    public function watch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book($symbol, $limit = null, $params = array ()) {
         $future = $this->subscribe('depth', $symbol, $params);
         return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
-    public function handle_delta ($bookside, $delta) {
+    public function handle_delta($bookside, $delta) {
         $price = $this->safe_float($delta, 0);
         $amount = $this->safe_float($delta, 1);
         $bookside->store ($price, $amount);
     }
 
-    public function handle_deltas ($bookside, $deltas) {
+    public function handle_deltas($bookside, $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->handle_delta($bookside, $deltas[$i]);
         }
     }
 
-    public function handle_order_book_message ($client, $message, $orderbook) {
+    public function handle_order_book_message($client, $message, $orderbook) {
         //
         //     {
         //         instrument_id => "BTC-USDT",
@@ -258,7 +258,7 @@ class okex extends \ccxt\okex {
         return $orderbook;
     }
 
-    public function handle_order_book ($client, $message) {
+    public function handle_order_book($client, $message) {
         //
         // first $message (snapshot)
         //
@@ -347,7 +347,7 @@ class okex extends \ccxt\okex {
         return $message;
     }
 
-    public function authenticate ($params = array ()) {
+    public function authenticate($params = array ()) {
         $this->check_required_credentials();
         $url = $this->urls['api']['ws'];
         $messageHash = 'login';
@@ -374,7 +374,7 @@ class okex extends \ccxt\okex {
         return $future;
     }
 
-    public function watch_balance ($params = array ()) {
+    public function watch_balance($params = array ()) {
         $defaultType = $this->safe_string_2($this->options, 'watchBalance', 'defaultType');
         $type = $this->safe_string($params, 'type', $defaultType);
         if ($type === null) {
@@ -385,7 +385,7 @@ class okex extends \ccxt\okex {
         return $this->after_async($future, array($this, 'subscribe_to_user_account'), $params);
     }
 
-    public function subscribe_to_user_account ($negotiation, $params = array ()) {
+    public function subscribe_to_user_account($negotiation, $params = array ()) {
         $defaultType = $this->safe_string_2($this->options, 'watchBalance', 'defaultType');
         $type = $this->safe_string($params, 'type', $defaultType);
         if ($type === null) {
@@ -442,7 +442,7 @@ class okex extends \ccxt\okex {
         return $this->watch($url, $messageHash, array_replace_recursive($request, $query), $subscriptionHash);
     }
 
-    public function handle_balance ($client, $message) {
+    public function handle_balance($client, $message) {
         //
         // spot
         //
@@ -494,7 +494,7 @@ class okex extends \ccxt\okex {
         }
     }
 
-    public function handle_subscription_status ($client, $message) {
+    public function handle_subscription_status($client, $message) {
         //
         //     array("event":"subscribe","$channel":"spot/depth:BTC-USDT")
         //
@@ -503,7 +503,7 @@ class okex extends \ccxt\okex {
         return $message;
     }
 
-    public function handle_authenticate ($client, $message) {
+    public function handle_authenticate($client, $message) {
         //
         //     array( event => 'login', success => true )
         //
@@ -511,23 +511,23 @@ class okex extends \ccxt\okex {
         return $message;
     }
 
-    public function sign_message ($client, $messageHash, $message, $params = array ()) {
+    public function sign_message($client, $messageHash, $message, $params = array ()) {
         // okex uses login requests instead of $message signing
         return $message;
     }
 
-    public function ping ($client) {
+    public function ping($client) {
         // okex does not support built-in ws protocol-level ping-pong
         // instead it requires custom text-based ping-pong
         return 'ping';
     }
 
-    public function handle_pong ($client, $message) {
+    public function handle_pong($client, $message) {
         $client->lastPong = $this->milliseconds();
         return $message;
     }
 
-    public function handle_error_message ($client, $message) {
+    public function handle_error_message($client, $message) {
         //
         //     array( event => 'error', $message => 'Invalid sign', $errorCode => 30013 )
         //     array("event":"error","$message":"Unrecognized request => array(\"event\":\"subscribe\",\"channel\":\"spot/depth:BTC-USDT\")","$errorCode":30039)
@@ -555,7 +555,7 @@ class okex extends \ccxt\okex {
         return $message;
     }
 
-    public function handle_message ($client, $message) {
+    public function handle_message($client, $message) {
         if (!$this->handle_error_message($client, $message)) {
             return;
         }

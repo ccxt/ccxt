@@ -9,7 +9,7 @@ use Exception; // a common import
 
 class huobiru extends huobipro {
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'id' => 'huobiru',
             'name' => 'Huobi Russia',

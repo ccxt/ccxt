@@ -11,7 +11,7 @@ class upbit extends \ccxt\upbit {
 
     use ClientTrait;
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'has' => array(
                 'ws' => true,
@@ -30,7 +30,7 @@ class upbit extends \ccxt\upbit {
         ));
     }
 
-    public function watch_public ($symbol, $channel, $params = array ()) {
+    public function watch_public($symbol, $channel, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $marketId = $market['id'];
@@ -50,25 +50,25 @@ class upbit extends \ccxt\upbit {
         return $this->watch($url, $messageHash, $request, $messageHash);
     }
 
-    public function watch_ticker ($symbol, $params = array ()) {
+    public function watch_ticker($symbol, $params = array ()) {
         return $this->watch_public($symbol, 'ticker');
     }
 
-    public function watch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $future = $this->watch_public($symbol, 'trade');
         return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, true);
     }
 
-    public function watch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book($symbol, $limit = null, $params = array ()) {
         $future = $this->watch_public($symbol, 'orderbook');
         return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
-    public function sign_message ($client, $messageHash, $message) {
+    public function sign_message($client, $messageHash, $message) {
         return $message;
     }
 
-    public function handle_ticker ($client, $message) {
+    public function handle_ticker($client, $message) {
         // 2020-03-17T23:07:36.511Z 'onMessage' <Buffer 7b 22 74 79 70 65 22 3a 22 74 69 63 6b 65 72 22 2c 22 63 6f 64 65 22 3a 22 42 54 43 2d 45 54 48 22 2c 22 6f 70 65 6e 69 6e 67 5f 70 72 69 63 65 22 3a ... >
         // { type => 'ticker',
         //   code => 'BTC-ETH',
@@ -113,7 +113,7 @@ class upbit extends \ccxt\upbit {
         $client->resolve ($ticker, $messageHash);
     }
 
-    public function handle_order_book ($client, $message) {
+    public function handle_order_book($client, $message) {
         // { $type => 'orderbook',
         //   code => 'BTC-ETH',
         //   $timestamp => 1584486737444,
@@ -162,7 +162,7 @@ class upbit extends \ccxt\upbit {
         $client->resolve ($orderBook, $messageHash);
     }
 
-    public function get_symbol_from_market_id ($marketId, $market = null) {
+    public function get_symbol_from_market_id($marketId, $market = null) {
         // duplicated from $base class because of php underscore case
         if ($marketId === null) {
             return null;
@@ -177,7 +177,7 @@ class upbit extends \ccxt\upbit {
         return $base . '/' . $quote;
     }
 
-    public function handle_trades ($client, $message) {
+    public function handle_trades($client, $message) {
         // { type => 'trade',
         //   code => 'KRW-BTC',
         //   timestamp => 1584508285812,
@@ -209,7 +209,7 @@ class upbit extends \ccxt\upbit {
         $client->resolve ($trades, $messageHash);
     }
 
-    public function handle_message ($client, $message) {
+    public function handle_message($client, $message) {
         $methods = array(
             'ticker' => array($this, 'handle_ticker'),
             'orderbook' => array($this, 'handle_order_book'),

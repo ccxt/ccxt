@@ -13,7 +13,7 @@ class gateio extends \ccxt\gateio {
 
     use ClientTrait;
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'has' => array(
                 'ws' => true,
@@ -37,7 +37,7 @@ class gateio extends \ccxt\gateio {
         ));
     }
 
-    public function watch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $marketId = $market['id'];
@@ -68,24 +68,24 @@ class gateio extends \ccxt\gateio {
         return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
-    public function sign_message ($client, $messageHash, $message, $params = array ()) {
+    public function sign_message($client, $messageHash, $message, $params = array ()) {
         // todo => implement gateio signMessage
         return $message;
     }
 
-    public function handle_delta ($bookside, $delta) {
+    public function handle_delta($bookside, $delta) {
         $price = $this->safe_float($delta, 0);
         $amount = $this->safe_float($delta, 1);
         $bookside->store ($price, $amount);
     }
 
-    public function handle_deltas ($bookside, $deltas) {
+    public function handle_deltas($bookside, $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->handle_delta($bookside, $deltas[$i]);
         }
     }
 
-    public function handle_order_book ($client, $message) {
+    public function handle_order_book($client, $message) {
         $params = $this->safe_value($message, 'params', array());
         $clean = $this->safe_value($params, 0);
         $book = $this->safe_value($params, 1);
@@ -111,7 +111,7 @@ class gateio extends \ccxt\gateio {
         $client->resolve ($orderBook, $messageHash);
     }
 
-    public function watch_ticker ($symbol, $params = array ()) {
+    public function watch_ticker($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $marketId = $market['id'];
@@ -130,7 +130,7 @@ class gateio extends \ccxt\gateio {
         return $this->watch($url, $messageHash, $subscribeMessage, $messageHash, $subscription);
     }
 
-    public function handle_ticker ($client, $message) {
+    public function handle_ticker($client, $message) {
         //
         //     {
         //         'method' => 'ticker.update',
@@ -165,7 +165,7 @@ class gateio extends \ccxt\gateio {
         }
     }
 
-    public function watch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $marketId = strtoupper($market['id']);
@@ -184,7 +184,7 @@ class gateio extends \ccxt\gateio {
         return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
-    public function handle_trades ($client, $message) {
+    public function handle_trades($client, $message) {
         //
         //     array(
         //         'BTC_USDT',
@@ -231,7 +231,7 @@ class gateio extends \ccxt\gateio {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function load_markets ($reload = false, $params = array ()) {
+    public function load_markets($reload = false, $params = array ()) {
         $markets = parent::load_markets($reload, $params);
         $marketsByUpperCaseId = $this->safe_value($this->options, 'marketsByUpperCaseId');
         if (($marketsByUpperCaseId === null) || $reload) {
@@ -250,7 +250,7 @@ class gateio extends \ccxt\gateio {
         return $markets;
     }
 
-    public function watch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $marketId = $market['uppercaseId'];
@@ -274,7 +274,7 @@ class gateio extends \ccxt\gateio {
         return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
     }
 
-    public function handle_ohlcv ($client, $message) {
+    public function handle_ohlcv($client, $message) {
         //
         //     {
         //         method => 'kline.update',
@@ -338,7 +338,7 @@ class gateio extends \ccxt\gateio {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function authenticate () {
+    public function authenticate() {
         $url = $this->urls['api']['ws'];
         $client = $this->client($url);
         $future = $client->future ('authenticated');
@@ -362,7 +362,7 @@ class gateio extends \ccxt\gateio {
         return $future;
     }
 
-    public function watch_balance ($params = array ()) {
+    public function watch_balance($params = array ()) {
         $this->load_markets();
         $this->check_required_credentials();
         $url = $this->urls['api']['ws'];
@@ -381,7 +381,7 @@ class gateio extends \ccxt\gateio {
         return $this->after_dropped($future, array($this, 'watch'), $url, $method, $subscribeMessage, $method, $subscription);
     }
 
-    public function fetch_balance_snapshot () {
+    public function fetch_balance_snapshot() {
         $this->load_markets();
         $this->check_required_credentials();
         $url = $this->urls['api']['ws'];
@@ -400,7 +400,7 @@ class gateio extends \ccxt\gateio {
         return $this->after_dropped($future, array($this, 'watch'), $url, $requestId, $subscribeMessage, $method, $subscription);
     }
 
-    public function handle_balance_snapshot ($client, $message) {
+    public function handle_balance_snapshot($client, $message) {
         $messageHash = $message['id'];
         $result = $message['result'];
         $this->handle_balance_message($client, $messageHash, $result);
@@ -409,13 +409,13 @@ class gateio extends \ccxt\gateio {
         }
     }
 
-    public function handle_balance ($client, $message) {
+    public function handle_balance($client, $message) {
         $messageHash = $message['method'];
         $result = $message['params'][0];
         $this->handle_balance_message($client, $messageHash, $result);
     }
 
-    public function handle_balance_message ($client, $messageHash, $result) {
+    public function handle_balance_message($client, $messageHash, $result) {
         $keys = is_array($result) ? array_keys($result) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $account = $this->account();
@@ -429,7 +429,7 @@ class gateio extends \ccxt\gateio {
         $client->resolve ($this->parse_balance($this->balance), $messageHash);
     }
 
-    public function watch_orders ($params = array ()) {
+    public function watch_orders($params = array ()) {
         $this->check_required_credentials();
         $this->load_markets();
         $url = $this->urls['api']['ws'];
@@ -444,7 +444,7 @@ class gateio extends \ccxt\gateio {
         return $this->after_dropped($future, array($this, 'watch'), $url, $method, $subscribeMessage, $method);
     }
 
-    public function handle_order ($client, $message) {
+    public function handle_order($client, $message) {
         $messageHash = $message['method'];
         $order = $message['params'][1];
         $marketId = $order['market'];
@@ -457,7 +457,7 @@ class gateio extends \ccxt\gateio {
         $client->resolve ($parsed, $messageHash);
     }
 
-    public function handle_authentication_message ($client, $message, $subscription) {
+    public function handle_authentication_message($client, $message, $subscription) {
         $result = $this->safe_value($message, 'result');
         $status = $this->safe_string($result, 'status');
         if ($status === 'success') {
@@ -479,7 +479,7 @@ class gateio extends \ccxt\gateio {
         }
     }
 
-    public function handle_error_message ($client, $message) {
+    public function handle_error_message($client, $message) {
         // todo use $error map here
         $error = $this->safe_value($message, 'error', array());
         $code = $this->safe_integer($error, 'code');
@@ -490,11 +490,11 @@ class gateio extends \ccxt\gateio {
         }
     }
 
-    public function handle_balance_subscription ($client, $message, $subscription) {
+    public function handle_balance_subscription($client, $message, $subscription) {
         $this->spawn(array($this, 'fetch_balance_snapshot'));
     }
 
-    public function handle_subscription_status ($client, $message) {
+    public function handle_subscription_status($client, $message) {
         $messageId = $message['id'];
         $subscriptionsById = $this->index_by($client->subscriptions, 'id');
         $subscription = $this->safe_value($subscriptionsById, $messageId, array());
@@ -505,7 +505,7 @@ class gateio extends \ccxt\gateio {
         $client->resolve ($message, $messageId);
     }
 
-    public function handle_message ($client, $message) {
+    public function handle_message($client, $message) {
         $this->handle_error_message($client, $message);
         $methods = array(
             'depth.update' => array($this, 'handle_order_book'),
