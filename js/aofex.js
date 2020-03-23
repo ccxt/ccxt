@@ -256,9 +256,11 @@ module.exports = class aofex extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const request = {
-            'account': 'all',
+            'currency': 'BTC,ETH',
+            'show_all': '1', // required to show zero balances
         };
-        const response = await this.privatePostReturnCompleteBalances (this.extend (request, params));
+        const response = await this.privateGetWalletList (this.extend (request, params));
+        process.exit ();
         const result = { 'info': response };
         const currencyIds = Object.keys (response);
         for (let i = 0; i < currencyIds.length; i++) {
@@ -316,35 +318,6 @@ module.exports = class aofex extends Exchange {
         const result = this.safeValue (response, 'result', {});
         const timestamp = this.safeInteger (result, 'ts');
         return this.parseOrderBook (result, timestamp);
-    }
-
-    async fetchOrderBooks (symbols = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = {
-            'currencyPair': 'all',
-        };
-        if (limit !== undefined) {
-            request['depth'] = limit; // 100
-        }
-        const response = await this.publicGetReturnOrderBook (this.extend (request, params));
-        const marketIds = Object.keys (response);
-        const result = {};
-        for (let i = 0; i < marketIds.length; i++) {
-            const marketId = marketIds[i];
-            let symbol = undefined;
-            if (marketId in this.markets_by_id) {
-                symbol = this.markets_by_id[marketId]['symbol'];
-            } else {
-                const [ quoteId, baseId ] = marketId.split ('_');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-            const orderbook = this.parseOrderBook (response[marketId]);
-            orderbook['nonce'] = this.safeInteger (response[marketId], 'seq');
-            result[symbol] = orderbook;
-        }
-        return result;
     }
 
     parseTicker (ticker, market = undefined) {
@@ -1373,12 +1346,49 @@ module.exports = class aofex extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + path;
+        let keys = Object.keys (params);
+        const keysLength = keys.length;
         if (api === 'public') {
-            if (Object.keys (params).length) {
+            if (keysLength > 0) {
                 url += '?' + this.urlencode (params);
             }
         } else {
-            // ...
+            const nonce = this.nonce ().toString ();
+            const uuid = this.uuid ();
+            const randomString = uuid.slice (0, 5);
+            const nonceString = nonce + '_' + randomString;
+            const auth = {};
+            auth[this.apiKey] = this.apiKey;
+            auth[this.secret] = this.secret;
+            auth[nonceString] = nonceString;
+            for (let i = 0; i < keysLength; i++) {
+                const key = keys[i];
+                auth[key] = key + '=' + params[key];
+            }
+            const keysorted = this.keysort (auth);
+            let stringToSign = '';
+            keys = Object.keys (keysorted);
+            for (let i = 0; i < keys.length; i++) {
+                const key = keys[i];
+                stringToSign += keysorted[key];
+            }
+            console.log (stringToSign);
+            const signature = this.hash (this.encode (stringToSign), 'sha1');
+            headers = {
+                'Nonce': nonceString,
+                'Token': this.apiKey,
+                'Signature': signature,
+            };
+            if (method === 'POST') {
+                headers['Content-Type'] = 'application/x-www-form-urlencoded';
+                if (keysLength > 0) {
+                    body = this.urlencode (params);
+                }
+            } else {
+                if (keysLength > 0) {
+                    url += '?' + this.urlencode (params);
+                }
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
