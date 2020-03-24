@@ -29,6 +29,7 @@ module.exports = class aofex extends Exchange {
                 'cancelAllOrders': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
+                'fetchClosedOrder': true,
             },
             'timeframes': {
                 '1m': '1min',
@@ -537,9 +538,9 @@ module.exports = class aofex extends Exchange {
         //         "id":null,
         //         "ctime":"2020-03-23 20:07:17",
         //         "price":"123.9",
-        //         "number":"0,010688626311541565",
+        //         "number":"0.010688626311541565",
         //         "total_price":"1.324320799999999903",
-        //         "fee":"0,000021377252623083"
+        //         "fee":"0.000021377252623083"
         //     }
         //
         const id = this.safeString (trade, 'id');
@@ -551,7 +552,7 @@ module.exports = class aofex extends Exchange {
         }
         const side = this.safeString (trade, 'direction');
         const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'amount');
+        const amount = this.safeFloat2 (trade, 'amount', 'number');
         let cost = this.safeFloat (trade, 'total_price');
         if ((cost === undefined) && (price !== undefined) && (amount !== undefined)) {
             cost = price * amount;
@@ -561,7 +562,11 @@ module.exports = class aofex extends Exchange {
         if (feeCost !== undefined) {
             let feeCurrencyCode = undefined;
             if (market !== undefined) {
-                feeCurrencyCode = (side === 'buy') ? market['base'] : market['quote'];
+                if (side === 'buy') {
+                    feeCurrencyCode = market['base'];
+                } else if (side === 'sell') {
+                    feeCurrencyCode = market['quote'];
+                }
             }
             fee = {
                 'cost': feeCost,
@@ -623,111 +628,6 @@ module.exports = class aofex extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-        }
-        const pair = market ? market['id'] : 'all';
-        const request = { 'currencyPair': pair };
-        if (since !== undefined) {
-            request['start'] = parseInt (since / 1000);
-            request['end'] = this.sum (this.seconds (), 1); // adding 1 is a fix for #3411
-        }
-        // limit is disabled (does not really work as expected)
-        if (limit !== undefined) {
-            request['limit'] = parseInt (limit);
-        }
-        const response = await this.privatePostReturnTradeHistory (this.extend (request, params));
-        //
-        // specific market (symbol defined)
-        //
-        //     [
-        //         {
-        //             globalTradeID: 394700861,
-        //             tradeID: 45210354,
-        //             date: '2018-10-23 18:01:58',
-        //             type: 'buy',
-        //             rate: '0.03117266',
-        //             amount: '0.00000652',
-        //             total: '0.00000020'
-        //         },
-        //         {
-        //             globalTradeID: 394698946,
-        //             tradeID: 45210255,
-        //             date: '2018-10-23 17:28:55',
-        //             type: 'sell',
-        //             rate: '0.03114126',
-        //             amount: '0.00018753',
-        //             total: '0.00000583'
-        //         }
-        //     ]
-        //
-        // all markets (symbol undefined)
-        //
-        //     {
-        //         BTC_BCH: [{
-        //             globalTradeID: 394131412,
-        //             tradeID: '5455033',
-        //             date: '2018-10-16 18:05:17',
-        //             rate: '0.06935244',
-        //             amount: '1.40308443',
-        //             total: '0.09730732',
-        //             fee: '0.00100000',
-        //             orderNumber: '104768235081',
-        //             type: 'sell',
-        //             category: 'exchange'
-        //         }, {
-        //             globalTradeID: 394126818,
-        //             tradeID: '5455007',
-        //             date: '2018-10-16 16:55:34',
-        //             rate: '0.06935244',
-        //             amount: '0.00155709',
-        //             total: '0.00010798',
-        //             fee: '0.00200000',
-        //             orderNumber: '104768179137',
-        //             type: 'sell',
-        //             category: 'exchange'
-        //         }],
-        //     }
-        //
-        let result = [];
-        if (market !== undefined) {
-            result = this.parseTrades (response, market);
-        } else {
-            if (response) {
-                const ids = Object.keys (response);
-                for (let i = 0; i < ids.length; i++) {
-                    const id = ids[i];
-                    let market = undefined;
-                    if (id in this.markets_by_id) {
-                        market = this.markets_by_id[id];
-                        const trades = this.parseTrades (response[id], market);
-                        for (let j = 0; j < trades.length; j++) {
-                            result.push (trades[j]);
-                        }
-                    } else {
-                        const [ quoteId, baseId ] = id.split ('_');
-                        const base = this.safeCurrencyCode (baseId);
-                        const quote = this.safeCurrencyCode (quoteId);
-                        const symbol = base + '/' + quote;
-                        const trades = response[id];
-                        for (let j = 0; j < trades.length; j++) {
-                            const market = {
-                                'symbol': symbol,
-                                'base': base,
-                                'quote': quote,
-                            };
-                            result.push (this.parseTrade (trades[j], market));
-                        }
-                    }
-                }
-            }
-        }
-        return this.filterBySinceLimit (result, since, limit);
-    }
-
     parseOrderStatus (status) {
         const statuses = {
             '1': 'open',
@@ -746,7 +646,7 @@ module.exports = class aofex extends Exchange {
         //
         //     { order_sn: 'BM7442641584965237751ZMAKJ5' }
         //
-        // fetchOpenOrders
+        // fetchOpenOrders, fetchClosedOrders
         //
         //     {
         //         "order_sn": "BL74426415849672087836G48N1",
@@ -754,56 +654,161 @@ module.exports = class aofex extends Exchange {
         //         "ctime": "2020-03-23 20:40:08",
         //         "type": 2,
         //         "side": "buy",
-        //         "price": "90",
+        //         "price": "90", // undefined for market orders
         //         "number": "0.1",
-        //         "total_price": "9.0",
+        //         "total_price": "9.0", // 0 for market orders
         //         "deal_number": null,
         //         "deal_price": null,
         //         "status": 1,
         //     }
         //
+        // fetchOrder
+        //
+        //     {
+        //         order_sn: 'BM7442641584965237751ZMAKJ5',
+        //         symbol: 'ETH-USDT',
+        //         ctime: '2020-03-23 20:07:17',
+        //         type: 1,
+        //         side: 'buy',
+        //         price: '0',
+        //         number: '10',
+        //         total_price: '0',
+        //         deal_number: '0.080718626311541565',
+        //         deal_price: '123.890000000000000000',
+        //         status: 3,
+        //         // the trades field is injected by fetchOrder
+        //         trades: [
+        //             {
+        //                 id: null,
+        //                 ctime: '2020-03-23 20:07:17',
+        //                 price: '123.9',
+        //                 number: '0.010688626311541565',
+        //                 total_price: '1.324320799999999903',
+        //                 fee: '0.000021377252623083'
+        //             }
+        //         ]
+        //     }
+        //
         const id = this.safeString (order, 'order_sn');
+        const orderStatus = this.safeString (order, 'status');
+        const status = this.parseOrderStatus (orderStatus);
         let symbol = undefined;
         const marketId = this.safeString (order, 'symbol');
+        let base = undefined;
+        let quote = undefined;
         if (marketId !== undefined) {
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
             } else {
                 const [ baseId, quoteId ] = marketId.split ('-');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
+                base = this.safeCurrencyCode (baseId);
+                quote = this.safeCurrencyCode (quoteId);
                 symbol = base + '/' + quote;
             }
         }
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
+            base = market['base'];
+            quote = market['quote'];
         }
         const timestamp = this.parse8601 (this.safeString (order, 'ctime'));
         const orderType = this.safeString (order, 'type');
         const type = (orderType === '2') ? 'limit' : 'market';
         const side = this.safeString (order, 'side');
-        const amount = this.safeFloat (order, 'number');
-        const price = this.safeFloat (order, 'price');
-        let cost = this.safeFloat (order, 'total_price');
-        const filled = this.safeFloat (order, 'deal_number');
+        // const amount = this.safeFloat (order, 'number');
+        // const price = this.safeFloat (order, 'price');
+        let cost = undefined;
+        let price = undefined;
+        let amount = undefined;
+        let average = undefined;
+        const number = this.safeFloat (order, 'number');
+        const totalPrice = this.safeFloat (order, 'total_price');
+        if (type === 'limit') {
+            amount = number;
+            price = this.safeFloat (order, 'price');
+        } else {
+            average = this.safeFloat (order, 'deal_price');
+            if (side === 'buy') {
+                amount = this.safeFloat (order, 'deal_number');
+            } else {
+                amount = number;
+            }
+        }
+        let fee = undefined;
+        let trades = undefined;
+        let filled = undefined;
+        let feeCost = undefined;
         let remaining = undefined;
-        const average = this.safeFloat (order, 'deal_price');
+        let lastTradeTimestamp = undefined;
+        // all orders except new orders and canceled orders
+        if ((orderStatus !== '1') && (orderStatus !== '6')) {
+            const rawTrades = this.safeValue (order, 'trades');
+            if (rawTrades !== undefined) {
+                for (let i = 0; i < rawTrades.length; i++) {
+                    rawTrades[i]['direction'] = side;
+                }
+                trades = this.parseTrades (rawTrades, market, undefined, undefined, {
+                    'symbol': market['symbol'],
+                    'order': id,
+                    'side': side,
+                    'type': type,
+                });
+                const tradesLength = trades.length;
+                if (tradesLength > 0) {
+                    const firstTrade = trades[0];
+                    feeCost = firstTrade['fee']['cost'];
+                    lastTradeTimestamp = firstTrade['timestamp'];
+                    filled = firstTrade['amount'];
+                    cost = firstTrade['cost'];
+                    for (let i = 1; i < trades.length; i++) {
+                        const trade = trades[i];
+                        feeCost = this.sum (feeCost, trade['fee']['cost']);
+                        filled = this.sum (filled, trade['amount']);
+                        cost = this.sum (cost, trade['cost']);
+                        lastTradeTimestamp = Math.max (lastTradeTimestamp, trade['timestamp']);
+                    }
+                    if (amount !== undefined) {
+                        filled = Math.min (amount, filled);
+                    }
+                    if (filled > 0) {
+                        average = cost / filled;
+                    }
+                }
+                if (feeCost !== undefined) {
+                    const feeCurrencyCode = (side === 'buy') ? base : quote;
+                    fee = {
+                        'cost': feeCost,
+                        'currency': feeCurrencyCode,
+                    };
+                }
+            }
+        } else {
+            filled = 0;
+            cost = 0;
+        }
+        if (cost === undefined) {
+            if (type === 'limit') {
+                cost = totalPrice;
+            } else if (side === 'buy') {
+                cost = number;
+            }
+        }
+        if (filled === undefined) {
+            if ((type === 'limit') && (orderStatus === '3')) {
+                filled = amount;
+            }
+        }
         if (filled !== undefined) {
             if (amount !== undefined) {
                 remaining = Math.max (amount - filled, 0);
             }
-            if ((cost === undefined) && (average !== undefined)) {
-                cost = average * filled;
-            }
         }
-        const status = this.parseOrderStatus (this.safeString (order, 'status'));
         return {
             'info': order,
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
+            'lastTradeTimestamp': lastTradeTimestamp,
             'status': status,
             'symbol': symbol,
             'type': type,
@@ -814,12 +819,12 @@ module.exports = class aofex extends Exchange {
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
-            'trades': undefined,
-            'fee': undefined,
+            'trades': trades,
+            'fee': fee,
         };
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchClosedOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             'order_sn': id,
@@ -856,7 +861,11 @@ module.exports = class aofex extends Exchange {
         //         }
         //     }
         //
-        process.exit ();
+        const result = this.safeValue (response, 'result', {});
+        const trades = this.safeValue (result, 'trades', []);
+        const order = this.safeValue (result, 'entrust', {});
+        order['trades'] = trades;
+        return this.parseOrder (order);
     }
 
     async fetchOrdersWithMethod (method, symbol = undefined, since = undefined, limit = undefined, params = {}) {
