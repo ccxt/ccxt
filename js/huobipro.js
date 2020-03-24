@@ -59,6 +59,8 @@ module.exports = class huobipro extends Exchange {
                     'market': 'https://{hostname}',
                     'public': 'https://{hostname}',
                     'private': 'https://{hostname}',
+                    'v2Public': 'https://{hostname}',
+                    'v2Private': 'https://{hostname}',
                 },
                 'www': 'https://www.huobi.pro',
                 'referral': 'https://www.huobi.co/en-us/topic/invited/?invite_code=rwrd3',
@@ -1138,10 +1140,12 @@ module.exports = class huobipro extends Exchange {
             url += api;
         } else if ((api === 'public') || (api === 'private')) {
             url += this.version;
+        } else if ((api === 'v2Public') || (api === 'v2Private')) {
+            url += 'v2';
         }
         url += '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        if (api === 'private') {
+        if (api === 'private' || api === 'v2Private') {
             this.checkRequiredCredentials ();
             const timestamp = this.ymdhms (this.milliseconds (), 'T');
             let request = {
