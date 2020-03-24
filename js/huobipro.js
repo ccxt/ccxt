@@ -102,10 +102,6 @@ module.exports = class huobipro extends Exchange {
                     ],
                 },
                 'private': {
-                    // todo add v2 endpoints
-                    // 'GET /v2/account/withdraw/quota
-                    // 'GET /v2/reference/currencies
-                    // 'GET /v2/account/deposit/address
                     'get': [
                         'account/accounts', // 查询当前用户的所有账户(即account-id)
                         'account/accounts/{id}/balance', // 查询指定账户的余额
@@ -130,8 +126,6 @@ module.exports = class huobipro extends Exchange {
                         'stable-coin/exchange_rate',
                         'stable-coin/quote',
                     ],
-                    // todo add v2 endpoints
-                    // POST /v2/sub-user/management
                     'post': [
                         'futures/transfer',
                         'order/batch-orders',
