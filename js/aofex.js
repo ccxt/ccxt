@@ -531,8 +531,20 @@ module.exports = class aofex extends Exchange {
         //         ts: 1584948803
         //     }
         //
+        // fetchOrder trades
+        //
+        //     {
+        //         "id":null,
+        //         "ctime":"2020-03-23 20:07:17",
+        //         "price":"123.9",
+        //         "number":"0,010688626311541565",
+        //         "total_price":"1.324320799999999903",
+        //         "fee":"0,000021377252623083"
+        //     }
+        //
         const id = this.safeString (trade, 'id');
-        const timestamp = this.safeTimestamp (trade, 'ts');
+        const ctime = this.parse8601 (this.safeString (trade, 'ctime'));
+        const timestamp = this.safeTimestamp (trade, 'ts', ctime);
         let symbol = undefined;
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
@@ -540,9 +552,21 @@ module.exports = class aofex extends Exchange {
         const side = this.safeString (trade, 'direction');
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
-        let cost = undefined;
-        if ((price !== undefined) && (amount !== undefined)) {
+        let cost = this.safeFloat (trade, 'total_price');
+        if ((cost === undefined) && (price !== undefined) && (amount !== undefined)) {
             cost = price * amount;
+        }
+        const feeCost = this.safeFloat (trade, 'fee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            let feeCurrencyCode = undefined;
+            if (market !== undefined) {
+                feeCurrencyCode = (side === 'buy') ? market['base'] : market['quote'];
+            }
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            };
         }
         return {
             'id': id,
@@ -557,7 +581,7 @@ module.exports = class aofex extends Exchange {
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': undefined,
+            'fee': fee,
         };
     }
 
@@ -761,13 +785,18 @@ module.exports = class aofex extends Exchange {
         const side = this.safeString (order, 'side');
         const amount = this.safeFloat (order, 'number');
         const price = this.safeFloat (order, 'price');
-        const cost = this.safeFloat (order, 'total_price');
+        let cost = this.safeFloat (order, 'total_price');
         const filled = this.safeFloat (order, 'deal_number');
         let remaining = undefined;
-        if ((filled !== undefined) && (amount !== undefined)) {
-            remaining = Math.max (amount - filled, 0);
-        }
         const average = this.safeFloat (order, 'deal_price');
+        if (filled !== undefined) {
+            if (amount !== undefined) {
+                remaining = Math.max (amount - filled, 0);
+            }
+            if ((cost === undefined) && (average !== undefined)) {
+                cost = average * filled;
+            }
+        }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         return {
             'info': order,
@@ -792,16 +821,42 @@ module.exports = class aofex extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        const request
-        const since = this.safeValue (params, 'since');
-        const limit = this.safeValue (params, 'limit');
-        const request = this.omit (params, [ 'since', 'limit' ]);
-        const orders = await this.fetchOrders (symbol, since, limit, request);
-        for (let i = 0; i < orders.length; i++) {
-            if (orders[i]['id'] === id) {
-                return orders[i];
-            }
-        }
+        const request = {
+            'order_sn': id,
+        };
+        const response = await this.privateGetEntrustDetail (this.extend (request, params));
+        //
+        //     {
+        //         "errno": 0,
+        //         "errmsg": "success",
+        //         "result": {
+        //             "trades": [
+        //                 {
+        //                     "id":null,
+        //                     "ctime":"2020-03-23 20:07:17",
+        //                     "price":"123.9",
+        //                     "number":"0.010688626311541565",
+        //                     "total_price":"1.324320799999999903",
+        //                     "fee":"0.000021377252623083"
+        //                 },
+        //             ],
+        //             "entrust":{
+        //                 "order_sn":"BM7442641584965237751ZMAKJ5",
+        //                 "symbol":"ETH-USDT",
+        //                 "ctime":"2020-03-23 20:07:17",
+        //                 "type":1,
+        //                 "side":"buy",
+        //                 "price":"0",
+        //                 "number":"10",
+        //                 "total_price":"0",
+        //                 "deal_number":"0.080718626311541565",
+        //                 "deal_price":"123.890000000000000000",
+        //                 "status":3
+        //             }
+        //         }
+        //     }
+        //
+        process.exit ();
     }
 
     async fetchOrdersWithMethod (method, symbol = undefined, since = undefined, limit = undefined, params = {}) {
