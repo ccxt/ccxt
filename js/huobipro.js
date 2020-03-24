@@ -66,6 +66,21 @@ module.exports = class huobipro extends Exchange {
                 'fees': 'https://www.huobi.pro/about/fee/',
             },
             'api': {
+                'v2Public': {
+                    'get': [
+                        'reference/currencies',
+                    ],
+                },
+                'v2Private': {
+                    'get': [
+                        'account/withdraw/quota',
+                        'account/deposit/address',
+                        'reference/transact-fee-rate',
+                    ],
+                    'post': [
+                        'sub-user/management',
+                    ],
+                },
                 'market': {
                     'get': [
                         'history/kline', // 获取K线数据
