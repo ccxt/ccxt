@@ -714,7 +714,7 @@ class bittrex extends Exchange {
                 $request['limit'] = $this->price_to_precision($symbol, $price);
                 $request['timeInForce'] = 'GOOD_TIL_CANCELLED';
             } else {
-                $request['timeInForce'] = 'FILL_OR_KILL';
+                $request['timeInForce'] = 'IMMEDIATE_OR_CANCEL';
             }
         }
         $response = $this->v3PostOrders (array_merge($request, $params));
