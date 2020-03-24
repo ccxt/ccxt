@@ -23,7 +23,7 @@ module.exports = class huobipro extends Exchange {
             'has': {
                 'CORS': false,
                 'fetchTickers': true,
-                'fetchDepositAddress': false,
+                'fetchDepositAddress': true,
                 'fetchOHLCV': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
@@ -1114,96 +1114,50 @@ module.exports = class huobipro extends Exchange {
         };
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
-        await this.loadMarkets ();
+    parseDepositAddress (depositAddress, currency = undefined) {
+        //
+        //     {
+        //         currency: "eth",
+        //         address: "0xf7292eb9ba7bc50358e27f0e025a4d225a64127b",
+        //         addressTag: "",
+        //         chain: "eth"
+        //     }
+        //
+        const address = this.safeString (depositAddress, 'address');
+        const tag = this.safeString (depositAddress, 'addressTag');
+        const currencyId = this.safeString (depositAddress, 'currency');
+        const code = this.safeCurrencyCode (currencyId);
         this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'info': depositAddress,
+        };
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
-            'address': address, // only supports existing addresses in your withdraw address list
-            'amount': amount,
-            'currency': currency['id'].toLowerCase (),
+            'currency': currency['id'],
         };
-        if (tag !== undefined) {
-            request['addr-tag'] = tag; // only for XRP?
-        }
-        const response = await this.privatePostDwWithdrawApiCreate (this.extend (request, params));
-        const id = this.safeString (response, 'data');
-        return {
-            'info': response,
-            'id': id,
-        };
-    }
-
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = '/';
-        if (api === 'market') {
-            url += api;
-        } else if ((api === 'public') || (api === 'private')) {
-            url += this.version;
-        } else if ((api === 'v2Public') || (api === 'v2Private')) {
-            url += 'v2';
-        }
-        url += '/' + this.implodeParams (path, params);
-        const query = this.omit (params, this.extractParams (path));
-        if (api === 'private' || api === 'v2Private') {
-            this.checkRequiredCredentials ();
-            const timestamp = this.ymdhms (this.milliseconds (), 'T');
-            let request = {
-                'SignatureMethod': 'HmacSHA256',
-                'SignatureVersion': '2',
-                'AccessKeyId': this.apiKey,
-                'Timestamp': timestamp,
-            };
-            if (method !== 'POST') {
-                request = this.extend (request, query);
-            }
-            request = this.keysort (request);
-            let auth = this.urlencode (request);
-            // unfortunately, PHP demands double quotes for the escaped newline symbol
-            // eslint-disable-next-line quotes
-            const payload = [ method, this.hostname, url, auth ].join ("\n");
-            const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
-            auth += '&' + this.urlencode ({ 'Signature': signature });
-            url += '?' + auth;
-            if (method === 'POST') {
-                body = this.json (query);
-                headers = {
-                    'Content-Type': 'application/json',
-                };
-            } else {
-                headers = {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                };
-            }
-        } else {
-            if (Object.keys (params).length) {
-                url += '?' + this.urlencode (params);
-            }
-        }
-        url = this.implodeParams (this.urls['api'][api], {
-            'hostname': this.hostname,
-        }) + url;
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    }
-
-    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (response === undefined) {
-            return; // fallback to default error handler
-        }
-        if ('status' in response) {
-            //
-            //     {"status":"error","err-code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
-            //
-            const status = this.safeString (response, 'status');
-            if (status === 'error') {
-                const code = this.safeString (response, 'err-code');
-                const feedback = this.id + ' ' + body;
-                this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
-                const message = this.safeString (response, 'err-msg');
-                this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
-                throw new ExchangeError (feedback);
-            }
-        }
+        const response = await this.v2PrivateGetAccountDepositAddress (this.extend (request, params));
+        //
+        //     {
+        //         code: 200,
+        //         data: [
+        //             {
+        //                 currency: "eth",
+        //                 address: "0xf7292eb9ba7bc50358e27f0e025a4d225a64127b",
+        //                 addressTag: "",
+        //                 chain: "eth"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseDepositAddress (this.safeValue (data, 0, {}), currency);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1346,5 +1300,97 @@ module.exports = class huobipro extends Exchange {
             'pre-transfer': 'pending',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        await this.loadMarkets ();
+        this.checkAddress (address);
+        const currency = this.currency (code);
+        const request = {
+            'address': address, // only supports existing addresses in your withdraw address list
+            'amount': amount,
+            'currency': currency['id'].toLowerCase (),
+        };
+        if (tag !== undefined) {
+            request['addr-tag'] = tag; // only for XRP?
+        }
+        const response = await this.privatePostDwWithdrawApiCreate (this.extend (request, params));
+        const id = this.safeString (response, 'data');
+        return {
+            'info': response,
+            'id': id,
+        };
+    }
+
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = '/';
+        if (api === 'market') {
+            url += api;
+        } else if ((api === 'public') || (api === 'private')) {
+            url += this.version;
+        } else if ((api === 'v2Public') || (api === 'v2Private')) {
+            url += 'v2';
+        }
+        url += '/' + this.implodeParams (path, params);
+        const query = this.omit (params, this.extractParams (path));
+        if (api === 'private' || api === 'v2Private') {
+            this.checkRequiredCredentials ();
+            const timestamp = this.ymdhms (this.milliseconds (), 'T');
+            let request = {
+                'SignatureMethod': 'HmacSHA256',
+                'SignatureVersion': '2',
+                'AccessKeyId': this.apiKey,
+                'Timestamp': timestamp,
+            };
+            if (method !== 'POST') {
+                request = this.extend (request, query);
+            }
+            request = this.keysort (request);
+            let auth = this.urlencode (request);
+            // unfortunately, PHP demands double quotes for the escaped newline symbol
+            // eslint-disable-next-line quotes
+            const payload = [ method, this.hostname, url, auth ].join ("\n");
+            const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
+            auth += '&' + this.urlencode ({ 'Signature': signature });
+            url += '?' + auth;
+            if (method === 'POST') {
+                body = this.json (query);
+                headers = {
+                    'Content-Type': 'application/json',
+                };
+            } else {
+                headers = {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                };
+            }
+        } else {
+            if (Object.keys (params).length) {
+                url += '?' + this.urlencode (params);
+            }
+        }
+        url = this.implodeParams (this.urls['api'][api], {
+            'hostname': this.hostname,
+        }) + url;
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return; // fallback to default error handler
+        }
+        if ('status' in response) {
+            //
+            //     {"status":"error","err-code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
+            //
+            const status = this.safeString (response, 'status');
+            if (status === 'error') {
+                const code = this.safeString (response, 'err-code');
+                const feedback = this.id + ' ' + body;
+                this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+                const message = this.safeString (response, 'err-msg');
+                this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+                throw new ExchangeError (feedback);
+            }
+        }
     }
 };
