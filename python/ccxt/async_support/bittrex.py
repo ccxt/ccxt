@@ -692,7 +692,7 @@ class bittrex(Exchange):
                 request['limit'] = self.price_to_precision(symbol, price)
                 request['timeInForce'] = 'GOOD_TIL_CANCELLED'
             else:
-                request['timeInForce'] = 'FILL_OR_KILL'
+                request['timeInForce'] = 'IMMEDIATE_OR_CANCEL'
         response = await self.v3PostOrders(self.extend(request, params))
         #
         #     {
