@@ -18,7 +18,7 @@ module.exports = class huobipro extends Exchange {
             'version': 'v1',
             'accounts': undefined,
             'accountsById': undefined,
-            'hostname': 'api.huobi.pro',
+            'hostname': 'api.huobi.pro', // api.testnet.huobi.pro
             'pro': true,
             'has': {
                 'CORS': false,
@@ -49,12 +49,16 @@ module.exports = class huobipro extends Exchange {
                 '1y': '1year',
             },
             'urls': {
+                'test': {
+                    'market': 'https://api.testnet.huobi.pro',
+                    'public': 'https://api.testnet.huobi.pro',
+                    'private': 'https://api.testnet.huobi.pro',
+                },
                 'logo': 'https://user-images.githubusercontent.com/1294454/76137448-22748a80-604e-11ea-8069-6e389271911d.jpg',
                 'api': {
                     'market': 'https://{hostname}',
                     'public': 'https://{hostname}',
                     'private': 'https://{hostname}',
-                    'zendesk': 'https://huobiglobal.zendesk.com/hc/en-us/articles',
                 },
                 'www': 'https://www.huobi.pro',
                 'referral': 'https://www.huobi.co/en-us/topic/invited/?invite_code=rwrd3',
@@ -62,11 +66,6 @@ module.exports = class huobipro extends Exchange {
                 'fees': 'https://www.huobi.pro/about/fee/',
             },
             'api': {
-                'zendesk': {
-                    'get': [
-                        '360000400491-Trade-Limits',
-                    ],
-                },
                 'market': {
                     'get': [
                         'history/kline', // 获取K线数据
