@@ -708,7 +708,7 @@ module.exports = class bittrex extends Exchange {
                 request['limit'] = this.priceToPrecision (symbol, price);
                 request['timeInForce'] = 'GOOD_TIL_CANCELLED';
             } else {
-                request['timeInForce'] = 'FILL_OR_KILL';
+                request['timeInForce'] = 'IMMEDIATE_OR_CANCEL';
             }
         }
         const response = await this.v3PostOrders (this.extend (request, params));
