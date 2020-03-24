@@ -28,6 +28,7 @@ module.exports = class okex extends ccxt.okex {
                 'watchOrderBook': {
                     'limit': 400, // max
                     'type': 'spot', // margin
+                    'depth': 'depth_l2_tbt', // depth5, depth
                 },
                 'watchBalance': 'spot', // margin, futures, swap
                 'ws': {
@@ -209,7 +210,9 @@ module.exports = class okex extends ccxt.okex {
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
-        const future = this.subscribe ('depth', symbol, params);
+        const options = this.safeValue (this.options, 'watchOrderBook', {});
+        const depth = this.safeString (options, 'depth', 'depth_l2_tbt');
+        const future = this.subscribe (depth, symbol, params);
         return await this.after (future, this.limitOrderBook, symbol, limit, params);
     }
 
@@ -602,6 +605,8 @@ module.exports = class okex extends ccxt.okex {
             const name = this.safeString (parts, 1);
             const methods = {
                 'depth': this.handleOrderBook,
+                'depth5': this.handleOrderBook,
+                'depth_l2_tbt': this.handleOrderBook,
                 'ticker': this.handleTicker,
                 'trade': this.handleTrade,
                 'account': this.handleBalance,
