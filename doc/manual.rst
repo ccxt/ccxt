@@ -3037,7 +3037,7 @@ Personal Trades
 
 Most of unified methods will return either a single object or a plain array (a list) of objects (trades). However, very few exchanges (if any at all) will return all trades at once. Most often their APIs ``limit`` output to a certain number of most recent objects. **YOU CANNOT GET ALL OBJECTS SINCE THE BEGINNING OF TIME TO THE PRESENT MOMENT IN JUST ONE CALL**. Practically, very few exchanges will tolerate or allow that.
 
-As with all other unified methods for fetching historical data, the ``fetchMyTrades`` method accepts a ``since`` argument for `date-based pagination <#date-based-pagination>`__. Just like with all other unified methods throughout the CCXT library, the ``since`` argument for ``fetchMyTrades`` must be an **integer timestamp in milliseconds** (!).
+As with all other unified methods for fetching historical data, the ``fetchMyTrades`` method accepts a ``since`` argument for `date-based pagination <#date-based-pagination>`__. Just like with all other unified methods throughout the CCXT library, the ``since`` argument for ``fetchMyTrades`` must be an **integer timestamp in milliseconds**.
 
 To fetch historical trades, the user will need to traverse the data in portions or “pages” of objects. Pagination often implies *“fetching portions of data one by one”* in a loop.
 
