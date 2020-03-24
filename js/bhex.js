@@ -310,7 +310,7 @@ module.exports = class bhex extends Exchange {
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
-            'orderId': parseInt (id),
+            'orderId': id,
         };
         return await this.privateDeleteOrder (this.extend (request, params));
     }
@@ -469,7 +469,7 @@ module.exports = class bhex extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        const id = this.safeInteger (order, 'orderId');
+        const id = this.safeString (order, 'orderId');
         const timestamp = this.safeInteger (order, 'time');
         let symbol = undefined;
         if (market === undefined) {
