@@ -33,6 +33,7 @@ class okex extends \ccxt\okex {
                 'watchOrderBook' => array(
                     'limit' => 400, // max
                     'type' => 'spot', // margin
+                    'depth' => 'depth_l2_tbt', // depth5, depth
                 ),
                 'watchBalance' => 'spot', // margin, futures, swap
                 'ws' => array(
@@ -214,7 +215,9 @@ class okex extends \ccxt\okex {
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
-        $future = $this->subscribe('depth', $symbol, $params);
+        $options = $this->safe_value($this->options, 'watchOrderBook', array());
+        $depth = $this->safe_string($options, 'depth', 'depth_l2_tbt');
+        $future = $this->subscribe($depth, $symbol, $params);
         return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
@@ -607,6 +610,8 @@ class okex extends \ccxt\okex {
             $name = $this->safe_string($parts, 1);
             $methods = array(
                 'depth' => array($this, 'handle_order_book'),
+                'depth5' => array($this, 'handle_order_book'),
+                'depth_l2_tbt' => array($this, 'handle_order_book'),
                 'ticker' => array($this, 'handle_ticker'),
                 'trade' => array($this, 'handle_trade'),
                 'account' => array($this, 'handle_balance'),

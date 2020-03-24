@@ -32,6 +32,7 @@ class okex(Exchange, ccxt.okex):
                 'watchOrderBook': {
                     'limit': 400,  # max
                     'type': 'spot',  # margin
+                    'depth': 'depth_l2_tbt',  # depth5, depth
                 },
                 'watchBalance': 'spot',  # margin, futures, swap
                 'ws': {
@@ -195,7 +196,9 @@ class okex(Exchange, ccxt.okex):
                 client.resolve(stored, messageHash)
 
     async def watch_order_book(self, symbol, limit=None, params={}):
-        future = self.subscribe('depth', symbol, params)
+        options = self.safe_value(self.options, 'watchOrderBook', {})
+        depth = self.safe_string(options, 'depth', 'depth_l2_tbt')
+        future = self.subscribe(depth, symbol, params)
         return await self.after(future, self.limit_order_book, symbol, limit, params)
 
     def handle_delta(self, bookside, delta):
@@ -543,6 +546,8 @@ class okex(Exchange, ccxt.okex):
             name = self.safe_string(parts, 1)
             methods = {
                 'depth': self.handle_order_book,
+                'depth5': self.handle_order_book,
+                'depth_l2_tbt': self.handle_order_book,
                 'ticker': self.handle_ticker,
                 'trade': self.handle_trade,
                 'account': self.handle_balance,
