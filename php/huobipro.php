@@ -22,7 +22,7 @@ class huobipro extends Exchange {
             'version' => 'v1',
             'accounts' => null,
             'accountsById' => null,
-            'hostname' => 'api.huobi.pro',
+            'hostname' => 'api.huobi.pro', // api.testnet.huobi.pro
             'pro' => true,
             'has' => array(
                 'CORS' => false,
@@ -53,12 +53,16 @@ class huobipro extends Exchange {
                 '1y' => '1year',
             ),
             'urls' => array(
+                'test' => array(
+                    'market' => 'https://api.testnet.huobi.pro',
+                    'public' => 'https://api.testnet.huobi.pro',
+                    'private' => 'https://api.testnet.huobi.pro',
+                ),
                 'logo' => 'https://user-images.githubusercontent.com/1294454/76137448-22748a80-604e-11ea-8069-6e389271911d.jpg',
                 'api' => array(
                     'market' => 'https://{hostname}',
                     'public' => 'https://{hostname}',
                     'private' => 'https://{hostname}',
-                    'zendesk' => 'https://huobiglobal.zendesk.com/hc/en-us/articles',
                 ),
                 'www' => 'https://www.huobi.pro',
                 'referral' => 'https://www.huobi.co/en-us/topic/invited/?invite_code=rwrd3',
@@ -66,11 +70,6 @@ class huobipro extends Exchange {
                 'fees' => 'https://www.huobi.pro/about/fee/',
             ),
             'api' => array(
-                'zendesk' => array(
-                    'get' => array(
-                        '360000400491-Trade-Limits',
-                    ),
-                ),
                 'market' => array(
                     'get' => array(
                         'history/kline', // 获取K线数据
