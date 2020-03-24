@@ -226,6 +226,7 @@ class CCXTProTranspiler extends Transpiler {
 if (require.main === module) {
 
     // if called directly like `node module`
+
     const transpiler = new CCXTProTranspiler ()
     transpiler.transpileEverything ()
 
