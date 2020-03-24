@@ -112,7 +112,7 @@ The CCXT library currently supports the following 122 cryptocurrency exchange ma
 +-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 | `bitmax <https://bitmax.io/#/register?inviteCode=EL6BXBQM>`__                           | bitmax             | `BitMax <https://bitmax.io/#/register?inviteCode=EL6BXBQM>`__                           | 1   | `API <https://github.com/bitmax-exchange/api-doc/blob/master/bitmax-api-doc-v1.2.md>`__         |                                                                      |                                 |
 +-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `bitmex <https://www.bitmex.com/register/rm3C16>`__                                     | bitmex             | `BitMEX <https://www.bitmex.com/register/rm3C16>`__                                     | 1   | `API <https://www.bitmex.com/app/apiOverview>`__                                                |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
+| `bitmex <https://www.bitmex.com/register/upZpOX>`__                                     | bitmex             | `BitMEX <https://www.bitmex.com/register/upZpOX>`__                                     | 1   | `API <https://www.bitmex.com/app/apiOverview>`__                                                |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
 +-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 | `bitso <https://bitso.com/?ref=itej>`__                                                 | bitso              | `Bitso <https://bitso.com/?ref=itej>`__                                                 | 3   | `API <https://bitso.com/api_info>`__                                                            |                                                                      |                                 |
 +-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
@@ -360,14 +360,14 @@ JavaScript (for use with the ``<script>`` tag):
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
--  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.24.90/dist/ccxt.browser.js
--  unpkg: https://unpkg.com/ccxt@1.24.90/dist/ccxt.browser.js
+-  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.24.91/dist/ccxt.browser.js
+-  unpkg: https://unpkg.com/ccxt@1.24.91/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code:: html
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.24.90/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.24.91/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 
