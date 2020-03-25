@@ -700,12 +700,14 @@ class binance(Exchange, ccxt.binance):
         cumulativeQuote = self.safe_float(message, 'Z')
         remaining = amount
         average = None
-        if filled is not None and filled > 0:
+        cost = None
+        if filled is not None:
+            if price is not None:
+                cost = filled * price
             if amount is not None:
-                remaining = amount - filled
-            if cumulativeQuote is not None:
+                remaining = max(amount - filled, 0)
+            if (cumulativeQuote is not None) and (filled > 0):
                 average = cumulativeQuote / filled
-        cost = amount * price
         rawStatus = self.safe_string(message, 'X')
         status = self.parse_order_status(rawStatus)
         trades = None

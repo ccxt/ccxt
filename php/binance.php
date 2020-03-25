@@ -765,15 +765,18 @@ class binance extends \ccxt\binance {
         $cumulativeQuote = $this->safe_float($message, 'Z');
         $remaining = $amount;
         $average = null;
-        if ($filled !== null && $filled > 0) {
-            if ($amount !== null) {
-                $remaining = $amount - $filled;
+        $cost = null;
+        if ($filled !== null) {
+            if ($price !== null) {
+                $cost = $filled * $price;
             }
-            if ($cumulativeQuote !== null) {
+            if ($amount !== null) {
+                $remaining = max ($amount - $filled, 0);
+            }
+            if (($cumulativeQuote !== null) && ($filled > 0)) {
                 $average = $cumulativeQuote / $filled;
             }
         }
-        $cost = $amount * $price;
         $rawStatus = $this->safe_string($message, 'X');
         $status = $this->parse_order_status($rawStatus);
         $trades = null;
