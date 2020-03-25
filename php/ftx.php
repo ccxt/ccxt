@@ -1119,7 +1119,7 @@ class ftx extends Exchange {
         }
         // support for canceling conditional orders
         // https://github.com/ccxt/ccxt/issues/6669
-        $options = $this->safe_value($this->options, 'fetchOpenOrders', array());
+        $options = $this->safe_value($this->options, 'fetchOrders', array());
         $defaultMethod = $this->safe_string($options, 'method', 'privateGetOrdersHistory');
         $method = $this->safe_string($params, 'method', $defaultMethod);
         $type = $this->safe_value($params, 'type');

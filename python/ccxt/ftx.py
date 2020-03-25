@@ -1073,7 +1073,7 @@ class ftx(Exchange):
             request['start_time'] = int(since / 1000)
         # support for canceling conditional orders
         # https://github.com/ccxt/ccxt/issues/6669
-        options = self.safe_value(self.options, 'fetchOpenOrders', {})
+        options = self.safe_value(self.options, 'fetchOrders', {})
         defaultMethod = self.safe_string(options, 'method', 'privateGetOrdersHistory')
         method = self.safe_string(params, 'method', defaultMethod)
         type = self.safe_value(params, 'type')
