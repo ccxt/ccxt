@@ -164,6 +164,13 @@ class ftx extends Exchange {
                 ),
             ),
             'precisionMode' => TICK_SIZE,
+            'options' => array(
+                // support for canceling conditional orders
+                // https://github.com/ccxt/ccxt/issues/6669
+                'cancelOrder' => array(
+                    'method' => 'privateDeleteOrdersOrderId', // privateDeleteConditionalOrdersOrderId
+                ),
+            ),
         ));
     }
 
@@ -965,7 +972,17 @@ class ftx extends Exchange {
         $request = array(
             'order_id' => intval ($id),
         );
-        $response = $this->privateDeleteOrdersOrderId (array_merge($request, $params));
+        // support for canceling conditional orders
+        // https://github.com/ccxt/ccxt/issues/6669
+        $options = $this->safe_value($this->options, 'cancelOrder', array());
+        $defaultMethod = $this->safe_string($options, 'method', 'privateDeleteOrdersOrderId');
+        $method = $this->safe_string($params, 'method', $defaultMethod);
+        $type = $this->safe_value($params, 'type');
+        if (($type === 'stop') || ($type === 'trailingStop') || ($type === 'takeProfit')) {
+            $method = 'privateDeleteConditionalOrdersOrderId';
+        }
+        $query = $this->omit($params, array( 'method', 'type' ));
+        $response = $this->$method (array_merge($request, $query));
         //
         //     {
         //         "success" => true,

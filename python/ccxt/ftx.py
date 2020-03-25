@@ -168,6 +168,13 @@ class ftx(Exchange):
                 },
             },
             'precisionMode': TICK_SIZE,
+            'options': {
+                # support for canceling conditional orders
+                # https://github.com/ccxt/ccxt/issues/6669
+                'cancelOrder': {
+                    'method': 'privateDeleteOrdersOrderId',  # privateDeleteConditionalOrdersOrderId
+                },
+            },
         })
 
     def fetch_currencies(self, params={}):
@@ -930,7 +937,16 @@ class ftx(Exchange):
         request = {
             'order_id': int(id),
         }
-        response = self.privateDeleteOrdersOrderId(self.extend(request, params))
+        # support for canceling conditional orders
+        # https://github.com/ccxt/ccxt/issues/6669
+        options = self.safe_value(self.options, 'cancelOrder', {})
+        defaultMethod = self.safe_string(options, 'method', 'privateDeleteOrdersOrderId')
+        method = self.safe_string(params, 'method', defaultMethod)
+        type = self.safe_value(params, 'type')
+        if (type == 'stop') or (type == 'trailingStop') or (type == 'takeProfit'):
+            method = 'privateDeleteConditionalOrdersOrderId'
+        query = self.omit(params, ['method', 'type'])
+        response = getattr(self, method)(self.extend(request, query))
         #
         #     {
         #         "success": True,
