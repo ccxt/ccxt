@@ -24,11 +24,11 @@ from ccxt.base.exchange import Exchange                          # noqa F401
 
 
 def toWei(amount, decimals):
-    return Exchange.toWei(amount, decimals)
+    return Exchange.to_wei(amount, decimals)
 
 
 def fromWei(amount, decimals):
-    return Exchange.fromWei(amount, decimals)
+    return Exchange.from_wei(amount, decimals)
 
 
 # ----------------------------------------------------------------------------
