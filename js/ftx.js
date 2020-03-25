@@ -1117,7 +1117,7 @@ module.exports = class ftx extends Exchange {
         }
         // support for canceling conditional orders
         // https://github.com/ccxt/ccxt/issues/6669
-        const options = this.safeValue (this.options, 'fetchOpenOrders', {});
+        const options = this.safeValue (this.options, 'fetchOrders', {});
         const defaultMethod = this.safeString (options, 'method', 'privateGetOrdersHistory');
         let method = this.safeString (params, 'method', defaultMethod);
         const type = this.safeValue (params, 'type');
