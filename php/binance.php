@@ -136,7 +136,11 @@ class binance extends \ccxt\binance {
         // 3. Get a depth $snapshot from https://www.binance.com/api/v1/depth?$symbol=BNBBTC&limit=1000 .
         // todo => this is a synch blocking call in ccxt.php - make it async
         $snapshot = $this->fetch_order_book($symbol);
-        $orderbook = $this->orderbooks[$symbol];
+        $orderbook = $this->safe_value($this->orderbooks, $symbol);
+        if ($orderbook === null) {
+            // if the $orderbook is dropped before the $snapshot is received
+            return;
+        }
         $orderbook->reset ($snapshot);
         // unroll the accumulated deltas
         $messages = $orderbook->cache;
@@ -222,7 +226,18 @@ class binance extends \ccxt\binance {
         }
         $name = 'depth';
         $messageHash = $market['lowercaseId'] . '@' . $name;
-        $orderbook = $this->orderbooks[$symbol];
+        $orderbook = $this->safe_value($this->orderbooks, $symbol);
+        if ($orderbook === null) {
+            //
+            // https://github.com/ccxt/ccxt/issues/6672
+            //
+            // Sometimes Binance sends the first delta before the subscription
+            // confirmation arrives. At that point the $orderbook is not
+            // initialized yet and the snapshot has not been requested yet
+            // therefore it is safe to drop these premature messages.
+            //
+            return;
+        }
         $nonce = $this->safe_integer($orderbook, 'nonce');
         if ($nonce === null) {
             // 2. Buffer the events you receive from the stream.

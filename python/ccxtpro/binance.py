@@ -131,7 +131,10 @@ class binance(Exchange, ccxt.binance):
         # 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
         # todo: self is a synch blocking call in ccxt.php - make it async
         snapshot = await self.fetch_order_book(symbol)
-        orderbook = self.orderbooks[symbol]
+        orderbook = self.safe_value(self.orderbooks, symbol)
+        if orderbook is None:
+            # if the orderbook is dropped before the snapshot is received
+            return
         orderbook.reset(snapshot)
         # unroll the accumulated deltas
         messages = orderbook.cache
@@ -204,7 +207,17 @@ class binance(Exchange, ccxt.binance):
                 symbol = market['symbol']
         name = 'depth'
         messageHash = market['lowercaseId'] + '@' + name
-        orderbook = self.orderbooks[symbol]
+        orderbook = self.safe_value(self.orderbooks, symbol)
+        if orderbook is None:
+            #
+            # https://github.com/ccxt/ccxt/issues/6672
+            #
+            # Sometimes Binance sends the first delta before the subscription
+            # confirmation arrives. At that point the orderbook is not
+            # initialized yet and the snapshot has not been requested yet
+            # therefore it is safe to drop these premature messages.
+            #
+            return
         nonce = self.safe_integer(orderbook, 'nonce')
         if nonce is None:
             # 2. Buffer the events you receive from the stream.
