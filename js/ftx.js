@@ -162,6 +162,13 @@ module.exports = class ftx extends Exchange {
                 },
             },
             'precisionMode': TICK_SIZE,
+            'options': {
+                // support for canceling conditional orders
+                // https://github.com/ccxt/ccxt/issues/6669
+                'cancelOrder': {
+                    'method': 'privateDeleteOrdersOrderId', // privateDeleteConditionalOrdersOrderId
+                },
+            },
         });
     }
 
@@ -963,7 +970,17 @@ module.exports = class ftx extends Exchange {
         const request = {
             'order_id': parseInt (id),
         };
-        const response = await this.privateDeleteOrdersOrderId (this.extend (request, params));
+        // support for canceling conditional orders
+        // https://github.com/ccxt/ccxt/issues/6669
+        const options = this.safeValue (this.options, 'cancelOrder', {});
+        const defaultMethod = this.safeString (options, 'method', 'privateDeleteOrdersOrderId');
+        let method = this.safeString (params, 'method', defaultMethod);
+        const type = this.safeValue (params, 'type');
+        if ((type === 'stop') || (type === 'trailingStop') || (type === 'takeProfit')) {
+            method = 'privateDeleteConditionalOrdersOrderId';
+        }
+        const query = this.omit (params, [ 'method', 'type' ]);
+        const response = await this[method] (this.extend (request, query));
         //
         //     {
         //         "success": true,
