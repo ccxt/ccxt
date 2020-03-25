@@ -761,15 +761,18 @@ module.exports = class binance extends ccxt.binance {
         const cumulativeQuote = this.safeFloat (message, 'Z');
         let remaining = amount;
         let average = undefined;
-        if (filled !== undefined && filled > 0) {
-            if (amount !== undefined) {
-                remaining = amount - filled;
+        let cost = undefined;
+        if (filled !== undefined) {
+            if (price !== undefined) {
+                cost = filled * price;
             }
-            if (cumulativeQuote !== undefined) {
+            if (amount !== undefined) {
+                remaining = Math.max (amount - filled, 0);
+            }
+            if ((cumulativeQuote !== undefined) && (filled > 0)) {
                 average = cumulativeQuote / filled;
             }
         }
-        const cost = amount * price;
         const rawStatus = this.safeString (message, 'X');
         const status = this.parseOrderStatus (rawStatus);
         const trades = undefined;
