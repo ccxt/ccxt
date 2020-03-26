@@ -12,6 +12,7 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.decimal_to_precision import ROUND
 
 
 class btcmarkets(Exchange):
@@ -444,8 +445,8 @@ class btcmarkets(Exchange):
         })
         request['currency'] = market['quote']
         request['instrument'] = market['base']
-        request['price'] = int(price * multiplier)
-        request['volume'] = int(amount * multiplier)
+        request['price'] = int(self.decimal_to_precision(price * multiplier, ROUND, 0))
+        request['volume'] = int(self.decimal_to_precision(amount * multiplier, ROUND, 0))
         request['orderSide'] = orderSide
         request['ordertype'] = self.capitalize(type)
         request['clientRequestId'] = str(self.nonce())

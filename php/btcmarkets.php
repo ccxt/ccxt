@@ -471,8 +471,8 @@ class btcmarkets extends Exchange {
         ));
         $request['currency'] = $market['quote'];
         $request['instrument'] = $market['base'];
-        $request['price'] = intval ($price * $multiplier);
-        $request['volume'] = intval ($amount * $multiplier);
+        $request['price'] = intval ($this->decimal_to_precision($price * $multiplier, ROUND, 0));
+        $request['volume'] = intval ($this->decimal_to_precision($amount * $multiplier, ROUND, 0));
         $request['orderSide'] = $orderSide;
         $request['ordertype'] = $this->capitalize($type);
         $request['clientRequestId'] = (string) $this->nonce();
