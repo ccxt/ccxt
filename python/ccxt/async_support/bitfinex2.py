@@ -685,7 +685,9 @@ class bitfinex2(bitfinex):
             symbol = self.parse_symbol(marketId)
         if (symbol is None) and (market is not None):
             symbol = market['symbol']
-        timestamp = self.safe_timestamp(order, 5)
+        # https://github.com/ccxt/ccxt/issues/6686
+        # timestamp = self.safe_timestamp(order, 5)
+        timestamp = self.safe_integer(order, 5)
         remaining = abs(self.safe_float(order, 6))
         amount = abs(self.safe_float(order, 7))
         filled = amount - remaining

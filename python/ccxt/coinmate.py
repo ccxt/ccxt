@@ -131,6 +131,37 @@ class coinmate(Exchange):
                         ],
                     },
                 },
+                'promotional': {
+                    'trading': {
+                        'maker': 0.05 / 100,
+                        'taker': 0.15 / 100,
+                        'tiers': {
+                            'taker': [
+                                [0, 0.15 / 100],
+                                [10000, 0.14 / 100],
+                                [100000, 0.13 / 100],
+                                [250000, 0.12 / 100],
+                                [500000, 0.11 / 100],
+                                [1000000, 0.1 / 100],
+                                [3000000, 0.08 / 100],
+                                [15000000, 0.05 / 100],
+                            ],
+                            'maker': [
+                                [0, 0.05 / 100],
+                                [10000, 0.04 / 100],
+                                [1000000, 0.03 / 100],
+                                [250000, 0.02 / 100],
+                                [500000, 0],
+                                [1000000, 0],
+                                [3000000, 0],
+                                [15000000, 0],
+                            ],
+                        },
+                    },
+                },
+            },
+            'options': {
+                'promotionalMarkets': ['ETH/EUR', 'ETH/CZK', 'ETH/BTC', 'XRP/EUR', 'XRP/CZK', 'XRP/BTC', 'DASH/EUR', 'DASH/CZK', 'DASH/BTC', 'BCH/EUR', 'BCH/CZK', 'BCH/BTC'],
             },
             'exceptions': {
                 'exact': {
@@ -175,6 +206,11 @@ class coinmate(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
+            promotionalMarkets = self.safe_value(self.options, 'promotionalMarkets', [])
+            fees = self.safe_value(self.fees, 'trading')
+            if self.in_array(symbol, promotionalMarkets):
+                promotionalFees = self.safe_value(self.fees, 'promotional', {})
+                fees = self.safe_value(promotionalFees, 'trading', fees)
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -183,6 +219,8 @@ class coinmate(Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': None,
+                'maker': fees['maker'],
+                'taker': fees['taker'],
                 'info': market,
                 'precision': {
                     'price': self.safe_integer(market, 'priceDecimals'),
