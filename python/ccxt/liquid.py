@@ -619,6 +619,7 @@ class liquid(Exchange):
         side = self.safe_string(order, 'side')
         return {
             'id': orderId,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,

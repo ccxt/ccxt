@@ -650,8 +650,10 @@ class latoken extends Exchange {
         if (($timeFilled !== null) && ($timeFilled > 0)) {
             $lastTradeTimestamp = $timeFilled;
         }
+        $clientOrderId = $this->safe_string($order, 'cliOrdId');
         return array(
             'id' => $id,
+            'clientOrderId' => $clientOrderId,
             'info' => $order,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),

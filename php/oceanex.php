@@ -560,6 +560,23 @@ class oceanex extends Exchange {
     }
 
     public function parse_order($order, $market = null) {
+        //
+        //     {
+        //         "created_at" => "2019-01-18T00:38:18Z",
+        //         "trades_count" => 0,
+        //         "remaining_volume" => "0.2",
+        //         "price" => "1001.0",
+        //         "created_on" => "1547771898",
+        //         "side" => "buy",
+        //         "volume" => "0.2",
+        //         "state" => "wait",
+        //         "ord_type" => "limit",
+        //         "avg_price" => "0.0",
+        //         "executed_volume" => "0.0",
+        //         "id" => 473797,
+        //         "$market" => "veteth"
+        //     }
+        //
         $status = $this->parse_order_status($this->safe_value($order, 'state'));
         $marketId = $this->safe_value_2($order, 'market', 'market_id');
         $symbol = null;
@@ -583,6 +600,7 @@ class oceanex extends Exchange {
         return array(
             'info' => $order,
             'id' => $this->safe_string($order, 'id'),
+            'clientOrderId' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
