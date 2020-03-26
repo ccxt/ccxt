@@ -728,7 +728,7 @@ class bitmax extends Exchange {
             'currency' => $this->safe_string($order, 'feeAsset'),
         );
         $average = $this->safe_float($order, 'avgPrice');
-        $clientOrderId = $this->safe_string($order, 'coid');
+        $clientOrderId = $id;
         return array(
             'info' => $order,
             'id' => $id,
