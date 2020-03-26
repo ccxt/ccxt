@@ -244,7 +244,16 @@ class btcbox extends Exchange {
 
     public function parse_order($order, $market = null) {
         //
-        // array("$id":11,"datetime":"2014-10-21 10:47:20","type":"sell","$price":42000,"amount_original":1.2,"amount_outstanding":1.2,"$status":"closed","$trades":array())
+        //     {
+        //         "$id":11,
+        //         "datetime":"2014-10-21 10:47:20",
+        //         "type":"sell",
+        //         "$price":42000,
+        //         "amount_original":1.2,
+        //         "amount_outstanding":1.2,
+        //         "$status":"closed",
+        //         "$trades":array()
+        //     }
         //
         $id = $this->safe_string($order, 'id');
         $datetimeString = $this->safe_string($order, 'datetime');
@@ -283,6 +292,7 @@ class btcbox extends Exchange {
         $side = $this->safe_string($order, 'type');
         return array(
             'id' => $id,
+            'clientOrderId' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,

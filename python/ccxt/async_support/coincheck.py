@@ -182,6 +182,7 @@ class coincheck(Exchange):
                 symbol = base + '/' + quote
         return {
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,

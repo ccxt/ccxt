@@ -1004,6 +1004,7 @@ class bittrex(Exchange):
                 remaining = quantity - fillQuantity
         return {
             'id': self.safe_string(order, 'id'),
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -1122,6 +1123,7 @@ class bittrex(Exchange):
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,

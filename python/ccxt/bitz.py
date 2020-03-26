@@ -724,6 +724,7 @@ class bitz(Exchange):
         status = self.parse_order_status(self.safe_string(order, 'status'))
         return {
             'id': id,
+            'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,

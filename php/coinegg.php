@@ -354,6 +354,7 @@ class coinegg extends Exchange {
         $id = $this->safe_string($order, 'id');
         return array(
             'id' => $id,
+            'clientOrderId' => null,
             'datetime' => $this->iso8601($timestamp),
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => null,

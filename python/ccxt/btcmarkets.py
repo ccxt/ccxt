@@ -569,9 +569,11 @@ class btcmarkets(Exchange):
                 average = cost / filled
             lastTradeTimestamp = trades[numTrades - 1]['timestamp']
         id = self.safe_string(order, 'id')
+        clientOrderId = self.safe_string(order, 'clientRequestId')
         return {
             'info': order,
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,

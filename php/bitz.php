@@ -757,6 +757,7 @@ class bitz extends Exchange {
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         return array(
             'id' => $id,
+            'clientOrderId' => null,
             'datetime' => $this->iso8601($timestamp),
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => null,

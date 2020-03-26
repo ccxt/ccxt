@@ -738,6 +738,7 @@ class bw extends Exchange {
         return array(
             'info' => $order,
             'id' => $this->safe_string($order, 'entrustId'),
+            'clientOrderId' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,

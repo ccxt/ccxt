@@ -512,6 +512,7 @@ class bytetrade(Exchange):
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': datetime,
             'lastTradeTimestamp': lastTradeTimestamp,
