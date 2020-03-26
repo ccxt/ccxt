@@ -949,9 +949,14 @@ class bybit extends Exchange {
             );
         }
         $type = $this->safe_string_lower($order, 'order_type');
+        $clientOrderId = $this->safe_string($order, 'order_link_id');
+        if (($clientOrderId !== null) && (strlen($clientOrderId) < 1)) {
+            $clientOrderId = null;
+        }
         return array(
             'info' => $order,
             'id' => $id,
+            'clientOrderId' => $clientOrderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
