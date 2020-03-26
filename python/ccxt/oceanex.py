@@ -520,6 +520,23 @@ class oceanex(Exchange):
         return result
 
     def parse_order(self, order, market=None):
+        #
+        #     {
+        #         "created_at": "2019-01-18T00:38:18Z",
+        #         "trades_count": 0,
+        #         "remaining_volume": "0.2",
+        #         "price": "1001.0",
+        #         "created_on": "1547771898",
+        #         "side": "buy",
+        #         "volume": "0.2",
+        #         "state": "wait",
+        #         "ord_type": "limit",
+        #         "avg_price": "0.0",
+        #         "executed_volume": "0.0",
+        #         "id": 473797,
+        #         "market": "veteth"
+        #     }
+        #
         status = self.parse_order_status(self.safe_value(order, 'state'))
         marketId = self.safe_value_2(order, 'market', 'market_id')
         symbol = None
@@ -538,6 +555,7 @@ class oceanex(Exchange):
         return {
             'info': order,
             'id': self.safe_string(order, 'id'),
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,

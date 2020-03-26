@@ -416,8 +416,8 @@ class deribit extends Exchange {
             //     }
             //
             $instrumentsResult = $this->safe_value($instrumentsResponse, 'result', array());
-            for ($i = 0; $i < count($instrumentsResult); $i++) {
-                $market = $instrumentsResult[$i];
+            for ($k = 0; $k < count($instrumentsResult); $k++) {
+                $market = $instrumentsResult[$k];
                 $id = $this->safe_string($market, 'instrument_name');
                 $baseId = $this->safe_string($market, 'base_currency');
                 $quoteId = $this->safe_string($market, 'quote_currency');
@@ -1110,6 +1110,7 @@ class deribit extends Exchange {
         return array(
             'info' => $order,
             'id' => $id,
+            'clientOrderId' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
@@ -1681,7 +1682,7 @@ class deribit extends Exchange {
             $auth = $timestamp . "\n" . $nonce . "\n" . $requestData; // eslint-disable-line quotes
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
             $headers = array(
-                'Authorization' => 'deri-hmac-sha256 id=' . $this->apiKey . ',ts=' . $timestamp . ',sig=' . $signature . ',$nonce=' . $nonce,
+                'Authorization' => 'deri-hmac-sha256 id=' . $this->apiKey . ',ts=' . $timestamp . ',sig=' . $signature . ',' . 'nonce=' . $nonce,
             );
         }
         $url = $this->urls['api'] . $request;

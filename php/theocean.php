@@ -718,6 +718,7 @@ class theocean extends Exchange {
         $result = array(
             'info' => $order,
             'id' => $id,
+            'clientOrderId' => null,
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),

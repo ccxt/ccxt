@@ -102,9 +102,64 @@ class coinmate extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
-                    'maker' => 0.05 / 100,
-                    'taker' => 0.15 / 100,
+                    'tierBased' => true,
+                    'percentage' => true,
+                    'maker' => 0.12 / 100,
+                    'taker' => 0.25 / 100,
+                    'tiers' => array(
+                        'taker' => [
+                            [0, 0.25 / 100],
+                            [10000, 0.23 / 100],
+                            [100000, 0.21 / 100],
+                            [250000, 0.20 / 100],
+                            [500000, 0.15 / 100],
+                            [1000000, 0.13 / 100],
+                            [3000000, 0.10 / 100],
+                            [15000000, 0.05 / 100],
+                        ],
+                        'maker' => [
+                            [0, 0.12 / 100],
+                            [10000, 0.11 / 100],
+                            [1000000, 0.10 / 100],
+                            [250000, 0.08 / 100],
+                            [500000, 0.05 / 100],
+                            [1000000, 0.03 / 100],
+                            [3000000, 0.02 / 100],
+                            [15000000, 0],
+                        ],
+                    ),
                 ),
+                'promotional' => array(
+                    'trading' => array(
+                        'maker' => 0.05 / 100,
+                        'taker' => 0.15 / 100,
+                        'tiers' => array(
+                            'taker' => [
+                                [0, 0.15 / 100],
+                                [10000, 0.14 / 100],
+                                [100000, 0.13 / 100],
+                                [250000, 0.12 / 100],
+                                [500000, 0.11 / 100],
+                                [1000000, 0.1 / 100],
+                                [3000000, 0.08 / 100],
+                                [15000000, 0.05 / 100],
+                            ],
+                            'maker' => [
+                                [0, 0.05 / 100],
+                                [10000, 0.04 / 100],
+                                [1000000, 0.03 / 100],
+                                [250000, 0.02 / 100],
+                                [500000, 0],
+                                [1000000, 0],
+                                [3000000, 0],
+                                [15000000, 0],
+                            ],
+                        ),
+                    ),
+                ),
+            ),
+            'options' => array(
+                'promotionalMarkets' => ['ETH/EUR', 'ETH/CZK', 'ETH/BTC', 'XRP/EUR', 'XRP/CZK', 'XRP/BTC', 'DASH/EUR', 'DASH/CZK', 'DASH/BTC', 'BCH/EUR', 'BCH/CZK', 'BCH/BTC'],
             ),
             'exceptions' => array(
                 'exact' => array(
@@ -150,6 +205,12 @@ class coinmate extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
+            $promotionalMarkets = $this->safe_value($this->options, 'promotionalMarkets', array());
+            $fees = $this->safe_value($this->fees, 'trading');
+            if ($this->in_array($symbol, $promotionalMarkets)) {
+                $promotionalFees = $this->safe_value($this->fees, 'promotional', array());
+                $fees = $this->safe_value($promotionalFees, 'trading', $fees);
+            }
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -158,6 +219,8 @@ class coinmate extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'active' => null,
+                'maker' => $fees['maker'],
+                'taker' => $fees['taker'],
                 'info' => $market,
                 'precision' => array(
                     'price' => $this->safe_integer($market, 'priceDecimals'),
@@ -532,7 +595,7 @@ class coinmate extends Exchange {
         //         orderTradeType => 'LIMIT',
         //         hidden => false,
         //         trailing => false,
-        //         clientOrderId => null
+        //         $clientOrderId => null
         //     }
         //
         // limit buy
@@ -588,8 +651,10 @@ class coinmate extends Exchange {
         if (($symbol === null) && ($market !== null)) {
             $symbol = $market['symbol'];
         }
+        $clientOrderId = $this->safe_string($order, 'clientOrderId');
         return array(
             'id' => $id,
+            'clientOrderId' => $clientOrderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,

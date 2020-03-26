@@ -164,6 +164,19 @@ class ftx extends Exchange {
                 ),
             ),
             'precisionMode' => TICK_SIZE,
+            'options' => array(
+                // support for canceling conditional orders
+                // https://github.com/ccxt/ccxt/issues/6669
+                'cancelOrder' => array(
+                    'method' => 'privateDeleteOrdersOrderId', // privateDeleteConditionalOrdersOrderId
+                ),
+                'fetchOpenOrders' => array(
+                    'method' => 'privateGetOrders', // privateGetConditionalOrders
+                ),
+                'fetchOrders' => array(
+                    'method' => 'privateGetOrdersHistory', // privateGetConditionalOrdersHistory
+                ),
+            ),
         ));
     }
 
@@ -850,9 +863,11 @@ class ftx extends Exchange {
             $cost = $filled * $price;
         }
         $lastTradeTimestamp = $this->parse8601($this->safe_string($order, 'triggeredAt'));
+        $clientOrderId = $this->safe_string($order, 'clientId');
         return array(
             'info' => $order,
             'id' => $id,
+            'clientOrderId' => $clientOrderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
@@ -965,7 +980,17 @@ class ftx extends Exchange {
         $request = array(
             'order_id' => intval ($id),
         );
-        $response = $this->privateDeleteOrdersOrderId (array_merge($request, $params));
+        // support for canceling conditional orders
+        // https://github.com/ccxt/ccxt/issues/6669
+        $options = $this->safe_value($this->options, 'cancelOrder', array());
+        $defaultMethod = $this->safe_string($options, 'method', 'privateDeleteOrdersOrderId');
+        $method = $this->safe_string($params, 'method', $defaultMethod);
+        $type = $this->safe_value($params, 'type');
+        if (($type === 'stop') || ($type === 'trailingStop') || ($type === 'takeProfit')) {
+            $method = 'privateDeleteConditionalOrdersOrderId';
+        }
+        $query = $this->omit($params, array( 'method', 'type' ));
+        $response = $this->$method (array_merge($request, $query));
         //
         //     {
         //         "success" => true,
@@ -1040,7 +1065,17 @@ class ftx extends Exchange {
             $market = $this->market($symbol);
             $request['market'] = $market['id'];
         }
-        $response = $this->privateGetOrders (array_merge($request, $params));
+        // support for canceling conditional orders
+        // https://github.com/ccxt/ccxt/issues/6669
+        $options = $this->safe_value($this->options, 'fetchOpenOrders', array());
+        $defaultMethod = $this->safe_string($options, 'method', 'privateGetOrders');
+        $method = $this->safe_string($params, 'method', $defaultMethod);
+        $type = $this->safe_value($params, 'type');
+        if (($type === 'stop') || ($type === 'trailingStop') || ($type === 'takeProfit')) {
+            $method = 'privateGetConditionalOrders';
+        }
+        $query = $this->omit($params, array( 'method', 'type' ));
+        $response = $this->$method (array_merge($request, $query));
         //
         //     {
         //         "success" => true,
@@ -1057,7 +1092,7 @@ class ftx extends Exchange {
         //                 "side" => "sell",
         //                 "size" => 31431,
         //                 "status" => "open",
-        //                 "type" => "$limit",
+        //                 "$type" => "$limit",
         //                 "reduceOnly" => false,
         //                 "ioc" => false,
         //                 "postOnly" => false,
@@ -1084,7 +1119,17 @@ class ftx extends Exchange {
         if ($since !== null) {
             $request['start_time'] = intval ($since / 1000);
         }
-        $response = $this->privateGetOrdersHistory (array_merge($request, $params));
+        // support for canceling conditional orders
+        // https://github.com/ccxt/ccxt/issues/6669
+        $options = $this->safe_value($this->options, 'fetchOrders', array());
+        $defaultMethod = $this->safe_string($options, 'method', 'privateGetOrdersHistory');
+        $method = $this->safe_string($params, 'method', $defaultMethod);
+        $type = $this->safe_value($params, 'type');
+        if (($type === 'stop') || ($type === 'trailingStop') || ($type === 'takeProfit')) {
+            $method = 'privateGetConditionalOrdersHistory';
+        }
+        $query = $this->omit($params, array( 'method', 'type' ));
+        $response = $this->$method (array_merge($request, $query));
         //
         //     {
         //         "success" => true,
@@ -1101,7 +1146,7 @@ class ftx extends Exchange {
         //                 "side" => "sell",
         //                 "size" => 31431,
         //                 "status" => "open",
-        //                 "type" => "$limit",
+        //                 "$type" => "$limit",
         //                 "reduceOnly" => false,
         //                 "ioc" => false,
         //                 "postOnly" => false,

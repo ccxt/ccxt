@@ -304,6 +304,7 @@ class acx(Exchange):
         id = self.safe_string(order, 'id')
         return {
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,

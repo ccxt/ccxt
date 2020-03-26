@@ -858,9 +858,9 @@ module.exports = class bybit extends Exchange {
             'Cancelled': 'canceled',
             'PendingCancel': 'canceling', // the engine has received the cancellation but there is no guarantee that it will be successful
             // conditional orders
-            'Active': 'open', // order is triggered and placed successfully
+            'Active': 'closed', // order is triggered and placed successfully
             'Untriggered': 'open', // order waits to be triggered
-            'Triggered': 'open', // order is triggered
+            'Triggered': 'closed', // order is triggered
             // 'Cancelled': 'canceled', // order is cancelled
             // 'Rejected': 'rejected', // order is triggered but fail to be placed
             'Deactivated': 'canceled', // conditional order was cancelled before triggering
@@ -947,9 +947,14 @@ module.exports = class bybit extends Exchange {
             };
         }
         const type = this.safeStringLower (order, 'order_type');
+        let clientOrderId = this.safeString (order, 'order_link_id');
+        if ((clientOrderId !== undefined) && (clientOrderId.length < 1)) {
+            clientOrderId = undefined;
+        }
         return {
             'info': order,
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -1333,11 +1338,20 @@ module.exports = class bybit extends Exchange {
         }
         const options = this.safeValue (this.options, 'fetchOrders', {});
         let defaultMethod = 'openapiGetOrderList';
+        let query = params;
         if (('stop_order_id' in params) || ('stop_order_status' in params)) {
+            let stopOrderStatus = this.safeValue (params, 'stopOrderStatus');
+            if (stopOrderStatus !== undefined) {
+                if (Array.isArray (stopOrderStatus)) {
+                    stopOrderStatus = stopOrderStatus.join (',');
+                }
+                request['stop_order_status'] = stopOrderStatus;
+                query = this.omit (params, 'stop_order_status');
+            }
             defaultMethod = 'openapiGetStopOrderList';
         }
         const method = this.safeString (options, 'method', defaultMethod);
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, query));
         //
         //     {
         //         "ret_code": 0,
@@ -1434,16 +1448,25 @@ module.exports = class bybit extends Exchange {
             'Rejected',
             'Filled',
             'Cancelled',
-            'Deactivated',
+            // conditional orders
+            // 'Active',
+            // 'Triggered',
+            // 'Cancelled',
+            // 'Rejected',
+            // 'Deactivated',
         ];
         const options = this.safeValue (this.options, 'fetchClosedOrders', {});
         let status = this.safeValue (options, 'order_status', defaultStatuses);
         if (Array.isArray (status)) {
             status = status.join (',');
         }
-        const request = {
-            'order_status': status,
-        };
+        const request = {};
+        const stopOrderStatus = this.safeValue (params, 'stop_order_status');
+        if (stopOrderStatus === undefined) {
+            request['order_status'] = status;
+        } else {
+            request['stop_order_status'] = stopOrderStatus;
+        }
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
@@ -1453,18 +1476,21 @@ module.exports = class bybit extends Exchange {
             'New',
             'PartiallyFilled',
             'PendingCancel',
-            'Active',
-            'Untriggered',
-            'Triggered',
+            // conditional orders
+            // 'Untriggered',
         ];
         const options = this.safeValue (this.options, 'fetchOpenOrders', {});
         let status = this.safeValue (options, 'order_status', defaultStatuses);
         if (Array.isArray (status)) {
             status = status.join (',');
         }
-        const request = {
-            'order_status': status,
-        };
+        const request = {};
+        const stopOrderStatus = this.safeValue (params, 'stop_order_status');
+        if (stopOrderStatus === undefined) {
+            request['order_status'] = status;
+        } else {
+            request['stop_order_status'] = stopOrderStatus;
+        }
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 

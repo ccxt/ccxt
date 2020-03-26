@@ -956,6 +956,7 @@ module.exports = class therock extends Exchange {
         }
         return {
             'id': id,
+            'clientOrderId': undefined,
             'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),

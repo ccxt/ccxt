@@ -974,6 +974,46 @@ module.exports = class binance extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //
+        //  spot
+        //
+        //     {
+        //         "symbol": "LTCBTC",
+        //         "orderId": 1,
+        //         "clientOrderId": "myOrder1",
+        //         "price": "0.1",
+        //         "origQty": "1.0",
+        //         "executedQty": "0.0",
+        //         "cummulativeQuoteQty": "0.0",
+        //         "status": "NEW",
+        //         "timeInForce": "GTC",
+        //         "type": "LIMIT",
+        //         "side": "BUY",
+        //         "stopPrice": "0.0",
+        //         "icebergQty": "0.0",
+        //         "time": 1499827319559,
+        //         "updateTime": 1499827319559,
+        //         "isWorking": true
+        //     }
+        //
+        //  futures
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "orderId": 1,
+        //         "clientOrderId": "myOrder1",
+        //         "price": "0.1",
+        //         "origQty": "1.0",
+        //         "executedQty": "1.0",
+        //         "cumQuote": "10.0",
+        //         "status": "NEW",
+        //         "timeInForce": "GTC",
+        //         "type": "LIMIT",
+        //         "side": "BUY",
+        //         "stopPrice": "0.0",
+        //         "updateTime": 1499827319559
+        //     }
+        //
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         let symbol = undefined;
         const marketId = this.safeString (order, 'symbol');
@@ -1058,9 +1098,11 @@ module.exports = class binance extends Exchange {
                 cost = parseFloat (this.costToPrecision (symbol, cost));
             }
         }
+        const clientOrderId = this.safeString (order, 'clientOrderId');
         return {
             'info': order,
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,

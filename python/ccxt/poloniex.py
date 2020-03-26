@@ -715,6 +715,7 @@ class poloniex(Exchange):
         #             },
         #         ],
         #         'fee': '0.00000000',
+        #         'clientOrderId': '12345',
         #         'currencyPair': 'BTC_MANA',
         #         # ---------------------------------------------------------
         #         # the following fields are injected by createOrder
@@ -786,9 +787,11 @@ class poloniex(Exchange):
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
             }
+        clientOrderId = self.safe_string(order, 'clientOrderId')
         return {
             'info': order,
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,

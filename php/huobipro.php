@@ -22,12 +22,12 @@ class huobipro extends Exchange {
             'version' => 'v1',
             'accounts' => null,
             'accountsById' => null,
-            'hostname' => 'api.huobi.pro',
+            'hostname' => 'api.huobi.pro', // api.testnet.huobi.pro
             'pro' => true,
             'has' => array(
                 'CORS' => false,
                 'fetchTickers' => true,
-                'fetchDepositAddress' => false,
+                'fetchDepositAddress' => true,
                 'fetchOHLCV' => true,
                 'fetchOrder' => true,
                 'fetchOrders' => true,
@@ -53,12 +53,18 @@ class huobipro extends Exchange {
                 '1y' => '1year',
             ),
             'urls' => array(
+                'test' => array(
+                    'market' => 'https://api.testnet.huobi.pro',
+                    'public' => 'https://api.testnet.huobi.pro',
+                    'private' => 'https://api.testnet.huobi.pro',
+                ),
                 'logo' => 'https://user-images.githubusercontent.com/1294454/76137448-22748a80-604e-11ea-8069-6e389271911d.jpg',
                 'api' => array(
                     'market' => 'https://{hostname}',
                     'public' => 'https://{hostname}',
                     'private' => 'https://{hostname}',
-                    'zendesk' => 'https://huobiglobal.zendesk.com/hc/en-us/articles',
+                    'v2Public' => 'https://{hostname}',
+                    'v2Private' => 'https://{hostname}',
                 ),
                 'www' => 'https://www.huobi.pro',
                 'referral' => 'https://www.huobi.co/en-us/topic/invited/?invite_code=rwrd3',
@@ -66,9 +72,19 @@ class huobipro extends Exchange {
                 'fees' => 'https://www.huobi.pro/about/fee/',
             ),
             'api' => array(
-                'zendesk' => array(
+                'v2Public' => array(
                     'get' => array(
-                        '360000400491-Trade-Limits',
+                        'reference/currencies',
+                    ),
+                ),
+                'v2Private' => array(
+                    'get' => array(
+                        'account/withdraw/quota',
+                        'account/deposit/address',
+                        'reference/transact-fee-rate',
+                    ),
+                    'post' => array(
+                        'sub-user/management',
                     ),
                 ),
                 'market' => array(
@@ -92,10 +108,6 @@ class huobipro extends Exchange {
                     ),
                 ),
                 'private' => array(
-                    // todo add v2 endpoints
-                    // 'GET /v2/account/withdraw/quota
-                    // 'GET /v2/reference/currencies
-                    // 'GET /v2/account/deposit/address
                     'get' => array(
                         'account/accounts', // 查询当前用户的所有账户(即account-id)
                         'account/accounts/{id}/balance', // 查询指定账户的余额
@@ -120,8 +132,6 @@ class huobipro extends Exchange {
                         'stable-coin/exchange_rate',
                         'stable-coin/quote',
                     ),
-                    // todo add v2 endpoints
-                    // POST /v2/sub-user/management
                     'post' => array(
                         'futures/transfer',
                         'order/batch-orders',
@@ -1001,6 +1011,7 @@ class huobipro extends Exchange {
         return array(
             'info' => $order,
             'id' => $id,
+            'clientOrderId' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
@@ -1108,94 +1119,50 @@ class huobipro extends Exchange {
         );
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
-        $this->load_markets();
+    public function parse_deposit_address($depositAddress, $currency = null) {
+        //
+        //     {
+        //         $currency => "eth",
+        //         $address => "0xf7292eb9ba7bc50358e27f0e025a4d225a64127b",
+        //         addressTag => "",
+        //         chain => "eth"
+        //     }
+        //
+        $address = $this->safe_string($depositAddress, 'address');
+        $tag = $this->safe_string($depositAddress, 'addressTag');
+        $currencyId = $this->safe_string($depositAddress, 'currency');
+        $code = $this->safe_currency_code($currencyId);
         $this->check_address($address);
+        return array(
+            'currency' => $code,
+            'address' => $address,
+            'tag' => $tag,
+            'info' => $depositAddress,
+        );
+    }
+
+    public function fetch_deposit_address($code, $params = array ()) {
+        $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
-            'address' => $address, // only supports existing addresses in your withdraw $address list
-            'amount' => $amount,
-            'currency' => strtolower($currency['id']),
+            'currency' => $currency['id'],
         );
-        if ($tag !== null) {
-            $request['addr-tag'] = $tag; // only for XRP?
-        }
-        $response = $this->privatePostDwWithdrawApiCreate (array_merge($request, $params));
-        $id = $this->safe_string($response, 'data');
-        return array(
-            'info' => $response,
-            'id' => $id,
-        );
-    }
-
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = '/';
-        if ($api === 'market') {
-            $url .= $api;
-        } else if (($api === 'public') || ($api === 'private')) {
-            $url .= $this->version;
-        }
-        $url .= '/' . $this->implode_params($path, $params);
-        $query = $this->omit($params, $this->extract_params($path));
-        if ($api === 'private') {
-            $this->check_required_credentials();
-            $timestamp = $this->ymdhms($this->milliseconds(), 'T');
-            $request = array(
-                'SignatureMethod' => 'HmacSHA256',
-                'SignatureVersion' => '2',
-                'AccessKeyId' => $this->apiKey,
-                'Timestamp' => $timestamp,
-            );
-            if ($method !== 'POST') {
-                $request = array_merge($request, $query);
-            }
-            $request = $this->keysort($request);
-            $auth = $this->urlencode($request);
-            // unfortunately, PHP demands double quotes for the escaped newline symbol
-            // eslint-disable-next-line quotes
-            $payload = implode("\n", array($method, $this->hostname, $url, $auth));
-            $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
-            $auth .= '&' . $this->urlencode(array( 'Signature' => $signature ));
-            $url .= '?' . $auth;
-            if ($method === 'POST') {
-                $body = $this->json($query);
-                $headers = array(
-                    'Content-Type' => 'application/json',
-                );
-            } else {
-                $headers = array(
-                    'Content-Type' => 'application/x-www-form-urlencoded',
-                );
-            }
-        } else {
-            if ($params) {
-                $url .= '?' . $this->urlencode($params);
-            }
-        }
-        $url = $this->implode_params($this->urls['api'][$api], array(
-            'hostname' => $this->hostname,
-        )) . $url;
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
-    }
-
-    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
-        if ($response === null) {
-            return; // fallback to default error handler
-        }
-        if (is_array($response) && array_key_exists('status', $response)) {
-            //
-            //     array("$status":"error","err-$code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min => `0.001`","data":null)
-            //
-            $status = $this->safe_string($response, 'status');
-            if ($status === 'error') {
-                $code = $this->safe_string($response, 'err-code');
-                $feedback = $this->id . ' ' . $body;
-                $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
-                $message = $this->safe_string($response, 'err-msg');
-                $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
-                throw new ExchangeError($feedback);
-            }
-        }
+        $response = $this->v2PrivateGetAccountDepositAddress (array_merge($request, $params));
+        //
+        //     {
+        //         $code => 200,
+        //         $data => array(
+        //             {
+        //                 $currency => "eth",
+        //                 address => "0xf7292eb9ba7bc50358e27f0e025a4d225a64127b",
+        //                 addressTag => "",
+        //                 chain => "eth"
+        //             }
+        //         )
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_deposit_address($this->safe_value($data, 0, array()), $currency);
     }
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
@@ -1338,5 +1305,97 @@ class huobipro extends Exchange {
             'pre-transfer' => 'pending',
         );
         return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        $this->load_markets();
+        $this->check_address($address);
+        $currency = $this->currency($code);
+        $request = array(
+            'address' => $address, // only supports existing addresses in your withdraw $address list
+            'amount' => $amount,
+            'currency' => strtolower($currency['id']),
+        );
+        if ($tag !== null) {
+            $request['addr-tag'] = $tag; // only for XRP?
+        }
+        $response = $this->privatePostDwWithdrawApiCreate (array_merge($request, $params));
+        $id = $this->safe_string($response, 'data');
+        return array(
+            'info' => $response,
+            'id' => $id,
+        );
+    }
+
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = '/';
+        if ($api === 'market') {
+            $url .= $api;
+        } else if (($api === 'public') || ($api === 'private')) {
+            $url .= $this->version;
+        } else if (($api === 'v2Public') || ($api === 'v2Private')) {
+            $url .= 'v2';
+        }
+        $url .= '/' . $this->implode_params($path, $params);
+        $query = $this->omit($params, $this->extract_params($path));
+        if ($api === 'private' || $api === 'v2Private') {
+            $this->check_required_credentials();
+            $timestamp = $this->ymdhms($this->milliseconds(), 'T');
+            $request = array(
+                'SignatureMethod' => 'HmacSHA256',
+                'SignatureVersion' => '2',
+                'AccessKeyId' => $this->apiKey,
+                'Timestamp' => $timestamp,
+            );
+            if ($method !== 'POST') {
+                $request = array_merge($request, $query);
+            }
+            $request = $this->keysort($request);
+            $auth = $this->urlencode($request);
+            // unfortunately, PHP demands double quotes for the escaped newline symbol
+            // eslint-disable-next-line quotes
+            $payload = implode("\n", array($method, $this->hostname, $url, $auth));
+            $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
+            $auth .= '&' . $this->urlencode(array( 'Signature' => $signature ));
+            $url .= '?' . $auth;
+            if ($method === 'POST') {
+                $body = $this->json($query);
+                $headers = array(
+                    'Content-Type' => 'application/json',
+                );
+            } else {
+                $headers = array(
+                    'Content-Type' => 'application/x-www-form-urlencoded',
+                );
+            }
+        } else {
+            if ($params) {
+                $url .= '?' . $this->urlencode($params);
+            }
+        }
+        $url = $this->implode_params($this->urls['api'][$api], array(
+            'hostname' => $this->hostname,
+        )) . $url;
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+    }
+
+    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+        if ($response === null) {
+            return; // fallback to default error handler
+        }
+        if (is_array($response) && array_key_exists('status', $response)) {
+            //
+            //     array("$status":"error","err-$code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min => `0.001`","data":null)
+            //
+            $status = $this->safe_string($response, 'status');
+            if ($status === 'error') {
+                $code = $this->safe_string($response, 'err-code');
+                $feedback = $this->id . ' ' . $body;
+                $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
+                $message = $this->safe_string($response, 'err-msg');
+                $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
+                throw new ExchangeError($feedback);
+            }
+        }
     }
 }

@@ -176,6 +176,21 @@ class independentreserve extends Exchange {
     }
 
     public function parse_order($order, $market = null) {
+        //
+        //     {
+        //         "OrderGuid" => "c7347e4c-b865-4c94-8f74-d934d4b0b177",
+        //         "CreatedTimestampUtc" => "2014-09-23T12:39:34.3817763Z",
+        //         "Type" => "MarketBid",
+        //         "VolumeOrdered" => 5.0,
+        //         "VolumeFilled" => 5.0,
+        //         "Price" => null,
+        //         "AvgPrice" => 100.0,
+        //         "ReservedAmount" => 0.0,
+        //         "Status" => "Filled",
+        //         "PrimaryCurrencyCode" => "Xbt",
+        //         "SecondaryCurrencyCode" => "Usd"
+        //     }
+        //
         $symbol = null;
         $baseId = $this->safe_string($order, 'PrimaryCurrencyCode');
         $quoteId = $this->safe_string($order, 'PrimaryCurrencyCode');
@@ -232,6 +247,7 @@ class independentreserve extends Exchange {
         return array(
             'info' => $order,
             'id' => $id,
+            'clientOrderId' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,

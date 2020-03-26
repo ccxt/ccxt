@@ -1138,7 +1138,7 @@ class hitbtc2 extends hitbtc {
         //
         // createMarketOrder
         //
-        //   { clientOrderId =>   "fe36aa5e190149bf9985fb673bbb2ea0",
+        //   { $clientOrderId =>   "fe36aa5e190149bf9985fb673bbb2ea0",
         //         createdAt =>   "2018-10-25T16:41:44.780Z",
         //       cumQuantity =>   "1",
         //                $id =>   "66799540063",
@@ -1175,10 +1175,11 @@ class hitbtc2 extends hitbtc {
         $amount = $this->safe_float($order, 'quantity');
         $filled = $this->safe_float($order, 'cumQuantity');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        // we use clientOrderId as the $order $id with HitBTC intentionally
-        // because most of their endpoints will require clientOrderId
+        // we use $clientOrderId as the $order $id with HitBTC intentionally
+        // because most of their endpoints will require $clientOrderId
         // explained here => https://github.com/ccxt/ccxt/issues/5674
         $id = $this->safe_string($order, 'clientOrderId');
+        $clientOrderId = $id;
         $price = $this->safe_float($order, 'price');
         if ($price === null) {
             if (is_array($this->orders) && array_key_exists($id, $this->orders)) {
@@ -1234,6 +1235,7 @@ class hitbtc2 extends hitbtc {
         }
         return array(
             'id' => $id,
+            'clientOrderId' => $clientOrderId, // https://github.com/ccxt/ccxt/issues/5674
             'timestamp' => $created,
             'datetime' => $this->iso8601($created),
             'lastTradeTimestamp' => $updated,

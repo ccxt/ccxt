@@ -414,6 +414,7 @@ class coinfloor(Exchange):
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,

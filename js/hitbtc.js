@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { BadSymbol, ExchangeError, InsufficientFunds, OrderNotFound, InvalidOrder } = require ('./base/errors');
+const { BadSymbol, ExchangeError, InsufficientFunds, OrderNotFound, InvalidOrder, NullResponse } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -868,8 +868,10 @@ module.exports = class hitbtc extends Exchange {
         const id = this.safeString (order, 'clientOrderId');
         const type = this.safeString (order, 'type');
         const side = this.safeString (order, 'side');
+        const clientOrderId = id;
         return {
             'id': id,
+            'clientOrderId': clientOrderId,
             'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -915,7 +917,11 @@ module.exports = class hitbtc extends Exchange {
             request['symbols'] = market['id'];
         }
         const response = await this.tradingGetOrdersActive (this.extend (request, params));
-        return this.parseOrders (response['orders'], market, since, limit);
+        const orders = this.safeValue (response, 'orders');
+        if (orders === undefined) {
+            throw new NullResponse (this.id + ' fetchOpenOrders() received a null response from the exchange: ' + this.json (response));
+        }
+        return this.parseOrders (orders, market, since, limit);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -932,7 +938,11 @@ module.exports = class hitbtc extends Exchange {
             request['symbols'] = market['id'];
         }
         const response = await this.tradingGetOrdersRecent (this.extend (request, params));
-        return this.parseOrders (response['orders'], market, since, limit);
+        const orders = this.safeValue (response, 'orders');
+        if (orders === undefined) {
+            throw new NullResponse (this.id + ' fetchClosedOrders() received a null response from the exchange: ' + this.json (response));
+        }
+        return this.parseOrders (orders, market, since, limit);
     }
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {

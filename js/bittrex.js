@@ -267,7 +267,6 @@ module.exports = class bittrex extends Exchange {
             },
             'commonCurrencies': {
                 'BITS': 'SWIFT',
-                'CPC': 'Capricoin',
             },
         });
     }
@@ -1049,6 +1048,7 @@ module.exports = class bittrex extends Exchange {
         }
         return {
             'id': this.safeString (order, 'id'),
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -1191,6 +1191,7 @@ module.exports = class bittrex extends Exchange {
         return {
             'info': order,
             'id': id,
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,

@@ -718,7 +718,9 @@ module.exports = class bitfinex2 extends bitfinex {
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
-        const timestamp = this.safeTimestamp (order, 5);
+        // https://github.com/ccxt/ccxt/issues/6686
+        // const timestamp = this.safeTimestamp (order, 5);
+        const timestamp = this.safeInteger (order, 5);
         const remaining = Math.abs (this.safeFloat (order, 6));
         const amount = Math.abs (this.safeFloat (order, 7));
         const filled = amount - remaining;
@@ -734,9 +736,11 @@ module.exports = class bitfinex2 extends bitfinex {
         const price = this.safeFloat (order, 16);
         const average = this.safeFloat (order, 17);
         const cost = price * filled;
+        const clientOrderId = this.safeString (order, 2);
         return {
             'info': order,
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,

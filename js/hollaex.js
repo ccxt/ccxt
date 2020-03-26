@@ -754,6 +754,7 @@ module.exports = class hollaex extends Exchange {
         const status = (type === 'market') ? 'closed' : 'open';
         const result = {
             'id': id,
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,

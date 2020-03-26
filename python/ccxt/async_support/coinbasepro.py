@@ -567,6 +567,7 @@ class coinbasepro(Exchange):
         side = self.safe_string(order, 'side')
         return {
             'id': id,
+            'clientOrderId': None,
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),

@@ -816,6 +816,7 @@ class cex extends Exchange {
         }
         return array(
             'id' => $orderId,
+            'clientOrderId' => null,
             'datetime' => $this->iso8601($timestamp),
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => null,

@@ -373,6 +373,20 @@ class kkex(Exchange):
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
+        #
+        #     {
+        #         "status": 2,
+        #         "source": "NORMAL",
+        #         "amount": "10.852019",
+        #         "create_date": 1523938461036,
+        #         "avg_price": "0.00096104",
+        #         "order_id": "100",
+        #         "price": "0.00096105",
+        #         "type": "buy",
+        #         "symbol": "READBTC",
+        #         "deal_amount": "10.852019"
+        #     }
+        #
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -396,6 +410,7 @@ class kkex(Exchange):
                 cost = average * filled
         return {
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,

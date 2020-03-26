@@ -279,7 +279,9 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
 
 function exportExchangeIdsToExchangesJson (exchanges) {
     log.bright ('Exporting exchange ids to'.cyan, 'exchanges.json'.yellow)
-    fs.writeFileSync ('exchanges.json', JSON.stringify ({ ids: keys (exchanges) }, null, 4))
+    const ids = keys (exchanges)
+    console.log (ids)
+    fs.writeFileSync ('exchanges.json', JSON.stringify ({ ids }, null, 4))
 }
 
 // ----------------------------------------------------------------------------

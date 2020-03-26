@@ -330,6 +330,7 @@ module.exports = class ice3x extends Exchange {
         }
         return {
             'id': this.safeString (order, 'order_id'),
+            'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,

@@ -446,6 +446,7 @@ class coinex(Exchange):
         side = self.safe_string(order, 'type')
         return {
             'id': self.safe_string(order, 'id'),
+            'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,

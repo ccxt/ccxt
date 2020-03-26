@@ -949,6 +949,7 @@ class anxpro(Exchange):
         cost = executedAverageRate * filled
         return {
             'id': self.safe_string(order, 'orderId'),
+            'clientOrderId': None,
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -1036,6 +1037,7 @@ class anxpro(Exchange):
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),

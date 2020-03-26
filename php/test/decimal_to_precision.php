@@ -26,10 +26,10 @@ function number_to_string ($x) {
     return Exchange::number_to_string ($x);
 }
 function toWei ($amount, $decimals) {
-    return Exchange::toWei ($amount, $decimals);
+    return Exchange::to_wei ($amount, $decimals);
 }
 function fromWei ($amount, $decimals) {
-    return Exchange::fromWei ($amount, $decimals);
+    return Exchange::from_wei ($amount, $decimals);
 }
 
 // ----------------------------------------------------------------------------

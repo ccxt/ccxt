@@ -682,6 +682,7 @@ module.exports = class bitmart extends Exchange {
         const type = undefined;
         return {
             'id': id,
+            'clientOrderId': undefined,
             'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),

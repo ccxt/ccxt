@@ -664,6 +664,7 @@ class liquid extends Exchange {
         $side = $this->safe_string($order, 'side');
         return array(
             'id' => $orderId,
+            'clientOrderId' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,

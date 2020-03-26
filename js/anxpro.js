@@ -974,6 +974,7 @@ module.exports = class anxpro extends Exchange {
         const cost = executedAverageRate * filled;
         return {
             'id': this.safeString (order, 'orderId'),
+            'clientOrderId': undefined,
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1066,6 +1067,7 @@ module.exports = class anxpro extends Exchange {
         return {
             'info': order,
             'id': id,
+            'clientOrderId': undefined,
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),

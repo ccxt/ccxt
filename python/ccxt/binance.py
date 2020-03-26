@@ -941,6 +941,46 @@ class binance(Exchange):
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
+        #
+        #  spot
+        #
+        #     {
+        #         "symbol": "LTCBTC",
+        #         "orderId": 1,
+        #         "clientOrderId": "myOrder1",
+        #         "price": "0.1",
+        #         "origQty": "1.0",
+        #         "executedQty": "0.0",
+        #         "cummulativeQuoteQty": "0.0",
+        #         "status": "NEW",
+        #         "timeInForce": "GTC",
+        #         "type": "LIMIT",
+        #         "side": "BUY",
+        #         "stopPrice": "0.0",
+        #         "icebergQty": "0.0",
+        #         "time": 1499827319559,
+        #         "updateTime": 1499827319559,
+        #         "isWorking": True
+        #     }
+        #
+        #  futures
+        #
+        #     {
+        #         "symbol": "BTCUSDT",
+        #         "orderId": 1,
+        #         "clientOrderId": "myOrder1",
+        #         "price": "0.1",
+        #         "origQty": "1.0",
+        #         "executedQty": "1.0",
+        #         "cumQuote": "10.0",
+        #         "status": "NEW",
+        #         "timeInForce": "GTC",
+        #         "type": "LIMIT",
+        #         "side": "BUY",
+        #         "stopPrice": "0.0",
+        #         "updateTime": 1499827319559
+        #     }
+        #
         status = self.parse_order_status(self.safe_string(order, 'status'))
         symbol = None
         marketId = self.safe_string(order, 'symbol')
@@ -1005,9 +1045,11 @@ class binance(Exchange):
                     average = float(self.price_to_precision(symbol, average))
             if self.options['parseOrderToPrecision']:
                 cost = float(self.cost_to_precision(symbol, cost))
+        clientOrderId = self.safe_string(order, 'clientOrderId')
         return {
             'info': order,
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,

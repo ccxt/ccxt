@@ -457,6 +457,7 @@ class braziliex extends Exchange {
         $status = ($filledPercentage === 1.0) ? 'closed' : 'open';
         return array(
             'id' => $id,
+            'clientOrderId' => null,
             'datetime' => $this->iso8601($timestamp),
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => null,

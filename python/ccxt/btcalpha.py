@@ -293,6 +293,7 @@ class btcalpha(Exchange):
             remaining = max(0, amount - filled)
         return {
             'id': id,
+            'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'status': status,

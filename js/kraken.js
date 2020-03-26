@@ -855,8 +855,10 @@ module.exports = class kraken extends Exchange {
                 id = (length > 1) ? id : id[0];
             }
         }
+        const clientOrderId = this.safeString (params, 'userref');
         return {
             'id': id,
+            'clientOrderId': clientOrderId,
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
@@ -978,8 +980,10 @@ module.exports = class kraken extends Exchange {
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const id = this.safeString (order, 'id');
+        const clientOrderId = this.safeString (order, 'userref');
         return {
             'id': id,
+            'clientOrderId': clientOrderId,
             'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),

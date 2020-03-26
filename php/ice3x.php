@@ -333,6 +333,7 @@ class ice3x extends Exchange {
         }
         return array(
             'id' => $this->safe_string($order, 'order_id'),
+            'clientOrderId' => null,
             'datetime' => $this->iso8601($timestamp),
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => null,

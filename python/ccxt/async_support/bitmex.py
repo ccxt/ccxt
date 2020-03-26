@@ -62,7 +62,7 @@ class bitmex(Exchange):
                     'https://github.com/BitMEX/api-connectors/tree/master/official-http',
                 ],
                 'fees': 'https://www.bitmex.com/app/fees',
-                'referral': 'https://www.bitmex.com/register/rm3C16',
+                'referral': 'https://www.bitmex.com/register/upZpOX',
             },
             'api': {
                 'public': {
@@ -1044,9 +1044,11 @@ class bitmex(Exchange):
         id = self.safe_string(order, 'orderID')
         type = self.safe_string_lower(order, 'ordType')
         side = self.safe_string_lower(order, 'side')
+        clientOrderId = self.safe_string(order, 'clOrdID')
         return {
             'info': order,
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,

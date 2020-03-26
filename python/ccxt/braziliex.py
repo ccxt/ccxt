@@ -439,6 +439,7 @@ class braziliex(Exchange):
         status = 'closed' if (filledPercentage == 1.0) else 'open'
         return {
             'id': id,
+            'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,

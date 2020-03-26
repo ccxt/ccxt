@@ -275,6 +275,20 @@ class exx extends Exchange {
     }
 
     public function parse_order($order, $market = null) {
+        //
+        //     {
+        //         "fees" => 0,
+        //         "total_amount" => 1,
+        //         "trade_amount" => 0,
+        //         "$price" => 30,
+        //         "currency" => “eth_hsr",
+        //         "id" => "13878",
+        //         "trade_money" => 0,
+        //         "type" => "buy",
+        //         "trade_date" => 1509728897772,
+        //         "$status" => 0
+        //     }
+        //
         $symbol = $market['symbol'];
         $timestamp = intval ($order['trade_date']);
         $price = $this->safe_float($order, 'price');
@@ -299,6 +313,7 @@ class exx extends Exchange {
         }
         return array(
             'id' => $this->safe_string($order, 'id'),
+            'clientOrderId' => null,
             'datetime' => $this->iso8601($timestamp),
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => null,

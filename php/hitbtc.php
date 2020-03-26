@@ -7,6 +7,7 @@ namespace ccxt;
 
 use Exception; // a common import
 use \ccxt\ExchangeError;
+use \ccxt\NullResponse;
 use \ccxt\InsufficientFunds;
 use \ccxt\InvalidOrder;
 use \ccxt\OrderNotFound;
@@ -867,14 +868,16 @@ class hitbtc extends Exchange {
             'currency' => $feeCurrency,
             'rate' => null,
         );
-        // we use clientOrderId as the $order $id with HitBTC intentionally
-        // because most of their endpoints will require clientOrderId
+        // we use $clientOrderId as the $order $id with HitBTC intentionally
+        // because most of their endpoints will require $clientOrderId
         // explained here => https://github.com/ccxt/ccxt/issues/5674
         $id = $this->safe_string($order, 'clientOrderId');
         $type = $this->safe_string($order, 'type');
         $side = $this->safe_string($order, 'side');
+        $clientOrderId = $id;
         return array(
             'id' => $id,
+            'clientOrderId' => $clientOrderId,
             'info' => $order,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -920,7 +923,11 @@ class hitbtc extends Exchange {
             $request['symbols'] = $market['id'];
         }
         $response = $this->tradingGetOrdersActive (array_merge($request, $params));
-        return $this->parse_orders($response['orders'], $market, $since, $limit);
+        $orders = $this->safe_value($response, 'orders');
+        if ($orders === null) {
+            throw new NullResponse($this->id . ' fetchOpenOrders() received a null $response from the exchange => ' . $this->json($response));
+        }
+        return $this->parse_orders($orders, $market, $since, $limit);
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -937,7 +944,11 @@ class hitbtc extends Exchange {
             $request['symbols'] = $market['id'];
         }
         $response = $this->tradingGetOrdersRecent (array_merge($request, $params));
-        return $this->parse_orders($response['orders'], $market, $since, $limit);
+        $orders = $this->safe_value($response, 'orders');
+        if ($orders === null) {
+            throw new NullResponse($this->id . ' fetchClosedOrders() received a null $response from the exchange => ' . $this->json($response));
+        }
+        return $this->parse_orders($orders, $market, $since, $limit);
     }
 
     public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {

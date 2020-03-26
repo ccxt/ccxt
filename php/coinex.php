@@ -467,6 +467,7 @@ class coinex extends Exchange {
         $side = $this->safe_string($order, 'type');
         return array(
             'id' => $this->safe_string($order, 'id'),
+            'clientOrderId' => null,
             'datetime' => $this->iso8601($timestamp),
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => null,

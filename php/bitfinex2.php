@@ -724,7 +724,9 @@ class bitfinex2 extends bitfinex {
         if (($symbol === null) && ($market !== null)) {
             $symbol = $market['symbol'];
         }
-        $timestamp = $this->safe_timestamp($order, 5);
+        // https://github.com/ccxt/ccxt/issues/6686
+        // $timestamp = $this->safe_timestamp($order, 5);
+        $timestamp = $this->safe_integer($order, 5);
         $remaining = abs($this->safe_float($order, 6));
         $amount = abs($this->safe_float($order, 7));
         $filled = $amount - $remaining;
@@ -740,9 +742,11 @@ class bitfinex2 extends bitfinex {
         $price = $this->safe_float($order, 16);
         $average = $this->safe_float($order, 17);
         $cost = $price * $filled;
+        $clientOrderId = $this->safe_string($order, 2);
         return array(
             'info' => $order,
             'id' => $id,
+            'clientOrderId' => $clientOrderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
