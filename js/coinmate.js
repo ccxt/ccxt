@@ -155,6 +155,9 @@ module.exports = class coinmate extends Exchange {
                     },
                 },
             },
+            'options': {
+                'promotionalMarkets': ['ETH/EUR', 'ETH/CZK', 'ETH/BTC', 'XRP/EUR', 'XRP/CZK', 'XRP/BTC', 'DASH/EUR', 'DASH/CZK', 'DASH/BTC', 'BCH/EUR', 'BCH/CZK', 'BCH/BTC'],
+            },
             'exceptions': {
                 'exact': {
                     'No order with given ID': OrderNotFound,
@@ -199,6 +202,15 @@ module.exports = class coinmate extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
+            let maker = undefined;
+            let taker = undefined;
+            if (this['options']['promotionalMarkets'].indexOf (symbol) >= 0) {
+                maker = this['fees']['promotional']['trading']['maker'];
+                taker = this['fees']['promotional']['trading']['taker'];
+            } else {
+                maker = this['fees']['trading']['maker'];
+                taker = this['fees']['trading']['taker'];
+            }
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -207,6 +219,8 @@ module.exports = class coinmate extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': undefined,
+                'maker': maker,
+                'taker': taker,
                 'info': market,
                 'precision': {
                     'price': this.safeInteger (market, 'priceDecimals'),
