@@ -868,8 +868,10 @@ module.exports = class hitbtc extends Exchange {
         const id = this.safeString (order, 'clientOrderId');
         const type = this.safeString (order, 'type');
         const side = this.safeString (order, 'side');
+        const clientOrderId = id;
         return {
             'id': id,
+            'clientOrderId': clientOrderId,
             'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
