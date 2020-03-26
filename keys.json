@@ -74,6 +74,7 @@
     "mixcoins":      { "skip": true },
     "nova":          { "skip": true },
     "oceanex":       { "skip": true },
+    "okcoin":        { "skip": true },
     "okcoinusd":     { "skip": true },
     "okex3":         { "skip": true },
     "paymium":       { "skip": true },
