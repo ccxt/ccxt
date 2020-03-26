@@ -532,7 +532,7 @@ class coinmate extends Exchange {
         //         orderTradeType => 'LIMIT',
         //         hidden => false,
         //         trailing => false,
-        //         clientOrderId => null
+        //         $clientOrderId => null
         //     }
         //
         // limit buy
@@ -588,8 +588,10 @@ class coinmate extends Exchange {
         if (($symbol === null) && ($market !== null)) {
             $symbol = $market['symbol'];
         }
+        $clientOrderId = $this->safe_string($order, 'clientOrderId');
         return array(
             'id' => $id,
+            'clientOrderId' => $clientOrderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,

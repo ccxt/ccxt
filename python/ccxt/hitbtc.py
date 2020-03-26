@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadSymbol
+from ccxt.base.errors import NullResponse
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -878,7 +879,10 @@ class hitbtc(Exchange):
             market = self.market(symbol)
             request['symbols'] = market['id']
         response = self.tradingGetOrdersActive(self.extend(request, params))
-        return self.parse_orders(response['orders'], market, since, limit)
+        orders = self.safe_value(response, 'orders')
+        if orders is None:
+            raise NullResponse(self.id + ' fetchOpenOrders() received a None response from the exchange: ' + self.json(response))
+        return self.parse_orders(orders, market, since, limit)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -893,7 +897,10 @@ class hitbtc(Exchange):
             market = self.market(symbol)
             request['symbols'] = market['id']
         response = self.tradingGetOrdersRecent(self.extend(request, params))
-        return self.parse_orders(response['orders'], market, since, limit)
+        orders = self.safe_value(response, 'orders')
+        if orders is None:
+            raise NullResponse(self.id + ' fetchClosedOrders() received a None response from the exchange: ' + self.json(response))
+        return self.parse_orders(orders, market, since, limit)
 
     def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
