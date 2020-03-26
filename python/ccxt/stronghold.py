@@ -549,6 +549,7 @@ class stronghold(Exchange):
                 cost = amount * price
         return {
             'id': id,
+            'clientOrderId': None,
             'info': order,
             'symbol': symbol,
             'datetime': datetime,
