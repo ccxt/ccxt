@@ -288,7 +288,6 @@ class bittrex(Exchange):
             },
             'commonCurrencies': {
                 'BITS': 'SWIFT',
-                'CPC': 'Capricoin',
             },
         })
 
