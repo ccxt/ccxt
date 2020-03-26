@@ -863,9 +863,11 @@ class ftx extends Exchange {
             $cost = $filled * $price;
         }
         $lastTradeTimestamp = $this->parse8601($this->safe_string($order, 'triggeredAt'));
+        $clientOrderId = $this->safe_string($order, 'clientId');
         return array(
             'info' => $order,
             'id' => $id,
+            'clientOrderId' => $clientOrderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
