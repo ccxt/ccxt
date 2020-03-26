@@ -414,8 +414,8 @@ module.exports = class deribit extends Exchange {
             //     }
             //
             const instrumentsResult = this.safeValue (instrumentsResponse, 'result', []);
-            for (let i = 0; i < instrumentsResult.length; i++) {
-                const market = instrumentsResult[i];
+            for (let k = 0; k < instrumentsResult.length; k++) {
+                const market = instrumentsResult[k];
                 const id = this.safeString (market, 'instrument_name');
                 const baseId = this.safeString (market, 'base_currency');
                 const quoteId = this.safeString (market, 'quote_currency');
