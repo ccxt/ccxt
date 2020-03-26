@@ -308,6 +308,7 @@ class ice3x(Exchange):
                 fee['currency'] = market['quote']
         return {
             'id': self.safe_string(order, 'order_id'),
+            'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,

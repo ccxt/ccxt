@@ -836,8 +836,10 @@ class hitbtc(Exchange):
         id = self.safe_string(order, 'clientOrderId')
         type = self.safe_string(order, 'type')
         side = self.safe_string(order, 'side')
+        clientOrderId = id
         return {
             'id': id,
+            'clientOrderId': clientOrderId,
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
