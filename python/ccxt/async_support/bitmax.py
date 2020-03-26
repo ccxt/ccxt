@@ -687,9 +687,11 @@ class bitmax(Exchange):
             'currency': self.safe_string(order, 'feeAsset'),
         }
         average = self.safe_float(order, 'avgPrice')
+        clientOrderId = self.safe_string(order, 'coid')
         return {
             'info': order,
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
