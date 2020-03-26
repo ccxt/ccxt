@@ -726,9 +726,11 @@ module.exports = class bitmax extends Exchange {
             'currency': this.safeString (order, 'feeAsset'),
         };
         const average = this.safeFloat (order, 'avgPrice');
+        const clientOrderId = this.safeString (order, 'coid');
         return {
             'info': order,
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
