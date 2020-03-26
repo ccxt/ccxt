@@ -26,6 +26,7 @@
     "btctradeua":    { "skip": true },
     "btcturk":       { "skip": true },
     "bter":          { "skip": true },
+    "buda":          { "skip": true },
     "bxinth":        { "skip": true },
     "bytetrade":     { "skip": true },
     "cex":           { "skip": true },
