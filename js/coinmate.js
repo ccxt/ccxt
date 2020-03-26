@@ -202,8 +202,6 @@ module.exports = class coinmate extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
-            let maker = undefined;
-            let taker = undefined;
             const promotionalMarkets = this.safeValue (this.options, 'promotionalMarkets', []);
             let fees = this.safeValue (this.fees, 'trading');
             if (this.inArray (symbol, promotionalMarkets)) {
