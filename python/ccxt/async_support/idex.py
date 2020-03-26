@@ -725,6 +725,7 @@ class idex(Exchange):
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),

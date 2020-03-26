@@ -1115,9 +1115,11 @@ class bitmex extends Exchange {
         $id = $this->safe_string($order, 'orderID');
         $type = $this->safe_string_lower($order, 'ordType');
         $side = $this->safe_string_lower($order, 'side');
+        $clientOrderId = $this->safe_string($order, 'clOrdID');
         return array(
             'info' => $order,
             'id' => $id,
+            'clientOrderId' => $clientOrderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,

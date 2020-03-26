@@ -360,6 +360,7 @@ class bitflyer extends Exchange {
         $id = $this->safe_string($order, 'child_order_acceptance_id');
         return array(
             'id' => $id,
+            'clientOrderId' => null,
             'info' => $order,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),

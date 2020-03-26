@@ -372,9 +372,11 @@ class bitso extends Exchange {
                 $filled = $amount - $remaining;
             }
         }
+        $clientOrderId = $this->safe_string($order, 'client_id');
         return array(
             'info' => $order,
             'id' => $id,
+            'clientOrderId' => $clientOrderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,

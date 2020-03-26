@@ -812,8 +812,10 @@ class kraken(Exchange):
             if isinstance(id, list):
                 length = len(id)
                 id = id if (length > 1) else id[0]
+        clientOrderId = self.safe_string(params, 'userref')
         return {
             'id': id,
+            'clientOrderId': clientOrderId,
             'info': response,
             'timestamp': None,
             'datetime': None,
@@ -921,8 +923,10 @@ class kraken(Exchange):
                     fee['currency'] = market['base']
         status = self.parse_order_status(self.safe_string(order, 'status'))
         id = self.safe_string(order, 'id')
+        clientOrderId = self.safe_string(order, 'userref')
         return {
             'id': id,
+            'clientOrderId': clientOrderId,
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),

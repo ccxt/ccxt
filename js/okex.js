@@ -2068,9 +2068,11 @@ module.exports = class okex extends Exchange {
                 'currency': feeCurrency,
             };
         }
+        const clientOrderId = this.safeString (order, 'client_oid');
         return {
             'info': order,
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,

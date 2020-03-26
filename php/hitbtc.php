@@ -868,14 +868,16 @@ class hitbtc extends Exchange {
             'currency' => $feeCurrency,
             'rate' => null,
         );
-        // we use clientOrderId as the $order $id with HitBTC intentionally
-        // because most of their endpoints will require clientOrderId
+        // we use $clientOrderId as the $order $id with HitBTC intentionally
+        // because most of their endpoints will require $clientOrderId
         // explained here => https://github.com/ccxt/ccxt/issues/5674
         $id = $this->safe_string($order, 'clientOrderId');
         $type = $this->safe_string($order, 'type');
         $side = $this->safe_string($order, 'side');
+        $clientOrderId = $id;
         return array(
             'id' => $id,
+            'clientOrderId' => $clientOrderId,
             'info' => $order,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),

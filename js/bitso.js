@@ -369,9 +369,11 @@ module.exports = class bitso extends Exchange {
                 filled = amount - remaining;
             }
         }
+        const clientOrderId = this.safeString (order, 'client_id');
         return {
             'info': order,
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,

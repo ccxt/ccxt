@@ -718,6 +718,7 @@ class hollaex(Exchange):
         status = 'closed' if (type == 'market') else 'open'
         result = {
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,

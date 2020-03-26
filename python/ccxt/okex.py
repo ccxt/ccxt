@@ -2010,9 +2010,11 @@ class okex(Exchange):
                 'cost': feeCost,
                 'currency': feeCurrency,
             }
+        clientOrderId = self.safe_string(order, 'client_oid')
         return {
             'info': order,
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,

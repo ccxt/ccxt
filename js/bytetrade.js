@@ -541,6 +541,7 @@ module.exports = class bytetrade extends Exchange {
         return {
             'info': order,
             'id': id,
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': datetime,
             'lastTradeTimestamp': lastTradeTimestamp,

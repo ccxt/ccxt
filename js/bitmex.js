@@ -1111,9 +1111,11 @@ module.exports = class bitmex extends Exchange {
         const id = this.safeString (order, 'orderID');
         const type = this.safeStringLower (order, 'ordType');
         const side = this.safeStringLower (order, 'side');
+        const clientOrderId = this.safeString (order, 'clOrdID');
         return {
             'info': order,
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,

@@ -734,9 +734,11 @@ module.exports = class bitfinex2 extends bitfinex {
         const price = this.safeFloat (order, 16);
         const average = this.safeFloat (order, 17);
         const cost = price * filled;
+        const clientOrderId = this.safeString (order, 2);
         return {
             'info': order,
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,

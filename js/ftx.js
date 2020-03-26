@@ -861,9 +861,11 @@ module.exports = class ftx extends Exchange {
             cost = filled * price;
         }
         const lastTradeTimestamp = this.parse8601 (this.safeString (order, 'triggeredAt'));
+        const clientOrderId = this.safeString (order, 'clientId');
         return {
             'info': order,
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,

@@ -316,6 +316,7 @@ class bitbank extends Exchange {
         $side = $this->safe_string_lower($order, 'side');
         return array(
             'id' => $id,
+            'clientOrderId' => null,
             'datetime' => $this->iso8601($timestamp),
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => null,

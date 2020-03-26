@@ -545,6 +545,7 @@ class bytetrade extends Exchange {
         return array(
             'info' => $order,
             'id' => $id,
+            'clientOrderId' => null,
             'timestamp' => $timestamp,
             'datetime' => $datetime,
             'lastTradeTimestamp' => $lastTradeTimestamp,

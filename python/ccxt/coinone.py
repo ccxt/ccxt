@@ -340,6 +340,17 @@ class coinone(Exchange):
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
+        #
+        #     {
+        #         "index": "0",
+        #         "orderId": "68665943-1eb5-4e4b-9d76-845fc54f5489",
+        #         "timestamp": "1449037367",
+        #         "price": "444000.0",
+        #         "qty": "0.3456",
+        #         "type": "ask",
+        #         "feeRate": "-0.0015"
+        #     }
+        #
         info = self.safe_value(order, 'info')
         id = self.safe_string_upper(info, 'orderId')
         timestamp = self.safe_timestamp(info, 'timestamp')
@@ -375,6 +386,7 @@ class coinone(Exchange):
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,

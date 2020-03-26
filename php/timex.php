@@ -1122,7 +1122,7 @@ class timex extends Exchange {
         //
         //     {
         //         "cancelledQuantity" => "0.3",
-        //         "clientOrderId" => "my-$order-1",
+        //         "$clientOrderId" => "my-$order-1",
         //         "createdAt" => "1970-01-01T00:00:00",
         //         "cursorId" => 50,
         //         "expireTime" => "1970-01-01T00:00:00",
@@ -1182,9 +1182,11 @@ class timex extends Exchange {
                 $lastTradeTimestamp = $trades[$numTrades - 1]['timestamp'];
             }
         }
+        $clientOrderId = $this->safe_string($order, 'clientOrderId');
         return array(
             'info' => $order,
             'id' => $id,
+            'clientOrderId' => $clientOrderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
