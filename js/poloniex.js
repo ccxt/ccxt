@@ -749,6 +749,7 @@ module.exports = class poloniex extends Exchange {
         //             },
         //         ],
         //         'fee': '0.00000000',
+        //         'clientOrderId': '12345',
         //         'currencyPair': 'BTC_MANA',
         //         // ---------------------------------------------------------
         //         // the following fields are injected by createOrder
@@ -835,9 +836,11 @@ module.exports = class poloniex extends Exchange {
                 'currency': feeCurrencyCode,
             };
         }
+        const clientOrderId = this.safeString (order, 'clientOrderId');
         return {
             'info': order,
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
