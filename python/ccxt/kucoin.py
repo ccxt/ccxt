@@ -860,8 +860,10 @@ class kucoin(Exchange):
                 if (cost is not None) and (filled is not None):
                     if (cost > 0) and (filled > 0):
                         price = cost / filled
+        clientOrderId = self.safe_string(order, 'clientOid')
         return {
             'id': orderId,
+            'clientOrderId': clientOrderId,
             'symbol': symbol,
             'type': type,
             'side': side,

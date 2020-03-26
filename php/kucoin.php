@@ -901,8 +901,10 @@ class kucoin extends Exchange {
                 }
             }
         }
+        $clientOrderId = $this->safe_string($order, 'clientOid');
         return array(
             'id' => $orderId,
+            'clientOrderId' => $clientOrderId,
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
