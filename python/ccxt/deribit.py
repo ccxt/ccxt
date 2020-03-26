@@ -425,8 +425,8 @@ class deribit(Exchange):
             #     }
             #
             instrumentsResult = self.safe_value(instrumentsResponse, 'result', [])
-            for i in range(0, len(instrumentsResult)):
-                market = instrumentsResult[i]
+            for k in range(0, len(instrumentsResult)):
+                market = instrumentsResult[k]
                 id = self.safe_string(market, 'instrument_name')
                 baseId = self.safe_string(market, 'base_currency')
                 quoteId = self.safe_string(market, 'quote_currency')
@@ -1611,7 +1611,7 @@ class deribit(Exchange):
             auth = timestamp + "\n" + nonce + "\n" + requestData  # eslint-disable-line quotes
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
             headers = {
-                'Authorization': 'deri-hmac-sha256 id=' + self.apiKey + ',ts=' + timestamp + ',sig=' + signature + ',nonce=' + nonce,
+                'Authorization': 'deri-hmac-sha256 id=' + self.apiKey + ',ts=' + timestamp + ',sig=' + signature + ',' + 'nonce=' + nonce,
             }
         url = self.urls['api'] + request
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
