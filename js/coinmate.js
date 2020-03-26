@@ -585,8 +585,10 @@ module.exports = class coinmate extends Exchange {
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
+        const clientOrderId = this.safeString (order, 'clientOrderId');
         return {
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
