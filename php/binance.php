@@ -980,6 +980,46 @@ class binance extends Exchange {
     }
 
     public function parse_order($order, $market = null) {
+        //
+        //  spot
+        //
+        //     {
+        //         "$symbol" => "LTCBTC",
+        //         "orderId" => 1,
+        //         "$clientOrderId" => "myOrder1",
+        //         "$price" => "0.1",
+        //         "origQty" => "1.0",
+        //         "executedQty" => "0.0",
+        //         "cummulativeQuoteQty" => "0.0",
+        //         "$status" => "NEW",
+        //         "timeInForce" => "GTC",
+        //         "$type" => "LIMIT",
+        //         "$side" => "BUY",
+        //         "stopPrice" => "0.0",
+        //         "icebergQty" => "0.0",
+        //         "time" => 1499827319559,
+        //         "updateTime" => 1499827319559,
+        //         "isWorking" => true
+        //     }
+        //
+        //  futures
+        //
+        //     {
+        //         "$symbol" => "BTCUSDT",
+        //         "orderId" => 1,
+        //         "$clientOrderId" => "myOrder1",
+        //         "$price" => "0.1",
+        //         "origQty" => "1.0",
+        //         "executedQty" => "1.0",
+        //         "cumQuote" => "10.0",
+        //         "$status" => "NEW",
+        //         "timeInForce" => "GTC",
+        //         "$type" => "LIMIT",
+        //         "$side" => "BUY",
+        //         "stopPrice" => "0.0",
+        //         "updateTime" => 1499827319559
+        //     }
+        //
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $symbol = null;
         $marketId = $this->safe_string($order, 'symbol');
@@ -1064,9 +1104,11 @@ class binance extends Exchange {
                 $cost = floatval ($this->cost_to_precision($symbol, $cost));
             }
         }
+        $clientOrderId = $this->safe_string($order, 'clientOrderId');
         return array(
             'info' => $order,
             'id' => $id,
+            'clientOrderId' => $clientOrderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
