@@ -1128,6 +1128,7 @@ class hitbtc2(hitbtc):
         # because most of their endpoints will require clientOrderId
         # explained here: https://github.com/ccxt/ccxt/issues/5674
         id = self.safe_string(order, 'clientOrderId')
+        clientOrderId = id
         price = self.safe_float(order, 'price')
         if price is None:
             if id in self.orders:
@@ -1170,6 +1171,7 @@ class hitbtc2(hitbtc):
                 }
         return {
             'id': id,
+            'clientOrderId': clientOrderId,  # https://github.com/ccxt/ccxt/issues/5674
             'timestamp': created,
             'datetime': self.iso8601(created),
             'lastTradeTimestamp': updated,
