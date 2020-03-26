@@ -166,6 +166,10 @@ class gateio(Exchange):
                     },
                 },
             },
+            'commonCurrencies': {
+                'BTCBEAR': 'BEAR',
+                'BTCBULL': 'BULL',
+            },
         })
 
     def fetch_markets(self, params={}):
@@ -507,6 +511,7 @@ class gateio(Exchange):
             feeRate = feeRate / 100
         return {
             'id': id,
+            'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': lastTradeTimestamp,

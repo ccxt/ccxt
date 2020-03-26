@@ -120,6 +120,7 @@ module.exports = class crex24 extends Exchange {
             },
             'commonCurrencies': {
                 'YOYO': 'YOYOW',
+                'BULL': 'BuySell',
                 'BCC': 'BCH',
             },
             // exchange-specific options
@@ -705,6 +706,7 @@ module.exports = class crex24 extends Exchange {
         return {
             'info': order,
             'id': id,
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,

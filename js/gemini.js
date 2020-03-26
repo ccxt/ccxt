@@ -455,8 +455,10 @@ module.exports = class gemini extends Exchange {
         }
         const id = this.safeString (order, 'order_id');
         const side = this.safeStringLower (order, 'side');
+        const clientOrderId = this.safeString (order, 'client_order_id');
         return {
             'id': id,
+            'clientOrderId': clientOrderId,
             'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),

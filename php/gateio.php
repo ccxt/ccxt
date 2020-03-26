@@ -12,7 +12,7 @@ use \ccxt\InvalidAddress;
 
 class gateio extends Exchange {
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'id' => 'gateio',
             'name' => 'Gate.io',
@@ -159,10 +159,14 @@ class gateio extends Exchange {
                     ),
                 ),
             ),
+            'commonCurrencies' => array(
+                'BTCBEAR' => 'BEAR',
+                'BTCBULL' => 'BULL',
+            ),
         ));
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         $response = $this->publicGetMarketinfo ($params);
         $markets = $this->safe_value($response, 'pairs');
         if (!$markets) {
@@ -230,7 +234,7 @@ class gateio extends Exchange {
         return $result;
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostBalances ($params);
         $result = array( 'info' => $response );
@@ -243,7 +247,7 @@ class gateio extends Exchange {
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $code = $this->safe_currency_code($currencyId);
-            $account = $this->account ();
+            $account = $this->account();
             $account['free'] = $this->safe_float($available, $currencyId);
             $account['used'] = $this->safe_float($locked, $currencyId);
             $result[$code] = $account;
@@ -251,7 +255,7 @@ class gateio extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'id' => $this->market_id($symbol),
@@ -260,7 +264,7 @@ class gateio extends Exchange {
         return $this->parse_order_book($response);
     }
 
-    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
         // they return array( Timestamp, Volume, Close, High, Low, Open )
         return [
             intval ($ohlcv[0]),   // t
@@ -272,9 +276,9 @@ class gateio extends Exchange {
         ];
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'id' => $market['id'],
             'group_sec' => $this->timeframes[$timeframe],
@@ -302,8 +306,8 @@ class gateio extends Exchange {
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ticker ($ticker, $market = null) {
-        $timestamp = $this->milliseconds ();
+    public function parse_ticker($ticker, $market = null) {
+        $timestamp = $this->milliseconds();
         $symbol = null;
         if ($market) {
             $symbol = $market['symbol'];
@@ -315,16 +319,16 @@ class gateio extends Exchange {
         $average = null;
         if (($last !== null) && ($percentage !== null)) {
             $relativeChange = $percentage / 100;
-            $open = $last / $this->sum (1, $relativeChange);
+            $open = $last / $this->sum(1, $relativeChange);
             $change = $last - $open;
-            $average = $this->sum ($last, $open) / 2;
+            $average = $this->sum($last, $open) / 2;
         }
         $open = $this->safe_float($ticker, 'open', $open);
         $change = $this->safe_float($ticker, 'change', $change);
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float_2($ticker, 'high24hr', 'high'),
             'low' => $this->safe_float_2($ticker, 'low24hr', 'low'),
             'bid' => $this->safe_float($ticker, 'highestBid'),
@@ -345,7 +349,7 @@ class gateio extends Exchange {
         );
     }
 
-    public function fetch_tickers ($symbols = null, $params = array ()) {
+    public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
         $response = $this->publicGetTickers ($params);
         $result = array();
@@ -370,16 +374,16 @@ class gateio extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $ticker = $this->publicGetTickerId (array_merge(array(
             'id' => $market['id'],
         ), $params));
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         // array(
         //     "tradeID" => 3175762,
         //     "date" => "2017-08-25 07:24:28",
@@ -434,7 +438,7 @@ class gateio extends Exchange {
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'order' => $orderId,
             'type' => null,
@@ -447,9 +451,9 @@ class gateio extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'id' => $market['id'],
         );
@@ -458,12 +462,12 @@ class gateio extends Exchange {
         return $this->parse_trades($response['data'], $market, $since, $limit);
     }
 
-    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $response = $this->privatePostOpenOrders ($params);
         return $this->parse_orders($response['orders'], null, $since, $limit);
     }
 
-    public function fetch_order ($id, $symbol = null, $params = array ()) {
+    public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'orderNumber' => $id,
@@ -473,7 +477,7 @@ class gateio extends Exchange {
         return $this->parse_order($response['order']);
     }
 
-    public function parse_order_status ($status) {
+    public function parse_order_status($status) {
         $statuses = array(
             'cancelled' => 'canceled',
             // 'closed' => 'closed', // these two $statuses aren't actually needed
@@ -482,7 +486,7 @@ class gateio extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order ($order, $market = null) {
+    public function parse_order($order, $market = null) {
         //
         //    array('amount' => '0.00000000',
         //     'currencyPair' => 'xlm_usdt',
@@ -535,7 +539,8 @@ class gateio extends Exchange {
         }
         return array(
             'id' => $id,
-            'datetime' => $this->iso8601 ($timestamp),
+            'clientOrderId' => null,
+            'datetime' => $this->iso8601($timestamp),
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'status' => $status,
@@ -558,13 +563,13 @@ class gateio extends Exchange {
         );
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         if ($type === 'market') {
             throw new ExchangeError($this->id . ' allows limit orders only');
         }
         $this->load_markets();
-        $method = 'privatePost' . $this->capitalize ($side);
-        $market = $this->market ($symbol);
+        $method = 'privatePost' . $this->capitalize($side);
+        $market = $this->market($symbol);
         $request = array(
             'currencyPair' => $market['id'],
             'rate' => $price,
@@ -578,7 +583,7 @@ class gateio extends Exchange {
         ), $response), $market);
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder requires $symbol argument');
         }
@@ -590,9 +595,9 @@ class gateio extends Exchange {
         return $this->privatePostCancelOrder (array_merge($request, $params));
     }
 
-    public function query_deposit_address ($method, $code, $params = array ()) {
+    public function query_deposit_address($method, $code, $params = array ()) {
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $method = 'privatePost' . $method . 'Address';
         $request = array(
             'currency' => $currency['id'],
@@ -616,30 +621,30 @@ class gateio extends Exchange {
         );
     }
 
-    public function create_deposit_address ($code, $params = array ()) {
-        return $this->query_deposit_address ('New', $code, $params);
+    public function create_deposit_address($code, $params = array ()) {
+        return $this->query_deposit_address('New', $code, $params);
     }
 
-    public function fetch_deposit_address ($code, $params = array ()) {
-        return $this->query_deposit_address ('Deposit', $code, $params);
+    public function fetch_deposit_address($code, $params = array ()) {
+        return $this->query_deposit_address('Deposit', $code, $params);
     }
 
-    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
         }
         $response = $this->privatePostOpenOrders ($params);
         return $this->parse_orders($response['orders'], $market, $since, $limit);
     }
 
-    public function fetch_order_trades ($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a $symbol argument');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'currencyPair' => $market['id'],
             'orderNumber' => $id,
@@ -648,12 +653,12 @@ class gateio extends Exchange {
         return $this->parse_trades($response['trades'], $market, $since, $limit);
     }
 
-    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades requires $symbol param');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'currencyPair' => $market['id'],
         );
@@ -661,10 +666,10 @@ class gateio extends Exchange {
         return $this->parse_trades($response['trades'], $market, $since, $limit);
     }
 
-    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $request = array(
             'currency' => $currency['id'],
             'amount' => $amount,
@@ -680,20 +685,20 @@ class gateio extends Exchange {
         );
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $prefix = ($api === 'private') ? ($api . '/') : '';
         $url = $this->urls['api'][$api] . $this->version . '/1/' . $prefix . $this->implode_params($path, $params);
-        $query = $this->omit ($params, $this->extract_params($path));
+        $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
             if ($query) {
-                $url .= '?' . $this->urlencode ($query);
+                $url .= '?' . $this->urlencode($query);
             }
         } else {
             $this->check_required_credentials();
-            $nonce = $this->nonce ();
+            $nonce = $this->nonce();
             $request = array( 'nonce' => $nonce );
-            $body = $this->urlencode (array_merge($request, $query));
-            $signature = $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512');
+            $body = $this->urlencode(array_merge($request, $query));
+            $signature = $this->hmac($this->encode($body), $this->encode($this->secret), 'sha512');
             $headers = array(
                 'Key' => $this->apiKey,
                 'Sign' => $signature,
@@ -703,7 +708,7 @@ class gateio extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function fetch_transactions_by_type ($type = null, $code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_transactions_by_type($type = null, $code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array();
         if ($since !== null) {
@@ -720,24 +725,24 @@ class gateio extends Exchange {
         }
         $currency = null;
         if ($code !== null) {
-            $currency = $this->currency ($code);
+            $currency = $this->currency($code);
         }
         return $this->parse_transactions($transactions, $currency, $since, $limit);
     }
 
-    public function fetch_transactions ($code = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_transactions_by_type (null, $code, $since, $limit, $params);
+    public function fetch_transactions($code = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_transactions_by_type(null, $code, $since, $limit, $params);
     }
 
-    public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_transactions_by_type ('deposits', $code, $since, $limit, $params);
+    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_transactions_by_type('deposits', $code, $since, $limit, $params);
     }
 
-    public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_transactions_by_type ('withdraws', $code, $since, $limit, $params);
+    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_transactions_by_type('withdraws', $code, $since, $limit, $params);
     }
 
-    public function parse_transaction ($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null) {
         //
         // deposit
         //
@@ -775,8 +780,8 @@ class gateio extends Exchange {
             $address = null;
         }
         $timestamp = $this->safe_timestamp($transaction, 'timestamp');
-        $status = $this->parse_transaction_status ($this->safe_string($transaction, 'status'));
-        $type = $this->parse_transaction_type ($id[0]);
+        $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
+        $type = $this->parse_transaction_type($id[0]);
         return array(
             'info' => $transaction,
             'id' => $id,
@@ -788,12 +793,12 @@ class gateio extends Exchange {
             'status' => $status,
             'type' => $type,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'fee' => null,
         );
     }
 
-    public function parse_transaction_status ($status) {
+    public function parse_transaction_status($status) {
         $statuses = array(
             'PEND' => 'pending',
             'REQUEST' => 'pending',
@@ -804,7 +809,7 @@ class gateio extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction_type ($type) {
+    public function parse_transaction_type($type) {
         $types = array(
             'd' => 'deposit',
             'w' => 'withdrawal',
@@ -812,7 +817,7 @@ class gateio extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return;
         }

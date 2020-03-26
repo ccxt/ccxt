@@ -1166,6 +1166,7 @@ module.exports = class exmo extends Exchange {
         };
         return {
             'id': id,
+            'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': lastTradeTimestamp,

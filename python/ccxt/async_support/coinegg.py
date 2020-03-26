@@ -341,6 +341,7 @@ class coinegg(Exchange):
         id = self.safe_string(order, 'id')
         return {
             'id': id,
+            'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,

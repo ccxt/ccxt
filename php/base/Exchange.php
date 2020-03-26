@@ -35,7 +35,7 @@ use kornrunner\Solidity;
 use Elliptic\EC;
 use BN\BN;
 
-$version = '1.24.51';
+$version = '1.25.23';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -54,7 +54,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.24.51';
+    const VERSION = '1.25.23';
 
     public static $exchanges = array(
         '_1btcxe',
@@ -91,7 +91,6 @@ class Exchange {
         'braziliex',
         'btcalpha',
         'btcbox',
-        'btcchina',
         'btcmarkets',
         'btctradeim',
         'btctradeua',
@@ -2610,14 +2609,14 @@ class Exchange {
         }
     }
 
-    public static function fromWei($amount, $decimals = 18) {
+    public static function from_wei($amount, $decimals = 18) {
         $exponential = sprintf('%e', $amount);
         list($n, $exponent) = explode('e', $exponential);
         $new_exponent = intval($exponent) - $decimals;
         return floatval($n . 'e' . strval($new_exponent));
     }
 
-    public static function toWei($amount, $decimals = 18) {
+    public static function to_wei($amount, $decimals = 18) {
         $exponential = sprintf('%e', $amount);
         list($n, $exponent) = explode('e', $exponential);
         $new_exponent = intval($exponent) + $decimals;
@@ -2739,12 +2738,12 @@ class Exchange {
         return pack('C', $n);
     }
 
-    public static function numberToBE($n, $padding) {
+    public static function number_to_be($n, $padding) {
         $n = new BN ($n);
         return array_reduce(array_map('static::pack_byte', $n->toArray('little', $padding)), function ($a, $b) { return $a . $b; });
     }
 
-    public static function numberToLE($n, $padding) {
+    public static function number_to_le($n, $padding) {
         $n = new BN ($n);
         return array_reduce(array_map('static::pack_byte', $n->toArray('little', $padding)), function ($a, $b) { return $b . $a; });
     }

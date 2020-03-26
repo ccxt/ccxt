@@ -647,6 +647,7 @@ class bitmart(Exchange):
         type = None
         return {
             'id': id,
+            'clientOrderId': None,
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),

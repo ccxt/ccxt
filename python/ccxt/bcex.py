@@ -35,7 +35,7 @@ class bcex(Exchange):
                 'fetchTradingLimits': True,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/43362240-21c26622-92ee-11e8-9464-5801ec526d77.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/77231516-851c6900-6bac-11ea-8fd6-ee5c23eddbd4.jpg',
                 'api': 'https://www.bcex.top',
                 'www': 'https://www.bcex.top',
                 'doc': 'https://github.com/BCEX-TECHNOLOGY-LIMITED/API_Docs/wiki/Interface',
@@ -81,8 +81,8 @@ class bcex(Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'buy': 0.0,
-                    'sell': 0.2 / 100,
+                    'maker': 0.1 / 100,
+                    'taker': 0.2 / 100,
                 },
                 'funding': {
                     'tierBased': False,
@@ -519,6 +519,7 @@ class bcex(Exchange):
         result = {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -626,14 +627,3 @@ class bcex(Exchange):
                     raise InvalidOrder(feedback)
                 else:
                     raise ExchangeError(feedback)
-
-    def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
-        market = self.markets[symbol]
-        rate = market[side]
-        cost = float(self.cost_to_precision(symbol, amount * price))
-        return {
-            'type': takerOrMaker,
-            'currency': market['quote'],
-            'rate': rate,
-            'cost': float(self.fee_to_precision(symbol, rate * cost)),
-        }

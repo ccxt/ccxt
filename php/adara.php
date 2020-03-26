@@ -11,7 +11,7 @@ use \ccxt\OrderNotFound;
 
 class adara extends Exchange {
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'id' => 'adara',
             'name' => 'Adara',
@@ -126,7 +126,7 @@ class adara extends Exchange {
         ));
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         $request = array(
             'include' => 'from,to',
         );
@@ -265,7 +265,7 @@ class adara extends Exchange {
         return $result;
     }
 
-    public function fetch_currencies ($params = array ()) {
+    public function fetch_currencies($params = array ()) {
         $response = $this->publicGetCurrencies ($params);
         //
         //     array(     meta => { total => 22 ),
@@ -344,7 +344,7 @@ class adara extends Exchange {
         return $result;
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $response = $this->privateGetBalance ($params);
         //
@@ -393,7 +393,7 @@ class adara extends Exchange {
                 $currencyRelationshipData = $this->safe_value($currencyRelationship, 'data');
                 $currencyId = $this->safe_string($currencyRelationshipData, 'id');
                 $code = $this->common_currency_code($currencyId);
-                $account = $this->account ();
+                $account = $this->account();
                 $account['total'] = $this->safe_float($attributes, 'totalBalance');
                 $account['used'] = $this->safe_float($attributes, 'onOrders');
                 $result[$code] = $account;
@@ -402,7 +402,7 @@ class adara extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function get_symbol_from_market_id ($marketId, $market = null) {
+    public function get_symbol_from_market_id($marketId, $market = null) {
         if ($marketId === null) {
             return null;
         }
@@ -416,7 +416,7 @@ class adara extends Exchange {
         return $base . '/' . $quote;
     }
 
-    public function parse_order_book ($orderbook, $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', $priceKey = 'price', $amountKey = 'amount') {
+    public function parse_order_book($orderbook, $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', $priceKey = 'price', $amountKey = 'amount') {
         $bids = array();
         $asks = array();
         $numBidAsks = is_array($orderbook) ? count($orderbook) : 0;
@@ -434,21 +434,21 @@ class adara extends Exchange {
             } else if (mb_strpos($id, 'OSID') !== false) {
                 $asks[] = $this->parse_bid_ask($bidask['attributes'], $priceKey, $amountKey);
             } else {
-                throw new ExchangeError($this->id . ' parseOrderBook encountered an unrecognized $bidask format => ' . $this->json ($bidask));
+                throw new ExchangeError($this->id . ' parseOrderBook encountered an unrecognized $bidask format => ' . $this->json($bidask));
             }
         }
         return array(
             'bids' => $this->sort_by($bids, 0, true),
             'asks' => $this->sort_by($asks, 0),
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'nonce' => null,
         );
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $filters = 'filters[$symbol]';
         $request = array();
         $request[$filters] = $market['id'];
@@ -468,7 +468,7 @@ class adara extends Exchange {
         return $this->parse_order_book($response['data'], null, 'bids', 'asks', 'price', 'amount');
     }
 
-    public function parse_ticker ($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null) {
         //
         //     {          type =>   "quote",
         //                  id =>   "XRPETH",
@@ -482,7 +482,7 @@ class adara extends Exchange {
         //                         serializedAt => 1543109275996 ),
         //       relationships => array( $symbol => array( data => array( type => "$symbol", id => "ETHBTC" ) ) ) }
         //
-        $symbol = $this->get_symbol_from_market_id ($this->safe_string($ticker, 'id'), $market);
+        $symbol = $this->get_symbol_from_market_id($this->safe_string($ticker, 'id'), $market);
         $attributes = $this->safe_value($ticker, 'attributes', array());
         $timestamp = $this->safe_integer($attributes, 'serializedAt');
         $last = $this->safe_float($attributes, 'currentPrice');
@@ -497,7 +497,7 @@ class adara extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($attributes, 'high'),
             'low' => $this->safe_float($attributes, 'low'),
             'bid' => null,
@@ -518,7 +518,7 @@ class adara extends Exchange {
         );
     }
 
-    public function fetch_tickers ($symbols = null, $params = array ()) {
+    public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
         $response = $this->publicGetQuote ($params);
         $data = $this->safe_value($response, 'data', array());
@@ -564,9 +564,9 @@ class adara extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'id' => $market['id'],
         );
@@ -617,7 +617,7 @@ class adara extends Exchange {
         return $this->parse_ticker($response['data']);
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         //
         // fetchTrades
         //
@@ -654,7 +654,7 @@ class adara extends Exchange {
             $feeCurrency = $quote;
         }
         $orderId = null;
-        $timestamp = $this->parse8601 ($this->safe_string($attributes, 'createdAt'));
+        $timestamp = $this->parse8601($this->safe_string($attributes, 'createdAt'));
         $side = $this->safe_string($attributes, 'operation');
         $price = $this->safe_float($attributes, 'price');
         $amount = $this->safe_float($attributes, 'amount');
@@ -679,7 +679,7 @@ class adara extends Exchange {
             'info' => $trade,
             'order' => $orderId,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'type' => null,
             'side' => $side,
@@ -691,11 +691,11 @@ class adara extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
         }
         $request = array(
             // 'id' => $market['id'],
@@ -741,9 +741,9 @@ class adara extends Exchange {
         return $this->parse_trades($response['data'], $market, $since, $limit);
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'data' => array(
                 'type' => 'order',
@@ -821,7 +821,7 @@ class adara extends Exchange {
         return $this->parse_order($response['data']);
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'id' => $id,
@@ -883,7 +883,7 @@ class adara extends Exchange {
         return $this->parse_order($response['data']);
     }
 
-    public function parse_order_status ($status) {
+    public function parse_order_status($status) {
         $statuses = array(
             'open' => 'open',
             'closed' => 'closed',
@@ -892,7 +892,7 @@ class adara extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order ($order, $market = null) {
+    public function parse_order($order, $market = null) {
         //
         //         {          $type =>   "$order",
         //                      $id =>   "34793",
@@ -934,11 +934,11 @@ class adara extends Exchange {
             $symbol = $base . '/' . $quote;
             $feeCurrency = $quote;
         }
-        $timestamp = $this->parse8601 ($this->safe_string($attributes, 'timeOpen'));
+        $timestamp = $this->parse8601($this->safe_string($attributes, 'timeOpen'));
         $side = $this->safe_string($attributes, 'operation');
         $type = $this->safe_string($attributes, 'orderType');
         $status = $this->parse_order_status($this->safe_string($attributes, 'status'));
-        $lastTradeTimestamp = $this->parse8601 ($this->safe_string($attributes, 'timeClose'));
+        $lastTradeTimestamp = $this->parse8601($this->safe_string($attributes, 'timeClose'));
         $price = $this->safe_float($attributes, 'price');
         $amount = $this->safe_float($attributes, 'amount');
         $filled = $this->safe_float($attributes, 'filled');
@@ -973,8 +973,9 @@ class adara extends Exchange {
         $result = array(
             'info' => $order,
             'id' => $id,
+            'clientOrderId' => null,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $symbol,
             'type' => $type,
@@ -992,14 +993,14 @@ class adara extends Exchange {
         return $result;
     }
 
-    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'include' => 'trades',
         );
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
             $filters = 'filters[$symbol]';
             $request[$filters] = $market['id'];
         }
@@ -1061,24 +1062,24 @@ class adara extends Exchange {
         //                                   createdAt => "2018-11-28T19:47:57.451Z" } }                ),
         //           meta => array( total => 1 )                                                                         }
         //
-        return $this->parse_orders_response ($response, $market, $since, $limit);
+        return $this->parse_orders_response($response, $market, $since, $limit);
     }
 
-    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $filters = 'filters[status]array()';
         $request = array();
         $request[$filters] = 'open';
         return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
-    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $filters = 'filters[status]array()';
         $request = array();
         $request[$filters] = 'closed';
         return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
-    public function parse_orders_response ($response, $market = null, $since = null, $limit = null) {
+    public function parse_orders_response($response, $market = null, $since = null, $limit = null) {
         $included = $this->safe_value($response, 'included', array());
         $includedByType = $this->group_by($included, 'type');
         $unparsedTrades = $this->safe_value($includedByType, 'trade', array());
@@ -1116,7 +1117,7 @@ class adara extends Exchange {
         return $result;
     }
 
-    public function fetch_order ($id, $symbol = null, $params = array ()) {
+    public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'id' => $id,
@@ -1183,7 +1184,7 @@ class adara extends Exchange {
         $data = $this->safe_value($response, 'data');
         $response['data'] = array();
         $response['data'][] = $data;
-        $orders = $this->parse_orders_response ($response);
+        $orders = $this->parse_orders_response($response);
         $ordersById = $this->index_by($orders, 'id');
         if (is_array($ordersById) && array_key_exists($id, $ordersById)) {
             return $ordersById[$id];
@@ -1191,25 +1192,25 @@ class adara extends Exchange {
         throw new OrderNotFound($this->id . ' fetchOrder could not find order $id ' . (string) $id);
     }
 
-    public function nonce () {
-        return $this->milliseconds ();
+    public function nonce() {
+        return $this->milliseconds();
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $payload = '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'] . '/' . $this->version . $payload;
-        $query = $this->omit ($params, $this->extract_params($path));
+        $query = $this->omit($params, $this->extract_params($path));
         if ($method === 'GET') {
             if ($query) {
-                $url .= '?' . $this->urlencode ($query);
+                $url .= '?' . $this->urlencode($query);
             }
         }
         if ($api === 'private') {
-            $nonce = $this->nonce ();
-            $expiredAt = $this->sum ($nonce, $this->safe_integer($this->options, 'expiredAt', 10000));
+            $nonce = $this->nonce();
+            $expiredAt = $this->sum($nonce, $this->safe_integer($this->options, 'expiredAt', 10000));
             $expiredAt = (string) $expiredAt;
             if (($method === 'POST') || ($method === 'PATCH')) {
-                $body = $this->json ($query);
+                $body = $this->json($query);
                 $payload = $body;
             }
             if ($this->token) {
@@ -1219,7 +1220,7 @@ class adara extends Exchange {
             } else {
                 $this->check_required_credentials();
                 $auth = $method . $payload . 'expiredAt=' . $expiredAt;
-                $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha512', 'base64');
+                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha512', 'base64');
                 $headers = array(
                     'X-ADX-EXPIRE' => $expiredAt,
                     'X-ADX-APIKEY' => $this->apiKey,
@@ -1233,7 +1234,7 @@ class adara extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return; // fallback to default $error handler
         }
@@ -1245,7 +1246,7 @@ class adara extends Exchange {
             $status = $this->safe_string($error, 'status');
             $title = $this->safe_string($error, 'title');
             $detail = $this->safe_string($error, 'detail');
-            $feedback = $this->id . ' ' . $this->json ($response);
+            $feedback = $this->id . ' ' . $this->json($response);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $status, $feedback);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $title, $feedback);

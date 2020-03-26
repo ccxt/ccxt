@@ -291,6 +291,7 @@ class bitbay(Exchange):
                 filled = max(0, amount - remaining)
         return {
             'id': self.safe_string(order, 'id'),
+            'clientOrderId': None,
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),

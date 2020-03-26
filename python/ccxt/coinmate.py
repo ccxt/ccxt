@@ -8,6 +8,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import RateLimitExceeded
 
 
 class coinmate(Exchange):
@@ -103,8 +104,32 @@ class coinmate(Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': 0.05 / 100,
-                    'taker': 0.15 / 100,
+                    'tierBased': True,
+                    'percentage': True,
+                    'maker': 0.12 / 100,
+                    'taker': 0.25 / 100,
+                    'tiers': {
+                        'taker': [
+                            [0, 0.25 / 100],
+                            [10000, 0.23 / 100],
+                            [100000, 0.21 / 100],
+                            [250000, 0.20 / 100],
+                            [500000, 0.15 / 100],
+                            [1000000, 0.13 / 100],
+                            [3000000, 0.10 / 100],
+                            [15000000, 0.05 / 100],
+                        ],
+                        'maker': [
+                            [0, 0.12 / 100],
+                            [10000, 0.11 / 100],
+                            [1000000, 0.10 / 100],
+                            [250000, 0.08 / 100],
+                            [500000, 0.05 / 100],
+                            [1000000, 0.03 / 100],
+                            [3000000, 0.02 / 100],
+                            [15000000, 0],
+                        ],
+                    },
                 },
             },
             'exceptions': {
@@ -112,7 +137,9 @@ class coinmate(Exchange):
                     'No order with given ID': OrderNotFound,
                 },
                 'broad': {
+                    'Incorrect order ID': InvalidOrder,
                     'Minimum Order Size ': InvalidOrder,
+                    'TOO MANY REQUESTS': RateLimitExceeded,
                 },
             },
         })
@@ -248,7 +275,7 @@ class coinmate(Exchange):
         if since is not None:
             request['timestampFrom'] = since
         if code is not None:
-            request['currency'] = self.currencyId(code)
+            request['currency'] = self.currency_id(code)
         response = self.privatePostTransferHistory(self.extend(request, params))
         items = response['data']
         return self.parse_transactions(items, None, since, limit)
@@ -550,8 +577,10 @@ class coinmate(Exchange):
                 symbol = base + '/' + quote
         if (symbol is None) and (market is not None):
             symbol = market['symbol']
+        clientOrderId = self.safe_string(order, 'clientOrderId')
         return {
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -600,8 +629,9 @@ class coinmate(Exchange):
         market = None
         if symbol:
             market = self.market(symbol)
-        res = self.privatePostOrderById(self.extend(request, params))
-        return self.parse_order(res['data'], market)
+        response = self.privatePostOrderById(self.extend(request, params))
+        data = self.safe_value(response, 'data')
+        return self.parse_order(data, market)
 
     def cancel_order(self, id, symbol=None, params={}):
         #   {"error":false,"errorMessage":null,"data":{"success":true,"remainingAmount":0.01}}
@@ -635,14 +665,20 @@ class coinmate(Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = self.fetch2(path, api, method, params, headers, body)
-        if 'error' in response:
-            # {"error":true,"errorMessage":"Minimum Order Size 0.01 ETH","data":null}
-            if response['error']:
-                message = self.safe_string(response, 'errorMessage')
-                feedback = self.id + ' ' + message
-                self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
-                self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
-                raise ExchangeError(self.id + ' ' + self.json(response))
-        return response
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        if response is not None:
+            if 'error' in response:
+                # {"error":true,"errorMessage":"Minimum Order Size 0.01 ETH","data":null}
+                if response['error']:
+                    message = self.safe_string(response, 'errorMessage')
+                    feedback = self.id + ' ' + message
+                    self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+                    self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
+                    raise ExchangeError(self.id + ' ' + self.json(response))
+        if code > 400:
+            if body:
+                feedback = self.id + ' ' + body
+                self.throw_exactly_matched_exception(self.exceptions['exact'], body, feedback)
+                self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
+                raise ExchangeError(feedback)  # unknown message
+            raise ExchangeError(self.id + ' ' + body)

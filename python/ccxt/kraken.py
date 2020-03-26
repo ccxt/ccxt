@@ -696,14 +696,14 @@ class kraken(Exchange):
         if market is not None:
             symbol = market['symbol']
         if isinstance(trade, list):
-            timestamp = int(trade[2] * 1000)
+            timestamp = self.safe_timestamp(trade, 2)
             side = 'sell' if (trade[3] == 's') else 'buy'
             type = 'limit' if (trade[4] == 'l') else 'market'
-            price = float(trade[0])
-            amount = float(trade[1])
+            price = self.safe_float(trade, 0)
+            amount = self.safe_float(trade, 1)
             tradeLength = len(trade)
             if tradeLength > 6:
-                id = trade[6]  # artificially added as per  #1794
+                id = self.safe_string(trade, 6)  # artificially added as per  #1794
         elif 'ordertxid' in trade:
             order = trade['ordertxid']
             id = self.safe_string_2(trade, 'id', 'postxid')
@@ -812,8 +812,10 @@ class kraken(Exchange):
             if isinstance(id, list):
                 length = len(id)
                 id = id if (length > 1) else id[0]
+        clientOrderId = self.safe_string(params, 'userref')
         return {
             'id': id,
+            'clientOrderId': clientOrderId,
             'info': response,
             'timestamp': None,
             'datetime': None,
@@ -921,8 +923,10 @@ class kraken(Exchange):
                     fee['currency'] = market['base']
         status = self.parse_order_status(self.safe_string(order, 'status'))
         id = self.safe_string(order, 'id')
+        clientOrderId = self.safe_string(order, 'userref')
         return {
             'id': id,
+            'clientOrderId': clientOrderId,
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -1150,7 +1154,7 @@ class kraken(Exchange):
                 'type': type,
             }, transactions[i]))
             result.append(transaction)
-        return self.filterByCurrencySinceLimit(result, code, since, limit)
+        return self.filter_by_currency_since_limit(result, code, since, limit)
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         self.load_markets()

@@ -5,16 +5,23 @@
 "use strict";
 
 const fs = require ('fs')
-    , log = require ('ololog')
+    , log = require ('ololog').unlimited
     , _ = require ('ansicolor').nice
     , errors = require ('../js/base/errors.js')
-    , { unCamelCase, precisionConstants, safeString } = require ('../js/base/functions.js')
+    , functions = require ('../js/base/functions.js')
+    , {
+        unCamelCase,
+        precisionConstants,
+        safeString,
+        unique,
+    } = functions
     , { basename } = require ('path')
     , {
         createFolderRecursively,
         replaceInFile,
         overwriteFile,
     } = require ('./fs.js')
+    , Exchange = require ('../js/base/Exchange.js')
 
 class Transpiler {
 
@@ -383,12 +390,27 @@ class Transpiler {
         ])
     }
 
+    getBaseClass () {
+        return new Exchange ()
+    }
+
+    getBaseMethods () {
+        const baseExchange = this.getBaseClass ()
+        let object = baseExchange
+        let properties = []
+        while (object !== Object.prototype) {
+            properties = properties.concat (Object.getOwnPropertyNames (object))
+            object = Object.getPrototypeOf (object)
+        }
+        return properties.filter (x => typeof baseExchange[x] === 'function')
+    }
+
     getPythonBaseMethods () {
-        return []
+        return this.getBaseMethods ()
     }
 
     getPHPBaseMethods () {
-        return []
+        return this.getBaseMethods ()
     }
 
     //-------------------------------------------------------------------------
@@ -590,10 +612,10 @@ class Transpiler {
         methods = methods.concat (this.getPHPBaseMethods ())
 
         for (let method of methods) {
-            const regex = new RegExp ('\\$this->(' + method + ')(\\s\\(|[^a-zA-Z0-9_])', 'g')
+            const regex = new RegExp ('\\$this->(' + method + ')\\s?(\\(|[^a-zA-Z0-9_])', 'g')
             bodyAsString = bodyAsString.replace (regex,
                 (match, p1, p2) => {
-                    return ((p2 === ' (') ?
+                    return ((p2 === '(') ?
                         ('$this->' + unCamelCase (p1) + p2) : // support direct php calls
                         ("array($this, '" + unCamelCase (p1) + "')" + p2)) // as well as passing instance methods as callables
                 })
@@ -749,7 +771,7 @@ class Transpiler {
 
     // ------------------------------------------------------------------------
 
-    transpileDerivedExchangeClass (contents) {
+    transpileDerivedExchangeClass (contents, methodNames = undefined) {
 
         let exchangeClassDeclarationMatches = contents.match (/^module\.exports\s*=\s*class\s+([\S]+)\s+extends\s+([\S]+)\s+{([\s\S]+?)^};*/m)
 
@@ -764,7 +786,7 @@ class Transpiler {
         let python3 = []
         let php = []
 
-        let methodNames = []
+        methodNames = [] // methodNames || []
 
         // run through all methods
         for (let i = 0; i < methods.length; i++) {
@@ -840,7 +862,7 @@ class Transpiler {
 
             // compile signature + body for PHP
             php.push ('');
-            php.push ('    public function ' + method + ' (' + phpArgs + ') {');
+            php.push ('    public function ' + method + '(' + phpArgs + ') {');
             php.push (phpBody);
             php.push ('    }')
 
@@ -867,8 +889,25 @@ class Transpiler {
         try {
 
             const { python2Folder, python3Folder, phpFolder } = options
-            const contents = fs.readFileSync (jsFolder + filename, 'utf8')
-            const { python2, python3, php, className, baseClass } = this.transpileDerivedExchangeClass (contents)
+            const path = jsFolder + filename
+            const contents = fs.readFileSync (path, 'utf8')
+
+            // function getMethodNames (object) {
+            //     let functions = []
+            //     let o = object
+            //     do {
+            //         functions = functions.concat (Object.getOwnPropertyNames (o))
+            //     } while (o = Object.getPrototypeOf (o))
+            //     return unique (functions.filter (f => (typeof object[f] === 'function')))
+            // }
+            // const exchangeClass = require ('.' + path)
+            // const exchange = new exchangeClass ()
+            // const methodNames = getMethodNames (exchange)
+            // const { python2, python3, php, className, baseClass } =
+            //     this.transpileDerivedExchangeClass (contents, methodNames)
+
+            const { python2, python3, php, className, baseClass } =
+                this.transpileDerivedExchangeClass (contents)
 
             log.cyan ('Transpiling from', filename.yellow)
 
@@ -1133,11 +1172,11 @@ class Transpiler {
             "",
             "",
             "def toWei(amount, decimals):",
-            "    return Exchange.toWei(amount, decimals)",
+            "    return Exchange.to_wei(amount, decimals)",
             "",
             "",
             "def fromWei(amount, decimals):",
-            "    return Exchange.fromWei(amount, decimals)",
+            "    return Exchange.from_wei(amount, decimals)",
             "",
             "",
         ].join ("\n")
@@ -1162,10 +1201,10 @@ class Transpiler {
             "    return Exchange::number_to_string ($x);",
             "}",
             "function toWei ($amount, $decimals) {",
-            "    return Exchange::toWei ($amount, $decimals);",
+            "    return Exchange::to_wei ($amount, $decimals);",
             "}",
             "function fromWei ($amount, $decimals) {",
-            "    return Exchange::fromWei ($amount, $decimals);",
+            "    return Exchange::from_wei ($amount, $decimals);",
             "}",
             "",
         ].join ("\n")

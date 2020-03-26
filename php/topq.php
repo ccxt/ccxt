@@ -9,7 +9,7 @@ use Exception; // a common import
 
 class topq extends bw {
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'id' => 'topq',
             'countries' => array( 'SG' ),

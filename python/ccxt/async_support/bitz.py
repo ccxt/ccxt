@@ -724,6 +724,7 @@ class bitz(Exchange):
         status = self.parse_order_status(self.safe_string(order, 'status'))
         return {
             'id': id,
+            'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
@@ -1062,7 +1063,7 @@ class bitz(Exchange):
                 'type': type,
             }, transactions[i]))
             result.append(transaction)
-        return self.filterByCurrencySinceLimit(result, code, since, limit)
+        return self.filter_by_currency_since_limit(result, code, since, limit)
 
     def parse_transaction_type(self, type):
         types = {

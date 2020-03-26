@@ -155,6 +155,10 @@ module.exports = class gateio extends Exchange {
                     },
                 },
             },
+            'commonCurrencies': {
+                'BTCBEAR': 'BEAR',
+                'BTCBULL': 'BULL',
+            },
         });
     }
 
@@ -531,6 +535,7 @@ module.exports = class gateio extends Exchange {
         }
         return {
             'id': id,
+            'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': lastTradeTimestamp,

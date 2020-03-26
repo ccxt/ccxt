@@ -315,6 +315,7 @@ module.exports = class btcalpha extends Exchange {
         }
         return {
             'id': id,
+            'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'status': status,

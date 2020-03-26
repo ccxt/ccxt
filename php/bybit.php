@@ -11,7 +11,7 @@ use \ccxt\ArgumentsRequired;
 
 class bybit extends Exchange {
 
-    public function describe () {
+    public function describe() {
         return array_replace_recursive(parent::describe (), array(
             'id' => 'bybit',
             'name' => 'Bybit',
@@ -257,18 +257,18 @@ class bybit extends Exchange {
         ));
     }
 
-    public function nonce () {
-        return $this->milliseconds () - $this->options['timeDifference'];
+    public function nonce() {
+        return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function load_time_difference () {
-        $serverTime = $this->fetch_time ();
-        $after = $this->milliseconds ();
+    public function load_time_difference() {
+        $serverTime = $this->fetch_time();
+        $after = $this->milliseconds();
         $this->options['timeDifference'] = $after - $serverTime;
         return $this->options['timeDifference'];
     }
 
-    public function fetch_time ($params = array ()) {
+    public function fetch_time($params = array ()) {
         $response = $this->publicGetTime ($params);
         //
         //     {
@@ -283,9 +283,9 @@ class bybit extends Exchange {
         return $this->safe_timestamp($response, 'time_now');
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         if ($this->options['adjustForTimeDifference']) {
-            $this->load_time_difference ();
+            $this->load_time_difference();
         }
         $response = $this->publicGetSymbols ($params);
         //
@@ -359,12 +359,12 @@ class bybit extends Exchange {
         return $result;
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $defaultCode = $this->safe_value($this->options, 'code', 'BTC');
         $options = $this->safe_value($this->options, 'fetchBalance', array());
         $code = $this->safe_value($options, 'code', $defaultCode);
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $request = array(
             'coin' => $currency['id'],
         );
@@ -407,7 +407,7 @@ class bybit extends Exchange {
             $currencyId = $currencyIds[$i];
             $balance = $balances[$currencyId];
             $code = $this->safe_currency_code($currencyId);
-            $account = $this->account ();
+            $account = $this->account();
             $account['free'] = $this->safe_float($balance, 'available_balance');
             $account['used'] = $this->safe_float($balance, 'used_margin');
             $account['total'] = $this->safe_float($balance, 'equity');
@@ -416,7 +416,7 @@ class bybit extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function parse_ticker ($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null) {
         //
         // fetchTicker
         //
@@ -465,7 +465,7 @@ class bybit extends Exchange {
         $average = null;
         if (($last !== null) && ($open !== null)) {
             $change = $last - $open;
-            $average = $this->sum ($open, $last) / 2;
+            $average = $this->sum($open, $last) / 2;
         }
         $baseVolume = $this->safe_float($ticker, 'turnover_24h');
         $quoteVolume = $this->safe_float($ticker, 'volume_24h');
@@ -476,7 +476,7 @@ class bybit extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'high_price_24h'),
             'low' => $this->safe_float($ticker, 'low_price_24h'),
             'bid' => $this->safe_float($ticker, 'bid_price'),
@@ -497,9 +497,9 @@ class bybit extends Exchange {
         );
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
@@ -545,11 +545,11 @@ class bybit extends Exchange {
         $timestamp = $this->safe_timestamp($response, 'time_now');
         $ticker = $this->parse_ticker($first, $market);
         $ticker['timestamp'] = $timestamp;
-        $ticker['datetime'] = $this->iso8601 ($timestamp);
+        $ticker['datetime'] = $this->iso8601($timestamp);
         return $ticker;
     }
 
-    public function fetch_tickers ($symbols = null, $params = array ()) {
+    public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
         $response = $this->publicGetTickers ($params);
         //
@@ -598,7 +598,7 @@ class bybit extends Exchange {
         return $this->filter_by_array($tickers, 'symbol', $symbols);
     }
 
-    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
         //
         //     array(
         //         symbol => 'BTCUSD',
@@ -622,15 +622,15 @@ class bybit extends Exchange {
         );
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
             'interval' => $this->timeframes[$timeframe],
         );
         $duration = $this->parse_timeframe($timeframe);
-        $now = $this->seconds ();
+        $now = $this->seconds();
         if ($since === null) {
             if ($limit === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOHLCV requires a $since argument or a $limit argument');
@@ -668,7 +668,7 @@ class bybit extends Exchange {
         return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         //
         // fetchTrades (public)
         //
@@ -720,7 +720,7 @@ class bybit extends Exchange {
             $symbol = $market['symbol'];
             $base = $market['base'];
         }
-        $timestamp = $this->parse8601 ($this->safe_string($trade, 'time'));
+        $timestamp = $this->parse8601($this->safe_string($trade, 'time'));
         if ($timestamp === null) {
             $timestamp = $this->safe_timestamp($trade, 'exec_time');
         }
@@ -750,7 +750,7 @@ class bybit extends Exchange {
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'order' => $this->safe_string($trade, 'order_id'),
             'type' => $this->safe_string_lower($trade, 'order_type'),
@@ -763,9 +763,9 @@ class bybit extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
             // 'from' => 123, // from id
@@ -797,7 +797,7 @@ class bybit extends Exchange {
         return $this->parse_trades($result, $market, $since, $limit);
     }
 
-    public function parse_order_book ($orderbook, $timestamp = null, $bidsKey = 'Buy', $asksKey = 'Sell', $priceKey = 'price', $amountKey = 'size') {
+    public function parse_order_book($orderbook, $timestamp = null, $bidsKey = 'Buy', $asksKey = 'Sell', $priceKey = 'price', $amountKey = 'size') {
         $bids = array();
         $asks = array();
         for ($i = 0; $i < count($orderbook); $i++) {
@@ -808,21 +808,21 @@ class bybit extends Exchange {
             } else if ($side === 'Sell') {
                 $asks[] = $this->parse_bid_ask($bidask, $priceKey, $amountKey);
             } else {
-                throw new ExchangeError($this->id . ' parseOrderBook encountered an unrecognized $bidask format => ' . $this->json ($bidask));
+                throw new ExchangeError($this->id . ' parseOrderBook encountered an unrecognized $bidask format => ' . $this->json($bidask));
             }
         }
         return array(
             'bids' => $this->sort_by($bids, 0, true),
             'asks' => $this->sort_by($asks, 0),
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'nonce' => null,
         );
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
@@ -849,7 +849,7 @@ class bybit extends Exchange {
         return $this->parse_order_book($result, $timestamp, 'Buy', 'Sell', 'price', 'size');
     }
 
-    public function parse_order_status ($status) {
+    public function parse_order_status($status) {
         $statuses = array(
             // basic orders
             'Created' => 'open',
@@ -860,9 +860,9 @@ class bybit extends Exchange {
             'Cancelled' => 'canceled',
             'PendingCancel' => 'canceling', // the engine has received the cancellation but there is no guarantee that it will be successful
             // conditional orders
-            'Active' => 'open', // order is triggered and placed successfully
+            'Active' => 'closed', // order is triggered and placed successfully
             'Untriggered' => 'open', // order waits to be triggered
-            'Triggered' => 'open', // order is triggered
+            'Triggered' => 'closed', // order is triggered
             // 'Cancelled' => 'canceled', // order is cancelled
             // 'Rejected' => 'rejected', // order is triggered but fail to be placed
             'Deactivated' => 'canceled', // conditional order was cancelled before triggering
@@ -870,7 +870,7 @@ class bybit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order ($order, $market = null) {
+    public function parse_order($order, $market = null) {
         //
         // createOrder
         //
@@ -896,7 +896,7 @@ class bybit extends Exchange {
         //         "updated_at" => "2019-11-30T11:03:43.455Z"
         //     }
         //
-        $timestamp = $this->parse8601 ($this->safe_string($order, 'created_at'));
+        $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
         $id = $this->safe_string($order, 'order_id');
         $price = $this->safe_float($order, 'price');
         $average = $this->safe_float($order, 'average_price');
@@ -949,11 +949,16 @@ class bybit extends Exchange {
             );
         }
         $type = $this->safe_string_lower($order, 'order_type');
+        $clientOrderId = $this->safe_string($order, 'order_link_id');
+        if (($clientOrderId !== null) && (strlen($clientOrderId) < 1)) {
+            $clientOrderId = null;
+        }
         return array(
             'info' => $order,
             'id' => $id,
+            'clientOrderId' => $clientOrderId,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $symbol,
             'type' => $type,
@@ -970,12 +975,12 @@ class bybit extends Exchange {
         );
     }
 
-    public function fetch_order ($id, $symbol = null, $params = array ()) {
+    public function fetch_order($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrder requires a $symbol argument');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
             // 'order_link_id' => 'string', // one of order_id, stop_order_id or order_link_id is required
@@ -1064,14 +1069,14 @@ class bybit extends Exchange {
         return $this->parse_order($result, $market);
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             // orders ---------------------------------------------------------
-            'side' => $this->capitalize ($side),
+            'side' => $this->capitalize($side),
             'symbol' => $market['id'],
-            'order_type' => $this->capitalize ($type),
+            'order_type' => $this->capitalize($type),
             'qty' => $this->amount_to_precision($symbol, $amount), // order quantity in USD, integer only
             // 'price' => $this->price_to_precision($symbol, $price), // required for limit orders
             'time_in_force' => 'GoodTillCancel', // ImmediateOrCancel, FillOrKill, PostOnly
@@ -1112,7 +1117,7 @@ class bybit extends Exchange {
                 $method = 'openapiPostStopOrderCreate';
                 $request['stop_px'] = $this->price_to_precision($symbol, $stopPx);
                 $request['base_price'] = $this->price_to_precision($symbol, $basePrice);
-                $params = $this->omit ($params, array( 'stop_px', 'base_price' ));
+                $params = $this->omit($params, array( 'stop_px', 'base_price' ));
             }
         } else if ($basePrice !== null) {
             throw new ArgumentsRequired($this->id . ' createOrder requires both the stop_px and base_price $params for a conditional ' . $type . ' order');
@@ -1199,12 +1204,12 @@ class bybit extends Exchange {
         return $this->parse_order($result, $market);
     }
 
-    public function edit_order ($id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order($id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' editOrder requires an $symbol argument');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             // 'order_id' => $id, // only for non-conditional orders
             'symbol' => $market['id'],
@@ -1220,7 +1225,7 @@ class bybit extends Exchange {
         if ($stopOrderId !== null) {
             $method = 'openapiPostStopOrderReplace';
             $request['stop_order_id'] = $stopOrderId;
-            $params = $this->omit ($params, array( 'stop_order_id' ));
+            $params = $this->omit($params, array( 'stop_order_id' ));
         } else {
             $request['order_id'] = $id;
         }
@@ -1266,12 +1271,12 @@ class bybit extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrder requires a $symbol argument');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
             // 'order_link_id' => 'string', // one of order_id, stop_order_id or order_link_id is required
@@ -1295,12 +1300,12 @@ class bybit extends Exchange {
         return $this->parse_order($result, $market);
     }
 
-    public function cancel_all_orders ($symbol = null, $params = array ()) {
+    public function cancel_all_orders($symbol = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelAllOrders requires a $symbol argument');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
@@ -1311,7 +1316,7 @@ class bybit extends Exchange {
         return $this->parse_orders($result, $market);
     }
 
-    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             // 'order_id' => 'string'
@@ -1327,7 +1332,7 @@ class bybit extends Exchange {
         );
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
         if ($limit !== null) {
@@ -1335,11 +1340,20 @@ class bybit extends Exchange {
         }
         $options = $this->safe_value($this->options, 'fetchOrders', array());
         $defaultMethod = 'openapiGetOrderList';
+        $query = $params;
         if ((is_array($params) && array_key_exists('stop_order_id', $params)) || (is_array($params) && array_key_exists('stop_order_status', $params))) {
+            $stopOrderStatus = $this->safe_value($params, 'stopOrderStatus');
+            if ($stopOrderStatus !== null) {
+                if (gettype($stopOrderStatus) === 'array' && count(array_filter(array_keys($stopOrderStatus), 'is_string')) == 0) {
+                    $stopOrderStatus = implode(',', $stopOrderStatus);
+                }
+                $request['stop_order_status'] = $stopOrderStatus;
+                $query = $this->omit($params, 'stop_order_status');
+            }
             $defaultMethod = 'openapiGetStopOrderList';
         }
         $method = $this->safe_string($options, 'method', $defaultMethod);
-        $response = $this->$method (array_merge($request, $params));
+        $response = $this->$method (array_merge($request, $query));
         //
         //     {
         //         "ret_code" => 0,
@@ -1431,53 +1445,65 @@ class bybit extends Exchange {
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $defaultStatuses = array(
             'Rejected',
             'Filled',
             'Cancelled',
-            'Deactivated',
+            // conditional orders
+            // 'Active',
+            // 'Triggered',
+            // 'Cancelled',
+            // 'Rejected',
+            // 'Deactivated',
         );
         $options = $this->safe_value($this->options, 'fetchClosedOrders', array());
         $status = $this->safe_value($options, 'order_status', $defaultStatuses);
         if (gettype($status) === 'array' && count(array_filter(array_keys($status), 'is_string')) == 0) {
             $status = implode(',', $status);
         }
-        $request = array(
-            'order_status' => $status,
-        );
+        $request = array();
+        $stopOrderStatus = $this->safe_value($params, 'stop_order_status');
+        if ($stopOrderStatus === null) {
+            $request['order_status'] = $status;
+        } else {
+            $request['stop_order_status'] = $stopOrderStatus;
+        }
         return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
-    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $defaultStatuses = array(
             'Created',
             'New',
             'PartiallyFilled',
             'PendingCancel',
-            'Active',
-            'Untriggered',
-            'Triggered',
+            // conditional orders
+            // 'Untriggered',
         );
         $options = $this->safe_value($this->options, 'fetchOpenOrders', array());
         $status = $this->safe_value($options, 'order_status', $defaultStatuses);
         if (gettype($status) === 'array' && count(array_filter(array_keys($status), 'is_string')) == 0) {
             $status = implode(',', $status);
         }
-        $request = array(
-            'order_status' => $status,
-        );
+        $request = array();
+        $stopOrderStatus = $this->safe_value($params, 'stop_order_status');
+        if ($stopOrderStatus === null) {
+            $request['order_status'] = $status;
+        } else {
+            $request['stop_order_status'] = $stopOrderStatus;
+        }
         return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
-    public function fetch_order_trades ($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
         $request = array(
             'order_id' => $id,
         );
         return $this->fetch_my_trades($symbol, $since, $limit, array_merge($request, $params));
     }
 
-    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             // 'order_id' => 'f185806b-b801-40ff-adec-52289370ed62', // if not provided will return user's trading records
@@ -1493,10 +1519,10 @@ class bybit extends Exchange {
                 throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a $symbol argument or an order_id param');
             } else {
                 $request['order_id'] = $orderId;
-                $params = $this->omit ($params, 'order_id');
+                $params = $this->omit($params, 'order_id');
             }
         } else {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
         if ($since !== null) {
@@ -1551,12 +1577,12 @@ class bybit extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
         if ($code === null) {
             throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires a $currency $code argument');
         }
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $request = array(
             'currency' => $currency['id'],
         );
@@ -1589,23 +1615,23 @@ class bybit extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit, $params);
     }
 
-    public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             // 'coin' => $currency['id'],
-            // 'start_date' => $this->iso8601 ($since),
-            // 'end_date' => $this->iso8601 (till),
+            // 'start_date' => $this->iso8601($since),
+            // 'end_date' => $this->iso8601(till),
             // 'status' => 'Pending', // ToBeConfirmed, UnderReview, Pending, Success, CancelByUser, Reject, Expire
             // 'page' => 1,
             // 'limit' => 20, // max 50
         );
         $currency = null;
         if ($code !== null) {
-            $currency = $this->currency ($code);
+            $currency = $this->currency($code);
             $request['coin'] = $currency['id'];
         }
         if ($since !== null) {
-            $request['start_date'] = $this->iso8601 ($since);
+            $request['start_date'] = $this->iso8601($since);
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -1646,7 +1672,7 @@ class bybit extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit, $params);
     }
 
-    public function parse_transaction_status ($status) {
+    public function parse_transaction_status($status) {
         $statuses = array(
             'ToBeConfirmed' => 'pending',
             'UnderReview' => 'pending',
@@ -1659,7 +1685,7 @@ class bybit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction ($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null) {
         //
         // fetchWithdrawals
         //
@@ -1678,9 +1704,9 @@ class bybit extends Exchange {
         //
         $currencyId = $this->safe_string($transaction, 'coin');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $timestamp = $this->parse8601 ($this->safe_string($transaction, 'submited_at'));
-        $updated = $this->parse8601 ($this->safe_string($transaction, 'updated_at'));
-        $status = $this->parse_transaction_status ($this->safe_string($transaction, 'status'));
+        $timestamp = $this->parse8601($this->safe_string($transaction, 'submited_at'));
+        $updated = $this->parse8601($this->safe_string($transaction, 'updated_at'));
+        $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         $address = $this->safe_string($transaction, 'address');
         $feeCost = $this->safe_float($transaction, 'fee');
         $fee = null;
@@ -1695,7 +1721,7 @@ class bybit extends Exchange {
             'id' => $this->safe_string($transaction, 'id'),
             'txid' => $this->safe_string($transaction, 'tx_id'),
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'address' => $address,
             'addressTo' => null,
             'addressFrom' => null,
@@ -1711,24 +1737,24 @@ class bybit extends Exchange {
         );
     }
 
-    public function fetch_ledger ($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             // 'coin' => $currency['id'],
             // 'currency' => $currency['id'], // alias
-            // 'start_date' => $this->iso8601 ($since),
-            // 'end_date' => $this->iso8601 (till),
+            // 'start_date' => $this->iso8601($since),
+            // 'end_date' => $this->iso8601(till),
             // 'wallet_fund_type' => 'Deposit', // Withdraw, RealisedPNL, Commission, Refund, Prize, ExchangeOrderWithdraw, ExchangeOrderDeposit
             // 'page' => 1,
             // 'limit' => 20, // max 50
         );
         $currency = null;
         if ($code !== null) {
-            $currency = $this->currency ($code);
+            $currency = $this->currency($code);
             $request['coin'] = $currency['id'];
         }
         if ($since !== null) {
-            $request['start_date'] = $this->iso8601 ($since);
+            $request['start_date'] = $this->iso8601($since);
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -1768,7 +1794,7 @@ class bybit extends Exchange {
         return $this->parse_ledger($data, $currency, $since, $limit);
     }
 
-    public function parse_ledger_entry ($item, $currency = null) {
+    public function parse_ledger_entry($item, $currency = null) {
         //
         //     {
         //         "$id" => 234467,
@@ -1792,10 +1818,10 @@ class bybit extends Exchange {
         $before = null;
         if ($after !== null && $amount !== null) {
             $difference = ($direction === 'out') ? $amount : -$amount;
-            $before = $this->sum ($after, $difference);
+            $before = $this->sum($after, $difference);
         }
-        $timestamp = $this->parse8601 ($this->safe_string($item, 'exec_time'));
-        $type = $this->parse_ledger_entry_type ($this->safe_string($item, 'type'));
+        $timestamp = $this->parse8601($this->safe_string($item, 'exec_time'));
+        $type = $this->parse_ledger_entry_type($this->safe_string($item, 'type'));
         $id = $this->safe_string($item, 'id');
         $referenceId = $this->safe_string($item, 'tx_id');
         return array(
@@ -1811,13 +1837,13 @@ class bybit extends Exchange {
             'fee' => null,
             'direction' => $direction,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'type' => $type,
             'info' => $item,
         );
     }
 
-    public function parse_ledger_entry_type ($type) {
+    public function parse_ledger_entry_type($type) {
         $types = array(
             'Deposit' => 'transaction',
             'Withdraw' => 'transaction',
@@ -1831,14 +1857,14 @@ class bybit extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'];
         $request = $path;
         // public v2
         if ($api === 'public') {
             $request = '/' . $this->version . '/' . $api . '/' . $request;
             if ($params) {
-                $request .= '?' . $this->rawencode ($params);
+                $request .= '?' . $this->rawencode($params);
             }
         } else {
             $this->check_required_credentials();
@@ -1851,16 +1877,16 @@ class bybit extends Exchange {
                 // position, user
                 $request .= '/' . $api . '/' . $request;
             }
-            $timestamp = $this->nonce ();
+            $timestamp = $this->nonce();
             $query = array_merge($params, array(
                 'api_key' => $this->apiKey,
                 'recvWindow' => $this->options['recvWindow'],
                 'timestamp' => $timestamp,
             ));
-            $auth = $this->rawencode ($this->keysort ($query));
-            $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret));
+            $auth = $this->rawencode($this->keysort($query));
+            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
             if ($method === 'POST') {
-                $body = $this->json (array_merge($query, array(
+                $body = $this->json(array_merge($query, array(
                     'sign' => $signature,
                 )));
                 $headers = array(
@@ -1874,7 +1900,7 @@ class bybit extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if (!$response) {
             return; // fallback to default error handler
         }

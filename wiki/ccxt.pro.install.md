@@ -55,17 +55,17 @@ pip3 install git+ssh://git@github.com/kroitor/ccxt.pro.git#subdirectory=python
 
 ### Python Dependency
 
-Adding CCXT Pro as a dependency to your Python package can be done by listing it in `setup.py` if you're using [setuptools](https://setuptools.readthedocs.io/en/latest/) via your [Requirements Files](https://pip.pypa.io/en/latest/user_guide/#requirements-files)
+With [setuptools](https://setuptools.readthedocs.io/en/latest/) adding CCXT Pro as a dependency to your Python package can be done by listing it in `setup.py` or in your [Requirements Files](https://pip.pypa.io/en/latest/user_guide/#requirements-files):
 
 ```Python
 # setup.py
 setup(
     # ...
     install_requires=[
-        # install a specific version number
-        'ccxtpro @ git+https://github.com/kroitor/ccxt.pro.git@0.0.70#subdirectory=python'
         # install the most recent version
-        # 'ccxtpro @ git+https://github.com/kroitor/ccxt.pro.git#subdirectory=python'
+        'ccxtpro @ git+https://github.com/kroitor/ccxt.pro.git#subdirectory=python'
+        # install a specific version number
+        # 'ccxtpro @ git+https://github.com/kroitor/ccxt.pro.git@0.1.13#subdirectory=python'
     ]
     # ...
 )

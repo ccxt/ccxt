@@ -289,6 +289,7 @@ class btctradeua(Exchange):
             symbol = market['symbol']
         return {
             'id': self.safe_string(order, 'id'),
+            'clientOrderId': None,
             'timestamp': timestamp,  # until they fix their timestamp
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,

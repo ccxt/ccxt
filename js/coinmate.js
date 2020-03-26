@@ -99,8 +99,32 @@ module.exports = class coinmate extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'maker': 0.05 / 100,
-                    'taker': 0.15 / 100,
+                    'tierBased': true,
+                    'percentage': true,
+                    'maker': 0.12 / 100,
+                    'taker': 0.25 / 100,
+                    'tiers': {
+                        'taker': [
+                            [0, 0.25 / 100],
+                            [10000, 0.23 / 100],
+                            [100000, 0.21 / 100],
+                            [250000, 0.20 / 100],
+                            [500000, 0.15 / 100],
+                            [1000000, 0.13 / 100],
+                            [3000000, 0.10 / 100],
+                            [15000000, 0.05 / 100],
+                        ],
+                        'maker': [
+                            [0, 0.12 / 100],
+                            [10000, 0.11 / 100],
+                            [1000000, 0.10 / 100],
+                            [250000, 0.08 / 100],
+                            [500000, 0.05 / 100],
+                            [1000000, 0.03 / 100],
+                            [3000000, 0.02 / 100],
+                            [15000000, 0],
+                        ],
+                    },
                 },
             },
             'exceptions': {
@@ -585,8 +609,10 @@ module.exports = class coinmate extends Exchange {
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
+        const clientOrderId = this.safeString (order, 'clientOrderId');
         return {
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -636,8 +662,13 @@ module.exports = class coinmate extends Exchange {
         const request = {
             'orderId': id,
         };
-        const res = await this.privatePostOrderById (this.extend (request, params));
-        return this.parseOrder (res['data']);
+        let market = undefined;
+        if (symbol) {
+            market = this.market (symbol);
+        }
+        const response = await this.privatePostOrderById (this.extend (request, params));
+        const data = this.safeValue (response, 'data');
+        return this.parseOrder (data, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -678,14 +709,16 @@ module.exports = class coinmate extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (response !== undefined && 'error' in response) {
-            // {"error":true,"errorMessage":"Minimum Order Size 0.01 ETH","data":null}
-            if (response['error']) {
-                const message = this.safeString (response, 'errorMessage');
-                const feedback = this.id + ' ' + message;
-                this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
-                this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
-                throw new ExchangeError (this.id + ' ' + this.json (response));
+        if (response !== undefined) {
+            if ('error' in response) {
+                // {"error":true,"errorMessage":"Minimum Order Size 0.01 ETH","data":null}
+                if (response['error']) {
+                    const message = this.safeString (response, 'errorMessage');
+                    const feedback = this.id + ' ' + message;
+                    this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+                    this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+                    throw new ExchangeError (this.id + ' ' + this.json (response));
+                }
             }
         }
         if (code > 400) {
