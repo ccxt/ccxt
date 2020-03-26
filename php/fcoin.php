@@ -518,6 +518,22 @@ class fcoin extends Exchange {
     }
 
     public function parse_order($order, $market = null) {
+        //
+        //     {
+        //         "$id" => "string",
+        //         "$symbol" => "string",
+        //         "type" => "limit",
+        //         "$side" => "buy",
+        //         "$price" => "string",
+        //         "$amount" => "string",
+        //         "state" => "submitted",
+        //         "executed_value" => "string",
+        //         "fill_fees" => "string",
+        //         "filled_amount" => "string",
+        //         "created_at" => 0,
+        //         "source" => "web"
+        //     }
+        //
         $id = $this->safe_string($order, 'id');
         $side = $this->safe_string($order, 'side');
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
@@ -566,6 +582,7 @@ class fcoin extends Exchange {
         return array(
             'info' => $order,
             'id' => $id,
+            'clientOrderId' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
