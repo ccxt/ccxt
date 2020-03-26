@@ -205,12 +205,10 @@ module.exports = class coinmate extends Exchange {
             let maker = undefined;
             let taker = undefined;
             const promotionalMarkets = this.safeValue (this.options, 'promotionalMarkets', []);
+            let fees = this.safeValue (this.fees, 'trading');
             if (this.inArray (symbol, promotionalMarkets)) {
-                maker = this['fees']['promotional']['trading']['maker'];
-                taker = this['fees']['promotional']['trading']['taker'];
-            } else {
-                maker = this['fees']['trading']['maker'];
-                taker = this['fees']['trading']['taker'];
+                const promotionalFees = this.safeValue (this.fees, 'promotional', {});
+                fees = this.safeValue (promotionalFees, 'trading', fees);
             }
             result.push ({
                 'id': id,
@@ -220,8 +218,8 @@ module.exports = class coinmate extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': undefined,
-                'maker': maker,
-                'taker': taker,
+                'maker': fees['maker'],
+                'taker': fees['taker'],
                 'info': market,
                 'precision': {
                     'price': this.safeInteger (market, 'priceDecimals'),
