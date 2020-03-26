@@ -282,6 +282,7 @@ class bit2c extends Exchange {
         $status = $this->safe_string($order, 'status');
         return array(
             'id' => $id,
+            'clientOrderId' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
