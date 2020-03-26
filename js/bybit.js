@@ -948,7 +948,7 @@ module.exports = class bybit extends Exchange {
         }
         const type = this.safeStringLower (order, 'order_type');
         let clientOrderId = this.safeString (order, 'order_link_id');
-        if ((clientOrderId !== undefined) && ((clientOrderId.length < 1)) {
+        if ((clientOrderId !== undefined) && (clientOrderId.length < 1)) {
             clientOrderId = undefined;
         }
         return {
