@@ -204,7 +204,8 @@ module.exports = class coinmate extends Exchange {
             const symbol = base + '/' + quote;
             let maker = undefined;
             let taker = undefined;
-            if (this['options']['promotionalMarkets'].indexOf (symbol) >= 0) {
+            const promotionalMarkets = this.safeValue (this.options, 'promotionalMarkets', []);
+            if (this.inArray (symbol, promotionalMarkets)) {
                 maker = this['fees']['promotional']['trading']['maker'];
                 taker = this['fees']['promotional']['trading']['taker'];
             } else {
