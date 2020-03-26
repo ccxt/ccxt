@@ -700,9 +700,11 @@ class bitfinex2(bitfinex):
         price = self.safe_float(order, 16)
         average = self.safe_float(order, 17)
         cost = price * filled
+        clientOrderId = self.safe_string(order, 2)
         return {
             'info': order,
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
