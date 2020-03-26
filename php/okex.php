@@ -2073,9 +2073,11 @@ class okex extends Exchange {
                 'currency' => $feeCurrency,
             );
         }
+        $clientOrderId = $this->safe_string($order, 'client_oid');
         return array(
             'info' => $order,
             'id' => $id,
+            'clientOrderId' => $clientOrderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
