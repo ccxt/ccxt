@@ -740,9 +740,11 @@ class bitfinex2 extends bitfinex {
         $price = $this->safe_float($order, 16);
         $average = $this->safe_float($order, 17);
         $cost = $price * $filled;
+        $clientOrderId = $this->safe_string($order, 2);
         return array(
             'info' => $order,
             'id' => $id,
+            'clientOrderId' => $clientOrderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
