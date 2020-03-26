@@ -448,8 +448,10 @@ class gemini(Exchange):
             symbol = market['symbol']
         id = self.safe_string(order, 'order_id')
         side = self.safe_string_lower(order, 'side')
+        clientOrderId = self.safe_string(order, 'client_order_id')
         return {
             'id': id,
+            'clientOrderId': clientOrderId,
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
