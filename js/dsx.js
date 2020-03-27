@@ -21,6 +21,7 @@ module.exports = class dsx extends Exchange {
                 'createMarketOrder': false,
                 'createOrder': false,
                 'fetchBalance': false,
+                'fetchCurrencies': true,
                 'fetchL2OrderBook': false,
                 'fetchMarkets': false,
                 'fetchOrderBook': true,
@@ -142,8 +143,24 @@ module.exports = class dsx extends Exchange {
         });
     }
 
+    async fetchCurrenciesFromCache (params = {}) {
+        const options = this.safeValue (this.options, 'fetchCurrencies', {});
+        const timestamp = this.safeInteger (options, 'timestamp');
+        const expires = this.safeInteger (options, 'expires', 1000);
+        const now = this.milliseconds ();
+        if ((timestamp === undefined) || ((now - timestamp) > expires)) {
+            const currencies = await this.publicGetCurrency (params);
+            this.options['fetchCurrencies'] = this.extend (options, {
+                'currencies': currencies,
+                'timestamp': now,
+            });
+        }
+        return this.safeValue (this.options, 'fetchCurrencies', {});
+    }
+
     async fetchCurrencies (params = {}) {
-        const response = await this.publicGetCurrency (params);
+        const response = await this.fetchCurrenciesFromCache (params);
+        const currencies = this.safeValue (response, 'currencies', {});
         //   [ { id: 'BCH',
         //     fullName: 'Bitcoin Cash',
         //     crypto: true,
@@ -156,8 +173,8 @@ module.exports = class dsx extends Exchange {
         //     delisted: false,
         //     payoutFee: '0.000500000000' }, ...
         const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const currency = response[i];
+        for (let i = 0; i < currencies.length; i++) {
+            const currency = currencies[i];
             const id = this.safeString (currency, 'id');
             const name = this.safeString (currency, 'fullName');
             const code = this.safeCurrencyCode (id, name);
@@ -304,46 +321,20 @@ module.exports = class dsx extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privatePostInfoAccount ();
-        //
-        //     {
-        //         "success" : 1,
-        //         "return" : {
-        //             "funds" : {
-        //                 "BTC" : {
-        //                     "total" : 0,
-        //                     "available" : 0
-        //                 },
-        //                 "USD" : {
-        //                     "total" : 0,
-        //                     "available" : 0
-        //                 },
-        //                 "USDT" : {
-        //                     "total" : 0,
-        //                     "available" : 0
-        //                 }
-        //             },
-        //             "rights" : {
-        //                 "info" : 1,
-        //                 "trade" : 1
-        //             },
-        //             "transactionCount" : 0,
-        //             "openOrders" : 0,
-        //             "serverTime" : 1537451465
-        //         }
-        //     }
-        //
-        const balances = this.safeValue (response, 'return');
+        const response = await this.privateGetAccountBalance ();
+        //   [ { currency: 'BCH', available: '0.00000165', reserved: '0' },
+        //     { currency: 'BTG', available: '0.00000727', reserved: '0' },...
         const result = { 'info': response };
-        const funds = this.safeValue (balances, 'funds');
-        const currencyIds = Object.keys (funds);
-        for (let i = 0; i < currencyIds.length; i++) {
-            const currencyId = currencyIds[i];
-            const code = this.safeCurrencyCode (currencyId);
-            const balance = this.safeValue (funds, currencyId, {});
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
+            const id = this.safeString (balance, 'currency');
+            const code = this.safeCurrencyCode (id);
+            const free = this.safeFloat (balance, 'available');
+            const used = this.safeFloat (balance, 'reserved');
             const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'available');
-            account['total'] = this.safeFloat (balance, 'total');
+            account['free'] = free;
+            account['used'] = used;
+            account['total'] = free + used;
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -1027,41 +1018,17 @@ module.exports = class dsx extends Exchange {
         };
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = {}, body = undefined) {
         let url = this.urls['api'][api];
+        url += '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        if (api === 'private' || api === 'dwapi') {
-            url += '/' + this.version + '/' + this.implodeParams (path, params);
-            this.checkRequiredCredentials ();
-            const nonce = this.nonce ();
-            body = this.urlencode (this.extend ({
-                'nonce': nonce,
-            }, query));
-            const signature = this.decode (this.hmac (this.encode (body), this.encode (this.secret), 'sha512', 'base64'));
-            headers = {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Key': this.apiKey,
-                'Sign': signature,
-            };
-        } else if (api === 'public') {
-            url += '/' + this.implodeParams (path, params);
+        if (api === 'public') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
         } else {
-            url += '/' + this.implodeParams (path, params);
-            if (method === 'GET') {
-                if (Object.keys (query).length) {
-                    url += '?' + this.urlencode (query);
-                }
-            } else {
-                if (Object.keys (query).length) {
-                    body = this.json (query);
-                    headers = {
-                        'Content-Type': 'application/json',
-                    };
-                }
-            }
+            const auth = this.apiKey + ':' + this.secret;
+            headers['Authorization'] = 'Basic ' + this.stringToBase64 (auth);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
