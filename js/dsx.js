@@ -141,6 +141,44 @@ module.exports = class dsx extends Exchange {
         });
     }
 
+    async fetchCurrencies (params = {}) {
+        const response = await this.publicGetCurrency (params);
+        //   [ { id: 'BCH',
+        //     fullName: 'Bitcoin Cash',
+        //     crypto: true,
+        //     payinEnabled: true,
+        //     payinPaymentId: false,
+        //     payinConfirmations: 2,
+        //     payoutEnabled: true,
+        //     payoutIsPaymentId: false,
+        //     transferEnabled: true,
+        //     delisted: false,
+        //     payoutFee: '0.000500000000' }, ...
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const currency = response[i];
+            const id = this.safeString (currency, 'id');
+            const name = this.safeString (currency, 'fullName');
+            const code = this.safeCurrencyCode (id, name);
+            const transferEnabled = currency['transferEnabled'];
+            const delisted = currency['delisted'];
+            // todo: check what these bools actually mean
+            const payinEnabled = currency['payinEnabled'];
+            const payoutEnabled = currency['payoutEnabled'];
+            const active = !delisted && transferEnabled && payinEnabled && payoutEnabled;
+            const fee = this.safeFloat (currency, 'payoutFee');
+            result[code] = {
+                'id': id,
+                'code': code,
+                'name': name,
+                'active': active,
+                'fee': fee,
+                'info': currency,
+            };
+        }
+        return result;
+    }
+
     async fetchMarkets (params = {}) {
         const response = await this.publicGetSymbol (params);
         //
