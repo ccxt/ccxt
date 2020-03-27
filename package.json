@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.25.30",
+  "version": "1.25.31",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 130+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "dist/ccxt.browser.js",
@@ -504,7 +504,9 @@
     "hollaex.com",
     "HollaEx",
     "bybit.com",
-    "Bybit"
+    "Bybit",
+    "aofex.com",
+    "AOFEX"
   ],
   "collective": {
     "type": "opencollective",
