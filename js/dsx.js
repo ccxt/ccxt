@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InvalidNonce, BadRequest, InsufficientFunds, PermissionDenied, DDoSProtection, InvalidOrder, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InvalidNonce, BadRequest, InsufficientFunds, PermissionDenied, DDoSProtection, InvalidOrder, OrderNotFound,AuthenticationError } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -17,10 +17,10 @@ module.exports = class dsx extends Exchange {
             'has': {
                 'CORS': false,
                 'cancelOrder': false,
-                'createLimitOrder': false,
+                'createLimitOrder': true,
                 'createMarketOrder': false,
-                'createOrder': false,
-                'fetchBalance': false,
+                'createOrder': true,
+                'fetchBalance': true,
                 'fetchCurrencies': true,
                 'fetchL2OrderBook': false,
                 'fetchMarkets': false,
@@ -114,24 +114,14 @@ module.exports = class dsx extends Exchange {
             },
             'exceptions': {
                 'exact': {
-                    'Sign is invalid': AuthenticationError, // {"success":0,"error":"Sign is invalid"}
-                    'Order was rejected. Incorrect price.': InvalidOrder, // {"success":0,"error":"Order was rejected. Incorrect price."}
-                    "Order was rejected. You don't have enough money.": InsufficientFunds, // {"success":0,"error":"Order was rejected. You don't have enough money."}
-                    'This method is blocked for your pair of keys': PermissionDenied, // {"success":0,"error":"This method is blocked for your pair of keys"}
+                    'Insufficient funds': InsufficientFunds,
+                    'Symbol not found': InvalidOrder,
+                    'Price not a valid number': InvalidOrder,
+                    'Quantity too low': InvalidOrder,
+                    'Order not found': OrderNotFound,
+                    'Validation error': OrderNotFound,
                 },
                 'broad': {
-                    'INVALID_PARAMETER': BadRequest,
-                    'Invalid pair name': ExchangeError, // {"success":0,"error":"Invalid pair name: btc_eth"}
-                    'invalid api key': AuthenticationError,
-                    'invalid sign': AuthenticationError,
-                    'api key dont have trade permission': AuthenticationError,
-                    'invalid parameter': InvalidOrder,
-                    'invalid order': InvalidOrder,
-                    'Requests too often': DDoSProtection,
-                    'not available': ExchangeNotAvailable,
-                    'data unavailable': ExchangeNotAvailable,
-                    'external service unavailable': ExchangeNotAvailable,
-                    'nonce is invalid': InvalidNonce, // {"success":0,"error":"Parameter: nonce is invalid"}
                 },
             },
             'options': {
@@ -321,7 +311,7 @@ module.exports = class dsx extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateGetAccountBalance ();
+        const response = await this.privateGetTradingBalance ();
         //   [ { currency: 'BCH', available: '0.00000165', reserved: '0' },
         //     { currency: 'BTG', available: '0.00000727', reserved: '0' },...
         const result = { 'info': response };
@@ -338,6 +328,64 @@ module.exports = class dsx extends Exchange {
             result[code] = account;
         }
         return this.parseBalance (result);
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
+        const response = await this.privateGetAccountCryptoAddressCurrency (this.extend (request, params));
+        // xrp ->  {"address":"rwpMsdkfjskdjf","paymentId":"1483475384577"}
+        return {
+            'currency': code,
+            'address': this.safeString (response, 'address'),
+            'tag': this.safeString (response, '1444344687'),
+            'info': response,
+        };
+    }
+
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetAccountTransactions (this.extend (request, params));
+        return this.parseTransactions (response);
+    }
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'side': side,
+            'quantity': this.amountToPrecision (symbol, amount),
+            'price': this.priceToPrecision (symbol, price),
+        };
+        const response = await this.privatePostOrder (this.extend (request, params));
+        return this.parseOrder (response);
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'clientOrderId': id,
+        };
+        const response = await this.privateDeleteOrderClientOrderId (this.extend (request, params));
+        return this.parseOrder (response);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetOrder (this.extend (request, params));
+        return this.parseOrders (response);
     }
 
     parseTrade (trade, market = undefined) {
@@ -485,89 +533,14 @@ module.exports = class dsx extends Exchange {
         return this.parseTrades (response[market['id']], market, since, limit);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        if (type === 'market' && price === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder requires a price argument even for market orders, that is the worst price that you agree to fill your order for');
-        }
-        const request = {
-            'pair': market['id'],
-            'type': side,
-            'volume': this.amountToPrecision (symbol, amount),
-            'rate': this.priceToPrecision (symbol, price),
-            'orderType': type,
-        };
-        price = parseFloat (price);
-        amount = parseFloat (amount);
-        const response = await this.privatePostOrderNew (this.extend (request, params));
-        //
-        //     {
-        //       "success": 1,
-        //       "return": {
-        //         "received": 0,
-        //         "remains": 10,
-        //         "funds": {
-        //           "BTC": {
-        //             "total": 100,
-        //             "available": 95
-        //           },
-        //           "USD": {
-        //             "total": 10000,
-        //             "available": 9995
-        //           },
-        //           "EUR": {
-        //             "total": 1000,
-        //             "available": 995
-        //           },
-        //           "LTC": {
-        //             "total": 1000,
-        //             "available": 995
-        //           }
-        //         },
-        //         "orderId": 0, // https://github.com/ccxt/ccxt/issues/3677
-        //       }
-        //     }
-        //
-        let status = 'open';
-        let filled = 0.0;
-        let remaining = amount;
-        const responseReturn = this.safeValue (response, 'return');
-        let id = this.safeString2 (responseReturn, 'orderId', 'order_id');
-        if (id === '0') {
-            id = this.safeString (responseReturn, 'initOrderId', 'init_order_id');
-            status = 'closed';
-        }
-        filled = this.safeFloat (responseReturn, 'received', 0.0);
-        remaining = this.safeFloat (responseReturn, 'remains', amount);
-        const timestamp = this.milliseconds ();
-        return {
-            'info': response,
-            'id': id,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
-            'status': status,
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'price': price,
-            'cost': price * filled,
-            'amount': amount,
-            'remaining': remaining,
-            'filled': filled,
-            'fee': undefined,
-            // 'trades': this.parseTrades (order['trades'], market),
-        };
-    }
-
     parseOrderStatus (status) {
         const statuses = {
-            '0': 'open', // Active
-            '1': 'closed', // Filled
-            '2': 'canceled', // Killed
-            '3': 'canceling', // Killing
-            '7': 'canceled', // Rejected
+            'new': 'open',
+            'suspended': 'open',
+            'partiallyFilled': 'open',
+            'filled': 'closed',
+            'canceled': 'canceled',
+            'expired': 'canceled',
         };
         return this.safeString (statuses, status, status);
     }
@@ -592,98 +565,55 @@ module.exports = class dsx extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //   cancelOrder response
+        //   { id: 226952257529,
+        //     clientOrderId: '2241bed127c1756240641b6159a05d33',
+        //     symbol: 'ETHBTC',
+        //     side: 'sell',
+        //     status: 'new',
+        //     type: 'limit',
+        //     timeInForce: 'GTC',
+        //     price: '1.000000',
+        //     quantity: '0.1000',
+        //     postOnly: false,
+        //     cumQuantity: '0',
+        //     createdAt: '2020-03-27T15:20:41.427Z',
+        //     updatedAt: '2020-03-27T15:20:41.427Z' }
         //
-        // fetchOrder
-        //
-        //   {
-        //     "number": 36635882,
-        //     "pair": "btcusd",
-        //     "type": "buy",
-        //     "remainingVolume": 10,
-        //     "volume": 10,
-        //     "rate": 1000.0,
-        //     "timestampCreated": 1496670,
-        //     "status": 0,
-        //     "orderType": "limit",
-        //     "deals": [
-        //       {
-        //         "pair": "btcusd",
-        //         "type": "buy",
-        //         "amount": 1,
-        //         "rate": 1000.0,
-        //         "orderId": 1,
-        //         "timestamp": 1496672724,
-        //         "commission": 0.001,
-        //         "commissionCurrency": "btc"
-        //       }
-        //     ]
-        //   }
-        //
-        const id = this.safeString (order, 'id');
+        const id = this.safeString (order, 'clientOrderId');
+        const clientOrderId = id;
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const timestamp = this.safeTimestamp (order, 'timestampCreated');
-        const marketId = this.safeString (order, 'pair');
+        const timestamp = this.parse8601 (this.safeString (order, 'createdAt'));
+        const marketId = this.safeString (order, 'symbol');
         market = this.parseMarket (marketId);
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const remaining = this.safeFloat (order, 'remainingVolume');
-        const amount = this.safeFloat (order, 'volume');
-        const price = this.safeFloat (order, 'rate');
-        let filled = undefined;
-        let cost = undefined;
-        if (amount !== undefined) {
-            if (remaining !== undefined) {
-                filled = amount - remaining;
-                cost = price * filled;
-            }
-        }
-        const orderType = this.safeString (order, 'orderType');
-        const side = this.safeString (order, 'type');
-        let fee = undefined;
-        const deals = this.safeValue (order, 'deals', []);
-        const numDeals = deals.length;
-        let trades = undefined;
-        let lastTradeTimestamp = undefined;
-        if (numDeals > 0) {
-            trades = this.parseTrades (deals);
-            let feeCost = undefined;
-            let feeCurrency = undefined;
-            for (let i = 0; i < trades.length; i++) {
-                const trade = trades[i];
-                if (feeCost === undefined) {
-                    feeCost = 0;
-                }
-                feeCost = this.sum (feeCost, trade['fee']['cost']);
-                feeCurrency = trade['fee']['currency'];
-                lastTradeTimestamp = trade['timestamp'];
-            }
-            if (feeCost !== undefined) {
-                fee = {
-                    'cost': feeCost,
-                    'currency': feeCurrency,
-                };
-            }
-        }
+        const filled = this.safeFloat (order, 'cumQuantity');
+        const amount = this.safeFloat (order, 'quantity');
+        const price = this.safeFloat (order, 'price');
+        const remaining = amount - filled;
+        const orderType = this.safeString (order, 'type');
+        const side = this.safeString (order, 'side');
         return {
-            'info': order,
             'id': id,
-            'clientOrderId': undefined,
+            'clientOrderId': clientOrderId,
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': undefined,
             'type': orderType,
             'side': side,
             'price': price,
-            'cost': cost,
+            'cost': undefined,
             'amount': amount,
             'remaining': remaining,
             'filled': filled,
             'status': status,
-            'fee': fee,
-            'trades': trades,
+            'fee': undefined,
+            'trades': undefined,
+            'info': order,
         };
     }
 
@@ -738,35 +668,6 @@ module.exports = class dsx extends Exchange {
         return this.filterBySymbolSinceLimit (result, symbol, since, limit);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = {
-            // 'count': 10, // Decimal, The maximum number of orders to return
-            // 'fromId': 123, // Decimal, ID of the first order of the selection
-            // 'endId': 321, // Decimal, ID of the last order of the selection
-            // 'order': 'ASC', // String, Order in which orders shown. Possible values are "ASC" — from first to last, "DESC" — from last to first.
-        };
-        const response = await this.privatePostOrders (this.extend (request, params));
-        //
-        //     {
-        //       "success": 1,
-        //       "return": {
-        //         "0": {
-        //           "pair": "btcusd",
-        //           "type": "buy",
-        //           "remainingVolume": 10,
-        //           "volume": 10,
-        //           "rate": 1000.0,
-        //           "timestampCreated": 1496670,
-        //           "status": 0,
-        //           "orderType": "limit"
-        //         }
-        //       }
-        //     }
-        //
-        return this.parseOrdersById (this.safeValue (response, 'return', {}), symbol, since, limit);
-    }
-
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
@@ -797,18 +698,6 @@ module.exports = class dsx extends Exchange {
         //     }
         //
         return this.parseOrdersById (this.safeValue (response, 'return', {}), symbol, since, limit);
-    }
-
-    async cancelOrder (id, symbol = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = {
-            'orderId': id,
-        };
-        const response = await this.privatePostOrderCancel (this.extend (request, params));
-        if (id in this.orders) {
-            this.orders[id]['status'] = 'canceled';
-        }
-        return response;
     }
 
     parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
@@ -863,82 +752,66 @@ module.exports = class dsx extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let currency = undefined;
-        const request = {};
-        if (code !== undefined) {
-            currency = this.currency (code);
-            request['currency'] = currency['id'];
-        }
-        if (since !== undefined) {
-            request['since'] = since;
-        }
-        if (limit !== undefined) {
-            request['count'] = limit;
-        }
-        const response = await this.privatePostHistoryTransactions (this.extend (request, params));
-        //
-        //     {
-        //         "success": 1,
-        //         "return": [
-        //             {
-        //                 "id": 1,
-        //                 "timestamp": 11,
-        //                 "type": "Withdraw",
-        //                 "amount": 1,
-        //                 "currency": "btc",
-        //                 "confirmationsCount": 6,
-        //                 "address": "address",
-        //                 "status": 2,
-        //                 "commission": 0.0001
-        //             }
-        //         ]
-        //     }
-        //
-        const transactions = this.safeValue (response, 'return', []);
-        return this.parseTransactions (transactions, currency, since, limit);
-    }
-
     parseTransactionStatus (status) {
         const statuses = {
-            '1': 'failed',
-            '2': 'ok',
-            '3': 'pending',
-            '4': 'failed',
+            'created': 'pending',
+            'pending': 'pending',
+            'failed': 'failed',
+            'success': 'ok',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransactionType (status) {
+        const statuses = {
+            'payout': 'withdrawal',
+            'payin': 'deposit',
+            'deposit': 'deposit',
+            'withdraw': 'withdrawal',
+            'bankToExchange': 'deposit',
+            'exchangeToBank': 'withdrawal',
         };
         return this.safeString (statuses, status, status);
     }
 
     parseTransaction (transaction, currency = undefined) {
+        //   { id: '6dfgdfgdfgb7c',
+        //     index: 50045646423,
+        //     type: 'deposit',
+        //     status: 'success',
+        //     currency: 'USD',
+        //     amount: '0.01',
+        //     createdAt: '2020-03-25T15:12:24.142Z',
+        //     updatedAt: '2020-03-25T15:18:45.425Z' }
         //
-        //     {
-        //         "id": 1,
-        //         "timestamp": 11, // 11 in their docs (
-        //         "type": "Withdraw",
-        //         "amount": 1,
-        //         "currency": "btc",
-        //         "confirmationsCount": 6,
-        //         "address": "address",
-        //         "status": 2,
-        //         "commission": 0.0001
-        //     }
+        //   { id: 'dfgdfgfe5',
+        //     index: 504564573,
+        //     type: 'deposit',
+        //     status: 'success',
+        //     currency: 'LTC',
+        //     amount: '0.00000210',
+        //     createdAt: '2020-03-25T15:12:28.842Z',
+        //     updatedAt: '2020-03-25T15:20:14.607Z' }
         //
-        const timestamp = this.safeTimestamp (transaction, 'timestamp');
-        let type = this.safeString (transaction, 'type');
-        if (type !== undefined) {
-            if (type === 'Incoming') {
-                type = 'deposit';
-            } else if (type === 'Withdraw') {
-                type = 'withdrawal';
-            }
-        }
+        //   { id: '8dfgdfg6ac',
+        //     index: 5546450148,
+        //     type: 'payin',
+        //     status: 'pending',
+        //     currency: 'ETH',
+        //     amount: '0.500000000000000000',
+        //     createdAt: '2020-03-27T14:19:56.885Z',
+        //     updatedAt: '2020-03-27T14:21:07.062Z',
+        //     hash:
+        //     '0xa6f98edfgdfga1718d',
+        //         address: '0xdfgdfg78647107e' }
+        const timestamp = this.parse8601 (this.safeString (transaction, 'updatedAt'));
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        const type = this.parseTransactionType (this.safeString (transaction, 'type'));
         return {
             'id': this.safeString (transaction, 'id'),
-            'txid': this.safeString (transaction, 'txid'),
+            'txid': this.safeString (transaction, 'hash'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'address': this.safeString (transaction, 'address'),
@@ -961,24 +834,6 @@ module.exports = class dsx extends Exchange {
         };
         const response = await this.fetchDepositAddress (code, this.extend (request, params));
         return response;
-    }
-
-    async fetchDepositAddress (code, params = {}) {
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request = {
-            'currency': currency['id'],
-        };
-        const response = await this.dwapiPostDepositCryptoaddress (this.extend (request, params));
-        const result = this.safeValue (response, 'return', {});
-        const address = this.safeString (result, 'address');
-        this.checkAddress (address);
-        return {
-            'currency': code,
-            'address': address,
-            'tag': undefined, // not documented in DSX API
-            'info': response,
-        };
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
@@ -1029,6 +884,16 @@ module.exports = class dsx extends Exchange {
         } else {
             const auth = this.apiKey + ':' + this.secret;
             headers['Authorization'] = 'Basic ' + this.stringToBase64 (auth);
+            if (method === 'POST') {
+                if (Object.keys (query).length) {
+                    headers['Content-Type'] = 'application/json';
+                    body = this.json (query);
+                }
+            } else if (method === 'GET') {
+                if (Object.keys (query).length) {
+                    url += '?' + this.urlencode (query);
+                }
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
@@ -1037,50 +902,16 @@ module.exports = class dsx extends Exchange {
         if (response === undefined) {
             return; // fallback to default error handler
         }
-        if ('success' in response) {
-            //
-            // 1 - Liqui only returns the integer 'success' key from their private API
-            //
-            //     { "success": 1, ... } httpCode === 200
-            //     { "success": 0, ... } httpCode === 200
-            //
-            // 2 - However, exchanges derived from Liqui, can return non-integers
-            //
-            //     It can be a numeric string
-            //     { "sucesss": "1", ... }
-            //     { "sucesss": "0", ... }, httpCode >= 200 (can be 403, 502, etc)
-            //
-            //     Or just a string
-            //     { "success": "true", ... }
-            //     { "success": "false", ... }, httpCode >= 200
-            //
-            //     Or a boolean
-            //     { "success": true, ... }
-            //     { "success": false, ... }, httpCode >= 200
-            //
-            // 3 - Oversimplified, Python PEP8 forbids comparison operator (===) of different types
-            //
-            // 4 - We do not want to copy-paste and duplicate the code of this handler to other exchanges derived from Liqui
-            //
-            // To cover points 1, 2, 3 and 4 combined this handler should work like this:
-            //
-            let success = this.safeValue (response, 'success', false);
-            if (typeof success === 'string') {
-                if ((success === 'true') || (success === '1')) {
-                    success = true;
-                } else {
-                    success = false;
-                }
-            }
-            if (!success) {
-                const code = this.safeString (response, 'code');
-                const message = this.safeString (response, 'error');
-                const feedback = this.id + ' ' + body;
-                this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
-                this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
-                this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
-                throw new ExchangeError (feedback); // unknown message
-            }
+        if ('error' in response) {
+            // {"error":{"code":20001,"message":"Insufficient funds","description":"Check that the funds are sufficient, given commissions"}}
+            const error = response['error'];
+            const code = this.safeString (error, 'code');
+            const message = this.safeString (error, 'message');
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            throw new ExchangeError (feedback); // unknown message
         }
     }
 };
