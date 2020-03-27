@@ -30,6 +30,7 @@ module.exports = class aofex extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchClosedOrder': true,
+                'fetchTradingFee': true,
             },
             'timeframes': {
                 '1m': '1min',
@@ -330,15 +331,28 @@ module.exports = class aofex extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchTradingFees (params = {}) {
+    async fetchTradingFee (symbol, params = {}) {
         await this.loadMarkets ();
-        const fees = await this.privatePostReturnFeeInfo (params);
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.privateGetEntrustRate (this.extend (request, params));
+        //
+        //     {
+        //         "errno":0,
+        //         "errmsg":"success",
+        //         "result": {
+        //             "toFee":"0.002","fromFee":"0.002"
+        //         }
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
         return {
-            'info': fees,
-            'maker': this.safeFloat (fees, 'makerFee'),
-            'taker': this.safeFloat (fees, 'takerFee'),
-            'withdraw': {},
-            'deposit': {},
+            'info': response,
+            'symbol': symbol,
+            'maker': this.safeFloat (result, 'fromFee'),
+            'taker': this.safeFloat (result, 'toFee'),
         };
     }
 
