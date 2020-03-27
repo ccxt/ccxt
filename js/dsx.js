@@ -233,6 +233,59 @@ module.exports = class dsx extends Exchange {
         return result;
     }
 
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const tickers = await this.publicGetTicker (params);
+        const result = {};
+        for (let i = 0; i < tickers.length; i++) {
+            const ticker = tickers[i];
+            const id = this.safeString (ticker, 'symbol');
+            const market = this.markets_by_id[id];
+            const symbol = market['symbol'];
+            result[symbol] = this.parseTicker (ticker, market);
+        }
+        return result;
+    }
+
+    parseTicker (ticker, market = undefined) {
+        //
+        //   { symbol: 'BSVUSD',
+        //     ask: '100000.000',
+        //     bid: '0.207',
+        //     last: null,
+        //     open: null,
+        //     low: '0',
+        //     high: '0',
+        //     volume: '0',
+        //     volumeQuote: '0',
+        //     timestamp: '2020-03-27T10:31:08.583Z' }
+        //
+        const timestamp = this.parse8601 (this.safeString (ticker, 'timestamp'));
+        const symbol = market['symbol'];
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'bid'),
+            'bidVolume': undefined,
+            'ask': this.safeFloat (ticker, 'ask'),
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': this.safeFloat (ticker, 'open'),
+            'close': undefined,
+            'last': this.safeFloat (ticker, 'last'),
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': this.safeFloat (ticker, 'volume'),
+            'quoteVolume': this.safeFloat (ticker, 'volumeQuote'),
+            'info': ticker,
+        };
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privatePostInfoAccount ();
@@ -278,58 +331,6 @@ module.exports = class dsx extends Exchange {
             result[code] = account;
         }
         return this.parseBalance (result);
-    }
-
-    parseTicker (ticker, market = undefined) {
-        //
-        //   {    high:  0.03492,
-        //         low:  0.03245,
-        //         avg:  29.46133,
-        //         vol:  500.8661,
-        //     vol_cur:  17.000797104,
-        //        last:  0.03364,
-        //         buy:  0.03362,
-        //        sell:  0.03381,
-        //     updated:  1537521993,
-        //        pair: "ethbtc"       }
-        //
-        const timestamp = this.safeTimestamp (ticker, 'updated');
-        let symbol = undefined;
-        const marketId = this.safeString (ticker, 'pair');
-        market = this.parseMarket (marketId);
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        // dsx average is inverted, liqui average is not
-        let average = this.safeFloat (ticker, 'avg');
-        if (average !== undefined) {
-            if (average > 0) {
-                average = 1 / average;
-            }
-        }
-        const last = this.safeFloat (ticker, 'last');
-        return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'buy'),
-            'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'sell'),
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': undefined,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': average,
-            'baseVolume': this.safeFloat (ticker, 'vol'),
-            'quoteVolume': this.safeFloat (ticker, 'vol_cur'),
-            'info': ticker,
-        };
     }
 
     parseTrade (trade, market = undefined) {
@@ -507,69 +508,6 @@ module.exports = class dsx extends Exchange {
                 symbol = market['symbol'];
             }
             result[symbol] = this.parseOrderBook (response[id]);
-        }
-        return result;
-    }
-
-    async fetchTickers (symbols = undefined, params = {}) {
-        await this.loadMarkets ();
-        let ids = this.ids;
-        if (symbols === undefined) {
-            const numIds = ids.length;
-            ids = ids.join ('-');
-            const maxLength = this.safeInteger (this.options, 'fetchTickersMaxLength', 2048);
-            // max URL length is 2048 symbols, including http schema, hostname, tld, etc...
-            if (ids.length > this.options['fetchTickersMaxLength']) {
-                throw new ArgumentsRequired (this.id + ' has ' + numIds.toString () + ' markets exceeding max URL length for this endpoint (' + maxLength.toString () + ' characters), please, specify a list of symbols of interest in the first argument to fetchTickers');
-            }
-        } else {
-            ids = this.marketIds (symbols);
-            ids = ids.join ('-');
-        }
-        const request = {
-            'pair': ids,
-        };
-        const tickers = await this.publicGetTickerPair (this.extend (request, params));
-        //
-        //     {
-        //         "bchbtc" : {
-        //             "high" : 0.02989,
-        //             "low" : 0.02736,
-        //             "avg" : 33.90585,
-        //             "vol" : 0.65982205,
-        //             "vol_cur" : 0.0194604180960,
-        //             "last" : 0.03000,
-        //             "buy" : 0.02980,
-        //             "sell" : 0.03001,
-        //             "updated" : 1568104614,
-        //             "pair" : "bchbtc"
-        //         },
-        //         "ethbtc" : {
-        //             "high" : 0.01772,
-        //             "low" : 0.01742,
-        //             "avg" : 56.89082,
-        //             "vol" : 229.247115044,
-        //             "vol_cur" : 4.02959737298943,
-        //             "last" : 0.01769,
-        //             "buy" : 0.01768,
-        //             "sell" : 0.01776,
-        //             "updated" : 1568104614,
-        //             "pair" : "ethbtc"
-        //         }
-        //     }
-        //
-        const result = {};
-        const keys = Object.keys (tickers);
-        for (let k = 0; k < keys.length; k++) {
-            const id = keys[k];
-            const ticker = tickers[id];
-            let symbol = id;
-            let market = undefined;
-            if (id in this.markets_by_id) {
-                market = this.markets_by_id[id];
-                symbol = market['symbol'];
-            }
-            result[symbol] = this.parseTicker (ticker, market);
         }
         return result;
     }
