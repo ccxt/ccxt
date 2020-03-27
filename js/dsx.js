@@ -230,10 +230,13 @@ module.exports = class dsx extends Exchange {
                 'cost': {},
             };
             const active = undefined;
-            const otherId = base.toLowerCase () + quote.toLowerCase ();
+            const lowercaseBaseId = this.safeStringLower (market, 'baseCurrency');
+            const lowercaseQuoteId = this.safeStringLower (market, 'quoteCurrency');
+            const lowercaseId = lowercaseBaseId + lowercaseQuoteId;
             result.push ({
                 'id': id,
-                'otherId': otherId, // https://github.com/ccxt/ccxt/pull/5786
+                // https://github.com/ccxt/ccxt/pull/5786
+                'lowercaseId': lowercaseId, 
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
