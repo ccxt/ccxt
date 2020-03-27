@@ -142,60 +142,38 @@ module.exports = class dsx extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.publicGetInfo (params);
+        const response = await this.publicGetSymbol (params);
         //
-        //     {
-        //         "server_time": 1522057909,
-        //         "pairs": {
-        //             "ethusd": {
-        //                 "decimal_places": 5,
-        //                 "min_price": 100,
-        //                 "max_price": 1500,
-        //                 "min_amount": 0.01,
-        //                 "hidden": 0,
-        //                 "fee": 0,
-        //                 "amount_decimal_places": 4,
-        //                 "quoted_currency": "USD",
-        //                 "base_currency": "ETH"
-        //             }
-        //         }
-        //     }
+        //     [ { id: 'BTCUSDT',
+        //     baseCurrency: 'BTC',
+        //     quoteCurrency: 'USDT',
+        //     quantityIncrement: '0.00001',
+        //     tickSize: '0.01',
+        //     takeLiquidityRate: '0.0025',
+        //     provideLiquidityRate: '0.0015',
+        //     feeCurrency: 'USDT' ... },
         //
-        const markets = this.safeValue (response, 'pairs');
-        const keys = Object.keys (markets);
         const result = [];
-        for (let i = 0; i < keys.length; i++) {
-            const id = keys[i];
-            const market = markets[id];
-            const baseId = this.safeString (market, 'base_currency');
-            const quoteId = this.safeString (market, 'quoted_currency');
+        for (let i = 0; i < response.length; i++) {
+            const market = response[i];
+            const id = this.safeString (market, 'id');
+            const baseId = this.safeString (market, 'baseCurrency');
+            const quoteId = this.safeString (market, 'quoteCurrency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
+            const maker = this.safeFloat (market, 'provideLiquidityRate');
+            const taker = this.safeFloat (market, 'takeLiquidityRate');
             const precision = {
-                'amount': this.safeInteger (market, 'decimal_places'),
-                'price': this.safeInteger (market, 'decimal_places'),
-            };
-            const amountLimits = {
-                'min': this.safeFloat (market, 'min_amount'),
-                'max': this.safeFloat (market, 'max_amount'),
-            };
-            const priceLimits = {
-                'min': this.safeFloat (market, 'min_price'),
-                'max': this.safeFloat (market, 'max_price'),
-            };
-            const costLimits = {
-                'min': this.safeFloat (market, 'min_total'),
+                'price': this.safeFloat (market, 'tickSize'),
+                'amount': this.safeFloat (market, 'quantityIncrement'),
             };
             const limits = {
-                'amount': amountLimits,
-                'price': priceLimits,
-                'cost': costLimits,
+                'amount': {},
+                'price': {},
+                'cost': {},
             };
-            const hidden = this.safeInteger (market, 'hidden');
-            const active = (hidden === 0);
-            // see parseMarket below
-            // https://github.com/ccxt/ccxt/pull/5786
+            const active = undefined;
             const otherId = base.toLowerCase () + quote.toLowerCase ();
             result.push ({
                 'id': id,
@@ -204,6 +182,9 @@ module.exports = class dsx extends Exchange {
                 'base': base,
                 'quote': quote,
                 'baseId': baseId,
+                'maker': maker,
+                'taker': taker,
+                'feeCurrency': this.safeString ('feeCurrency'),
                 'quoteId': quoteId,
                 'active': active,
                 'precision': precision,
