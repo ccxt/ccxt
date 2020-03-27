@@ -779,7 +779,6 @@ class okex extends Exchange {
                 $marketType = 'swap';
                 $spot = false;
                 $swap = true;
-                $baseId = $this->safe_string($market, 'coin');
                 $futuresAlias = $this->safe_string($market, 'alias');
                 if ($futuresAlias !== null) {
                     $swap = false;
