@@ -620,87 +620,21 @@ module.exports = class dsx extends Exchange {
         };
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = {
-            'orderId': parseInt (id),
-        };
-        const response = await this.privatePostOrderStatus (this.extend (request, params));
-        //
-        //     {
-        //       "success": 1,
-        //       "return": {
-        //         "pair": "btcusd",
-        //         "type": "buy",
-        //         "remainingVolume": 10,
-        //         "volume": 10,
-        //         "rate": 1000.0,
-        //         "timestampCreated": 1496670,
-        //         "status": 0,
-        //         "orderType": "limit",
-        //         "deals": [
-        //           {
-        //             "pair": "btcusd",
-        //             "type": "buy",
-        //             "amount": 1,
-        //             "rate": 1000.0,
-        //             "orderId": 1,
-        //             "timestamp": 1496672724,
-        //             "commission": 0.001,
-        //             "commissionCurrency": "btc"
-        //           }
-        //         ]
-        //       }
-        //     }
-        //
-        return this.parseOrder (this.extend ({
-            'id': id,
-        }, response['return']));
-    }
-
-    parseOrdersById (orders, symbol = undefined, since = undefined, limit = undefined) {
-        const ids = Object.keys (orders);
-        const result = [];
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const order = this.parseOrder (this.extend ({
-                'id': id.toString (),
-            }, orders[id]));
-            result.push (order);
-        }
-        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
-    }
-
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {
-            // 'count': 10, // Decimal, The maximum number of orders to return
-            // 'fromId': 123, // Decimal, ID of the first order of the selection
-            // 'endId': 321, // Decimal, ID of the last order of the selection
-            // 'order': 'ASC', // String, Order in which orders shown. Possible values are "ASC" — from first to last, "DESC" — from last to first.
-        };
-        if (limit !== undefined) {
-            request['count'] = limit;
+        const request = {};
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            request['symbol'] = market['id'];
         }
-        const response = await this.privatePostHistoryOrders (this.extend (request, params));
-        //
-        //     {
-        //       "success": 1,
-        //       "return": {
-        //         "0": {
-        //           "pair": "btcusd",
-        //           "type": "buy",
-        //           "remainingVolume": 10,
-        //           "volume": 10,
-        //           "rate": 1000.0,
-        //           "timestampCreated": 1496670,
-        //           "status": 0,
-        //           "orderType": "limit"
-        //         }
-        //       }
-        //     }
-        //
-        return this.parseOrdersById (this.safeValue (response, 'return', {}), symbol, since, limit);
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['from'] = since;
+        }
+        const response = await this.privateGetHistoryOrder (this.extend (request, params));
+        return this.parseOrders (response);
     }
 
     parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
