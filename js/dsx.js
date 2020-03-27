@@ -581,21 +581,6 @@ module.exports = class dsx extends Exchange {
         };
     }
 
-    parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
-        const result = [];
-        const ids = Object.keys (orders);
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const order = this.extend ({ 'id': id }, orders[id]);
-            result.push (this.extend (this.parseOrder (order, market), params));
-        }
-        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
-    }
-
     parseTransactionStatus (status) {
         const statuses = {
             'created': 'pending',
@@ -669,51 +654,6 @@ module.exports = class dsx extends Exchange {
                 'rate': undefined,
             },
             'info': transaction,
-        };
-    }
-
-    async createDepositAddress (code, params = {}) {
-        const request = {
-            'new': 1,
-        };
-        const response = await this.fetchDepositAddress (code, this.extend (request, params));
-        return response;
-    }
-
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
-        this.checkAddress (address);
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const commission = this.safeValue (params, 'commission');
-        if (commission === undefined) {
-            throw new ArgumentsRequired (this.id + ' withdraw() requires a `commission` (withdrawal fee) parameter (string)');
-        }
-        params = this.omit (params, commission);
-        const request = {
-            'currency': currency['id'],
-            'amount': parseFloat (amount),
-            'address': address,
-            'commission': commission,
-        };
-        if (tag !== undefined) {
-            request['address'] += ':' + tag;
-        }
-        const response = await this.dwapiPostWithdrawCrypto (this.extend (request, params));
-        //
-        //     [
-        //         {
-        //             "success": 1,
-        //             "return": {
-        //                 "transactionId": 2863073
-        //             }
-        //         }
-        //     ]
-        //
-        const data = this.safeValue (response, 'return', {});
-        const id = this.safeString (data, 'transactionId');
-        return {
-            'info': response,
-            'id': id,
         };
     }
 
