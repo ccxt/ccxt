@@ -287,6 +287,21 @@ module.exports = class dsx extends Exchange {
         };
     }
 
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        // the API docs are wrong - all orderbooks get returned if no symbol is present so we can implement fetchOrderbooks using publicGetOrderbook()
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrderBook() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const orderbook = await this.publicGetOrderbookSymbol (this.extend (request, params));
+        const timestamp = this.parse8601 (this.safeString (orderbook, 'timestamp'));
+        return this.parseOrderBook (orderbook, timestamp, 'bid', 'ask', 'price', 'size');
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privatePostInfoAccount ();
@@ -458,64 +473,6 @@ module.exports = class dsx extends Exchange {
             'rate': rate,
             'cost': cost,
         };
-    }
-
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'pair': market['id'],
-        };
-        if (limit !== undefined) {
-            request['limit'] = limit; // default = 150, max = 2000
-        }
-        const response = await this.publicGetDepthPair (this.extend (request, params));
-        const market_id_in_reponse = (market['id'] in response);
-        if (!market_id_in_reponse) {
-            throw new ExchangeError (this.id + ' ' + market['symbol'] + ' order book is empty or not available');
-        }
-        const orderbook = response[market['id']];
-        return this.parseOrderBook (orderbook);
-    }
-
-    async fetchOrderBooks (symbols = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let ids = undefined;
-        if (symbols === undefined) {
-            ids = this.ids.join ('-');
-            // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
-            if (ids.length > 2048) {
-                const numIds = this.ids.length;
-                throw new ExchangeError (this.id + ' has ' + numIds.toString () + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks');
-            }
-        } else {
-            ids = this.marketIds (symbols);
-            ids = ids.join ('-');
-        }
-        const request = {
-            'pair': ids,
-        };
-        if (limit !== undefined) {
-            request['limit'] = limit; // default = 150, max = 2000
-        }
-        const response = await this.publicGetDepthPair (this.extend (request, params));
-        const result = {};
-        ids = Object.keys (response);
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            let symbol = id;
-            if (id in this.markets_by_id) {
-                const market = this.markets_by_id[id];
-                symbol = market['symbol'];
-            }
-            result[symbol] = this.parseOrderBook (response[id]);
-        }
-        return result;
-    }
-
-    async fetchTicker (symbol, params = {}) {
-        const tickers = await this.fetchTickers ([ symbol ], params);
-        return tickers[symbol];
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
