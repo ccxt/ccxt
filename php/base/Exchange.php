@@ -871,7 +871,6 @@ class Exchange {
             '511' => 'AuthenticationError',
         );
         $this->verbose = false;
-        $this->verboseUserFunc = 'print_r';
         $this->apiKey = '';
         $this->secret = '';
         $this->password = '';
@@ -1293,8 +1292,8 @@ class Exchange {
         }
 
         if ($this->verbose) {
-            call_user_func($this->verboseUserFunc, "\nRequest:\n");
-            call_user_func($this->verboseUserFunc, array('method' => $method, 'url' => $url, 'verbose_headers' => $verbose_headers, 'body' => $body));
+            print_r("\nRequest:\n");
+            print_r(array($method, $url, $verbose_headers, $body));
         }
 
         // we probably only need to set it once on startup
@@ -1376,8 +1375,8 @@ class Exchange {
         $http_status_code = curl_getinfo($this->curl, CURLINFO_HTTP_CODE);
 
         if ($this->verbose) {
-            call_user_func($this->verboseUserFunc, "\nResponse:\n");
-            call_user_func($this->verboseUserFunc, array('method' => $method, 'url' => $url, 'http_status_code' => $http_status_code, 'curl_error' => $curl_error, 'response_headers' => $response_headers, 'result' => $result));
+            print_r("\nResponse:\n");
+            print_r(array($method, $url, $http_status_code, $curl_error, $response_headers, $result));
         }
 
         $this->handle_errors($http_status_code, $http_status_text, $url, $method, $response_headers, $result ? $result : null, $json_response, $headers, $body);
