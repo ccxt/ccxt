@@ -795,7 +795,6 @@ class okex(Exchange):
                 marketType = 'swap'
                 spot = False
                 swap = True
-                baseId = self.safe_string(market, 'coin')
                 futuresAlias = self.safe_string(market, 'alias')
                 if futuresAlias is not None:
                     swap = False
