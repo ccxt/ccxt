@@ -637,6 +637,15 @@ module.exports = class dsx extends Exchange {
         return this.parseOrders (response);
     }
 
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'clientOrderId': id,
+        };
+        const response = await this.privateGetHistoryOrder (this.extend (request, params));
+        return this.parseOrders (response);
+    }
+
     parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
         const result = [];
         const ids = Object.keys (orders);
