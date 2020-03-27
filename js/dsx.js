@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InvalidNonce, BadRequest, InsufficientFunds, PermissionDenied, DDoSProtection, InvalidOrder, OrderNotFound,AuthenticationError } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, BadRequest, InsufficientFunds, OrderNotFound } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 
 // ---------------------------------------------------------------------------
@@ -120,9 +120,9 @@ module.exports = class dsx extends Exchange {
             'exceptions': {
                 'exact': {
                     'Insufficient funds': InsufficientFunds,
-                    'Symbol not found': InvalidOrder,
-                    'Price not a valid number': InvalidOrder,
-                    'Quantity too low': InvalidOrder,
+                    'Symbol not found': BadRequest,
+                    'Price not a valid number': BadRequest,
+                    'Quantity too low': BadRequest,
                     'Order not found': OrderNotFound,
                     'Validation error': OrderNotFound,
                 },
