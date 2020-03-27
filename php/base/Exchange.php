@@ -1292,7 +1292,7 @@ class Exchange {
         }
 
         if ($this->verbose) {
-            $this->verbose_show('Request:', array($method, $url, $verbose_headers, $body));
+            $this->verbose_show('Request:', array('method' => $method, 'url' => $url, 'verbose_headers' => $verbose_headers, 'body' => $body));
         }
 
         // we probably only need to set it once on startup
@@ -1374,7 +1374,7 @@ class Exchange {
         $http_status_code = curl_getinfo($this->curl, CURLINFO_HTTP_CODE);
 
         if ($this->verbose) {
-            $this->verbose_show('Response:', array($method, $url, $http_status_code, $curl_error, $response_headers, $result));
+            $this->verbose_show('Response:', array('method' => $method, 'url' => $url, 'http_status_code' => $http_status_code, 'curl_error' => $curl_error, 'response_headers' => $response_headers, 'result' => $result));
         }
 
         $this->handle_errors($http_status_code, $http_status_text, $url, $method, $response_headers, $result ? $result : null, $json_response, $headers, $body);
