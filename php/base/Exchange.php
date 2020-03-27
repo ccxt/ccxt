@@ -35,7 +35,7 @@ use kornrunner\Solidity;
 use Elliptic\EC;
 use BN\BN;
 
-$version = '1.25.28';
+$version = '1.25.29';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -54,7 +54,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.25.28';
+    const VERSION = '1.25.29';
 
     public static $exchanges = array(
         '_1btcxe',
@@ -1207,6 +1207,15 @@ class Exchange {
         return json_decode($json_string, $as_associative_array);
     }
 
+    public function print() {
+        $args = func_get_args();
+        if (is_array($args)) {
+            foreach ($args as $arg) {
+                print_r($arg);
+            }
+        }
+    }
+
     public function fetch($url, $method = 'GET', $headers = null, $body = null) {
         if ($this->enableRateLimit) {
             $this->throttle();
@@ -1292,7 +1301,7 @@ class Exchange {
         }
 
         if ($this->verbose) {
-            $this->verbose_show('Request:', array('method' => $method, 'url' => $url, 'verbose_headers' => $verbose_headers, 'body' => $body));
+            $this->print("\nRequest:\n", array($method, $url, $verbose_headers, $body));
         }
 
         // we probably only need to set it once on startup
@@ -1374,7 +1383,7 @@ class Exchange {
         $http_status_code = curl_getinfo($this->curl, CURLINFO_HTTP_CODE);
 
         if ($this->verbose) {
-            $this->verbose_show('Response:', array('method' => $method, 'url' => $url, 'http_status_code' => $http_status_code, 'curl_error' => $curl_error, 'response_headers' => $response_headers, 'result' => $result));
+            $this->print("\nResponse:\n", array($method, $url, $http_status_code, $curl_error, $response_headers, $result));
         }
 
         $this->handle_errors($http_status_code, $http_status_text, $url, $method, $response_headers, $result ? $result : null, $json_response, $headers, $body);
@@ -2756,10 +2765,5 @@ class Exchange {
 
     public static function integer_pow($a, $b) {
         return (new BN ($a))->pow (new BN ($b));
-    }
-
-    public static function verbose_show($head, $body) {
-        print_r("\n$head\n");
-        print_r($body);
     }
 }
