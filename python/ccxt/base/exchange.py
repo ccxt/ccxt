@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.25.28'
+__version__ = '1.25.29'
 
 # -----------------------------------------------------------------------------
 
@@ -512,13 +512,16 @@ class Exchange(object):
         headers.update({'Accept-Encoding': 'gzip, deflate'})
         return headers
 
+    def print(self, *args):
+        print(*args)
+
     def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
         request_headers = self.prepare_request_headers(headers)
         url = self.proxy + url
 
         if self.verbose:
-            print("\nRequest:", method, url, request_headers, body)
+            self.print("\nRequest:", method, url, request_headers, body)
         self.logger.debug("%s %s, Request: %s %s", method, url, request_headers, body)
 
         request_body = body
@@ -554,7 +557,7 @@ class Exchange(object):
             if self.enableLastResponseHeaders:
                 self.last_response_headers = headers
             if self.verbose:
-                print("\nResponse:", method, url, http_status_code, headers, http_response)
+                self.print("\nResponse:", method, url, http_status_code, headers, http_response)
             self.logger.debug("%s %s, Response: %s %s %s", method, url, http_status_code, headers, http_response)
             response.raise_for_status()
 
