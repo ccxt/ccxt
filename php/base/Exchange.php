@@ -35,7 +35,7 @@ use kornrunner\Solidity;
 use Elliptic\EC;
 use BN\BN;
 
-$version = '1.25.27';
+$version = '1.25.30';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -54,7 +54,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.25.27';
+    const VERSION = '1.25.30';
 
     public static $exchanges = array(
         '_1btcxe',
@@ -1207,6 +1207,15 @@ class Exchange {
         return json_decode($json_string, $as_associative_array);
     }
 
+    public function print() {
+        $args = func_get_args();
+        if (is_array($args)) {
+            foreach ($args as $arg) {
+                print_r($arg);
+            }
+        }
+    }
+
     public function fetch($url, $method = 'GET', $headers = null, $body = null) {
         if ($this->enableRateLimit) {
             $this->throttle();
@@ -1292,8 +1301,7 @@ class Exchange {
         }
 
         if ($this->verbose) {
-            print_r("\nRequest:\n");
-            print_r(array($method, $url, $verbose_headers, $body));
+            $this->print("\nRequest:\n", array($method, $url, $verbose_headers, $body));
         }
 
         // we probably only need to set it once on startup
@@ -1375,8 +1383,7 @@ class Exchange {
         $http_status_code = curl_getinfo($this->curl, CURLINFO_HTTP_CODE);
 
         if ($this->verbose) {
-            print_r("\nResponse:\n");
-            print_r(array($method, $url, $http_status_code, $curl_error, $response_headers, $result));
+            $this->print("\nResponse:\n", array($method, $url, $http_status_code, $curl_error, $response_headers, $result));
         }
 
         $this->handle_errors($http_status_code, $http_status_text, $url, $method, $response_headers, $result ? $result : null, $json_response, $headers, $body);
@@ -1839,7 +1846,7 @@ class Exchange {
         $array = array_values($array);
         $valueIsSet = isset($value);
         $sinceIsSet = isset($since);
-        $array = array_filter($array, function ($element) use ($valueIsSet, $value, $sinceIsSet, $since, $field) {
+        $array = array_filter($array, function ($element) use ($valueIsSet, $value, $sinceIsSet, $since, $field, $key) {
             return ($valueIsSet ? ($element[$field] === $value) : true) &&
                     ($sinceIsSet ? ($element[$key] >= $since) : true);
         });
