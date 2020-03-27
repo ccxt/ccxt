@@ -452,6 +452,7 @@ module.exports = class braziliex extends Exchange {
         const status = (filledPercentage === 1.0) ? 'closed' : 'open';
         return {
             'id': id,
+            'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,

@@ -148,7 +148,7 @@ class bit2c(Exchange):
         for i in range(0, len(codes)):
             code = codes[i]
             account = self.account()
-            currencyId = self.currencyId(code)
+            currencyId = self.currency_id(code)
             uppercase = currencyId.upper()
             if uppercase in balance:
                 account['free'] = self.safe_float(balance, 'AVAILABLE_' + uppercase)
@@ -271,6 +271,7 @@ class bit2c(Exchange):
         status = self.safe_string(order, 'status')
         return {
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,

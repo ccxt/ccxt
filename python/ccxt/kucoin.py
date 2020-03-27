@@ -380,7 +380,7 @@ class kucoin(Exchange):
         return result
 
     def fetch_funding_fee(self, code, params={}):
-        currencyId = self.currencyId(code)
+        currencyId = self.currency_id(code)
         request = {
             'currency': currencyId,
         }
@@ -584,7 +584,7 @@ class kucoin(Exchange):
 
     def create_deposit_address(self, code, params={}):
         self.load_markets()
-        currencyId = self.currencyId(code)
+        currencyId = self.currency_id(code)
         request = {'currency': currencyId}
         response = self.privatePostDepositAddresses(self.extend(request, params))
         # BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
@@ -605,7 +605,7 @@ class kucoin(Exchange):
 
     def fetch_deposit_address(self, code, params={}):
         self.load_markets()
-        currencyId = self.currencyId(code)
+        currencyId = self.currency_id(code)
         request = {'currency': currencyId}
         response = self.privateGetDepositAddresses(self.extend(request, params))
         # BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
@@ -860,8 +860,10 @@ class kucoin(Exchange):
                 if (cost is not None) and (filled is not None):
                     if (cost > 0) and (filled > 0):
                         price = cost / filled
+        clientOrderId = self.safe_string(order, 'clientOid')
         return {
             'id': orderId,
+            'clientOrderId': clientOrderId,
             'symbol': symbol,
             'type': type,
             'side': side,
@@ -1126,7 +1128,7 @@ class kucoin(Exchange):
     def withdraw(self, code, amount, address, tag=None, params={}):
         self.load_markets()
         self.check_address(address)
-        currency = self.currencyId(code)
+        currency = self.currency_id(code)
         request = {
             'currency': currency,
             'address': address,

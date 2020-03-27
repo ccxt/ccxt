@@ -638,7 +638,7 @@ class exmo(Exchange):
         codes = list(self.currencies.keys())
         for i in range(0, len(codes)):
             code = codes[i]
-            currencyId = self.currencyId(code)
+            currencyId = self.currency_id(code)
             account = self.account()
             if currencyId in response['balances']:
                 account['free'] = self.safe_float(response['balances'], currencyId)
@@ -1092,6 +1092,7 @@ class exmo(Exchange):
         }
         return {
             'id': id,
+            'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': lastTradeTimestamp,

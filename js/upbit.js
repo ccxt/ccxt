@@ -16,6 +16,7 @@ module.exports = class upbit extends Exchange {
             'version': 'v1',
             'rateLimit': 1000,
             'certified': true,
+            'pro': true,
             // new metainfo interface
             'has': {
                 'CORS': true,
@@ -1200,6 +1201,7 @@ module.exports = class upbit extends Exchange {
         const result = {
             'info': order,
             'id': id,
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,

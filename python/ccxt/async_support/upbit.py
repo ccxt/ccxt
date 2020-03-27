@@ -25,6 +25,7 @@ class upbit(Exchange):
             'version': 'v1',
             'rateLimit': 1000,
             'certified': True,
+            'pro': True,
             # new metainfo interface
             'has': {
                 'CORS': True,
@@ -1141,6 +1142,7 @@ class upbit(Exchange):
         result = {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,

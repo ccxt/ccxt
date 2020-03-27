@@ -320,6 +320,7 @@ module.exports = class btctradeua extends Exchange {
         }
         return {
             'id': this.safeString (order, 'id'),
+            'clientOrderId': undefined,
             'timestamp': timestamp, // until they fix their timestamp
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,

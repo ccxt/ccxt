@@ -445,6 +445,7 @@ module.exports = class coinfloor extends Exchange {
         return {
             'info': order,
             'id': id,
+            'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,

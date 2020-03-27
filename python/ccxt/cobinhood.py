@@ -510,6 +510,7 @@ class cobinhood(Exchange):
             side = 'sell'
         return {
             'id': self.safe_string(order, 'id'),
+            'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,

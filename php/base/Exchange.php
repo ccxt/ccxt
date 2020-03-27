@@ -35,7 +35,7 @@ use kornrunner\Solidity;
 use Elliptic\EC;
 use BN\BN;
 
-$version = '1.24.58';
+$version = '1.25.31';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -54,13 +54,14 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.24.58';
+    const VERSION = '1.25.31';
 
     public static $exchanges = array(
         '_1btcxe',
         'acx',
         'adara',
         'anxpro',
+        'aofex',
         'bcex',
         'bequant',
         'bibox',
@@ -91,7 +92,6 @@ class Exchange {
         'braziliex',
         'btcalpha',
         'btcbox',
-        'btcchina',
         'btcmarkets',
         'btctradeim',
         'btctradeua',
@@ -1208,6 +1208,15 @@ class Exchange {
         return json_decode($json_string, $as_associative_array);
     }
 
+    public function print() {
+        $args = func_get_args();
+        if (is_array($args)) {
+            foreach ($args as $arg) {
+                print_r($arg);
+            }
+        }
+    }
+
     public function fetch($url, $method = 'GET', $headers = null, $body = null) {
         if ($this->enableRateLimit) {
             $this->throttle();
@@ -1293,8 +1302,7 @@ class Exchange {
         }
 
         if ($this->verbose) {
-            print_r("\nRequest:\n");
-            print_r(array($method, $url, $verbose_headers, $body));
+            $this->print("\nRequest:\n", array($method, $url, $verbose_headers, $body));
         }
 
         // we probably only need to set it once on startup
@@ -1376,8 +1384,7 @@ class Exchange {
         $http_status_code = curl_getinfo($this->curl, CURLINFO_HTTP_CODE);
 
         if ($this->verbose) {
-            print_r("\nResponse:\n");
-            print_r(array($method, $url, $http_status_code, $curl_error, $response_headers, $result));
+            $this->print("\nResponse:\n", array($method, $url, $http_status_code, $curl_error, $response_headers, $result));
         }
 
         $this->handle_errors($http_status_code, $http_status_text, $url, $method, $response_headers, $result ? $result : null, $json_response, $headers, $body);
@@ -1840,7 +1847,7 @@ class Exchange {
         $array = array_values($array);
         $valueIsSet = isset($value);
         $sinceIsSet = isset($since);
-        $array = array_filter($array, function ($element) use ($valueIsSet, $value, $sinceIsSet, $since, $field) {
+        $array = array_filter($array, function ($element) use ($valueIsSet, $value, $sinceIsSet, $since, $field, $key) {
             return ($valueIsSet ? ($element[$field] === $value) : true) &&
                     ($sinceIsSet ? ($element[$key] >= $since) : true);
         });
@@ -2610,14 +2617,14 @@ class Exchange {
         }
     }
 
-    public static function fromWei($amount, $decimals = 18) {
+    public static function from_wei($amount, $decimals = 18) {
         $exponential = sprintf('%e', $amount);
         list($n, $exponent) = explode('e', $exponential);
         $new_exponent = intval($exponent) - $decimals;
         return floatval($n . 'e' . strval($new_exponent));
     }
 
-    public static function toWei($amount, $decimals = 18) {
+    public static function to_wei($amount, $decimals = 18) {
         $exponential = sprintf('%e', $amount);
         list($n, $exponent) = explode('e', $exponential);
         $new_exponent = intval($exponent) + $decimals;
@@ -2739,12 +2746,12 @@ class Exchange {
         return pack('C', $n);
     }
 
-    public static function numberToBE($n, $padding) {
+    public static function number_to_be($n, $padding) {
         $n = new BN ($n);
         return array_reduce(array_map('static::pack_byte', $n->toArray('little', $padding)), function ($a, $b) { return $a . $b; });
     }
 
-    public static function numberToLE($n, $padding) {
+    public static function number_to_le($n, $padding) {
         $n = new BN ($n);
         return array_reduce(array_map('static::pack_byte', $n->toArray('little', $padding)), function ($a, $b) { return $b . $a; });
     }

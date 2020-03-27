@@ -810,6 +810,7 @@ module.exports = class cex extends Exchange {
         }
         return {
             'id': orderId,
+            'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,

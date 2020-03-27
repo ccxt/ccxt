@@ -1174,6 +1174,7 @@ module.exports = class hitbtc2 extends hitbtc {
         // because most of their endpoints will require clientOrderId
         // explained here: https://github.com/ccxt/ccxt/issues/5674
         const id = this.safeString (order, 'clientOrderId');
+        const clientOrderId = id;
         let price = this.safeFloat (order, 'price');
         if (price === undefined) {
             if (id in this.orders) {
@@ -1229,6 +1230,7 @@ module.exports = class hitbtc2 extends hitbtc {
         }
         return {
             'id': id,
+            'clientOrderId': clientOrderId, // https://github.com/ccxt/ccxt/issues/5674
             'timestamp': created,
             'datetime': this.iso8601 (created),
             'lastTradeTimestamp': updated,

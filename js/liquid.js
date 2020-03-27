@@ -658,6 +658,7 @@ module.exports = class liquid extends Exchange {
         const side = this.safeString (order, 'side');
         return {
             'id': orderId,
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,

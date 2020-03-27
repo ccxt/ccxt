@@ -370,12 +370,9 @@ let tryAllProxies = async function (exchange, proxies) {
 ;(async function test () {
 
     if (exchangeSymbol) {
-
         await loadExchange (exchange)
         await testSymbol (exchange, exchangeSymbol)
-
     } else {
-
         await tryAllProxies (exchange, proxies)
     }
 

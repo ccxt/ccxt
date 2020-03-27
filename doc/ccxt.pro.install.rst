@@ -68,10 +68,10 @@ With `setuptools <https://setuptools.readthedocs.io/en/latest/>`__ adding CCXT P
    setup(
        # ...
        install_requires=[
-           # install a specific version number
-           'ccxtpro @ git+https://github.com/kroitor/ccxt.pro.git@0.0.70#subdirectory=python'
            # install the most recent version
-           # 'ccxtpro @ git+https://github.com/kroitor/ccxt.pro.git#subdirectory=python'
+           'ccxtpro @ git+https://github.com/kroitor/ccxt.pro.git#subdirectory=python'
+           # install a specific version number
+           # 'ccxtpro @ git+https://github.com/kroitor/ccxt.pro.git@0.1.13#subdirectory=python'
        ]
        # ...
    )

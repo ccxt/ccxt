@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.24.58'
+__version__ = '1.25.31'
 
 # ----------------------------------------------------------------------------
 
@@ -71,6 +71,7 @@ from ccxt._1btcxe import _1btcxe                            # noqa: F401
 from ccxt.acx import acx                                    # noqa: F401
 from ccxt.adara import adara                                # noqa: F401
 from ccxt.anxpro import anxpro                              # noqa: F401
+from ccxt.aofex import aofex                                # noqa: F401
 from ccxt.bcex import bcex                                  # noqa: F401
 from ccxt.bequant import bequant                            # noqa: F401
 from ccxt.bibox import bibox                                # noqa: F401
@@ -101,7 +102,6 @@ from ccxt.bleutrade import bleutrade                        # noqa: F401
 from ccxt.braziliex import braziliex                        # noqa: F401
 from ccxt.btcalpha import btcalpha                          # noqa: F401
 from ccxt.btcbox import btcbox                              # noqa: F401
-from ccxt.btcchina import btcchina                          # noqa: F401
 from ccxt.btcmarkets import btcmarkets                      # noqa: F401
 from ccxt.btctradeim import btctradeim                      # noqa: F401
 from ccxt.btctradeua import btctradeua                      # noqa: F401
@@ -197,6 +197,7 @@ exchanges = [
     'acx',
     'adara',
     'anxpro',
+    'aofex',
     'bcex',
     'bequant',
     'bibox',
@@ -227,7 +228,6 @@ exchanges = [
     'braziliex',
     'btcalpha',
     'btcbox',
-    'btcchina',
     'btcmarkets',
     'btctradeim',
     'btctradeua',

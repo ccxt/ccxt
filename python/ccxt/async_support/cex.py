@@ -777,6 +777,7 @@ class cex(Exchange):
                 })
         return {
             'id': orderId,
+            'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,

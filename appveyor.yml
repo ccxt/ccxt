@@ -25,7 +25,7 @@ install:
 matrix:
   fast_finish: true
 build: off
-shallow_clone: true
+# shallow_clone: true
 before_test:
   - cinst pandoc --version 2.3.1
   - pandoc -v

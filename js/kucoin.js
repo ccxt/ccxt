@@ -898,8 +898,10 @@ module.exports = class kucoin extends Exchange {
                 }
             }
         }
+        const clientOrderId = this.safeString (order, 'clientOid');
         return {
             'id': orderId,
+            'clientOrderId': clientOrderId,
             'symbol': symbol,
             'type': type,
             'side': side,

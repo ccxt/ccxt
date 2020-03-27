@@ -288,7 +288,6 @@ class bittrex(Exchange):
             },
             'commonCurrencies': {
                 'BITS': 'SWIFT',
-                'CPC': 'Capricoin',
             },
         })
 
@@ -692,7 +691,7 @@ class bittrex(Exchange):
                 request['limit'] = self.price_to_precision(symbol, price)
                 request['timeInForce'] = 'GOOD_TIL_CANCELLED'
             else:
-                request['timeInForce'] = 'FILL_OR_KILL'
+                request['timeInForce'] = 'IMMEDIATE_OR_CANCEL'
         response = await self.v3PostOrders(self.extend(request, params))
         #
         #     {
@@ -1005,6 +1004,7 @@ class bittrex(Exchange):
                 remaining = quantity - fillQuantity
         return {
             'id': self.safe_string(order, 'id'),
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -1123,6 +1123,7 @@ class bittrex(Exchange):
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,

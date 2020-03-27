@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.24.58'
+__version__ = '1.25.31'
 
 # -----------------------------------------------------------------------------
 
@@ -52,6 +52,7 @@ from ccxt.async_support._1btcxe import _1btcxe                            # noqa
 from ccxt.async_support.acx import acx                                    # noqa: F401
 from ccxt.async_support.adara import adara                                # noqa: F401
 from ccxt.async_support.anxpro import anxpro                              # noqa: F401
+from ccxt.async_support.aofex import aofex                                # noqa: F401
 from ccxt.async_support.bcex import bcex                                  # noqa: F401
 from ccxt.async_support.bequant import bequant                            # noqa: F401
 from ccxt.async_support.bibox import bibox                                # noqa: F401
@@ -82,7 +83,6 @@ from ccxt.async_support.bleutrade import bleutrade                        # noqa
 from ccxt.async_support.braziliex import braziliex                        # noqa: F401
 from ccxt.async_support.btcalpha import btcalpha                          # noqa: F401
 from ccxt.async_support.btcbox import btcbox                              # noqa: F401
-from ccxt.async_support.btcchina import btcchina                          # noqa: F401
 from ccxt.async_support.btcmarkets import btcmarkets                      # noqa: F401
 from ccxt.async_support.btctradeim import btctradeim                      # noqa: F401
 from ccxt.async_support.btctradeua import btctradeua                      # noqa: F401
@@ -178,6 +178,7 @@ exchanges = [
     'acx',
     'adara',
     'anxpro',
+    'aofex',
     'bcex',
     'bequant',
     'bibox',
@@ -208,7 +209,6 @@ exchanges = [
     'braziliex',
     'btcalpha',
     'btcbox',
-    'btcchina',
     'btcmarkets',
     'btctradeim',
     'btctradeua',

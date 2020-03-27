@@ -432,6 +432,7 @@ declare module 'ccxt' {
     export class acx extends Exchange {}
     export class adara extends Exchange {}
     export class anxpro extends Exchange {}
+    export class aofex extends Exchange {}
     export class bcex extends Exchange {}
     export class bequant extends hitbtc2 {}
     export class bibox extends Exchange {}
@@ -462,7 +463,6 @@ declare module 'ccxt' {
     export class braziliex extends Exchange {}
     export class btcalpha extends Exchange {}
     export class btcbox extends Exchange {}
-    export class btcchina extends Exchange {}
     export class btcmarkets extends Exchange {}
     export class btctradeim extends coinegg {}
     export class btctradeua extends Exchange {}
