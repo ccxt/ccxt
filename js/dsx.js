@@ -670,7 +670,7 @@ module.exports = class dsx extends Exchange {
         } else {
             const auth = this.apiKey + ':' + this.secret;
             headers = {
-                'Authorization': 'Basic ' + this.stringToBase64 (auth)
+                'Authorization': 'Basic ' + this.stringToBase64 (auth),
             };
             if (method === 'POST') {
                 if (Object.keys (query).length) {
