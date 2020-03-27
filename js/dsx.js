@@ -659,7 +659,7 @@ module.exports = class dsx extends Exchange {
         };
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = {}, body = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
         url += '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
@@ -669,7 +669,9 @@ module.exports = class dsx extends Exchange {
             }
         } else {
             const auth = this.apiKey + ':' + this.secret;
-            headers['Authorization'] = 'Basic ' + this.stringToBase64 (auth);
+            headers = {
+                'Authorization': 'Basic ' + this.stringToBase64 (auth)
+            };
             if (method === 'POST') {
                 if (Object.keys (query).length) {
                     headers['Content-Type'] = 'application/json';
