@@ -576,6 +576,7 @@ module.exports = class stronghold extends Exchange {
         }
         return {
             'id': id,
+            'clientOrderId': undefined,
             'info': order,
             'symbol': symbol,
             'datetime': datetime,

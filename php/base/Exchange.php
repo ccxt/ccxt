@@ -35,7 +35,7 @@ use kornrunner\Solidity;
 use Elliptic\EC;
 use BN\BN;
 
-$version = '1.25.25';
+$version = '1.25.28';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -54,7 +54,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.25.25';
+    const VERSION = '1.25.28';
 
     public static $exchanges = array(
         '_1btcxe',
@@ -1839,7 +1839,7 @@ class Exchange {
         $array = array_values($array);
         $valueIsSet = isset($value);
         $sinceIsSet = isset($since);
-        $array = array_filter($array, function ($element) use ($valueIsSet, $value, $sinceIsSet, $since, $field) {
+        $array = array_filter($array, function ($element) use ($valueIsSet, $value, $sinceIsSet, $since, $field, $key) {
             return ($valueIsSet ? ($element[$field] === $value) : true) &&
                     ($sinceIsSet ? ($element[$key] >= $since) : true);
         });
