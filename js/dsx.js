@@ -29,6 +29,8 @@ module.exports = class dsx extends Exchange {
                 'fetchTicker': false,
                 'fetchTickers': true,
                 'fetchTrades': false,
+                'fetchMyTrades': true,
+                'fetchDepositAddress': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
                 'fetchClosedOrders': 'emulated',
