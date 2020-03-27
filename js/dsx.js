@@ -13,34 +13,30 @@ module.exports = class dsx extends Exchange {
             'id': 'dsx',
             'name': 'DSX',
             'countries': [ 'UK' ],
-            'rateLimit': 1500,
-            'version': 'v3',
+            'rateLimit': 100,
             'has': {
                 'CORS': false,
+                'cancelOrder': false,
+                'createLimitOrder': false,
                 'createMarketOrder': false,
-                'fetchOHLCV': true,
-                'fetchOrder': true,
-                'fetchOrders': true,
-                'fetchOpenOrders': true,
-                'fetchClosedOrders': false,
-                'fetchOrderBooks': false,
-                'createDepositAddress': true,
-                'fetchDepositAddress': true,
-                'fetchTransactions': true,
+                'createOrder': false,
+                'fetchBalance': false,
+                'fetchL2OrderBook': false,
+                'fetchMarkets': false,
+                'fetchOrderBook': false,
+                'fetchTicker': false,
                 'fetchTickers': true,
-                'fetchMyTrades': true,
-                'withdraw': true,
+                'fetchTrades': false,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/76909626-cb2bb100-68bc-11ea-99e0-28ba54f04792.jpg',
                 'api': {
-                    'public': 'https://dsx.uk/mapi', // market data
-                    'private': 'https://dsx.uk/tapi', // trading
-                    'dwapi': 'https://dsx.uk/dwapi', // deposit/withdraw
+                    'public': 'https://api.dsxglobal.com/api/2/public',
+                    'private': 'https://api.dsxglobal.com/api/2',
                 },
-                'www': 'https://dsx.uk',
+                'www': 'http://dsxglobal.com',
                 'doc': [
-                    'https://dsx.uk/developers/publicApi',
+                    'https://api.dsxglobal.com',
                 ],
             },
             'fees': {
@@ -60,40 +56,58 @@ module.exports = class dsx extends Exchange {
                 // market data (public)
                 'public': {
                     'get': [
-                        'barsFromMoment/{pair}/{period}/{start}',
-                        'depth/{pair}',
-                        'info',
-                        'lastBars/{pair}/{period}/{amount}', // period is 'm', 'h' or 'd'
-                        'periodBars/{pair}/{period}/{start}/{end}',
-                        'ticker/{pair}',
-                        'trades/{pair}',
+                        'currency',
+                        'currency/{currency}',
+                        'symbol',
+                        'symbol/{symbol}',
+                        'ticker',
+                        'ticker/{symbol}',
+                        'trades',
+                        'trades/{symbol}',
+                        'orderbook',
+                        'orderbook/{symbol}',
+                        'candles',
+                        'candles/{symbol}',
                     ],
                 },
                 // trading (private)
                 'private': {
-                    'post': [
-                        'info/account',
-                        'history/transactions',
+                    'get': [
+                        'trading/balance',
+                        'account/balance',
+                        'account/crypto/address/{currency}',
+                        'account/crypto/is-mine/{address}',
+                        'account/transactions',
+                        'account/transactions/{id}',
+                        'sub-acc​/balance​/{subAccountUserID}',
+                        'sub-acc',
+                        'sub-acc​/acl',
+                        'trading/fee/{symbol}',
+                        'history/order',
                         'history/trades',
-                        'history/orders',
-                        'orders',
-                        'order/cancel',
-                        // 'order/cancel/all',
-                        'order/status',
-                        'order/new',
-                        'volume',
-                        'fees', // trading fee schedule
+                        'history/order/{orderId}/trades',
+                        'order',
+                        'order/{clientOrderId}',
                     ],
-                },
-                // deposit / withdraw (private)
-                'dwapi': {
                     'post': [
-                        'deposit/cryptoaddress',
-                        'withdraw/crypto',
-                        'withdraw/fiat',
-                        'withdraw/submit',
-                        // 'withdraw/cancel',
-                        'transaction/status', // see 'history/transactions' in private tapi above
+                        'order',
+                        'account/crypto/address/{currency}',
+                        'account/crypto/withdraw',
+                        'account/crypto/transfer-convert',
+                        'account/transfer',
+                        'sub-acc​/freeze',
+                        'sub-acc​/activate',
+                        'sub-acc​/transfer',
+                    ],
+                    'put': [
+                        'order/{clientOrderId}',
+                        'account/crypto/withdraw/{id}',
+                        'sub-acc​/acl​/{subAccountUserId}',
+                    ],
+                    'delete': [
+                        'order',
+                        'order/{clientOrderId}',
+                        'account/crypto/withdraw/{id}',
                     ],
                 },
             },
@@ -128,61 +142,77 @@ module.exports = class dsx extends Exchange {
         });
     }
 
+    async fetchCurrencies (params = {}) {
+        const response = await this.publicGetCurrency (params);
+        //   [ { id: 'BCH',
+        //     fullName: 'Bitcoin Cash',
+        //     crypto: true,
+        //     payinEnabled: true,
+        //     payinPaymentId: false,
+        //     payinConfirmations: 2,
+        //     payoutEnabled: true,
+        //     payoutIsPaymentId: false,
+        //     transferEnabled: true,
+        //     delisted: false,
+        //     payoutFee: '0.000500000000' }, ...
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const currency = response[i];
+            const id = this.safeString (currency, 'id');
+            const name = this.safeString (currency, 'fullName');
+            const code = this.safeCurrencyCode (id, name);
+            const transferEnabled = currency['transferEnabled'];
+            const delisted = currency['delisted'];
+            // todo: check what these bools actually mean
+            const payinEnabled = currency['payinEnabled'];
+            const payoutEnabled = currency['payoutEnabled'];
+            const active = !delisted && transferEnabled && payinEnabled && payoutEnabled;
+            const fee = this.safeFloat (currency, 'payoutFee');
+            result[code] = {
+                'id': id,
+                'code': code,
+                'name': name,
+                'active': active,
+                'fee': fee,
+                'info': currency,
+            };
+        }
+        return result;
+    }
+
     async fetchMarkets (params = {}) {
-        const response = await this.publicGetInfo (params);
+        const response = await this.publicGetSymbol (params);
         //
-        //     {
-        //         "server_time": 1522057909,
-        //         "pairs": {
-        //             "ethusd": {
-        //                 "decimal_places": 5,
-        //                 "min_price": 100,
-        //                 "max_price": 1500,
-        //                 "min_amount": 0.01,
-        //                 "hidden": 0,
-        //                 "fee": 0,
-        //                 "amount_decimal_places": 4,
-        //                 "quoted_currency": "USD",
-        //                 "base_currency": "ETH"
-        //             }
-        //         }
-        //     }
+        //     [ { id: 'BTCUSDT',
+        //     baseCurrency: 'BTC',
+        //     quoteCurrency: 'USDT',
+        //     quantityIncrement: '0.00001',
+        //     tickSize: '0.01',
+        //     takeLiquidityRate: '0.0025',
+        //     provideLiquidityRate: '0.0015',
+        //     feeCurrency: 'USDT' ... },
         //
-        const markets = this.safeValue (response, 'pairs');
-        const keys = Object.keys (markets);
         const result = [];
-        for (let i = 0; i < keys.length; i++) {
-            const id = keys[i];
-            const market = markets[id];
-            const baseId = this.safeString (market, 'base_currency');
-            const quoteId = this.safeString (market, 'quoted_currency');
+        for (let i = 0; i < response.length; i++) {
+            const market = response[i];
+            const id = this.safeString (market, 'id');
+            const baseId = this.safeString (market, 'baseCurrency');
+            const quoteId = this.safeString (market, 'quoteCurrency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
+            const maker = this.safeFloat (market, 'provideLiquidityRate');
+            const taker = this.safeFloat (market, 'takeLiquidityRate');
             const precision = {
-                'amount': this.safeInteger (market, 'decimal_places'),
-                'price': this.safeInteger (market, 'decimal_places'),
-            };
-            const amountLimits = {
-                'min': this.safeFloat (market, 'min_amount'),
-                'max': this.safeFloat (market, 'max_amount'),
-            };
-            const priceLimits = {
-                'min': this.safeFloat (market, 'min_price'),
-                'max': this.safeFloat (market, 'max_price'),
-            };
-            const costLimits = {
-                'min': this.safeFloat (market, 'min_total'),
+                'price': this.safeFloat (market, 'tickSize'),
+                'amount': this.safeFloat (market, 'quantityIncrement'),
             };
             const limits = {
-                'amount': amountLimits,
-                'price': priceLimits,
-                'cost': costLimits,
+                'amount': {},
+                'price': {},
+                'cost': {},
             };
-            const hidden = this.safeInteger (market, 'hidden');
-            const active = (hidden === 0);
-            // see parseMarket below
-            // https://github.com/ccxt/ccxt/pull/5786
+            const active = undefined;
             const otherId = base.toLowerCase () + quote.toLowerCase ();
             result.push ({
                 'id': id,
@@ -191,6 +221,9 @@ module.exports = class dsx extends Exchange {
                 'base': base,
                 'quote': quote,
                 'baseId': baseId,
+                'maker': maker,
+                'taker': taker,
+                'feeCurrency': this.safeString ('feeCurrency'),
                 'quoteId': quoteId,
                 'active': active,
                 'precision': precision,
@@ -199,6 +232,74 @@ module.exports = class dsx extends Exchange {
             });
         }
         return result;
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const tickers = await this.publicGetTicker (params);
+        const result = {};
+        for (let i = 0; i < tickers.length; i++) {
+            const ticker = tickers[i];
+            const id = this.safeString (ticker, 'symbol');
+            const market = this.markets_by_id[id];
+            const symbol = market['symbol'];
+            result[symbol] = this.parseTicker (ticker, market);
+        }
+        return result;
+    }
+
+    parseTicker (ticker, market = undefined) {
+        //
+        //   { symbol: 'BSVUSD',
+        //     ask: '100000.000',
+        //     bid: '0.207',
+        //     last: null,
+        //     open: null,
+        //     low: '0',
+        //     high: '0',
+        //     volume: '0',
+        //     volumeQuote: '0',
+        //     timestamp: '2020-03-27T10:31:08.583Z' }
+        //
+        const timestamp = this.parse8601 (this.safeString (ticker, 'timestamp'));
+        const symbol = market['symbol'];
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'bid'),
+            'bidVolume': undefined,
+            'ask': this.safeFloat (ticker, 'ask'),
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': this.safeFloat (ticker, 'open'),
+            'close': undefined,
+            'last': this.safeFloat (ticker, 'last'),
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': this.safeFloat (ticker, 'volume'),
+            'quoteVolume': this.safeFloat (ticker, 'volumeQuote'),
+            'info': ticker,
+        };
+    }
+
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        // the API docs are wrong - all orderbooks get returned if no symbol is present so we can implement fetchOrderbooks using publicGetOrderbook()
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrderBook() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const orderbook = await this.publicGetOrderbookSymbol (this.extend (request, params));
+        const timestamp = this.parse8601 (this.safeString (orderbook, 'timestamp'));
+        return this.parseOrderBook (orderbook, timestamp, 'bid', 'ask', 'price', 'size');
     }
 
     async fetchBalance (params = {}) {
@@ -246,58 +347,6 @@ module.exports = class dsx extends Exchange {
             result[code] = account;
         }
         return this.parseBalance (result);
-    }
-
-    parseTicker (ticker, market = undefined) {
-        //
-        //   {    high:  0.03492,
-        //         low:  0.03245,
-        //         avg:  29.46133,
-        //         vol:  500.8661,
-        //     vol_cur:  17.000797104,
-        //        last:  0.03364,
-        //         buy:  0.03362,
-        //        sell:  0.03381,
-        //     updated:  1537521993,
-        //        pair: "ethbtc"       }
-        //
-        const timestamp = this.safeTimestamp (ticker, 'updated');
-        let symbol = undefined;
-        const marketId = this.safeString (ticker, 'pair');
-        market = this.parseMarket (marketId);
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        // dsx average is inverted, liqui average is not
-        let average = this.safeFloat (ticker, 'avg');
-        if (average !== undefined) {
-            if (average > 0) {
-                average = 1 / average;
-            }
-        }
-        const last = this.safeFloat (ticker, 'last');
-        return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'buy'),
-            'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'sell'),
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': undefined,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': average,
-            'baseVolume': this.safeFloat (ticker, 'vol'),
-            'quoteVolume': this.safeFloat (ticker, 'vol_cur'),
-            'info': ticker,
-        };
     }
 
     parseTrade (trade, market = undefined) {
@@ -426,127 +475,6 @@ module.exports = class dsx extends Exchange {
         };
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'pair': market['id'],
-        };
-        if (limit !== undefined) {
-            request['limit'] = limit; // default = 150, max = 2000
-        }
-        const response = await this.publicGetDepthPair (this.extend (request, params));
-        const market_id_in_reponse = (market['id'] in response);
-        if (!market_id_in_reponse) {
-            throw new ExchangeError (this.id + ' ' + market['symbol'] + ' order book is empty or not available');
-        }
-        const orderbook = response[market['id']];
-        return this.parseOrderBook (orderbook);
-    }
-
-    async fetchOrderBooks (symbols = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let ids = undefined;
-        if (symbols === undefined) {
-            ids = this.ids.join ('-');
-            // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
-            if (ids.length > 2048) {
-                const numIds = this.ids.length;
-                throw new ExchangeError (this.id + ' has ' + numIds.toString () + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks');
-            }
-        } else {
-            ids = this.marketIds (symbols);
-            ids = ids.join ('-');
-        }
-        const request = {
-            'pair': ids,
-        };
-        if (limit !== undefined) {
-            request['limit'] = limit; // default = 150, max = 2000
-        }
-        const response = await this.publicGetDepthPair (this.extend (request, params));
-        const result = {};
-        ids = Object.keys (response);
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            let symbol = id;
-            if (id in this.markets_by_id) {
-                const market = this.markets_by_id[id];
-                symbol = market['symbol'];
-            }
-            result[symbol] = this.parseOrderBook (response[id]);
-        }
-        return result;
-    }
-
-    async fetchTickers (symbols = undefined, params = {}) {
-        await this.loadMarkets ();
-        let ids = this.ids;
-        if (symbols === undefined) {
-            const numIds = ids.length;
-            ids = ids.join ('-');
-            const maxLength = this.safeInteger (this.options, 'fetchTickersMaxLength', 2048);
-            // max URL length is 2048 symbols, including http schema, hostname, tld, etc...
-            if (ids.length > this.options['fetchTickersMaxLength']) {
-                throw new ArgumentsRequired (this.id + ' has ' + numIds.toString () + ' markets exceeding max URL length for this endpoint (' + maxLength.toString () + ' characters), please, specify a list of symbols of interest in the first argument to fetchTickers');
-            }
-        } else {
-            ids = this.marketIds (symbols);
-            ids = ids.join ('-');
-        }
-        const request = {
-            'pair': ids,
-        };
-        const tickers = await this.publicGetTickerPair (this.extend (request, params));
-        //
-        //     {
-        //         "bchbtc" : {
-        //             "high" : 0.02989,
-        //             "low" : 0.02736,
-        //             "avg" : 33.90585,
-        //             "vol" : 0.65982205,
-        //             "vol_cur" : 0.0194604180960,
-        //             "last" : 0.03000,
-        //             "buy" : 0.02980,
-        //             "sell" : 0.03001,
-        //             "updated" : 1568104614,
-        //             "pair" : "bchbtc"
-        //         },
-        //         "ethbtc" : {
-        //             "high" : 0.01772,
-        //             "low" : 0.01742,
-        //             "avg" : 56.89082,
-        //             "vol" : 229.247115044,
-        //             "vol_cur" : 4.02959737298943,
-        //             "last" : 0.01769,
-        //             "buy" : 0.01768,
-        //             "sell" : 0.01776,
-        //             "updated" : 1568104614,
-        //             "pair" : "ethbtc"
-        //         }
-        //     }
-        //
-        const result = {};
-        const keys = Object.keys (tickers);
-        for (let k = 0; k < keys.length; k++) {
-            const id = keys[k];
-            const ticker = tickers[id];
-            let symbol = id;
-            let market = undefined;
-            if (id in this.markets_by_id) {
-                market = this.markets_by_id[id];
-                symbol = market['symbol'];
-            }
-            result[symbol] = this.parseTicker (ticker, market);
-        }
-        return result;
-    }
-
-    async fetchTicker (symbol, params = {}) {
-        const tickers = await this.fetchTickers ([ symbol ], params);
-        return tickers[symbol];
-    }
-
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -564,81 +492,6 @@ module.exports = class dsx extends Exchange {
             }
         }
         return this.parseTrades (response[market['id']], market, since, limit);
-    }
-
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
-        //
-        //     {
-        //         "high" : 0.01955,
-        //         "open" : 0.01955,
-        //         "low" : 0.01955,
-        //         "close" : 0.01955,
-        //         "amount" : 2.5,
-        //         "timestamp" : 1565155740000
-        //     }
-        //
-        return [
-            this.safeInteger (ohlcv, 'timestamp'),
-            this.safeFloat (ohlcv, 'open'),
-            this.safeFloat (ohlcv, 'high'),
-            this.safeFloat (ohlcv, 'low'),
-            this.safeFloat (ohlcv, 'close'),
-            this.safeFloat (ohlcv, 'amount'),
-        ];
-    }
-
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'pair': market['id'],
-            'period': this.timeframes[timeframe],
-        };
-        let method = 'publicGetLastBarsPairPeriodAmount';
-        if (since === undefined) {
-            if (limit === undefined) {
-                limit = 100; // required, max 2000
-            }
-            request['amount'] = limit;
-        } else {
-            method = 'publicGetPeriodBarsPairPeriodStartEnd';
-            // in their docs they expect milliseconds
-            // but it returns empty arrays with milliseconds
-            // however, it does work properly with seconds
-            request['start'] = parseInt (since / 1000);
-            if (limit === undefined) {
-                request['end'] = this.seconds ();
-            } else {
-                const duration = this.parseTimeframe (timeframe) * 1000;
-                const end = this.sum (since, duration * limit);
-                request['end'] = parseInt (end / 1000);
-            }
-        }
-        const response = await this[method] (this.extend (request, params));
-        //
-        //     {
-        //         "ethbtc": [
-        //             {
-        //                 "high" : 0.01955,
-        //                 "open" : 0.01955,
-        //                 "low" : 0.01955,
-        //                 "close" : 0.01955,
-        //                 "amount" : 2.5,
-        //                 "timestamp" : 1565155740000
-        //             },
-        //             {
-        //                 "high" : 0.01967,
-        //                 "open" : 0.01967,
-        //                 "low" : 0.01967,
-        //                 "close" : 0.01967,
-        //                 "amount" : 0,
-        //                 "timestamp" : 1565155680000
-        //             }
-        //         ]
-        //     }
-        //
-        const candles = this.safeValue (response, market['id'], []);
-        return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
