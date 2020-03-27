@@ -16,18 +16,21 @@ module.exports = class dsx extends Exchange {
             'rateLimit': 100,
             'has': {
                 'CORS': false,
-                'cancelOrder': false,
+                'cancelOrder': true,
                 'createLimitOrder': true,
                 'createMarketOrder': false,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchCurrencies': true,
-                'fetchL2OrderBook': false,
-                'fetchMarkets': false,
+                'fetchL2OrderBook': true,
+                'fetchMarkets': true,
                 'fetchOrderBook': true,
                 'fetchTicker': false,
                 'fetchTickers': true,
                 'fetchTrades': false,
+                'fetchOrder': true,
+                'fetchOrders': true,
+                'fetchClosedOrders': 'emulated',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/76909626-cb2bb100-68bc-11ea-99e0-28ba54f04792.jpg',
@@ -226,7 +229,7 @@ module.exports = class dsx extends Exchange {
             result.push ({
                 'id': id,
                 // https://github.com/ccxt/ccxt/pull/5786
-                'lowercaseId': lowercaseId, 
+                'lowercaseId': lowercaseId,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
@@ -620,6 +623,15 @@ module.exports = class dsx extends Exchange {
         };
     }
 
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'clientOrderId': id,
+        };
+        const response = await this.privateGetHistoryOrder (this.extend (request, params));
+        return this.parseOrders (response);
+    }
+
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
@@ -637,13 +649,10 @@ module.exports = class dsx extends Exchange {
         return this.parseOrders (response);
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = {
-            'clientOrderId': id,
-        };
-        const response = await this.privateGetHistoryOrder (this.extend (request, params));
-        return this.parseOrders (response);
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.fetchOrders (symbol, since, limit, params);
+        const orders = this.filterBy (this.orders, 'status', 'closed');
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
     parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
@@ -659,11 +668,6 @@ module.exports = class dsx extends Exchange {
             result.push (this.extend (this.parseOrder (order, market), params));
         }
         return this.filterBySymbolSinceLimit (result, symbol, since, limit);
-    }
-
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const orders = await this.fetchOrders (symbol, since, limit, params);
-        return this.filterBy (orders, 'status', 'closed');
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
