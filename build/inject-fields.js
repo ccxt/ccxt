@@ -79,7 +79,6 @@ const orderKeys = [
     'filled',
     'remaining',
     'status',
-    'fee',
     'trades'
 ]
 

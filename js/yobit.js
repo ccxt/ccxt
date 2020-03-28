@@ -542,13 +542,13 @@ module.exports = class yobit extends Exchange {
             'filled': filled,
             'fee': undefined,
             // 'trades': this.parseTrades (order['trades'], market),
-            'info': undefined,
+            'info': response,
             'clientOrderId': undefined,
             'average': undefined,
             'trades': undefined,
         };
         this.orders[id] = order;
-        return this.extend (order, { 'info': response });
+        return order;
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
