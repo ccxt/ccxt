@@ -933,6 +933,7 @@ module.exports = class stex extends Exchange {
             'remaining': remaining,
             'status': status,
             'trades': trades,
+            'fee': undefined,
         };
         const fees = this.safeValue (order, 'fees');
         if (fees === undefined) {

@@ -459,6 +459,8 @@ module.exports = class coinfloor extends Exchange {
             'remaining': undefined,
             'cost': cost,
             'fee': undefined,
+            'average': undefined,
+            'trades': undefined,
         };
     }
 

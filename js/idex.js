@@ -164,6 +164,7 @@ module.exports = class idex extends Exchange {
                     'id': id,
                     'info': baseCurrency,
                     'tierBased': false,
+                    'active': undefined,
                 });
             }
         }

@@ -368,6 +368,7 @@ module.exports = class coinegg extends Exchange {
             'trades': undefined,
             'fee': undefined,
             'info': info,
+            'average': undefined,
         };
     }
 

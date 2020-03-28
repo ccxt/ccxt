@@ -1067,6 +1067,7 @@ module.exports = class bittrex extends Exchange {
                 'currency': feeCurrency,
             },
             'info': order,
+            'trades': undefined,
         };
     }
 
@@ -1206,6 +1207,7 @@ module.exports = class bittrex extends Exchange {
             'remaining': remaining,
             'status': status,
             'fee': fee,
+            'trades': undefined,
         };
     }
 

@@ -556,6 +556,7 @@ module.exports = class bytetrade extends Exchange {
             'remaining': remaining,
             'status': status,
             'fee': fee,
+            'trades': undefined,
         };
     }
 
@@ -729,6 +730,8 @@ module.exports = class bytetrade extends Exchange {
             'cost': undefined,
             'trades': undefined,
             'fee': undefined,
+            'clientOrderId': undefined,
+            'average': undefined,
         };
     }
 
@@ -905,6 +908,8 @@ module.exports = class bytetrade extends Exchange {
             'cost': undefined,
             'trades': undefined,
             'fee': undefined,
+            'clientOrderId': undefined,
+            'average': undefined,
         };
     }
 
@@ -1009,6 +1014,9 @@ module.exports = class bytetrade extends Exchange {
             'remaining': undefined,
             'cost': undefined,
             'fee': undefined,
+            'clientOrderId': undefined,
+            'average': undefined,
+            'trades': undefined,
         };
     }
 

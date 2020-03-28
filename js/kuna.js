@@ -103,6 +103,8 @@ module.exports = class kuna extends acx {
                                 'max': undefined,
                             },
                         },
+                        'active': undefined,
+                        'info': undefined,
                     });
                     break;
                 }

@@ -207,6 +207,8 @@ module.exports = class coincheck extends Exchange {
             'cost': cost,
             'fee': undefined,
             'info': order,
+            'average': undefined,
+            'trades': undefined,
         };
     }
 

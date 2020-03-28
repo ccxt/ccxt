@@ -134,6 +134,8 @@ module.exports = class acx extends Exchange {
                 'quoteId': quoteId,
                 'precision': precision,
                 'info': market,
+                'active': undefined,
+                'limits': undefined,
             });
         }
         return result;
@@ -340,6 +342,8 @@ module.exports = class acx extends Exchange {
             'trades': undefined,
             'fee': undefined,
             'info': order,
+            'cost': undefined,
+            'average': undefined,
         };
     }
 

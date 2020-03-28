@@ -354,6 +354,7 @@ module.exports = class cex extends Exchange {
                         'max': undefined,
                     },
                 },
+                'active': undefined,
             });
         }
         return result;
@@ -826,6 +827,7 @@ module.exports = class cex extends Exchange {
             'trades': trades,
             'fee': fee,
             'info': order,
+            'average': undefined,
         };
     }
 

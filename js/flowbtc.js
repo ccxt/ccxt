@@ -108,6 +108,7 @@ module.exports = class flowbtc extends Exchange {
                     },
                 },
                 'info': market,
+                'active': undefined,
             };
         }
         return result;

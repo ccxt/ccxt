@@ -864,6 +864,7 @@ module.exports = class digifinex extends Exchange {
             'average': average,
             'status': status,
             'fee': undefined,
+            'trades': undefined,
         };
     }
 

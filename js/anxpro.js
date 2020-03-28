@@ -990,6 +990,7 @@ module.exports = class anxpro extends Exchange {
             'fee': undefined,
             'trades': trades,
             'info': order,
+            'average': undefined,
         };
     }
 
@@ -1082,6 +1083,7 @@ module.exports = class anxpro extends Exchange {
             'status': status,
             'fee': fee,
             'trades': trades,
+            'average': undefined,
         };
     }
 

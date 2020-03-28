@@ -622,6 +622,7 @@ module.exports = class livecoin extends Exchange {
                 'currency': feeCurrency,
                 'rate': feeRate,
             },
+            'average': undefined,
         };
     }
 

@@ -129,6 +129,9 @@ module.exports = class xbtce extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
+                'active': undefined,
+                'precision': undefined,
+                'limits': undefined,
             });
         }
         return result;

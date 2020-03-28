@@ -694,6 +694,7 @@ module.exports = class bleutrade extends Exchange {
             'remaining': remaining,
             'status': status,
             'fee': undefined,
+            'trades': undefined,
         };
     }
 

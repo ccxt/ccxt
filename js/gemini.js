@@ -294,6 +294,7 @@ module.exports = class gemini extends Exchange {
                         'max': undefined,
                     },
                 },
+                'active': undefined,
             });
         }
         return result;
@@ -474,6 +475,7 @@ module.exports = class gemini extends Exchange {
             'filled': filled,
             'remaining': remaining,
             'fee': fee,
+            'trades': undefined,
         };
     }
 

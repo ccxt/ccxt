@@ -480,6 +480,7 @@ module.exports = class bitforex extends Exchange {
             'remaining': remaining,
             'status': status,
             'fee': fee,
+            'trades': undefined,
         };
         return result;
     }

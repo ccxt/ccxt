@@ -666,6 +666,7 @@ module.exports = class bw extends Exchange {
             'status': 'open',
             'fee': undefined,
             'trades': undefined,
+            'clientOrderId': undefined,
         };
     }
 

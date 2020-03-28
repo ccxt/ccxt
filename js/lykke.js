@@ -373,6 +373,7 @@ module.exports = class lykke extends Exchange {
             'remaining': remaining,
             'status': status,
             'fee': undefined,
+            'trades': undefined,
         };
     }
 
