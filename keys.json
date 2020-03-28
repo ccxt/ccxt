@@ -76,8 +76,6 @@
     "nova":          { "skip": true },
     "oceanex":       { "skip": true },
     "okcoin":        { "skip": true },
-    "okcoinusd":     { "skip": true },
-    "okex3":         { "skip": true },
     "paymium":       { "skip": true },
     "poloniex":      { "skip": true, "timeout": 20000 },
     "quadrigacx":    { "skip": true },
