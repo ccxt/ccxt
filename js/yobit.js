@@ -548,7 +548,7 @@ module.exports = class yobit extends Exchange {
             'trades': undefined,
         };
         this.orders[id] = order;
-        return this.extend ({ 'info': response }, order);
+        return this.extend (order, { 'info': response });
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
