@@ -145,8 +145,8 @@ module.exports = class bitflyer extends Exchange {
                 'future': future,
                 'info': market,
                 'active': undefined,
-                'precision': undefined,
-                'limits': undefined,
+                'precision': {},
+                'limits': {},
             });
         }
         return result;

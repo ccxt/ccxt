@@ -593,7 +593,6 @@ module.exports = class stronghold extends Exchange {
             'status': undefined,
             'type': undefined,
             'average': undefined,
-            'fee': undefined,
         };
     }
 

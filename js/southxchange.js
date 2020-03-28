@@ -86,8 +86,8 @@ module.exports = class southxchange extends Exchange {
                 'quoteId': quoteId,
                 'active': undefined,
                 'info': market,
-                'precision': undefined,
-                'limits': undefined,
+                'precision': {},
+                'limits': {},
             });
         }
         return result;

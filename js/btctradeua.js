@@ -336,7 +336,6 @@ module.exports = class btctradeua extends Exchange {
             'info': order,
             'cost': undefined,
             'average': undefined,
-            'fee': undefined,
         };
     }
 

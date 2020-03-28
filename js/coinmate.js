@@ -667,7 +667,6 @@ module.exports = class coinmate extends Exchange {
             'status': status,
             'trades': undefined,
             'info': order,
-            'fee': undefined,
         };
     }
 

@@ -104,8 +104,8 @@ module.exports = class luno extends Exchange {
                 'quoteId': quoteId,
                 'info': market,
                 'active': undefined,
-                'precision': undefined,
-                'limits': undefined,
+                'precision': {},
+                'limits': {},
             });
         }
         return result;
