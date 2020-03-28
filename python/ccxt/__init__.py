@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.25.31'
+__version__ = '1.25.32'
 
 # ----------------------------------------------------------------------------
 
@@ -167,9 +167,7 @@ from ccxt.mercado import mercado                            # noqa: F401
 from ccxt.mixcoins import mixcoins                          # noqa: F401
 from ccxt.oceanex import oceanex                            # noqa: F401
 from ccxt.okcoin import okcoin                              # noqa: F401
-from ccxt.okcoinusd import okcoinusd                        # noqa: F401
 from ccxt.okex import okex                                  # noqa: F401
-from ccxt.okex3 import okex3                                # noqa: F401
 from ccxt.paymium import paymium                            # noqa: F401
 from ccxt.poloniex import poloniex                          # noqa: F401
 from ccxt.rightbtc import rightbtc                          # noqa: F401
@@ -293,9 +291,7 @@ exchanges = [
     'mixcoins',
     'oceanex',
     'okcoin',
-    'okcoinusd',
     'okex',
-    'okex3',
     'paymium',
     'poloniex',
     'rightbtc',

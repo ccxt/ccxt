@@ -35,7 +35,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.25.31'
+const version = '1.25.32'
 
 Exchange.ccxtVersion = version
 
@@ -142,9 +142,7 @@ const exchanges = {
     'mixcoins':                require ('./js/mixcoins.js'),
     'oceanex':                 require ('./js/oceanex.js'),
     'okcoin':                  require ('./js/okcoin.js'),
-    'okcoinusd':               require ('./js/okcoinusd.js'),
     'okex':                    require ('./js/okex.js'),
-    'okex3':                   require ('./js/okex3.js'),
     'paymium':                 require ('./js/paymium.js'),
     'poloniex':                require ('./js/poloniex.js'),
     'rightbtc':                require ('./js/rightbtc.js'),
