@@ -1250,6 +1250,7 @@ module.exports = class bittrex extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'fee': this.safeValue (order, 'fee'),
             'info': order,
+            'takerOrMaker': undefined,
         };
     }
 

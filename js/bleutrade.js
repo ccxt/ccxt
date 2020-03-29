@@ -162,6 +162,7 @@ module.exports = class bleutrade extends Exchange {
                 'fee': this.safeFloat (item, 'WithdrawTxFee'),
                 'precision': this.safeFloat (item, 'DecimalPlaces'),
                 'info': item,
+                'limits': this.limits,
             };
         }
         return result;

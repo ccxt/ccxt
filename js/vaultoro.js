@@ -84,8 +84,8 @@ module.exports = class vaultoro extends Exchange {
             'quoteId': quoteId,
             'info': market,
             'active': undefined,
-            'precision': {},
-            'limits': {},
+            'precision': this.precision,
+            'limits': this.limits,
         });
         return result;
     }

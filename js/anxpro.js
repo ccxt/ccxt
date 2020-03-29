@@ -469,6 +469,7 @@ module.exports = class anxpro extends Exchange {
             'cost': cost,
             'fee': undefined,
             'info': trade,
+            'takerOrMaker': undefined,
         };
     }
 

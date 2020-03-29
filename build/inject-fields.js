@@ -1,4 +1,5 @@
 const fs = require ('fs');
+const ccxt = require ('../ccxt.js')
 
 // use at your own risk
 
@@ -79,46 +80,13 @@ const orderKeys = [
     'filled',
     'remaining',
     'status',
-    'trades'
+    'trades',
+    'fee'
 ]
 
 const things = [ tradeKeys, marketKeys, currencyKeys, tickerKeys, orderKeys ]
 
-// we generate the unique keys from the above objects
-const uniqueKeys = {}
-for (let i = 0; i < things.length; i++) {
-    const thing = things[i];
-    let everythingElse = new Set ();
-    for (let j = 0; j < things.length; j++) {
-        if (j === i) {
-            continue
-        }
-        everythingElse = new Set ([...everythingElse, ...things[j]]) // set union
-    }
-    const difference = new Set (thing.filter (x => !everythingElse.has (x)))
-    for (const item of difference) {
-        uniqueKeys[item] = thing
-    }
-}
-
-// these keys can be found in some places that are not where we want to inject
-delete uniqueKeys['base']
-delete uniqueKeys['quote']
-delete uniqueKeys['name']
-delete uniqueKeys['percentage']
-delete uniqueKeys['open']
-delete uniqueKeys['code']
-delete uniqueKeys['status']
-delete uniqueKeys['order']
-delete uniqueKeys['filled']
-delete uniqueKeys['clientOrderId']
-delete uniqueKeys['remaining']
-delete uniqueKeys['trades']
-delete uniqueKeys['bid']
-delete uniqueKeys['ask']
-const unique = Object.keys (uniqueKeys)
-console.log (unique)
-
+// instead of counting by unique keys we could also count by number of shared keys
 function runAllExchanges () {
     const classNames = fs.readdirSync ('./js')
         .filter (file => file.includes ('.js')).map (className => './js/' + className)
@@ -129,44 +97,70 @@ function runAllExchanges () {
 
 function searchFor (filename) {
     const lines = fs.readFileSync (filename).toString ().split ('\n')
-    for (const key of unique) {
-        const regex = new RegExp ('^\\s+\'' + key + '\':')
-        const toInject = []
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i]
-            const found = line.match (regex)
-            let injected = undefined
+    const toInject = []
+    const flatten = ccxt.flatten (things)
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i]
+        let found = null
+        for (const key of flatten) {
+            found = line.match (new RegExp ('^\\s+\'' + key + '\':'))
             if (found) {
-                const { top, bottom } = extractObject (lines, i)
-                const sectionLines = lines.slice (top, bottom)
-                const begin = sectionLines[0]
-                sectionLines[0] = begin.match (/{.*/)[0]
-                const end = sectionLines[sectionLines.length - 1]
-                sectionLines[sectionLines.length - 1] = '}'
-                const section = sectionLines.join ('\n').replace (/\/\/.*$/mg, '').replace (/':\s.*,/g, '\': undefined,')
+                break
+            }
+        }
+        let injected = undefined
+        if (found) {
+            const { top, bottom } = extractObject (lines, i)
+            i = bottom
+            const sectionLines = lines.slice (top, bottom)
+            const begin = sectionLines[0]
+            sectionLines[0] = begin.match (/{.*/)[0]
+            const end = sectionLines[sectionLines.length - 1]
+            sectionLines[sectionLines.length - 1] = '}'
+            const section = sectionLines.join ('\n')
+                .replace (/\/\/.*$/mg, '')
+                .replace (/':\s.*,/g, '\': undefined,')
+            //console.log (section)
+            try {
                 eval (`injected = ${section}`)
-                const toAdd = []
-                for (const allFields of uniqueKeys[key]) {
-                    if (!(allFields in injected)) {
-                        toAdd.push (allFields)
+            } catch (e) {
+                continue
+            }
+            let maxCount = 0,
+                maxThing = []
+            const injectedKeys = Object.keys (injected)
+            for (const thing of things) {
+                let count = 0
+                for (const key of injectedKeys) {
+                    if (thing.includes (key)) {
+                        count += 1
+                    } else {
+                        count = 0
+                        break
                     }
                 }
+                if (count > maxCount) {
+                    maxCount = count
+                    maxThing = thing
+                }
+            }
+            if (maxCount > maxThing.length / 2) {
                 sectionLines[0] = begin
                 sectionLines.length = sectionLines.length - 1
                 const indent = sectionLines[sectionLines.length - 1].match (/^\s+/)[0].length
-                for (const missingKey of toAdd) {
-                    sectionLines.push (' '.repeat (indent) + '\'' + missingKey + '\': ' + (missingKey === 'precision' || missingKey === 'limits' ? '{}' : 'undefined') + ',')
+                for (const missingKey of maxThing.filter (k => !injectedKeys.includes (k))) {
+                    sectionLines.push (' '.repeat (indent) + '\'' + missingKey + '\': ' + (missingKey === 'precision' || missingKey === 'limits' ? ('this.' + missingKey) : 'undefined') + ',')
                 }
                 sectionLines.push (end)
                 toInject.push ({top, bottom, sectionLines})
             }
         }
-        // iterate through toInject backwards injeceting the stuff using splice
-        for (let i = toInject.length - 1; i >= 0; i--) {
-            const injector = toInject[i]
-            const { top, bottom, sectionLines } = injector
-            lines.splice (top, bottom - top, ...sectionLines)
-        }
+    }
+    // iterate through toInject backwards injeceting the stuff using splice
+    for (let i = toInject.length - 1; i >= 0; i--) {
+        const injector = toInject[i]
+        const { top, bottom, sectionLines } = injector
+        lines.splice (top, bottom - top, ...sectionLines)
     }
     const output = lines.join ('\n')
     fs.writeFileSync (filename, output)

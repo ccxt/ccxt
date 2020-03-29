@@ -806,6 +806,8 @@ module.exports = class cex extends Exchange {
                         'currency': market['quote'],
                     },
                     'info': item,
+                    'type': undefined,
+                    'takerOrMaker': undefined,
                 });
             }
         }

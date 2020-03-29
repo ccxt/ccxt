@@ -312,6 +312,7 @@ module.exports = class bitforex extends Exchange {
             'cost': cost,
             'order': orderId,
             'fee': undefined,
+            'takerOrMaker': undefined,
         };
     }
 

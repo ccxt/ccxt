@@ -720,6 +720,7 @@ module.exports = class hitbtc extends Exchange {
             'amount': amount,
             'cost': cost,
             'fee': fee,
+            'takerOrMaker': undefined,
         };
     }
 

@@ -198,6 +198,8 @@ module.exports = class flowbtc extends Exchange {
             'price': price,
             'amount': amount,
             'cost': cost,
+            'takerOrMaker': undefined,
+            'fee': undefined,
         };
     }
 

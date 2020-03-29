@@ -116,6 +116,7 @@ module.exports = class ice3x extends Exchange {
                     },
                 },
                 'info': currency,
+                'fee': undefined,
             };
         }
         return result;
@@ -148,8 +149,8 @@ module.exports = class ice3x extends Exchange {
                 'quoteId': quoteId,
                 'active': undefined,
                 'info': market,
-                'precision': {},
-                'limits': {},
+                'precision': this.precision,
+                'limits': this.limits,
             });
         }
         return result;

@@ -145,8 +145,8 @@ module.exports = class bitlish extends Exchange {
                 'quoteId': quoteId,
                 'info': market,
                 'active': undefined,
-                'precision': {},
-                'limits': {},
+                'precision': this.precision,
+                'limits': this.limits,
             });
         }
         return result;

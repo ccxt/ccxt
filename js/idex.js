@@ -164,7 +164,6 @@ module.exports = class idex extends Exchange {
                     'id': id,
                     'info': baseCurrency,
                     'tierBased': false,
-                    'active': undefined,
                 });
             }
         }
@@ -773,6 +772,10 @@ module.exports = class idex extends Exchange {
             'remaining': remaining,
             'cost': cost,
             'status': status,
+            'lastTradeTimestamp': undefined,
+            'average': undefined,
+            'trades': undefined,
+            'fee': undefined,
         };
     }
 

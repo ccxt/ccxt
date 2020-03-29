@@ -135,7 +135,7 @@ module.exports = class acx extends Exchange {
                 'precision': precision,
                 'info': market,
                 'active': undefined,
-                'limits': {},
+                'limits': this.limits,
             });
         }
         return result;

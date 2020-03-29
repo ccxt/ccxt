@@ -919,11 +919,6 @@ module.exports = class kraken extends Exchange {
             'quote': quote,
             'baseId': baseId,
             'quoteId': quoteId,
-            'id': undefined,
-            'active': undefined,
-            'precision': {},
-            'limits': {},
-            'info': undefined,
         };
         this.options['delistedMarketsById'][id] = market;
         return market;

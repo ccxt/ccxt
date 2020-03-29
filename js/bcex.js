@@ -369,6 +369,7 @@ module.exports = class bcex extends Exchange {
             'cost': cost,
             'order': orderId,
             'fee': undefined,
+            'takerOrMaker': undefined,
         };
     }
 

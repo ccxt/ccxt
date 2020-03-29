@@ -98,8 +98,8 @@ module.exports = class independentreserve extends Exchange {
                     'quoteId': quoteId,
                     'info': id,
                     'active': undefined,
-                    'precision': {},
-                    'limits': {},
+                    'precision': this.precision,
+                    'limits': this.limits,
                 });
             }
         }

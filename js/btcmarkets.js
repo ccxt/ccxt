@@ -565,6 +565,7 @@ module.exports = class btcmarkets extends Exchange {
                 'currency': feeCurrencyCode,
                 'cost': feeCost,
             },
+            'takerOrMaker': undefined,
         };
     }
 
