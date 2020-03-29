@@ -1822,6 +1822,8 @@ class okex(Exchange):
             'cost': None,
             'trades': None,
             'fee': None,
+            'clientOrderId': None,
+            'average': None,
         }
 
     async def cancel_order(self, id, symbol=None, params={}):
@@ -2028,6 +2030,7 @@ class okex(Exchange):
             'remaining': remaining,
             'status': status,
             'fee': fee,
+            'trades': None,
         }
 
     async def fetch_order(self, id, symbol=None, params={}):

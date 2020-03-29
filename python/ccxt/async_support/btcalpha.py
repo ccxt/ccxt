@@ -156,6 +156,8 @@ class btcalpha(Exchange):
                     },
                 },
                 'info': market,
+                'baseId': None,
+                'quoteId': None,
             })
         return result
 
@@ -308,6 +310,8 @@ class btcalpha(Exchange):
             'trades': trades,
             'fee': None,
             'info': order,
+            'lastTradeTimestamp': None,
+            'average': None,
         }
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):

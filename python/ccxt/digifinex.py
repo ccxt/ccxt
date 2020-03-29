@@ -830,6 +830,7 @@ class digifinex(Exchange):
             'average': average,
             'status': status,
             'fee': None,
+            'trades': None,
         }
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):

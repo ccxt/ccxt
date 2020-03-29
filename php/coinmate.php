@@ -670,6 +670,7 @@ class coinmate extends Exchange {
             'status' => $status,
             'trades' => null,
             'info' => $order,
+            'fee' => null,
         );
     }
 

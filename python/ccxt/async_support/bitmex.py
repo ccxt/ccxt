@@ -1063,6 +1063,7 @@ class bitmex(Exchange):
             'remaining': remaining,
             'status': status,
             'fee': None,
+            'trades': None,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):

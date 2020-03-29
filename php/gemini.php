@@ -298,6 +298,7 @@ class gemini extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'active' => null,
             );
         }
         return $result;
@@ -478,6 +479,7 @@ class gemini extends Exchange {
             'filled' => $filled,
             'remaining' => $remaining,
             'fee' => $fee,
+            'trades' => null,
         );
     }
 

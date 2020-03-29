@@ -682,6 +682,9 @@ class dsx(Exchange):
             'filled': filled,
             'fee': None,
             # 'trades': self.parse_trades(order['trades'], market),
+            'clientOrderId': None,
+            'average': None,
+            'trades': None,
         }
 
     def parse_order_status(self, status):
@@ -795,6 +798,7 @@ class dsx(Exchange):
             'status': status,
             'fee': fee,
             'trades': trades,
+            'average': None,
         }
 
     async def fetch_order(self, id, symbol=None, params={}):

@@ -156,6 +156,9 @@ class tidebit(Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
+                'active': None,
+                'precision': self.precision,
+                'limits': self.limits,
             })
         return result
 
@@ -392,6 +395,7 @@ class tidebit(Exchange):
             'trades': None,
             'fee': None,
             'info': order,
+            'average': None,
         }
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):

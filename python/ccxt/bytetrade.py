@@ -527,6 +527,7 @@ class bytetrade(Exchange):
             'remaining': remaining,
             'status': status,
             'fee': fee,
+            'trades': None,
         }
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -696,6 +697,8 @@ class bytetrade(Exchange):
             'cost': None,
             'trades': None,
             'fee': None,
+            'clientOrderId': None,
+            'average': None,
         }
 
     def fetch_order(self, id, symbol=None, params={}):
@@ -854,6 +857,8 @@ class bytetrade(Exchange):
             'cost': None,
             'trades': None,
             'fee': None,
+            'clientOrderId': None,
+            'average': None,
         }
 
     def transfer(self, code, amount, address, message='', params={}):
@@ -955,6 +960,9 @@ class bytetrade(Exchange):
             'remaining': None,
             'cost': None,
             'fee': None,
+            'clientOrderId': None,
+            'average': None,
+            'trades': None,
         }
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):

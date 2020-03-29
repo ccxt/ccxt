@@ -1009,6 +1009,7 @@ class bitbay(Exchange):
             'average': None,
             'fee': None,
             'trades': trades,
+            'clientOrderId': None,
         }
 
     async def cancel_order(self, id, symbol=None, params={}):

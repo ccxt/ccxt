@@ -246,6 +246,8 @@ class lykke(Exchange):
                         'max': None,
                     },
                 },
+                'baseId': None,
+                'quoteId': None,
             })
         return result
 
@@ -355,6 +357,7 @@ class lykke(Exchange):
             'remaining': remaining,
             'status': status,
             'fee': None,
+            'trades': None,
         }
 
     async def fetch_order(self, id, symbol=None, params={}):

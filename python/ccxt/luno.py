@@ -105,6 +105,9 @@ class luno(Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
+                'active': None,
+                'precision': self.precision,
+                'limits': self.limits,
             })
         return result
 
@@ -204,6 +207,7 @@ class luno(Exchange):
             'trades': None,
             'fee': fee,
             'info': order,
+            'average': None,
         }
 
     def fetch_order(self, id, symbol=None, params={}):

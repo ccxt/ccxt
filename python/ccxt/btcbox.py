@@ -294,6 +294,7 @@ class btcbox(Exchange):
             'trades': trades,
             'fee': None,
             'info': order,
+            'average': None,
         }
 
     def fetch_order(self, id, symbol=None, params={}):

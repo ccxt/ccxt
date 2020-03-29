@@ -540,6 +540,7 @@ class zb(Exchange):
             'remaining': remaining,
             'status': status,
             'fee': None,
+            'trades': None,
         }
 
     def parse_order_status(self, status):

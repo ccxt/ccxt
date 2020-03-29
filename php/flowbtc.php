@@ -110,6 +110,7 @@ class flowbtc extends Exchange {
                     ),
                 ),
                 'info' => $market,
+                'active' => null,
             );
         }
         return $result;
@@ -199,6 +200,8 @@ class flowbtc extends Exchange {
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
+            'takerOrMaker' => null,
+            'fee' => null,
         );
     }
 

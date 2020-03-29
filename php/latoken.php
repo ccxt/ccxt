@@ -669,6 +669,7 @@ class latoken extends Exchange {
             'average' => null,
             'remaining' => $remaining,
             'fee' => null,
+            'trades' => null,
         );
     }
 

@@ -204,6 +204,7 @@ class itbit(Exchange):
             'price': price,
             'amount': amount,
             'cost': cost,
+            'fee': None,
         }
         if feeCost is not None:
             if rebatesApplied is not None:
@@ -493,6 +494,7 @@ class itbit(Exchange):
             'remaining': remaining,
             'fee': fee,
             # 'trades': self.parse_trades(order['trades'], market),
+            'trades': None,
         }
 
     def nonce(self):

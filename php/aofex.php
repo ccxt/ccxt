@@ -1025,6 +1025,7 @@ class aofex extends Exchange {
             'remaining' => null,
             'trades' => null,
             'fee' => null,
+            'clientOrderId' => null,
         );
     }
 

@@ -169,6 +169,7 @@ class bleutrade(Exchange):
                 'fee': self.safe_float(item, 'WithdrawTxFee'),
                 'precision': self.safe_float(item, 'DecimalPlaces'),
                 'info': item,
+                'limits': self.limits,
             }
         return result
 
@@ -650,6 +651,7 @@ class bleutrade(Exchange):
             'remaining': remaining,
             'status': status,
             'fee': None,
+            'trades': None,
         }
 
     def parse_order_status(self, status):

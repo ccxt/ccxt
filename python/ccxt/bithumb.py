@@ -133,6 +133,8 @@ class bithumb(Exchange):
                         'max': None,
                     },
                 },
+                'baseId': None,
+                'quoteId': None,
             })
         return result
 

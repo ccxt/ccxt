@@ -970,6 +970,7 @@ class aofex(Exchange):
             'remaining': None,
             'trades': None,
             'fee': None,
+            'clientOrderId': None,
         }
 
     async def cancel_all_orders(self, symbol=None, params={}):

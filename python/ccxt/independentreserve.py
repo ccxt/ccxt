@@ -97,6 +97,9 @@ class independentreserve(Exchange):
                     'baseId': baseId,
                     'quoteId': quoteId,
                     'info': id,
+                    'active': None,
+                    'precision': self.precision,
+                    'limits': self.limits,
                 })
         return result
 
@@ -244,6 +247,7 @@ class independentreserve(Exchange):
             'remaining': remaining,
             'status': status,
             'fee': fee,
+            'trades': None,
         }
 
     def parse_order_status(self, status):

@@ -563,6 +563,7 @@ class rightbtc extends Exchange {
             'status' => $status,
             'fee' => $fee,
             'trades' => $trades,
+            'average' => null,
         );
     }
 
