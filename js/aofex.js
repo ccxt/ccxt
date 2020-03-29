@@ -1021,6 +1021,7 @@ module.exports = class aofex extends Exchange {
             'remaining': undefined,
             'trades': undefined,
             'fee': undefined,
+            'clientOrderId': undefined,
         };
     }
 

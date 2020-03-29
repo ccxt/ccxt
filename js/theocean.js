@@ -721,6 +721,7 @@ module.exports = class theocean extends Exchange {
             'status': status,
             'fee': fee,
             'trades': trades,
+            'average': undefined,
         };
         return result;
     }

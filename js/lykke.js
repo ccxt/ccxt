@@ -255,6 +255,8 @@ module.exports = class lykke extends Exchange {
                         'max': undefined,
                     },
                 },
+                'baseId': undefined,
+                'quoteId': undefined,
             });
         }
         return result;
@@ -373,6 +375,7 @@ module.exports = class lykke extends Exchange {
             'remaining': remaining,
             'status': status,
             'fee': undefined,
+            'trades': undefined,
         };
     }
 

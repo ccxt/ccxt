@@ -457,6 +457,7 @@ module.exports = class kkex extends Exchange {
             'remaining': remaining,
             'fee': undefined,
             'info': order,
+            'trades': undefined,
         };
     }
 
@@ -505,6 +506,8 @@ module.exports = class kkex extends Exchange {
             'remaining': undefined,
             'trades': undefined,
             'fee': undefined,
+            'clientOrderId': undefined,
+            'average': undefined,
         };
     }
 

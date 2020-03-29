@@ -859,6 +859,8 @@ module.exports = class bitfinex extends Exchange {
             'filled': this.safeFloat (order, 'executed_amount'),
             'status': status,
             'fee': undefined,
+            'cost': undefined,
+            'trades': undefined,
         };
     }
 

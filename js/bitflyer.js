@@ -371,6 +371,8 @@ module.exports = class bitflyer extends Exchange {
             'filled': filled,
             'remaining': remaining,
             'fee': fee,
+            'average': undefined,
+            'trades': undefined,
         };
     }
 

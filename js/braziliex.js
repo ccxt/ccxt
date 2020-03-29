@@ -468,6 +468,7 @@ module.exports = class braziliex extends Exchange {
             'trades': undefined,
             'fee': fee,
             'info': info,
+            'average': undefined,
         };
     }
 

@@ -334,6 +334,9 @@ module.exports = class btctradeua extends Exchange {
             'remaining': this.safeFloat (order, 'amnt_trade'),
             'trades': undefined,
             'info': order,
+            'cost': undefined,
+            'average': undefined,
+            'fee': undefined,
         };
     }
 

@@ -720,6 +720,7 @@ module.exports = class hitbtc extends Exchange {
             'amount': amount,
             'cost': cost,
             'fee': fee,
+            'takerOrMaker': undefined,
         };
     }
 
@@ -886,6 +887,8 @@ module.exports = class hitbtc extends Exchange {
             'filled': filled,
             'remaining': remaining,
             'fee': fee,
+            'average': undefined,
+            'trades': undefined,
         };
     }
 

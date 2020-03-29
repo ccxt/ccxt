@@ -305,6 +305,8 @@ module.exports = class coinone extends Exchange {
             'remaining': amount,
             'status': 'open',
             'fee': undefined,
+            'clientOrderId': undefined,
+            'trades': undefined,
         };
         this.orders[id] = order;
         return order;
@@ -423,6 +425,8 @@ module.exports = class coinone extends Exchange {
             'remaining': remaining,
             'status': status,
             'fee': fee,
+            'average': undefined,
+            'trades': undefined,
         };
     }
 

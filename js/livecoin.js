@@ -255,6 +255,9 @@ module.exports = class livecoin extends Exchange {
                     'max': Math.pow (10, precision),
                 },
             },
+            'id': undefined,
+            'code': undefined,
+            'name': undefined,
         };
         const currencies = [
             { 'id': 'USD', 'code': 'USD', 'name': 'US Dollar' },
@@ -622,6 +625,7 @@ module.exports = class livecoin extends Exchange {
                 'currency': feeCurrency,
                 'rate': feeRate,
             },
+            'average': undefined,
         };
     }
 

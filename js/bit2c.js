@@ -295,6 +295,7 @@ module.exports = class bit2c extends Exchange {
             'trades': undefined,
             'fee': undefined,
             'info': order,
+            'average': undefined,
         };
     }
 

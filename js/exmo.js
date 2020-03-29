@@ -899,6 +899,8 @@ module.exports = class exmo extends Exchange {
             'filled': 0.0,
             'fee': undefined,
             'trades': undefined,
+            'clientOrderId': undefined,
+            'average': undefined,
         };
         this.orders[id] = order;
         return order;

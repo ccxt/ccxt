@@ -1860,6 +1860,8 @@ module.exports = class okex extends Exchange {
             'cost': undefined,
             'trades': undefined,
             'fee': undefined,
+            'clientOrderId': undefined,
+            'average': undefined,
         };
     }
 
@@ -2086,6 +2088,7 @@ module.exports = class okex extends Exchange {
             'remaining': remaining,
             'status': status,
             'fee': fee,
+            'trades': undefined,
         };
     }
 

@@ -770,6 +770,7 @@ module.exports = class hollaex extends Exchange {
             'trades': undefined,
             'fee': undefined,
             'info': order,
+            'average': undefined,
         };
         return result;
     }
