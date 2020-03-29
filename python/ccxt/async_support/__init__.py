@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.25.28'
+__version__ = '1.25.33'
 
 # -----------------------------------------------------------------------------
 
@@ -52,6 +52,7 @@ from ccxt.async_support._1btcxe import _1btcxe                            # noqa
 from ccxt.async_support.acx import acx                                    # noqa: F401
 from ccxt.async_support.adara import adara                                # noqa: F401
 from ccxt.async_support.anxpro import anxpro                              # noqa: F401
+from ccxt.async_support.aofex import aofex                                # noqa: F401
 from ccxt.async_support.bcex import bcex                                  # noqa: F401
 from ccxt.async_support.bequant import bequant                            # noqa: F401
 from ccxt.async_support.bibox import bibox                                # noqa: F401
@@ -147,9 +148,7 @@ from ccxt.async_support.mercado import mercado                            # noqa
 from ccxt.async_support.mixcoins import mixcoins                          # noqa: F401
 from ccxt.async_support.oceanex import oceanex                            # noqa: F401
 from ccxt.async_support.okcoin import okcoin                              # noqa: F401
-from ccxt.async_support.okcoinusd import okcoinusd                        # noqa: F401
 from ccxt.async_support.okex import okex                                  # noqa: F401
-from ccxt.async_support.okex3 import okex3                                # noqa: F401
 from ccxt.async_support.paymium import paymium                            # noqa: F401
 from ccxt.async_support.poloniex import poloniex                          # noqa: F401
 from ccxt.async_support.rightbtc import rightbtc                          # noqa: F401
@@ -177,6 +176,7 @@ exchanges = [
     'acx',
     'adara',
     'anxpro',
+    'aofex',
     'bcex',
     'bequant',
     'bibox',
@@ -272,9 +272,7 @@ exchanges = [
     'mixcoins',
     'oceanex',
     'okcoin',
-    'okcoinusd',
     'okex',
-    'okex3',
     'paymium',
     'poloniex',
     'rightbtc',

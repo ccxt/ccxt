@@ -135,7 +135,7 @@ function printSupportedExchanges () {
     log ('This is an example of a basic command-line interface to all exchanges')
     log ('Usage: node', process.argv[1], 'id'.green, 'method'.yellow, '"param1" param2 "param3" param4 ...'.blue)
     log ('Examples:')
-    log ('node', process.argv[1], 'okcoinusd fetchOHLCV BTC/USD 15m')
+    log ('node', process.argv[1], 'okcoin fetchOHLCV BTC/USD 15m')
     log ('node', process.argv[1], 'bitfinex fetchBalance')
     log ('node', process.argv[1], 'kraken fetchOrderBook ETH/BTC')
     printSupportedExchanges ()
