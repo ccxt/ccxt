@@ -8,7 +8,7 @@ import ccxt.async_support as ccxt
 
 # -----------------------------------------------------------------------------
 
-__version__ = '0.1.19'
+__version__ = '0.1.20'
 
 # -----------------------------------------------------------------------------
 
@@ -73,7 +73,6 @@ from ccxt.async_support.bitflyer import bitflyer                          # noqa
 from ccxt.async_support.bitforex import bitforex                          # noqa: F401
 from ccxt.async_support.bithumb import bithumb                            # noqa: F401
 from ccxt.async_support.bitkk import bitkk                                # noqa: F401
-from ccxt.async_support.bitlish import bitlish                            # noqa: F401
 from ccxt.async_support.bitmart import bitmart                            # noqa: F401
 from ccxt.async_support.bitmax import bitmax                              # noqa: F401
 from ccxt.async_support.bitso import bitso                                # noqa: F401
