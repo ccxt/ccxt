@@ -123,6 +123,7 @@ class bitmax extends Exchange {
                 'exact' => array(
                     '2100' => '\\ccxt\\AuthenticationError', // array("code":2100,"message":"ApiKeyFailure")
                     '5002' => '\\ccxt\\BadSymbol', // array("code":5002,"message":"Invalid Symbol")
+                    '6001' => '\\ccxt\\BadSymbol', // array("code":6001,"message":"Trading is disabled on symbol.")
                     '6010' => '\\ccxt\\InsufficientFunds', // array('code' => 6010, 'message' => 'Not enough balance.')
                     '60060' => '\\ccxt\\InvalidOrder', // array( 'code' => 60060, 'message' => 'The order is already filled or canceled.' )
                     '600503' => '\\ccxt\\InvalidOrder', // array("code":600503,"message":"Notional is too small.")
