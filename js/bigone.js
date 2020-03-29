@@ -503,7 +503,6 @@ module.exports = class bigone extends Exchange {
             'amount': amount,
             'cost': parseFloat (cost),
             'info': trade,
-            'fee': undefined,
         };
         let makerCurrencyCode = undefined;
         let takerCurrencyCode = undefined;
