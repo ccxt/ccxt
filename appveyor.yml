@@ -13,7 +13,6 @@ install:
   - set PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%
   - npm install
   - python -m pip install --upgrade pip setuptools
-  - pip install enum34==0.9
   - pip install tox
   - pip install requests
   - pip install cryptography
