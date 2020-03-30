@@ -579,6 +579,7 @@ module.exports = class dsx extends Exchange {
             'status': status,
             'fee': undefined,
             'trades': undefined,
+            'average': undefined,
             'info': order,
         };
     }
