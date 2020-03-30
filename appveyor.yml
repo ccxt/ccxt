@@ -8,7 +8,7 @@ install:
   - set CI=true
   - npm install --global npm@latest
   - set PATH=%APPDATA%\npm;%PATH%
-  - set PATH="C:\\Python38-x64";"C\\Python38-x64\\Scripts";%PATH%
+  - set PATH=%PATH%;"C:\\Python38-x64";"C\\Python38-x64\\Scripts"
   # - set PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%
   - echo %PATH%
   - npm install
