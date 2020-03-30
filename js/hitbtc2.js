@@ -11,7 +11,7 @@ module.exports = class hitbtc2 extends ccxt.hitbtc2 {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
-                'watchTicker': false, // not implemented yet
+                'watchTicker': true,
                 'watchTickers': false, // not available on exchange side
                 'watchTrades': false, // not implemented yet
                 'watchOrderBook': true,
@@ -91,6 +91,59 @@ module.exports = class hitbtc2 extends ccxt.hitbtc2 {
         }
     }
 
+    async watchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const url = this.urls['api']['ws'];
+        const messageHash = 'ticker:' + market['id'];
+        const request = {
+            'method': 'subscribeTicker',
+            'params': {
+                'symbol': market['id'],
+            },
+            'id': market['id'],
+        };
+        return await this.watch (url, messageHash, request, market['id']);
+    }
+
+    handleTicker (client, message) {
+        const messageData = this.safeValue (message, 'params');
+        const marketId = this.safeValue (messageData, 'symbol');
+        const market = this.markets_by_id[marketId];
+        const symbol = market['symbol'];
+        const timestamp = this.safeValue (messageData, 'timestamp');
+        const last = this.safeFloat (messageData, 'last');
+        const open = this.safeFloat (messageData, 'open');
+        const change = last - open;
+        const average = this.sum (last, open) / 2;
+        const percentage = change / open * 100;
+        const result = {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': timestamp,
+            'high': this.safeFloat (messageData, 'high'),
+            'low': this.safeFloat (messageData, 'low'),
+            'bid': this.safeFloat (messageData, 'bid'),
+            'bidVolume': undefined,
+            'ask': this.safeFloat (messageData, 'ask'),
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': open,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': change,
+            'percentage': percentage,
+            'average': average,
+            'baseVolume': this.safeFloat (messageData, 'volume'),
+            'quoteVolume': this.safeFloat (messageData, 'volumeQuote'),
+            'info': messageData,
+        };
+        this.tickers[symbol] = result;
+        const messageHash = 'ticker:' + marketId;
+        client.resolve (result, messageHash);
+    }
+
     signMessage (client, messageHash, message, params = {}) {
         // todo: implement hitbtc2 signMessage
         return message;
@@ -105,6 +158,7 @@ module.exports = class hitbtc2 extends ccxt.hitbtc2 {
         const methods = {
             'snapshotOrderbook': this.handleOrderBookSnapshot,
             'updateOrderbook': this.handleUpdateOrderbook,
+            'ticker': this.handleTicker,
         };
         const event = this.safeString (message, 'method');
         const method = this.safeValue (methods, event);
