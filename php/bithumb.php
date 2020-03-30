@@ -131,6 +131,8 @@ class bithumb extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'baseId' => null,
+                'quoteId' => null,
             );
         }
         return $result;

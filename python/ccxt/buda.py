@@ -544,6 +544,7 @@ class buda(Exchange):
             'trades': None,
             'fee': fee,
             'info': order,
+            'average': None,
         }
 
     def is_fiat(self, code):

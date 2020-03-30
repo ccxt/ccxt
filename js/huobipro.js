@@ -1022,6 +1022,7 @@ module.exports = class huobipro extends Exchange {
             'remaining': remaining,
             'status': status,
             'fee': fee,
+            'trades': undefined,
         };
     }
 
@@ -1076,6 +1077,8 @@ module.exports = class huobipro extends Exchange {
             'cost': undefined,
             'trades': undefined,
             'fee': undefined,
+            'clientOrderId': undefined,
+            'average': undefined,
         };
     }
 

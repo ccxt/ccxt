@@ -369,6 +369,7 @@ module.exports = class bcex extends Exchange {
             'cost': cost,
             'order': orderId,
             'fee': undefined,
+            'takerOrMaker': undefined,
         };
     }
 
@@ -517,6 +518,8 @@ module.exports = class bcex extends Exchange {
             'remaining': this.safeFloat (order, 'numberover'),
             'status': status,
             'fee': undefined,
+            'clientOrderId': undefined,
+            'trades': undefined,
         };
     }
 
@@ -558,6 +561,7 @@ module.exports = class bcex extends Exchange {
             'remaining': remaining,
             'status': status,
             'fee': fee,
+            'trades': undefined,
         };
         return result;
     }

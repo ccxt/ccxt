@@ -726,6 +726,7 @@ class hitbtc extends Exchange {
             'amount' => $amount,
             'cost' => $cost,
             'fee' => $fee,
+            'takerOrMaker' => null,
         );
     }
 
@@ -892,6 +893,8 @@ class hitbtc extends Exchange {
             'filled' => $filled,
             'remaining' => $remaining,
             'fee' => $fee,
+            'average' => null,
+            'trades' => null,
         );
     }
 

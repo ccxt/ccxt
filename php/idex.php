@@ -775,6 +775,10 @@ class idex extends Exchange {
             'remaining' => $remaining,
             'cost' => $cost,
             'status' => $status,
+            'lastTradeTimestamp' => null,
+            'average' => null,
+            'trades' => null,
+            'fee' => null,
         );
     }
 

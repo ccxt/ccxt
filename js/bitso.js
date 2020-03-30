@@ -139,6 +139,7 @@ module.exports = class bitso extends Exchange {
                 'info': market,
                 'limits': limits,
                 'precision': precision,
+                'active': undefined,
             });
         }
         return result;
@@ -387,6 +388,8 @@ module.exports = class bitso extends Exchange {
             'filled': filled,
             'status': status,
             'fee': undefined,
+            'average': undefined,
+            'trades': undefined,
         };
     }
 

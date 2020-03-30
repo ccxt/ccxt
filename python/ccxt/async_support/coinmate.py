@@ -634,6 +634,7 @@ class coinmate(Exchange):
             'status': status,
             'trades': None,
             'info': order,
+            'fee': None,
         }
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):

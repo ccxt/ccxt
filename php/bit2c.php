@@ -298,6 +298,7 @@ class bit2c extends Exchange {
             'trades' => null,
             'fee' => null,
             'info' => $order,
+            'average' => null,
         );
     }
 

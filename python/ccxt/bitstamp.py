@@ -921,6 +921,7 @@ class bitstamp(Exchange):
             'trades': trades,
             'fee': fee,
             'info': order,
+            'average': None,
         }
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):

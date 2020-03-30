@@ -306,6 +306,7 @@ module.exports = class btcbox extends Exchange {
             'trades': trades,
             'fee': undefined,
             'info': order,
+            'average': undefined,
         };
     }
 

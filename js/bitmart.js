@@ -249,6 +249,7 @@ module.exports = class bitmart extends Exchange {
                 'precision': precision,
                 'limits': limits,
                 'info': market,
+                'active': undefined,
             });
         }
         return result;

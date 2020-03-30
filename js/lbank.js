@@ -468,6 +468,7 @@ module.exports = class lbank extends Exchange {
             'trades': undefined,
             'fee': undefined,
             'info': this.safeValue (order, 'info', order),
+            'average': undefined,
         };
     }
 

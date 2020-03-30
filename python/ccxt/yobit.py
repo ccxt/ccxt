@@ -520,9 +520,13 @@ class yobit(Exchange):
             'filled': filled,
             'fee': None,
             # 'trades': self.parse_trades(order['trades'], market),
+            'info': response,
+            'clientOrderId': None,
+            'average': None,
+            'trades': None,
         }
         self.orders[id] = order
-        return self.extend({'info': response}, order)
+        return order
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
@@ -588,6 +592,8 @@ class yobit(Exchange):
             'filled': filled,
             'status': status,
             'fee': fee,
+            'average': None,
+            'trades': None,
         }
         return result
 

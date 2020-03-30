@@ -669,6 +669,7 @@ class bw extends Exchange {
             'status' => 'open',
             'fee' => null,
             'trades' => null,
+            'clientOrderId' => null,
         );
     }
 

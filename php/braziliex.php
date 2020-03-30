@@ -473,6 +473,7 @@ class braziliex extends Exchange {
             'trades' => null,
             'fee' => $fee,
             'info' => $info,
+            'average' => null,
         );
     }
 

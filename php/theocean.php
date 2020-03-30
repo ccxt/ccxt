@@ -733,6 +733,7 @@ class theocean extends Exchange {
             'status' => $status,
             'fee' => $fee,
             'trades' => $trades,
+            'average' => null,
         );
         return $result;
     }

@@ -636,6 +636,7 @@ class latoken(Exchange):
             'average': None,
             'remaining': remaining,
             'fee': None,
+            'trades': None,
         }
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):

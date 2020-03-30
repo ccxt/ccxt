@@ -866,6 +866,8 @@ class exmo(Exchange):
             'filled': 0.0,
             'fee': None,
             'trades': None,
+            'clientOrderId': None,
+            'average': None,
         }
         self.orders[id] = order
         return order

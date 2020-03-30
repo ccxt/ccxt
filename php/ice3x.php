@@ -119,6 +119,7 @@ class ice3x extends Exchange {
                     ),
                 ),
                 'info' => $currency,
+                'fee' => null,
             );
         }
         return $result;
@@ -151,6 +152,8 @@ class ice3x extends Exchange {
                 'quoteId' => $quoteId,
                 'active' => null,
                 'info' => $market,
+                'precision' => $this->precision,
+                'limits' => $this->limits,
             );
         }
         return $result;
@@ -349,6 +352,7 @@ class ice3x extends Exchange {
             'trades' => null,
             'fee' => $fee,
             'info' => $order,
+            'average' => null,
         );
     }
 

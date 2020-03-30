@@ -708,6 +708,7 @@ class hitbtc(Exchange):
             'amount': amount,
             'cost': cost,
             'fee': fee,
+            'takerOrMaker': None,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -854,6 +855,8 @@ class hitbtc(Exchange):
             'filled': filled,
             'remaining': remaining,
             'fee': fee,
+            'average': None,
+            'trades': None,
         }
 
     def fetch_order(self, id, symbol=None, params={}):

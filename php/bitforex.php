@@ -314,6 +314,7 @@ class bitforex extends Exchange {
             'cost' => $cost,
             'order' => $orderId,
             'fee' => null,
+            'takerOrMaker' => null,
         );
     }
 
@@ -482,6 +483,7 @@ class bitforex extends Exchange {
             'remaining' => $remaining,
             'status' => $status,
             'fee' => $fee,
+            'trades' => null,
         );
         return $result;
     }

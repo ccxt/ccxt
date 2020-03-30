@@ -645,6 +645,7 @@ class bw(Exchange):
             'status': 'open',
             'fee': None,
             'trades': None,
+            'clientOrderId': None,
         }
 
     def parse_order_status(self, status):

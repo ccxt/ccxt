@@ -370,6 +370,7 @@ class coinegg extends Exchange {
             'trades' => null,
             'fee' => null,
             'info' => $info,
+            'average' => null,
         );
     }
 

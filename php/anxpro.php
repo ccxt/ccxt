@@ -472,6 +472,7 @@ class anxpro extends Exchange {
             'cost' => $cost,
             'fee' => null,
             'info' => $trade,
+            'takerOrMaker' => null,
         );
     }
 
@@ -993,6 +994,7 @@ class anxpro extends Exchange {
             'fee' => null,
             'trades' => $trades,
             'info' => $order,
+            'average' => null,
         );
     }
 
@@ -1085,6 +1087,7 @@ class anxpro extends Exchange {
             'status' => $status,
             'fee' => $fee,
             'trades' => $trades,
+            'average' => null,
         );
     }
 

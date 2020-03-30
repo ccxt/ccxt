@@ -313,6 +313,7 @@ class exx(Exchange):
             'trades': None,
             'fee': fee,
             'info': order,
+            'average': None,
         }
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):

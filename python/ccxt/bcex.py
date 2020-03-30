@@ -362,6 +362,7 @@ class bcex(Exchange):
             'cost': cost,
             'order': orderId,
             'fee': None,
+            'takerOrMaker': None,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -496,6 +497,8 @@ class bcex(Exchange):
             'remaining': self.safe_float(order, 'numberover'),
             'status': status,
             'fee': None,
+            'clientOrderId': None,
+            'trades': None,
         }
 
     def parse_order(self, order, market=None):
@@ -534,6 +537,7 @@ class bcex(Exchange):
             'remaining': remaining,
             'status': status,
             'fee': fee,
+            'trades': None,
         }
         return result
 

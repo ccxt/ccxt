@@ -346,6 +346,7 @@ class indodax(Exchange):
             'remaining': remaining,
             'status': status,
             'fee': fee,
+            'trades': None,
         }
 
     async def fetch_order(self, id, symbol=None, params={}):

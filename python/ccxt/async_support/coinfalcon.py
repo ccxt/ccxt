@@ -315,6 +315,8 @@ class coinfalcon(Exchange):
             'trades': None,
             'fee': None,
             'info': order,
+            'lastTradeTimestamp': None,
+            'average': None,
         }
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):

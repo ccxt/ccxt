@@ -582,6 +582,8 @@ class coinbasepro(Exchange):
             'filled': filled,
             'remaining': remaining,
             'fee': fee,
+            'average': None,
+            'trades': None,
         }
 
     def fetch_order(self, id, symbol=None, params={}):

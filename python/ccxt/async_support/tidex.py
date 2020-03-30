@@ -504,9 +504,13 @@ class tidex(Exchange):
             'filled': filled,
             'fee': None,
             # 'trades': self.parse_trades(order['trades'], market),
+            'info': response,
+            'clientOrderId': None,
+            'average': None,
+            'trades': None,
         }
         self.orders[id] = order
-        return self.extend({'info': response}, order)
+        return order
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
@@ -571,6 +575,9 @@ class tidex(Exchange):
             'filled': filled,
             'status': status,
             'fee': fee,
+            'clientOrderId': None,
+            'average': None,
+            'trades': None,
         }
 
     def parse_orders(self, orders, market=None, since=None, limit=None, params={}):

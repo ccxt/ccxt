@@ -297,6 +297,8 @@ class coinone(Exchange):
             'remaining': amount,
             'status': 'open',
             'fee': None,
+            'clientOrderId': None,
+            'trades': None,
         }
         self.orders[id] = order
         return order
@@ -400,6 +402,8 @@ class coinone(Exchange):
             'remaining': remaining,
             'status': status,
             'fee': fee,
+            'average': None,
+            'trades': None,
         }
 
     async def cancel_order(self, id, symbol=None, params={}):

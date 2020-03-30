@@ -210,6 +210,8 @@ class coincheck extends Exchange {
             'cost' => $cost,
             'fee' => null,
             'info' => $order,
+            'average' => null,
+            'trades' => null,
         );
     }
 

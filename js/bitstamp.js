@@ -983,6 +983,7 @@ module.exports = class bitstamp extends Exchange {
             'trades': trades,
             'fee': fee,
             'info': order,
+            'average': undefined,
         };
     }
 

@@ -740,6 +740,7 @@ class bitz(Exchange):
             'trades': None,
             'fee': None,
             'info': order,
+            'average': None,
         }
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):

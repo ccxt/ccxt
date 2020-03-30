@@ -149,6 +149,7 @@ class bitso(Exchange):
                 'info': market,
                 'limits': limits,
                 'precision': precision,
+                'active': None,
             })
         return result
 
@@ -369,6 +370,8 @@ class bitso(Exchange):
             'filled': filled,
             'status': status,
             'fee': None,
+            'average': None,
+            'trades': None,
         }
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=25, params={}):

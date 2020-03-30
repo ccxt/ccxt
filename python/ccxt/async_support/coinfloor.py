@@ -428,6 +428,8 @@ class coinfloor(Exchange):
             'remaining': None,
             'cost': cost,
             'fee': None,
+            'average': None,
+            'trades': None,
         }
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):

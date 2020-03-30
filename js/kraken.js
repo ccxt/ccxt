@@ -1000,6 +1000,7 @@ module.exports = class kraken extends Exchange {
             'remaining': remaining,
             'fee': fee,
             // 'trades': this.parseTrades (order['trades'], market),
+            'trades': undefined,
         };
     }
 

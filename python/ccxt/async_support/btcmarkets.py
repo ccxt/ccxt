@@ -530,6 +530,7 @@ class btcmarkets(Exchange):
                 'currency': feeCurrencyCode,
                 'cost': feeCost,
             },
+            'takerOrMaker': None,
         }
 
     def parse_my_trades(self, trades, market=None, since=None, limit=None):

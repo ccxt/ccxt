@@ -688,6 +688,7 @@ class bibox(Exchange):
             'remaining': remaining,
             'status': status,
             'fee': fee,
+            'trades': None,
         }
 
     def parse_order_status(self, status):

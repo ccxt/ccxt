@@ -136,6 +136,8 @@ class acx extends Exchange {
                 'quoteId' => $quoteId,
                 'precision' => $precision,
                 'info' => $market,
+                'active' => null,
+                'limits' => $this->limits,
             );
         }
         return $result;
@@ -342,6 +344,8 @@ class acx extends Exchange {
             'trades' => null,
             'fee' => null,
             'info' => $order,
+            'cost' => null,
+            'average' => null,
         );
     }
 
