@@ -84,7 +84,7 @@ class okex extends Exchange {
                         'ledger',
                         'deposit/address',
                         'deposit/history',
-                        'deposit/historyarray(<currency)',
+                        'deposit/history/{currency}',
                         'currencies',
                         'withdrawal/fee',
                     ),

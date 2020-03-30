@@ -166,6 +166,7 @@ class coinmate extends Exchange {
                     'No order with given ID' => '\\ccxt\\OrderNotFound',
                 ),
                 'broad' => array(
+                    'Not enough account balance available' => '\\ccxt\\InsufficientFunds',
                     'Incorrect order ID' => '\\ccxt\\InvalidOrder',
                     'Minimum Order Size ' => '\\ccxt\\InvalidOrder',
                     'TOO MANY REQUESTS' => '\\ccxt\\RateLimitExceeded',
