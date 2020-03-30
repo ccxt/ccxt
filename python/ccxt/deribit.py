@@ -341,6 +341,11 @@ class deribit(Exchange):
         #
         return self.safe_integer(response, 'result')
 
+    def code_from_options(self, methodName):
+        defaultCode = self.safe_value(self.options, 'code', 'BTC')
+        options = self.safe_value(self.options, methodName, {})
+        return self.safe_value(options, 'code', defaultCode)
+
     def fetch_status(self, params={}):
         request = {
             # 'expected_result': False,  # True will trigger an error for testing purposes
@@ -475,9 +480,7 @@ class deribit(Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        defaultCode = self.safe_value(self.options, 'code', 'BTC')
-        options = self.safe_value(self.options, 'fetchBalance', {})
-        code = self.safe_value(options, 'code', defaultCode)
+        code = self.code_from_options('fetchBalance')
         currency = self.currency(code)
         request = {
             'currency': currency['id'],
@@ -718,9 +721,7 @@ class deribit(Exchange):
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        defaultCode = self.safe_value(self.options, 'code', 'BTC')
-        options = self.safe_value(self.options, 'fetchTickers', {})
-        code = self.safe_value(options, 'code', defaultCode)
+        code = self.code_from_options('fetchTickers')
         currency = self.currency(code)
         request = {
             'currency': currency['id'],
@@ -1285,9 +1286,7 @@ class deribit(Exchange):
         market = None
         method = None
         if symbol is None:
-            defaultCode = self.safe_value(self.options, 'code', 'BTC')
-            options = self.safe_value(self.options, 'fetchOpenOrders', {})
-            code = self.safe_value(options, 'code', defaultCode)
+            code = self.code_from_options('fetchOpenOrders')
             currency = self.currency(code)
             request['currency'] = currency['id']
             method = 'privateGetGetOpenOrdersByCurrency'
@@ -1305,9 +1304,7 @@ class deribit(Exchange):
         market = None
         method = None
         if symbol is None:
-            defaultCode = self.safe_value(self.options, 'code', 'BTC')
-            options = self.safe_value(self.options, 'fetchClosedOrders', {})
-            code = self.safe_value(options, 'code', defaultCode)
+            code = self.code_from_options('fetchClosedOrders')
             currency = self.currency(code)
             request['currency'] = currency['id']
             method = 'privateGetGetOrderHistoryByCurrency'
@@ -1370,9 +1367,7 @@ class deribit(Exchange):
         market = None
         method = None
         if symbol is None:
-            defaultCode = self.safe_value(self.options, 'code', 'BTC')
-            options = self.safe_value(self.options, 'fetchMyTrades', {})
-            code = self.safe_value(options, 'code', defaultCode)
+            code = self.code_from_options('fetchMyTrades')
             currency = self.currency(code)
             request['currency'] = currency['id']
             if since is None:
