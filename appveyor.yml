@@ -1,15 +1,11 @@
 environment:
   matrix:
     - nodejs_version: '9'
-      PYTHON: "3.7"
-stack: python %PYTHON%
 install:
   - ps: Install-Product node $env:nodejs_version
   - set CI=true
   - npm install --global npm@latest
   - set PATH=%APPDATA%\npm;%PATH%
-  - set PATH=%PATH%;"C:\\Python38-x64";"C\\Python38-x64\\Scripts"
-  # - set PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%
   - echo %PATH%
   - npm install
   - python --version
@@ -39,10 +35,8 @@ test_script:
   - node --version
   - npm --version
   - python --version
-  - C:\Python38-x64\python --version
-  - python3 --version
   - npm run build
-  - npm run test-base
+  # - npm run test-base
 cache:
   - '%APPDATA%\npm-cache'
   - '%LOCALAPPDATA%\pip\Cache'
