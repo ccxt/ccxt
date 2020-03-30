@@ -183,4 +183,4 @@ from ccxtpro.okex import okex                                             # noqa
 from ccxtpro.poloniex import poloniex                                     # noqa: F401
 from ccxtpro.upbit import upbit                                           # noqa: F401
 
-__all__ = ccxt.__all__ + [ 'exchanges' ]
+__all__ = ccxt.__all__ + ['exchanges']
