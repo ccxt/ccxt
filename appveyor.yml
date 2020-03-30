@@ -12,6 +12,7 @@ install:
   # - set PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%
   - echo %PATH%
   - npm install
+  - python --version
   - python -m pip install --upgrade pip setuptools
   - pip install tox
   - pip install requests
