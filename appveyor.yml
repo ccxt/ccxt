@@ -1,16 +1,14 @@
 environment:
   matrix:
     - nodejs_version: '9'
-      PYTHON: "C:\\Python37-x64"
-      PYTHON_VERSION: 3.7
-      PYTHON_ARCH: 64
-
+      PYTHON: "3.7"
+stack: python %PYTHON%
 install:
   - ps: Install-Product node $env:nodejs_version
   - set CI=true
   - npm install --global npm@latest
   - set PATH=%APPDATA%\npm;%PATH%
-  - set PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%
+  # - set PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%
   - echo %PATH%
   - npm install
   - python -m pip install --upgrade pip setuptools
