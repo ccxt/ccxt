@@ -45,7 +45,7 @@ Certified Cryptocurrency Exchanges
 +-----------------------------------------------------------------------------+-----------+-----------------------------------------------------------------------------+-----+---------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 | `bittrex <https://bittrex.com/Account/Register?referralCode=1ZE-G0G-M3B>`__ | bittrex   | `Bittrex <https://bittrex.com/Account/Register?referralCode=1ZE-G0G-M3B>`__ | 1.1 | `API <https://bittrex.github.io/api/>`__                                              | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | `CCXT Pro <https://ccxt.pro>`__ |
 +-----------------------------------------------------------------------------+-----------+-----------------------------------------------------------------------------+-----+---------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `bytetrade <https://www.bytetrade.com>`__                                   | bytetrade | `ByteTrade <https://www.bytetrade.com>`__                                   | \*  | `API <https://github.com/Bytetrade/bytetrade-official-api-docs/wiki>`__               | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ |                                 |
+| `bytetrade <https://www.byte-trade.com>`__                                  | bytetrade | `ByteTrade <https://www.byte-trade.com>`__                                  | \*  | `API <https://github.com/Bytetrade/bytetrade-official-api-docs/wiki>`__               | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ |                                 |
 +-----------------------------------------------------------------------------+-----------+-----------------------------------------------------------------------------+-----+---------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 | `ftx <https://ftx.com/#a=1623029>`__                                        | ftx       | `FTX <https://ftx.com/#a=1623029>`__                                        | \*  | `API <https://github.com/ftexchange/ftx>`__                                           | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ |                                 |
 +-----------------------------------------------------------------------------+-----------+-----------------------------------------------------------------------------+-----+---------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
@@ -148,7 +148,7 @@ The CCXT library currently supports the following 121 cryptocurrency exchange ma
 +--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 | bybit              | `Bybit <https://www.bybit.com/app/register?ref=X7Prm>`__                                | 2   | `API <https://bybit-exchange.github.io/docs/inverse/>`__                                        |                                                                      |                                 |
 +--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| bytetrade          | `ByteTrade <https://www.bytetrade.com>`__                                               | \*  | `API <https://github.com/Bytetrade/bytetrade-official-api-docs/wiki>`__                         | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ |                                 |
+| bytetrade          | `ByteTrade <https://www.byte-trade.com>`__                                              | \*  | `API <https://github.com/Bytetrade/bytetrade-official-api-docs/wiki>`__                         | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ |                                 |
 +--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 | cex                | `CEX.IO <https://cex.io/r/0/up105393824/0/>`__                                          | \*  | `API <https://cex.io/cex-api>`__                                                                |                                                                      |                                 |
 +--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
@@ -358,14 +358,14 @@ JavaScript (for use with the ``<script>`` tag):
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
--  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.25.37/dist/ccxt.browser.js
--  unpkg: https://unpkg.com/ccxt@1.25.37/dist/ccxt.browser.js
+-  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.25.38/dist/ccxt.browser.js
+-  unpkg: https://unpkg.com/ccxt@1.25.38/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code:: html
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.25.37/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.25.38/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 
