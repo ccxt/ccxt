@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function
-
-# -----------------------------------------------------------------------------
-
 """Base exchange class"""
 
 # -----------------------------------------------------------------------------
@@ -517,10 +513,7 @@ class Exchange(object):
         return headers
 
     def print(self, *args):
-        if callable(print_function):
-            print_function(*args)
-        else:
-            print(*args)
+        print(*args)
 
     def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
