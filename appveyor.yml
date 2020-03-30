@@ -36,6 +36,7 @@ test_script:
   - node --version
   - npm --version
   - python --version
+  - python3 --version
   - npm run build
   - npm run test-base
 cache:
