@@ -707,6 +707,7 @@ module.exports = class bittrex extends Exchange {
                 request['limit'] = this.priceToPrecision (symbol, price);
                 request['timeInForce'] = 'GOOD_TIL_CANCELLED';
             } else {
+                // bittrex does not allow GOOD_TIL_CANCELLED for ceiling limit order
                 request['timeInForce'] = 'IMMEDIATE_OR_CANCEL';
             }
         }
