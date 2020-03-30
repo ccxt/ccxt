@@ -517,7 +517,10 @@ class Exchange(object):
         return headers
 
     def print(self, *args):
-        print_function(*args)
+        if callable(print_function):
+            print_function(*args)
+        else:
+            print(*args)
 
     def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
