@@ -24,7 +24,7 @@ class aofex(Exchange):
         return self.deep_extend(super(aofex, self).describe(), {
             'id': 'aofex',
             'name': 'AOFEX',
-            'countries': ['GB', 'CN'],
+            'countries': ['GB'],
             'rateLimit': 1000,
             'has': {
                 'fetchMarkets': True,

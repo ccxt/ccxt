@@ -17,7 +17,7 @@ class aofex extends Exchange {
         return array_replace_recursive(parent::describe (), array(
             'id' => 'aofex',
             'name' => 'AOFEX',
-            'countries' => array( 'GB', 'CN' ),
+            'countries' => array( 'GB' ),
             'rateLimit' => 1000,
             'has' => array(
                 'fetchMarkets' => true,
