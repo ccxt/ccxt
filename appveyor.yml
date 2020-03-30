@@ -1,14 +1,13 @@
 environment:
   matrix:
     - nodejs_version: '9'
-    - PYTHON: "C:\\Python37"
 
 install:
   - ps: Install-Product node $env:nodejs_version
   - set CI=true
   - npm install --global npm@latest
   - set PATH=%APPDATA%\npm;%PATH%
-  - set PATH=%PYTHON%;%PATH%
+  - set PATH=C:\\Python37;%PATH%
   - npm install
   - python -m pip install --upgrade pip setuptools
   - pip install enum34==0.9
