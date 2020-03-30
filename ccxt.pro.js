@@ -28,6 +28,7 @@ const exchanges = {
     'coinbaseprime':           require ('./js/coinbaseprime.js'),
     'coinbasepro':             require ('./js/coinbasepro.js'),
     'gateio':                  require ('./js/gateio.js'),
+    'hitbtc2':                  require ('./js/hitbtc2.js'),
     'huobipro':                require ('./js/huobipro.js'),
     'huobiru':                 require ('./js/huobiru.js'),
     'kraken':                  require ('./js/kraken.js'),
@@ -35,7 +36,7 @@ const exchanges = {
     'okcoin':                  require ('./js/okcoin.js'),
     'okex':                    require ('./js/okex.js'),
     'poloniex':                require ('./js/poloniex.js'),
-    'upbit':                   require ('./js/upbit.js'),    
+    'upbit':                   require ('./js/upbit.js'),
 }
 
 // ----------------------------------------------------------------------------
