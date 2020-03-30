@@ -25,6 +25,8 @@ from ccxt import SIGNIFICANT_DIGITS    # noqa: F401
 from ccxt import NO_PADDING            # noqa: F401
 from ccxt import PAD_WITH_ZERO         # noqa: F401
 
+from ccxt import exchanges
+
 from ccxt.base import errors                        # noqa: F401
 from ccxt import BaseError                          # noqa: F401
 from ccxt import ExchangeError                      # noqa: F401
@@ -181,4 +183,4 @@ from ccxtpro.okex import okex                                             # noqa
 from ccxtpro.poloniex import poloniex                                     # noqa: F401
 from ccxtpro.upbit import upbit                                           # noqa: F401
 
-__all__ = ccxt.__all__
+__all__ = ccxt.__all__ + [ 'exchanges' ]
