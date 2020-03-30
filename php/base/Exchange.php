@@ -1466,7 +1466,7 @@ class Exchange {
         } else {
             $base_currencies = array_map(function ($market) {
                 return array(
-                    'id' => isset(market['baseId']) ? $market['baseId'] : $market['base'],
+                    'id' => isset($market['baseId']) ? $market['baseId'] : $market['base'],
                     'numericId' => array_key_exists('baseNumericId', $market) ? $market['baseNumericId'] : null,
                     'code' => $market['base'],
                     'precision' => array_key_exists('precision', $market) ? (
