@@ -2474,7 +2474,7 @@ class okex(Exchange):
 
     def parse_my_trade(self, pair, market=None):
         if not isinstance(pair, list):
-            raise NotSupported(self.id + ' parseMyTrade() received unrecognized response format, the exchange API might have changed, paste your verbose outpu: https://github.com/ccxt/ccxt/wiki/FAQ#what-is-required-to-get-help')
+            raise NotSupported(self.id + ' parseMyTrade() received unrecognized response format, the exchange API might have changed, paste your verbose output: https://github.com/ccxt/ccxt/wiki/FAQ#what-is-required-to-get-help')
         # make sure it has exactly 2 trades, no more, no less
         numTradesInPair = len(pair)
         if numTradesInPair != 2:
