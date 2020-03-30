@@ -1,12 +1,12 @@
 'use strict';
 
-//  ---------------------------------------------------------------------------
+//    ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
 const { BadSymbol, ExchangeNotAvailable, ArgumentsRequired, PermissionDenied, AuthenticationError, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder, InvalidAddress, NotSupported } = require ('./base/errors');
 const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 
-//  ---------------------------------------------------------------------------
+//    ---------------------------------------------------------------------------
 
 module.exports = class kraken extends Exchange {
     describe () {
@@ -17,6 +17,7 @@ module.exports = class kraken extends Exchange {
             'version': '0',
             'rateLimit': 3000,
             'certified': true,
+            'pro': true,
             'has': {
                 'createDepositAddress': true,
                 'fetchDepositAddress': true,
@@ -49,7 +50,7 @@ module.exports = class kraken extends Exchange {
                 '2w': 21600,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766599-22709304-5ede-11e7-9de1-9f33732e1509.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/76173629-fc67fb00-61b1-11ea-84fe-f2de582f58a3.jpg',
                 'api': {
                     'public': 'https://api.kraken.com',
                     'private': 'https://api.kraken.com',
@@ -205,6 +206,7 @@ module.exports = class kraken extends Exchange {
                 'delistedMarketsById': {},
                 // cannot withdraw/deposit these
                 'inactiveCurrencies': [ 'CAD', 'USD', 'JPY', 'GBP' ],
+                'fetchMinOrderAmounts': false,
             },
             'exceptions': {
                 'EQuery:Invalid asset pair': BadSymbol, // {"error":["EQuery:Invalid asset pair"]}
@@ -260,7 +262,11 @@ module.exports = class kraken extends Exchange {
 
     async fetchMarkets (params = {}) {
         const response = await this.publicGetAssetPairs (params);
-        const limits = await this.fetchMinOrderAmounts ();
+        const fetchMinOrderAmounts = this.safeValue (this.options, 'fetchMinOrderAmounts', false);
+        let limits = {};
+        if (fetchMinOrderAmounts) {
+            limits = await this.fetchMinOrderAmounts ();
+        }
         const keys = Object.keys (response['result']);
         let result = [];
         for (let i = 0; i < keys.length; i++) {
@@ -356,14 +362,14 @@ module.exports = class kraken extends Exchange {
     async fetchCurrencies (params = {}) {
         const response = await this.publicGetAssets (params);
         //
-        //     {
-        //         "error": [],
-        //         "result": {
-        //             "ADA": { "aclass": "currency", "altname": "ADA", "decimals": 8, "display_decimals": 6 },
-        //             "BCH": { "aclass": "currency", "altname": "BCH", "decimals": 10, "display_decimals": 5 },
-        //             ...
-        //         },
-        //     }
+        //         {
+        //                 "error": [],
+        //                 "result": {
+        //                         "ADA": { "aclass": "currency", "altname": "ADA", "decimals": 8, "display_decimals": 6 },
+        //                         "BCH": { "aclass": "currency", "altname": "BCH", "decimals": 10, "display_decimals": 5 },
+        //                         ...
+        //                 },
+        //         }
         //
         const currencies = this.safeValue (response, 'result');
         const ids = Object.keys (currencies);
@@ -573,19 +579,19 @@ module.exports = class kraken extends Exchange {
 
     parseLedgerEntry (item, currency = undefined) {
         //
-        //     {
-        //         'LTFK7F-N2CUX-PNY4SX': {
-        //             refid: "TSJTGT-DT7WN-GPPQMJ",
-        //             time:  1520102320.555,
-        //             type: "trade",
-        //             aclass: "currency",
-        //             asset: "XETH",
-        //             amount: "0.1087194600",
-        //             fee: "0.0000000000",
-        //             balance: "0.2855851000"
-        //         },
-        //         ...
-        //     }
+        //         {
+        //                 'LTFK7F-N2CUX-PNY4SX': {
+        //                         refid: "TSJTGT-DT7WN-GPPQMJ",
+        //                         time:    1520102320.555,
+        //                         type: "trade",
+        //                         aclass: "currency",
+        //                         asset: "XETH",
+        //                         amount: "0.1087194600",
+        //                         fee: "0.0000000000",
+        //                         balance: "0.2855851000"
+        //                 },
+        //                 ...
+        //         }
         //
         const id = this.safeString (item, 'id');
         let direction = undefined;
@@ -645,15 +651,15 @@ module.exports = class kraken extends Exchange {
             request['start'] = parseInt (since / 1000);
         }
         const response = await this.privatePostLedgers (this.extend (request, params));
-        // {  error: [],
-        //   result: { ledger: { 'LPUAIB-TS774-UKHP7X': {   refid: "A2B4HBV-L4MDIE-JU4N3N",
-        //                                                   time:  1520103488.314,
-        //                                                   type: "withdrawal",
-        //                                                 aclass: "currency",
-        //                                                  asset: "XETH",
-        //                                                 amount: "-0.2805800000",
-        //                                                    fee: "0.0050000000",
-        //                                                balance: "0.0000051000"           },
+        // {    error: [],
+        //     result: { ledger: { 'LPUAIB-TS774-UKHP7X': {     refid: "A2B4HBV-L4MDIE-JU4N3N",
+        //                                                                                                     time:    1520103488.314,
+        //                                                                                                     type: "withdrawal",
+        //                                                                                                 aclass: "currency",
+        //                                                                                                    asset: "XETH",
+        //                                                                                                 amount: "-0.2805800000",
+        //                                                                                                        fee: "0.0050000000",
+        //                                                                                                balance: "0.0000051000"                     },
         const result = this.safeValue (response, 'result', {});
         const ledger = this.safeValue (result, 'ledger', {});
         const keys = Object.keys (ledger);
@@ -675,15 +681,15 @@ module.exports = class kraken extends Exchange {
             'id': ids,
         }, params);
         const response = await this.privatePostQueryLedgers (request);
-        // {  error: [],
-        //   result: { 'LPUAIB-TS774-UKHP7X': {   refid: "A2B4HBV-L4MDIE-JU4N3N",
-        //                                         time:  1520103488.314,
-        //                                         type: "withdrawal",
-        //                                       aclass: "currency",
-        //                                        asset: "XETH",
-        //                                       amount: "-0.2805800000",
-        //                                          fee: "0.0050000000",
-        //                                      balance: "0.0000051000"           } } }
+        // {    error: [],
+        //     result: { 'LPUAIB-TS774-UKHP7X': {     refid: "A2B4HBV-L4MDIE-JU4N3N",
+        //                                                                                 time:    1520103488.314,
+        //                                                                                 type: "withdrawal",
+        //                                                                             aclass: "currency",
+        //                                                                                asset: "XETH",
+        //                                                                             amount: "-0.2805800000",
+        //                                                                                    fee: "0.0050000000",
+        //                                                                            balance: "0.0000051000"                     } } }
         const result = response['result'];
         const keys = Object.keys (result);
         const items = [];
@@ -723,14 +729,14 @@ module.exports = class kraken extends Exchange {
             symbol = market['symbol'];
         }
         if (Array.isArray (trade)) {
-            timestamp = parseInt (trade[2] * 1000);
+            timestamp = this.safeTimestamp (trade, 2);
             side = (trade[3] === 's') ? 'sell' : 'buy';
             type = (trade[4] === 'l') ? 'limit' : 'market';
-            price = parseFloat (trade[0]);
-            amount = parseFloat (trade[1]);
+            price = this.safeFloat (trade, 0);
+            amount = this.safeFloat (trade, 1);
             const tradeLength = trade.length;
             if (tradeLength > 6) {
-                id = trade[6]; // artificially added as per #1794
+                id = this.safeString (trade, 6); // artificially added as per #1794
             }
         } else if ('ordertxid' in trade) {
             order = trade['ordertxid'];
@@ -792,15 +798,15 @@ module.exports = class kraken extends Exchange {
         }
         const response = await this.publicGetTrades (this.extend (request, params));
         //
-        //     {
-        //         "error": [],
-        //         "result": {
-        //             "XETHXXBT": [
-        //                 ["0.032310","4.28169434",1541390792.763,"s","l",""]
-        //             ],
-        //             "last": "1541439421200678657"
+        //         {
+        //                 "error": [],
+        //                 "result": {
+        //                         "XETHXXBT": [
+        //                                 ["0.032310","4.28169434",1541390792.763,"s","l",""]
+        //                         ],
+        //                         "last": "1541439421200678657"
+        //                 }
         //         }
-        //     }
         //
         const result = response['result'];
         const trades = result[id];
@@ -854,8 +860,10 @@ module.exports = class kraken extends Exchange {
                 id = (length > 1) ? id : id[0];
             }
         }
+        const clientOrderId = this.safeString (params, 'userref');
         return {
             'id': id,
+            'clientOrderId': clientOrderId,
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
@@ -977,8 +985,10 @@ module.exports = class kraken extends Exchange {
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const id = this.safeString (order, 'id');
+        const clientOrderId = this.safeString (order, 'userref');
         return {
             'id': id,
+            'clientOrderId': clientOrderId,
             'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -995,6 +1005,7 @@ module.exports = class kraken extends Exchange {
             'remaining': remaining,
             'fee': fee,
             // 'trades': this.parseTrades (order['trades'], market),
+            'trades': undefined,
         };
     }
 
@@ -1057,29 +1068,29 @@ module.exports = class kraken extends Exchange {
         }
         const response = await this.privatePostTradesHistory (this.extend (request, params));
         //
-        //     {
-        //         "error": [],
-        //         "result": {
-        //             "trades": {
-        //                 "GJ3NYQ-XJRTF-THZABF": {
-        //                     "ordertxid": "TKH2SE-ZIF5E-CFI7LT",
-        //                     "postxid": "OEN3VX-M7IF5-JNBJAM",
-        //                     "pair": "XICNXETH",
-        //                     "time": 1527213229.4491,
-        //                     "type": "sell",
-        //                     "ordertype": "limit",
-        //                     "price": "0.001612",
-        //                     "cost": "0.025792",
-        //                     "fee": "0.000026",
-        //                     "vol": "16.00000000",
-        //                     "margin": "0.000000",
-        //                     "misc": ""
+        //         {
+        //                 "error": [],
+        //                 "result": {
+        //                         "trades": {
+        //                                 "GJ3NYQ-XJRTF-THZABF": {
+        //                                         "ordertxid": "TKH2SE-ZIF5E-CFI7LT",
+        //                                         "postxid": "OEN3VX-M7IF5-JNBJAM",
+        //                                         "pair": "XICNXETH",
+        //                                         "time": 1527213229.4491,
+        //                                         "type": "sell",
+        //                                         "ordertype": "limit",
+        //                                         "price": "0.001612",
+        //                                         "cost": "0.025792",
+        //                                         "fee": "0.000026",
+        //                                         "vol": "16.00000000",
+        //                                         "margin": "0.000000",
+        //                                         "misc": ""
+        //                                 },
+        //                                 ...
+        //                         },
+        //                         "count": 9760,
         //                 },
-        //                 ...
-        //             },
-        //             "count": 9760,
-        //         },
-        //     }
+        //         }
         //
         const trades = response['result']['trades'];
         const ids = Object.keys (trades);
@@ -1166,29 +1177,29 @@ module.exports = class kraken extends Exchange {
         //
         // fetchDeposits
         //
-        //     { method: "Ether (Hex)",
-        //       aclass: "currency",
-        //        asset: "XETH",
-        //        refid: "Q2CANKL-LBFVEE-U4Y2WQ",
-        //         txid: "0x57fd704dab1a73c20e24c8696099b695d596924b401b261513cfdab23…",
-        //         info: "0x615f9ba7a9575b0ab4d571b2b36b1b324bd83290",
-        //       amount: "7.9999257900",
-        //          fee: "0.0000000000",
-        //         time:  1529223212,
-        //       status: "Success"                                                       }
+        //         { method: "Ether (Hex)",
+        //             aclass: "currency",
+        //                asset: "XETH",
+        //                refid: "Q2CANKL-LBFVEE-U4Y2WQ",
+        //                 txid: "0x57fd704dab1a73c20e24c8696099b695d596924b401b261513cfdab23…",
+        //                 info: "0x615f9ba7a9575b0ab4d571b2b36b1b324bd83290",
+        //             amount: "7.9999257900",
+        //                    fee: "0.0000000000",
+        //                 time:    1529223212,
+        //             status: "Success"                                                                                                             }
         //
         // fetchWithdrawals
         //
-        //     { method: "Ether",
-        //       aclass: "currency",
-        //        asset: "XETH",
-        //        refid: "A2BF34S-O7LBNQ-UE4Y4O",
-        //         txid: "0x288b83c6b0904d8400ef44e1c9e2187b5c8f7ea3d838222d53f701a15b5c274d",
-        //         info: "0x7cb275a5e07ba943fee972e165d80daa67cb2dd0",
-        //       amount: "9.9950000000",
-        //          fee: "0.0050000000",
-        //         time:  1530481750,
-        //       status: "Success"                                                             }
+        //         { method: "Ether",
+        //             aclass: "currency",
+        //                asset: "XETH",
+        //                refid: "A2BF34S-O7LBNQ-UE4Y4O",
+        //                 txid: "0x288b83c6b0904d8400ef44e1c9e2187b5c8f7ea3d838222d53f701a15b5c274d",
+        //                 info: "0x7cb275a5e07ba943fee972e165d80daa67cb2dd0",
+        //             amount: "9.9950000000",
+        //                    fee: "0.0050000000",
+        //                 time:    1530481750,
+        //             status: "Success"                                                                                                                         }
         //
         const id = this.safeString (transaction, 'refid');
         const txid = this.safeString (transaction, 'txid');
@@ -1248,17 +1259,17 @@ module.exports = class kraken extends Exchange {
         };
         const response = await this.privatePostDepositStatus (this.extend (request, params));
         //
-        //     {  error: [],
-        //       result: [ { method: "Ether (Hex)",
-        //                   aclass: "currency",
-        //                    asset: "XETH",
-        //                    refid: "Q2CANKL-LBFVEE-U4Y2WQ",
-        //                     txid: "0x57fd704dab1a73c20e24c8696099b695d596924b401b261513cfdab23…",
-        //                     info: "0x615f9ba7a9575b0ab4d571b2b36b1b324bd83290",
-        //                   amount: "7.9999257900",
-        //                      fee: "0.0000000000",
-        //                     time:  1529223212,
-        //                   status: "Success"                                                       } ] }
+        //         {    error: [],
+        //             result: [ { method: "Ether (Hex)",
+        //                                     aclass: "currency",
+        //                                        asset: "XETH",
+        //                                        refid: "Q2CANKL-LBFVEE-U4Y2WQ",
+        //                                         txid: "0x57fd704dab1a73c20e24c8696099b695d596924b401b261513cfdab23…",
+        //                                         info: "0x615f9ba7a9575b0ab4d571b2b36b1b324bd83290",
+        //                                     amount: "7.9999257900",
+        //                                            fee: "0.0000000000",
+        //                                         time:    1529223212,
+        //                                     status: "Success"                                                                                                             } ] }
         //
         return this.parseTransactionsByType ('deposit', response['result'], code, since, limit);
     }
@@ -1275,17 +1286,17 @@ module.exports = class kraken extends Exchange {
         };
         const response = await this.privatePostWithdrawStatus (this.extend (request, params));
         //
-        //     {  error: [],
-        //       result: [ { method: "Ether",
-        //                   aclass: "currency",
-        //                    asset: "XETH",
-        //                    refid: "A2BF34S-O7LBNQ-UE4Y4O",
-        //                     txid: "0x298c83c7b0904d8400ef43e1c9e2287b518f7ea3d838822d53f704a1565c274d",
-        //                     info: "0x7cb275a5e07ba943fee972e165d80daa67cb2dd0",
-        //                   amount: "9.9950000000",
-        //                      fee: "0.0050000000",
-        //                     time:  1530481750,
-        //                   status: "Success"                                                             } ] }
+        //         {    error: [],
+        //             result: [ { method: "Ether",
+        //                                     aclass: "currency",
+        //                                        asset: "XETH",
+        //                                        refid: "A2BF34S-O7LBNQ-UE4Y4O",
+        //                                         txid: "0x298c83c7b0904d8400ef43e1c9e2287b518f7ea3d838822d53f704a1565c274d",
+        //                                         info: "0x7cb275a5e07ba943fee972e165d80daa67cb2dd0",
+        //                                     amount: "9.9950000000",
+        //                                            fee: "0.0050000000",
+        //                                         time:    1530481750,
+        //                                     status: "Success"                                                                                                                         } ] }
         //
         return this.parseTransactionsByType ('withdrawal', response['result'], code, since, limit);
     }

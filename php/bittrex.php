@@ -1340,7 +1340,7 @@ class bittrex extends Exchange {
         } else if ($api === 'v3') {
             $url .= $path;
             $content = '';
-            $headers = array (
+            $headers = array(
                 'Content-Type' => 'application/json',
             );
             if ($method === 'GET') {

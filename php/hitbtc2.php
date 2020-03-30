@@ -583,7 +583,7 @@ class hitbtc2 extends hitbtc {
             if ($lot >= 1) {
                 $amount = 0;
             }
-            $precision = array (
+            $precision = array(
                 'price' => $this->precision_from_string($market['tickSize']),
                 'amount' => $amount,
             );

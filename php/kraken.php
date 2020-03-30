@@ -27,6 +27,7 @@ class kraken extends Exchange {
             'version' => '0',
             'rateLimit' => 3000,
             'certified' => true,
+            'pro' => true,
             'has' => array(
                 'createDepositAddress' => true,
                 'fetchDepositAddress' => true,
@@ -59,7 +60,7 @@ class kraken extends Exchange {
                 '2w' => 21600,
             ),
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/27766599-22709304-5ede-11e7-9de1-9f33732e1509.jpg',
+                'logo' => 'https://user-images.githubusercontent.com/51840849/76173629-fc67fb00-61b1-11ea-84fe-f2de582f58a3.jpg',
                 'api' => array(
                     'public' => 'https://api.kraken.com',
                     'private' => 'https://api.kraken.com',
@@ -215,6 +216,7 @@ class kraken extends Exchange {
                 'delistedMarketsById' => array(),
                 // cannot withdraw/deposit these
                 'inactiveCurrencies' => array( 'CAD', 'USD', 'JPY', 'GBP' ),
+                'fetchMinOrderAmounts' => false,
             ),
             'exceptions' => array(
                 'EQuery:Invalid asset pair' => '\\ccxt\\BadSymbol', // array("error":["EQuery:Invalid asset pair"])
@@ -270,7 +272,11 @@ class kraken extends Exchange {
 
     public function fetch_markets ($params = array ()) {
         $response = $this->publicGetAssetPairs ($params);
-        $limits = $this->fetch_min_order_amounts ();
+        $fetchMinOrderAmounts = $this->safe_value($this->options, 'fetchMinOrderAmounts', false);
+        $limits = array();
+        if ($fetchMinOrderAmounts) {
+            $limits = $this->fetch_min_order_amounts ();
+        }
         $keys = is_array($response['result']) ? array_keys($response['result']) : array();
         $result = array();
         for ($i = 0; $i < count($keys); $i++) {
@@ -366,14 +372,14 @@ class kraken extends Exchange {
     public function fetch_currencies ($params = array ()) {
         $response = $this->publicGetAssets ($params);
         //
-        //     {
-        //         "error" => array(),
-        //         "$result" => array(
-        //             "ADA" => array( "aclass" => "$currency", "altname" => "ADA", "decimals" => 8, "display_decimals" => 6 ),
-        //             "BCH" => array( "aclass" => "$currency", "altname" => "BCH", "decimals" => 10, "display_decimals" => 5 ),
-        //             ...
-        //         ),
-        //     }
+        //         {
+        //                 "error" => array(),
+        //                 "$result" => array(
+        //                         "ADA" => array( "aclass" => "$currency", "altname" => "ADA", "decimals" => 8, "display_decimals" => 6 ),
+        //                         "BCH" => array( "aclass" => "$currency", "altname" => "BCH", "decimals" => 10, "display_decimals" => 5 ),
+        //                         ...
+        //                 ),
+        //         }
         //
         $currencies = $this->safe_value($response, 'result');
         $ids = is_array($currencies) ? array_keys($currencies) : array();
@@ -583,19 +589,19 @@ class kraken extends Exchange {
 
     public function parse_ledger_entry ($item, $currency = null) {
         //
-        //     {
-        //         'LTFK7F-N2CUX-PNY4SX' => array(
-        //             refid => "TSJTGT-DT7WN-GPPQMJ",
-        //             $time =>  1520102320.555,
-        //             $type => "trade",
-        //             aclass => "$currency",
-        //             asset => "XETH",
-        //             $amount => "0.1087194600",
-        //             $fee => "0.0000000000",
-        //             balance => "0.2855851000"
-        //         ),
-        //         ...
-        //     }
+        //         {
+        //                 'LTFK7F-N2CUX-PNY4SX' => array(
+        //                         refid => "TSJTGT-DT7WN-GPPQMJ",
+        //                         $time =>    1520102320.555,
+        //                         $type => "trade",
+        //                         aclass => "$currency",
+        //                         asset => "XETH",
+        //                         $amount => "0.1087194600",
+        //                         $fee => "0.0000000000",
+        //                         balance => "0.2855851000"
+        //                 ),
+        //                 ...
+        //         }
         //
         $id = $this->safe_string($item, 'id');
         $direction = null;
@@ -655,15 +661,15 @@ class kraken extends Exchange {
             $request['start'] = intval ($since / 1000);
         }
         $response = $this->privatePostLedgers (array_merge($request, $params));
-        // {  error => array(),
-        //   $result => { $ledger => { 'LPUAIB-TS774-UKHP7X' => array(   refid => "A2B4HBV-L4MDIE-JU4N3N",
-        //                                                   time =>  1520103488.314,
-        //                                                   type => "withdrawal",
-        //                                                 aclass => "$currency",
-        //                                                  asset => "XETH",
-        //                                                 amount => "-0.2805800000",
-        //                                                    fee => "0.0050000000",
-        //                                                balance => "0.0000051000"           ),
+        // {    error => array(),
+        //     $result => { $ledger => { 'LPUAIB-TS774-UKHP7X' => array(     refid => "A2B4HBV-L4MDIE-JU4N3N",
+        //                                                                                                     time =>    1520103488.314,
+        //                                                                                                     type => "withdrawal",
+        //                                                                                                 aclass => "$currency",
+        //                                                                                                    asset => "XETH",
+        //                                                                                                 amount => "-0.2805800000",
+        //                                                                                                        fee => "0.0050000000",
+        //                                                                                                balance => "0.0000051000"                     ),
         $result = $this->safe_value($response, 'result', array());
         $ledger = $this->safe_value($result, 'ledger', array());
         $keys = is_array($ledger) ? array_keys($ledger) : array();
@@ -685,15 +691,15 @@ class kraken extends Exchange {
             'id' => $ids,
         ), $params);
         $response = $this->privatePostQueryLedgers ($request);
-        // {  error => array(),
-        //   $result => { 'LPUAIB-TS774-UKHP7X' => {   refid => "A2B4HBV-L4MDIE-JU4N3N",
-        //                                         time =>  1520103488.314,
-        //                                         type => "withdrawal",
-        //                                       aclass => "currency",
-        //                                        asset => "XETH",
-        //                                       amount => "-0.2805800000",
-        //                                          fee => "0.0050000000",
-        //                                      balance => "0.0000051000"           } } }
+        // {    error => array(),
+        //     $result => { 'LPUAIB-TS774-UKHP7X' => {     refid => "A2B4HBV-L4MDIE-JU4N3N",
+        //                                                                                 time =>    1520103488.314,
+        //                                                                                 type => "withdrawal",
+        //                                                                             aclass => "currency",
+        //                                                                                asset => "XETH",
+        //                                                                             amount => "-0.2805800000",
+        //                                                                                    fee => "0.0050000000",
+        //                                                                            balance => "0.0000051000"                     } } }
         $result = $response['result'];
         $keys = is_array($result) ? array_keys($result) : array();
         $items = array();
@@ -733,14 +739,14 @@ class kraken extends Exchange {
             $symbol = $market['symbol'];
         }
         if (gettype($trade) === 'array' && count(array_filter(array_keys($trade), 'is_string')) == 0) {
-            $timestamp = intval ($trade[2] * 1000);
+            $timestamp = $this->safe_timestamp($trade, 2);
             $side = ($trade[3] === 's') ? 'sell' : 'buy';
             $type = ($trade[4] === 'l') ? 'limit' : 'market';
-            $price = floatval ($trade[0]);
-            $amount = floatval ($trade[1]);
+            $price = $this->safe_float($trade, 0);
+            $amount = $this->safe_float($trade, 1);
             $tradeLength = is_array($trade) ? count($trade) : 0;
             if ($tradeLength > 6) {
-                $id = $trade[6]; // artificially added as per #1794
+                $id = $this->safe_string($trade, 6); // artificially added as per #1794
             }
         } else if (is_array($trade) && array_key_exists('ordertxid', $trade)) {
             $order = $trade['ordertxid'];
@@ -802,15 +808,15 @@ class kraken extends Exchange {
         }
         $response = $this->publicGetTrades (array_merge($request, $params));
         //
-        //     {
-        //         "error" => array(),
-        //         "$result" => {
-        //             "XETHXXBT" => [
-        //                 ["0.032310","4.28169434",1541390792.763,"s","l",""]
-        //             ],
-        //             "last" => "1541439421200678657"
+        //         {
+        //                 "error" => array(),
+        //                 "$result" => {
+        //                         "XETHXXBT" => [
+        //                                 ["0.032310","4.28169434",1541390792.763,"s","l",""]
+        //                         ],
+        //                         "last" => "1541439421200678657"
+        //                 }
         //         }
-        //     }
         //
         $result = $response['result'];
         $trades = $result[$id];
@@ -864,8 +870,10 @@ class kraken extends Exchange {
                 $id = ($length > 1) ? $id : $id[0];
             }
         }
+        $clientOrderId = $this->safe_string($params, 'userref');
         return array(
             'id' => $id,
+            'clientOrderId' => $clientOrderId,
             'info' => $response,
             'timestamp' => null,
             'datetime' => null,
@@ -987,8 +995,10 @@ class kraken extends Exchange {
         }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $id = $this->safe_string($order, 'id');
+        $clientOrderId = $this->safe_string($order, 'userref');
         return array(
             'id' => $id,
+            'clientOrderId' => $clientOrderId,
             'info' => $order,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -1005,6 +1015,7 @@ class kraken extends Exchange {
             'remaining' => $remaining,
             'fee' => $fee,
             // 'trades' => $this->parse_trades($order['trades'], $market),
+            'trades' => null,
         );
     }
 
@@ -1067,29 +1078,29 @@ class kraken extends Exchange {
         }
         $response = $this->privatePostTradesHistory (array_merge($request, $params));
         //
-        //     {
-        //         "error" => array(),
-        //         "$result" => array(
-        //             "$trades" => array(
-        //                 "GJ3NYQ-XJRTF-THZABF" => array(
-        //                     "ordertxid" => "TKH2SE-ZIF5E-CFI7LT",
-        //                     "postxid" => "OEN3VX-M7IF5-JNBJAM",
-        //                     "pair" => "XICNXETH",
-        //                     "time" => 1527213229.4491,
-        //                     "type" => "sell",
-        //                     "ordertype" => "$limit",
-        //                     "price" => "0.001612",
-        //                     "cost" => "0.025792",
-        //                     "fee" => "0.000026",
-        //                     "vol" => "16.00000000",
-        //                     "margin" => "0.000000",
-        //                     "misc" => ""
+        //         {
+        //                 "error" => array(),
+        //                 "$result" => array(
+        //                         "$trades" => array(
+        //                                 "GJ3NYQ-XJRTF-THZABF" => array(
+        //                                         "ordertxid" => "TKH2SE-ZIF5E-CFI7LT",
+        //                                         "postxid" => "OEN3VX-M7IF5-JNBJAM",
+        //                                         "pair" => "XICNXETH",
+        //                                         "time" => 1527213229.4491,
+        //                                         "type" => "sell",
+        //                                         "ordertype" => "$limit",
+        //                                         "price" => "0.001612",
+        //                                         "cost" => "0.025792",
+        //                                         "fee" => "0.000026",
+        //                                         "vol" => "16.00000000",
+        //                                         "margin" => "0.000000",
+        //                                         "misc" => ""
+        //                                 ),
+        //                                 ...
+        //                         ),
+        //                         "count" => 9760,
         //                 ),
-        //                 ...
-        //             ),
-        //             "count" => 9760,
-        //         ),
-        //     }
+        //         }
         //
         $trades = $response['result']['trades'];
         $ids = is_array($trades) ? array_keys($trades) : array();
@@ -1176,29 +1187,29 @@ class kraken extends Exchange {
         //
         // fetchDeposits
         //
-        //     { method => "Ether (Hex)",
-        //       aclass => "$currency",
-        //        asset => "XETH",
-        //        refid => "Q2CANKL-LBFVEE-U4Y2WQ",
-        //         $txid => "0x57fd704dab1a73c20e24c8696099b695d596924b401b261513cfdab23…",
-        //         info => "0x615f9ba7a9575b0ab4d571b2b36b1b324bd83290",
-        //       $amount => "7.9999257900",
-        //          fee => "0.0000000000",
-        //         time =>  1529223212,
-        //       $status => "Success"                                                       }
+        //         { method => "Ether (Hex)",
+        //             aclass => "$currency",
+        //                asset => "XETH",
+        //                refid => "Q2CANKL-LBFVEE-U4Y2WQ",
+        //                 $txid => "0x57fd704dab1a73c20e24c8696099b695d596924b401b261513cfdab23…",
+        //                 info => "0x615f9ba7a9575b0ab4d571b2b36b1b324bd83290",
+        //             $amount => "7.9999257900",
+        //                    fee => "0.0000000000",
+        //                 time =>    1529223212,
+        //             $status => "Success"                                                                                                             }
         //
         // fetchWithdrawals
         //
-        //     { method => "Ether",
-        //       aclass => "$currency",
-        //        asset => "XETH",
-        //        refid => "A2BF34S-O7LBNQ-UE4Y4O",
-        //         $txid => "0x288b83c6b0904d8400ef44e1c9e2187b5c8f7ea3d838222d53f701a15b5c274d",
-        //         info => "0x7cb275a5e07ba943fee972e165d80daa67cb2dd0",
-        //       $amount => "9.9950000000",
-        //          fee => "0.0050000000",
-        //         time =>  1530481750,
-        //       $status => "Success"                                                             }
+        //         { method => "Ether",
+        //             aclass => "$currency",
+        //                asset => "XETH",
+        //                refid => "A2BF34S-O7LBNQ-UE4Y4O",
+        //                 $txid => "0x288b83c6b0904d8400ef44e1c9e2187b5c8f7ea3d838222d53f701a15b5c274d",
+        //                 info => "0x7cb275a5e07ba943fee972e165d80daa67cb2dd0",
+        //             $amount => "9.9950000000",
+        //                    fee => "0.0050000000",
+        //                 time =>    1530481750,
+        //             $status => "Success"                                                                                                                         }
         //
         $id = $this->safe_string($transaction, 'refid');
         $txid = $this->safe_string($transaction, 'txid');
@@ -1258,17 +1269,17 @@ class kraken extends Exchange {
         );
         $response = $this->privatePostDepositStatus (array_merge($request, $params));
         //
-        //     {  error => array(),
-        //       result => array( { method => "Ether (Hex)",
-        //                   aclass => "$currency",
-        //                    asset => "XETH",
-        //                    refid => "Q2CANKL-LBFVEE-U4Y2WQ",
-        //                     txid => "0x57fd704dab1a73c20e24c8696099b695d596924b401b261513cfdab23…",
-        //                     info => "0x615f9ba7a9575b0ab4d571b2b36b1b324bd83290",
-        //                   amount => "7.9999257900",
-        //                      fee => "0.0000000000",
-        //                     time =>  1529223212,
-        //                   status => "Success"                                                       } ) }
+        //         {    error => array(),
+        //             result => array( { method => "Ether (Hex)",
+        //                                     aclass => "$currency",
+        //                                        asset => "XETH",
+        //                                        refid => "Q2CANKL-LBFVEE-U4Y2WQ",
+        //                                         txid => "0x57fd704dab1a73c20e24c8696099b695d596924b401b261513cfdab23…",
+        //                                         info => "0x615f9ba7a9575b0ab4d571b2b36b1b324bd83290",
+        //                                     amount => "7.9999257900",
+        //                                            fee => "0.0000000000",
+        //                                         time =>    1529223212,
+        //                                     status => "Success"                                                                                                             } ) }
         //
         return $this->parse_transactions_by_type ('deposit', $response['result'], $code, $since, $limit);
     }
@@ -1285,17 +1296,17 @@ class kraken extends Exchange {
         );
         $response = $this->privatePostWithdrawStatus (array_merge($request, $params));
         //
-        //     {  error => array(),
-        //       result => array( { method => "Ether",
-        //                   aclass => "$currency",
-        //                    asset => "XETH",
-        //                    refid => "A2BF34S-O7LBNQ-UE4Y4O",
-        //                     txid => "0x298c83c7b0904d8400ef43e1c9e2287b518f7ea3d838822d53f704a1565c274d",
-        //                     info => "0x7cb275a5e07ba943fee972e165d80daa67cb2dd0",
-        //                   amount => "9.9950000000",
-        //                      fee => "0.0050000000",
-        //                     time =>  1530481750,
-        //                   status => "Success"                                                             } ) }
+        //         {    error => array(),
+        //             result => array( { method => "Ether",
+        //                                     aclass => "$currency",
+        //                                        asset => "XETH",
+        //                                        refid => "A2BF34S-O7LBNQ-UE4Y4O",
+        //                                         txid => "0x298c83c7b0904d8400ef43e1c9e2287b518f7ea3d838822d53f704a1565c274d",
+        //                                         info => "0x7cb275a5e07ba943fee972e165d80daa67cb2dd0",
+        //                                     amount => "9.9950000000",
+        //                                            fee => "0.0050000000",
+        //                                         time =>    1530481750,
+        //                                     status => "Success"                                                                                                                         } ) }
         //
         return $this->parse_transactions_by_type ('withdrawal', $response['result'], $code, $since, $limit);
     }
