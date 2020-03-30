@@ -11,12 +11,12 @@ module.exports = class hitbtc2 extends ccxt.hitbtc2 {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
-                'watchTicker': false,
-                'watchTickers': false, // for now
-                'watchTrades': false,
+                'watchTicker': false, // not implemented yet
+                'watchTickers': false, // not available on exchange side
+                'watchTrades': false, // not implemented yet
                 'watchOrderBook': true,
                 'watchBalance': false, // not implemented yet
-                'watchOHLCV': false, // missing on the exchange side
+                'watchOHLCV': false, // not implemented yet
             },
             'urls': {
                 'api': {
