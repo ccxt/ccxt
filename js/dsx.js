@@ -33,6 +33,7 @@ module.exports = class dsx extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
+                'fetchOpenOrders': true,
                 'fetchClosedOrders': 'emulated',
             },
             'urls': {
