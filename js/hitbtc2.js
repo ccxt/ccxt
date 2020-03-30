@@ -57,7 +57,7 @@ module.exports = class hitbtc2 extends ccxt.hitbtc2 {
         }
         this.orderbooks[symbol] = this.orderBook (this.parseOrderBook (messageData, timestamp, 'bid', 'ask', 'price', 'size'));
         const orderbook = this.orderbooks[symbol];
-        //Correction of iso8601
+        // Correction of iso8601
         orderbook['datetime'] = timestamp;
         orderbook['nonce'] = nonce;
         const messageHash = 'orderbook:' + marketId;
@@ -72,8 +72,8 @@ module.exports = class hitbtc2 extends ccxt.hitbtc2 {
         const timestamp = this.safeValue (messageData, 'timestamp');
         const nonce = this.safeValue (messageData, 'sequence');
         const orderbook = this.orderbooks[symbol];
-        this.updateOrders (orderbook['asks'],messageData['ask']);
-        this.updateOrders (orderbook['bids'],messageData['bid']);
+        this.updateOrders (orderbook['asks'], messageData['ask']);
+        this.updateOrders (orderbook['bids'], messageData['bid']);
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = timestamp;
         orderbook['nonce'] = nonce;
@@ -82,7 +82,7 @@ module.exports = class hitbtc2 extends ccxt.hitbtc2 {
         client.resolve (orderbook, messageHash);
     }
 
-    updateOrders (bookside,data) {
+    updateOrders (bookside, data) {
         for (let i = 0; i < data.length; i++) {
             const delta = data[i];
             const price = parseFloat (delta['price']);
@@ -97,7 +97,7 @@ module.exports = class hitbtc2 extends ccxt.hitbtc2 {
     }
 
     handleNotification (client, message) {
-        //TODO
+        // TODO
         return message;
     }
 
@@ -109,7 +109,7 @@ module.exports = class hitbtc2 extends ccxt.hitbtc2 {
         const event = this.safeString (message, 'method');
         const method = this.safeValue (methods, event);
         if (method === undefined) {
-            this.handleNotification (client,message);
+            this.handleNotification (client, message);
         } else {
             method.call (this, client, message);
         }
