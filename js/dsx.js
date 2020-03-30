@@ -673,7 +673,7 @@ module.exports = class dsx extends Exchange {
             headers = {
                 'Authorization': 'Basic ' + this.stringToBase64 (auth),
             };
-            if (method === 'POST') {
+            if (method === 'POST' || method === 'PUT') {
                 if (Object.keys (query).length) {
                     headers['Content-Type'] = 'application/json';
                     body = this.json (query);
