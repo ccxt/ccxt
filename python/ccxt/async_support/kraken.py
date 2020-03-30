@@ -231,7 +231,7 @@ class kraken(Exchange):
                 'delistedMarketsById': {},
                 # cannot withdraw/deposit these
                 'inactiveCurrencies': ['CAD', 'USD', 'JPY', 'GBP'],
-                'fetchMinOrderAmounts': False,
+                'fetchMinOrderAmounts': True,
             },
             'exceptions': {
                 'EQuery:Invalid asset pair': BadSymbol,  # {"error":["EQuery:Invalid asset pair"]}

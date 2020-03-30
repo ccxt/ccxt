@@ -216,7 +216,7 @@ class kraken extends Exchange {
                 'delistedMarketsById' => array(),
                 // cannot withdraw/deposit these
                 'inactiveCurrencies' => array( 'CAD', 'USD', 'JPY', 'GBP' ),
-                'fetchMinOrderAmounts' => false,
+                'fetchMinOrderAmounts' => true,
             ),
             'exceptions' => array(
                 'EQuery:Invalid asset pair' => '\\ccxt\\BadSymbol', // array("error":["EQuery:Invalid asset pair"])
