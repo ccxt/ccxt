@@ -11,6 +11,7 @@ install:
   - npm install --global npm@latest
   - set PATH=%APPDATA%\npm;%PATH%
   - set PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%
+  - echo %PATH%
   - npm install
   - python -m pip install --upgrade pip setuptools
   - pip install tox
