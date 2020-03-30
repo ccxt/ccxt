@@ -255,6 +255,7 @@ class bitmart(Exchange):
                 'precision': precision,
                 'limits': limits,
                 'info': market,
+                'active': None,
             })
         return result
 

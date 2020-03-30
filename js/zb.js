@@ -574,6 +574,7 @@ module.exports = class zb extends Exchange {
             'remaining': remaining,
             'status': status,
             'fee': undefined,
+            'trades': undefined,
         };
     }
 

@@ -7,7 +7,7 @@ namespace ccxt;
 
 use Exception; // a common import
 
-class okcoin extends okex3 {
+class okcoin extends okex {
 
     public function describe() {
         return array_replace_recursive(parent::describe (), array(

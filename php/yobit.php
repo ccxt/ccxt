@@ -545,9 +545,13 @@ class yobit extends Exchange {
             'filled' => $filled,
             'fee' => null,
             // 'trades' => $this->parse_trades($order['trades'], $market),
+            'info' => $response,
+            'clientOrderId' => null,
+            'average' => null,
+            'trades' => null,
         );
         $this->orders[$id] = $order;
-        return array_merge(array( 'info' => $response ), $order);
+        return $order;
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
@@ -624,6 +628,8 @@ class yobit extends Exchange {
             'filled' => $filled,
             'status' => $status,
             'fee' => $fee,
+            'average' => null,
+            'trades' => null,
         );
         return $result;
     }

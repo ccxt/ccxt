@@ -342,6 +342,9 @@ class kucoin(Exchange):
                 'code': code,
                 'precision': precision,
                 'info': entry,
+                'active': None,
+                'fee': None,
+                'limits': self.limits,
             }
         return result
 
@@ -877,6 +880,9 @@ class kucoin(Exchange):
             'fee': fee,
             'status': status,
             'info': order,
+            'lastTradeTimestamp': None,
+            'average': None,
+            'trades': None,
         }
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):

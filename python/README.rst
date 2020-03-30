@@ -74,6 +74,8 @@ The CCXT library currently supports the following 121 cryptocurrency exchange ma
 +--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 | anxpro             | `ANXPro <https://anxpro.com>`__                                                         | \*  | `API <https://anxv2.docs.apiary.io>`__                                                          |                                                                      |                                 |
 +--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
+| aofex              | `AOFEX <https://aofex.com/#/register?key=9763840>`__                                    | \*  | `API <https://aofex.zendesk.com/hc/en-us/sections/360005576574-API>`__                          |                                                                      |                                 |
++--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 | bcex               | `BCEX <https://www.bcex.top/register?invite_code=758978&lang=en>`__                     | 1   | `API <https://github.com/BCEX-TECHNOLOGY-LIMITED/API_Docs/wiki/Interface>`__                    |                                                                      |                                 |
 +--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 | bequant            | `Bequant <https://bequant.io>`__                                                        | 2   | `API <https://api.bequant.io/>`__                                                               |                                                                      |                                 |
@@ -105,8 +107,6 @@ The CCXT library currently supports the following 121 cryptocurrency exchange ma
 | bithumb            | `Bithumb <https://www.bithumb.com>`__                                                   | \*  | `API <https://apidocs.bithumb.com>`__                                                           |                                                                      |                                 |
 +--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 | bitkk              | `bitkk <https://www.bitkk.com>`__                                                       | 1   | `API <https://www.bitkk.com/i/developer>`__                                                     |                                                                      |                                 |
-+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| bitlish            | `Bitlish <https://bitlish.com>`__                                                       | 1   | `API <https://bitlish.com/api>`__                                                               |                                                                      |                                 |
 +--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 | bitmart            | `BitMart <http://www.bitmart.com/?r=rQCFLh>`__                                          | 2   | `API <https://github.com/bitmartexchange/bitmart-official-api-docs>`__                          |                                                                      |                                 |
 +--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
@@ -358,14 +358,14 @@ JavaScript (for use with the ``<script>`` tag):
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
--  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.25.28/dist/ccxt.browser.js
--  unpkg: https://unpkg.com/ccxt@1.25.28/dist/ccxt.browser.js
+-  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.25.37/dist/ccxt.browser.js
+-  unpkg: https://unpkg.com/ccxt@1.25.37/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code:: html
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.25.28/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.25.37/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 

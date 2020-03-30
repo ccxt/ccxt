@@ -667,6 +667,7 @@ module.exports = class latoken extends Exchange {
             'average': undefined,
             'remaining': remaining,
             'fee': undefined,
+            'trades': undefined,
         };
     }
 

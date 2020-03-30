@@ -56,7 +56,7 @@ class okex(Exchange):
                 'fetchWithdrawals': True,
                 'fetchTime': True,
                 'fetchTransactions': False,
-                'fetchMyTrades': False,  # they don't have it
+                'fetchMyTrades': True,
                 'fetchDepositAddress': True,
                 'fetchOrderTrades': True,
                 'fetchTickers': True,
@@ -795,7 +795,6 @@ class okex(Exchange):
                 marketType = 'swap'
                 spot = False
                 swap = True
-                baseId = self.safe_string(market, 'coin')
                 futuresAlias = self.safe_string(market, 'alias')
                 if futuresAlias is not None:
                     swap = False
@@ -1823,6 +1822,8 @@ class okex(Exchange):
             'cost': None,
             'trades': None,
             'fee': None,
+            'clientOrderId': None,
+            'average': None,
         }
 
     async def cancel_order(self, id, symbol=None, params={}):
@@ -2029,6 +2030,7 @@ class okex(Exchange):
             'remaining': remaining,
             'status': status,
             'fee': fee,
+            'trades': None,
         }
 
     async def fetch_order(self, id, symbol=None, params={}):
@@ -2470,23 +2472,153 @@ class okex(Exchange):
             },
         }
 
-    async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+    def parse_my_trade(self, pair, market=None):
+        if not isinstance(pair, list):
+            raise NotSupported(self.id + ' parseMyTrade() received unrecognized response format, the exchange API might have changed, paste your verbose outpu: https://github.com/ccxt/ccxt/wiki/FAQ#what-is-required-to-get-help')
+        # make sure it has exactly 2 trades, no more, no less
+        numTradesInPair = len(pair)
+        if numTradesInPair != 2:
+            raise NotSupported(self.id + ' parseMyTrade() received unrecognized response format, more than two trades in one fill, the exchange API might have changed, paste your verbose output: https://github.com/ccxt/ccxt/wiki/FAQ#what-is-required-to-get-help')
+        # check that trading symbols match in both entries
+        first = pair[0]
+        second = pair[1]
+        firstMarketId = self.safe_string(first, 'instrument_id')
+        secondMarketId = self.safe_string(second, 'instrument_id')
+        if firstMarketId != secondMarketId:
+            raise NotSupported(self.id + ' parseMyTrade() received unrecognized response format, differing instrument_ids in one fill, the exchange API might have changed, paste your verbose output: https://github.com/ccxt/ccxt/wiki/FAQ#what-is-required-to-get-help')
+        marketId = firstMarketId
+        # determine the base and quote
+        quoteId = None
+        symbol = None
+        if marketId in self.markets_by_id:
+            market = self.markets_by_id[marketId]
+            quoteId = market['quoteId']
+            symbol = market['symbol']
+        else:
+            parts = marketId.split('-')
+            quoteId = self.safe_string(parts, 1)
+            symbol = marketId
+        id = self.safe_string(first, 'trade_id')
+        price = self.safe_float(first, 'price')
+        # determine buy/sell side and amounts
+        # get the side from either the first trade or the second trade
+        feeCost = self.safe_float(first, 'fee')
+        index = 0 if (feeCost != 0) else 1
+        userTrade = self.safe_value(pair, index)
+        otherTrade = self.safe_value(pair, 1 - index)
+        receivedCurrencyId = self.safe_string(userTrade, 'currency')
+        side = None
+        amount = None
+        cost = None
+        if receivedCurrencyId == quoteId:
+            side = 'sell'
+            amount = self.safe_float(otherTrade, 'size')
+            cost = self.safe_float(userTrade, 'size')
+        else:
+            side = 'buy'
+            amount = self.safe_float(userTrade, 'size')
+            cost = self.safe_float(otherTrade, 'size')
+        feeCost = feeCost if (feeCost != 0) else self.safe_float(second, 'fee')
+        trade = self.safe_value(pair, index)
+        #
+        # simplified structures to show the underlying semantics
+        #
+        #     # market/limit sell
+        #
+        #     {
+        #         "currency":"USDT",
+        #         "fee":"-0.04647925",  # ←--- fee in received quote currency
+        #         "price":"129.13",  # ←------ price
+        #         "size":"30.98616393",  # ←-- cost
+        #     },
+        #     {
+        #         "currency":"ETH",
+        #         "fee":"0",
+        #         "price":"129.13",
+        #         "size":"0.23996099",  # ←--- amount
+        #     },
+        #
+        #     # market/limit buy
+        #
+        #     {
+        #         "currency":"ETH",
+        #         "fee":"-0.00036049",  # ←--- fee in received base currency
+        #         "price":"129.16",  # ←------ price
+        #         "size":"0.240322",  # ←----- amount
+        #     },
+        #     {
+        #         "currency":"USDT",
+        #         "fee":"0",
+        #         "price":"129.16",
+        #         "size":"31.03998952",  # ←-- cost
+        #     }
+        #
+        timestamp = self.parse8601(self.safe_string_2(trade, 'timestamp', 'created_at'))
+        takerOrMaker = self.safe_string_2(trade, 'exec_type', 'liquidity')
+        if takerOrMaker == 'M':
+            takerOrMaker = 'maker'
+        elif takerOrMaker == 'T':
+            takerOrMaker = 'taker'
+        fee = None
+        if feeCost is not None:
+            feeCurrencyId = self.safe_string(userTrade, 'currency')
+            feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
+            fee = {
+                # fee is either a positive number(invitation rebate)
+                # or a negative number(transaction fee deduction)
+                # therefore we need to invert the fee
+                # more about it https://github.com/ccxt/ccxt/issues/5909
+                'cost': -feeCost,
+                'currency': feeCurrencyCode,
+            }
+        orderId = self.safe_string(trade, 'order_id')
+        return {
+            'info': pair,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': symbol,
+            'id': id,
+            'order': orderId,
+            'type': None,
+            'takerOrMaker': takerOrMaker,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
+        }
+
+    def parse_my_trades(self, trades, market=None, since=None, limit=None, params={}):
+        grouped = self.group_by(trades, 'trade_id')
+        tradeIds = list(grouped.keys())
+        result = []
+        for i in range(0, len(tradeIds)):
+            tradeId = tradeIds[i]
+            pair = grouped[tradeId]
+            trade = self.parse_my_trade(pair)
+            result.append(trade)
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
+        return self.filter_by_symbol_since_limit(result, symbol, since, limit)
+
+    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         # okex actually returns ledger entries instead of fills here, so each fill in the order
         # is represented by two trades with opposite buy/sell sides, not one :\
         # self aspect renders the 'fills' endpoint unusable for fetchOrderTrades
         # until either OKEX fixes the API or we workaround self on our side somehow
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrderTrades requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        if (limit is None) or (limit > 100):
+        if (limit is not None) and (limit > 100):
             limit = 100
         request = {
             'instrument_id': market['id'],
-            'order_id': id,
-            # from: '1',  # return the page after the specified page number
-            # to: '1',  # return the page before the specified page number
-            'limit': limit,  # optional, number of results per request, default = maximum = 100
+            # 'order_id': id,  # string
+            # 'after': '1',  # return the page after the specified page number
+            # 'before': '1',  # return the page before the specified page number
+            # 'limit': limit,  # optional, number of results per request, default = maximum = 100
         }
         defaultType = self.safe_string_2(self.options, 'fetchMyTrades', 'defaultType')
         type = self.safe_string(params, 'type', defaultType)
@@ -2494,43 +2626,86 @@ class okex(Exchange):
         method = type + 'GetFills'
         response = await getattr(self, method)(self.extend(request, query))
         #
-        # spot trades, margin trades
-        #
         #     [
+        #         # sell
         #         {
-        #             "created_at":"2019-09-20T07:15:24.000Z",
+        #             "created_at":"2020-03-29T11:55:25.000Z",
+        #             "currency":"USDT",
+        #             "exec_type":"T",
+        #             "fee":"-0.04647925",
+        #             "instrument_id":"ETH-USDT",
+        #             "ledger_id":"10562924353",
+        #             "liquidity":"T",
+        #             "order_id":"4636470489136128",
+        #             "price":"129.13",
+        #             "product_id":"ETH-USDT",
+        #             "side":"buy",
+        #             "size":"30.98616393",
+        #             "timestamp":"2020-03-29T11:55:25.000Z",
+        #             "trade_id":"18551601"
+        #         },
+        #         {
+        #             "created_at":"2020-03-29T11:55:25.000Z",
+        #             "currency":"ETH",
         #             "exec_type":"T",
         #             "fee":"0",
         #             "instrument_id":"ETH-USDT",
-        #             "ledger_id":"7173486113",
+        #             "ledger_id":"10562924352",
         #             "liquidity":"T",
-        #             "order_id":"3553868136523776",
-        #             "price":"217.59",
+        #             "order_id":"4636470489136128",
+        #             "price":"129.13",
         #             "product_id":"ETH-USDT",
         #             "side":"sell",
-        #             "size":"0.04619899",
-        #             "timestamp":"2019-09-20T07:15:24.000Z"
-        #         }
-        #     ]
-        #
-        # futures trades, swap trades
-        #
-        #     [
+        #             "size":"0.23996099",
+        #             "timestamp":"2020-03-29T11:55:25.000Z",
+        #             "trade_id":"18551601"
+        #         },
+        #         # buy
         #         {
-        #             "trade_id":"197429674631450625",
-        #             "instrument_id":"EOS-USD-SWAP",
-        #             "order_id":"6a-7-54d663a28-0",
-        #             "price":"3.633",
-        #             "order_qty":"1.0000",
-        #             "fee":"-0.000551",
-        #             "created_at":"2019-03-21T04:41:58.0Z",  # missing in swap trades
-        #             "timestamp":"2019-03-25T05:56:31.287Z",  # missing in futures trades
-        #             "exec_type":"M",  # whether the order is taker or maker
-        #             "side":"short",  # "buy" in futures trades
+        #             "created_at":"2020-03-29T11:55:16.000Z",
+        #             "currency":"ETH",
+        #             "exec_type":"T",
+        #             "fee":"-0.00036049",
+        #             "instrument_id":"ETH-USDT",
+        #             "ledger_id":"10562922669",
+        #             "liquidity":"T",
+        #             "order_id": "4636469894136832",
+        #             "price":"129.16",
+        #             "product_id":"ETH-USDT",
+        #             "side":"buy",
+        #             "size":"0.240322",
+        #             "timestamp":"2020-03-29T11:55:16.000Z",
+        #             "trade_id":"18551600"
+        #         },
+        #         {
+        #             "created_at":"2020-03-29T11:55:16.000Z",
+        #             "currency":"USDT",
+        #             "exec_type":"T",
+        #             "fee":"0",
+        #             "instrument_id":"ETH-USDT",
+        #             "ledger_id":"10562922668",
+        #             "liquidity":"T",
+        #             "order_id":"4636469894136832",
+        #             "price":"129.16",
+        #             "product_id":"ETH-USDT",
+        #             "side":"sell",
+        #             "size":"31.03998952",
+        #             "timestamp":"2020-03-29T11:55:16.000Z",
+        #             "trade_id":"18551600"
         #         }
         #     ]
         #
-        return self.parse_trades(response, market, since, limit)
+        return self.parse_my_trades(response, market, since, limit, params)
+
+    async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+        request = {
+            # 'instrument_id': market['id'],
+            'order_id': id,
+            # 'after': '1',  # return the page after the specified page number
+            # 'before': '1',  # return the page before the specified page number
+            # 'limit': limit,  # optional, number of results per request, default = maximum = 100
+        }
+        return await self.fetch_my_trades(symbol, since, limit, self.extend(request, params))
 
     async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()

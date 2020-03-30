@@ -134,6 +134,8 @@ class acx(Exchange):
                 'quoteId': quoteId,
                 'precision': precision,
                 'info': market,
+                'active': None,
+                'limits': self.limits,
             })
         return result
 
@@ -319,6 +321,8 @@ class acx(Exchange):
             'trades': None,
             'fee': None,
             'info': order,
+            'cost': None,
+            'average': None,
         }
 
     async def fetch_order(self, id, symbol=None, params={}):

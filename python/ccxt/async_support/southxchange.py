@@ -87,6 +87,8 @@ class southxchange(Exchange):
                 'quoteId': quoteId,
                 'active': None,
                 'info': market,
+                'precision': self.precision,
+                'limits': self.limits,
             })
         return result
 
@@ -243,6 +245,8 @@ class southxchange(Exchange):
             'remaining': remaining,
             'status': status,
             'fee': None,
+            'average': None,
+            'trades': None,
         }
         return result
 

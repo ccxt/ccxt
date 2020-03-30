@@ -734,6 +734,7 @@ class hollaex(Exchange):
             'trades': None,
             'fee': None,
             'info': order,
+            'average': None,
         }
         return result
 

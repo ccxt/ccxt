@@ -307,6 +307,7 @@ class gemini(Exchange):
                         'max': None,
                     },
                 },
+                'active': None,
             })
         return result
 
@@ -467,6 +468,7 @@ class gemini(Exchange):
             'filled': filled,
             'remaining': remaining,
             'fee': fee,
+            'trades': None,
         }
 
     def fetch_order(self, id, symbol=None, params={}):

@@ -737,6 +737,10 @@ class idex(Exchange):
             'remaining': remaining,
             'cost': cost,
             'status': status,
+            'lastTradeTimestamp': None,
+            'average': None,
+            'trades': None,
+            'fee': None,
         }
 
     def parse_order_status(self, status):

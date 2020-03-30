@@ -225,6 +225,7 @@ class stronghold(Exchange):
                 'precision': precision,
                 'info': entry,
                 'limits': limits,
+                'active': None,
             }
         return result
 
@@ -280,6 +281,7 @@ class stronghold(Exchange):
                 'active': None,
                 'name': None,
                 'limits': limits,
+                'fee': None,
             }
         return result
 
@@ -565,6 +567,7 @@ class stronghold(Exchange):
             'status': None,
             'type': None,
             'average': None,
+            'fee': None,
         }
 
     def nonce(self):

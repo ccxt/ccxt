@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.25.28'
+__version__ = '1.25.37'
 
 # ----------------------------------------------------------------------------
 
@@ -71,6 +71,7 @@ from ccxt._1btcxe import _1btcxe                            # noqa: F401
 from ccxt.acx import acx                                    # noqa: F401
 from ccxt.adara import adara                                # noqa: F401
 from ccxt.anxpro import anxpro                              # noqa: F401
+from ccxt.aofex import aofex                                # noqa: F401
 from ccxt.bcex import bcex                                  # noqa: F401
 from ccxt.bequant import bequant                            # noqa: F401
 from ccxt.bibox import bibox                                # noqa: F401
@@ -87,7 +88,6 @@ from ccxt.bitflyer import bitflyer                          # noqa: F401
 from ccxt.bitforex import bitforex                          # noqa: F401
 from ccxt.bithumb import bithumb                            # noqa: F401
 from ccxt.bitkk import bitkk                                # noqa: F401
-from ccxt.bitlish import bitlish                            # noqa: F401
 from ccxt.bitmart import bitmart                            # noqa: F401
 from ccxt.bitmax import bitmax                              # noqa: F401
 from ccxt.bitmex import bitmex                              # noqa: F401
@@ -166,9 +166,7 @@ from ccxt.mercado import mercado                            # noqa: F401
 from ccxt.mixcoins import mixcoins                          # noqa: F401
 from ccxt.oceanex import oceanex                            # noqa: F401
 from ccxt.okcoin import okcoin                              # noqa: F401
-from ccxt.okcoinusd import okcoinusd                        # noqa: F401
 from ccxt.okex import okex                                  # noqa: F401
-from ccxt.okex3 import okex3                                # noqa: F401
 from ccxt.paymium import paymium                            # noqa: F401
 from ccxt.poloniex import poloniex                          # noqa: F401
 from ccxt.rightbtc import rightbtc                          # noqa: F401
@@ -196,6 +194,7 @@ exchanges = [
     'acx',
     'adara',
     'anxpro',
+    'aofex',
     'bcex',
     'bequant',
     'bibox',
@@ -212,7 +211,6 @@ exchanges = [
     'bitforex',
     'bithumb',
     'bitkk',
-    'bitlish',
     'bitmart',
     'bitmax',
     'bitmex',
@@ -291,9 +289,7 @@ exchanges = [
     'mixcoins',
     'oceanex',
     'okcoin',
-    'okcoinusd',
     'okex',
-    'okex3',
     'paymium',
     'poloniex',
     'rightbtc',

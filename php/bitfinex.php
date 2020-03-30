@@ -862,6 +862,8 @@ class bitfinex extends Exchange {
             'filled' => $this->safe_float($order, 'executed_amount'),
             'status' => $status,
             'fee' => null,
+            'cost' => null,
+            'trades' => null,
         );
     }
 

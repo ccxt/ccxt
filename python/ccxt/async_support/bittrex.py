@@ -1023,6 +1023,7 @@ class bittrex(Exchange):
                 'currency': feeCurrency,
             },
             'info': order,
+            'trades': None,
         }
 
     def parse_order_v2(self, order, market=None):
@@ -1138,6 +1139,7 @@ class bittrex(Exchange):
             'remaining': remaining,
             'status': status,
             'fee': fee,
+            'trades': None,
         }
 
     async def fetch_order(self, id, symbol=None, params={}):
@@ -1174,6 +1176,7 @@ class bittrex(Exchange):
             'datetime': self.iso8601(timestamp),
             'fee': self.safe_value(order, 'fee'),
             'info': order,
+            'takerOrMaker': None,
         }
 
     def orders_to_trades(self, orders):

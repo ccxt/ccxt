@@ -365,6 +365,7 @@ class cex(Exchange):
                         'max': None,
                     },
                 },
+                'active': None,
             })
         return result
 
@@ -774,6 +775,8 @@ class cex(Exchange):
                         'currency': market['quote'],
                     },
                     'info': item,
+                    'type': None,
+                    'takerOrMaker': None,
                 })
         return {
             'id': orderId,
@@ -793,6 +796,7 @@ class cex(Exchange):
             'trades': trades,
             'fee': fee,
             'info': order,
+            'average': None,
         }
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):

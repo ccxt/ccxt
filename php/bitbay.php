@@ -1048,6 +1048,7 @@ class bitbay extends Exchange {
             'average' => null,
             'fee' => null,
             'trades' => $trades,
+            'clientOrderId' => null,
         );
     }
 

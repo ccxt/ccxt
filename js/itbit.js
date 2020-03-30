@@ -213,6 +213,7 @@ module.exports = class itbit extends Exchange {
             'price': price,
             'amount': amount,
             'cost': cost,
+            'fee': undefined,
         };
         if (feeCost !== undefined) {
             if (rebatesApplied !== undefined) {
@@ -533,6 +534,7 @@ module.exports = class itbit extends Exchange {
             'remaining': remaining,
             'fee': fee,
             // 'trades': this.parseTrades (order['trades'], market),
+            'trades': undefined,
         };
     }
 

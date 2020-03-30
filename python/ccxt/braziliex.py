@@ -455,6 +455,7 @@ class braziliex(Exchange):
             'trades': None,
             'fee': fee,
             'info': info,
+            'average': None,
         }
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):

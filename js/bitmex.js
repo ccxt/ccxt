@@ -1130,6 +1130,7 @@ module.exports = class bitmex extends Exchange {
             'remaining': remaining,
             'status': status,
             'fee': undefined,
+            'trades': undefined,
         };
     }
 

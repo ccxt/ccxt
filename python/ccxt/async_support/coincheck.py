@@ -197,6 +197,8 @@ class coincheck(Exchange):
             'cost': cost,
             'fee': None,
             'info': order,
+            'average': None,
+            'trades': None,
         }
 
     async def fetch_order_book(self, symbol, limit=None, params={}):

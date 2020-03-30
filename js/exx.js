@@ -326,6 +326,7 @@ module.exports = class exx extends Exchange {
             'trades': undefined,
             'fee': fee,
             'info': order,
+            'average': undefined,
         };
     }
 

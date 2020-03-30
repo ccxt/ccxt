@@ -97,6 +97,9 @@ module.exports = class independentreserve extends Exchange {
                     'baseId': baseId,
                     'quoteId': quoteId,
                     'info': id,
+                    'active': undefined,
+                    'precision': this.precision,
+                    'limits': this.limits,
                 });
             }
         }
@@ -260,6 +263,7 @@ module.exports = class independentreserve extends Exchange {
             'remaining': remaining,
             'status': status,
             'fee': fee,
+            'trades': undefined,
         };
     }
 

@@ -675,6 +675,7 @@ class theocean(Exchange):
             'status': status,
             'fee': fee,
             'trades': trades,
+            'average': None,
         }
         return result
 

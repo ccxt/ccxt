@@ -523,6 +523,7 @@ class rightbtc(Exchange):
             'status': status,
             'fee': fee,
             'trades': trades,
+            'average': None,
         }
 
     def fetch_order(self, id, symbol=None, params={}):

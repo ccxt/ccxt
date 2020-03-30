@@ -318,6 +318,7 @@ class bitforex(Exchange):
             'cost': cost,
             'order': orderId,
             'fee': None,
+            'takerOrMaker': None,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -472,6 +473,7 @@ class bitforex(Exchange):
             'remaining': remaining,
             'status': status,
             'fee': fee,
+            'trades': None,
         }
         return result
 

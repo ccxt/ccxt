@@ -818,6 +818,8 @@ class bitfinex(Exchange):
             'filled': self.safe_float(order, 'executed_amount'),
             'status': status,
             'fee': None,
+            'cost': None,
+            'trades': None,
         }
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):

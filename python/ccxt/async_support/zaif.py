@@ -350,6 +350,8 @@ class zaif(Exchange):
             'remaining': None,
             'trades': None,
             'fee': None,
+            'info': None,
+            'average': None,
         }
 
     def parse_orders(self, orders, market=None, since=None, limit=None, params={}):

@@ -771,6 +771,7 @@ class hollaex extends Exchange {
             'trades' => null,
             'fee' => null,
             'info' => $order,
+            'average' => null,
         );
         return $result;
     }

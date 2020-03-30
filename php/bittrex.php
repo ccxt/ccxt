@@ -1073,6 +1073,7 @@ class bittrex extends Exchange {
                 'currency' => $feeCurrency,
             ),
             'info' => $order,
+            'trades' => null,
         );
     }
 
@@ -1212,6 +1213,7 @@ class bittrex extends Exchange {
             'remaining' => $remaining,
             'status' => $status,
             'fee' => $fee,
+            'trades' => null,
         );
     }
 
@@ -1254,6 +1256,7 @@ class bittrex extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'fee' => $this->safe_value($order, 'fee'),
             'info' => $order,
+            'takerOrMaker' => null,
         );
     }
 

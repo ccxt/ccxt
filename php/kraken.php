@@ -1010,6 +1010,7 @@ class kraken extends Exchange {
             'remaining' => $remaining,
             'fee' => $fee,
             // 'trades' => $this->parse_trades($order['trades'], $market),
+            'trades' => null,
         );
     }
 

@@ -49,7 +49,10 @@ module.exports = class hitbtc2 extends hitbtc {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
-                'api': 'https://api.hitbtc.com',
+                'api': {
+                    'public': 'https://api.hitbtc.com',
+                    'private': 'https://api.hitbtc.com',
+                },
                 'www': 'https://hitbtc.com',
                 'referral': 'https://hitbtc.com/?ref_id=5a5d39a65d466',
                 'doc': [
@@ -1469,7 +1472,7 @@ module.exports = class hitbtc2 extends hitbtc {
                 'Content-Type': 'application/json',
             };
         }
-        url = this.urls['api'] + url;
+        url = this.urls['api'][api] + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 

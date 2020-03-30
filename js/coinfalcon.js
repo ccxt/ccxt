@@ -340,6 +340,8 @@ module.exports = class coinfalcon extends Exchange {
             'trades': undefined,
             'fee': undefined,
             'info': order,
+            'lastTradeTimestamp': undefined,
+            'average': undefined,
         };
     }
 

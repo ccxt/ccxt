@@ -373,6 +373,7 @@ class bcex extends Exchange {
             'cost' => $cost,
             'order' => $orderId,
             'fee' => null,
+            'takerOrMaker' => null,
         );
     }
 
@@ -521,6 +522,8 @@ class bcex extends Exchange {
             'remaining' => $this->safe_float($order, 'numberover'),
             'status' => $status,
             'fee' => null,
+            'clientOrderId' => null,
+            'trades' => null,
         );
     }
 
@@ -562,6 +565,7 @@ class bcex extends Exchange {
             'remaining' => $remaining,
             'status' => $status,
             'fee' => $fee,
+            'trades' => null,
         );
         return $result;
     }

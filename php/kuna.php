@@ -105,6 +105,8 @@ class kuna extends acx {
                                 'max' => null,
                             ),
                         ),
+                        'active' => null,
+                        'info' => null,
                     );
                     break;
                 }

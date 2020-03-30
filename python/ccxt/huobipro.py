@@ -952,6 +952,7 @@ class huobipro(Exchange):
             'remaining': remaining,
             'status': status,
             'fee': fee,
+            'trades': None,
         }
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -1001,6 +1002,8 @@ class huobipro(Exchange):
             'cost': None,
             'trades': None,
             'fee': None,
+            'clientOrderId': None,
+            'average': None,
         }
 
     def cancel_order(self, id, symbol=None, params={}):

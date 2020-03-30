@@ -1046,6 +1046,7 @@ module.exports = class bitbay extends Exchange {
             'average': undefined,
             'fee': undefined,
             'trades': trades,
+            'clientOrderId': undefined,
         };
     }
 

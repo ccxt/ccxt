@@ -287,6 +287,7 @@ class bit2c(Exchange):
             'trades': None,
             'fee': None,
             'info': order,
+            'average': None,
         }
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):

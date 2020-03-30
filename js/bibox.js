@@ -728,6 +728,7 @@ module.exports = class bibox extends Exchange {
             'remaining': remaining,
             'status': status,
             'fee': fee,
+            'trades': undefined,
         };
     }
 

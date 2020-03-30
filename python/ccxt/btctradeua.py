@@ -303,6 +303,9 @@ class btctradeua(Exchange):
             'remaining': self.safe_float(order, 'amnt_trade'),
             'trades': None,
             'info': order,
+            'cost': None,
+            'average': None,
+            'fee': None,
         }
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):

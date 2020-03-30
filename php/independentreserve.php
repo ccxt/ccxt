@@ -99,6 +99,9 @@ class independentreserve extends Exchange {
                     'baseId' => $baseId,
                     'quoteId' => $quoteId,
                     'info' => $id,
+                    'active' => null,
+                    'precision' => $this->precision,
+                    'limits' => $this->limits,
                 );
             }
         }
@@ -262,6 +265,7 @@ class independentreserve extends Exchange {
             'remaining' => $remaining,
             'status' => $status,
             'fee' => $fee,
+            'trades' => null,
         );
     }
 

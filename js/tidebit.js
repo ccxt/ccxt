@@ -157,6 +157,9 @@ module.exports = class tidebit extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
+                'active': undefined,
+                'precision': this.precision,
+                'limits': this.limits,
             });
         }
         return result;
@@ -417,6 +420,7 @@ module.exports = class tidebit extends Exchange {
             'trades': undefined,
             'fee': undefined,
             'info': order,
+            'average': undefined,
         };
     }
 

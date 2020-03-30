@@ -333,6 +333,9 @@ module.exports = class kucoin extends Exchange {
                 'code': code,
                 'precision': precision,
                 'info': entry,
+                'active': undefined,
+                'fee': undefined,
+                'limits': this.limits,
             };
         }
         return result;
@@ -915,6 +918,9 @@ module.exports = class kucoin extends Exchange {
             'fee': fee,
             'status': status,
             'info': order,
+            'lastTradeTimestamp': undefined,
+            'average': undefined,
+            'trades': undefined,
         };
     }
 

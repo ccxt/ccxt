@@ -717,6 +717,9 @@ class dsx extends Exchange {
             'filled' => $filled,
             'fee' => null,
             // 'trades' => $this->parse_trades(order['trades'], $market),
+            'clientOrderId' => null,
+            'average' => null,
+            'trades' => null,
         );
     }
 
@@ -843,6 +846,7 @@ class dsx extends Exchange {
             'status' => $status,
             'fee' => $fee,
             'trades' => $trades,
+            'average' => null,
         );
     }
 

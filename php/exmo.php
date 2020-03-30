@@ -904,6 +904,8 @@ class exmo extends Exchange {
             'filled' => 0.0,
             'fee' => null,
             'trades' => null,
+            'clientOrderId' => null,
+            'average' => null,
         );
         $this->orders[$id] = $order;
         return $order;
