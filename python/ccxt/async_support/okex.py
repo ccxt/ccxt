@@ -2473,12 +2473,6 @@ class okex(Exchange):
         }
 
     def parse_my_trade(self, pair, market=None):
-        if not isinstance(pair, list):
-            raise NotSupported(self.id + ' parseMyTrade() received unrecognized response format, the exchange API might have changed, paste your verbose output: https://github.com/ccxt/ccxt/wiki/FAQ#what-is-required-to-get-help')
-        # make sure it has exactly 2 trades, no more, no less
-        numTradesInPair = len(pair)
-        if numTradesInPair != 2:
-            raise NotSupported(self.id + ' parseMyTrade() received unrecognized response format, more than two trades in one fill, the exchange API might have changed, paste your verbose output: https://github.com/ccxt/ccxt/wiki/FAQ#what-is-required-to-get-help')
         # check that trading symbols match in both entries
         first = pair[0]
         second = pair[1]
@@ -2595,8 +2589,11 @@ class okex(Exchange):
         for i in range(0, len(tradeIds)):
             tradeId = tradeIds[i]
             pair = grouped[tradeId]
-            trade = self.parse_my_trade(pair)
-            result.append(trade)
+            # make sure it has exactly 2 trades, no more, no less
+            numTradesInPair = len(pair)
+            if numTradesInPair == 2:
+                trade = self.parse_my_trade(pair)
+                result.append(trade)
         symbol = None
         if market is not None:
             symbol = market['symbol']
