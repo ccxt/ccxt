@@ -31,7 +31,7 @@ async def async_client(exchange, symbol):
 
 async def multi_orderbooks(exchanges, symbol):
     input_coroutines = [async_client(exchange, symbol) for exchange in exchanges]
-    tickers await asyncio.gather(*input_coroutines, return_exceptions=True)
+    await asyncio.gather(*input_coroutines, return_exceptions=True)
 
 
 if __name__ == '__main__':
