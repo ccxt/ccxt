@@ -19,6 +19,8 @@ async def async_client(exchange, symbol):
     while True:
         try:
             orderbook = await client.fetch_order_book(symbol)
+            datetime = client.iso8601(client.milliseconds())
+            print(datetime, client.id, symbol, orderbook['bids'][0], orderbook['asks'][0])
         except Exception as e:
             print(type(e).__name__, e.args, str(e))  # comment if not needed
             # break  # uncomment to break it
