@@ -103,7 +103,7 @@ module.exports = class hitbtc2 extends ccxt.hitbtc2 {
             },
             'id': market['id'],
         };
-        return await this.watch (url, messageHash, request, market['id']);
+        return await this.watch (url, messageHash, request);
     }
 
     handleTicker (client, message) {
@@ -114,9 +114,16 @@ module.exports = class hitbtc2 extends ccxt.hitbtc2 {
         const timestamp = this.safeValue (messageData, 'timestamp');
         const last = this.safeFloat (messageData, 'last');
         const open = this.safeFloat (messageData, 'open');
-        const change = last - open;
-        const average = this.sum (last, open) / 2;
-        const percentage = change / open * 100;
+        let change = undefined;
+        let average = undefined;
+        let percentage = undefined;
+        if (last !== undefined && open !== undefined) {
+            change = last - open;
+            average = this.sum (last, open) / 2;
+            if (open !== 0) {
+                percentage = change / open * 100;
+            }
+        }
         const result = {
             'symbol': symbol,
             'timestamp': timestamp,
