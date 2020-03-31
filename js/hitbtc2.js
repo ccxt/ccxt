@@ -41,7 +41,7 @@ module.exports = class hitbtc2 extends ccxt.hitbtc2 {
             },
             'id': market['id'],
         };
-        const future = this.watch (url, messageHash, request, market['id']);
+        const future = this.watch (url, messageHash, request, messageHash);
         return await this.after (future, this.limitOrderBook, symbol, limit, params);
     }
 
@@ -103,7 +103,7 @@ module.exports = class hitbtc2 extends ccxt.hitbtc2 {
             },
             'id': market['id'],
         };
-        return await this.watch (url, messageHash, request);
+        return await this.watch (url, messageHash, request, messageHash);
     }
 
     handleTicker (client, message) {
