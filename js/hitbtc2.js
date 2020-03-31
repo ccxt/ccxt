@@ -46,8 +46,8 @@ module.exports = class hitbtc2 extends ccxt.hitbtc2 {
     }
 
     handleOrderBookSnapshot (client, message) {
-        const messageData = this.safeValue (message, 'params');
-        const marketId = this.safeValue (messageData, 'symbol');
+        const params = this.safeValue (message, 'params');
+        const marketId = this.safeValue (params, 'symbol');
         let market = undefined;
         let symbol = undefined;
         if (marketId !== undefined) {
@@ -60,16 +60,15 @@ module.exports = class hitbtc2 extends ccxt.hitbtc2 {
             // if symbol is not available we just return
             return;
         }
-        const timestamp = this.safeValue (messageData, 'timestamp');
-        const nonce = this.safeValue (messageData, 'sequence');
+        const timestamp = this.parse8601 (this.safeString (params, 'timestamp'));
+        const nonce = this.safeValue (params, 'sequence');
         if (symbol in this.orderbooks) {
             delete this.orderbooks[symbol];
         }
-        this.orderbooks[symbol] = this.orderBook (this.parseOrderBook (messageData, timestamp, 'bid', 'ask', 'price', 'size'));
-        const orderbook = this.orderbooks[symbol];
-        // Correction of iso8601
-        orderbook['datetime'] = timestamp;
+        const snapshot = this.parseOrderBook (params, timestamp, 'bid', 'ask', 'price', 'size');
+        const orderbook = this.orderBook (snapshot);
         orderbook['nonce'] = nonce;
+        this.orderbooks[symbol] = orderbook;
         const messageHash = 'orderbook:' + marketId;
         client.resolve (orderbook, messageHash);
     }
