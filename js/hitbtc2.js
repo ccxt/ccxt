@@ -48,8 +48,18 @@ module.exports = class hitbtc2 extends ccxt.hitbtc2 {
     handleOrderBookSnapshot (client, message) {
         const messageData = this.safeValue (message, 'params');
         const marketId = this.safeValue (messageData, 'symbol');
-        const market = this.markets_by_id[marketId];
-        const symbol = market['symbol'];
+        let market = undefined;
+        let symbol = undefined;
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+                symbol = market['symbol'];
+            }
+        }
+        if (symbol === undefined) {
+            // if symbol is not available we just return
+            return;
+        }
         const timestamp = this.safeValue (messageData, 'timestamp');
         const nonce = this.safeValue (messageData, 'sequence');
         if (symbol in this.orderbooks) {
@@ -67,8 +77,18 @@ module.exports = class hitbtc2 extends ccxt.hitbtc2 {
     handleUpdateOrderbook (client, message) {
         const messageData = this.safeValue (message, 'params');
         const marketId = this.safeValue (messageData, 'symbol');
-        const market = this.markets_by_id[marketId];
-        const symbol = market['symbol'];
+        let market = undefined;
+        let symbol = undefined;
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+                symbol = market['symbol'];
+            }
+        }
+        if (symbol === undefined) {
+            // if symbol is not available we just return
+            return;
+        }
         const timestamp = this.safeValue (messageData, 'timestamp');
         const nonce = this.safeValue (messageData, 'sequence');
         const orderbook = this.orderbooks[symbol];
@@ -109,8 +129,18 @@ module.exports = class hitbtc2 extends ccxt.hitbtc2 {
     handleTicker (client, message) {
         const messageData = this.safeValue (message, 'params');
         const marketId = this.safeValue (messageData, 'symbol');
-        const market = this.markets_by_id[marketId];
-        const symbol = market['symbol'];
+        let market = undefined;
+        let symbol = undefined;
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+                symbol = market['symbol'];
+            }
+        }
+        if (symbol === undefined) {
+            // if symbol is not available we just return
+            return;
+        }
         const timestamp = this.safeValue (messageData, 'timestamp');
         const last = this.safeFloat (messageData, 'last');
         const open = this.safeFloat (messageData, 'open');
