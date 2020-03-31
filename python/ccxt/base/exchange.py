@@ -2033,4 +2033,4 @@ class Exchange(object):
         return int(a) % int(b)
 
     def sleep(self, milliseconds):
-        return time.sleep(milliseconds/1000)
+        return time.sleep(milliseconds / 1000)

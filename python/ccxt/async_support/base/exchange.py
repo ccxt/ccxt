@@ -296,4 +296,4 @@ class Exchange(BaseExchange):
         raise NotSupported('fetch_ticker() not supported yet')
 
     async def sleep(self, milliseconds):
-        return await asyncio.sleep(milliseconds/1000)
+        return await asyncio.sleep(milliseconds / 1000)
