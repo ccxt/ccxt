@@ -808,7 +808,7 @@ class hollaex extends Exchange {
     public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
-            'orderId' => $id,
+            'order_id' => $id,
         );
         $response = $this->privateDeleteUserOrdersOrderId (array_merge($request, $params));
         //
