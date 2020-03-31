@@ -108,8 +108,8 @@ module.exports = class hitbtc2 extends ccxt.hitbtc2 {
     updateOrders (bookside, data) {
         for (let i = 0; i < data.length; i++) {
             const delta = data[i];
-            const price = parseFloat (delta['price']);
-            const amount = parseFloat (delta['size']);
+            const price = this.safeFloat (delta, 'price');
+            const amount = this.safeFloat (delta, 'size');
             bookside.store (price, amount);
         }
     }
