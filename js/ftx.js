@@ -350,7 +350,9 @@ module.exports = class ftx extends Exchange {
             } else {
                 const base = this.safeCurrencyCode (this.safeString (ticker, 'baseCurrency'));
                 const quote = this.safeCurrencyCode (this.safeString (ticker, 'quoteCurrency'));
-                symbol = base + '/' + quote;
+                if ((base !== undefined) && (quote !== undefined)) {
+                    symbol = base + '/' + quote;
+                }
             }
         }
         if ((symbol === undefined) && (market !== undefined)) {
