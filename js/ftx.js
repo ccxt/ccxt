@@ -6,7 +6,7 @@ const ccxt = require ('ccxt');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class ftx extends ccxt.binance {
+module.exports = class ftx extends ccxt.ftx {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -42,7 +42,7 @@ module.exports = class ftx extends ccxt.binance {
             'channel': channel,
             'market': symbol,
         };
-        const messageHash = channel + ':' + marketId;
+        const messageHash = channel + ':' + symbol;console.log(messageHash);
         return await this.watch (url, messageHash, request, messageHash);
     }
 
@@ -67,8 +67,12 @@ module.exports = class ftx extends ccxt.binance {
     handlePartial (client, message) {
         const methods = {
             'orderbook': this.handleOrderBookSnapshot,
+            'trades': this.handleTrades,
         };
-        const methodName = this.safeString (message, 'channel');
+        const methodName = this.safeString (message, 'channel');if (methodName != 'orderbook'){
+             console.log(methodName);
+             console.log(message)
+        }
         const method = this.safeValue (methods, methodName);
         if (method) {
             method.call (this, client, message);
@@ -77,11 +81,10 @@ module.exports = class ftx extends ccxt.binance {
 
     handleUpdate (client, message) {
         const methods = {
-            'trades': this.handleTrades,
             'ticker': this.handleTicker,
             'orderbook': this.handleOrderBookUpdate,
         };
-        const methodName = this.safeString (message, 'channel');
+        const methodName = this.safeString (message, 'channel');if (methodName != 'ticker' && methodName != 'orderbook') console.log(methodName);
         const method = this.safeValue (methods, methodName);
         if (method) {
             method.call (this, client, message);
@@ -105,20 +108,42 @@ module.exports = class ftx extends ccxt.binance {
         }
     }
 
-    genMessageHashFromData (data) {
-        const channel = this.safeString (data, 'channel');
-        const market = this.safeString (data, 'market');
-        const messageHash = channel + ':' + market;
+    genMessageHashFromData (message) {
+        const channel = this.safeString (message, 'channel');
+        const symbol = this.safeString (message, 'market');
+        const messageHash = channel + ':' + symbol;
         return messageHash;
     }
 
     handleTicker (client, message) {
-        const data = this.safeValue (message, 'data', {});
-        const rawTicker = this.safeValue (data, 'data', {});
-        const ticker = this.parseTicker (rawTicker);
-        const symbol = ticker['symbol'];
+        const rawTicker = this.safeValue (message, 'data', {});
+        const symbol = this.safeString (message, 'market');
+        const timestamp = this.safeTimestamp (rawTicker, 'time');
+        const last = this.safeFloat (rawTicker, 'last');
+        const ticker = {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': undefined,
+            'low': undefined,
+            'bid': this.safeFloat (rawTicker, 'bid'),
+            'bidVolume': undefined,
+            'ask': this.safeFloat (rawTicker, 'ask'),
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': undefined,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': undefined,
+            'info': rawTicker,
+        };
         this.tickers[symbol] = ticker;
-        const messageHash = this.genMessageHashFromData (data);
+        const messageHash = this.genMessageHashFromData (message);
         client.resolve (ticker, messageHash);
         return message;
     }
@@ -140,7 +165,7 @@ module.exports = class ftx extends ccxt.binance {
         // const checksum = this.safeString (data, 'checksum');
         // todo: this.checkOrderBookChecksum (client, orderbook, checksum);
         this.orderbooks[symbol] = orderbook;
-        const messageHash = this.genMessageHashFromData (data);
+        const messageHash = this.genMessageHashFromData (message);
         client.resolve (orderbook, messageHash);
     }
 
@@ -175,14 +200,14 @@ module.exports = class ftx extends ccxt.binance {
         // const checksum = this.safeString (data, 'checksum');
         // todo: this.checkOrderBookChecksum (client, orderbook, checksum);
         this.orderbooks[symbol] = orderbook;
-        const messageHash = this.genMessageHashFromData (data);
+        const messageHash = this.genMessageHashFromData (message);
         client.resolve (orderbook, messageHash);
     }
 
     handleTrades (client, message) {
-        const data = this.safeValue (message, 'data', {});
-        const trade = this.parseTrade (data);
-        const messageHash = this.genMessageHashFromData (data);
+        const data = this.safeValue (message, 'data', {});console.log(data);
+        const trade = this.parseTrade (data);console.log(trade);
+        const messageHash = this.genMessageHashFromData (message);
         const symbol = trade['symbol'];
         const array = this.safeValue (this.trades, symbol, []);
         array.push (trade);
