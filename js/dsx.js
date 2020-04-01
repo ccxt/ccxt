@@ -178,10 +178,8 @@ module.exports = class dsx extends Exchange {
             const code = this.safeCurrencyCode (id, name);
             const transferEnabled = currency['transferEnabled'];
             const delisted = currency['delisted'];
-            // todo: check what these bools actually mean
-            const payinEnabled = currency['payinEnabled'];
-            const payoutEnabled = currency['payoutEnabled'];
-            const active = !delisted && transferEnabled && payinEnabled && payoutEnabled;
+            // payoutEnabled means that API support withdrawals in thsi currency
+            const active = !delisted && transferEnabled;
             const fee = this.safeFloat (currency, 'payoutFee');
             result[code] = {
                 'id': id,
