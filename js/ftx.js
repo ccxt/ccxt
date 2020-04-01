@@ -105,11 +105,10 @@ module.exports = class ftx extends ccxt.binance {
         }
     }
 
-    genMessageHashFromData (data) {
-        const channel = this.safeString (data, 'channel');
-        const market = this.safeString (data, 'market');
-        const messageHash = channel + ':' + market;
-        return messageHash;
+    getMessageHash (message) {
+        const channel = this.safeString (message, 'channel');
+        const market = this.safeString (message, 'market');
+        return channel + ':' + market;
     }
 
     handleTicker (client, message) {
@@ -118,7 +117,7 @@ module.exports = class ftx extends ccxt.binance {
         const ticker = this.parseTicker (rawTicker);
         const symbol = ticker['symbol'];
         this.tickers[symbol] = ticker;
-        const messageHash = this.genMessageHashFromData (data);
+        const messageHash = this.getMessageHash (message);
         client.resolve (ticker, messageHash);
         return message;
     }
@@ -140,7 +139,7 @@ module.exports = class ftx extends ccxt.binance {
         // const checksum = this.safeString (data, 'checksum');
         // todo: this.checkOrderBookChecksum (client, orderbook, checksum);
         this.orderbooks[symbol] = orderbook;
-        const messageHash = this.genMessageHashFromData (data);
+        const messageHash = this.getMessageHash (message);
         client.resolve (orderbook, messageHash);
     }
 
@@ -175,14 +174,14 @@ module.exports = class ftx extends ccxt.binance {
         // const checksum = this.safeString (data, 'checksum');
         // todo: this.checkOrderBookChecksum (client, orderbook, checksum);
         this.orderbooks[symbol] = orderbook;
-        const messageHash = this.genMessageHashFromData (data);
+        const messageHash = this.getMessageHash (message);
         client.resolve (orderbook, messageHash);
     }
 
     handleTrades (client, message) {
         const data = this.safeValue (message, 'data', {});
         const trade = this.parseTrade (data);
-        const messageHash = this.genMessageHashFromData (data);
+        const messageHash = this.getMessageHash (message);
         const symbol = trade['symbol'];
         const array = this.safeValue (this.trades, symbol, []);
         array.push (trade);
