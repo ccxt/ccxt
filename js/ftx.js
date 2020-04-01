@@ -42,7 +42,7 @@ module.exports = class ftx extends ccxt.ftx {
             'channel': channel,
             'market': marketId,
         };
-        const messageHash = channel + ':' + symbol;console.log(messageHash);
+        const messageHash = channel + ':' + symbol;
         return await this.watch (url, messageHash, request, messageHash);
     }
 
@@ -67,12 +67,8 @@ module.exports = class ftx extends ccxt.ftx {
     handlePartial (client, message) {
         const methods = {
             'orderbook': this.handleOrderBookSnapshot,
-            'trades': this.handleTrades,
         };
-        const methodName = this.safeString (message, 'channel');if (methodName != 'orderbook'){
-             console.log(methodName);
-             console.log(message)
-        }
+        const methodName = this.safeString (message, 'channel');
         const method = this.safeValue (methods, methodName);
         if (method) {
             method.call (this, client, message);
@@ -81,10 +77,11 @@ module.exports = class ftx extends ccxt.ftx {
 
     handleUpdate (client, message) {
         const methods = {
+            'trades': this.handleTrades,
             'ticker': this.handleTicker,
             'orderbook': this.handleOrderBookUpdate,
         };
-        const methodName = this.safeString (message, 'channel');if (methodName != 'ticker' && methodName != 'orderbook') console.log(methodName);
+        const methodName = this.safeString (message, 'channel');
         const method = this.safeValue (methods, methodName);
         if (method) {
             method.call (this, client, message);
@@ -206,17 +203,30 @@ module.exports = class ftx extends ccxt.ftx {
 
     handleTrades (client, message) {
         const data = this.safeValue (message, 'data', {});
-        const trade = this.parseTrade (data);
+        const symbol = this.safeValue (message, 'market', {});;
+        const market = this.market (symbol);
         const messageHash = this.getMessageHash (message);
-        const symbol = trade['symbol'];
-        const array = this.safeValue (this.trades, symbol, []);
-        array.push (trade);
-        const length = array.length;
-        if (length > this.options['tradesLimit']) {
-            array.shift ();
+        const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
+        const stored = this.safeValue (this.trades, symbol, []);
+        if (Array.isArray (data)) {
+            const trades = this.parseTrades (data, market);
+            for (let i = 0; i < trades.length; i++) {
+                stored.push (trades[i]);
+                const storedLength = stored.length;
+                if (storedLength > tradesLimit) {
+                    stored.shift ();
+                }
+            }
+        } else {
+            const trade = this.parseTrade (message, market);
+            stored.push (trade);
+            const length = stored.length;
+            if (length > tradesLimit) {
+                stored.shift ();
+            }
         }
-        this.trades[symbol] = array;
-        client.resolve (array, messageHash);
+        this.trades[symbol] = stored;
+        client.resolve (stored, messageHash);
         return message;
     }
 
