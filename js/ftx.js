@@ -6,7 +6,7 @@ const ccxt = require ('ccxt');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class ftx extends ccxt.binance {
+module.exports = class ftx extends ccxt.ftx {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -40,7 +40,7 @@ module.exports = class ftx extends ccxt.binance {
         const request = {
             'op': 'subscribe',
             'channel': channel,
-            'market': symbol,
+            'market': marketId,
         };
         const messageHash = channel + ':' + marketId;
         return await this.watch (url, messageHash, request, messageHash);
@@ -107,8 +107,8 @@ module.exports = class ftx extends ccxt.binance {
 
     getMessageHash (message) {
         const channel = this.safeString (message, 'channel');
-        const market = this.safeString (message, 'market');
-        return channel + ':' + market;
+        const marketId = this.safeString (message, 'market');
+        return channel + ':' + marketId;
     }
 
     handleTicker (client, message) {
@@ -134,7 +134,8 @@ module.exports = class ftx extends ccxt.binance {
         const limit = this.safeInteger (options, 'limit', 400);
         const orderbook = this.orderBook ({}, limit);
         this.orderbooks[symbol] = orderbook;
-        const snapshot = this.parseOrderBook (data);
+        const timestamp = this.safeTimestamp (data, 'time');
+        const snapshot = this.parseOrderBook (data, timestamp);
         orderbook.reset (snapshot);
         // const checksum = this.safeString (data, 'checksum');
         // todo: this.checkOrderBookChecksum (client, orderbook, checksum);
@@ -168,7 +169,7 @@ module.exports = class ftx extends ccxt.binance {
         this.handleDeltas (orderbook['asks'], this.safeValue (data, 'asks', []));
         this.handleDeltas (orderbook['bids'], this.safeValue (data, 'bids', []));
         // orderbook['nonce'] = u;
-        const timestamp = this.safeInteger (message, 'time');
+        const timestamp = this.safeTimestamp (data, 'time');
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);
         // const checksum = this.safeString (data, 'checksum');
