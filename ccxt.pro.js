@@ -35,6 +35,7 @@ const exchanges = {
     'okcoin':                  require ('./js/okcoin.js'),
     'okex':                    require ('./js/okex.js'),
     'poloniex':                require ('./js/poloniex.js'),
+    'upbit':                   require ('./js/upbit.js'),
 }
 
 // ----------------------------------------------------------------------------
