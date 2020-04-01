@@ -137,7 +137,7 @@ module.exports = class hitbtc2 extends ccxt.hitbtc2 {
         if (marketId !== undefined) {
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
-                symbol = market['id'];
+                symbol = market['symbol'];
             }
         }
         if (market === undefined || symbol === undefined) {
