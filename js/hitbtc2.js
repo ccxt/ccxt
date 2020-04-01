@@ -130,55 +130,21 @@ module.exports = class hitbtc2 extends ccxt.hitbtc2 {
     }
 
     handleTicker (client, message) {
-        const messageData = this.safeValue (message, 'params');
-        const marketId = this.safeValue (messageData, 'symbol');
+        const params = this.safeValue (message, 'params');
+        const marketId = this.safeValue (params, 'symbol');
         let market = undefined;
         let symbol = undefined;
         if (marketId !== undefined) {
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
+                symbol = market['id'];
             }
         }
-        if (symbol === undefined) {
-            // if symbol is not available we just return
+        if (market === undefined || symbol === undefined) {
+            // if market or symbol is undefined we just return
             return;
         }
-        const timestamp = this.safeValue (messageData, 'timestamp');
-        const last = this.safeFloat (messageData, 'last');
-        const open = this.safeFloat (messageData, 'open');
-        let change = undefined;
-        let average = undefined;
-        let percentage = undefined;
-        if (last !== undefined && open !== undefined) {
-            change = last - open;
-            average = this.sum (last, open) / 2;
-            if (open !== 0) {
-                percentage = change / open * 100;
-            }
-        }
-        const result = {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': timestamp,
-            'high': this.safeFloat (messageData, 'high'),
-            'low': this.safeFloat (messageData, 'low'),
-            'bid': this.safeFloat (messageData, 'bid'),
-            'bidVolume': undefined,
-            'ask': this.safeFloat (messageData, 'ask'),
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': open,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': change,
-            'percentage': percentage,
-            'average': average,
-            'baseVolume': this.safeFloat (messageData, 'volume'),
-            'quoteVolume': this.safeFloat (messageData, 'volumeQuote'),
-            'info': messageData,
-        };
+        const result = this.parseTicker (params, market);
         this.tickers[symbol] = result;
         const messageHash = 'ticker:' + marketId;
         client.resolve (result, messageHash);
