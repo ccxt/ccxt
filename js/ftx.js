@@ -40,7 +40,7 @@ module.exports = class ftx extends ccxt.ftx {
         const request = {
             'op': 'subscribe',
             'channel': channel,
-            'market': symbol,
+            'market': marketId,
         };
         const messageHash = channel + ':' + symbol;console.log(messageHash);
         return await this.watch (url, messageHash, request, messageHash);
@@ -108,11 +108,10 @@ module.exports = class ftx extends ccxt.ftx {
         }
     }
 
-    genMessageHashFromData (message) {
+    getMessageHash (message) {
         const channel = this.safeString (message, 'channel');
-        const symbol = this.safeString (message, 'market');
-        const messageHash = channel + ':' + symbol;
-        return messageHash;
+        const marketId = this.safeString (message, 'market');
+        return channel + ':' + marketId;
     }
 
     handleTicker (client, message) {
@@ -143,7 +142,7 @@ module.exports = class ftx extends ccxt.ftx {
             'info': rawTicker,
         };
         this.tickers[symbol] = ticker;
-        const messageHash = this.genMessageHashFromData (message);
+        const messageHash = this.getMessageHash (message);
         client.resolve (ticker, messageHash);
         return message;
     }
@@ -160,12 +159,13 @@ module.exports = class ftx extends ccxt.ftx {
         const limit = this.safeInteger (options, 'limit', 400);
         const orderbook = this.orderBook ({}, limit);
         this.orderbooks[symbol] = orderbook;
-        const snapshot = this.parseOrderBook (data);
+        const timestamp = this.safeTimestamp (data, 'time');
+        const snapshot = this.parseOrderBook (data, timestamp);
         orderbook.reset (snapshot);
         // const checksum = this.safeString (data, 'checksum');
         // todo: this.checkOrderBookChecksum (client, orderbook, checksum);
         this.orderbooks[symbol] = orderbook;
-        const messageHash = this.genMessageHashFromData (message);
+        const messageHash = this.getMessageHash (message);
         client.resolve (orderbook, messageHash);
     }
 
@@ -194,20 +194,20 @@ module.exports = class ftx extends ccxt.ftx {
         this.handleDeltas (orderbook['asks'], this.safeValue (data, 'asks', []));
         this.handleDeltas (orderbook['bids'], this.safeValue (data, 'bids', []));
         // orderbook['nonce'] = u;
-        const timestamp = this.safeInteger (message, 'time');
+        const timestamp = this.safeTimestamp (data, 'time');
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);
         // const checksum = this.safeString (data, 'checksum');
         // todo: this.checkOrderBookChecksum (client, orderbook, checksum);
         this.orderbooks[symbol] = orderbook;
-        const messageHash = this.genMessageHashFromData (message);
+        const messageHash = this.getMessageHash (message);
         client.resolve (orderbook, messageHash);
     }
 
     handleTrades (client, message) {
-        const data = this.safeValue (message, 'data', {});console.log(data);
-        const trade = this.parseTrade (data);console.log(trade);
-        const messageHash = this.genMessageHashFromData (message);
+        const data = this.safeValue (message, 'data', {});
+        const trade = this.parseTrade (data);
+        const messageHash = this.getMessageHash (message);
         const symbol = trade['symbol'];
         const array = this.safeValue (this.trades, symbol, []);
         array.push (trade);
