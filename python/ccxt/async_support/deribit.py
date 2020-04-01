@@ -1536,7 +1536,7 @@ class deribit(Exchange):
         #
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId, currency)
-        timestamp = self.safe_integer(transaction, 'created_timestamp', 'received_timestamp')
+        timestamp = self.safe_integer_2(transaction, 'created_timestamp', 'received_timestamp')
         updated = self.safe_integer(transaction, 'updated_timestamp')
         status = self.parse_transaction_status(self.safe_string(transaction, 'state'))
         address = self.safe_string(transaction, 'address')
