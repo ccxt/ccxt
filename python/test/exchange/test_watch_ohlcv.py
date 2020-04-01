@@ -23,7 +23,7 @@ async def test_watch_ohlcv(exchange, symbol):
             print('-----------------------------------------------------------')
             ohlcvs = await getattr(exchange, method)(symbol, timeframe, since, limit)
             now = exchange.milliseconds()
-            print(exchange.iso8601(now), symbol, timeframe)
+            print(exchange.iso8601(now), symbol, timeframe, len(ohlcvs), 'ohlcvs')
             for ohlcv in ohlcvs:
                 test_ohlcv(exchange, ohlcv, method, symbol)
             print(table([[exchange.iso8601(o[0])] + o[1:] for o in ohlcvs]))

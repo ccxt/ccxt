@@ -13,10 +13,10 @@ async def test_watch_trades(exchange, symbol):
         now = exchange.milliseconds()
         end = now + 60000
         while now < end:
-            print('-----------------------------------------------------------')
+            # print('-----------------------------------------------------------')
             trades = await getattr(exchange, method)(symbol)
             now = exchange.milliseconds()
-            print(exchange.iso8601(now), symbol)
+            print(exchange.iso8601(now), symbol, len(trades), 'trades')
             for trade in trades:
                 test_trade(exchange, trade, method, symbol)
             # print(table([exchange.omit(t, ['info', 'timestamp']) for t in trades]))
