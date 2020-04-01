@@ -112,35 +112,17 @@ module.exports = class ftx extends ccxt.ftx {
     }
 
     handleTicker (client, message) {
-        const rawTicker = this.safeValue (message, 'data', {});
-        const symbol = this.safeString (message, 'market');
-        const timestamp = this.safeTimestamp (rawTicker, 'time');
-        const last = this.safeFloat (rawTicker, 'last');
-        const ticker = {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': undefined,
-            'low': undefined,
-            'bid': this.safeFloat (rawTicker, 'bid'),
-            'bidVolume': undefined,
-            'ask': this.safeFloat (rawTicker, 'ask'),
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': undefined,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': undefined,
-            'info': rawTicker,
-        };
-        this.tickers[symbol] = ticker;
-        const messageHash = this.getMessageHash (message);
-        client.resolve (ticker, messageHash);
+        const data = this.safeValue (message, 'data', {});
+        const marketId = this.safeString (message, 'market');
+        let market = undefined;
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+            const ticker = this.parseTicker (data, market);
+            const symbol = ticker['symbol'];
+            this.tickers[symbol] = ticker;
+            const messageHash = this.getMessageHash (message);
+            client.resolve (ticker, messageHash);
+        }
         return message;
     }
 
