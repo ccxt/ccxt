@@ -357,7 +357,7 @@ module.exports = class ftx extends Exchange {
             symbol = market['symbol'];
         }
         const last = this.safeFloat (ticker, 'last');
-        const timestamp = this.milliseconds ();
+        const timestamp = this.safeTimestamp (ticker, 'time', this.milliseconds ());
         return {
             'symbol': symbol,
             'timestamp': timestamp,
