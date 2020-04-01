@@ -203,7 +203,7 @@ module.exports = class ftx extends ccxt.ftx {
 
     handleTrades (client, message) {
         const data = this.safeValue (message, 'data', {});
-        const symbol = this.safeValue (message, 'market', {});;
+        const symbol = this.safeValue (message, 'market', {});
         const market = this.market (symbol);
         const messageHash = this.getMessageHash (message);
         const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
