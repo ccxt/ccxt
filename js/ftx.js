@@ -14,6 +14,10 @@ module.exports = class ftx extends ccxt.ftx {
                 'watchOrderBook': true,
                 'watchTicker': true,
                 'watchTrades': true,
+                'watchOHLCV': false, // missing on the exchange side
+                'watchBalance': false, // missing on the exchange side
+                'watchOrders': false, // not implemented yet
+                'watchMyTrades': false, // not implemented yet
             },
             'urls': {
                 'api': {
