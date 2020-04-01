@@ -35,55 +35,23 @@ const exchanges = {
     'okcoin':                  require ('./js/okcoin.js'),
     'okex':                    require ('./js/okex.js'),
     'poloniex':                require ('./js/poloniex.js'),
-    'upbit':                   require ('./js/upbit.js'),    
 }
 
 // ----------------------------------------------------------------------------
 
-function monkeyPatchExchange (exchange, Exchange, keys) {
-    for (let j = 0; j < keys.length; j++) {
-        const key = keys[j]
-        if (!exchange.prototype[key]) {
-            exchange.prototype[key] = Exchange.prototype[key]
-        }
-    }
-    return exchange
+for (const exchange of Object.values (exchanges)) {
+    const baseExchange = Object.getPrototypeOf (exchange)
+    // clone the constructor function
+    const cloned = eval ('['+Exchange.toString ()+']')[0]
+    Object.setPrototypeOf (exchange, cloned)
+    Object.setPrototypeOf (exchange.prototype, cloned.prototype)
+    Object.setPrototypeOf (cloned, baseExchange)
+    Object.setPrototypeOf (cloned.prototype, baseExchange.prototype)
 }
 
-// ----------------------------------------------------------------------------
-
-function getChildKeys (parentClass, childClass) {
-    const parentKeys = Reflect.ownKeys (parentClass.prototype)
-    const childKeys = Reflect.ownKeys (childClass.prototype)
-    return childKeys.reduce ((previous, current, i) => {
-        if (!parentKeys.includes (current)) {
-            previous.push (current)
-        }
-        return previous
-    }, [])
-
-}
-
-// ----------------------------------------------------------------------------
-
-function monkeyPatchAllExchanges (exchanges, Exchange, ccxt) {
-    const diffKeys = getChildKeys (ccxt.Exchange, Exchange)
-    const ids = Object.keys (exchanges)
-    const result = {}
-    for (let i = 0; i < ids.length; i++) {
-        const id = ids[i]
-        const exchange = exchanges[id]
-        result[id] = monkeyPatchExchange (exchange, Exchange, diffKeys)
-    }
-    return result
-}
-
-// ----------------------------------------------------------------------------
-
-// module.exports = patchedExchanges
 
 module.exports = deepExtend (ccxt, {
     version,
     Exchange,
     exchanges: unique (ccxt.exchanges.concat (Object.keys (exchanges))).sort (),
-}, monkeyPatchAllExchanges (exchanges, Exchange, ccxt))
+}, exchanges)
