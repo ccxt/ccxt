@@ -109,7 +109,7 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
     // ----------------------------------------------------------------------------
     // list all supported exchanges
 
-    const exchangesNotListedInDocs = []
+    const exchangesNotListedInDocs = [ 'hitbtc2' ]
 
     function makeTableData (exchanges) {
         return (
