@@ -1,14 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function
-
-# -----------------------------------------------------------------------------
-
 """Base exchange class"""
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.25.37'
+__version__ = '1.25.55'
 
 # -----------------------------------------------------------------------------
 
@@ -517,7 +513,7 @@ class Exchange(object):
         return headers
 
     def print(self, *args):
-        print_function(*args)
+        print(*args)
 
     def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
@@ -1250,7 +1246,7 @@ class Exchange(object):
             self.currencies = self.deep_extend(currencies, self.currencies)
         else:
             base_currencies = [{
-                'id': market['baseId'] if 'baseId' in market else market['base'],
+                'id': market['baseId'] if (('baseId' in market) and (market['baseId'] is not None)) else market['base'],
                 'numericId': market['baseNumericId'] if 'baseNumericId' in market else None,
                 'code': market['base'],
                 'precision': (
@@ -1260,7 +1256,7 @@ class Exchange(object):
                 ) if 'precision' in market else 8,
             } for market in values if 'base' in market]
             quote_currencies = [{
-                'id': market['quoteId'] if 'quoteId' in market else market['quote'],
+                'id': market['quoteId'] if (('quoteId' in market) and (market['quoteId'] is not None)) else market['quote'],
                 'numericId': market['quoteNumericId'] if 'quoteNumericId' in market else None,
                 'code': market['quote'],
                 'precision': (
@@ -2035,3 +2031,6 @@ class Exchange(object):
     @staticmethod
     def integer_modulo(a, b):
         return int(a) % int(b)
+
+    def sleep(self, milliseconds):
+        return time.sleep(milliseconds / 1000)

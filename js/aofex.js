@@ -13,7 +13,7 @@ module.exports = class aofex extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'aofex',
             'name': 'AOFEX',
-            'countries': [ 'GB', 'CN' ],
+            'countries': [ 'GB' ],
             'rateLimit': 1000,
             'has': {
                 'fetchMarkets': true,

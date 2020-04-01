@@ -216,6 +216,7 @@ class kraken extends Exchange {
                 'delistedMarketsById' => array(),
                 // cannot withdraw/deposit these
                 'inactiveCurrencies' => array( 'CAD', 'USD', 'JPY', 'GBP' ),
+                'fetchMinOrderAmounts' => true,
             ),
             'exceptions' => array(
                 'EQuery:Invalid asset pair' => '\\ccxt\\BadSymbol', // array("error":["EQuery:Invalid asset pair"])
@@ -271,7 +272,11 @@ class kraken extends Exchange {
 
     public function fetch_markets($params = array ()) {
         $response = $this->publicGetAssetPairs ($params);
-        $limits = $this->fetch_min_order_amounts();
+        $fetchMinOrderAmounts = $this->safe_value($this->options, 'fetchMinOrderAmounts', false);
+        $limits = array();
+        if ($fetchMinOrderAmounts) {
+            $limits = $this->fetch_min_order_amounts();
+        }
         $keys = is_array($response['result']) ? array_keys($response['result']) : array();
         $result = array();
         for ($i = 0; $i < count($keys); $i++) {

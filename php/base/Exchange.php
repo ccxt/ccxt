@@ -35,7 +35,7 @@ use kornrunner\Solidity;
 use Elliptic\EC;
 use BN\BN;
 
-$version = '1.25.37';
+$version = '1.25.55';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -54,7 +54,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.25.37';
+    const VERSION = '1.25.55';
 
     public static $exchanges = array(
         '_1btcxe',
@@ -1466,7 +1466,7 @@ class Exchange {
         } else {
             $base_currencies = array_map(function ($market) {
                 return array(
-                    'id' => array_key_exists('baseId', $market) ? $market['baseId'] : $market['base'],
+                    'id' => isset($market['baseId']) ? $market['baseId'] : $market['base'],
                     'numericId' => array_key_exists('baseNumericId', $market) ? $market['baseNumericId'] : null,
                     'code' => $market['base'],
                     'precision' => array_key_exists('precision', $market) ? (
@@ -1479,7 +1479,7 @@ class Exchange {
             }));
             $quote_currencies = array_map(function ($market) {
                 return array(
-                    'id' => array_key_exists('quoteId', $market) ? $market['quoteId'] : $market['quote'],
+                    'id' => isset($market['quoteId']) ? $market['quoteId'] : $market['quote'],
                     'numericId' => array_key_exists('quoteNumericId', $market) ? $market['quoteNumericId'] : null,
                     'code' => $market['quote'],
                     'precision' => array_key_exists('precision', $market) ? (

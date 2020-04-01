@@ -231,6 +231,7 @@ class kraken(Exchange):
                 'delistedMarketsById': {},
                 # cannot withdraw/deposit these
                 'inactiveCurrencies': ['CAD', 'USD', 'JPY', 'GBP'],
+                'fetchMinOrderAmounts': True,
             },
             'exceptions': {
                 'EQuery:Invalid asset pair': BadSymbol,  # {"error":["EQuery:Invalid asset pair"]}
@@ -278,7 +279,10 @@ class kraken(Exchange):
 
     def fetch_markets(self, params={}):
         response = self.publicGetAssetPairs(params)
-        limits = self.fetch_min_order_amounts()
+        fetchMinOrderAmounts = self.safe_value(self.options, 'fetchMinOrderAmounts', False)
+        limits = {}
+        if fetchMinOrderAmounts:
+            limits = self.fetch_min_order_amounts()
         keys = list(response['result'].keys())
         result = []
         for i in range(0, len(keys)):

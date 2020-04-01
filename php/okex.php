@@ -84,7 +84,7 @@ class okex extends Exchange {
                         'ledger',
                         'deposit/address',
                         'deposit/history',
-                        'deposit/historyarray(<currency)',
+                        'deposit/history/{currency}',
                         'currencies',
                         'withdrawal/fee',
                     ),
@@ -2570,14 +2570,6 @@ class okex extends Exchange {
     }
 
     public function parse_my_trade($pair, $market = null) {
-        if (!gettype($pair) === 'array' && count(array_filter(array_keys($pair), 'is_string')) == 0) {
-            throw new NotSupported($this->id . ' parseMyTrade() received unrecognized response format, the exchange API might have changed, paste your verbose outpu => https://github.com/ccxt/ccxt/wiki/FAQ#what-is-required-to-get-help');
-        }
-        // make sure it has exactly 2 trades, no more, no less
-        $numTradesInPair = is_array($pair) ? count($pair) : 0;
-        if ($numTradesInPair !== 2) {
-            throw new NotSupported($this->id . ' parseMyTrade() received unrecognized response format, more than two trades in one fill, the exchange API might have changed, paste your verbose output => https://github.com/ccxt/ccxt/wiki/FAQ#what-is-required-to-get-help');
-        }
         // check that trading symbols match in both entries
         $first = $pair[0];
         $second = $pair[1];
@@ -2700,8 +2692,12 @@ class okex extends Exchange {
         for ($i = 0; $i < count($tradeIds); $i++) {
             $tradeId = $tradeIds[$i];
             $pair = $grouped[$tradeId];
-            $trade = $this->parse_my_trade($pair);
-            $result[] = $trade;
+            // make sure it has exactly 2 $trades, no more, no less
+            $numTradesInPair = is_array($pair) ? count($pair) : 0;
+            if ($numTradesInPair === 2) {
+                $trade = $this->parse_my_trade($pair);
+                $result[] = $trade;
+            }
         }
         $symbol = null;
         if ($market !== null) {
