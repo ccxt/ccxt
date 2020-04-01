@@ -351,11 +351,12 @@ class ftx(Exchange):
             else:
                 base = self.safe_currency_code(self.safe_string(ticker, 'baseCurrency'))
                 quote = self.safe_currency_code(self.safe_string(ticker, 'quoteCurrency'))
-                symbol = base + '/' + quote
+                if (base is not None) and (quote is not None):
+                    symbol = base + '/' + quote
         if (symbol is None) and (market is not None):
             symbol = market['symbol']
         last = self.safe_float(ticker, 'last')
-        timestamp = self.milliseconds()
+        timestamp = self.safe_timestamp(ticker, 'time', self.milliseconds())
         return {
             'symbol': symbol,
             'timestamp': timestamp,

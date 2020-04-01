@@ -352,14 +352,16 @@ class ftx extends Exchange {
             } else {
                 $base = $this->safe_currency_code($this->safe_string($ticker, 'baseCurrency'));
                 $quote = $this->safe_currency_code($this->safe_string($ticker, 'quoteCurrency'));
-                $symbol = $base . '/' . $quote;
+                if (($base !== null) && ($quote !== null)) {
+                    $symbol = $base . '/' . $quote;
+                }
             }
         }
         if (($symbol === null) && ($market !== null)) {
             $symbol = $market['symbol'];
         }
         $last = $this->safe_float($ticker, 'last');
-        $timestamp = $this->milliseconds();
+        $timestamp = $this->safe_timestamp($ticker, 'time', $this->milliseconds());
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
