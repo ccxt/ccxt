@@ -192,26 +192,38 @@ module.exports = class ftx extends ccxt.ftx {
     }
 
     handleOrderBookUpdate (client, message) {
-        // action: update
-        // bids
-        // asks
-        // checksum: see below
-        // time: Timestamp
-        // const u = this.safeInteger (message, 'u');
+        //
+        //     {
+        //         channel: "orderbook",
+        //         market: "BTC/USD",
+        //         type: "update",
+        //         data: {
+        //             time: 1585812417.4673214,
+        //             checksum: 2215307596,
+        //             bids: [[6668, 21.4066], [6669, 25.8738], [4498, 0]],
+        //             asks: [],
+        //             action: "update"
+        //         }
+        //     }
+        //
         const data = this.safeValue (message, 'data', {});
-        const symbol = this.safeString (data, 'market');
-        const orderbook = this.orderbooks[symbol];
-        this.handleDeltas (orderbook['asks'], this.safeValue (data, 'asks', []));
-        this.handleDeltas (orderbook['bids'], this.safeValue (data, 'bids', []));
-        // orderbook['nonce'] = u;
-        const timestamp = this.safeTimestamp (data, 'time');
-        orderbook['timestamp'] = timestamp;
-        orderbook['datetime'] = this.iso8601 (timestamp);
-        // const checksum = this.safeString (data, 'checksum');
-        // todo: this.checkOrderBookChecksum (client, orderbook, checksum);
-        this.orderbooks[symbol] = orderbook;
-        const messageHash = this.getMessageHash (message);
-        client.resolve (orderbook, messageHash);
+        const marketId = this.safeString (message, 'market');
+        if (marketId in this.markets_by_id) {
+            const market = this.markets_by_id[marketId];
+            const symbol = market['symbol'];
+            const orderbook = this.orderbooks[symbol];
+            this.handleDeltas (orderbook['asks'], this.safeValue (data, 'asks', []));
+            this.handleDeltas (orderbook['bids'], this.safeValue (data, 'bids', []));
+            // orderbook['nonce'] = u;
+            const timestamp = this.safeTimestamp (data, 'time');
+            orderbook['timestamp'] = timestamp;
+            orderbook['datetime'] = this.iso8601 (timestamp);
+            // const checksum = this.safeString (data, 'checksum');
+            // todo: this.checkOrderBookChecksum (client, orderbook, checksum);
+            this.orderbooks[symbol] = orderbook;
+            const messageHash = this.getMessageHash (message);
+            client.resolve (orderbook, messageHash);
+        }
     }
 
     handleTrades (client, message) {
