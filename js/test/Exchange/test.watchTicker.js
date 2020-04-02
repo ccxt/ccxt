@@ -4,6 +4,7 @@
 
 const log = require ('ololog')
     , testTicker = require ('ccxt/js/test/Exchange/test.ticker.js')
+    , errors = require ('ccxt/js/base/errors.js')
 
 /*  ------------------------------------------------------------------------ */
 
@@ -21,15 +22,25 @@ module.exports = async (exchange, symbol) => {
     let response = undefined
 
     let now = Date.now ()
-    const ends = now + 30000
+    const ends = now + 20000
 
     while (now < ends) {
 
-        response = await exchange[method] (symbol)
+        try {
+
+            response = await exchange[method] (symbol)
+
+            testTicker (exchange, response, method, symbol)
+
+        } catch (e) {
+
+            if (!(e instanceof errors.NetworkError)) {
+                throw e
+            }
+        }
 
         now = Date.now ()
 
-        testTicker (exchange, response, method, symbol)
     }
 
     return response

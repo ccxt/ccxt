@@ -13,7 +13,7 @@ class kraken extends \ccxt\kraken {
     use ClientTrait;
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'has' => array(
                 'ws' => true,
                 'watchTicker' => true,
@@ -243,7 +243,7 @@ class kraken extends \ccxt\kraken {
                 'name' => $name,
             ),
         );
-        $request = array_replace_recursive($subscribe, $params);
+        $request = $this->deep_extend($subscribe, $params);
         return $this->watch($url, $messageHash, $request, $messageHash);
     }
 
@@ -288,7 +288,7 @@ class kraken extends \ccxt\kraken {
                 'interval' => $this->timeframes[$timeframe],
             ),
         );
-        $request = array_replace_recursive($subscribe, $params);
+        $request = $this->deep_extend($subscribe, $params);
         $future = $this->watch($url, $messageHash, $request, $messageHash);
         return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
     }
