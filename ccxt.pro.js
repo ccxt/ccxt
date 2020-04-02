@@ -27,6 +27,7 @@ const exchanges = {
     'bittrex':                 require ('./js/bittrex.js'),
     'coinbaseprime':           require ('./js/coinbaseprime.js'),
     'coinbasepro':             require ('./js/coinbasepro.js'),
+    'ftx':                     require ('./js/ftx.js'),
     'gateio':                  require ('./js/gateio.js'),
     'huobipro':                require ('./js/huobipro.js'),
     'huobiru':                 require ('./js/huobiru.js'),
