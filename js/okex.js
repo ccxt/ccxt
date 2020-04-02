@@ -3187,7 +3187,8 @@ module.exports = class okex extends Exchange {
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         const feedback = this.id + ' ' + body;
         if (code === 503) {
-            throw new ExchangeError (feedback);
+            // {"message":"name resolution failed"}
+            throw new ExchangeNotAvailable (feedback);
         }
         if (!response) {
             return; // fallback to default error handler
