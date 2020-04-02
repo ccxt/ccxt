@@ -13,7 +13,7 @@ class bitfinex extends \ccxt\bitfinex {
     use ClientTrait;
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'has' => array(
                 'ws' => true,
                 'watchTicker' => true,
@@ -53,7 +53,7 @@ class bitfinex extends \ccxt\bitfinex {
             'symbol' => $marketId,
             'messageHash' => $messageHash,
         );
-        return $this->watch($url, $messageHash, array_replace_recursive($request, $params), $messageHash);
+        return $this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash);
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -261,7 +261,7 @@ class bitfinex extends \ccxt\bitfinex {
             'freq' => $freq, // string, frequency of updates 'F0' = realtime, 'F1' = 2 seconds, default is 'F0'
             // 'len' => '25', // string, number of price points, '25', '100', default = '25'
         );
-        $future = $this->subscribe('book', $symbol, array_replace_recursive($request, $params));
+        $future = $this->subscribe('book', $symbol, $this->deep_extend($request, $params));
         return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 

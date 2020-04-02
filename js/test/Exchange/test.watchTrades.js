@@ -7,6 +7,7 @@ const log = require ('ololog')
     , asTable = require ('as-table')
     , assert = chai.assert
     , testTrade = require ('ccxt/js/test/Exchange/test.trade.js')
+    , errors = require ('ccxt/js/base/errors.js')
 
 /*  ------------------------------------------------------------------------ */
 
@@ -32,22 +33,38 @@ module.exports = async (exchange, symbol) => {
 
     let response = undefined
 
-    for (let i = 0; i < 3; i++) {
+    let now = Date.now ()
+    const ends = now + 20000
 
-        response = await exchange[method] (symbol)
+    while (now < ends) {
 
-        log.noLocate (asTable (response))
+        try {
 
-        assert (response instanceof Array)
-        log (symbol.green, method, 'returned', Object.values (response).length.toString ().green, 'trades')
-        let now = Date.now ()
-        for (let i = 0; i < response.length; i++) {
-            testTrade (exchange, response[i], symbol, now)
-            if (i > 0) {
-                if (response[i].timestamp && response[i - 1].timestamp) {
-                    assert (response[i].timestamp >= response[i - 1].timestamp)
+            response = await exchange[method] (symbol)
+
+            now = Date.now ()
+
+            assert (response instanceof Array)
+
+            log (exchange.iso8601 (now), exchange.id, symbol.green, method, Object.values (response).length.toString ().green, 'trades')
+
+            // log.noLocate (asTable (response))
+
+            for (let i = 0; i < response.length; i++) {
+                testTrade (exchange, response[i], symbol, now)
+                if (i > 0) {
+                    if (response[i].timestamp && response[i - 1].timestamp) {
+                        assert (response[i].timestamp >= response[i - 1].timestamp)
+                    }
                 }
             }
+        } catch (e) {
+
+            if (!(e instanceof errors.NetworkError)) {
+                throw e
+            }
+
+            now = Date.now ()
         }
     }
 

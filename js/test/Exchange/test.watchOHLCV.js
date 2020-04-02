@@ -7,6 +7,7 @@ const log = require ('ololog')
     , asTable = require ('as-table')
     , assert = chai.assert
     , testOHLCV = require ('ccxt/js/test/Exchange/test.ohlcv.js')
+    , errors = require ('ccxt/js/base/errors.js')
 
 /*  ------------------------------------------------------------------------ */
 
@@ -25,34 +26,53 @@ module.exports = async (exchange, symbol) => {
 
     let response = undefined
 
-    for (let i = 0; i < 3; i++) {
+    let now = Date.now ()
+    const ends = now + 20000
 
-        response = await exchange[method] (symbol, timeframe)
+    while (now < ends) {
 
-        assert (response instanceof Array)
-        // log (symbol.green, method, 'returned', Object.values (response).length.toString ().green, 'ohlcvs')
-        const now = Date.now ()
-        for (let j = 0; j < response.length; j++) {
-            testOHLCV (exchange, response[j], symbol, now)
-            if (j > 0) {
-                if (response[j][0] && response[j - 1][0]) {
-                    assert (response[j][0] >= response[j - 1][0])
+        try {
+
+            response = await exchange[method] (symbol, timeframe)
+
+            now = Date.now ()
+
+            assert (response instanceof Array)
+            // log (symbol.green, method, 'returned', Object.values (response).length.toString ().green, 'ohlcvs')
+            for (let j = 0; j < response.length; j++) {
+                testOHLCV (exchange, response[j], symbol, now)
+                if (j > 0) {
+                    if (response[j][0] && response[j - 1][0]) {
+                        assert (response[j][0] >= response[j - 1][0])
+                    }
                 }
             }
+
+            response = response.map ((ohlcv) => [
+                exchange.iso8601 (ohlcv[0]),
+                symbol,
+                ohlcv[1],
+                ohlcv[2],
+                ohlcv[3],
+                ohlcv[4],
+                ohlcv[5],
+            ])
+
+            if (response.length > 0) {
+                log (exchange.iso8601 (now), exchange.id, symbol, JSON.stringify (response[response.length - 1]))
+            }
+
+        } catch (e) {
+
+            if (!(e instanceof errors.NetworkError)) {
+                throw e
+            }
+
+            now = Date.now ()
         }
 
-        response = response.map ((ohlcv) => [
-            exchange.iso8601 (ohlcv[0]),
-            symbol,
-            ohlcv[1],
-            ohlcv[2],
-            ohlcv[3],
-            ohlcv[4],
-            ohlcv[5],
-        ])
-
-        console.log ('--------------------------------------------------------')
-        log.noLocate (asTable (response))
+        // console.log ('--------------------------------------------------------')
+        // log.noLocate (asTable (response))
     }
 
     return response

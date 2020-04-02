@@ -14,7 +14,7 @@ class okex extends \ccxt\okex {
     use ClientTrait;
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'has' => array(
                 'ws' => true,
                 'watchTicker' => true,
@@ -58,7 +58,7 @@ class okex extends \ccxt\okex {
             'op' => 'subscribe',
             'args' => array( $messageHash ),
         );
-        return $this->watch($url, $messageHash, array_replace_recursive($request, $params), $messageHash);
+        return $this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash);
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -442,7 +442,7 @@ class okex extends \ccxt\okex {
             'args' => array( $subscriptionHash ),
         );
         $query = $this->omit($params, array( 'currency', 'code', 'instrument_id', 'symbol', 'type' ));
-        return $this->watch($url, $messageHash, array_replace_recursive($request, $query), $subscriptionHash);
+        return $this->watch($url, $messageHash, $this->deep_extend($request, $query), $subscriptionHash);
     }
 
     public function handle_balance($client, $message) {
@@ -491,7 +491,7 @@ class okex extends \ccxt\okex {
         for ($i = 0; $i < count($data); $i++) {
             $balance = $this->parseBalanceByType ($type, $data);
             $oldBalance = $this->safe_value($this->balance, $type, array());
-            $newBalance = array_replace_recursive($oldBalance, $balance);
+            $newBalance = $this->deep_extend($oldBalance, $balance);
             $this->balance[$type] = $this->parse_balance($newBalance);
             $client->resolve ($this->balance[$type], $table);
         }

@@ -50,4 +50,12 @@ module.exports = class WsClient extends Client {
     isOpen () {
         return (this.connection.readyState === WebSocket.OPEN)
     }
+
+    close () {
+        this.reconnect = false
+        if (this.connection instanceof WebSocket) {
+            return this.connection.close ()
+        }
+    }
+
 }
