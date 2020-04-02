@@ -8,8 +8,11 @@ async def test_watch_order_book(exchange, symbol):
     method = 'watchOrderBook'
     if (method in exchange.has) and exchange.has[method]:
         response = None
-        for i in range(0, 10):
+        now = exchange.milliseconds()
+        end = now + 60000
+        while now < end:
             response = await getattr(exchange, method)(symbol)
+            now = exchange.milliseconds()
             test_order_book(exchange, response, method, symbol)
         return response
     else:

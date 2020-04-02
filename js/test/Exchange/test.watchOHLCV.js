@@ -25,13 +25,17 @@ module.exports = async (exchange, symbol) => {
 
     let response = undefined
 
-    for (let i = 0; i < 3; i++) {
+    let now = Date.now ()
+    const ends = now + 60000
+
+    while (now < ends) {
 
         response = await exchange[method] (symbol, timeframe)
 
+        now = Date.now ()
+
         assert (response instanceof Array)
         // log (symbol.green, method, 'returned', Object.values (response).length.toString ().green, 'ohlcvs')
-        const now = Date.now ()
         for (let j = 0; j < response.length; j++) {
             testOHLCV (exchange, response[j], symbol, now)
             if (j > 0) {
