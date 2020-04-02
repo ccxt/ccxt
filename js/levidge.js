@@ -3,6 +3,7 @@
 //  ---------------------------------------------------------------------------
 const Exchange = require ('./base/Exchange');
 const { AuthenticationError, ArgumentsRequired, BadRequest, BadSymbol, OrderNotFound } = require ('./base/errors');
+const { ROUND } = require ('./base/functions/number');
 //  ---------------------------------------------------------------------------
 
 module.exports = class levidge extends Exchange {
@@ -230,7 +231,7 @@ module.exports = class levidge extends Exchange {
             'pairId': market['id'],
         }, params);
         // apply limit though does not work with API
-        if (limit && typeof limit === 'number') {
+        if (limit && this.isInteger (limit)) {
             request = this.extend ({ 'limit': limit }, request);
         }
         const response = await this.publicGetGetTradeHistory (request);
@@ -256,7 +257,7 @@ module.exports = class levidge extends Exchange {
                 const scale = position['quantity_scale'];
                 const free = this.convertFromScale (availableQuantity, scale);
                 const total = this.convertFromScale (quantity, scale);
-                const used = parseFloat (this.decimalToPrecision (total - free, this.ROUND, scale));
+                const used = parseFloat (this.decimalToPrecision (total - free, ROUND, scale));
                 if (!balance[symbol]) {
                     balance[symbol] = this.account ();
                 }
@@ -301,9 +302,9 @@ module.exports = class levidge extends Exchange {
     }
 
     createOrderRequest (market, type, side, amount, price = undefined, params = {}) {
-        const quantity = this.isNumber (amount) ? amount : 0;
+        const quantity = this.isNumber (amount) === true ? amount : 0;
         const quantity_scale = this.getScale (quantity);
-        price = this.isNumber (price) ? price : 0;
+        price = this.isNumber (price) === true ? price : 0;
         const price_scale = this.getScale (price);
         const stopPx = 0;
         const stopPx_scale = this.getScale (stopPx);
@@ -857,43 +858,51 @@ module.exports = class levidge extends Exchange {
     }
 
     isOpenOrder (order) {
-        return ((order['execType'] === 'F'
-        && order['leavesQty'] !== 0
-        && order['ordType'] !== '1'
-        )
-        || (order['execType'] !== 'F'
-         && order['execType'] !== '4'
-         && order['execType'] !== '8'
-         && order['execType'] !== 'B'
-         && order['execType'] !== 'C'
-         && order['ordType'] !== '1'
-        )
-        )
-      && order['ordStatus'] !== '8';
+        let condtionOne = false;
+        let conditionTwo = false;
+        if (order['execType'] === 'F' && order['leavesQty'] !== 0 && order['ordType'] !== '1') {
+            condtionOne = true;
+        }
+        if (order['execType'] !== 'F' && order['execType'] !== '4' && order['execType'] !== '8' && order['execType'] !== 'B' && order['execType'] !== 'C' && order['ordType'] !== '1') {
+            conditionTwo = true;
+        }
+        if ((condtionOne || conditionTwo) && order['ordStatus'] !== '8') {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     isClosedOrder (order) {
-        return (order['execType'] !== '4'
-                && order['execType'] !== '8'
-                && order['ordStatus'] !== '8'
-                && order['ordType'] === '1'
-        )
-              || ((order['execType'] === 'F'
-                || order['execType'] === 'B'
-                || order['execType'] === 'C'
-              )
-                && order['cumQty'] !== 0
-              );
+        let condtionOne = false;
+        let conditionTwo = false;
+        if (order['execType'] !== '4' && order['execType'] !== '8' && order['ordStatus'] !== '8' && order['ordType'] === '1') {
+            condtionOne = true;
+        }
+        if (order['execType'] === 'F' || order['execType'] === 'B' || order['execType'] === 'C') {
+            conditionTwo = true;
+        }
+        if (condtionOne || (conditionTwo && order['cumQty'] !== 0)) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     isCancelledOrder (order) {
-        return order['execType'] === '4'
-                || order['execType'] === '8'
-                || order['ordStatus'] === '8'
-                || ((order['execType'] === 'B' || order['execType'] === 'C'
-                )
-                && order['cumQty'] === 0
-                );
+        let condtionOne = false;
+        let conditionTwo = false;
+        if (order['execType'] === '4' || order['execType'] === '8' || order['ordStatus'] === '8') {
+            condtionOne = true;
+        }
+        if ((order['execType'] === 'B' || order['execType'] === 'C') && order['cumQty'] === 0) {
+            conditionTwo = true;
+        }
+        if (condtionOne || conditionTwo) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     parseOrderStatus (order) {
