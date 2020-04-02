@@ -628,7 +628,9 @@ module.exports = class levidge extends Exchange {
     }
 
     getCurrency (code) {
-        const currency = this.indexBy (this.currencies, 'code')[code.toUpperCase ()];
+        const currencies = this.indexBy (this.currencies, 'code');
+        code = code.toUpperCase ();
+        const currency = currencies[code];
         if (!currency) {
             throw new BadSymbol (this.id + ': code ' + code + ' is not listed');
         }
@@ -777,7 +779,7 @@ module.exports = class levidge extends Exchange {
         };
     }
 
-    parseTicker (ticker, market) {
+    parseTicker (ticker, market = undefined) {
         let timestamp = undefined;
         let datetime = undefined;
         let open = undefined;
@@ -818,7 +820,7 @@ module.exports = class levidge extends Exchange {
         };
     }
 
-    parseOHLCV (ohlcv, market) {
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         const timestamp = ohlcv[0];
         const open = this.convertFromScale (ohlcv[1], market['precision']['price']);
         const high = this.convertFromScale (ohlcv[2], market['precision']['price']);
