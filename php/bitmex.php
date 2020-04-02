@@ -13,7 +13,7 @@ class bitmex extends \ccxt\bitmex {
     use ClientTrait;
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'has' => array(
                 'ws' => true,
                 'watchTicker' => true,
@@ -435,7 +435,7 @@ class bitmex extends \ccxt\bitmex {
                 $messageHash,
             ),
         );
-        $future = $this->watch($url, $messageHash, array_replace_recursive($request, $params), $messageHash);
+        $future = $this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash);
         return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 

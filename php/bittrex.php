@@ -13,7 +13,7 @@ class bittrex extends \ccxt\bittrex {
     use ClientTrait;
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'has' => array(
                 'ws' => true,
                 'watchOrderBook' => true,
@@ -538,7 +538,7 @@ class bittrex extends \ccxt\bittrex {
         $code = $this->safe_currency_code($this->safe_string($d, 'c'));
         $result = array();
         $result[$code] = $account;
-        $this->balance = array_replace_recursive($this->balance, $result);
+        $this->balance = $this->deep_extend($this->balance, $result);
         $this->balance = $this->parse_balance($this->balance);
         $client->resolve ($this->balance, 'balance');
         return $message;
@@ -548,7 +548,7 @@ class bittrex extends \ccxt\bittrex {
         // this is a method for fetching the balance snapshot over REST
         // todo it is a synch blocking call in ccxt.php - make it async
         $response = $this->fetchBalance ();
-        $this->balance = array_replace_recursive($this->balance, $response);
+        $this->balance = $this->deep_extend($this->balance, $response);
         $client->resolve ($this->balance, 'balance');
     }
 
