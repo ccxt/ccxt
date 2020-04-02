@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.25.59'
+__version__ = '1.25.60'
 
 # ----------------------------------------------------------------------------
 
@@ -111,7 +111,6 @@ from ccxt.bybit import bybit                                # noqa: F401
 from ccxt.bytetrade import bytetrade                        # noqa: F401
 from ccxt.cex import cex                                    # noqa: F401
 from ccxt.chilebit import chilebit                          # noqa: F401
-from ccxt.cobinhood import cobinhood                        # noqa: F401
 from ccxt.coinbase import coinbase                          # noqa: F401
 from ccxt.coinbaseprime import coinbaseprime                # noqa: F401
 from ccxt.coinbasepro import coinbasepro                    # noqa: F401
@@ -234,7 +233,6 @@ exchanges = [
     'bytetrade',
     'cex',
     'chilebit',
-    'cobinhood',
     'coinbase',
     'coinbaseprime',
     'coinbasepro',
