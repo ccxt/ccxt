@@ -235,8 +235,7 @@ module.exports = class Client {
     }
 
     close () {
-        this.reconnect = false
-        this.connection.close ()
+        throw new NotSupported ('close() not implemented yet');
     }
 
     onMessage (message) {
