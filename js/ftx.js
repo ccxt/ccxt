@@ -94,7 +94,13 @@ module.exports = class ftx extends ccxt.ftx {
 
     handleMessage (client, message) {
         const methods = {
-            'partial': this.handlePartial,
+            // ftx API docs say that all tickers and trades will be "partial"
+            // however, in fact those are "update"
+            // therefore we don't need to parse the "partial" update
+            // since it is only used for orderbooks...
+            // uncomment to fix if this is wrong
+            // 'partial': this.handlePartial,
+            'partial': this.handleOrderBookSnapshot,
             'update': this.handleUpdate,
             'subscribed': this.handleSubscriptionStatus,
             'unsubscribed': this.handleUnsubscriptionStatus,
