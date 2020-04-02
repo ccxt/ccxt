@@ -21,7 +21,7 @@ module.exports = async (exchange, symbol) => {
     let response = undefined
 
     let now = Date.now ()
-    const ends = now + 60000
+    const ends = now + 30000
 
     while (now < ends) {
 
