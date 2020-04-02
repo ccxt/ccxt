@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from exchange.test_ticker import test_ticker
+from ccxt import NetworkError
 
 
 async def test_watch_ticker(exchange, symbol):
@@ -12,9 +13,12 @@ async def test_watch_ticker(exchange, symbol):
         now = exchange.milliseconds()
         end = now + 20000
         while now < end:
-            response = await getattr(exchange, method)(symbol)
-            now = exchange.milliseconds()
-            test_ticker(exchange, response, method, symbol)
+            try:
+                response = await getattr(exchange, method)(symbol)
+                now = exchange.milliseconds()
+                test_ticker(exchange, response, method, symbol)
+            except NetworkError:
+                now = exchange.milliseconds()
         return response
     else:
         print(exchange.id, method, 'is not supported or not implemented yet')
