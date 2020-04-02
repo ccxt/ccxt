@@ -137,25 +137,46 @@ module.exports = class ftx extends ccxt.ftx {
     }
 
     handleOrderBookSnapshot (client, message) {
-        // action: partial
-        // bids
-        // asks
-        // checksum: see below
-        // time: Timestamp
+        //
+        //     {
+        //         channel: "orderbook",
+        //         market: "BTC/USD",
+        //         type: "partial",
+        //         data: {
+        //             time: 1585812237.6300597,
+        //             checksum: 2028058404,
+        //             bids: [
+        //                 [6655.5, 21.23],
+        //                 [6655, 41.0165],
+        //                 [6652.5, 15.1985],
+        //             ],
+        //             asks: [
+        //                 [6658, 48.8094],
+        //                 [6659.5, 15.6184],
+        //                 [6660, 16.7178],
+        //             ],
+        //             action: "partial"
+        //         }
+        //     }
+        //
         const data = this.safeValue (message, 'data', {});
-        const symbol = this.safeString (data, 'market');
-        const options = this.safeValue (this.options, 'watchOrderBook', {});
-        const limit = this.safeInteger (options, 'limit', 400);
-        const orderbook = this.orderBook ({}, limit);
-        this.orderbooks[symbol] = orderbook;
-        const timestamp = this.safeTimestamp (data, 'time');
-        const snapshot = this.parseOrderBook (data, timestamp);
-        orderbook.reset (snapshot);
-        // const checksum = this.safeString (data, 'checksum');
-        // todo: this.checkOrderBookChecksum (client, orderbook, checksum);
-        this.orderbooks[symbol] = orderbook;
-        const messageHash = this.getMessageHash (message);
-        client.resolve (orderbook, messageHash);
+        const marketId = this.safeString (message, 'market');
+        if (marketId in this.markets_by_id) {
+            const market = this.markets_by_id[marketId];
+            const symbol = market['symbol'];
+            const options = this.safeValue (this.options, 'watchOrderBook', {});
+            const limit = this.safeInteger (options, 'limit', 400);
+            const orderbook = this.orderBook ({}, limit);
+            this.orderbooks[symbol] = orderbook;
+            const timestamp = this.safeTimestamp (data, 'time');
+            const snapshot = this.parseOrderBook (data, timestamp);
+            orderbook.reset (snapshot);
+            // const checksum = this.safeString (data, 'checksum');
+            // todo: this.checkOrderBookChecksum (client, orderbook, checksum);
+            this.orderbooks[symbol] = orderbook;
+            const messageHash = this.getMessageHash (message);
+            client.resolve (orderbook, messageHash);
+        }
     }
 
     handleDelta (bookside, delta) {
