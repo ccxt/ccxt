@@ -41,10 +41,12 @@ module.exports = async (exchange, symbol) => {
 
         now = Date.now ()
 
-        log.noLocate (asTable (response))
-
         assert (response instanceof Array)
+
         log (symbol.green, method, 'returned', Object.values (response).length.toString ().green, 'trades')
+
+        log.noLocate (asTable (response.slice (-10)))
+
         for (let i = 0; i < response.length; i++) {
             testTrade (exchange, response[i], symbol, now)
             if (i > 0) {
