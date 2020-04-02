@@ -122,11 +122,25 @@ module.exports = class ftx extends ccxt.ftx {
     }
 
     handleTicker (client, message) {
+        //
+        //     {
+        //         channel: 'ticker',
+        //         market: 'BTC/USD',
+        //         type: 'update',
+        //         data: {
+        //             bid: 6652,
+        //             ask: 6653,
+        //             bidSize: 17.6608,
+        //             askSize: 18.1869,
+        //             last: 6655,
+        //             time: 1585787827.3118029
+        //         }
+        //     }
+        //
         const data = this.safeValue (message, 'data', {});
         const marketId = this.safeString (message, 'market');
-        let market = undefined;
         if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
+            const market = this.markets_by_id[marketId];
             const ticker = this.parseTicker (data, market);
             const symbol = ticker['symbol'];
             this.tickers[symbol] = ticker;
