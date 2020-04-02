@@ -3065,7 +3065,8 @@ class okex(Exchange):
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         feedback = self.id + ' ' + body
         if code == 503:
-            raise ExchangeError(feedback)
+            # {"message":"name resolution failed"}
+            raise ExchangeNotAvailable(feedback)
         if not response:
             return  # fallback to default error handler
         message = self.safe_string(response, 'message')

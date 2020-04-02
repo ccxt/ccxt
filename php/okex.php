@@ -11,6 +11,7 @@ use \ccxt\ArgumentsRequired;
 use \ccxt\InvalidAddress;
 use \ccxt\InvalidOrder;
 use \ccxt\NotSupported;
+use \ccxt\ExchangeNotAvailable;
 
 class okex extends Exchange {
 
@@ -3192,7 +3193,8 @@ class okex extends Exchange {
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         $feedback = $this->id . ' ' . $body;
         if ($code === 503) {
-            throw new ExchangeError($feedback);
+            // array("$message":"name resolution failed")
+            throw new ExchangeNotAvailable($feedback);
         }
         if (!$response) {
             return; // fallback to default error handler
