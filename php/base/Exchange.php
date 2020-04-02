@@ -384,7 +384,7 @@ class Exchange {
     }
 
     public static function is_associative($array) {
-        return count(array_filter(array_keys($array), 'is_string')) > 0;
+        return is_array($array) && (count(array_filter(array_keys($array), 'is_string')) > 0);
     }
 
     public static function omit($array, $keys) {
@@ -501,6 +501,27 @@ class Exchange {
             }
         }
         return $string;
+    }
+
+    public static function deep_extend() {
+        //
+        //     extend associative dictionaries only, replace everything else
+        //
+        $out = null;
+        $args = func_get_args();
+        foreach ($args as $arg) {
+            if (static::is_associative($arg)) {
+                if (!static::is_associative($out)) {
+                    $out = array();
+                }
+                foreach ($arg as $k => $v) {
+                    $out[$k] = static::deep_extend(@$out[$k], $v);
+                }
+            } else {
+                $out = $arg;
+            }
+        }
+        return $out;
     }
 
     public static function indexBy($arrayOfArrays, $key) {
