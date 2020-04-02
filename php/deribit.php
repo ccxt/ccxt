@@ -12,7 +12,7 @@ use \ccxt\ArgumentsRequired;
 class deribit extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'deribit',
             'name' => 'Deribit',
             'countries' => array( 'NL' ), // Netherlands

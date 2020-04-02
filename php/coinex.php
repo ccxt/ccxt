@@ -12,7 +12,7 @@ use \ccxt\InvalidOrder;
 class coinex extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'coinex',
             'name' => 'CoinEx',
             'version' => 'v1',

@@ -13,7 +13,7 @@ use \ccxt\NotSupported;
 class buda extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'buda',
             'name' => 'Buda',
             'countries' => array( 'AR', 'CL', 'CO', 'PE' ),

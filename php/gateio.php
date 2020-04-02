@@ -13,7 +13,7 @@ use \ccxt\InvalidAddress;
 class gateio extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'gateio',
             'name' => 'Gate.io',
             'countries' => array( 'CN' ),

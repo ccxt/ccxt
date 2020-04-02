@@ -12,7 +12,7 @@ use \ccxt\OrderNotFound;
 class adara extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'adara',
             'name' => 'Adara',
             'countries' => array( 'MT' ),
@@ -1097,7 +1097,7 @@ class adara extends Exchange {
                     $orderTrade = $order['trades'][$j];
                     $orderTradeId = $orderTrade['id'];
                     if (is_array($tradesById) && array_key_exists($orderTradeId, $tradesById)) {
-                        $orderTrades[] = array_replace_recursive($tradesById[$orderTradeId], array(
+                        $orderTrades[] = $this->deep_extend($tradesById[$orderTradeId], array(
                             'order' => $order['id'],
                             'type' => $order['type'],
                             'symbol' => $order['symbol'],

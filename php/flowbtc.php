@@ -11,7 +11,7 @@ use \ccxt\ExchangeError;
 class flowbtc extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'flowbtc',
             'name' => 'flowBTC',
             'countries' => array( 'BR' ), // Brazil

@@ -12,7 +12,7 @@ use \ccxt\ArgumentsRequired;
 class dsx extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'dsx',
             'name' => 'DSX',
             'countries' => array( 'UK' ),

@@ -12,7 +12,7 @@ use \ccxt\InvalidOrder;
 class timex extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'timex',
             'name' => 'TimeX',
             'countries' => array( 'AU' ),

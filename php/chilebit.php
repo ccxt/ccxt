@@ -10,7 +10,7 @@ use Exception; // a common import
 class chilebit extends foxbit {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'chilebit',
             'name' => 'ChileBit',
             'countries' => array( 'CL' ),

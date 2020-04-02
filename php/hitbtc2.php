@@ -12,7 +12,7 @@ class hitbtc2 extends hitbtc {
     public function describe() {
         // this is a temporary stub for backward compatibility
         // https://github.com/ccxt/ccxt/issues/6678
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'hitbtc2',
         ));
     }
