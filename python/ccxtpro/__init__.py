@@ -8,7 +8,7 @@ import ccxt.async_support as ccxt
 
 # -----------------------------------------------------------------------------
 
-__version__ = '0.1.26'
+__version__ = '0.1.28'
 
 # -----------------------------------------------------------------------------
 
@@ -95,7 +95,6 @@ from ccxt.async_support.bybit import bybit                                # noqa
 from ccxt.async_support.bytetrade import bytetrade                        # noqa: F401
 from ccxt.async_support.cex import cex                                    # noqa: F401
 from ccxt.async_support.chilebit import chilebit                          # noqa: F401
-from ccxt.async_support.cobinhood import cobinhood                        # noqa: F401
 from ccxt.async_support.coinbase import coinbase                          # noqa: F401
 from ccxt.async_support.coincheck import coincheck                        # noqa: F401
 from ccxt.async_support.coinegg import coinegg                            # noqa: F401

@@ -32,15 +32,21 @@ module.exports = async (exchange, symbol) => {
 
     let response = undefined
 
-    for (let i = 0; i < 3; i++) {
+    let now = Date.now ()
+    const ends = now + 30000
+
+    while (now < ends) {
 
         response = await exchange[method] (symbol)
 
-        log.noLocate (asTable (response))
+        now = Date.now ()
 
         assert (response instanceof Array)
+
         log (symbol.green, method, 'returned', Object.values (response).length.toString ().green, 'trades')
-        let now = Date.now ()
+
+        log.noLocate (asTable (response.slice (-10)))
+
         for (let i = 0; i < response.length; i++) {
             testTrade (exchange, response[i], symbol, now)
             if (i > 0) {

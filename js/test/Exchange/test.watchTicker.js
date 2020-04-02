@@ -20,9 +20,15 @@ module.exports = async (exchange, symbol) => {
 
     let response = undefined
 
-    for (let i = 0; i < 3; i++) {
+    let now = Date.now ()
+    const ends = now + 30000
+
+    while (now < ends) {
 
         response = await exchange[method] (symbol)
+
+        now = Date.now ()
+
         testTicker (exchange, response, method, symbol)
     }
 
