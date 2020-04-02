@@ -103,6 +103,8 @@ module.exports = class kuna extends acx {
                                 'max': undefined,
                             },
                         },
+                        'active': undefined,
+                        'info': undefined,
                     });
                     break;
                 }
@@ -137,7 +139,7 @@ module.exports = class kuna extends acx {
         if (market) {
             symbol = market['symbol'];
         }
-        let side = this.safeString (trade, 'side');
+        let side = this.safeString2 (trade, 'side', 'trend');
         if (side !== undefined) {
             const sideMap = {
                 'ask': 'sell',

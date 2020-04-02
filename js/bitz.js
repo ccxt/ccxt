@@ -40,17 +40,18 @@ module.exports = class bitz extends Exchange {
                 '1w': '1week',
                 '1M': '1mon',
             },
+            'hostname': 'apiv2.bitz.com',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/35862606-4f554f14-0b5d-11e8-957d-35058c504b6f.jpg',
                 'api': {
-                    'market': 'https://apiv2.bit-z.pro',
-                    'trade': 'https://apiv2.bit-z.pro',
-                    'assets': 'https://apiv2.bit-z.pro',
+                    'market': 'https://{hostname}',
+                    'trade': 'https://{hostname}',
+                    'assets': 'https://{hostname}',
                 },
-                'www': 'https://www.bit-z.com',
-                'doc': 'https://apidoc.bit-z.com/en/',
-                'fees': 'https://www.bit-z.com/fee?type=1',
-                'referral': 'https://u.bit-z.com/register?invite_code=1429193',
+                'www': 'https://www.bitz.com',
+                'doc': 'https://apidoc.bitz.com/en/',
+                'fees': 'https://www.bitz.com/fee?type=1',
+                'referral': 'https://u.bitz.com/register?invite_code=1429193',
             },
             'api': {
                 'market': {
@@ -85,8 +86,8 @@ module.exports = class bitz extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'maker': 0.001,
-                    'taker': 0.001,
+                    'maker': 0.002,
+                    'taker': 0.002,
                 },
                 'funding': {
                     'withdraw': {
@@ -159,8 +160,11 @@ module.exports = class bitz extends Exchange {
                 // https://github.com/ccxt/ccxt/issues/3881
                 // https://support.bit-z.pro/hc/en-us/articles/360007500654-BOX-BOX-Token-
                 'BOX': 'BOX Token',
+                'LEO': 'LeoCoin',
                 'XRB': 'NANO',
                 'PXC': 'Pixiecoin',
+                'VTC': 'VoteCoin',
+                'TTC': 'TimesChain',
             },
             'exceptions': {
                 // '200': Success
@@ -750,6 +754,7 @@ module.exports = class bitz extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         return {
             'id': id,
+            'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
@@ -765,6 +770,7 @@ module.exports = class bitz extends Exchange {
             'trades': undefined,
             'fee': undefined,
             'info': order,
+            'average': undefined,
         };
     }
 
@@ -1158,7 +1164,8 @@ module.exports = class bitz extends Exchange {
     }
 
     sign (path, api = 'market', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api] + '/' + this.capitalize (api) + '/' + path;
+        const baseUrl = this.implodeParams (this.urls['api'][api], { 'hostname': this.hostname });
+        let url = baseUrl + '/' + this.capitalize (api) + '/' + path;
         let query = undefined;
         if (api === 'market') {
             query = this.urlencode (params);
@@ -1185,7 +1192,6 @@ module.exports = class bitz extends Exchange {
         const status = this.safeString (response, 'status');
         if (status !== undefined) {
             const feedback = this.id + ' ' + body;
-            const exceptions = this.exceptions;
             //
             //     {"status":-107,"msg":"","data":"","time":1535968848,"microtime":"0.89092200 1535968848","source":"api"}
             //
@@ -1195,20 +1201,14 @@ module.exports = class bitz extends Exchange {
                 //
                 const code = this.safeInteger (response, 'data');
                 if (code !== undefined) {
-                    if (code in exceptions) {
-                        throw new exceptions[code] (feedback);
-                    } else {
-                        throw new ExchangeError (feedback);
-                    }
+                    this.throwExactlyMatchedException (this.exceptions, code, feedback);
+                    throw new ExchangeError (feedback);
                 } else {
                     return; // no error
                 }
             }
-            if (status in exceptions) {
-                throw new exceptions[status] (feedback);
-            } else {
-                throw new ExchangeError (feedback);
-            }
+            this.throwExactlyMatchedException (this.exceptions, status, feedback);
+            throw new ExchangeError (feedback);
         }
     }
 };

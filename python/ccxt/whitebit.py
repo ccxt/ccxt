@@ -12,10 +12,12 @@ try:
 except NameError:
     basestring = str  # Python 2
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import ExchangeNotAvailable
 
 
-class whitebit (Exchange):
+class whitebit(Exchange):
 
     def describe(self):
         return self.deep_extend(super(whitebit, self).describe(), {
@@ -113,6 +115,14 @@ class whitebit (Exchange):
             },
             'options': {
                 'fetchTradesMethod': 'fetchTradesV1',
+            },
+            'exceptions': {
+                'exact': {
+                    '503': ExchangeNotAvailable,  # {"response":null,"status":503,"errors":{"message":[""]},"notification":null,"warning":null,"_token":null}
+                },
+                'broad': {
+                    'Market is not available': BadSymbol,  # {"success":false,"message":{"market":["Market is not available"]},"result":[]}
+                },
             },
         })
 
@@ -557,7 +567,7 @@ class whitebit (Exchange):
         ]
 
     def fetch_status(self, params={}):
-        response = self.webGetV1Healthcheck()
+        response = self.webGetV1Healthcheck(params)
         status = self.safe_integer(response, 'status')
         formattedStatus = 'ok'
         if status == 503:
@@ -583,9 +593,9 @@ class whitebit (Exchange):
         if response is not None:
             success = self.safe_value(response, 'success')
             if not success:
-                message = response['message']
-                if message:
-                    raise ExchangeError(message)
-                else:
-                    feedback = self.id + ' ' + self.json(response)
-                    raise ExchangeError(feedback)
+                feedback = self.id + ' ' + body
+                status = self.safe_string(response, 'status')
+                if isinstance(status, basestring):
+                    self.throw_exactly_matched_exception(self.exceptions['exact'], status, feedback)
+                self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
+                raise ExchangeError(feedback)

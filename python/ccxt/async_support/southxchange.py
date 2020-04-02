@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 import hashlib
 
 
-class southxchange (Exchange):
+class southxchange(Exchange):
 
     def describe(self):
         return self.deep_extend(super(southxchange, self).describe(), {
@@ -56,13 +56,14 @@ class southxchange (Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': 0.2 / 100,
-                    'taker': 0.2 / 100,
+                    'maker': 0.1 / 100,
+                    'taker': 0.3 / 100,
                 },
             },
             'commonCurrencies': {
                 'SMT': 'SmartNode',
                 'MTC': 'Marinecoin',
+                'BHD': 'Bithold',
             },
         })
 
@@ -76,7 +77,7 @@ class southxchange (Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
-            id = symbol
+            id = baseId + '/' + quoteId
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -86,6 +87,8 @@ class southxchange (Exchange):
                 'quoteId': quoteId,
                 'active': None,
                 'info': market,
+                'precision': self.precision,
+                'limits': self.limits,
             })
         return result
 
@@ -228,6 +231,7 @@ class southxchange (Exchange):
         result = {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -241,6 +245,8 @@ class southxchange (Exchange):
             'remaining': remaining,
             'status': status,
             'fee': None,
+            'average': None,
+            'trades': None,
         }
         return result
 

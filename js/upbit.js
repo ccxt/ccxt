@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadRequest, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, PermissionDenied } = require ('./base/errors');
+const { ExchangeError, BadRequest, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, PermissionDenied, AddressPending } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -16,6 +16,7 @@ module.exports = class upbit extends Exchange {
             'version': 'v1',
             'rateLimit': 1000,
             'certified': true,
+            'pro': true,
             // new metainfo interface
             'has': {
                 'CORS': true,
@@ -47,9 +48,13 @@ module.exports = class upbit extends Exchange {
                 '1w': 'weeks',
                 '1M': 'months',
             },
+            'hostname': 'api.upbit.com',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/49245610-eeaabe00-f423-11e8-9cba-4b0aed794799.jpg',
-                'api': 'https://api.upbit.com',
+                'api': {
+                    'public': 'https://{hostname}',
+                    'private': 'https://{hostname}',
+                },
                 'www': 'https://upbit.com',
                 'doc': 'https://docs.upbit.com/docs/%EC%9A%94%EC%B2%AD-%EC%88%98-%EC%A0%9C%ED%95%9C',
                 'fees': 'https://upbit.com/service_center/guide',
@@ -117,6 +122,7 @@ module.exports = class upbit extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    'This key has expired.': AuthenticationError,
                     'Missing request parameter error. Check the required parameters!': BadRequest,
                     'side is missing, side does not have a valid value': InvalidOrder,
                 },
@@ -141,9 +147,6 @@ module.exports = class upbit extends Exchange {
                 'tradingFeesByQuoteCurrency': {
                     'KRW': 0.0005,
                 },
-            },
-            'commonCurrencies': {
-                'CPT': 'Contents Protocol', // conflict with CPT (Cryptaur) https://github.com/ccxt/ccxt/issues/4920
             },
         });
     }
@@ -443,7 +446,7 @@ module.exports = class upbit extends Exchange {
         return base + '/' + quote;
     }
 
-    async fetchOrderBooks (symbols = undefined, params = {}) {
+    async fetchOrderBooks (symbols = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let ids = undefined;
         if (symbols === undefined) {
@@ -506,7 +509,7 @@ module.exports = class upbit extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        const orderbooks = await this.fetchOrderBooks ([ symbol ], params);
+        const orderbooks = await this.fetchOrderBooks ([ symbol ], limit, params);
         return this.safeValue (orderbooks, symbol);
     }
 
@@ -540,7 +543,7 @@ module.exports = class upbit extends Exchange {
         //                     timestamp:  1542883543813  }
         //
         const timestamp = this.safeInteger (ticker, 'trade_timestamp');
-        const symbol = this.getSymbolFromMarketId (this.safeString (ticker, 'market'), market);
+        const symbol = this.getSymbolFromMarketId (this.safeString2 (ticker, 'market', 'code'), market);
         const previous = this.safeFloat (ticker, 'prev_closing_price');
         const last = this.safeFloat (ticker, 'trade_price');
         const change = this.safeFloat (ticker, 'signed_change_price');
@@ -681,8 +684,8 @@ module.exports = class upbit extends Exchange {
                 }
             }
         }
-        const marketId = this.safeString (trade, 'market');
-        market = this.safeValue (this.markets_by_id, marketId);
+        const marketId = this.safeString2 (trade, 'market', 'code');
+        market = this.safeValue (this.markets_by_id, marketId, market);
         let fee = undefined;
         let feeCurrency = undefined;
         let symbol = undefined;
@@ -1198,6 +1201,7 @@ module.exports = class upbit extends Exchange {
         const result = {
             'info': order,
             'id': id,
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -1395,7 +1399,8 @@ module.exports = class upbit extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await this.fetchDepositAddress (code, this.extend (request, params));
+        // https://github.com/ccxt/ccxt/issues/6452
+        const response = await this.privatePostDepositsGenerateCoinAddress (this.extend (request, params));
         //
         // https://docs.upbit.com/v1.0/reference#%EC%9E%85%EA%B8%88-%EC%A3%BC%EC%86%8C-%EC%83%9D%EC%84%B1-%EC%9A%94%EC%B2%AD
         // can be any of the two responses:
@@ -1413,12 +1418,7 @@ module.exports = class upbit extends Exchange {
         //
         const message = this.safeString (response, 'message');
         if (message !== undefined) {
-            return {
-                'currency': code,
-                'address': undefined,
-                'tag': undefined,
-                'info': response,
-            };
+            throw new AddressPending (this.id + ' is generating ' + code + ' deposit address, call fetchDepositAddress or createDepositAddress one more time later to retrieve the generated address');
         }
         return this.parseDepositAddress (response);
     }
@@ -1464,9 +1464,12 @@ module.exports = class upbit extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
+        let url = this.implodeParams (this.urls['api'][api], {
+            'hostname': this.hostname,
+        });
+        url += '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        if (method === 'GET') {
+        if (method !== 'POST') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
@@ -1479,13 +1482,16 @@ module.exports = class upbit extends Exchange {
                 'nonce': nonce,
             };
             if (Object.keys (query).length) {
-                request['query'] = this.urlencode (query);
+                const auth = this.urlencode (query);
+                const hash = this.hash (this.encode (auth), 'sha512');
+                request['query_hash'] = hash;
+                request['query_hash_alg'] = 'SHA512';
             }
             const jwt = this.jwt (request, this.encode (this.secret));
             headers = {
                 'Authorization': 'Bearer ' + jwt,
             };
-            if (method !== 'GET') {
+            if ((method !== 'GET') && (method !== 'DELETE')) {
                 body = this.json (params);
                 headers['Content-Type'] = 'application/json';
             }
@@ -1512,23 +1518,11 @@ module.exports = class upbit extends Exchange {
         if (error !== undefined) {
             const message = this.safeString (error, 'message');
             const name = this.safeString (error, 'name');
-            const feedback = this.id + ' ' + this.json (response);
-            const exact = this.exceptions['exact'];
-            if (message in exact) {
-                throw new exact[message] (feedback);
-            }
-            if (name in exact) {
-                throw new exact[name] (feedback);
-            }
-            const broad = this.exceptions['broad'];
-            let broadKey = this.findBroadlyMatchedKey (broad, message);
-            if (broadKey !== undefined) {
-                throw new broad[broadKey] (feedback);
-            }
-            broadKey = this.findBroadlyMatchedKey (broad, name);
-            if (broadKey !== undefined) {
-                throw new broad[broadKey] (feedback);
-            }
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], name, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], name, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
     }

@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFunds, InvalidOrder } = require ('./base/errors');
+const { ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFunds, InvalidOrder, BadSymbol } = require ('./base/errors');
 const { ROUND } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -52,7 +52,7 @@ module.exports = class bitmax extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/66820319-19710880-ef49-11e9-8fbe-16be62a11992.jpg',
                 'api': 'https://bitmax.io',
-                'test': 'https://bitmax-test.io/api',
+                'test': 'https://bitmax-test.io',
                 'www': 'https://bitmax.io',
                 'doc': [
                     'https://github.com/bitmax-exchange/api-doc/blob/master/bitmax-api-doc-v1.2.md',
@@ -109,8 +109,8 @@ module.exports = class bitmax extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'taker': 0.0004,
-                    'maker': 0.0004,
+                    'taker': 0.001,
+                    'maker': 0.001,
                 },
             },
             'options': {
@@ -120,11 +120,17 @@ module.exports = class bitmax extends Exchange {
             'exceptions': {
                 'exact': {
                     '2100': AuthenticationError, // {"code":2100,"message":"ApiKeyFailure"}
+                    '5002': BadSymbol, // {"code":5002,"message":"Invalid Symbol"}
+                    '6001': BadSymbol, // {"code":6001,"message":"Trading is disabled on symbol."}
                     '6010': InsufficientFunds, // {'code': 6010, 'message': 'Not enough balance.'}
                     '60060': InvalidOrder, // { 'code': 60060, 'message': 'The order is already filled or canceled.' }
                     '600503': InvalidOrder, // {"code":600503,"message":"Notional is too small."}
                 },
                 'broad': {},
+            },
+            'commonCurrencies': {
+                'BTCBEAR': 'BEAR',
+                'BTCBULL': 'BULL',
             },
         });
     }
@@ -227,7 +233,7 @@ module.exports = class bitmax extends Exchange {
             };
             const status = this.safeString (market, 'status');
             const active = (status === 'Normal');
-            const entry = {
+            result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -242,17 +248,13 @@ module.exports = class bitmax extends Exchange {
                         'min': this.safeFloat (market, 'minQty'),
                         'max': this.safeFloat (market, 'maxQty'),
                     },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
+                    'price': { 'min': undefined, 'max': undefined },
                     'cost': {
                         'min': this.safeFloat (market, 'minNotional'),
                         'max': this.safeFloat (market, 'maxNotional'),
                     },
                 },
-            };
-            result.push (entry);
+            });
         }
         return result;
     }
@@ -316,8 +318,7 @@ module.exports = class bitmax extends Exchange {
         //                 "totalAmount": "20.03", // total balance amount
         //                 "availableAmount": "20.03", // balance amount available to trade
         //                 "inOrderAmount": "0.000", // in order amount
-        //                 "btcValue": "70.81"     // the current BTC value of the balance
-        //                                                 // ("btcValue" might not be available when price is missing)
+        //                 "btcValue": "70.81"     // the current BTC value of the balance, may be missing
         //             },
         //         ]
         //     }
@@ -340,7 +341,7 @@ module.exports = class bitmax extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['symbol'],
+            'symbol': market['id'],
         };
         if (limit !== undefined) {
             request['n'] = limit; // default = maximum = 100
@@ -432,7 +433,7 @@ module.exports = class bitmax extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['symbol'],
+            'symbol': market['id'],
         };
         const response = await this.publicGetTicker24hr (this.extend (request, params));
         return this.parseTicker (response, market);
@@ -446,21 +447,19 @@ module.exports = class bitmax extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         //
-        //     [
-        //         {
-        //             "m":"bar",
-        //             "s":"ETH/BTC",
-        //             "ba":"ETH",
-        //             "qa":"BTC",
-        //             "i":"1",
-        //             "t":1570867020000,
-        //             "o":"0.022023",
-        //             "c":"0.022018",
-        //             "h":"0.022023",
-        //             "l":"0.022018",
-        //             "v":"2.510",
-        //         }
-        //     ]
+        //     {
+        //         "m":"bar",
+        //         "s":"ETH/BTC",
+        //         "ba":"ETH",
+        //         "qa":"BTC",
+        //         "i":"1",
+        //         "t":1570867020000,
+        //         "o":"0.022023",
+        //         "c":"0.022018",
+        //         "h":"0.022023",
+        //         "l":"0.022018",
+        //         "v":"2.510",
+        //     }
         //
         return [
             this.safeInteger (ohlcv, 't'),
@@ -476,7 +475,7 @@ module.exports = class bitmax extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['symbol'],
+            'symbol': market['id'],
             'interval': this.timeframes[timeframe],
         };
         // if since and limit are not specified
@@ -485,7 +484,7 @@ module.exports = class bitmax extends Exchange {
         if (since !== undefined) {
             request['from'] = since;
             if (limit !== undefined) {
-                request['to'] = this.sum (request['from'], limit * duration * 1000, 1);
+                request['to'] = this.sum (since, limit * duration * 1000, 1);
             }
         } else if (limit !== undefined) {
             request['to'] = this.milliseconds ();
@@ -539,6 +538,10 @@ module.exports = class bitmax extends Exchange {
         const timestamp = this.safeInteger (trade, 't');
         const price = this.safeFloat (trade, 'p');
         const amount = this.safeFloat (trade, 'q');
+        let cost = undefined;
+        if ((price !== undefined) && (amount !== undefined)) {
+            cost = price * amount;
+        }
         const buyerIsMaker = this.safeValue (trade, 'bm');
         let symbol = undefined;
         const marketId = this.safeString (trade, 's');
@@ -584,7 +587,7 @@ module.exports = class bitmax extends Exchange {
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': price * amount,
+            'cost': cost,
             'fee': fee,
         };
     }
@@ -669,7 +672,21 @@ module.exports = class bitmax extends Exchange {
         //     }
         //
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const symbol = this.findSymbol (this.safeString (order, 'symbol'), market);
+        const marketId = this.safeString (order, 'symbol');
+        let symbol = undefined;
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('/');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
         const timestamp = this.safeInteger (order, 'sendingTime');
         let price = this.safeFloat (order, 'orderPrice');
         const amount = this.safeFloat (order, 'orderQty');
@@ -704,18 +721,17 @@ module.exports = class bitmax extends Exchange {
                 }
             }
         }
-        let side = this.safeString (order, 'side');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
+        const side = this.safeStringLower (order, 'side');
         const fee = {
             'cost': this.safeFloat (order, 'fee'),
             'currency': this.safeString (order, 'feeAsset'),
         };
         const average = this.safeFloat (order, 'avgPrice');
+        const clientOrderId = id;
         return {
             'info': order,
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -943,7 +959,7 @@ module.exports = class bitmax extends Exchange {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
-            request['pageSize'] = limit;
+            request['n'] = limit; // default 15, max 50
         }
         const response = await this.privateGetOrderHistory (this.extend (request, params));
         //
@@ -1071,7 +1087,7 @@ module.exports = class bitmax extends Exchange {
         //         "status": "success",
         //     }
         //
-        // v2 (not supported yet)
+        // v2
         //
         //     {
         //         "code": 0,
@@ -1089,12 +1105,18 @@ module.exports = class bitmax extends Exchange {
         //         "status": "success" // the request has been submitted to the server
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
-        const address = this.safeString (data, 'address');
+        let addressData = this.safeValue (response, 'data');
+        if (Array.isArray (addressData)) {
+            const firstElement = this.safeValue (addressData, 0, {});
+            addressData = this.safeValue (firstElement, 'addressData', {});
+        }
+        const address = this.safeString (addressData, 'address');
+        const tag = this.safeString (addressData, 'destTag');
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
+            'tag': tag,
             'info': response,
         };
     }
@@ -1130,8 +1152,12 @@ module.exports = class bitmax extends Exchange {
                 headers['x-auth-coid'] = coid;
             }
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
-            headers['x-auth-signature'] = signature;
-            if (method !== 'GET') {
+            headers['x-auth-signature'] = this.decode (signature);
+            if (method === 'GET') {
+                if (Object.keys (query).length) {
+                    url += '?' + this.urlencode (query);
+                }
+            } else {
                 body = this.json (query);
             }
         }
@@ -1153,18 +1179,9 @@ module.exports = class bitmax extends Exchange {
         const error = (code !== undefined) && (code !== '0');
         if (error || (message !== undefined)) {
             const feedback = this.id + ' ' + body;
-            const exact = this.exceptions['exact'];
-            if (code in exact) {
-                throw new exact[code] (feedback);
-            }
-            if (message in exact) {
-                throw new exact[message] (feedback);
-            }
-            const broad = this.exceptions['broad'];
-            const broadKey = this.findBroadlyMatchedKey (broad, message);
-            if (broadKey !== undefined) {
-                throw new broad[broadKey] (feedback);
-            }
+            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
     }

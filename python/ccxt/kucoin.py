@@ -16,12 +16,12 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
-from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 
 
-class kucoin (Exchange):
+class kucoin(Exchange):
 
     def describe(self):
         return self.deep_extend(super(kucoin, self).describe(), {
@@ -30,9 +30,12 @@ class kucoin (Exchange):
             'countries': ['SC'],
             'rateLimit': 334,
             'version': 'v2',
-            'certified': True,
+            'certified': False,
+            'pro': True,
             'comment': 'Platform 2.0',
             'has': {
+                'CORS': False,
+                'fetchTime': True,
                 'fetchMarkets': True,
                 'fetchCurrencies': True,
                 'fetchTicker': True,
@@ -84,6 +87,10 @@ class kucoin (Exchange):
                         'symbols',
                         'market/allTickers',
                         'market/orderbook/level{level}',
+                        'market/orderbook/level2',
+                        'market/orderbook/level2_20',
+                        'market/orderbook/level2_100',
+                        'market/orderbook/level3',
                         'market/histories',
                         'market/candles',
                         'market/stats',
@@ -115,6 +122,7 @@ class kucoin (Exchange):
                     'post': [
                         'accounts',
                         'accounts/inner-transfer',
+                        'accounts/sub-transfer',
                         'deposit-addresses',
                         'withdrawals',
                         'orders',
@@ -142,35 +150,42 @@ class kucoin (Exchange):
                 '1w': '1week',
             },
             'exceptions': {
-                'order_not_exist': OrderNotFound,  # {"code":"order_not_exist","msg":"order_not_exist"} ¯\_(ツ)_/¯
-                'order_not_exist_or_not_allow_to_cancel': InvalidOrder,  # {"code":"400100","msg":"order_not_exist_or_not_allow_to_cancel"}
-                'Order size below the minimum requirement.': InvalidOrder,  # {"code":"400100","msg":"Order size below the minimum requirement."}
-                'The withdrawal amount is below the minimum requirement.': ExchangeError,  # {"code":"400100","msg":"The withdrawal amount is below the minimum requirement."}
-                '400': BadRequest,
-                '401': AuthenticationError,
-                '403': NotSupported,
-                '404': NotSupported,
-                '405': NotSupported,
-                '429': DDoSProtection,
-                '500': ExchangeError,
-                '503': ExchangeNotAvailable,
-                '200004': InsufficientFunds,
-                '230003': InsufficientFunds,  # {"code":"230003","msg":"Balance insufficientnot "}
-                '260100': InsufficientFunds,  # {"code":"260100","msg":"account.noBalance"}
-                '300000': InvalidOrder,
-                '400000': BadSymbol,
-                '400001': AuthenticationError,
-                '400002': InvalidNonce,
-                '400003': AuthenticationError,
-                '400004': AuthenticationError,
-                '400005': AuthenticationError,
-                '400006': AuthenticationError,
-                '400007': AuthenticationError,
-                '400008': NotSupported,
-                '400100': BadRequest,
-                '411100': AccountSuspended,
-                '415000': BadRequest,  # {"code":"415000","msg":"Unsupported Media Type"}
-                '500000': ExchangeError,
+                'exact': {
+                    'order not exist': OrderNotFound,
+                    'order not exist.': OrderNotFound,  # duplicated error temporarily
+                    'order_not_exist': OrderNotFound,  # {"code":"order_not_exist","msg":"order_not_exist"} ¯\_(ツ)_/¯
+                    'order_not_exist_or_not_allow_to_cancel': InvalidOrder,  # {"code":"400100","msg":"order_not_exist_or_not_allow_to_cancel"}
+                    'Order size below the minimum requirement.': InvalidOrder,  # {"code":"400100","msg":"Order size below the minimum requirement."}
+                    'The withdrawal amount is below the minimum requirement.': ExchangeError,  # {"code":"400100","msg":"The withdrawal amount is below the minimum requirement."}
+                    '400': BadRequest,
+                    '401': AuthenticationError,
+                    '403': NotSupported,
+                    '404': NotSupported,
+                    '405': NotSupported,
+                    '429': RateLimitExceeded,
+                    '500': ExchangeError,
+                    '503': ExchangeNotAvailable,
+                    '200004': InsufficientFunds,
+                    '230003': InsufficientFunds,  # {"code":"230003","msg":"Balance insufficient!"}
+                    '260100': InsufficientFunds,  # {"code":"260100","msg":"account.noBalance"}
+                    '300000': InvalidOrder,
+                    '400000': BadSymbol,
+                    '400001': AuthenticationError,
+                    '400002': InvalidNonce,
+                    '400003': AuthenticationError,
+                    '400004': AuthenticationError,
+                    '400005': AuthenticationError,
+                    '400006': AuthenticationError,
+                    '400007': AuthenticationError,
+                    '400008': NotSupported,
+                    '400100': BadRequest,
+                    '411100': AccountSuspended,
+                    '415000': BadRequest,  # {"code":"415000","msg":"Unsupported Media Type"}
+                    '500000': ExchangeError,
+                },
+                'broad': {
+                    'Exceeded the access frequency': RateLimitExceeded,
+                },
             },
             'fees': {
                 'trading': {
@@ -189,6 +204,8 @@ class kucoin (Exchange):
             'commonCurrencies': {
                 'HOT': 'HOTNOW',
                 'EDGE': 'DADI',  # https://github.com/ccxt/ccxt/issues/5756
+                'WAX': 'WAXP',
+                'TRY': 'Trias',
             },
             'options': {
                 'version': 'v1',
@@ -196,6 +213,23 @@ class kucoin (Exchange):
                 'fetchMyTradesMethod': 'private_get_fills',
                 'fetchBalance': {
                     'type': 'trade',  # or 'main'
+                },
+                # endpoint versions
+                'versions': {
+                    'public': {
+                        'GET': {
+                            'market/orderbook/level{level}': 'v1',
+                            'market/orderbook/level2': 'v2',
+                            'market/orderbook/level2_20': 'v1',
+                            'market/orderbook/level2_100': 'v1',
+                        },
+                    },
+                    'private': {
+                        'POST': {
+                            'accounts/inner-transfer': 'v2',
+                            'accounts/sub-transfer': 'v2',
+                        },
+                    },
                 },
             },
         })
@@ -209,6 +243,17 @@ class kucoin (Exchange):
         kucoinTime = self.safe_integer(response, 'data')
         self.options['timeDifference'] = int(after - kucoinTime)
         return self.options['timeDifference']
+
+    def fetch_time(self, params={}):
+        response = self.publicGetTimestamp(params)
+        #
+        #     {
+        #         "code":"200000",
+        #         "msg":"success",
+        #         "data":1546837113087
+        #     }
+        #
+        return self.safe_integer(response, 'data')
 
     def fetch_markets(self, params={}):
         response = self.publicGetSymbols(params)
@@ -231,8 +276,7 @@ class kucoin (Exchange):
         for i in range(0, len(data)):
             market = data[i]
             id = self.safe_string(market, 'symbol')
-            baseId = self.safe_string(market, 'baseCurrency')
-            quoteId = self.safe_string(market, 'quoteCurrency')
+            baseId, quoteId = id.split('-')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
@@ -298,6 +342,9 @@ class kucoin (Exchange):
                 'code': code,
                 'precision': precision,
                 'info': entry,
+                'active': None,
+                'fee': None,
+                'limits': self.limits,
             }
         return result
 
@@ -336,7 +383,7 @@ class kucoin (Exchange):
         return result
 
     def fetch_funding_fee(self, code, params={}):
-        currencyId = self.currencyId(code)
+        currencyId = self.currency_id(code)
         request = {
             'currency': currencyId,
         }
@@ -353,22 +400,46 @@ class kucoin (Exchange):
     def parse_ticker(self, ticker, market=None):
         #
         #     {
-        #         'buy': '0.00001168',
-        #         'changePrice': '-0.00000018',
-        #         'changeRate': '-0.0151',
-        #         'datetime': 1550661146316,
-        #         'high': '0.0000123',
-        #         'last': '0.00001169',
-        #         'low': '0.00001159',
-        #         'sell': '0.00001182',
-        #         'symbol': 'LOOM-BTC',
-        #         'vol': '44399.5669'
+        #         symbol: "ETH-BTC",
+        #         high: "0.019518",
+        #         vol: "7997.82836194",
+        #         last: "0.019329",
+        #         low: "0.019",
+        #         buy: "0.019329",
+        #         sell: "0.01933",
+        #         changePrice: "-0.000139",
+        #         time:  1580553706304,
+        #         averagePrice: "0.01926386",
+        #         changeRate: "-0.0071",
+        #         volValue: "154.40791568183474"
+        #     }
+        #
+        #     {
+        #         "trading": True,
+        #         "symbol": "KCS-BTC",
+        #         "buy": 0.00011,
+        #         "sell": 0.00012,
+        #         "sort": 100,
+        #         "volValue": 3.13851792584,   #total
+        #         "baseCurrency": "KCS",
+        #         "market": "BTC",
+        #         "quoteCurrency": "BTC",
+        #         "symbolCode": "KCS-BTC",
+        #         "datetime": 1548388122031,
+        #         "high": 0.00013,
+        #         "vol": 27514.34842,
+        #         "low": 0.0001,
+        #         "changePrice": -1.0e-5,
+        #         "changeRate": -0.0769,
+        #         "lastTradedPrice": 0.00012,
+        #         "board": 0,
+        #         "mark": 0
         #     }
         #
         percentage = self.safe_float(ticker, 'changeRate')
         if percentage is not None:
             percentage = percentage * 100
-        last = self.safe_float(ticker, 'last')
+        last = self.safe_float_2(ticker, 'last', 'lastTradedPrice')
         symbol = None
         marketId = self.safe_string(ticker, 'symbol')
         if marketId is not None:
@@ -383,10 +454,11 @@ class kucoin (Exchange):
         if symbol is None:
             if market is not None:
                 symbol = market['symbol']
+        timestamp = self.safe_integer_2(ticker, 'time', 'datetime')
         return {
             'symbol': symbol,
-            'timestamp': None,
-            'datetime': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'high': self.safe_float(ticker, 'high'),
             'low': self.safe_float(ticker, 'low'),
             'bid': self.safe_float(ticker, 'buy'),
@@ -400,7 +472,7 @@ class kucoin (Exchange):
             'previousClose': None,
             'change': self.safe_float(ticker, 'changePrice'),
             'percentage': percentage,
-            'average': None,
+            'average': self.safe_float(ticker, 'averagePrice'),
             'baseVolume': self.safe_float(ticker, 'vol'),
             'quoteVolume': self.safe_float(ticker, 'volValue'),
             'info': ticker,
@@ -515,7 +587,7 @@ class kucoin (Exchange):
 
     def create_deposit_address(self, code, params={}):
         self.load_markets()
-        currencyId = self.currencyId(code)
+        currencyId = self.currency_id(code)
         request = {'currency': currencyId}
         response = self.privatePostDepositAddresses(self.extend(request, params))
         # BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
@@ -536,7 +608,7 @@ class kucoin (Exchange):
 
     def fetch_deposit_address(self, code, params={}):
         self.load_markets()
-        currencyId = self.currencyId(code)
+        currencyId = self.currency_id(code)
         request = {'currency': currencyId}
         response = self.privateGetDepositAddresses(self.extend(request, params))
         # BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
@@ -556,9 +628,14 @@ class kucoin (Exchange):
         }
 
     def fetch_order_book(self, symbol, limit=None, params={}):
+        level = '2'
+        if limit is not None:
+            if (limit != 20) and (limit != 100):
+                raise ExchangeError(self.id + ' fetchOrderBook limit argument must be None, 20 or 100')
+            level += '_' + str(limit)
         self.load_markets()
         marketId = self.market_id(symbol)
-        request = self.extend({'symbol': marketId, 'level': 2}, params)
+        request = self.extend({'symbol': marketId, 'level': level}, params)
         response = self.publicGetMarketOrderbookLevelLevel(request)
         #
         # {sequence: '1547731421688',
@@ -566,12 +643,14 @@ class kucoin (Exchange):
         #   bids: [['5c419328ef83c75456bd615c', '0.9', '0.09'], ...],}
         #
         data = response['data']
-        timestamp = self.safe_integer(data, 'sequence')
+        timestamp = self.safe_integer(data, 'time')
         # level can be a string such as 2_20 or 2_100
         levelString = self.safe_string(request, 'level')
         levelParts = levelString.split('_')
-        level = int(levelParts[0])
-        return self.parse_order_book(data, timestamp, 'bids', 'asks', level - 2, level - 1)
+        offset = int(levelParts[0])
+        orderbook = self.parse_order_book(data, timestamp, 'bids', 'asks', offset - 2, offset - 1)
+        orderbook['nonce'] = self.safe_integer(data, 'sequence')
+        return orderbook
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -581,12 +660,18 @@ class kucoin (Exchange):
         request = {
             'clientOid': clientOid,
             'side': side,
-            'size': self.amount_to_precision(symbol, amount),
             'symbol': marketId,
             'type': type,
         }
         if type != 'market':
             request['price'] = self.price_to_precision(symbol, price)
+            request['size'] = self.amount_to_precision(symbol, amount)
+        else:
+            if self.safe_value(params, 'quoteAmount'):
+                # used to create market order by quote amount - https://github.com/ccxt/ccxt/issues/4876
+                request['funds'] = self.amount_to_precision(symbol, amount)
+            else:
+                request['size'] = self.amount_to_precision(symbol, amount)
         response = self.privatePostOrders(self.extend(request, params))
         #
         #     {
@@ -598,12 +683,11 @@ class kucoin (Exchange):
         #
         data = self.safe_value(response, 'data', {})
         timestamp = self.milliseconds()
-        return {
+        order = {
             'id': self.safe_string(data, 'orderId'),
             'symbol': symbol,
             'type': type,
             'side': side,
-            'amount': amount,
             'price': price,
             'cost': None,
             'filled': None,
@@ -615,6 +699,9 @@ class kucoin (Exchange):
             'clientOid': clientOid,
             'info': data,
         }
+        if not self.safe_value(params, 'quoteAmount'):
+            order['amount'] = amount
+        return order
 
     def cancel_order(self, id, symbol=None, params={}):
         request = {'orderId': id}
@@ -766,6 +853,7 @@ class kucoin (Exchange):
         remaining = amount - filled
         # bool
         status = 'open' if order['isActive'] else 'closed'
+        status = 'canceled' if order['cancelExist'] else status
         fee = {
             'currency': feeCurrency,
             'cost': feeCost,
@@ -775,8 +863,10 @@ class kucoin (Exchange):
                 if (cost is not None) and (filled is not None):
                     if (cost > 0) and (filled > 0):
                         price = cost / filled
+        clientOrderId = self.safe_string(order, 'clientOid')
         return {
             'id': orderId,
+            'clientOrderId': clientOrderId,
             'symbol': symbol,
             'type': type,
             'side': side,
@@ -790,6 +880,9 @@ class kucoin (Exchange):
             'fee': fee,
             'status': status,
             'info': order,
+            'lastTradeTimestamp': None,
+            'average': None,
+            'trades': None,
         }
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
@@ -910,6 +1003,19 @@ class kucoin (Exchange):
         #         "time":1548848575203567174
         #     }
         #
+        #     {
+        #         sequence: '1568787654360',
+        #         symbol: 'BTC-USDT',
+        #         side: 'buy',
+        #         size: '0.00536577',
+        #         price: '9345',
+        #         takerOrderId: '5e356c4a9f1a790008f8d921',
+        #         time: '1580559434436443257',
+        #         type: 'match',
+        #         makerOrderId: '5e356bffedf0010008fa5d7f',
+        #         tradeId: '5e356c4aeefabd62c62a1ece'
+        #     }
+        #
         # fetchMyTrades(private) v2
         #
         #     {
@@ -977,8 +1083,6 @@ class kucoin (Exchange):
             if market is not None:
                 symbol = market['symbol']
         id = self.safe_string_2(trade, 'tradeId', 'id')
-        if id is not None:
-            id = str(id)
         orderId = self.safe_string(trade, 'orderId')
         takerOrMaker = self.safe_string(trade, 'liquidity')
         amount = self.safe_float_2(trade, 'size', 'amount')
@@ -988,7 +1092,7 @@ class kucoin (Exchange):
         else:
             timestamp = self.safe_integer(trade, 'createdAt')
             # if it's a historical v1 trade, the exchange returns timestamp in seconds
-            if ('dealValue' in list(trade.keys())) and (timestamp is not None):
+            if ('dealValue' in trade) and (timestamp is not None):
                 timestamp = timestamp * 1000
         price = self.safe_float_2(trade, 'price', 'dealPrice')
         side = self.safe_string(trade, 'side')
@@ -1030,7 +1134,7 @@ class kucoin (Exchange):
     def withdraw(self, code, amount, address, tag=None, params={}):
         self.load_markets()
         self.check_address(address)
-        currency = self.currencyId(code)
+        currency = self.currency_id(code)
         request = {
             'currency': currency,
             'address': address,
@@ -1127,10 +1231,10 @@ class kucoin (Exchange):
         timestamp = self.safe_integer_2(transaction, 'createdAt', 'createAt')
         id = self.safe_string(transaction, 'id')
         updated = self.safe_integer(transaction, 'updatedAt')
-        isV1 = not('createdAt' in list(transaction.keys()))
+        isV1 = not ('createdAt' in transaction)
         # if it's a v1 structure
         if isV1:
-            type = 'withdrawal' if ('address' in list(transaction.keys())) else 'deposit'
+            type = 'withdrawal' if ('address' in transaction) else 'deposit'
             if timestamp is not None:
                 timestamp = timestamp * 1000
             if updated is not None:
@@ -1439,7 +1543,11 @@ class kucoin (Exchange):
         # the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
         #                                †                 ↑
         #
-        version = self.safe_string(params, 'version', self.options['version'])
+        versions = self.safe_value(self.options, 'versions', {})
+        apiVersions = self.safe_value(versions, api)
+        methodVersions = self.safe_value(apiVersions, method, {})
+        defaultVersion = self.safe_string(methodVersions, path, self.options['version'])
+        version = self.safe_string(params, 'version', defaultVersion)
         params = self.omit(params, 'version')
         endpoint = '/api/' + version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
@@ -1468,6 +1576,7 @@ class kucoin (Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:
+            self.throw_broadly_matched_exception(self.exceptions['broad'], body, body)
             return
         #
         # bad
@@ -1477,6 +1586,5 @@ class kucoin (Exchange):
         #
         errorCode = self.safe_string(response, 'code')
         message = self.safe_string(response, 'msg')
-        ExceptionClass = self.safe_value_2(self.exceptions, message, errorCode)
-        if ExceptionClass is not None:
-            raise ExceptionClass(self.id + ' ' + message)
+        self.throw_exactly_matched_exception(self.exceptions['exact'], message, message)
+        self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, message)

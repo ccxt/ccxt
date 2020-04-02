@@ -19,7 +19,7 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InvalidOrder
 
 
-class braziliex (Exchange):
+class braziliex(Exchange):
 
     def describe(self):
         return self.deep_extend(super(braziliex, self).describe(), {
@@ -439,6 +439,7 @@ class braziliex (Exchange):
         status = 'closed' if (filledPercentage == 1.0) else 'open'
         return {
             'id': id,
+            'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
@@ -454,6 +455,7 @@ class braziliex (Exchange):
             'trades': None,
             'fee': fee,
             'info': info,
+            'average': None,
         }
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -567,13 +569,13 @@ class braziliex (Exchange):
             headers = {
                 'Content-type': 'application/x-www-form-urlencoded',
                 'Key': self.apiKey,
-                'Sign': self.decode(signature),
+                'Sign': signature,
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = await self.fetch2(path, api, method, params, headers, body)
-        if (isinstance(response, basestring)) and len((response) < 1):
+        if (isinstance(response, basestring)) and (len(response) < 1):
             raise ExchangeError(self.id + ' returned empty response')
         if 'success' in response:
             success = self.safe_integer(response, 'success')

@@ -24,7 +24,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 
 
-class dsx (Exchange):
+class dsx(Exchange):
 
     def describe(self):
         return self.deep_extend(super(dsx, self).describe(), {
@@ -50,7 +50,7 @@ class dsx (Exchange):
                 'withdraw': True,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27990275-1413158a-645a-11e7-931c-94717f7510e3.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/76909626-cb2bb100-68bc-11ea-99e0-28ba54f04792.jpg',
                 'api': {
                     'public': 'https://dsx.uk/mapi',  # market data
                     'private': 'https://dsx.uk/tapi',  # trading
@@ -429,13 +429,13 @@ class dsx (Exchange):
         if limit is not None:
             request['limit'] = limit  # default = 150, max = 2000
         response = self.publicGetDepthPair(self.extend(request, params))
-        market_id_in_reponse = (market['id'] in list(response.keys()))
+        market_id_in_reponse = (market['id'] in response)
         if not market_id_in_reponse:
             raise ExchangeError(self.id + ' ' + market['symbol'] + ' order book is empty or not available')
         orderbook = response[market['id']]
         return self.parse_order_book(orderbook)
 
-    def fetch_order_books(self, symbols=None, params={}):
+    def fetch_order_books(self, symbols=None, limit=None, params={}):
         self.load_markets()
         ids = None
         if symbols is None:
@@ -450,6 +450,8 @@ class dsx (Exchange):
         request = {
             'pair': ids,
         }
+        if limit is not None:
+            request['limit'] = limit  # default = 150, max = 2000
         response = self.publicGetDepthPair(self.extend(request, params))
         result = {}
         ids = list(response.keys())
@@ -680,6 +682,9 @@ class dsx (Exchange):
             'filled': filled,
             'fee': None,
             # 'trades': self.parse_trades(order['trades'], market),
+            'clientOrderId': None,
+            'average': None,
+            'trades': None,
         }
 
     def parse_order_status(self, status):
@@ -778,6 +783,7 @@ class dsx (Exchange):
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -792,6 +798,7 @@ class dsx (Exchange):
             'status': status,
             'fee': fee,
             'trades': trades,
+            'average': None,
         }
 
     def fetch_order(self, id, symbol=None, params={}):
@@ -1167,14 +1174,8 @@ class dsx (Exchange):
             if not success:
                 code = self.safe_string(response, 'code')
                 message = self.safe_string(response, 'error')
-                feedback = self.id + ' ' + self.json(response)
-                exact = self.exceptions['exact']
-                if code in exact:
-                    raise exact[code](feedback)
-                elif message in exact:
-                    raise exact[message](feedback)
-                broad = self.exceptions['broad']
-                broadKey = self.findBroadlyMatchedKey(broad, message)
-                if broadKey is not None:
-                    raise broad[broadKey](feedback)
+                feedback = self.id + ' ' + body
+                self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+                self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+                self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
                 raise ExchangeError(feedback)  # unknown message

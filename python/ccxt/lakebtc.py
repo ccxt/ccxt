@@ -9,7 +9,7 @@ import hashlib
 from ccxt.base.errors import ExchangeError
 
 
-class lakebtc (Exchange):
+class lakebtc(Exchange):
 
     def describe(self):
         return self.deep_extend(super(lakebtc, self).describe(), {
@@ -80,6 +80,9 @@ class lakebtc (Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
+                'active': None,
+                'precision': self.precision,
+                'limits': self.limits,
             })
         return result
 

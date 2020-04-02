@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeNotAvailable, ArgumentsRequired, PermissionDenied, AuthenticationError, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder, InvalidAddress, NotSupported } = require ('./base/errors');
+const { BadSymbol, ExchangeNotAvailable, ArgumentsRequired, PermissionDenied, AuthenticationError, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder, InvalidAddress, NotSupported } = require ('./base/errors');
 const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -17,6 +17,7 @@ module.exports = class kraken extends Exchange {
             'version': '0',
             'rateLimit': 3000,
             'certified': true,
+            'pro': true,
             'has': {
                 'createDepositAddress': true,
                 'fetchDepositAddress': true,
@@ -38,18 +39,18 @@ module.exports = class kraken extends Exchange {
             },
             'marketsByAltname': {},
             'timeframes': {
-                '1m': '1',
-                '5m': '5',
-                '15m': '15',
-                '30m': '30',
-                '1h': '60',
-                '4h': '240',
-                '1d': '1440',
-                '1w': '10080',
-                '2w': '21600',
+                '1m': 1,
+                '5m': 5,
+                '15m': 15,
+                '30m': 30,
+                '1h': 60,
+                '4h': 240,
+                '1d': 1440,
+                '1w': 10080,
+                '2w': 21600,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766599-22709304-5ede-11e7-9de1-9f33732e1509.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/76173629-fc67fb00-61b1-11ea-84fe-f2de582f58a3.jpg',
                 'api': {
                     'public': 'https://api.kraken.com',
                     'private': 'https://api.kraken.com',
@@ -176,6 +177,7 @@ module.exports = class kraken extends Exchange {
                         'DepositMethods',
                         'DepositStatus',
                         'ExportStatus',
+                        'GetWebSocketsToken',
                         'Ledgers',
                         'OpenOrders',
                         'OpenPositions',
@@ -204,8 +206,10 @@ module.exports = class kraken extends Exchange {
                 'delistedMarketsById': {},
                 // cannot withdraw/deposit these
                 'inactiveCurrencies': [ 'CAD', 'USD', 'JPY', 'GBP' ],
+                'fetchMinOrderAmounts': true,
             },
             'exceptions': {
+                'EQuery:Invalid asset pair': BadSymbol, // {"error":["EQuery:Invalid asset pair"]}
                 'EAPI:Invalid key': AuthenticationError,
                 'EFunding:Unknown withdraw key': ExchangeError,
                 'EFunding:Invalid amount': InsufficientFunds,
@@ -258,7 +262,11 @@ module.exports = class kraken extends Exchange {
 
     async fetchMarkets (params = {}) {
         const response = await this.publicGetAssetPairs (params);
-        const limits = await this.fetchMinOrderAmounts ();
+        const fetchMinOrderAmounts = this.safeValue (this.options, 'fetchMinOrderAmounts', false);
+        let limits = {};
+        if (fetchMinOrderAmounts) {
+            limits = await this.fetchMinOrderAmounts ();
+        }
         const keys = Object.keys (response['result']);
         let result = [];
         for (let i = 0; i < keys.length; i++) {
@@ -721,14 +729,14 @@ module.exports = class kraken extends Exchange {
             symbol = market['symbol'];
         }
         if (Array.isArray (trade)) {
-            timestamp = parseInt (trade[2] * 1000);
+            timestamp = this.safeTimestamp (trade, 2);
             side = (trade[3] === 's') ? 'sell' : 'buy';
             type = (trade[4] === 'l') ? 'limit' : 'market';
-            price = parseFloat (trade[0]);
-            amount = parseFloat (trade[1]);
+            price = this.safeFloat (trade, 0);
+            amount = this.safeFloat (trade, 1);
             const tradeLength = trade.length;
             if (tradeLength > 6) {
-                id = trade[6]; // artificially added as per #1794
+                id = this.safeString (trade, 6); // artificially added as per #1794
             }
         } else if ('ordertxid' in trade) {
             order = trade['ordertxid'];
@@ -852,8 +860,10 @@ module.exports = class kraken extends Exchange {
                 id = (length > 1) ? id : id[0];
             }
         }
+        const clientOrderId = this.safeString (params, 'userref');
         return {
             'id': id,
+            'clientOrderId': clientOrderId,
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
@@ -975,8 +985,10 @@ module.exports = class kraken extends Exchange {
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const id = this.safeString (order, 'id');
+        const clientOrderId = this.safeString (order, 'userref');
         return {
             'id': id,
+            'clientOrderId': clientOrderId,
             'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -993,6 +1005,7 @@ module.exports = class kraken extends Exchange {
             'remaining': remaining,
             'fee': fee,
             // 'trades': this.parseTrades (order['trades'], market),
+            'trades': undefined,
         };
     }
 
@@ -1415,11 +1428,10 @@ module.exports = class kraken extends Exchange {
                 if ('error' in response) {
                     const numErrors = response['error'].length;
                     if (numErrors) {
-                        const message = this.id + ' ' + this.json (response);
+                        const message = this.id + ' ' + body;
                         for (let i = 0; i < response['error'].length; i++) {
-                            if (response['error'][i] in this.exceptions) {
-                                throw new this.exceptions[response['error'][i]] (message);
-                            }
+                            const error = response['error'][i];
+                            this.throwExactlyMatchedException (this.exceptions, error, message);
                         }
                         throw new ExchangeError (message);
                     }

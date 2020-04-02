@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, ExchangeError, OrderNotFound } = require ('./base/errors');
+const { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, ExchangeError, OrderNotFound, AccountSuspended, BadSymbol, OrderImmediatelyFillable, RateLimitExceeded } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -19,6 +19,22 @@ module.exports = class bitbay extends Exchange {
                 'withdraw': true,
                 'fetchMyTrades': true,
                 'fetchOpenOrders': true,
+                'fetchOHLCV': true,
+            },
+            'timeframes': {
+                '1m': '60',
+                '3m': '180',
+                '5m': '300',
+                '15m': '900',
+                '30m': '1800',
+                '1h': '3600',
+                '2h': '7200',
+                '4h': '14400',
+                '6h': '21600',
+                '12h': '43200',
+                '1d': '86400',
+                '3d': '259200',
+                '1w': '604800',
             },
             'urls': {
                 'referral': 'https://auth.bitbay.net/ref/jHlbB4mIkdS1',
@@ -101,8 +117,8 @@ module.exports = class bitbay extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'maker': 0.3 / 100,
-                    'taker': 0.0043,
+                    'maker': 0.30 / 100,
+                    'taker': 0.43 / 100,
                 },
                 'funding': {
                     'withdraw': {
@@ -134,13 +150,15 @@ module.exports = class bitbay extends Exchange {
                 '503': InvalidNonce, // Invalid moment parameter. Request time doesn't match current server time
                 '504': ExchangeError, // Invalid method
                 '505': AuthenticationError, // Key has no permission for this action
-                '506': AuthenticationError, // Account locked. Please contact with customer service
+                '506': AccountSuspended, // Account locked. Please contact with customer service
                 // codes 507 and 508 are not specified in their docs
                 '509': ExchangeError, // The BIC/SWIFT is required for this currency
-                '510': ExchangeError, // Invalid market name
+                '510': BadSymbol, // Invalid market name
                 'FUNDS_NOT_SUFFICIENT': InsufficientFunds,
                 'OFFER_FUNDS_NOT_EXCEEDING_MINIMUMS': InvalidOrder,
                 'OFFER_NOT_FOUND': OrderNotFound,
+                'OFFER_WOULD_HAVE_BEEN_PARTIALLY_FILLED': OrderImmediatelyFillable,
+                'ACTION_LIMIT_EXCEEDED': RateLimitExceeded,
             },
         });
     }
@@ -272,6 +290,7 @@ module.exports = class bitbay extends Exchange {
         }
         return {
             'id': this.safeString (order, 'id'),
+            'clientOrderId': undefined,
             'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -287,6 +306,7 @@ module.exports = class bitbay extends Exchange {
             'remaining': remaining,
             'average': undefined,
             'fee': undefined,
+            'trades': undefined,
         };
     }
 
@@ -742,7 +762,66 @@ module.exports = class bitbay extends Exchange {
         return this.safeString (types, type, type);
     }
 
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        // [
+        //     '1582399800000',
+        //     {
+        //         o: '0.0001428',
+        //         c: '0.0001428',
+        //         h: '0.0001428',
+        //         l: '0.0001428',
+        //         v: '4',
+        //         co: '1'
+        //     }
+        // ]
+        return [
+            parseInt (ohlcv[0]),
+            this.safeFloat (ohlcv[1], 'o'),
+            this.safeFloat (ohlcv[1], 'h'),
+            this.safeFloat (ohlcv[1], 'l'),
+            this.safeFloat (ohlcv[1], 'c'),
+            this.safeFloat (ohlcv[1], 'v'),
+        ];
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const tradingSymbol = market['baseId'] + '-' + market['quoteId'];
+        const request = {
+            'symbol': tradingSymbol,
+            'resolution': this.timeframes[timeframe],
+            // 'from': 1574709092000, // unix timestamp in milliseconds, required
+            // 'to': 1574709092000, // unix timestamp in milliseconds, required
+        };
+        if (limit === undefined) {
+            limit = 100;
+        }
+        const duration = this.parseTimeframe (timeframe);
+        const timerange = limit * duration * 1000;
+        if (since === undefined) {
+            request['to'] = this.milliseconds ();
+            request['from'] = request['to'] - timerange;
+        } else {
+            request['from'] = parseInt (since);
+            request['to'] = this.sum (request['from'], timerange);
+        }
+        const response = await this.v1_01PublicGetTradingCandleHistorySymbolResolution (this.extend (request, params));
+        const ohlcvs = this.safeValue (response, 'items', []);
+        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
+    }
+
     parseTrade (trade, market = undefined) {
+        //
+        // createOrder trades
+        //
+        //     {
+        //         "rate": "0.02195928",
+        //         "amount": "0.00167952"
+        //     }
+        //
+        // fetchMyTrades (private)
+        //
         //     {
         //         amount: "0.29285199",
         //         commissionValue: "0.00125927",
@@ -755,13 +834,17 @@ module.exports = class bitbay extends Exchange {
         //         userAction: "Buy",
         //         wasTaker: true,
         //     }
-        // Public trades
-        //     { id: 'df00b0da-e5e0-11e9-8c19-0242ac11000a',
+        //
+        // fetchTrades (public)
+        //
+        //     {
+        //          id: 'df00b0da-e5e0-11e9-8c19-0242ac11000a',
         //          t: '1570108958831',
         //          a: '0.04776653',
         //          r: '0.02145854',
         //          ty: 'Sell'
-        //      }
+        //     }
+        //
         const timestamp = this.safeInteger2 (trade, 'time', 't');
         const userAction = this.safeString (trade, 'userAction');
         const side = (userAction === 'Buy') ? 'buy' : 'sell';
@@ -806,7 +889,7 @@ module.exports = class bitbay extends Exchange {
         }
         let fee = undefined;
         if (feeCost !== undefined) {
-            const feeCcy = side === 'buy' ? base : quote;
+            const feeCcy = (side === 'buy') ? base : quote;
             fee = {
                 'currency': feeCcy,
                 'cost': feeCost,
@@ -866,16 +949,104 @@ module.exports = class bitbay extends Exchange {
         if (type === 'limit') {
             request['rate'] = price;
         }
+        const response = await this.v1_01PrivatePostTradingOfferSymbol (this.extend (request, params));
+        //
+        // unfilled (open order)
+        //
         //     {
         //         status: 'Ok',
         //         completed: false, // can deduce status from here
         //         offerId: 'ce9cc72e-d61c-11e9-9248-0242ac110005',
         //         transactions: [], // can deduce order info from here
         //     }
-        const response = await this.v1_01PrivatePostTradingOfferSymbol (this.extend (request, params));
+        //
+        // filled (closed order)
+        //
+        //     {
+        //         "status": "Ok",
+        //         "offerId": "942a4a3e-e922-11e9-8c19-0242ac11000a",
+        //         "completed": true,
+        //         "transactions": [
+        //           {
+        //             "rate": "0.02195928",
+        //             "amount": "0.00167952"
+        //           },
+        //           {
+        //             "rate": "0.02195928",
+        //             "amount": "0.00167952"
+        //           },
+        //           {
+        //             "rate": "0.02196207",
+        //             "amount": "0.27704177"
+        //           }
+        //         ]
+        //     }
+        //
+        // partially-filled (open order)
+        //
+        //     {
+        //         "status": "Ok",
+        //         "offerId": "d0ebefab-f4d7-11e9-8c19-0242ac11000a",
+        //         "completed": false,
+        //         "transactions": [
+        //           {
+        //             "rate": "0.02106404",
+        //             "amount": "0.0019625"
+        //           },
+        //           {
+        //             "rate": "0.02106404",
+        //             "amount": "0.0019625"
+        //           },
+        //           {
+        //             "rate": "0.02105901",
+        //             "amount": "0.00975256"
+        //           }
+        //         ]
+        //     }
+        //
+        const timestamp = this.milliseconds (); // the real timestamp is missing in the response
+        const id = this.safeString (response, 'offerId');
+        const completed = this.safeValue (response, 'completed', false);
+        const status = completed ? 'closed' : 'open';
+        let filled = 0;
+        let cost = undefined;
+        const transactions = this.safeValue (response, 'transactions');
+        let trades = undefined;
+        if (transactions !== undefined) {
+            trades = this.parseTrades (transactions, market, undefined, undefined, {
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'symbol': symbol,
+                'side': side,
+                'type': type,
+                'orderId': id,
+            });
+            cost = 0;
+            for (let i = 0; i < trades.length; i++) {
+                filled = this.sum (filled, trades[i]['amount']);
+                cost = this.sum (cost, trades[i]['cost']);
+            }
+        }
+        const remaining = amount - filled;
         return {
-            'id': this.safeString (response, 'offerId'),
+            'id': id,
             'info': response,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'status': status,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': parseFloat (price),
+            'amount': parseFloat (amount),
+            'cost': cost,
+            'filled': filled,
+            'remaining': remaining,
+            'average': undefined,
+            'fee': undefined,
+            'trades': trades,
+            'clientOrderId': undefined,
         };
     }
 
@@ -1022,12 +1193,8 @@ module.exports = class bitbay extends Exchange {
             //
             const code = this.safeString (response, 'code'); // always an integer
             const feedback = this.id + ' ' + body;
-            const exceptions = this.exceptions;
-            if (code in this.exceptions) {
-                throw new exceptions[code] (feedback);
-            } else {
-                throw new ExchangeError (feedback);
-            }
+            this.throwExactlyMatchedException (this.exceptions, code, feedback);
+            throw new ExchangeError (feedback);
         } else if ('status' in response) {
             //
             //      {"status":"Fail","errors":["OFFER_FUNDS_NOT_EXCEEDING_MINIMUMS"]}
@@ -1035,12 +1202,10 @@ module.exports = class bitbay extends Exchange {
             const status = this.safeString (response, 'status');
             if (status === 'Fail') {
                 const errors = this.safeValue (response, 'errors');
-                const feedback = this.id + ' ' + this.json (response);
+                const feedback = this.id + ' ' + body;
                 for (let i = 0; i < errors.length; i++) {
                     const error = errors[i];
-                    if (error in this.exceptions) {
-                        throw new this.exceptions[error] (feedback);
-                    }
+                    this.throwExactlyMatchedException (this.exceptions, error, feedback);
                 }
                 throw new ExchangeError (feedback);
             }

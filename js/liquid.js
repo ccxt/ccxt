@@ -658,6 +658,7 @@ module.exports = class liquid extends Exchange {
         const side = this.safeString (order, 'side');
         return {
             'id': orderId,
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -888,14 +889,10 @@ module.exports = class liquid extends Exchange {
         if (code >= 200 && code < 300) {
             return;
         }
-        const exceptions = this.exceptions;
         if (code === 401) {
             // expected non-json response
-            if (body in exceptions) {
-                throw new exceptions[body] (this.id + ' ' + body);
-            } else {
-                return;
-            }
+            this.throwExactlyMatchedException (this.exceptions, body, body);
+            return;
         }
         if (code === 429) {
             throw new DDoSProtection (this.id + ' ' + body);
@@ -910,9 +907,7 @@ module.exports = class liquid extends Exchange {
             //
             //  { "message": "Order not found" }
             //
-            if (message in exceptions) {
-                throw new exceptions[message] (feedback);
-            }
+            this.throwExactlyMatchedException (this.exceptions, message, feedback);
         } else if (errors !== undefined) {
             //
             //  { "errors": { "user": ["not_enough_free_balance"] }}
@@ -925,9 +920,7 @@ module.exports = class liquid extends Exchange {
                 const errorMessages = errors[type];
                 for (let j = 0; j < errorMessages.length; j++) {
                     const message = errorMessages[j];
-                    if (message in exceptions) {
-                        throw new exceptions[message] (feedback);
-                    }
+                    this.throwExactlyMatchedException (this.exceptions, message, feedback);
                 }
             }
         } else {

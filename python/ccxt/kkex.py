@@ -9,7 +9,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 
 
-class kkex (Exchange):
+class kkex(Exchange):
 
     def describe(self):
         return self.deep_extend(super(kkex, self).describe(), {
@@ -373,6 +373,20 @@ class kkex (Exchange):
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
+        #
+        #     {
+        #         "status": 2,
+        #         "source": "NORMAL",
+        #         "amount": "10.852019",
+        #         "create_date": 1523938461036,
+        #         "avg_price": "0.00096104",
+        #         "order_id": "100",
+        #         "price": "0.00096105",
+        #         "type": "buy",
+        #         "symbol": "READBTC",
+        #         "deal_amount": "10.852019"
+        #     }
+        #
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -396,6 +410,7 @@ class kkex (Exchange):
                 cost = average * filled
         return {
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -411,6 +426,7 @@ class kkex (Exchange):
             'remaining': remaining,
             'fee': None,
             'info': order,
+            'trades': None,
         }
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -427,8 +443,8 @@ class kkex (Exchange):
                     if price is None:
                         raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False to supply the cost in the amount argument(the exchange-specific behaviour)")
                     else:
-                        amount = amount * price
-                request['price'] = self.amount_to_precision(symbol, amount)
+                        request['amount'] = self.cost_to_precision(symbol, float(amount) * float(price))
+                request['price'] = self.cost_to_precision(symbol, amount)
             else:
                 request['amount'] = self.amount_to_precision(symbol, amount)
             request['type'] += '_' + type
@@ -454,6 +470,8 @@ class kkex (Exchange):
             'remaining': None,
             'trades': None,
             'fee': None,
+            'clientOrderId': None,
+            'average': None,
         }
 
     def cancel_order(self, id, symbol=None, params={}):

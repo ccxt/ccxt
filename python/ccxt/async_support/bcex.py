@@ -12,7 +12,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 
 
-class bcex (Exchange):
+class bcex(Exchange):
 
     def describe(self):
         return self.deep_extend(super(bcex, self).describe(), {
@@ -35,7 +35,7 @@ class bcex (Exchange):
                 'fetchTradingLimits': True,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/43362240-21c26622-92ee-11e8-9464-5801ec526d77.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/77231516-851c6900-6bac-11ea-8fd6-ee5c23eddbd4.jpg',
                 'api': 'https://www.bcex.top',
                 'www': 'https://www.bcex.top',
                 'doc': 'https://github.com/BCEX-TECHNOLOGY-LIMITED/API_Docs/wiki/Interface',
@@ -81,8 +81,8 @@ class bcex (Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'buy': 0.0,
-                    'sell': 0.2 / 100,
+                    'maker': 0.1 / 100,
+                    'taker': 0.2 / 100,
                 },
                 'funding': {
                     'tierBased': False,
@@ -260,7 +260,7 @@ class bcex (Exchange):
         #                   min_trade: "0.01500000",
         #                   max_trade: "100.00000000",
         #                number_float: "4",
-        #                 price_float: "8"             }} }
+        #                 price_float: "8"             }}}
         #
         return self.parse_trading_limits(self.safe_value(response, 'data', {}))
 
@@ -325,18 +325,9 @@ class bcex (Exchange):
                     },
                     # overrided by defaults from self.options['limits']
                     'limits': {
-                        'amount': {
-                            'min': None,
-                            'max': None,
-                        },
-                        'price': {
-                            'min': None,
-                            'max': None,
-                        },
-                        'cost': {
-                            'min': None,
-                            'max': None,
-                        },
+                        'amount': {'min': None, 'max': None},
+                        'price': {'min': None, 'max': None},
+                        'cost': {'min': None, 'max': None},
                     },
                     'info': market,
                 }, defaults))
@@ -371,6 +362,7 @@ class bcex (Exchange):
             'cost': cost,
             'order': orderId,
             'fee': None,
+            'takerOrMaker': None,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -397,7 +389,7 @@ class bcex (Exchange):
             currencyId = parts[0]
             lockOrOver = parts[1]
             code = self.safe_currency_code(currencyId)
-            if not(code in list(result.keys())):
+            if not (code in result):
                 result[code] = self.account()
             if lockOrOver == 'lock':
                 result[code]['used'] = float(amount)
@@ -505,6 +497,8 @@ class bcex (Exchange):
             'remaining': self.safe_float(order, 'numberover'),
             'status': status,
             'fee': None,
+            'clientOrderId': None,
+            'trades': None,
         }
 
     def parse_order(self, order, market=None):
@@ -528,6 +522,7 @@ class bcex (Exchange):
         result = {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -542,6 +537,7 @@ class bcex (Exchange):
             'remaining': remaining,
             'status': status,
             'fee': fee,
+            'trades': None,
         }
         return result
 
@@ -630,21 +626,8 @@ class bcex (Exchange):
                 #
                 message = self.safe_string(response, 'msg')
                 feedback = self.id + ' ' + message
-                exceptions = self.exceptions
-                if message in exceptions:
-                    raise exceptions[message](feedback)
-                elif message.find('请您重新挂单') >= 0:  # minimum limit
+                self.throw_exactly_matched_exception(self.exceptions, message, feedback)
+                if message.find('请您重新挂单') >= 0:  # minimum limit
                     raise InvalidOrder(feedback)
                 else:
                     raise ExchangeError(feedback)
-
-    def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
-        market = self.markets[symbol]
-        rate = market[side]
-        cost = float(self.cost_to_precision(symbol, amount * price))
-        return {
-            'type': takerOrMaker,
-            'currency': market['quote'],
-            'rate': rate,
-            'cost': float(self.fee_to_precision(symbol, rate * cost)),
-        }

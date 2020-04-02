@@ -22,13 +22,12 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
-from ccxt.base.errors import DDoSProtection
-from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 
 
-class gemini (Exchange):
+class gemini(Exchange):
 
     def describe(self):
         return self.deep_extend(super(gemini, self).describe(), {
@@ -67,7 +66,11 @@ class gemini (Exchange):
                     'https://docs.gemini.com/rest-api',
                     'https://docs.sandbox.gemini.com',
                 ],
-                'test': 'https://api.sandbox.gemini.com',
+                'test': {
+                    'public': 'https://api.sandbox.gemini.com',
+                    'private': 'https://api.sandbox.gemini.com',
+                    'web': 'https://docs.sandbox.gemini.com',
+                },
                 'fees': [
                     'https://gemini.com/api-fee-schedule',
                     'https://gemini.com/trading-fees',
@@ -101,6 +104,7 @@ class gemini (Exchange):
                         'v1/order/status',
                         'v1/orders',
                         'v1/mytrades',
+                        'v1/notionalvolume',
                         'v1/tradevolume',
                         'v1/transfers',
                         'v1/balances',
@@ -122,10 +126,10 @@ class gemini (Exchange):
                 '403': PermissionDenied,  # The API key is missing the role necessary to access self private API endpoint
                 '404': OrderNotFound,  # Unknown API entry point or Order not found
                 '406': InsufficientFunds,  # Insufficient Funds
-                '429': DDoSProtection,  # Rate Limiting was applied
+                '429': RateLimitExceeded,  # Rate Limiting was applied
                 '500': ExchangeError,  # The server encountered an error
                 '502': ExchangeError,  # Technical issues are preventing the request from being satisfied
-                '503': ExchangeNotAvailable,  # The exchange is down for maintenance
+                '503': OnMaintenance,  # The exchange is down for maintenance
             },
             'timeframes': {
                 '1m': '1m',
@@ -155,7 +159,7 @@ class gemini (Exchange):
                     'InvalidSignature': AuthenticationError,  # The signature did not match the expected signature
                     'InvalidSymbol': BadRequest,  # An invalid symbol was specified
                     'InvalidTimestampInPayload': BadRequest,  # The JSON payload contained a timestamp parameter with an unsupported value.
-                    'Maintenance': ExchangeNotAvailable,  # The system is down for maintenance
+                    'Maintenance': OnMaintenance,  # The system is down for maintenance
                     'MarketNotOpen': InvalidOrder,  # The order was rejected because the market is not accepting new orders
                     'MissingApikeyHeader': AuthenticationError,  # The X-GEMINI-APIKEY header was missing
                     'MissingOrderField': InvalidOrder,  # A required order_id field was not specified
@@ -165,7 +169,7 @@ class gemini (Exchange):
                     'NoSSL': AuthenticationError,  # You must use HTTPS to access the API
                     'OptionsMustBeArray': BadRequest,  # The options parameter must be an array.
                     'OrderNotFound': OrderNotFound,  # The order specified was not found
-                    'RateLimit': DDoSProtection,  # Requests were made too frequently. See Rate Limits below.
+                    'RateLimit': RateLimitExceeded,  # Requests were made too frequently. See Rate Limits below.
                     'System': ExchangeError,  # We are experiencing technical issues
                     'UnsupportedOption': BadRequest,  # This order execution option is not supported.
                 },
@@ -303,6 +307,7 @@ class gemini (Exchange):
                         'max': None,
                     },
                 },
+                'active': None,
             })
         return result
 
@@ -444,8 +449,10 @@ class gemini (Exchange):
             symbol = market['symbol']
         id = self.safe_string(order, 'order_id')
         side = self.safe_string_lower(order, 'side')
+        clientOrderId = self.safe_string(order, 'client_order_id')
         return {
             'id': id,
+            'clientOrderId': clientOrderId,
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -461,6 +468,7 @@ class gemini (Exchange):
             'filled': filled,
             'remaining': remaining,
             'fee': fee,
+            'trades': None,
         }
 
     def fetch_order(self, id, symbol=None, params={}):
@@ -608,13 +616,10 @@ class gemini (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
-        broad = self.exceptions['broad']
         if response is None:
             if isinstance(body, basestring):
-                broadKey = self.findBroadlyMatchedKey(broad, body)
                 feedback = self.id + ' ' + body
-                if broadKey is not None:
-                    raise broad[broadKey](feedback)
+                self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
             return  # fallback to default error handler
         #
         #     {
@@ -628,14 +633,9 @@ class gemini (Exchange):
             reason = self.safe_string(response, 'reason')
             message = self.safe_string(response, 'message')
             feedback = self.id + ' ' + message
-            exact = self.exceptions['exact']
-            if reason in exact:
-                raise exact[reason](feedback)
-            elif message in exact:
-                raise exact[message](feedback)
-            broadKey = self.findBroadlyMatchedKey(broad, message)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], reason, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message
 
     def create_deposit_address(self, code, params={}):

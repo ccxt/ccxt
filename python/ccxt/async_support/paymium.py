@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 
 
-class paymium (Exchange):
+class paymium(Exchange):
 
     def describe(self):
         return self.deep_extend(super(paymium, self).describe(), {
@@ -81,7 +81,7 @@ class paymium (Exchange):
         currencies = list(self.currencies.keys())
         for i in range(0, len(currencies)):
             code = currencies[i]
-            currencyId = self.currencyId(code)
+            currencyId = self.currency_id(code)
             free = 'balance_' + currencyId
             if free in response:
                 account = self.account()

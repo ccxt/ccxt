@@ -6,7 +6,7 @@
 from ccxt.async_support.binance import binance
 
 
-class binanceus (binance):
+class binanceus(binance):
 
     def describe(self):
         return self.deep_extend(super(binanceus, self).describe(), {
@@ -14,6 +14,7 @@ class binanceus (binance):
             'name': 'Binance US',
             'countries': ['US'],  # US
             'certified': False,
+            'pro': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/65177307-217b7c80-da5f-11e9-876e-0b748ba0a358.jpg',
                 'api': {

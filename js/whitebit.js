@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, DDoSProtection } = require ('./base/errors');
+const { ExchangeNotAvailable, ExchangeError, DDoSProtection, BadSymbol } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -104,6 +104,14 @@ module.exports = class whitebit extends Exchange {
             },
             'options': {
                 'fetchTradesMethod': 'fetchTradesV1',
+            },
+            'exceptions': {
+                'exact': {
+                    '503': ExchangeNotAvailable, // {"response":null,"status":503,"errors":{"message":[""]},"notification":null,"warning":null,"_token":null}
+                },
+                'broad': {
+                    'Market is not available': BadSymbol, // {"success":false,"message":{"market":["Market is not available"]},"result":[]}
+                },
             },
         });
     }
@@ -577,7 +585,7 @@ module.exports = class whitebit extends Exchange {
     }
 
     async fetchStatus (params = {}) {
-        const response = await this.webGetV1Healthcheck ();
+        const response = await this.webGetV1Healthcheck (params);
         const status = this.safeInteger (response, 'status');
         let formattedStatus = 'ok';
         if (status === 503) {
@@ -609,13 +617,13 @@ module.exports = class whitebit extends Exchange {
         if (response !== undefined) {
             const success = this.safeValue (response, 'success');
             if (!success) {
-                const message = response['message'];
-                if (message) {
-                    throw new ExchangeError (message);
-                } else {
-                    const feedback = this.id + ' ' + this.json (response);
-                    throw new ExchangeError (feedback);
+                const feedback = this.id + ' ' + body;
+                const status = this.safeString (response, 'status');
+                if (typeof status === 'string') {
+                    this.throwExactlyMatchedException (this.exceptions['exact'], status, feedback);
                 }
+                this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
+                throw new ExchangeError (feedback);
             }
         }
     }

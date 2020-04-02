@@ -563,6 +563,7 @@ module.exports = class buda extends Exchange {
         };
         return {
             'id': id,
+            'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
@@ -578,6 +579,7 @@ module.exports = class buda extends Exchange {
             'trades': undefined,
             'fee': fee,
             'info': order,
+            'average': undefined,
         };
     }
 
@@ -777,13 +779,9 @@ module.exports = class buda extends Exchange {
             const errorCode = this.safeString (response, 'code');
             const message = this.safeString (response, 'message', body);
             const feedback = this.id + ' ' + message;
-            const exceptions = this.exceptions;
             if (errorCode !== undefined) {
-                if (errorCode in exceptions) {
-                    throw new exceptions[errorCode] (feedback);
-                } else {
-                    throw new ExchangeError (feedback);
-                }
+                this.throwExactlyMatchedException (this.exceptions, errorCode, feedback);
+                throw new ExchangeError (feedback);
             }
         }
     }

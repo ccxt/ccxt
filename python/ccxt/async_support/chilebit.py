@@ -6,7 +6,7 @@
 from ccxt.async_support.foxbit import foxbit
 
 
-class chilebit (foxbit):
+class chilebit(foxbit):
 
     def describe(self):
         return self.deep_extend(super(chilebit, self).describe(), {

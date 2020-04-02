@@ -7,13 +7,17 @@ from ccxt.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import AccountSuspended
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import OrderImmediatelyFillable
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
 
 
-class bitbay (Exchange):
+class bitbay(Exchange):
 
     def describe(self):
         return self.deep_extend(super(bitbay, self).describe(), {
@@ -26,6 +30,22 @@ class bitbay (Exchange):
                 'withdraw': True,
                 'fetchMyTrades': True,
                 'fetchOpenOrders': True,
+                'fetchOHLCV': True,
+            },
+            'timeframes': {
+                '1m': '60',
+                '3m': '180',
+                '5m': '300',
+                '15m': '900',
+                '30m': '1800',
+                '1h': '3600',
+                '2h': '7200',
+                '4h': '14400',
+                '6h': '21600',
+                '12h': '43200',
+                '1d': '86400',
+                '3d': '259200',
+                '1w': '604800',
             },
             'urls': {
                 'referral': 'https://auth.bitbay.net/ref/jHlbB4mIkdS1',
@@ -108,8 +128,8 @@ class bitbay (Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': 0.3 / 100,
-                    'taker': 0.0043,
+                    'maker': 0.30 / 100,
+                    'taker': 0.43 / 100,
                 },
                 'funding': {
                     'withdraw': {
@@ -141,13 +161,15 @@ class bitbay (Exchange):
                 '503': InvalidNonce,  # Invalid moment parameter. Request time doesn't match current server time
                 '504': ExchangeError,  # Invalid method
                 '505': AuthenticationError,  # Key has no permission for self action
-                '506': AuthenticationError,  # Account locked. Please contact with customer service
+                '506': AccountSuspended,  # Account locked. Please contact with customer service
                 # codes 507 and 508 are not specified in their docs
                 '509': ExchangeError,  # The BIC/SWIFT is required for self currency
-                '510': ExchangeError,  # Invalid market name
+                '510': BadSymbol,  # Invalid market name
                 'FUNDS_NOT_SUFFICIENT': InsufficientFunds,
                 'OFFER_FUNDS_NOT_EXCEEDING_MINIMUMS': InvalidOrder,
                 'OFFER_NOT_FOUND': OrderNotFound,
+                'OFFER_WOULD_HAVE_BEEN_PARTIALLY_FILLED': OrderImmediatelyFillable,
+                'ACTION_LIMIT_EXCEEDED': RateLimitExceeded,
             },
         })
 
@@ -269,6 +291,7 @@ class bitbay (Exchange):
                 filled = max(0, amount - remaining)
         return {
             'id': self.safe_string(order, 'id'),
+            'clientOrderId': None,
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -284,6 +307,7 @@ class bitbay (Exchange):
             'remaining': remaining,
             'average': None,
             'fee': None,
+            'trades': None,
         }
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
@@ -722,7 +746,62 @@ class bitbay (Exchange):
         }
         return self.safe_string(types, type, type)
 
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+        # [
+        #     '1582399800000',
+        #     {
+        #         o: '0.0001428',
+        #         c: '0.0001428',
+        #         h: '0.0001428',
+        #         l: '0.0001428',
+        #         v: '4',
+        #         co: '1'
+        #     }
+        # ]
+        return [
+            int(ohlcv[0]),
+            self.safe_float(ohlcv[1], 'o'),
+            self.safe_float(ohlcv[1], 'h'),
+            self.safe_float(ohlcv[1], 'l'),
+            self.safe_float(ohlcv[1], 'c'),
+            self.safe_float(ohlcv[1], 'v'),
+        ]
+
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        tradingSymbol = market['baseId'] + '-' + market['quoteId']
+        request = {
+            'symbol': tradingSymbol,
+            'resolution': self.timeframes[timeframe],
+            # 'from': 1574709092000,  # unix timestamp in milliseconds, required
+            # 'to': 1574709092000,  # unix timestamp in milliseconds, required
+        }
+        if limit is None:
+            limit = 100
+        duration = self.parse_timeframe(timeframe)
+        timerange = limit * duration * 1000
+        if since is None:
+            request['to'] = self.milliseconds()
+            request['from'] = request['to'] - timerange
+        else:
+            request['from'] = int(since)
+            request['to'] = self.sum(request['from'], timerange)
+        response = self.v1_01PublicGetTradingCandleHistorySymbolResolution(self.extend(request, params))
+        ohlcvs = self.safe_value(response, 'items', [])
+        return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
+
     def parse_trade(self, trade, market=None):
+        #
+        # createOrder trades
+        #
+        #     {
+        #         "rate": "0.02195928",
+        #         "amount": "0.00167952"
+        #     }
+        #
+        # fetchMyTrades(private)
+        #
         #     {
         #         amount: "0.29285199",
         #         commissionValue: "0.00125927",
@@ -735,13 +814,17 @@ class bitbay (Exchange):
         #         userAction: "Buy",
         #         wasTaker: True,
         #     }
-        # Public trades
-        #     {id: 'df00b0da-e5e0-11e9-8c19-0242ac11000a',
+        #
+        # fetchTrades(public)
+        #
+        #     {
+        #          id: 'df00b0da-e5e0-11e9-8c19-0242ac11000a',
         #          t: '1570108958831',
         #          a: '0.04776653',
         #          r: '0.02145854',
         #          ty: 'Sell'
-        #      }
+        #     }
+        #
         timestamp = self.safe_integer_2(trade, 'time', 't')
         userAction = self.safe_string(trade, 'userAction')
         side = 'buy' if (userAction == 'Buy') else 'sell'
@@ -778,7 +861,7 @@ class bitbay (Exchange):
                 base = market['base']
         fee = None
         if feeCost is not None:
-            feeCcy = side == base if 'buy' else quote
+            feeCcy = base if (side == 'buy') else quote
             fee = {
                 'currency': feeCcy,
                 'cost': feeCost,
@@ -831,16 +914,102 @@ class bitbay (Exchange):
         }
         if type == 'limit':
             request['rate'] = price
+        response = self.v1_01PrivatePostTradingOfferSymbol(self.extend(request, params))
+        #
+        # unfilled(open order)
+        #
         #     {
         #         status: 'Ok',
         #         completed: False,  # can deduce status from here
         #         offerId: 'ce9cc72e-d61c-11e9-9248-0242ac110005',
         #         transactions: [],  # can deduce order info from here
         #     }
-        response = self.v1_01PrivatePostTradingOfferSymbol(self.extend(request, params))
+        #
+        # filled(closed order)
+        #
+        #     {
+        #         "status": "Ok",
+        #         "offerId": "942a4a3e-e922-11e9-8c19-0242ac11000a",
+        #         "completed": True,
+        #         "transactions": [
+        #           {
+        #             "rate": "0.02195928",
+        #             "amount": "0.00167952"
+        #           },
+        #           {
+        #             "rate": "0.02195928",
+        #             "amount": "0.00167952"
+        #           },
+        #           {
+        #             "rate": "0.02196207",
+        #             "amount": "0.27704177"
+        #           }
+        #         ]
+        #     }
+        #
+        # partially-filled(open order)
+        #
+        #     {
+        #         "status": "Ok",
+        #         "offerId": "d0ebefab-f4d7-11e9-8c19-0242ac11000a",
+        #         "completed": False,
+        #         "transactions": [
+        #           {
+        #             "rate": "0.02106404",
+        #             "amount": "0.0019625"
+        #           },
+        #           {
+        #             "rate": "0.02106404",
+        #             "amount": "0.0019625"
+        #           },
+        #           {
+        #             "rate": "0.02105901",
+        #             "amount": "0.00975256"
+        #           }
+        #         ]
+        #     }
+        #
+        timestamp = self.milliseconds()  # the real timestamp is missing in the response
+        id = self.safe_string(response, 'offerId')
+        completed = self.safe_value(response, 'completed', False)
+        status = 'closed' if completed else 'open'
+        filled = 0
+        cost = None
+        transactions = self.safe_value(response, 'transactions')
+        trades = None
+        if transactions is not None:
+            trades = self.parse_trades(transactions, market, None, None, {
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+                'symbol': symbol,
+                'side': side,
+                'type': type,
+                'orderId': id,
+            })
+            cost = 0
+            for i in range(0, len(trades)):
+                filled = self.sum(filled, trades[i]['amount'])
+                cost = self.sum(cost, trades[i]['cost'])
+        remaining = amount - filled
         return {
-            'id': self.safe_string(response, 'offerId'),
+            'id': id,
             'info': response,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
+            'status': status,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': float(price),
+            'amount': float(amount),
+            'cost': cost,
+            'filled': filled,
+            'remaining': remaining,
+            'average': None,
+            'fee': None,
+            'trades': trades,
+            'clientOrderId': None,
         }
 
     def cancel_order(self, id, symbol=None, params={}):
@@ -972,11 +1141,8 @@ class bitbay (Exchange):
             #
             code = self.safe_string(response, 'code')  # always an integer
             feedback = self.id + ' ' + body
-            exceptions = self.exceptions
-            if code in self.exceptions:
-                raise exceptions[code](feedback)
-            else:
-                raise ExchangeError(feedback)
+            self.throw_exactly_matched_exception(self.exceptions, code, feedback)
+            raise ExchangeError(feedback)
         elif 'status' in response:
             #
             #      {"status":"Fail","errors":["OFFER_FUNDS_NOT_EXCEEDING_MINIMUMS"]}
@@ -984,9 +1150,8 @@ class bitbay (Exchange):
             status = self.safe_string(response, 'status')
             if status == 'Fail':
                 errors = self.safe_value(response, 'errors')
-                feedback = self.id + ' ' + self.json(response)
+                feedback = self.id + ' ' + body
                 for i in range(0, len(errors)):
                     error = errors[i]
-                    if error in self.exceptions:
-                        raise self.exceptions[error](feedback)
+                    self.throw_exactly_matched_exception(self.exceptions, error, feedback)
                 raise ExchangeError(feedback)

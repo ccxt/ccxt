@@ -43,7 +43,7 @@ module.exports = class digifinex extends Exchange {
                 'doc': [
                     'https://docs.digifinex.vip',
                 ],
-                'fees': 'https://digifinex.zendesk.com/hc/en-us/articles/360000328482-Fee-Structure-on-DigiFinex',
+                'fees': 'https://digifinex.zendesk.com/hc/en-us/articles/360000328422-Fee-Structure-on-DigiFinex',
                 'referral': 'https://www.digifinex.vip/en-ww/from/DhOzBg/3798****5114',
             },
             'api': {
@@ -100,6 +100,14 @@ module.exports = class digifinex extends Exchange {
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'tierBased': false,
+                    'percentage': true,
+                    'maker': 0.002,
+                    'taker': 0.002,
+                },
+            },
             'exceptions': {
                 'exact': {
                     '10001': [ BadRequest, "Wrong request method, please check it's a GET ot POST request" ],
@@ -135,6 +143,9 @@ module.exports = class digifinex extends Exchange {
             'options': {
                 'defaultType': 'spot',
                 'types': [ 'spot', 'margin', 'otc' ],
+            },
+            'commonCurrencies': {
+                'BHT': 'Black House Test',
             },
         });
     }
@@ -838,6 +849,7 @@ module.exports = class digifinex extends Exchange {
         return {
             'info': order,
             'id': id,
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -852,6 +864,7 @@ module.exports = class digifinex extends Exchange {
             'average': average,
             'status': status,
             'fee': undefined,
+            'trades': undefined,
         };
     }
 
@@ -944,6 +957,10 @@ module.exports = class digifinex extends Exchange {
         const orderType = this.safeString (params, 'type', defaultType);
         params = this.omit (params, 'type');
         await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const request = {
             'market': orderType,
             'order_id': id,
@@ -970,7 +987,8 @@ module.exports = class digifinex extends Exchange {
         //         ]
         //     }
         //
-        return this.parseOrder (response);
+        const data = this.safeValue (response, 'data', {});
+        return this.parseOrder (data, market);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {

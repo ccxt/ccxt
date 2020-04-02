@@ -17,6 +17,7 @@ module.exports = class bitmex extends Exchange {
             'version': 'v1',
             'userAgent': undefined,
             'rateLimit': 2000,
+            'pro': true,
             'has': {
                 'CORS': false,
                 'fetchOHLCV': true,
@@ -37,16 +38,22 @@ module.exports = class bitmex extends Exchange {
                 '1d': '1d',
             },
             'urls': {
-                'test': 'https://testnet.bitmex.com',
+                'test': {
+                    'public': 'https://testnet.bitmex.com',
+                    'private': 'https://testnet.bitmex.com',
+                },
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg',
-                'api': 'https://www.bitmex.com',
+                'api': {
+                    'public': 'https://www.bitmex.com',
+                    'private': 'https://www.bitmex.com',
+                },
                 'www': 'https://www.bitmex.com',
                 'doc': [
                     'https://www.bitmex.com/app/apiOverview',
                     'https://github.com/BitMEX/api-connectors/tree/master/official-http',
                 ],
                 'fees': 'https://www.bitmex.com/app/fees',
-                'referral': 'https://www.bitmex.com/register/rm3C16',
+                'referral': 'https://www.bitmex.com/register/upZpOX',
             },
             'api': {
                 'public': {
@@ -148,6 +155,7 @@ module.exports = class bitmex extends Exchange {
                     'Signature not valid': AuthenticationError,
                     'overloaded': ExchangeNotAvailable,
                     'Account has insufficient Available Balance': InsufficientFunds,
+                    'Service unavailable': ExchangeNotAvailable, // {"error":{"message":"Service unavailable","name":"HTTPError"}}
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -438,6 +446,7 @@ module.exports = class bitmex extends Exchange {
         const types = {
             'Withdrawal': 'transaction',
             'RealisedPNL': 'margin',
+            'UnrealisedPNL': 'margin',
             'Deposit': 'transaction',
             'Transfer': 'transfer',
             'AffiliatePayout': 'referral',
@@ -464,6 +473,29 @@ module.exports = class bitmex extends Exchange {
         //         timestamp: "2017-03-22T13:09:23.514Z"
         //     }
         //
+        // ButMEX returns the unrealized pnl from the wallet history endpoint.
+        // The unrealized pnl transaction has an empty timestamp.
+        // It is not related to historical pnl it has status set to "Pending".
+        // Therefore it's not a part of the history at all.
+        // https://github.com/ccxt/ccxt/issues/6047
+        //
+        //     {
+        //         "transactID":"00000000-0000-0000-0000-000000000000",
+        //         "account":121210,
+        //         "currency":"XBt",
+        //         "transactType":"UnrealisedPNL",
+        //         "amount":-5508,
+        //         "fee":0,
+        //         "transactStatus":"Pending",
+        //         "address":"XBTUSD",
+        //         "tx":"",
+        //         "text":"",
+        //         "transactTime":null,  # ←---------------------------- null
+        //         "walletBalance":139198767,
+        //         "marginBalance":139193259,
+        //         "timestamp":null  # ←---------------------------- null
+        //     }
+        //
         const id = this.safeString (item, 'transactID');
         const account = this.safeString (item, 'account');
         const referenceId = this.safeString (item, 'tx');
@@ -475,7 +507,13 @@ module.exports = class bitmex extends Exchange {
         if (amount !== undefined) {
             amount = amount * 1e-8;
         }
-        const timestamp = this.parse8601 (this.safeString (item, 'transactTime'));
+        let timestamp = this.parse8601 (this.safeString (item, 'transactTime'));
+        if (timestamp === undefined) {
+            // https://github.com/ccxt/ccxt/issues/6047
+            // set the timestamp to zero, 1970 Jan 1 00:00:00
+            // for unrealized pnl and other transactions without a timestamp
+            timestamp = 0; // see comments above
+        }
         let feeCost = this.safeFloat (item, 'fee', 0);
         if (feeCost !== undefined) {
             feeCost = feeCost * 1e-8;
@@ -1073,9 +1111,11 @@ module.exports = class bitmex extends Exchange {
         const id = this.safeString (order, 'orderID');
         const type = this.safeStringLower (order, 'ordType');
         const side = this.safeStringLower (order, 'side');
+        const clientOrderId = this.safeString (order, 'clOrdID');
         return {
             'info': order,
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -1090,6 +1130,7 @@ module.exports = class bitmex extends Exchange {
             'remaining': remaining,
             'status': status,
             'fee': undefined,
+            'trades': undefined,
         };
     }
 
@@ -1174,7 +1215,15 @@ module.exports = class bitmex extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateDeleteOrder (this.extend ({ 'orderID': id }, params));
+        // https://github.com/ccxt/ccxt/issues/6507
+        const clOrdID = this.safeValue (params, 'clOrdID');
+        const request = {};
+        if (clOrdID === undefined) {
+            request['orderID'] = id;
+        } else {
+            request['clOrdID'] = clOrdID;
+        }
+        const response = await this.privateDeleteOrder (this.extend (request, params));
         let order = response[0];
         const error = this.safeString (order, 'error');
         if (error !== undefined) {
@@ -1229,15 +1278,8 @@ module.exports = class bitmex extends Exchange {
             const error = this.safeValue (response, 'error', {});
             const message = this.safeString (error, 'message');
             const feedback = this.id + ' ' + body;
-            const exact = this.exceptions['exact'];
-            if (message in exact) {
-                throw new exact[message] (feedback);
-            }
-            const broad = this.exceptions['broad'];
-            const broadKey = this.findBroadlyMatchedKey (broad, message);
-            if (broadKey !== undefined) {
-                throw new broad[broadKey] (feedback);
-            }
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             if (code === 400) {
                 throw new BadRequest (feedback);
             }
@@ -1262,7 +1304,7 @@ module.exports = class bitmex extends Exchange {
                 params = this.omit (params, '_format');
             }
         }
-        const url = this.urls['api'] + query;
+        const url = this.urls['api'][api] + query;
         if (this.apiKey && this.secret) {
             let auth = method + query;
             let expires = this.safeInteger (this.options, 'api-expires');
