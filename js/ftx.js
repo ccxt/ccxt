@@ -46,7 +46,7 @@ module.exports = class ftx extends ccxt.ftx {
             'channel': channel,
             'market': marketId,
         };
-        const messageHash = channel + ':' + symbol;
+        const messageHash = channel + ':' + marketId;
         return await this.watch (url, messageHash, request, messageHash);
     }
 
