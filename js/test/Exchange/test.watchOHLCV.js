@@ -26,7 +26,7 @@ module.exports = async (exchange, symbol) => {
     let response = undefined
 
     let now = Date.now ()
-    const ends = now + 30000
+    const ends = now + 20000
 
     while (now < ends) {
 
@@ -55,8 +55,12 @@ module.exports = async (exchange, symbol) => {
             ohlcv[5],
         ])
 
-        console.log ('--------------------------------------------------------')
-        log.noLocate (asTable (response))
+        if (response.length > 0) {
+            log (exchange.iso8601 (now), exchange.id, symbol, JSON.stringify (response[response.length - 1]))
+        }
+
+        // console.log ('--------------------------------------------------------')
+        // log.noLocate (asTable (response))
     }
 
     return response

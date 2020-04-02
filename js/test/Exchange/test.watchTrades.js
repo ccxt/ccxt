@@ -33,7 +33,7 @@ module.exports = async (exchange, symbol) => {
     let response = undefined
 
     let now = Date.now ()
-    const ends = now + 30000
+    const ends = now + 20000
 
     while (now < ends) {
 
@@ -43,9 +43,9 @@ module.exports = async (exchange, symbol) => {
 
         assert (response instanceof Array)
 
-        log (symbol.green, method, 'returned', Object.values (response).length.toString ().green, 'trades')
+        log (exchange.iso8601 (now), exchange.id, symbol.green, method, Object.values (response).length.toString ().green, 'trades')
 
-        log.noLocate (asTable (response.slice (-10)))
+        // log.noLocate (asTable (response))
 
         for (let i = 0; i < response.length; i++) {
             testTrade (exchange, response[i], symbol, now)

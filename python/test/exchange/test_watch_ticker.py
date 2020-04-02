@@ -10,7 +10,7 @@ async def test_watch_ticker(exchange, symbol):
     if (method in exchange.has) and exchange.has[method]:
         response = None
         now = exchange.milliseconds()
-        end = now + 30000
+        end = now + 20000
         while now < end:
             response = await getattr(exchange, method)(symbol)
             now = exchange.milliseconds()
