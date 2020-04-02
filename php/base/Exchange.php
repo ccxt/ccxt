@@ -510,12 +510,12 @@ class Exchange {
         $out = null;
         $args = func_get_args();
         foreach ($args as $arg) {
-            if (static::is_associative($arg)) {
+            if (static::is_associative($arg) || (is_array ($arg) && (count($arg) === 0))) {
                 if (!static::is_associative($out)) {
                     $out = array();
                 }
                 foreach ($arg as $k => $v) {
-                    $out[$k] = static::deep_extend(@$out[$k], $v);
+                    $out[$k] = static::deep_extend(isset($out[$k]) ? $out[$k] : array(), $v);
                 }
             } else {
                 $out = $arg;
@@ -777,6 +777,7 @@ class Exchange {
     }
 
     public function __construct($options = array()) {
+
         // todo auto-camelcasing for methods in PHP
         // $method_names = get_class_methods ($this);
         // foreach ($method_names as $method_name) {
@@ -993,7 +994,6 @@ class Exchange {
         $this->urlencode_glue_warning = true;
 
         $options = array_replace_recursive($this->describe(), $options);
-
         if ($options) {
             foreach ($options as $key => $value) {
                 $this->{$key} =
