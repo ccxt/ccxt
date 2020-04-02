@@ -241,31 +241,51 @@ module.exports = class ftx extends ccxt.ftx {
     }
 
     handleTrades (client, message) {
+        //
+        //     {
+        //         channel:   "trades",
+        //         market:   "BTC-PERP",
+        //         type:   "update",
+        //         data: [
+        //             {
+        //                 id:  33517246,
+        //                 price:  6661.5,
+        //                 size:  2.3137,
+        //                 side: "sell",
+        //                 liquidation:  false,
+        //                 time: "2020-04-02T07:45:12.011352+00:00"
+        //             }
+        //         ]
+        //     }
+        //
         const data = this.safeValue (message, 'data', {});
-        const symbol = this.safeValue (message, 'market', {});
-        const market = this.market (symbol);
-        const messageHash = this.getMessageHash (message);
-        const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
-        const stored = this.safeValue (this.trades, symbol, []);
-        if (Array.isArray (data)) {
-            const trades = this.parseTrades (data, market);
-            for (let i = 0; i < trades.length; i++) {
-                stored.push (trades[i]);
-                const storedLength = stored.length;
-                if (storedLength > tradesLimit) {
+        const marketId = this.safeValue (message, 'market', {});
+        if (marketId in this.markets_by_id) {
+            const market = this.markets_by_id[marketId];
+            const symbol = market['symbol'];
+            const messageHash = this.getMessageHash (message);
+            const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            const stored = this.safeValue (this.trades, symbol, []);
+            if (Array.isArray (data)) {
+                const trades = this.parseTrades (data, market);
+                for (let i = 0; i < trades.length; i++) {
+                    stored.push (trades[i]);
+                    const storedLength = stored.length;
+                    if (storedLength > tradesLimit) {
+                        stored.shift ();
+                    }
+                }
+            } else {
+                const trade = this.parseTrade (message, market);
+                stored.push (trade);
+                const length = stored.length;
+                if (length > tradesLimit) {
                     stored.shift ();
                 }
             }
-        } else {
-            const trade = this.parseTrade (message, market);
-            stored.push (trade);
-            const length = stored.length;
-            if (length > tradesLimit) {
-                stored.shift ();
-            }
+            this.trades[symbol] = stored;
+            client.resolve (stored, messageHash);
         }
-        this.trades[symbol] = stored;
-        client.resolve (stored, messageHash);
         return message;
     }
 
