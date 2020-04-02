@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from exchange.test_ohlcv import test_ohlcv
-from exchange.table import table
+# from exchange.table import table
 
 
 async def test_watch_ohlcv(exchange, symbol):
