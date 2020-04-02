@@ -21,7 +21,7 @@ module.exports = class ftx extends ccxt.ftx {
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://ftx.com/ws/',
+                    'ws': 'wss://ftx.com/ws',
                 },
             },
             'options': {
