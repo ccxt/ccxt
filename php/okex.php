@@ -3204,10 +3204,12 @@ class okex extends Exchange {
         if ($message !== null) {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
-        }
-        $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
-        if ($message !== null) {
-            throw new ExchangeError($feedback); // unknown $message
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
+            $nonEmptyMessage = ($message !== '');
+            $nonZeroErrorCode = ($errorCode !== null) && ($errorCode !== '0');
+            if ($nonZeroErrorCode || $nonEmptyMessage) {
+                throw new ExchangeError($feedback); // unknown $message
+            }
         }
     }
 }
