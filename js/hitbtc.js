@@ -13,7 +13,7 @@ module.exports = class hitbtc extends ccxt.hitbtc {
                 'ws': true,
                 'watchTicker': true,
                 'watchTickers': false, // not available on exchange side
-                'watchTrades': false, // not implemented yet
+                'watchTrades': true,
                 'watchOrderBook': true,
                 'watchBalance': false, // not implemented yet
                 'watchOHLCV': false, // not implemented yet
@@ -193,6 +193,69 @@ module.exports = class hitbtc extends ccxt.hitbtc {
         }
     }
 
+    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        const future = this.watchPublic (symbol, 'trades', params);
+        return await this.after (future, this.filterBySinceLimit, since, limit, true);
+    }
+
+    handleTrades (client, message) {
+        //
+        //     {
+        //         jsonrpc: '2.0',
+        //         method: 'snapshotTrades', // updateTrades
+        //         params: {
+        //             data: [
+        //                 {
+        //                     id: 814145791,
+        //                     price: '6957.20',
+        //                     quantity: '0.02779',
+        //                     side: 'buy',
+        //                     timestamp: '2020-04-03T10:28:20.032Z'
+        //                 },
+        //                 {
+        //                     id: 814145792,
+        //                     price: '6957.20',
+        //                     quantity: '0.12918',
+        //                     side: 'buy',
+        //                     timestamp: '2020-04-03T10:28:20.039Z'
+        //                 },
+        //             ],
+        //             symbol: 'BTCUSD'
+        //         }
+        //     }
+        //
+        const params = this.safeValue (message, 'params', {});
+        const data = this.safeValue (params, 'data', []);
+        const marketId = this.safeString (params, 'symbol');
+        if (marketId in this.markets_by_id) {
+            const market = this.markets_by_id[marketId];
+            const symbol = market['symbol'];
+            const messageHash = 'trades:' + marketId;
+            const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            const stored = this.safeValue (this.trades, symbol, []);
+            if (Array.isArray (data)) {
+                const trades = this.parseTrades (data, market);
+                for (let i = 0; i < trades.length; i++) {
+                    stored.push (trades[i]);
+                    const storedLength = stored.length;
+                    if (storedLength > tradesLimit) {
+                        stored.shift ();
+                    }
+                }
+            } else {
+                const trade = this.parseTrade (message, market);
+                stored.push (trade);
+                const length = stored.length;
+                if (length > tradesLimit) {
+                    stored.shift ();
+                }
+            }
+            this.trades[symbol] = stored;
+            client.resolve (stored, messageHash);
+        }
+        return message;
+    }
+
     signMessage (client, messageHash, message, params = {}) {
         // todo: implement hitbtc signMessage
         return message;
@@ -210,6 +273,8 @@ module.exports = class hitbtc extends ccxt.hitbtc {
             'snapshotOrderbook': this.handleOrderBookSnapshot,
             'updateOrderbook': this.handleUpdateOrderbook,
             'ticker': this.handleTicker,
+            'snapshotTrades': this.handleTrades,
+            'updateTrades': this.handleTrades,
         };
         const event = this.safeString (message, 'method');
         const method = this.safeValue (methods, event);
