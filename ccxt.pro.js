@@ -40,16 +40,14 @@ const exchanges = {
 
 // ----------------------------------------------------------------------------
 
-for (const exchange of Object.values (exchanges)) {
-    const baseExchange = Object.getPrototypeOf (exchange)
-    // clone the constructor function
-    const cloned = eval ('['+Exchange.toString ()+']')[0]
-    Object.setPrototypeOf (exchange, cloned)
-    Object.setPrototypeOf (exchange.prototype, cloned.prototype)
-    Object.setPrototypeOf (cloned, baseExchange)
-    Object.setPrototypeOf (cloned.prototype, baseExchange.prototype)
+for (const exchange in exchanges) {
+    const ccxtExchange = ccxt[exchange]
+    const baseExchange = Object.getPrototypeOf (ccxtExchange)
+    if (baseExchange === ccxt.Exchange) {
+        Object.setPrototypeOf (ccxtExchange, Exchange)
+        Object.setPrototypeOf (ccxtExchange.prototype, Exchange.prototype)
+    }
 }
-
 
 module.exports = deepExtend (ccxt, {
     version,
