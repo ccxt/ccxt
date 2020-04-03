@@ -31,13 +31,13 @@ module.exports = class hitbtc extends ccxt.hitbtc {
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const marketId = this.marketId (symbol);
         const url = this.urls['api']['ws'];
-        const messageHash = 'orderbook:' + market['id'];
+        const messageHash = 'orderbook:' + marketId;
         const request = {
             'method': 'subscribeOrderbook',
             'params': {
-                'symbol': market['id'],
+                'symbol': marketId,
             },
         };
         const future = this.watch (url, messageHash, request, messageHash);
@@ -144,15 +144,14 @@ module.exports = class hitbtc extends ccxt.hitbtc {
 
     async watchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const marketId = this.marketId (symbol);
         const url = this.urls['api']['ws'];
-        const messageHash = 'ticker:' + market['id'];
+        const messageHash = 'ticker:' + marketId;
         const request = {
             'method': 'subscribeTicker',
             'params': {
-                'symbol': market['id'],
+                'symbol': marketId,
             },
-            'id': market['id'],
         };
         return await this.watch (url, messageHash, request, messageHash);
     }
