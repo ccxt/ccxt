@@ -85,44 +85,60 @@ module.exports = class hitbtc extends ccxt.hitbtc {
         }
     }
 
-    handleUpdateOrderbook (client, message) {
+    handleOrderBookUpdate (client, message) {
+        //
+        //     {
+        //         jsonrpc: "2.0",
+        //         method: "updateOrderbook",
+        //         params: {
+        //             ask: [
+        //                 { price: "6940.65", size: "0.00000" },
+        //                 { price: "6940.66", size: "6.00000" },
+        //                 { price: "6943.52", size: "0.04707" },
+        //             ],
+        //             bid: [
+        //                 { price: "6938.40", size: "0.11991" },
+        //                 { price: "6938.39", size: "0.00073" },
+        //                 { price: "6936.65", size: "0.00000" },
+        //             ],
+        //             symbol: "BTCUSD",
+        //             sequence: 497872,
+        //             timestamp: "2020-04-03T09:03:56.685Z"
+        //         }
+        //     }
+        //
         const params = this.safeValue (message, 'params', {});
         const marketId = this.safeString (params, 'symbol');
-        let market = undefined;
-        let symbol = undefined;
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
+        if (marketId in this.markets_by_id) {
+            const market = this.markets_by_id[marketId];
+            const symbol = market['symbol'];
+            if (symbol in this.orderbooks) {
+                const timestamp = this.parse8601 (this.safeString (params, 'timestamp'));
+                const nonce = this.safeInteger (params, 'sequence');
+                const orderbook = this.orderbooks[symbol];
+                const asks = this.safeValue (params, 'ask', []);
+                const bids = this.safeValue (params, 'bid', []);
+                this.handleDeltas (orderbook['asks'], asks);
+                this.handleDeltas (orderbook['bids'], bids);
+                orderbook['timestamp'] = timestamp;
+                orderbook['datetime'] = this.iso8601 (timestamp);
+                orderbook['nonce'] = nonce;
+                this.orderbooks[symbol] = orderbook;
+                const messageHash = 'orderbook:' + marketId;
+                client.resolve (orderbook, messageHash);
             }
-        }
-        if (symbol === undefined) {
-            // if symbol is not available we just return
-            return;
-        }
-        const timestamp = this.parse8601 (this.safeString (params, 'timestamp'));
-        const nonce = this.safeInteger (params, 'sequence');
-        if (symbol in this.orderbooks) {
-            const orderbook = this.orderbooks[symbol];
-            const asks = this.safeValue (params, 'ask', []);
-            const bids = this.safeValue (params, 'bid', []);
-            this.updateOrders (orderbook['asks'], asks);
-            this.updateOrders (orderbook['bids'], bids);
-            orderbook['timestamp'] = timestamp;
-            orderbook['datetime'] = this.iso8601 (timestamp);
-            orderbook['nonce'] = nonce;
-            this.orderbooks[symbol] = orderbook;
-            const messageHash = 'orderbook:' + marketId;
-            client.resolve (orderbook, messageHash);
         }
     }
 
-    updateOrders (bookside, data) {
-        for (let i = 0; i < data.length; i++) {
-            const delta = data[i];
-            const price = this.safeFloat (delta, 'price');
-            const amount = this.safeFloat (delta, 'size');
-            bookside.store (price, amount);
+    handleDelta (bookside, delta) {
+        const price = this.safeFloat (delta, 'price');
+        const amount = this.safeFloat (delta, 'size');
+        bookside.store (price, amount);
+    }
+
+    handleDeltas (bookside, deltas) {
+        for (let i = 0; i < deltas.length; i++) {
+            this.handleDelta (bookside, deltas[i]);
         }
     }
 
