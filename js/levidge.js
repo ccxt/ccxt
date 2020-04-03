@@ -196,8 +196,8 @@ module.exports = class levidge extends Exchange {
                         const amount = this.convertFromScale (bidData[i][1], market['precision']['amount']);
                         if (price > 0 && amount > 0) {
                             orderBook['bids'].push ({
-                                price,
-                                amount,
+                                'price': price,
+                                'amount': amount,
                             });
                         }
                     }
@@ -210,8 +210,8 @@ module.exports = class levidge extends Exchange {
                         const amount = this.convertFromScale (askData[i][1], market['precision']['amount']);
                         if (price > 0 && amount > 0) {
                             orderBook['asks'].push ({
-                                price,
-                                amount,
+                                'price': price,
+                                'amount': amount,
                             });
                         }
                     }
@@ -638,10 +638,13 @@ module.exports = class levidge extends Exchange {
                 cost = price * filled;
             }
         }
-        const currency = this.currencies_by_id[this.safeInteger (order, 'feeInstrumentId')];
         let currencyCode = undefined;
-        if (currency) {
-            currencyCode = currency['code'];
+        const currencyId = this.safeInteger (order, 'feeInstrumentId');
+        if (currencyId) {
+            const currency = this.currencies_by_id[currencyId];
+            if (currency) {
+                currencyCode = currency['code'];
+            }
         }
         const feeTotal = this.convertFromScale (this.safeInteger (order, 'feeTotal', 0), this.safeInteger (order, 'fee_scale', 0));
         const fee = {                         // fee info, if available
@@ -988,14 +991,16 @@ module.exports = class levidge extends Exchange {
     convertToISO8601Date (dateString) {
         // '20200328-10:31:01.575' -> '2020-03-28 12:42:48.000'
         const splits = dateString.split ('-');
-        if (!this.safeValue (splits, 0) && !this.safeValue (splits, 1)) {
+        const partOne = this.safeString (splits, 0);
+        const PartTwo = this.safeString (splits, 1);
+        if (!partOne || !PartTwo) {
             return undefined;
         }
-        if (splits[0].length !== 8) {
+        if (partOne.length !== 8) {
             return undefined;
         }
-        const date = splits[0].substring (0, 4) + '-' + splits[0].substring (4, 6) + '-' + splits[0].substring (6, 8);
-        const datetime = date + ' ' + splits[1];
+        const date = partOne.slice (0, 4) + '-' + partOne.slice (4, 6) + '-' + partOne.slice (6, 8);
+        const datetime = date + ' ' + PartTwo;
         return datetime;
     }
 
