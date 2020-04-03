@@ -25,22 +25,37 @@ module.exports = class hitbtc extends ccxt.hitbtc {
             },
             'options': {
                 'tradesLimit': 1000,
+                'methods': {
+                    'orderbook': 'subscribeOrderbook',
+                    'ticker': 'subscribeTicker',
+                    'trades': 'subscribeTrades',
+                    'candles': 'subscribeCandles',
+                },
             },
         });
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchPublic (symbol, channel, params = {}) {
         await this.loadMarkets ();
         const marketId = this.marketId (symbol);
         const url = this.urls['api']['ws'];
-        const messageHash = 'orderbook:' + marketId;
-        const request = {
-            'method': 'subscribeOrderbook',
+        const messageHash = channel + ':' + marketId;
+        const methods = this.safeValue (this.options, 'methods', {});
+        const method = this.safeString (methods, channel, channel);
+        const requestId = this.nonce ();
+        const subscribe = {
+            'method': method,
             'params': {
                 'symbol': marketId,
             },
+            'id': requestId,
         };
-        const future = this.watch (url, messageHash, request, messageHash);
+        const request = this.deepExtend (subscribe, params);
+        return await this.watch (url, messageHash, request, messageHash);
+    }
+
+    async watchOrderBook (symbol, limit = undefined, params = {}) {
+        const future = this.watchPublic (symbol, 'orderbook', params);
         return await this.after (future, this.limitOrderBook, symbol, limit, params);
     }
 
@@ -143,47 +158,50 @@ module.exports = class hitbtc extends ccxt.hitbtc {
     }
 
     async watchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        const marketId = this.marketId (symbol);
-        const url = this.urls['api']['ws'];
-        const messageHash = 'ticker:' + marketId;
-        const request = {
-            'method': 'subscribeTicker',
-            'params': {
-                'symbol': marketId,
-            },
-        };
-        return await this.watch (url, messageHash, request, messageHash);
+        return await this.watchPublic (symbol, 'ticker', params);
     }
 
     handleTicker (client, message) {
+        //
+        //     {
+        //         jsonrpc: '2.0',
+        //         method: 'ticker',
+        //         params: {
+        //             ask: '6983.22',
+        //             bid: '6980.77',
+        //             last: '6980.77',
+        //             open: '6650.05',
+        //             low: '6606.45',
+        //             high: '7223.11',
+        //             volume: '79264.33941',
+        //             volumeQuote: '540183372.5134832',
+        //             timestamp: '2020-04-03T10:02:18.943Z',
+        //             symbol: 'BTCUSD'
+        //         }
+        //     }
+        //
         const params = this.safeValue (message, 'params');
         const marketId = this.safeValue (params, 'symbol');
-        let market = undefined;
-        let symbol = undefined;
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            }
+        if (marketId in this.markets_by_id) {
+            const market = this.markets_by_id[marketId];
+            const symbol = market['symbol'];
+            const result = this.parseTicker (params, market);
+            this.tickers[symbol] = result;
+            const method = this.safeValue (message, 'method');
+            const messageHash = method + ':' + marketId;
+            client.resolve (result, messageHash);
         }
-        if (market === undefined || symbol === undefined) {
-            // if market or symbol is undefined we just return
-            return;
-        }
-        const result = this.parseTicker (params, market);
-        this.tickers[symbol] = result;
-        const messageHash = 'ticker:' + marketId;
-        client.resolve (result, messageHash);
     }
 
     signMessage (client, messageHash, message, params = {}) {
-        // todo: implement hitbtc2 signMessage
+        // todo: implement hitbtc signMessage
         return message;
     }
 
     handleNotification (client, message) {
-        // TODO
+        //
+        //     { jsonrpc: '2.0', result: true, id: null }
+        //
         return message;
     }
 
