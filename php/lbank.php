@@ -11,7 +11,7 @@ use \ccxt\ExchangeError;
 class lbank extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'lbank',
             'name' => 'LBank',
             'countries' => array( 'CN' ),

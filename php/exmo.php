@@ -14,7 +14,7 @@ use \ccxt\NotSupported;
 class exmo extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'exmo',
             'name' => 'EXMO',
             'countries' => array( 'ES', 'RU' ), // Spain, Russia

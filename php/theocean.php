@@ -18,7 +18,7 @@ class theocean extends Exchange {
 
     public function describe() {
         $this->check_required_dependencies();
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'theocean',
             'name' => 'The Ocean',
             'countries' => array( 'US' ),

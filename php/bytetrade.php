@@ -14,7 +14,7 @@ use \ccxt\DDoSProtection;
 class bytetrade extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'bytetrade',
             'name' => 'ByteTrade',
             'countries' => ['HK'],

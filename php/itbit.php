@@ -12,7 +12,7 @@ use \ccxt\AuthenticationError;
 class itbit extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'itbit',
             'name' => 'itBit',
             'countries' => array( 'US' ),

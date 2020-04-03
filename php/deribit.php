@@ -12,7 +12,7 @@ use \ccxt\ArgumentsRequired;
 class deribit extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'deribit',
             'name' => 'Deribit',
             'countries' => array( 'NL' ), // Netherlands
@@ -1599,7 +1599,7 @@ class deribit extends Exchange {
         //
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $timestamp = $this->safe_integer($transaction, 'created_timestamp', 'received_timestamp');
+        $timestamp = $this->safe_integer_2($transaction, 'created_timestamp', 'received_timestamp');
         $updated = $this->safe_integer($transaction, 'updated_timestamp');
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'state'));
         $address = $this->safe_string($transaction, 'address');

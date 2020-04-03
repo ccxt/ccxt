@@ -12,7 +12,7 @@ use \ccxt\NotSupported;
 class anxpro extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'anxpro',
             'name' => 'ANXPro',
             'countries' => array( 'JP', 'SG', 'HK', 'NZ' ),

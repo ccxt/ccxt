@@ -35,7 +35,7 @@ use kornrunner\Solidity;
 use Elliptic\EC;
 use BN\BN;
 
-$version = '1.25.55';
+$version = '1.25.66';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -54,7 +54,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.25.55';
+    const VERSION = '1.25.66';
 
     public static $exchanges = array(
         '_1btcxe',
@@ -101,7 +101,6 @@ class Exchange {
         'bytetrade',
         'cex',
         'chilebit',
-        'cobinhood',
         'coinbase',
         'coinbaseprime',
         'coinbasepro',
@@ -385,7 +384,7 @@ class Exchange {
     }
 
     public static function is_associative($array) {
-        return count(array_filter(array_keys($array), 'is_string')) > 0;
+        return is_array($array) && (count(array_filter(array_keys($array), 'is_string')) > 0);
     }
 
     public static function omit($array, $keys) {
@@ -502,6 +501,27 @@ class Exchange {
             }
         }
         return $string;
+    }
+
+    public static function deep_extend() {
+        //
+        //     extend associative dictionaries only, replace everything else
+        //
+        $out = null;
+        $args = func_get_args();
+        foreach ($args as $arg) {
+            if (static::is_associative($arg) || (is_array ($arg) && (count($arg) === 0))) {
+                if (!static::is_associative($out)) {
+                    $out = array();
+                }
+                foreach ($arg as $k => $v) {
+                    $out[$k] = static::deep_extend(isset($out[$k]) ? $out[$k] : array(), $v);
+                }
+            } else {
+                $out = $arg;
+            }
+        }
+        return $out;
     }
 
     public static function indexBy($arrayOfArrays, $key) {
@@ -757,6 +777,7 @@ class Exchange {
     }
 
     public function __construct($options = array()) {
+
         // todo auto-camelcasing for methods in PHP
         // $method_names = get_class_methods ($this);
         // foreach ($method_names as $method_name) {
@@ -973,7 +994,6 @@ class Exchange {
         $this->urlencode_glue_warning = true;
 
         $options = array_replace_recursive($this->describe(), $options);
-
         if ($options) {
             foreach ($options as $key => $value) {
                 $this->{$key} =

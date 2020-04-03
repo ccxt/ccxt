@@ -3187,7 +3187,8 @@ module.exports = class okex extends Exchange {
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         const feedback = this.id + ' ' + body;
         if (code === 503) {
-            throw new ExchangeError (feedback);
+            // {"message":"name resolution failed"}
+            throw new ExchangeNotAvailable (feedback);
         }
         if (!response) {
             return; // fallback to default error handler
@@ -3197,10 +3198,12 @@ module.exports = class okex extends Exchange {
         if (message !== undefined) {
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
-        }
-        this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
-        if (message !== undefined) {
-            throw new ExchangeError (feedback); // unknown message
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            const nonEmptyMessage = (message !== '');
+            const nonZeroErrorCode = (errorCode !== undefined) && (errorCode !== '0');
+            if (nonZeroErrorCode || nonEmptyMessage) {
+                throw new ExchangeError (feedback); // unknown message
+            }
         }
     }
 };

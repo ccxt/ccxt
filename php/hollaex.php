@@ -11,7 +11,7 @@ use \ccxt\ArgumentsRequired;
 class hollaex extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'hollaex',
             'name' => 'HollaEx',
             'countries' => array( 'KR' ),

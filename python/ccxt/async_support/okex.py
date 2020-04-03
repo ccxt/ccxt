@@ -3065,7 +3065,8 @@ class okex(Exchange):
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         feedback = self.id + ' ' + body
         if code == 503:
-            raise ExchangeError(feedback)
+            # {"message":"name resolution failed"}
+            raise ExchangeNotAvailable(feedback)
         if not response:
             return  # fallback to default error handler
         message = self.safe_string(response, 'message')
@@ -3073,6 +3074,8 @@ class okex(Exchange):
         if message is not None:
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
-        self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
-        if message is not None:
-            raise ExchangeError(feedback)  # unknown message
+            self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+            nonEmptyMessage = (message != '')
+            nonZeroErrorCode = (errorCode is not None) and (errorCode != '0')
+            if nonZeroErrorCode or nonEmptyMessage:
+                raise ExchangeError(feedback)  # unknown message

@@ -12,7 +12,7 @@ use \ccxt\ArgumentsRequired;
 class coinbase extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'coinbase',
             'name' => 'Coinbase',
             'countries' => array( 'US' ),

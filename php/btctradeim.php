@@ -11,7 +11,7 @@ use \ccxt\ExchangeError;
 class btctradeim extends coinegg {
 
     public function describe() {
-        $result = array_replace_recursive(parent::describe (), array(
+        $result = $this->deep_extend(parent::describe (), array(
             'id' => 'btctradeim',
             'name' => 'BtcTrade.im',
             'countries' => array( 'HK' ),
