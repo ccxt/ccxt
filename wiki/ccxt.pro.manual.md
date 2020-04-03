@@ -739,25 +739,25 @@ if ($exchange->has['watchBalance']) {
 ##### watchOrders
 
 ```diff
-- work in progress now
+- this method is a work in progress now (may be unavailable)
 ```
 
 ##### watchCreateOrder
 
 ```diff
-- work in progress now
+- this method is a work in progress now (may be unavailable)
 ```
 
 ##### watchCancelOrder
 
 ```diff
-- work in progress now
+- this method is a work in progress now (may be unavailable)
 ```
 
 ##### watchMyTrades
 
 ```diff
-- work in progress now
+- this method is a work in progress now (may be unavailable)
 ```
 
 ```JavaScript
@@ -780,7 +780,7 @@ watch_my_trades($symbol = null, $since = null, $lmit = null, $params = array());
 ##### watchTransactions
 
 ```diff
-- work in progress now
+- this method is a work in progress now (may be unavailable)
 ```
 
 ## Error Handling
