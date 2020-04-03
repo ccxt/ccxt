@@ -39,7 +39,6 @@ module.exports = class hitbtc extends ccxt.hitbtc {
             'params': {
                 'symbol': market['id'],
             },
-            'id': market['id'],
         };
         const future = this.watch (url, messageHash, request, messageHash);
         return await this.after (future, this.limitOrderBook, symbol, limit, params);
