@@ -6,7 +6,7 @@ const ccxt = require ('ccxt');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class hitbtc2 extends ccxt.hitbtc2 {
+module.exports = class hitbtc extends ccxt.hitbtc {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
