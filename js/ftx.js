@@ -259,7 +259,7 @@ module.exports = class ftx extends ccxt.ftx {
         //     }
         //
         const data = this.safeValue (message, 'data', {});
-        const marketId = this.safeValue (message, 'market', {});
+        const marketId = this.safeString (message, 'market');
         if (marketId in this.markets_by_id) {
             const market = this.markets_by_id[marketId];
             const symbol = market['symbol'];
