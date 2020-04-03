@@ -40,6 +40,7 @@ declare module 'ccxt.pro' {
     export class bittrex extends Exchange {}
     export class coinbaseprime extends coinbasepro {}
     export class coinbasepro extends Exchange {}
+    export class ftx extends Exchange {}
     export class gateio extends Exchange {}
     export class huobipro extends Exchange {}
     export class huobiru extends huobipro {}

@@ -4,6 +4,7 @@
 
 const log = require ('ololog')
     , testOrderBook = require ('ccxt/js/test/Exchange/test.orderbook.js')
+    , errors = require ('ccxt/js/base/errors.js')
 
 /*  ------------------------------------------------------------------------ */
 
@@ -20,10 +21,25 @@ module.exports = async (exchange, symbol) => {
 
     let response = undefined
 
-    for (let i = 0; i < 10; i++) {
+    let now = Date.now ()
+    const ends = now + 30000
 
-        response = await exchange[method] (symbol)
-        testOrderBook (exchange, response, method, symbol)
+    while (now < ends) {
+
+        try {
+
+            response = await exchange[method] (symbol)
+
+            testOrderBook (exchange, response, method, symbol)
+
+        } catch (e) {
+
+            if (!(e instanceof errors.NetworkError)) {
+                throw e
+            }
+        }
+
+        now = Date.now ()
     }
 
     return response

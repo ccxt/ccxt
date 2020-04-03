@@ -14,7 +14,7 @@ class gateio extends \ccxt\gateio {
     use ClientTrait;
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'has' => array(
                 'ws' => true,
                 'watchOrderBook' => true,
