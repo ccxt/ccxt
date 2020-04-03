@@ -45,31 +45,44 @@ module.exports = class hitbtc extends ccxt.hitbtc {
     }
 
     handleOrderBookSnapshot (client, message) {
+        //
+        //     {
+        //         jsonrpc: "2.0",
+        //         method: "snapshotOrderbook",
+        //         params: {
+        //             ask: [
+        //                 { price: "6927.75", size: "0.11991" },
+        //                 { price: "6927.76", size: "0.06200" },
+        //                 { price: "6927.85", size: "0.01000" },
+        //             ],
+        //             bid: [
+        //                 { price: "6926.18", size: "0.16898" },
+        //                 { price: "6926.17", size: "0.06200" },
+        //                 { price: "6925.97", size: "0.00125" },
+        //             ],
+        //             symbol: "BTCUSD",
+        //             sequence: 494854,
+        //             timestamp: "2020-04-03T08:58:53.460Z"
+        //         }
+        //     }
+        //
         const params = this.safeValue (message, 'params', {});
         const marketId = this.safeString (params, 'symbol');
-        let market = undefined;
-        let symbol = undefined;
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
+        if (marketId in this.markets_by_id) {
+            const market = this.markets_by_id[marketId];
+            const symbol = market['symbol'];
+            const timestamp = this.parse8601 (this.safeString (params, 'timestamp'));
+            const nonce = this.safeInteger (params, 'sequence');
+            if (symbol in this.orderbooks) {
+                delete this.orderbooks[symbol];
             }
+            const snapshot = this.parseOrderBook (params, timestamp, 'bid', 'ask', 'price', 'size');
+            const orderbook = this.orderBook (snapshot);
+            orderbook['nonce'] = nonce;
+            this.orderbooks[symbol] = orderbook;
+            const messageHash = 'orderbook:' + marketId;
+            client.resolve (orderbook, messageHash);
         }
-        if (symbol === undefined) {
-            // if symbol is not available we just return
-            return;
-        }
-        const timestamp = this.parse8601 (this.safeString (params, 'timestamp'));
-        const nonce = this.safeInteger (params, 'sequence');
-        if (symbol in this.orderbooks) {
-            delete this.orderbooks[symbol];
-        }
-        const snapshot = this.parseOrderBook (params, timestamp, 'bid', 'ask', 'price', 'size');
-        const orderbook = this.orderBook (snapshot);
-        orderbook['nonce'] = nonce;
-        this.orderbooks[symbol] = orderbook;
-        const messageHash = 'orderbook:' + marketId;
-        client.resolve (orderbook, messageHash);
     }
 
     handleUpdateOrderbook (client, message) {
