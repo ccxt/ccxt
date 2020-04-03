@@ -57,8 +57,8 @@ module.exports = class levidge extends Exchange {
             'urls': {
                 'logo': 'https://levidge.com/assets/LevidgeLogo.png',
                 'api': {
-                    'public': 'https://trading-api.dexp-dev.com/api/',
-                    'private': 'https://trading-api.dexp-dev.com/api/',
+                    'public': 'https://trading-api.dexp-qa.com/api/',
+                    'private': 'https://trading-api.dexp-qa.com/api/',
                 },
                 'www': 'https://levidge.com',
                 'doc': [
@@ -141,9 +141,9 @@ module.exports = class levidge extends Exchange {
         }, params);
         const response = await this.publicGetGetChart (this.extend (request, params));
         const charts = this.safeValue (response, 'chart', []);
+        const chart = this.safeValue (charts, 0);
         // let volume = undefined;
-        if (charts.length > 0) {
-            const chart = charts[0];
+        if (chart) {
             return this.parseTicker (chart, market);
         } else {
             return this.parseTicker (undefined, market);
@@ -178,7 +178,7 @@ module.exports = class levidge extends Exchange {
             'pairId': market['id'],
         }, params);
         // apply limit though does not work with API
-        if (limit && this.isNumber (limit)) {
+        if (limit) {
             request = this.extend ({ 'limit': limit }, request);
         }
         const response = await this.publicGetGetOrderBook (this.extend (request, params));
@@ -195,7 +195,7 @@ module.exports = class levidge extends Exchange {
                         const price = this.convertFromScale (bidData[i][0], market['precision']['price']);
                         const amount = this.convertFromScale (bidData[i][1], market['precision']['amount']);
                         if (price > 0 && amount > 0) {
-                            orderBook.bids.push ({
+                            orderBook['bids'].push ({
                                 price,
                                 amount,
                             });
@@ -209,7 +209,7 @@ module.exports = class levidge extends Exchange {
                         const price = this.convertFromScale (askData[i][0], market['precision']['price']);
                         const amount = this.convertFromScale (askData[i][1], market['precision']['amount']);
                         if (price > 0 && amount > 0) {
-                            orderBook.asks.push ({
+                            orderBook['asks'].push ({
                                 price,
                                 amount,
                             });
@@ -231,7 +231,7 @@ module.exports = class levidge extends Exchange {
             'pairId': market['id'],
         }, params);
         // apply limit though does not work with API
-        if (limit && this.isInteger (limit)) {
+        if (limit) {
             request = this.extend ({ 'limit': limit }, request);
         }
         const response = await this.publicGetGetTradeHistory (request);
@@ -302,9 +302,7 @@ module.exports = class levidge extends Exchange {
     }
 
     createOrderRequest (market, type, side, amount, price = undefined, params = {}) {
-        const quantity = this.isNumber (amount) === true ? amount : 0;
-        const quantity_scale = this.getScale (quantity);
-        price = this.isNumber (price) === true ? price : 0;
+        const amount_scale = this.getScale (amount);
         const price_scale = this.getScale (price);
         const stopPx = 0;
         const stopPx_scale = this.getScale (stopPx);
@@ -318,8 +316,8 @@ module.exports = class levidge extends Exchange {
             'ordType': ordType,
             'price': this.convertToScale (price, price_scale),
             'price_scale': price_scale,
-            'quantity': this.convertToScale (quantity, quantity_scale),
-            'quantity_scale': quantity_scale,
+            'quantity': this.convertToScale (amount, amount_scale),
+            'quantity_scale': amount_scale,
             'stopPx': this.convertToScale (stopPx, stopPx_scale),
             'stopPx_scale': stopPx_scale,
             'targetStrategy': 0,
@@ -365,9 +363,6 @@ module.exports = class levidge extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        if (!this.isString (id)) {
-            throw new BadRequest (this.id + ': id must be string');
-        }
         const orders = await this.fetchOrders (symbol, undefined, undefined, params);
         const order = this.filterBy (orders, 'id', id);
         return order[0];
@@ -385,7 +380,7 @@ module.exports = class levidge extends Exchange {
             }
             request['symbol'] = market['symbol'];
         }
-        if (limit !== undefined && this.isInteger (limit)) {
+        if (limit) {
             request['limit'] = limit;
         }
         const response = await this.privatePostGetOrders (this.extend (request, params));
@@ -399,44 +394,20 @@ module.exports = class levidge extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const orders = await this.fetchOrders (symbol, since, limit, params);
-        const openOrders = [];
-        for (let i = 0; i < orders.length; i++) {
-            const order = this.safeValue (orders[i], 'info');
-            if (order) {
-                if (this.isOpenOrder (order)) {
-                    openOrders.push (orders[i]);
-                }
-            }
-        }
+        const openOrders = this.filterByValueSinceLimit (orders, 'status', 'open', since, limit);
         return openOrders;
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const orders = await this.fetchOrders (symbol, since, limit, params);
-        const closeOrders = [];
-        for (let i = 0; i < orders.length; i++) {
-            const order = this.safeValue (orders[i], 'info');
-            if (order) {
-                if (this.isClosedOrder (order)) {
-                    closeOrders.push (orders[i]);
-                }
-            }
-        }
+        const closeOrders = this.filterByValueSinceLimit (orders, 'status', 'closed', since, limit);
         return closeOrders;
     }
 
     async fetchCancelledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const orders = await this.fetchOrders (symbol, since, limit, params);
-        const cancelledOrders = [];
-        for (let i = 0; i < orders.length; i++) {
-            const order = this.safeValue (orders[i], 'info');
-            if (order) {
-                if (this.isCancelledOrder (order)) {
-                    cancelledOrders.push (orders[i]);
-                }
-            }
-        }
-        return cancelledOrders;
+        const canceledOrders = this.filterByValueSinceLimit (orders, 'status', 'canceled', since, limit);
+        return canceledOrders;
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -609,9 +580,9 @@ module.exports = class levidge extends Exchange {
                 'password': this.password,
             };
             const response = await this.publicPostLogon (request);
-            this.userId = this.safeString (response, 'id', '');
-            this.requestSecret = this.safeString (response, 'requestSecret', '');
-            this.requestToken = this.safeString (response, 'requestToken', '');
+            this.userId = this.safeString (response, 'id');
+            this.requestSecret = this.safeString (response, 'requestSecret');
+            this.requestToken = this.safeString (response, 'requestToken');
             // console.log (this.userId, this.requestToken, this.requestSecret);
             if (!this.requestToken || !this.requestSecret || !this.userId) {
                 throw new AuthenticationError (this.id + ': Either login or password is not correct');
@@ -620,7 +591,10 @@ module.exports = class levidge extends Exchange {
     }
 
     isAuthenticated () {
-        return this.requestToken && this.requestSecret && this.userId;
+        if (this.requestToken && this.requestSecret && this.userId) {
+            return true;
+        }
+        return false;
     }
 
     nonce () {
@@ -787,7 +761,7 @@ module.exports = class levidge extends Exchange {
         let low = undefined;
         let close = undefined;
         // let volume = undefined;
-        if (ticker && this.isArray (ticker)) {
+        if (ticker) {
             timestamp = ticker[0];
             datetime = this.iso8601 (timestamp);
             open = this.convertFromScale (ticker[1], market['precision']['price']);
@@ -832,7 +806,7 @@ module.exports = class levidge extends Exchange {
     }
 
     parseTrade (trade, market) {
-        const price = this.convertFromScale (this.safeInteger (trade, 0), market.precision.price);
+        const price = this.convertFromScale (this.safeInteger (trade, 0), market['precision']['price']);
         const amount = this.convertFromScale (this.safeInteger (trade, 1), market['precision']['amount']);
         const date = this.convertToISO8601Date (this.safeString (trade, 2));
         const timestamp = this.parse8601 (date);
@@ -1013,11 +987,8 @@ module.exports = class levidge extends Exchange {
 
     convertToISO8601Date (dateString) {
         // '20200328-10:31:01.575' -> '2020-03-28 12:42:48.000'
-        if (!this.isString (dateString)) {
-            throw new BadRequest (this.id + ': dateString must be a string');
-        }
         const splits = dateString.split ('-');
-        if (splits.length !== 2) {
+        if (!this.safeValue (splits, 0) && !this.safeValue (splits, 1)) {
             return undefined;
         }
         if (splits[0].length !== 8) {
@@ -1029,9 +1000,6 @@ module.exports = class levidge extends Exchange {
     }
 
     convertFromScale (number, scale) {
-        if (!this.isInteger (number) || !this.isInteger (scale)) {
-            throw new BadRequest (this.id + ': number and scale must be integer');
-        }
         return this.fromWei (number, scale);
     }
 
