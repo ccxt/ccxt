@@ -55,7 +55,14 @@ if 'site-packages' in os.path.dirname(ccxtpro.__file__):
 
 # ------------------------------------------------------------------------------
 
+verbose_log_filename = 'py.' + argv.exchange_id + '.log'
+verbose_log_file = open(verbose_log_filename, 'w')
+
+# ------------------------------------------------------------------------------
+
 def handle_all_unhandled_exceptions(type, value, traceback):
+    if verbose_log_file:
+        verbose_log_file.close()
     sys.stderr.write('handle_all_unhandled_exceptions ' + type.__name__ + ' ' + str(value) + '\n\n' + '\n'.join(format_tb(traceback)) + "\n")
     sys.stderr.flush()
     _exit(1)  # unrecoverable crash
@@ -139,9 +146,14 @@ async def test_exchange(exchange):
         await test_private(exchange, symbol, code)
 
 
+def print_to_file(self, *args):
+    print(*args, file=verbose_log_file)
+
+
 # -----------------------------------------------------------------------------
 
 async def test():
+
     apiKeys = config.get(argv.exchange_id, {})
     exchange = getattr(ccxtpro, argv.exchange_id)(Exchange.deep_extend({
         'enableRateLimit': True,
@@ -154,6 +166,7 @@ async def test():
         print(exchange.id, argv.verbose)
         await exchange.load_markets()
         exchange.verbose = argv.verbose
+        exchange.print = print_to_file
         await test_exchange(exchange)
     await exchange.close()
 

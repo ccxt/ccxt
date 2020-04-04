@@ -27,7 +27,20 @@ const ecdhCurve = 'auto'
 const agent = new Agent ({ ecdhCurve })
 
 const timeout = 20000
-const exchangeOptions = { agent, verbose, enableRateLimit, timeout }
+const print = function printToFile (... args) {
+    args = args.map ((x) => {
+        if (typeof x === 'string') {
+            return x
+        } else if (x instanceof Date) {
+            return x.toISOString ()
+        } else {
+            return JSON.stringify (x)
+        }
+    })
+    fs.appendFileSync ('js.' + exchangeId + '.log', args.join (' ') + "\n")
+}
+
+const exchangeOptions = { agent, verbose, enableRateLimit, timeout, print }
 const exchange = new (ccxtpro)[exchangeId] (exchangeOptions)
 
 // ----------------------------------------------------------------------------
