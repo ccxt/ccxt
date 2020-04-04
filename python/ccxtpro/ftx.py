@@ -239,7 +239,7 @@ class ftx(Exchange, ccxt.ftx):
         #     }
         #
         data = self.safe_value(message, 'data', {})
-        marketId = self.safe_value(message, 'market', {})
+        marketId = self.safe_string(message, 'market')
         if marketId in self.markets_by_id:
             market = self.markets_by_id[marketId]
             symbol = market['symbol']

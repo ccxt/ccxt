@@ -46,6 +46,11 @@ class huobipro(Exchange, ccxt.huobipro):
             },
         })
 
+    def request_id(self):
+        requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
+        self.options['requestId'] = requestId
+        return str(requestId)
+
     async def watch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
@@ -54,7 +59,7 @@ class huobipro(Exchange, ccxt.huobipro):
         api = self.safe_string(self.options, 'api', 'api')
         hostname = {'hostname': self.hostname}
         url = self.implode_params(self.urls['api']['ws'][api]['public'], hostname)
-        requestId = str(self.milliseconds())
+        requestId = self.request_id()
         request = {
             'sub': messageHash,
             'id': requestId,
@@ -108,7 +113,7 @@ class huobipro(Exchange, ccxt.huobipro):
         api = self.safe_string(self.options, 'api', 'api')
         hostname = {'hostname': self.hostname}
         url = self.implode_params(self.urls['api']['ws'][api]['public'], hostname)
-        requestId = str(self.milliseconds())
+        requestId = self.request_id()
         request = {
             'sub': messageHash,
             'id': requestId,
@@ -170,7 +175,7 @@ class huobipro(Exchange, ccxt.huobipro):
         api = self.safe_string(self.options, 'api', 'api')
         hostname = {'hostname': self.hostname}
         url = self.implode_params(self.urls['api']['ws'][api]['public'], hostname)
-        requestId = str(self.milliseconds())
+        requestId = self.request_id()
         request = {
             'sub': messageHash,
             'id': requestId,
@@ -245,7 +250,7 @@ class huobipro(Exchange, ccxt.huobipro):
         api = self.safe_string(self.options, 'api', 'api')
         hostname = {'hostname': self.hostname}
         url = self.implode_params(self.urls['api']['ws'][api]['public'], hostname)
-        requestId = str(self.milliseconds())
+        requestId = self.request_id()
         request = {
             'sub': messageHash,
             'id': requestId,
@@ -305,7 +310,7 @@ class huobipro(Exchange, ccxt.huobipro):
         api = self.safe_string(self.options, 'api', 'api')
         hostname = {'hostname': self.hostname}
         url = self.implode_params(self.urls['api']['ws'][api]['public'], hostname)
-        requestId = str(self.milliseconds())
+        requestId = self.request_id()
         request = {
             'req': messageHash,
             'id': requestId,

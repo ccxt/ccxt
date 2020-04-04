@@ -73,6 +73,12 @@ module.exports = class kucoin extends ccxt.kucoin {
         return await future;
     }
 
+    requestId () {
+        const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
+        this.options['requestId'] = requestId;
+        return requestId;
+    }
+
     async subscribe (negotiation, topic, method, symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -81,7 +87,7 @@ module.exports = class kucoin extends ccxt.kucoin {
         const firstServer = this.safeValue (instanceServers, 0, {});
         const endpoint = this.safeString (firstServer, 'endpoint');
         const token = this.safeString (data, 'token');
-        const nonce = this.nonce ();
+        const nonce = this.requestId ();
         const query = {
             'token': token,
             'acceptUserMessage': 'true',
@@ -439,7 +445,7 @@ module.exports = class kucoin extends ccxt.kucoin {
         // kucoin does not support built-in ws protocol-level ping-pong
         // instead it requires a custom json-based text ping-pong
         // https://docs.kucoin.com/#ping
-        const id = this.nonce ().toString ();
+        const id = this.requestId ().toString ();
         return {
             'id': id,
             'type': 'ping',
