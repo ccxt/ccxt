@@ -1230,7 +1230,7 @@ class Exchange {
         if (is_array($args)) {
             $array = array();
             foreach ($args as $arg) {
-                $array[] = substr(print_r($arg, true), 0, -1);
+                $array[] = is_string($arg) ? $arg : json_encode($arg, JSON_PRETTY_PRINT);
             }
             echo implode(' ', $array), "\n";
         }
@@ -1321,7 +1321,11 @@ class Exchange {
         }
 
         if ($this->verbose) {
-            $this->print("\nRequest:\n", array($method, $url, $verbose_headers, $body));
+            if (isset($this->print) && (gettype ($this->print) === 'object')) {
+                call_user_func($this->print, 'Request:', $method, $url, $verbose_headers, $body);
+            } else {
+                $this->print('Request:', $method, $url, $verbose_headers, $body);
+            }
         }
 
         // we probably only need to set it once on startup
@@ -1403,7 +1407,11 @@ class Exchange {
         $http_status_code = curl_getinfo($this->curl, CURLINFO_HTTP_CODE);
 
         if ($this->verbose) {
-            $this->print("\nResponse:\n", array($method, $url, $http_status_code, $curl_error, $response_headers, $result));
+            if (isset($this->print) && (gettype ($this->print) === 'object')) {
+                call_user_func($this->print, 'Response:', $method, $url, $http_status_code, $curl_error, $response_headers, $result);
+            } else {
+                $this->print('Response:', $method, $url, $http_status_code, $curl_error, $response_headers, $result);
+            }
         }
 
         $this->handle_errors($http_status_code, $http_status_text, $url, $method, $response_headers, $result ? $result : null, $json_response, $headers, $body);
