@@ -1231,7 +1231,7 @@ module.exports = class bybit extends Exchange {
             request['p_r_qty'] = this.amountToPrecision (symbol, amount);
         }
         if (price !== undefined) {
-            request['p_r_price'] = this.priceToPrecision (symbol, amount);
+            request['p_r_price'] = this.priceToPrecision (symbol, price);
         }
         const response = await this[method] (this.extend (request, params));
         //
