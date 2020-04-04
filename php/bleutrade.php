@@ -31,6 +31,7 @@ class bleutrade extends Exchange {
                 'fetchTicker' => true,
                 'fetchOrders' => false,
                 'fetchClosedOrders' => true,
+                'fetchOpenOrders' => true,
                 'fetchWithdrawals' => true,
                 'fetchOrderTrades' => false,
                 'fetchLedger' => true,
