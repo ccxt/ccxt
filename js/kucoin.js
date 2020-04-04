@@ -74,9 +74,9 @@ module.exports = class kucoin extends ccxt.kucoin {
     }
 
     requestId () {
-        const reqid = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
-        this.options['requestId'] = reqid;
-        return reqid;
+        const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
+        this.options['requestId'] = requestId;
+        return requestId;
     }
 
     async subscribe (negotiation, topic, method, symbol, params = {}) {
