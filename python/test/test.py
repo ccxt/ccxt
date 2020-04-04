@@ -58,6 +58,7 @@ if 'site-packages' in os.path.dirname(ccxtpro.__file__):
 verbose_log_filename = 'py.' + argv.exchange_id + '.log'
 verbose_log_file = open(verbose_log_filename, 'w')
 
+
 # ------------------------------------------------------------------------------
 
 def handle_all_unhandled_exceptions(type, value, traceback):
