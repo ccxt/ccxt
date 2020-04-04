@@ -215,7 +215,7 @@ module.exports = class kraken extends ccxt.kraken {
         }
     }
 
-    reqid () {
+    requestId () {
         // their support said that reqid must be an int32, not documented
         const reqid = this.sum (this.safeInteger (this.options, 'reqid', 0), 1);
         this.options['reqid'] = reqid;
@@ -228,7 +228,7 @@ module.exports = class kraken extends ccxt.kraken {
         const wsName = this.safeValue (market['info'], 'wsname');
         const messageHash = name + ':' + wsName;
         const url = this.urls['api']['ws']['public'];
-        const requestId = this.reqid ();
+        const requestId = this.requestId ();
         const subscribe = {
             'event': 'subscribe',
             'reqid': requestId,
@@ -272,7 +272,7 @@ module.exports = class kraken extends ccxt.kraken {
         const wsName = this.safeValue (market['info'], 'wsname');
         const messageHash = name + ':' + timeframe + ':' + wsName;
         const url = this.urls['api']['ws']['public'];
-        const requestId = this.reqid ();
+        const requestId = this.requestId ();
         const subscribe = {
             'event': 'subscribe',
             'reqid': requestId,
