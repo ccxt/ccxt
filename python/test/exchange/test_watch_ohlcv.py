@@ -19,7 +19,7 @@ async def test_watch_ohlcv(exchange, symbol):
     if (method in exchange.has) and exchange.has[method]:
         response = None
         now = exchange.milliseconds()
-        end = now + 20000
+        end = now + 15000
         while now < end:
             try:
                 ohlcvs = await getattr(exchange, method)(symbol, timeframe, since, limit)

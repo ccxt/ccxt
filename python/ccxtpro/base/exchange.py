@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '0.1.34'
+__version__ = '0.1.35'
 
 # -----------------------------------------------------------------------------
 
@@ -65,6 +65,7 @@ class Exchange(BaseExchange):
             # decide client type here: aiohttp ws / websockets / signalr / socketio
             ws_options = self.safe_value(self.options, 'ws', {})
             options = self.extend(self.streaming, {
+                'print': getattr(self, 'print'),
                 'ping': getattr(self, 'ping', None),
                 'verbose': self.verbose,
             }, ws_options)
@@ -122,7 +123,7 @@ class Exchange(BaseExchange):
         except Exception as e:
             client.reject(e, message_hash)
             if self.verbose:
-                print(self.iso8601(self.milliseconds()), 'connect_client', 'Exception', e)
+                self.print(self.iso8601(self.milliseconds()), 'connect_client', 'Exception', e)
 
     def watch(self, url, message_hash, message=None, subscribe_hash=None, subscription=None):
         client = self.client(url)
