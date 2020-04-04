@@ -1228,9 +1228,11 @@ class Exchange {
     public function print() {
         $args = func_get_args();
         if (is_array($args)) {
+            $array = array();
             foreach ($args as $arg) {
-                print_r($arg);
+                $array[] = substr(print_r($arg, true), 0, -1);
             }
+            echo implode(' ', $array), "\n";
         }
     }
 
