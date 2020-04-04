@@ -122,7 +122,7 @@ class Exchange(BaseExchange):
         except Exception as e:
             client.reject(e, message_hash)
             if self.verbose:
-                print(self.iso8601(self.milliseconds()), 'connect_client', 'Exception', e)
+                self.print(self.iso8601(self.milliseconds()), 'connect_client', 'Exception', e)
 
     def watch(self, url, message_hash, message=None, subscribe_hash=None, subscription=None):
         client = self.client(url)
