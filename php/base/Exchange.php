@@ -2487,6 +2487,7 @@ class Exchange {
             $precisionDigitsString = static::decimal_to_precision ($numPrecisionDigits, ROUND, 100, DECIMAL_PLACES, NO_PADDING);
             $newNumPrecisionDigits = static::precisionFromString ($precisionDigitsString);
             $missing = fmod($x, $numPrecisionDigits);
+            $missing = floatval(static::decimal_to_precision ($missing, ROUND, 8, DECIMAL_PLACES, NO_PADDING));
             // See: https://github.com/ccxt/ccxt/pull/6486
             $fpError = static::decimal_to_precision ($missing / $numPrecisionDigits, ROUND, max($newNumPrecisionDigits, 8), DECIMAL_PLACES, NO_PADDING);
             if (static::precisionFromString ($fpError) !== 0) {
