@@ -492,7 +492,7 @@ class huobipro(Exchange):
                 ticker['timestamp'] = timestamp
                 ticker['datetime'] = self.iso8601(timestamp)
                 result[symbol] = ticker
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def parse_trade(self, trade, market=None):
         #

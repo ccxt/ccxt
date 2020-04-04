@@ -7,7 +7,7 @@ namespace ccxt;
 
 use Exception; // a common import
 
-class bequant extends hitbtc2 {
+class bequant extends hitbtc {
 
     public function describe() {
         return $this->deep_extend(parent::describe (), array(

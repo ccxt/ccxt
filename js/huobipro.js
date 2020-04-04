@@ -503,7 +503,7 @@ module.exports = class huobipro extends Exchange {
                 result[symbol] = ticker;
             }
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     parseTrade (trade, market = undefined) {

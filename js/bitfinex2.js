@@ -700,6 +700,7 @@ module.exports = class bitfinex2 extends bitfinex {
             'EXECUTED': 'closed',
             'CANCELED': 'canceled',
             'INSUFFICIENT MARGIN': 'canceled',
+            'INSUFFICIENT BALANCE (G1) was: PARTIALLY FILLED': 'canceled',
             'RSN_DUST': 'rejected',
             'RSN_PAUSE': 'rejected',
         };

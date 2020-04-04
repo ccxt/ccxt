@@ -788,28 +788,28 @@ watchOrders
 
 .. code:: diff
 
-   - work in progress now
+   - this method is a work in progress now (may be unavailable)
 
 watchCreateOrder
 ''''''''''''''''
 
 .. code:: diff
 
-   - work in progress now
+   - this method is a work in progress now (may be unavailable)
 
 watchCancelOrder
 ''''''''''''''''
 
 .. code:: diff
 
-   - work in progress now
+   - this method is a work in progress now (may be unavailable)
 
 watchMyTrades
 '''''''''''''
 
 .. code:: diff
 
-   - work in progress now
+   - this method is a work in progress now (may be unavailable)
 
 .. code:: javascript
 
@@ -834,7 +834,7 @@ watchTransactions
 
 .. code:: diff
 
-   - work in progress now
+   - this method is a work in progress now (may be unavailable)
 
 Error Handling
 --------------

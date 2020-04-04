@@ -2,10 +2,10 @@
 
 // ---------------------------------------------------------------------------
 
-const hitbtc2 = require ('./hitbtc2');
+const hitbtc = require ('./hitbtc');
 // ---------------------------------------------------------------------------
 
-module.exports = class bequant extends hitbtc2 {
+module.exports = class bequant extends hitbtc {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bequant',
