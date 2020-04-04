@@ -1233,7 +1233,7 @@ class bybit extends Exchange {
             $request['p_r_qty'] = $this->amount_to_precision($symbol, $amount);
         }
         if ($price !== null) {
-            $request['p_r_price'] = $this->price_to_precision($symbol, $amount);
+            $request['p_r_price'] = $this->price_to_precision($symbol, $price);
         }
         $response = $this->$method (array_merge($request, $params));
         //

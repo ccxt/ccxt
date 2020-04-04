@@ -1177,7 +1177,7 @@ class bybit(Exchange):
         if amount is not None:
             request['p_r_qty'] = self.amount_to_precision(symbol, amount)
         if price is not None:
-            request['p_r_price'] = self.price_to_precision(symbol, amount)
+            request['p_r_price'] = self.price_to_precision(symbol, price)
         response = getattr(self, method)(self.extend(request, params))
         #
         #     {
