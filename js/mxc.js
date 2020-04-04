@@ -230,14 +230,14 @@ module.exports = class mxc extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const now = this.milliseconds ();
+        const periodDurationInSeconds = this.parseTimeframe (timeframe);
         const request = {
             'market': this.marketId (symbol),
-            'interval': this.timeframes[timeframe],
-            'startTime': now / 1000,
+            'interval': timeframe,
+            'startTime': parseInt (now / 1000 - periodDurationInSeconds),
         };
         // max limit = 1001
         if (limit !== undefined) {
-            const periodDurationInSeconds = this.parseTimeframe (timeframe);
             const hours = parseInt ((periodDurationInSeconds * limit) / 3600);
             request['range_hour'] = Math.max (0, hours - 1);
         }
@@ -325,18 +325,14 @@ module.exports = class mxc extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const ticker = await this.publicGetTicker (this.extend ({
+        const ticker = await this.publicGetTickerId (this.extend ({
             'market': this.marketId (symbol),
         }, params));
         return this.parseTicker (ticker, market);
     }
 
     parseTrade (trade, market = undefined) {
-        const dateStr = this.safeValue (trade, 'tradeTime');
-        let timestamp = undefined;
-        if (dateStr !== undefined) {
-            timestamp = this.parseDate (dateStr + '  GMT+8');
-        }
+        const trade_time = this.safeValue (trade, 'tradeTime');
         // take either of orderid or orderId
         const price = this.safeFloat (trade, 'tradePrice');
         const amount = this.safeFloat (trade, 'tradeQuantity');
@@ -354,8 +350,8 @@ module.exports = class mxc extends Exchange {
         return {
             'id': undefined,
             'info': trade,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': trade_time,
             'symbol': symbol,
             'order': undefined,
             'type': undefined,
@@ -419,8 +415,35 @@ module.exports = class mxc extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        // Different API endpoints returns order info in different format...
-        // with different fields filled.
+        //
+        //   {
+        //    "id": "4921e6be-cfb9-4058-89d3-afbeb6be7d78",
+        //    "market": "MX_ETH",
+        //    "price": "0.439961",
+        //    "status": "1",
+        //    "totalQuantity": "2",
+        //    "tradedQuantity": "0",
+        //    "tradedAmount": "0",
+        //    "createTime": "2019-05-13 14:31:11", // in UTC+8
+        //    "type": 1
+        //  }
+        //    {'amount': '0.00000000',
+        //     'currencyPair': 'xlm_usdt',
+        //     'fee': '0.0113766632239302 USDT',
+        //     'feeCurrency': 'USDT',
+        //     'feePercentage': 0.18,
+        //     'feeValue': '0.0113766632239302',
+        //     'filledAmount': '30.14004987',
+        //     'filledRate': 0.2097,
+        //     'initialAmount': '30.14004987',
+        //     'initialRate': '0.2097',
+        //     'left': 0,
+        //     'orderNumber': '998307286',
+        //     'rate': '0.2097',
+        //     'status': 'closed',
+        //     'timestamp': 1531158583,
+        //     'type': 'sell'},
+        //
         let id = this.safeString (order, 'id');
         if (id === undefined) {
             id = this.safeString (order, 'data');
@@ -434,12 +457,9 @@ module.exports = class mxc extends Exchange {
             symbol = market['symbol'];
         }
         const dateStr = this.safeString (order, 'createTime');
-        // XXX: MXC returns order creation times in GMT+8 timezone with out specifying it
-        //  hence appending ' GMT+8' to it so we can get the correct value
-        // XXX: Also MXC api does not return actual matched prices and costs/fees
-        let timestamp = undefined;
+        let timestamp = this.parseDate (dateStr);
         if (dateStr !== undefined) {
-            timestamp = this.parseDate (dateStr + '  GMT+8');
+            timestamp = this.parseDate (dateStr + ' GMT+8');
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const side = this.parseOrderSide (this.safeString (order, 'type'));
@@ -521,6 +541,12 @@ module.exports = class mxc extends Exchange {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
+            // const content_type = 'application/json';
+            // headers = {
+            //     'Content-Type': content_type,
+            //     'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36',
+            //    'Accept': content_type,
+            // };
         } else {
             this.checkRequiredCredentials ();
             const auth = this.rawencode (this.keysort (query));
