@@ -49,6 +49,12 @@ class huobipro extends \ccxt\huobipro {
         ));
     }
 
+    public function request_id() {
+        $requestId = $this->sum($this->safe_integer($this->options, 'requestId', 0), 1);
+        $this->options['requestId'] = $requestId;
+        return (string) $requestId;
+    }
+
     public function watch_ticker($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
@@ -57,7 +63,7 @@ class huobipro extends \ccxt\huobipro {
         $api = $this->safe_string($this->options, 'api', 'api');
         $hostname = array( 'hostname' => $this->hostname );
         $url = $this->implode_params($this->urls['api']['ws'][$api]['public'], $hostname);
-        $requestId = (string) $this->milliseconds();
+        $requestId = $this->request_id();
         $request = array(
             'sub' => $messageHash,
             'id' => $requestId,
@@ -114,7 +120,7 @@ class huobipro extends \ccxt\huobipro {
         $api = $this->safe_string($this->options, 'api', 'api');
         $hostname = array( 'hostname' => $this->hostname );
         $url = $this->implode_params($this->urls['api']['ws'][$api]['public'], $hostname);
-        $requestId = (string) $this->milliseconds();
+        $requestId = $this->request_id();
         $request = array(
             'sub' => $messageHash,
             'id' => $requestId,
@@ -181,7 +187,7 @@ class huobipro extends \ccxt\huobipro {
         $api = $this->safe_string($this->options, 'api', 'api');
         $hostname = array( 'hostname' => $this->hostname );
         $url = $this->implode_params($this->urls['api']['ws'][$api]['public'], $hostname);
-        $requestId = (string) $this->milliseconds();
+        $requestId = $this->request_id();
         $request = array(
             'sub' => $messageHash,
             'id' => $requestId,
@@ -265,7 +271,7 @@ class huobipro extends \ccxt\huobipro {
         $api = $this->safe_string($this->options, 'api', 'api');
         $hostname = array( 'hostname' => $this->hostname );
         $url = $this->implode_params($this->urls['api']['ws'][$api]['public'], $hostname);
-        $requestId = (string) $this->milliseconds();
+        $requestId = $this->request_id();
         $request = array(
             'sub' => $messageHash,
             'id' => $requestId,
@@ -328,7 +334,7 @@ class huobipro extends \ccxt\huobipro {
         $api = $this->safe_string($this->options, 'api', 'api');
         $hostname = array( 'hostname' => $this->hostname );
         $url = $this->implode_params($this->urls['api']['ws'][$api]['public'], $hostname);
-        $requestId = (string) $this->milliseconds();
+        $requestId = $this->request_id();
         $request = array(
             'req' => $messageHash,
             'id' => $requestId,

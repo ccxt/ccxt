@@ -77,6 +77,12 @@ class kucoin extends \ccxt\kucoin {
         return $future;
     }
 
+    public function request_id() {
+        $requestId = $this->sum($this->safe_integer($this->options, 'requestId', 0), 1);
+        $this->options['requestId'] = $requestId;
+        return $requestId;
+    }
+
     public function subscribe($negotiation, $topic, $method, $symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
@@ -85,7 +91,7 @@ class kucoin extends \ccxt\kucoin {
         $firstServer = $this->safe_value($instanceServers, 0, array());
         $endpoint = $this->safe_string($firstServer, 'endpoint');
         $token = $this->safe_string($data, 'token');
-        $nonce = $this->nonce();
+        $nonce = $this->request_id();
         $query = array(
             'token' => $token,
             'acceptUserMessage' => 'true',
@@ -443,7 +449,7 @@ class kucoin extends \ccxt\kucoin {
         // kucoin does not support built-in ws protocol-level ping-pong
         // instead it requires a custom json-based text ping-pong
         // https://docs.kucoin.com/#ping
-        $id = (string) $this->nonce();
+        $id = (string) $this->request_id();
         return array(
             'id' => $id,
             'type' => 'ping',

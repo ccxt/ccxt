@@ -205,7 +205,7 @@ class kraken(Exchange, ccxt.kraken):
             self.ohlcvs[symbol][timeframe] = stored
             client.resolve(stored, messageHash)
 
-    def reqid(self):
+    def request_id(self):
         # their support said that reqid must be an int32, not documented
         reqid = self.sum(self.safe_integer(self.options, 'reqid', 0), 1)
         self.options['reqid'] = reqid
@@ -217,7 +217,7 @@ class kraken(Exchange, ccxt.kraken):
         wsName = self.safe_value(market['info'], 'wsname')
         messageHash = name + ':' + wsName
         url = self.urls['api']['ws']['public']
-        requestId = self.reqid()
+        requestId = self.request_id()
         subscribe = {
             'event': 'subscribe',
             'reqid': requestId,
@@ -256,7 +256,7 @@ class kraken(Exchange, ccxt.kraken):
         wsName = self.safe_value(market['info'], 'wsname')
         messageHash = name + ':' + timeframe + ':' + wsName
         url = self.urls['api']['ws']['public']
-        requestId = self.reqid()
+        requestId = self.request_id()
         subscribe = {
             'event': 'subscribe',
             'reqid': requestId,

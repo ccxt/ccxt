@@ -71,6 +71,11 @@ class kucoin(Exchange, ccxt.kucoin):
             # token = self.safe_string(data, 'token')
         return await future
 
+    def request_id(self):
+        requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
+        self.options['requestId'] = requestId
+        return requestId
+
     async def subscribe(self, negotiation, topic, method, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
@@ -79,7 +84,7 @@ class kucoin(Exchange, ccxt.kucoin):
         firstServer = self.safe_value(instanceServers, 0, {})
         endpoint = self.safe_string(firstServer, 'endpoint')
         token = self.safe_string(data, 'token')
-        nonce = self.nonce()
+        nonce = self.request_id()
         query = {
             'token': token,
             'acceptUserMessage': 'true',
@@ -405,7 +410,7 @@ class kucoin(Exchange, ccxt.kucoin):
         # kucoin does not support built-in ws protocol-level ping-pong
         # instead it requires a custom json-based text ping-pong
         # https://docs.kucoin.com/#ping
-        id = str(self.nonce())
+        id = str(self.request_id())
         return {
             'id': id,
             'type': 'ping',

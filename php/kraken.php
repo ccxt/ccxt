@@ -219,7 +219,7 @@ class kraken extends \ccxt\kraken {
         }
     }
 
-    public function reqid() {
+    public function request_id() {
         // their support said that $reqid must be an int32, not documented
         $reqid = $this->sum($this->safe_integer($this->options, 'reqid', 0), 1);
         $this->options['reqid'] = $reqid;
@@ -232,7 +232,7 @@ class kraken extends \ccxt\kraken {
         $wsName = $this->safe_value($market['info'], 'wsname');
         $messageHash = $name . ':' . $wsName;
         $url = $this->urls['api']['ws']['public'];
-        $requestId = $this->reqid();
+        $requestId = $this->request_id();
         $subscribe = array(
             'event' => 'subscribe',
             'reqid' => $requestId,
@@ -276,7 +276,7 @@ class kraken extends \ccxt\kraken {
         $wsName = $this->safe_value($market['info'], 'wsname');
         $messageHash = $name . ':' . $timeframe . ':' . $wsName;
         $url = $this->urls['api']['ws']['public'];
-        $requestId = $this->reqid();
+        $requestId = $this->request_id();
         $subscribe = array(
             'event' => 'subscribe',
             'reqid' => $requestId,
