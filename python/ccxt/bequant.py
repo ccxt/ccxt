@@ -13,6 +13,7 @@ class bequant(hitbtc):
             'id': 'bequant',
             'name': 'Bequant',
             'countries': ['MT'],  # Malta
+            'pro': False,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/55248342-a75dfe00-525a-11e9-8aa2-05e9dca943c6.jpg',
                 'api': {
