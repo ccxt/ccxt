@@ -6,7 +6,7 @@ const fs = require ('fs')
     , ccxtpro = require (__dirname + '/../../ccxt.pro.js')
 
 const [processPath, , exchangeId, exchangeSymbol] = process.argv.filter (x => !x.startsWith ('--'))
-const verbose = process.argv.includes ('--verbose') || false
+let verbose = process.argv.includes ('--verbose') || false
 
 // ----------------------------------------------------------------------------
 
@@ -40,7 +40,17 @@ const print = function printToFile (... args) {
     fs.appendFileSync ('js.' + exchangeId + '.log', args.join (' ') + "\n")
 }
 
-const exchangeOptions = { agent, verbose, enableRateLimit, timeout, print }
+if (exchangeId === 'binanceje') {
+    verbose = true
+}
+
+const exchangeOptions = {
+    agent,
+    verbose,
+    enableRateLimit,
+    timeout,
+    print,
+}
 const exchange = new (ccxtpro)[exchangeId] (exchangeOptions)
 
 // ----------------------------------------------------------------------------
