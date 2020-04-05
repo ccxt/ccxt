@@ -35,7 +35,7 @@ use kornrunner\Solidity;
 use Elliptic\EC;
 use BN\BN;
 
-$version = '1.25.75';
+$version = '1.25.80';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -54,7 +54,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.25.75';
+    const VERSION = '1.25.80';
 
     public static $exchanges = array(
         '_1btcxe',
@@ -1321,11 +1321,8 @@ class Exchange {
         }
 
         if ($this->verbose) {
-            if (isset($this->print) && (gettype ($this->print) === 'object')) {
-                call_user_func($this->print, 'Request:', $method, $url, $verbose_headers, $body);
-            } else {
-                $this->print('Request:', $method, $url, $verbose_headers, $body);
-            }
+            $function = array($this, 'print');
+            $function('Request:', $method, $url, $verbose_headers, $body);
         }
 
         // we probably only need to set it once on startup
@@ -1407,11 +1404,8 @@ class Exchange {
         $http_status_code = curl_getinfo($this->curl, CURLINFO_HTTP_CODE);
 
         if ($this->verbose) {
-            if (isset($this->print) && (gettype ($this->print) === 'object')) {
-                call_user_func($this->print, 'Response:', $method, $url, $http_status_code, $curl_error, $response_headers, $result);
-            } else {
-                $this->print('Response:', $method, $url, $http_status_code, $curl_error, $response_headers, $result);
-            }
+            $function = array($this, 'print');
+            $function('Response:', $method, $url, $http_status_code, $curl_error, $response_headers, $result);
         }
 
         $this->handle_errors($http_status_code, $http_status_text, $url, $method, $response_headers, $result ? $result : null, $json_response, $headers, $body);

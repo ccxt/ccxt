@@ -28,6 +28,7 @@ class hitbtc(Exchange):
             'countries': ['HK'],
             'rateLimit': 1500,
             'version': '2',
+            'pro': True,
             'has': {
                 'createDepositAddress': True,
                 'fetchDepositAddress': True,
