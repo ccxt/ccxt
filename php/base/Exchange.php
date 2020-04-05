@@ -17,6 +17,7 @@ class Exchange extends \ccxt\Exchange {
 // todo: fix the conflict of ccxt.exchanges vs ccxtpro.exchanges
 
 Exchange::$exchanges = array(
+    'bequant',
     'binance',
     'binanceje',
     'binanceus',

@@ -8,7 +8,7 @@ import ccxt.async_support as ccxt
 
 # -----------------------------------------------------------------------------
 
-__version__ = '0.1.37'
+__version__ = '0.1.38'
 
 # -----------------------------------------------------------------------------
 
@@ -64,7 +64,6 @@ from ccxt.async_support.adara import adara                                # noqa
 from ccxt.async_support.anxpro import anxpro                              # noqa: F401
 from ccxt.async_support.aofex import aofex                                # noqa: F401
 from ccxt.async_support.bcex import bcex                                  # noqa: F401
-from ccxt.async_support.bequant import bequant                            # noqa: F401
 from ccxt.async_support.bibox import bibox                                # noqa: F401
 from ccxt.async_support.bigone import bigone                              # noqa: F401
 from ccxt.async_support.bit2c import bit2c                                # noqa: F401
@@ -161,6 +160,7 @@ from ccxt.async_support.zb import zb                                      # noqa
 
 # CCXT Pro exchanges
 
+from ccxtpro.bequant import bequant                                       # noqa: F401
 from ccxtpro.binance import binance                                       # noqa: F401
 from ccxtpro.binanceje import binanceje                                   # noqa: F401
 from ccxtpro.binanceus import binanceus                                   # noqa: F401
