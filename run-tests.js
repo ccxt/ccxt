@@ -6,7 +6,7 @@
 // ----------------------------------------------------------------------------
 
 const fs = require ('fs')
-    , log = require ('ololog').handleNodeErrors ()
+    , log = require ('ololog').handleNodeErrors ().unlimited
     , ansi = require ('ansicolor').nice
     , { spawn, execSync } = require ('child_process')
 
@@ -229,7 +229,7 @@ async function testAllExchanges () {
         .sort((a, b) => a.sort - b.sort)
         .map((a) => a.value)
 
-    console.log (shuffled)
+    log.green (shuffled)
 
     for (const exchange of shuffled) {
         taskPool.run (() => testExchange (exchange).then (x => results.push (x)))
