@@ -32,14 +32,16 @@ module.exports = async (exchange, symbol) => {
 
             testTicker (exchange, response, method, symbol)
 
+            now = Date.now ()
+
         } catch (e) {
 
             if (!(e instanceof errors.NetworkError)) {
                 throw e
             }
-        }
 
-        now = Date.now ()
+            now = Date.now ()
+        }
 
     }
 

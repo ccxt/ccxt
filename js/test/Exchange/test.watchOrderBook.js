@@ -22,7 +22,7 @@ module.exports = async (exchange, symbol) => {
     let response = undefined
 
     let now = Date.now ()
-    const ends = now + 25000
+    const ends = now + 20000
 
     while (now < ends) {
 
