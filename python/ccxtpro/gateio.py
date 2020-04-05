@@ -301,7 +301,8 @@ class gateio(Exchange, ccxt.gateio):
             stored[length - 1] = parsed
         else:
             stored.append(parsed)
-            if length == self.options['OHLCVLimit']:
+            limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
+            if length == limit:
                 stored.pop(0)
         # --------------------------------------------------------------------
         # self.ohlcvs[symbol][timeframe] = stored

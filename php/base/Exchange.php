@@ -28,6 +28,7 @@ Exchange::$exchanges = array(
     'coinbasepro',
     'ftx',
     'gateio',
+    'hitbtc',
     'huobipro',
     'huobiru',
     'kraken',

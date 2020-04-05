@@ -42,6 +42,7 @@ declare module 'ccxt.pro' {
     export class coinbasepro extends Exchange {}
     export class ftx extends Exchange {}
     export class gateio extends Exchange {}
+    export class hitbtc extends Exchange {}
     export class huobipro extends Exchange {}
     export class huobiru extends huobipro {}
     export class kraken extends Exchange {}
