@@ -16,7 +16,7 @@ module.exports = class hitbtc extends ccxt.hitbtc {
                 'watchTrades': true,
                 'watchOrderBook': true,
                 'watchBalance': false, // not implemented yet
-                'watchOHLCV': false, // not implemented yet
+                'watchOHLCV': true, // not implemented yet
             },
             'urls': {
                 'api': {
@@ -29,17 +29,20 @@ module.exports = class hitbtc extends ccxt.hitbtc {
                     'orderbook': 'subscribeOrderbook',
                     'ticker': 'subscribeTicker',
                     'trades': 'subscribeTrades',
-                    'candles': 'subscribeCandles',
+                    'ohlcv': 'subscribeCandles',
                 },
             },
         });
     }
 
-    async watchPublic (symbol, channel, params = {}) {
+    async watchPublic (symbol, channel, timeframe = undefined, params = {}) {
         await this.loadMarkets ();
         const marketId = this.marketId (symbol);
         const url = this.urls['api']['ws'];
-        const messageHash = channel + ':' + marketId;
+        let messageHash = channel + ':' + marketId;
+        if (timeframe !== undefined) {
+            messageHash += ':' + timeframe;
+        }
         const methods = this.safeValue (this.options, 'methods', {});
         const method = this.safeString (methods, channel, channel);
         const requestId = this.nonce ();
@@ -55,7 +58,7 @@ module.exports = class hitbtc extends ccxt.hitbtc {
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
-        const future = this.watchPublic (symbol, 'orderbook', params);
+        const future = this.watchPublic (symbol, 'orderbook', undefined, params);
         return await this.after (future, this.limitOrderBook, symbol, limit, params);
     }
 
@@ -158,7 +161,7 @@ module.exports = class hitbtc extends ccxt.hitbtc {
     }
 
     async watchTicker (symbol, params = {}) {
-        return await this.watchPublic (symbol, 'ticker', params);
+        return await this.watchPublic (symbol, 'ticker', undefined, params);
     }
 
     handleTicker (client, message) {
@@ -194,7 +197,7 @@ module.exports = class hitbtc extends ccxt.hitbtc {
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        const future = this.watchPublic (symbol, 'trades', params);
+        const future = this.watchPublic (symbol, 'trades', undefined, params);
         return await this.after (future, this.filterBySinceLimit, since, limit, true);
     }
 
@@ -256,6 +259,96 @@ module.exports = class hitbtc extends ccxt.hitbtc {
         return message;
     }
 
+    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        // if (limit === undefined) {
+        //     limit = 100;
+        // }
+        const period = this.timeframes[timeframe];
+        const request = {
+            'params': {
+                'period': period,
+                // 'limit': limit,
+            },
+        };
+        const requestParams = this.deepExtend (request, params);
+        const future = this.watchPublic (symbol, 'ohlcv', period, requestParams);
+        return await this.after (future, this.filterBySinceLimit, since, limit, 0, true);
+    }
+
+    findTimeframe (timeframe) {
+        // redo to use reverse lookups in a static map instead
+        const keys = Object.keys (this.timeframes);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (this.timeframes[key] === timeframe) {
+                return key;
+            }
+        }
+        return undefined;
+    }
+
+    handleOHLCV (client, message) {
+        //
+        //     {
+        //         jsonrpc: '2.0',
+        //         method: 'snapshotCandles', // updateCandles
+        //         params: {
+        //             data: [
+        //                 {
+        //                     timestamp: '2020-04-05T00:06:00.000Z',
+        //                     open: '6869.40',
+        //                     close: '6867.16',
+        //                     min: '6863.17',
+        //                     max: '6869.4',
+        //                     volume: '0.08947',
+        //                     volumeQuote: '614.4195442'
+        //                 },
+        //                 {
+        //                     timestamp: '2020-04-05T00:07:00.000Z',
+        //                     open: '6867.54',
+        //                     close: '6859.26',
+        //                     min: '6858.85',
+        //                     max: '6867.54',
+        //                     volume: '1.7766',
+        //                     volumeQuote: '12191.5880395'
+        //                 },
+        //             ],
+        //             symbol: 'BTCUSD',
+        //             period: 'M1'
+        //         }
+        //     }
+        //
+        const params = this.safeValue (message, 'params', {});
+        const data = this.safeValue (params, 'data', []);
+        const marketId = this.safeString (params, 'symbol');
+        if (marketId in this.markets_by_id) {
+            const market = this.markets_by_id[marketId];
+            const symbol = market['symbol'];
+            const period = this.safeString (params, 'period');
+            const timeframe = this.findTimeframe (period);
+            const messageHash = 'ohlcv:' + marketId + ':' + period;
+            const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+            for (let i = 0; i < data.length; i++) {
+                const candle = data[i];
+                const parsed = this.parseOHLCV (candle, market, timeframe);
+                this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+                const stored = this.safeValue (this.ohlcvs[symbol], timeframe, []);
+                const length = stored.length;
+                if (length && parsed[0] === stored[length - 1][0]) {
+                    stored[length - 1] = parsed;
+                } else {
+                    stored.push (parsed);
+                    if (length >= limit) {
+                        stored.shift ();
+                    }
+                }
+                this.ohlcvs[symbol][timeframe] = stored;
+                client.resolve (stored, messageHash);
+            }
+        }
+        return message;
+    }
+
     signMessage (client, messageHash, message, params = {}) {
         // todo: implement hitbtc signMessage
         return message;
@@ -275,6 +368,8 @@ module.exports = class hitbtc extends ccxt.hitbtc {
             'ticker': this.handleTicker,
             'snapshotTrades': this.handleTrades,
             'updateTrades': this.handleTrades,
+            'snapshotCandles': this.handleOHLCV,
+            'updateCandles': this.handleOHLCV,
         };
         const event = this.safeString (message, 'method');
         const method = this.safeValue (methods, event);
