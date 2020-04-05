@@ -40,10 +40,6 @@ const print = function printToFile (... args) {
     fs.appendFileSync ('js.' + exchangeId + '.log', args.join (' ') + "\n")
 }
 
-if (exchangeId === 'binanceje') {
-    verbose = true
-}
-
 const exchangeOptions = {
     agent,
     verbose,
@@ -168,6 +164,7 @@ async function testExchange (exchange) {
         'BTC/USDT',
         'BTC/CNY',
         'BTC/EUR',
+        'BTC/GBP',
         'BTC/ETH',
         'ETH/BTC',
         'BTC/JPY',
