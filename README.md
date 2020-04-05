@@ -22,8 +22,7 @@ Current feature list:
 ## Sponsored Promotion
 
 [![CCXT Pro – A JavaScript / Python / PHP cryptocurrency exchange trading WebSocket API for professionals](https://user-images.githubusercontent.com/1294454/75626315-a5718d00-5bd7-11ea-8188-9381ba1cc866.png)](https://ccxt.pro)
-#### <p align="center">[A JavaScript / Python / PHP cryptocurrency exchange trading WebSocket API for professionals](https://ccxt.pro)
-</p>
+### [A JavaScript / Python / PHP cryptocurrency exchange trading WebSocket API for professionals](https://ccxt.pro)
 
 ## See Also
 
