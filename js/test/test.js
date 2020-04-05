@@ -49,7 +49,7 @@ const exchangeOptions = {
     verbose,
     enableRateLimit,
     timeout,
-    print,
+    // print,
 }
 const exchange = new (ccxtpro)[exchangeId] (exchangeOptions)
 
