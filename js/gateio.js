@@ -320,7 +320,8 @@ module.exports = class gateio extends ccxt.gateio {
             stored[length - 1] = parsed;
         } else {
             stored.push (parsed);
-            if (length === this.options['OHLCVLimit']) {
+            const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+            if (length === limit) {
                 stored.shift ();
             }
         }
