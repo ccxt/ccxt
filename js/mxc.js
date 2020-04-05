@@ -325,7 +325,7 @@ module.exports = class mxc extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const ticker = await this.publicGetTickerId (this.extend ({
+        const ticker = await this.publicGetTicker (this.extend ({
             'market': this.marketId (symbol),
         }, params));
         return this.parseTicker (ticker, market);
