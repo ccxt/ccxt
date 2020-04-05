@@ -102,16 +102,16 @@ class Client(object):
 
     async def receive_loop(self):
         if self.verbose:
-            print(Exchange.iso8601(Exchange.milliseconds()), 'receive loop')
+            self.print(Exchange.iso8601(Exchange.milliseconds()), 'receive loop')
         while not self.closed():
             try:
                 message = await self.receive()
-                # print(Exchange.iso8601(Exchange.milliseconds()), 'received', message)
+                # self.print(Exchange.iso8601(Exchange.milliseconds()), 'received', message)
                 self.handle_message(message)
             except Exception as e:
                 error = NetworkError(str(e))
                 if self.verbose:
-                    print(Exchange.iso8601(Exchange.milliseconds()), 'receive_loop', 'Exception', error)
+                    self.print(Exchange.iso8601(Exchange.milliseconds()), 'receive_loop', 'Exception', error)
                 self.reset(error)
 
     async def open(self, session, backoff_delay=0):
@@ -119,13 +119,13 @@ class Client(object):
         if backoff_delay:
             await sleep(backoff_delay)
         if self.verbose:
-            print(Exchange.iso8601(Exchange.milliseconds()), 'connecting to', self.url, 'with timeout', self.connectionTimeout, 'ms')
+            self.print(Exchange.iso8601(Exchange.milliseconds()), 'connecting to', self.url, 'with timeout', self.connectionTimeout, 'ms')
         self.connectionStarted = Exchange.milliseconds()
         try:
             coroutine = self.create_connection(session)
             self.connection = await wait_for(coroutine, timeout=int(self.connectionTimeout / 1000))
             if self.verbose:
-                print(Exchange.iso8601(Exchange.milliseconds()), 'connected')
+                self.print(Exchange.iso8601(Exchange.milliseconds()), 'connected')
             self.connected.resolve()
             # run both loops forever
             await gather(self.ping_loop(), self.receive_loop())
@@ -133,13 +133,13 @@ class Client(object):
             # connection timeout
             error = RequestTimeout('Connection timeout')
             if self.verbose:
-                print(Exchange.iso8601(Exchange.milliseconds()), 'RequestTimeout', error)
+                self.print(Exchange.iso8601(Exchange.milliseconds()), 'RequestTimeout', error)
             self.on_error(error)
         except Exception as e:
             # connection failed or rejected (ConnectionRefusedError, ClientConnectorError)
             error = NetworkError(e)
             if self.verbose:
-                print(Exchange.iso8601(Exchange.milliseconds()), 'NetworkError', error)
+                self.print(Exchange.iso8601(Exchange.milliseconds()), 'NetworkError', error)
             self.on_error(error)
 
     def connect(self, session, backoff_delay=0):
@@ -150,7 +150,7 @@ class Client(object):
 
     def on_error(self, error):
         if self.verbose:
-            print(Exchange.iso8601(Exchange.milliseconds()), 'on_error', error)
+            self.print(Exchange.iso8601(Exchange.milliseconds()), 'on_error', error)
         self.error = error
         self.reset(error)
         self.on_error_callback(self, error)
@@ -159,7 +159,7 @@ class Client(object):
 
     def on_close(self, code):
         if self.verbose:
-            print(Exchange.iso8601(Exchange.milliseconds()), 'on_close', code)
+            self.print(Exchange.iso8601(Exchange.milliseconds()), 'on_close', code)
         if not self.error:
             self.reset(NetworkError(code))
         self.on_close_callback(self, code)
@@ -172,7 +172,7 @@ class Client(object):
 
     async def ping_loop(self):
         if self.verbose:
-            print(Exchange.iso8601(Exchange.milliseconds()), 'ping loop')
+            self.print(Exchange.iso8601(Exchange.milliseconds()), 'ping loop')
         pass
 
     def receive(self):
@@ -194,3 +194,6 @@ class Client(object):
         if True:
             raise NotSupported('create_connection() not implemented')
         return False
+
+    def print(self, *args):
+        print(*args)

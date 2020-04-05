@@ -45,6 +45,12 @@ module.exports = class huobipro extends ccxt.huobipro {
         });
     }
 
+    requestId () {
+        const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
+        this.options['requestId'] = requestId;
+        return requestId.toString ();
+    }
+
     async watchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -53,7 +59,7 @@ module.exports = class huobipro extends ccxt.huobipro {
         const api = this.safeString (this.options, 'api', 'api');
         const hostname = { 'hostname': this.hostname };
         const url = this.implodeParams (this.urls['api']['ws'][api]['public'], hostname);
-        const requestId = this.milliseconds ().toString ();
+        const requestId = this.requestId ();
         const request = {
             'sub': messageHash,
             'id': requestId,
@@ -110,7 +116,7 @@ module.exports = class huobipro extends ccxt.huobipro {
         const api = this.safeString (this.options, 'api', 'api');
         const hostname = { 'hostname': this.hostname };
         const url = this.implodeParams (this.urls['api']['ws'][api]['public'], hostname);
-        const requestId = this.milliseconds ().toString ();
+        const requestId = this.requestId ();
         const request = {
             'sub': messageHash,
             'id': requestId,
@@ -177,7 +183,7 @@ module.exports = class huobipro extends ccxt.huobipro {
         const api = this.safeString (this.options, 'api', 'api');
         const hostname = { 'hostname': this.hostname };
         const url = this.implodeParams (this.urls['api']['ws'][api]['public'], hostname);
-        const requestId = this.milliseconds ().toString ();
+        const requestId = this.requestId ();
         const request = {
             'sub': messageHash,
             'id': requestId,
@@ -261,7 +267,7 @@ module.exports = class huobipro extends ccxt.huobipro {
         const api = this.safeString (this.options, 'api', 'api');
         const hostname = { 'hostname': this.hostname };
         const url = this.implodeParams (this.urls['api']['ws'][api]['public'], hostname);
-        const requestId = this.milliseconds ().toString ();
+        const requestId = this.requestId ();
         const request = {
             'sub': messageHash,
             'id': requestId,
@@ -324,7 +330,7 @@ module.exports = class huobipro extends ccxt.huobipro {
         const api = this.safeString (this.options, 'api', 'api');
         const hostname = { 'hostname': this.hostname };
         const url = this.implodeParams (this.urls['api']['ws'][api]['public'], hostname);
-        const requestId = this.milliseconds ().toString ();
+        const requestId = this.requestId ();
         const request = {
             'req': messageHash,
             'id': requestId,

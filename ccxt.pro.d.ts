@@ -31,6 +31,7 @@ declare module 'ccxt.pro' {
 
     /* tslint:disable */
 
+    export class bequant extends hitbtc {}
     export class binance extends Exchange {}
     export class binanceje extends binance {}
     export class binanceus extends binance {}
@@ -42,6 +43,7 @@ declare module 'ccxt.pro' {
     export class coinbasepro extends Exchange {}
     export class ftx extends Exchange {}
     export class gateio extends Exchange {}
+    export class hitbtc extends Exchange {}
     export class huobipro extends Exchange {}
     export class huobiru extends huobipro {}
     export class kraken extends Exchange {}

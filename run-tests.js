@@ -6,7 +6,7 @@
 // ----------------------------------------------------------------------------
 
 const fs = require ('fs')
-    , log = require ('ololog').handleNodeErrors ()
+    , log = require ('ololog').handleNodeErrors ().unlimited
     , ansi = require ('ansicolor').nice
     , { spawn, execSync } = require ('child_process')
 

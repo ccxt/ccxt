@@ -6,7 +6,7 @@ const fs = require ('fs')
     , ccxtpro = require (__dirname + '/../../ccxt.pro.js')
 
 const [processPath, , exchangeId, exchangeSymbol] = process.argv.filter (x => !x.startsWith ('--'))
-const verbose = process.argv.includes ('--verbose') || false
+let verbose = process.argv.includes ('--verbose') || false
 
 // ----------------------------------------------------------------------------
 
@@ -27,7 +27,26 @@ const ecdhCurve = 'auto'
 const agent = new Agent ({ ecdhCurve })
 
 const timeout = 20000
-const exchangeOptions = { agent, verbose, enableRateLimit, timeout }
+const print = function printToFile (... args) {
+    args = args.map ((x) => {
+        if (typeof x === 'string') {
+            return x
+        } else if (x instanceof Date) {
+            return x.toISOString ()
+        } else {
+            return JSON.stringify (x)
+        }
+    })
+    fs.appendFileSync ('js.' + exchangeId + '.log', args.join (' ') + "\n")
+}
+
+const exchangeOptions = {
+    agent,
+    verbose,
+    enableRateLimit,
+    timeout,
+    // print,
+}
 const exchange = new (ccxtpro)[exchangeId] (exchangeOptions)
 
 // ----------------------------------------------------------------------------
@@ -145,6 +164,7 @@ async function testExchange (exchange) {
         'BTC/USDT',
         'BTC/CNY',
         'BTC/EUR',
+        'BTC/GBP',
         'BTC/ETH',
         'ETH/BTC',
         'BTC/JPY',

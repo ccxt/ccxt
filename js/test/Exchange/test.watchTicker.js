@@ -22,7 +22,7 @@ module.exports = async (exchange, symbol) => {
     let response = undefined
 
     let now = Date.now ()
-    const ends = now + 20000
+    const ends = now + 15000
 
     while (now < ends) {
 
@@ -32,14 +32,16 @@ module.exports = async (exchange, symbol) => {
 
             testTicker (exchange, response, method, symbol)
 
+            now = Date.now ()
+
         } catch (e) {
 
             if (!(e instanceof errors.NetworkError)) {
                 throw e
             }
-        }
 
-        now = Date.now ()
+            now = Date.now ()
+        }
 
     }
 

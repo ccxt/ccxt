@@ -1,6 +1,6 @@
 {
   "name": "ccxt.pro",
-  "version": "0.1.33",
+  "version": "0.1.39",
   "description": "A professional tool for algorithmic cryptocurrency trading",
   "main": "./ccxt.pro.js",
   "unpkg": "dist/ccxt.pro.browser.js",
@@ -35,7 +35,7 @@
   },
   "types": "./ccxt.pro.d.ts",
   "dependencies": {
-    "ccxt": "^1.25.65",
+    "ccxt": "^1.25.80",
     "ws": "^7.2.1"
   },
   "devDependencies": {
@@ -49,7 +49,7 @@
     "eslint-config-airbnb-base": "14.1.0",
     "eslint-plugin-import": "2.20.1",
     "mocha": "5.2.0",
-    "ololog": "1.1.121"
+    "ololog": "1.1.155"
   },
   "author": {
     "name": "Igor Kroitor",
