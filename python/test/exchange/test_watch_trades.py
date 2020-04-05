@@ -6,9 +6,17 @@ from ccxt import NetworkError
 
 
 async def test_watch_trades(exchange, symbol):
-    # todo add real ohlcv tests here
-    # log (symbol.green, 'watching ohlcvs...')
+
     method = 'watchTrades'
+
+    skipped_exchanges = [
+        'binanceje',  # does not have trades frequently enough to pass the test
+    ]
+
+    if exchange.id in skipped_exchanges:
+        print(exchange.id, method, 'skipped')
+        return
+
     if (method in exchange.has) and exchange.has[method]:
         response = None
         now = exchange.milliseconds()
