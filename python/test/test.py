@@ -167,7 +167,7 @@ async def test():
         print(exchange.id, argv.verbose)
         await exchange.load_markets()
         exchange.verbose = argv.verbose
-        exchange.print = print_to_file
+        # exchange.print = print_to_file
         await test_exchange(exchange)
     await exchange.close()
 
