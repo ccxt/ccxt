@@ -271,7 +271,7 @@ module.exports = class hitbtc extends ccxt.hitbtc {
     handleMessage (client, message) {
         const methods = {
             'snapshotOrderbook': this.handleOrderBookSnapshot,
-            'updateOrderbook': this.handleUpdateOrderbook,
+            'updateOrderbook': this.handleOrderBookUpdate,
             'ticker': this.handleTicker,
             'snapshotTrades': this.handleTrades,
             'updateTrades': this.handleTrades,
