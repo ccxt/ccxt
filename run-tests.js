@@ -222,14 +222,15 @@ async function testAllExchanges () {
 
     const taskPool = TaskPool (maxConcurrency)
     const results = []
+    
+    const shuffled = exchanges
 
     // https://stackoverflow.com/a/46545530/5055465
-    const shuffled = exchanges
-        .map((a) => ({ sort: Math.random(), value: a }))
-        .sort((a, b) => a.sort - b.sort)
-        .map((a) => a.value)
-
-    log.green (shuffled)
+    // const shuffled = exchanges
+    //     .map((a) => ({ sort: Math.random(), value: a }))
+    //     .sort((a, b) => a.sort - b.sort)
+    //     .map((a) => a.value)
+    // log.green (shuffled)
 
     for (const exchange of shuffled) {
         taskPool.run (() => testExchange (exchange).then (x => results.push (x)))
