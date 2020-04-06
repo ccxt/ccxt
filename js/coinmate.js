@@ -561,6 +561,7 @@ module.exports = class coinmate extends Exchange {
         const statuses = {
             'FILLED': 'closed',
             'CANCELLED': 'canceled',
+            'PARTIALLY_FILLED': 'open',
             'OPEN': 'open',
         };
         return this.safeString (statuses, status, status);
