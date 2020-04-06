@@ -57,7 +57,7 @@ module.exports = class bitmax extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/66820319-19710880-ef49-11e9-8fbe-16be62a11992.jpg',
                 'api': 'https://bitmax.io',
-                'test': 'https://bitmax-test.io',
+                'test': 'https://bitmax-test.io/api',
                 'www': 'https://bitmax.io',
                 'doc': [
                     'https://bitmax-exchange.github.io/bitmax-pro-api/#rest-apis',
@@ -841,6 +841,7 @@ module.exports = class bitmax extends Exchange {
             'cost': this.safeFloat (order, 'cumFee'),
             'currency': this.safeString (order, 'feeAsset'),
         };
+        const clientOrderId = id;
         return {
             'info': order,
             'id': id,
