@@ -1,4 +1,4 @@
-[![CCXT Pro](https://user-images.githubusercontent.com/1294454/71230147-79917b80-22f9-11ea-9c7e-dcd40123a1d0.png)](https://ccxt.pro)
+[![CCXT Pro – A JavaScript / Python / PHP cryptocurrency exchange trading WebSocket API for professionals](https://user-images.githubusercontent.com/1294454/71230147-79917b80-22f9-11ea-9c7e-dcd40123a1d0.png)](https://ccxt.pro)
 &nbsp;
 
 CCXT Pro is a professional tool for algorithmic crypto-trading. It is a high-performance superset of the CCXT library, one of the world's leading open-source frameworks for crypto finance. CCXT Pro includes the standard CCXT library and wraps it with powerful new features and useful enhancements.
@@ -18,10 +18,11 @@ CCXT Pro is a professional tool for algorithmic crypto-trading. It is a high-per
 
 ## Exchanges
 
-The CCXT Pro library currently supports the following 20 cryptocurrency exchange markets and WebSocket trading APIs:
+The CCXT Pro library currently supports the following 21 cryptocurrency exchange markets and WebSocket trading APIs:
 
 |&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;logo&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                                                                                                    | id            | name                                                                                | ver | doc                                                                                          | certified                                                                                                                   | pro                                                                         |
 |--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------|-------------------------------------------------------------------------------------|:---:|:--------------------------------------------------------------------------------------------:|-----------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------|
+|[![bequant](https://user-images.githubusercontent.com/1294454/55248342-a75dfe00-525a-11e9-8aa2-05e9dca943c6.jpg)](https://bequant.io)                                                       | bequant       | [Bequant](https://bequant.io)                                                       | 2   | [API](https://api.bequant.io/)                                                               |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro)|
 |[![binance](https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg)](https://www.binance.com/?ref=10205187)                                    | binance       | [Binance](https://www.binance.com/?ref=10205187)                                    | *   | [API](https://binance-docs.github.io/apidocs/spot/en)                                        | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro)|
 |[![binanceje](https://user-images.githubusercontent.com/1294454/54874009-d526eb00-4df3-11e9-928c-ce6a2b914cd1.jpg)](https://www.binance.je/?ref=35047921)                                   | binanceje     | [Binance Jersey](https://www.binance.je/?ref=35047921)                              | *   | [API](https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md) |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro)|
 |[![binanceus](https://user-images.githubusercontent.com/1294454/65177307-217b7c80-da5f-11e9-876e-0b748ba0a358.jpg)](https://www.binance.us/?ref=35005074)                                   | binanceus     | [Binance US](https://www.binance.us/?ref=35005074)                                  | *   | [API](https://github.com/binance-us/binance-official-api-docs)                               |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro)|
@@ -169,6 +170,6 @@ $loop->run ();
 
 ## Support
 
-## [Manual](https://github.com/ccxt/ccxt/wiki/ccxt.pro) · [New issue](https://github.com/ccxt/ccxt/labels/ccxt.pro) · [![Discord](https://img.shields.io/discord/690203284119617602?logo=discord&logoColor=white)](https://discord.gg/dhzSKYU) · [info@ccxt.pro](mailto:info@ccxt.pro)
+## [Manual](https://github.com/ccxt/ccxt/wiki/ccxt.pro) · [New issue](https://github.com/ccxt/ccxt/labels/ccxt.pro) · <sub>[![Discord](https://img.shields.io/discord/690203284119617602?logo=discord&logoColor=white)](https://discord.gg/dhzSKYU)</sub> · [info@ccxt.pro](mailto:info@ccxt.pro)
 
 © 2020 CCXT Pro
