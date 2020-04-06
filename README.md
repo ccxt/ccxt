@@ -22,8 +22,7 @@ Current feature list:
 ## Sponsored Promotion
 
 [![CCXT Pro – A JavaScript / Python / PHP cryptocurrency exchange trading WebSocket API for professionals](https://user-images.githubusercontent.com/1294454/75626315-a5718d00-5bd7-11ea-8188-9381ba1cc866.png)](https://ccxt.pro)
-#### <p align="center">[A JavaScript / Python / PHP cryptocurrency exchange trading WebSocket API for professionals](https://ccxt.pro)
-</p>
+### [A JavaScript / Python / PHP cryptocurrency exchange trading WebSocket API for professionals](https://ccxt.pro)
 
 ## See Also
 
@@ -219,13 +218,13 @@ console.log (ccxt.exchanges) // print all available exchanges
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.25.80/dist/ccxt.browser.js
-* unpkg: https://unpkg.com/ccxt@1.25.80/dist/ccxt.browser.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.25.81/dist/ccxt.browser.js
+* unpkg: https://unpkg.com/ccxt@1.25.81/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.25.80/dist/ccxt.browser.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.25.81/dist/ccxt.browser.js"></script>
 ```
 
 Creates a global `ccxt` object:
