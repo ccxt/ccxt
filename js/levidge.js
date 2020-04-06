@@ -382,7 +382,7 @@ module.exports = class levidge extends Exchange {
             if (!market && !market['active']) {
                 throw new BadSymbol (this.id + ': symbol ' + symbol + ' is not listed');
             }
-            request['symbol'] = market['symbol'];
+            request['instrumentId'] = market['id'];
         }
         if (limit) {
             request['limit'] = limit;
