@@ -126,6 +126,8 @@ module.exports = class levidge extends Exchange {
         for (let i = 0; i < results.length; i++) {
             currencies.push (this.parseCurrency (results[i]));
         }
+        // we need this to parse Markets
+        this.currencies_by_id = this.indexBy (currencies, 'id');
         return currencies;
     }
 
@@ -673,10 +675,18 @@ module.exports = class levidge extends Exchange {
         const id = market[0]; // instrumentId
         const symbol = market[1]; // symbol
         const splitSymbol = symbol.split ('/');
-        const base = splitSymbol[0].toLowerCase ();
-        const quote = splitSymbol[1].toLowerCase ();
+        let base = splitSymbol[0].toLowerCase ();
+        let quote = splitSymbol[1].toLowerCase ();
         const baseId = market[3]; // baseId
         const quoteId = market[2]; // quotedId
+        const baseCurrency = this.safeValue (this.currencies_by_id, baseId);
+        const quoteCurrency = this.safeValue (this.currencies_by_id, quoteId);
+        if (baseCurrency) {
+            base = baseCurrency['code'].toLowerCase ();
+        }
+        if (quoteCurrency) {
+            quote = quoteCurrency['code'].toLowerCase ();
+        }
         const active = market[6] === 1 ? true : false; // status
         const precision = {
             'amount': market[5], // quantity_scale
