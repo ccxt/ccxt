@@ -571,31 +571,6 @@ module.exports = class levidge extends Exchange {
         // return this.parseLedger (response['data'], undefined, since, limit);
     }
 
-    // async logon () {
-    //     if (!this.isAuthenticated ()) {
-    //         this.checkRequiredCredentials ();
-    //         const request = {
-    //             'login': this.login,
-    //             'password': this.password,
-    //         };
-    //         const response = await this.publicPostLogon (request);
-    //         this.userId = this.safeString (response, 'id');
-    //         this.requestSecret = this.safeString (response, 'requestSecret');
-    //         this.requestToken = this.safeString (response, 'requestToken');
-    //         // console.log (this.userId, this.requestToken, this.requestSecret);
-    //         if (!this.requestToken || !this.requestSecret || !this.userId) {
-    //             throw new AuthenticationError (this.id + ': Either login or password is not correct');
-    //         }
-    //     }
-    // }
-
-    // isAuthenticated () {
-    //     if (this.requestToken && this.requestSecret && this.userId) {
-    //         return true;
-    //     }
-    //     return false;
-    // }
-
     nonce () {
         return this.milliseconds ();
     }
