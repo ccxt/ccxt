@@ -110,6 +110,10 @@ module.exports = class levidge extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        // we need currency to parse market
+        if (!this.currencies_by_id) {
+            await this.fetchCurrencies ();
+        }
         const response = await this.publicGetGetInstrumentPairs (params);
         const markets = [];
         const results = this.safeValue (response, 'instrumentPairs', []);
@@ -127,6 +131,7 @@ module.exports = class levidge extends Exchange {
             currencies.push (this.parseCurrency (results[i]));
         }
         // we need this to parse Markets
+        this.currencies = currencies;
         this.currencies_by_id = this.indexBy (currencies, 'id');
         return currencies;
     }
@@ -303,7 +308,7 @@ module.exports = class levidge extends Exchange {
 
     createOrderRequest (market, type, side, amount, price = undefined, params = {}) {
         const amount_scale = this.getScale (amount);
-        const price_scale = this.getScale (price);
+        const price_scale = price > 0 ? this.getScale (price) : 0;
         const stopPx = 0;
         const stopPx_scale = this.getScale (stopPx);
         const ordType = type === 'limit' ? 2 : 1;
