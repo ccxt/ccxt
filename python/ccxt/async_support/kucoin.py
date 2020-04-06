@@ -342,6 +342,9 @@ class kucoin(Exchange):
                 'code': code,
                 'precision': precision,
                 'info': entry,
+                'active': None,
+                'fee': None,
+                'limits': self.limits,
             }
         return result
 
@@ -860,8 +863,10 @@ class kucoin(Exchange):
                 if (cost is not None) and (filled is not None):
                     if (cost > 0) and (filled > 0):
                         price = cost / filled
+        clientOrderId = self.safe_string(order, 'clientOid')
         return {
             'id': orderId,
+            'clientOrderId': clientOrderId,
             'symbol': symbol,
             'type': type,
             'side': side,
@@ -875,6 +880,9 @@ class kucoin(Exchange):
             'fee': fee,
             'status': status,
             'info': order,
+            'lastTradeTimestamp': None,
+            'average': None,
+            'trades': None,
         }
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):

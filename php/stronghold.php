@@ -13,7 +13,7 @@ use \ccxt\NotSupported;
 class stronghold extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'stronghold',
             'name' => 'Stronghold',
             'country' => array( 'US' ),
@@ -226,6 +226,7 @@ class stronghold extends Exchange {
                 'precision' => $precision,
                 'info' => $entry,
                 'limits' => $limits,
+                'active' => null,
             );
         }
         return $result;
@@ -283,6 +284,7 @@ class stronghold extends Exchange {
                 'active' => null,
                 'name' => null,
                 'limits' => $limits,
+                'fee' => null,
             );
         }
         return $result;
@@ -580,6 +582,7 @@ class stronghold extends Exchange {
         }
         return array(
             'id' => $id,
+            'clientOrderId' => null,
             'info' => $order,
             'symbol' => $symbol,
             'datetime' => $datetime,
@@ -595,6 +598,7 @@ class stronghold extends Exchange {
             'status' => null,
             'type' => null,
             'average' => null,
+            'fee' => null,
         );
     }
 

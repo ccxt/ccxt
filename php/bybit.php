@@ -12,7 +12,7 @@ use \ccxt\ArgumentsRequired;
 class bybit extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'bybit',
             'name' => 'Bybit',
             'countries' => array( 'VG' ), // British Virgin Islands
@@ -860,9 +860,9 @@ class bybit extends Exchange {
             'Cancelled' => 'canceled',
             'PendingCancel' => 'canceling', // the engine has received the cancellation but there is no guarantee that it will be successful
             // conditional orders
-            'Active' => 'open', // order is triggered and placed successfully
+            'Active' => 'closed', // order is triggered and placed successfully
             'Untriggered' => 'open', // order waits to be triggered
-            'Triggered' => 'open', // order is triggered
+            'Triggered' => 'closed', // order is triggered
             // 'Cancelled' => 'canceled', // order is cancelled
             // 'Rejected' => 'rejected', // order is triggered but fail to be placed
             'Deactivated' => 'canceled', // conditional order was cancelled before triggering
@@ -949,9 +949,14 @@ class bybit extends Exchange {
             );
         }
         $type = $this->safe_string_lower($order, 'order_type');
+        $clientOrderId = $this->safe_string($order, 'order_link_id');
+        if (($clientOrderId !== null) && (strlen($clientOrderId) < 1)) {
+            $clientOrderId = null;
+        }
         return array(
             'info' => $order,
             'id' => $id,
+            'clientOrderId' => $clientOrderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
@@ -1228,7 +1233,7 @@ class bybit extends Exchange {
             $request['p_r_qty'] = $this->amount_to_precision($symbol, $amount);
         }
         if ($price !== null) {
-            $request['p_r_price'] = $this->price_to_precision($symbol, $amount);
+            $request['p_r_price'] = $this->price_to_precision($symbol, $price);
         }
         $response = $this->$method (array_merge($request, $params));
         //
@@ -1335,11 +1340,20 @@ class bybit extends Exchange {
         }
         $options = $this->safe_value($this->options, 'fetchOrders', array());
         $defaultMethod = 'openapiGetOrderList';
+        $query = $params;
         if ((is_array($params) && array_key_exists('stop_order_id', $params)) || (is_array($params) && array_key_exists('stop_order_status', $params))) {
+            $stopOrderStatus = $this->safe_value($params, 'stopOrderStatus');
+            if ($stopOrderStatus !== null) {
+                if (gettype($stopOrderStatus) === 'array' && count(array_filter(array_keys($stopOrderStatus), 'is_string')) == 0) {
+                    $stopOrderStatus = implode(',', $stopOrderStatus);
+                }
+                $request['stop_order_status'] = $stopOrderStatus;
+                $query = $this->omit($params, 'stop_order_status');
+            }
             $defaultMethod = 'openapiGetStopOrderList';
         }
         $method = $this->safe_string($options, 'method', $defaultMethod);
-        $response = $this->$method (array_merge($request, $params));
+        $response = $this->$method (array_merge($request, $query));
         //
         //     {
         //         "ret_code" => 0,
@@ -1436,16 +1450,25 @@ class bybit extends Exchange {
             'Rejected',
             'Filled',
             'Cancelled',
-            'Deactivated',
+            // conditional orders
+            // 'Active',
+            // 'Triggered',
+            // 'Cancelled',
+            // 'Rejected',
+            // 'Deactivated',
         );
         $options = $this->safe_value($this->options, 'fetchClosedOrders', array());
         $status = $this->safe_value($options, 'order_status', $defaultStatuses);
         if (gettype($status) === 'array' && count(array_filter(array_keys($status), 'is_string')) == 0) {
             $status = implode(',', $status);
         }
-        $request = array(
-            'order_status' => $status,
-        );
+        $request = array();
+        $stopOrderStatus = $this->safe_value($params, 'stop_order_status');
+        if ($stopOrderStatus === null) {
+            $request['order_status'] = $status;
+        } else {
+            $request['stop_order_status'] = $stopOrderStatus;
+        }
         return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
@@ -1455,18 +1478,21 @@ class bybit extends Exchange {
             'New',
             'PartiallyFilled',
             'PendingCancel',
-            'Active',
-            'Untriggered',
-            'Triggered',
+            // conditional orders
+            // 'Untriggered',
         );
         $options = $this->safe_value($this->options, 'fetchOpenOrders', array());
         $status = $this->safe_value($options, 'order_status', $defaultStatuses);
         if (gettype($status) === 'array' && count(array_filter(array_keys($status), 'is_string')) == 0) {
             $status = implode(',', $status);
         }
-        $request = array(
-            'order_status' => $status,
-        );
+        $request = array();
+        $stopOrderStatus = $this->safe_value($params, 'stop_order_status');
+        if ($stopOrderStatus === null) {
+            $request['order_status'] = $status;
+        } else {
+            $request['stop_order_status'] = $stopOrderStatus;
+        }
         return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 

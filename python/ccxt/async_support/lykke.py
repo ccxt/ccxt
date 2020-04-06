@@ -246,6 +246,8 @@ class lykke(Exchange):
                         'max': None,
                     },
                 },
+                'baseId': None,
+                'quoteId': None,
             })
         return result
 
@@ -301,6 +303,23 @@ class lykke(Exchange):
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
+        #
+        #     {
+        #         "Id": "string",
+        #         "Status": "Unknown",
+        #         "AssetPairId": "string",
+        #         "Volume": 0,
+        #         "Price": 0,
+        #         "RemainingVolume": 0,
+        #         "LastMatchTime": "2020-03-26T20:58:50.710Z",
+        #         "CreatedAt": "2020-03-26T20:58:50.710Z",
+        #         "Type": "Unknown",
+        #         "LowerLimitPrice": 0,
+        #         "LowerPrice": 0,
+        #         "UpperLimitPrice": 0,
+        #         "UpperPrice": 0
+        #     }
+        #
         status = self.parse_order_status(self.safe_string(order, 'Status'))
         symbol = None
         if market is None:
@@ -323,6 +342,7 @@ class lykke(Exchange):
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -337,6 +357,7 @@ class lykke(Exchange):
             'remaining': remaining,
             'status': status,
             'fee': None,
+            'trades': None,
         }
 
     async def fetch_order(self, id, symbol=None, params={}):

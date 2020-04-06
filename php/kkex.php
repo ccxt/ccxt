@@ -13,7 +13,7 @@ use \ccxt\OrderNotFound;
 class kkex extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'kkex',
             'name' => 'KKEX',
             'countries' => array( 'CN', 'US', 'JP' ),
@@ -403,6 +403,20 @@ class kkex extends Exchange {
     }
 
     public function parse_order($order, $market = null) {
+        //
+        //     {
+        //         "$status" => 2,
+        //         "source" => "NORMAL",
+        //         "$amount" => "10.852019",
+        //         "create_date" => 1523938461036,
+        //         "avg_price" => "0.00096104",
+        //         "order_id" => "100",
+        //         "$price" => "0.00096105",
+        //         "type" => "buy",
+        //         "$symbol" => "READBTC",
+        //         "deal_amount" => "10.852019"
+        //     }
+        //
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -431,6 +445,7 @@ class kkex extends Exchange {
         }
         return array(
             'id' => $id,
+            'clientOrderId' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
@@ -446,6 +461,7 @@ class kkex extends Exchange {
             'remaining' => $remaining,
             'fee' => null,
             'info' => $order,
+            'trades' => null,
         );
     }
 
@@ -494,6 +510,8 @@ class kkex extends Exchange {
             'remaining' => null,
             'trades' => null,
             'fee' => null,
+            'clientOrderId' => null,
+            'average' => null,
         );
     }
 

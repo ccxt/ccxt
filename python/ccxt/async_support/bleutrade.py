@@ -35,6 +35,7 @@ class bleutrade(Exchange):
                 'fetchTicker': True,
                 'fetchOrders': False,
                 'fetchClosedOrders': True,
+                'fetchOpenOrders': True,
                 'fetchWithdrawals': True,
                 'fetchOrderTrades': False,
                 'fetchLedger': True,
@@ -169,6 +170,7 @@ class bleutrade(Exchange):
                 'fee': self.safe_float(item, 'WithdrawTxFee'),
                 'precision': self.safe_float(item, 'DecimalPlaces'),
                 'info': item,
+                'limits': self.limits,
             }
         return result
 
@@ -635,6 +637,7 @@ class bleutrade(Exchange):
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -649,6 +652,7 @@ class bleutrade(Exchange):
             'remaining': remaining,
             'status': status,
             'fee': None,
+            'trades': None,
         }
 
     def parse_order_status(self, status):

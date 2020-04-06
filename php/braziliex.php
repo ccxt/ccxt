@@ -14,7 +14,7 @@ use \ccxt\InvalidOrder;
 class braziliex extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'braziliex',
             'name' => 'Braziliex',
             'countries' => array( 'BR' ),
@@ -457,6 +457,7 @@ class braziliex extends Exchange {
         $status = ($filledPercentage === 1.0) ? 'closed' : 'open';
         return array(
             'id' => $id,
+            'clientOrderId' => null,
             'datetime' => $this->iso8601($timestamp),
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => null,
@@ -472,6 +473,7 @@ class braziliex extends Exchange {
             'trades' => null,
             'fee' => $fee,
             'info' => $info,
+            'average' => null,
         );
     }
 

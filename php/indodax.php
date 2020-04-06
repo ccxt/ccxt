@@ -12,7 +12,7 @@ use \ccxt\ArgumentsRequired;
 class indodax extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'indodax',
             'name' => 'INDODAX',
             'countries' => array( 'ID' ), // Indonesia
@@ -283,6 +283,16 @@ class indodax extends Exchange {
     }
 
     public function parse_order($order, $market = null) {
+        //
+        //     {
+        //         "order_id" => "12345",
+        //         "submit_time" => "1392228122",
+        //         "$price" => "8000000",
+        //         "type" => "sell",
+        //         "order_ltc" => "100000000",
+        //         "remain_ltc" => "100000000"
+        //     }
+        //
         $side = null;
         if (is_array($order) && array_key_exists('type', $order)) {
             $side = $order['type'];
@@ -334,6 +344,7 @@ class indodax extends Exchange {
         return array(
             'info' => $order,
             'id' => $id,
+            'clientOrderId' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
@@ -348,6 +359,7 @@ class indodax extends Exchange {
             'remaining' => $remaining,
             'status' => $status,
             'fee' => $fee,
+            'trades' => null,
         );
     }
 

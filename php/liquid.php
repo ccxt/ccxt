@@ -15,7 +15,7 @@ use \ccxt\DDoSProtection;
 class liquid extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'liquid',
             'name' => 'Liquid',
             'countries' => array( 'JP', 'CN', 'TW' ),
@@ -664,6 +664,7 @@ class liquid extends Exchange {
         $side = $this->safe_string($order, 'side');
         return array(
             'id' => $orderId,
+            'clientOrderId' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,

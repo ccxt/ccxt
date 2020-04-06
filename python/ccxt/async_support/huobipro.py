@@ -31,12 +31,12 @@ class huobipro(Exchange):
             'version': 'v1',
             'accounts': None,
             'accountsById': None,
-            'hostname': 'api.huobi.pro',
+            'hostname': 'api.huobi.pro',  # api.testnet.huobi.pro
             'pro': True,
             'has': {
                 'CORS': False,
                 'fetchTickers': True,
-                'fetchDepositAddress': False,
+                'fetchDepositAddress': True,
                 'fetchOHLCV': True,
                 'fetchOrder': True,
                 'fetchOrders': True,
@@ -62,12 +62,18 @@ class huobipro(Exchange):
                 '1y': '1year',
             },
             'urls': {
+                'test': {
+                    'market': 'https://api.testnet.huobi.pro',
+                    'public': 'https://api.testnet.huobi.pro',
+                    'private': 'https://api.testnet.huobi.pro',
+                },
                 'logo': 'https://user-images.githubusercontent.com/1294454/76137448-22748a80-604e-11ea-8069-6e389271911d.jpg',
                 'api': {
                     'market': 'https://{hostname}',
                     'public': 'https://{hostname}',
                     'private': 'https://{hostname}',
-                    'zendesk': 'https://huobiglobal.zendesk.com/hc/en-us/articles',
+                    'v2Public': 'https://{hostname}',
+                    'v2Private': 'https://{hostname}',
                 },
                 'www': 'https://www.huobi.pro',
                 'referral': 'https://www.huobi.co/en-us/topic/invited/?invite_code=rwrd3',
@@ -75,9 +81,19 @@ class huobipro(Exchange):
                 'fees': 'https://www.huobi.pro/about/fee/',
             },
             'api': {
-                'zendesk': {
+                'v2Public': {
                     'get': [
-                        '360000400491-Trade-Limits',
+                        'reference/currencies',
+                    ],
+                },
+                'v2Private': {
+                    'get': [
+                        'account/withdraw/quota',
+                        'account/deposit/address',
+                        'reference/transact-fee-rate',
+                    ],
+                    'post': [
+                        'sub-user/management',
                     ],
                 },
                 'market': {
@@ -101,10 +117,6 @@ class huobipro(Exchange):
                     ],
                 },
                 'private': {
-                    # todo add v2 endpoints
-                    # 'GET /v2/account/withdraw/quota
-                    # 'GET /v2/reference/currencies
-                    # 'GET /v2/account/deposit/address
                     'get': [
                         'account/accounts',  # 查询当前用户的所有账户(即account-id)
                         'account/accounts/{id}/balance',  # 查询指定账户的余额
@@ -129,8 +141,6 @@ class huobipro(Exchange):
                         'stable-coin/exchange_rate',
                         'stable-coin/quote',
                     ],
-                    # todo add v2 endpoints
-                    # POST /v2/sub-user/management
                     'post': [
                         'futures/transfer',
                         'order/batch-orders',
@@ -172,6 +182,7 @@ class huobipro(Exchange):
                     'account-frozen-balance-insufficient-error': InsufficientFunds,  # {"status":"error","err-code":"account-frozen-balance-insufficient-error","err-msg":"trade account balance is not enough, left: `0.0027`","data":null}
                     'invalid-amount': InvalidOrder,  # eg "Paramemter `amount` is invalid."
                     'order-limitorder-amount-min-error': InvalidOrder,  # limit order amount error, min: `0.001`
+                    'order-limitorder-amount-max-error': InvalidOrder,  # market order amount error, max: `1000000`
                     'order-marketorder-amount-min-error': InvalidOrder,  # market order amount error, min: `0.01`
                     'order-limitorder-price-min-error': InvalidOrder,  # limit order price error
                     'order-limitorder-price-max-error': InvalidOrder,  # limit order price error
@@ -482,7 +493,7 @@ class huobipro(Exchange):
                 ticker['timestamp'] = timestamp
                 ticker['datetime'] = self.iso8601(timestamp)
                 result[symbol] = ticker
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def parse_trade(self, trade, market=None):
         #
@@ -927,6 +938,7 @@ class huobipro(Exchange):
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -941,6 +953,7 @@ class huobipro(Exchange):
             'remaining': remaining,
             'status': status,
             'fee': fee,
+            'trades': None,
         }
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -990,6 +1003,8 @@ class huobipro(Exchange):
             'cost': None,
             'trades': None,
             'fee': None,
+            'clientOrderId': None,
+            'average': None,
         }
 
     async def cancel_order(self, id, symbol=None, params={}):
@@ -1024,83 +1039,49 @@ class huobipro(Exchange):
             'cost': float(self.currency_to_precision(market[key], cost)),
         }
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
-        await self.load_markets()
+    def parse_deposit_address(self, depositAddress, currency=None):
+        #
+        #     {
+        #         currency: "eth",
+        #         address: "0xf7292eb9ba7bc50358e27f0e025a4d225a64127b",
+        #         addressTag: "",
+        #         chain: "eth"
+        #     }
+        #
+        address = self.safe_string(depositAddress, 'address')
+        tag = self.safe_string(depositAddress, 'addressTag')
+        currencyId = self.safe_string(depositAddress, 'currency')
+        code = self.safe_currency_code(currencyId)
         self.check_address(address)
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'info': depositAddress,
+        }
+
+    async def fetch_deposit_address(self, code, params={}):
+        await self.load_markets()
         currency = self.currency(code)
         request = {
-            'address': address,  # only supports existing addresses in your withdraw address list
-            'amount': amount,
-            'currency': currency['id'].lower(),
+            'currency': currency['id'],
         }
-        if tag is not None:
-            request['addr-tag'] = tag  # only for XRP?
-        response = await self.privatePostDwWithdrawApiCreate(self.extend(request, params))
-        id = self.safe_string(response, 'data')
-        return {
-            'info': response,
-            'id': id,
-        }
-
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = '/'
-        if api == 'market':
-            url += api
-        elif (api == 'public') or (api == 'private'):
-            url += self.version
-        url += '/' + self.implode_params(path, params)
-        query = self.omit(params, self.extract_params(path))
-        if api == 'private':
-            self.check_required_credentials()
-            timestamp = self.ymdhms(self.milliseconds(), 'T')
-            request = {
-                'SignatureMethod': 'HmacSHA256',
-                'SignatureVersion': '2',
-                'AccessKeyId': self.apiKey,
-                'Timestamp': timestamp,
-            }
-            if method != 'POST':
-                request = self.extend(request, query)
-            request = self.keysort(request)
-            auth = self.urlencode(request)
-            # unfortunately, PHP demands double quotes for the escaped newline symbol
-            # eslint-disable-next-line quotes
-            payload = "\n".join([method, self.hostname, url, auth])
-            signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
-            auth += '&' + self.urlencode({'Signature': signature})
-            url += '?' + auth
-            if method == 'POST':
-                body = self.json(query)
-                headers = {
-                    'Content-Type': 'application/json',
-                }
-            else:
-                headers = {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                }
-        else:
-            if params:
-                url += '?' + self.urlencode(params)
-        url = self.implode_params(self.urls['api'][api], {
-            'hostname': self.hostname,
-        }) + url
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
-
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
-        if response is None:
-            return  # fallback to default error handler
-        if 'status' in response:
-            #
-            #     {"status":"error","err-code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
-            #
-            status = self.safe_string(response, 'status')
-            if status == 'error':
-                code = self.safe_string(response, 'err-code')
-                feedback = self.id + ' ' + body
-                self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
-                message = self.safe_string(response, 'err-msg')
-                self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
-                raise ExchangeError(feedback)
+        response = await self.v2PrivateGetAccountDepositAddress(self.extend(request, params))
+        #
+        #     {
+        #         code: 200,
+        #         data: [
+        #             {
+        #                 currency: "eth",
+        #                 address: "0xf7292eb9ba7bc50358e27f0e025a4d225a64127b",
+        #                 addressTag: "",
+        #                 chain: "eth"
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        return self.parse_deposit_address(self.safe_value(data, 0, {}), currency)
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         if limit is None or limit > 100:
@@ -1229,3 +1210,83 @@ class huobipro(Exchange):
             'pre-transfer': 'pending',
         }
         return self.safe_string(statuses, status, status)
+
+    async def withdraw(self, code, amount, address, tag=None, params={}):
+        await self.load_markets()
+        self.check_address(address)
+        currency = self.currency(code)
+        request = {
+            'address': address,  # only supports existing addresses in your withdraw address list
+            'amount': amount,
+            'currency': currency['id'].lower(),
+        }
+        if tag is not None:
+            request['addr-tag'] = tag  # only for XRP?
+        response = await self.privatePostDwWithdrawApiCreate(self.extend(request, params))
+        id = self.safe_string(response, 'data')
+        return {
+            'info': response,
+            'id': id,
+        }
+
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        url = '/'
+        if api == 'market':
+            url += api
+        elif (api == 'public') or (api == 'private'):
+            url += self.version
+        elif (api == 'v2Public') or (api == 'v2Private'):
+            url += 'v2'
+        url += '/' + self.implode_params(path, params)
+        query = self.omit(params, self.extract_params(path))
+        if api == 'private' or api == 'v2Private':
+            self.check_required_credentials()
+            timestamp = self.ymdhms(self.milliseconds(), 'T')
+            request = {
+                'SignatureMethod': 'HmacSHA256',
+                'SignatureVersion': '2',
+                'AccessKeyId': self.apiKey,
+                'Timestamp': timestamp,
+            }
+            if method != 'POST':
+                request = self.extend(request, query)
+            request = self.keysort(request)
+            auth = self.urlencode(request)
+            # unfortunately, PHP demands double quotes for the escaped newline symbol
+            # eslint-disable-next-line quotes
+            payload = "\n".join([method, self.hostname, url, auth])
+            signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
+            auth += '&' + self.urlencode({'Signature': signature})
+            url += '?' + auth
+            if method == 'POST':
+                body = self.json(query)
+                headers = {
+                    'Content-Type': 'application/json',
+                }
+            else:
+                headers = {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                }
+        else:
+            if params:
+                url += '?' + self.urlencode(params)
+        url = self.implode_params(self.urls['api'][api], {
+            'hostname': self.hostname,
+        }) + url
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        if response is None:
+            return  # fallback to default error handler
+        if 'status' in response:
+            #
+            #     {"status":"error","err-code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
+            #
+            status = self.safe_string(response, 'status')
+            if status == 'error':
+                code = self.safe_string(response, 'err-code')
+                feedback = self.id + ' ' + body
+                self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+                message = self.safe_string(response, 'err-msg')
+                self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+                raise ExchangeError(feedback)

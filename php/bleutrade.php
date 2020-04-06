@@ -12,7 +12,7 @@ use \ccxt\InvalidOrder;
 class bleutrade extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'bleutrade',
             'name' => 'Bleutrade',
             'countries' => ['BR'], // Brazil
@@ -31,6 +31,7 @@ class bleutrade extends Exchange {
                 'fetchTicker' => true,
                 'fetchOrders' => false,
                 'fetchClosedOrders' => true,
+                'fetchOpenOrders' => true,
                 'fetchWithdrawals' => true,
                 'fetchOrderTrades' => false,
                 'fetchLedger' => true,
@@ -166,6 +167,7 @@ class bleutrade extends Exchange {
                 'fee' => $this->safe_float($item, 'WithdrawTxFee'),
                 'precision' => $this->safe_float($item, 'DecimalPlaces'),
                 'info' => $item,
+                'limits' => $this->limits,
             );
         }
         return $result;
@@ -683,6 +685,7 @@ class bleutrade extends Exchange {
         return array(
             'info' => $order,
             'id' => $id,
+            'clientOrderId' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
@@ -697,6 +700,7 @@ class bleutrade extends Exchange {
             'remaining' => $remaining,
             'status' => $status,
             'fee' => null,
+            'trades' => null,
         );
     }
 

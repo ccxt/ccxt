@@ -207,6 +207,8 @@ class binance(Exchange):
                         'ticker/24hr',
                         'ticker/price',
                         'ticker/bookTicker',
+                        'allForceOrders',
+                        'openInterest',
                         'leverageBracket',
                     ],
                 },
@@ -939,6 +941,46 @@ class binance(Exchange):
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
+        #
+        #  spot
+        #
+        #     {
+        #         "symbol": "LTCBTC",
+        #         "orderId": 1,
+        #         "clientOrderId": "myOrder1",
+        #         "price": "0.1",
+        #         "origQty": "1.0",
+        #         "executedQty": "0.0",
+        #         "cummulativeQuoteQty": "0.0",
+        #         "status": "NEW",
+        #         "timeInForce": "GTC",
+        #         "type": "LIMIT",
+        #         "side": "BUY",
+        #         "stopPrice": "0.0",
+        #         "icebergQty": "0.0",
+        #         "time": 1499827319559,
+        #         "updateTime": 1499827319559,
+        #         "isWorking": True
+        #     }
+        #
+        #  futures
+        #
+        #     {
+        #         "symbol": "BTCUSDT",
+        #         "orderId": 1,
+        #         "clientOrderId": "myOrder1",
+        #         "price": "0.1",
+        #         "origQty": "1.0",
+        #         "executedQty": "1.0",
+        #         "cumQuote": "10.0",
+        #         "status": "NEW",
+        #         "timeInForce": "GTC",
+        #         "type": "LIMIT",
+        #         "side": "BUY",
+        #         "stopPrice": "0.0",
+        #         "updateTime": 1499827319559
+        #     }
+        #
         status = self.parse_order_status(self.safe_string(order, 'status'))
         symbol = None
         marketId = self.safe_string(order, 'symbol')
@@ -1003,9 +1045,11 @@ class binance(Exchange):
                     average = float(self.price_to_precision(symbol, average))
             if self.options['parseOrderToPrecision']:
                 cost = float(self.cost_to_precision(symbol, cost))
+        clientOrderId = self.safe_string(order, 'clientOrderId')
         return {
             'info': order,
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -1752,7 +1796,7 @@ class binance(Exchange):
                         return
                     # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
                     # despite that their message is very confusing, it is raised by Binance
-                    # on a temporary ban(the API key is valid, but disabled for a while)
+                    # on a temporary ban, the API key is valid, but disabled for a while
                     if (error == '-2015') and self.options['hasAlreadyAuthenticatedSuccessfully']:
                         raise DDoSProtection(self.id + ' temporary banned: ' + body)
                     feedback = self.id + ' ' + body

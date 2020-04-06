@@ -20,7 +20,7 @@ use \ccxt\InvalidNonce;
 class kraken extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'kraken',
             'name' => 'Kraken',
             'countries' => array( 'US' ),
@@ -216,6 +216,7 @@ class kraken extends Exchange {
                 'delistedMarketsById' => array(),
                 // cannot withdraw/deposit these
                 'inactiveCurrencies' => array( 'CAD', 'USD', 'JPY', 'GBP' ),
+                'fetchMinOrderAmounts' => true,
             ),
             'exceptions' => array(
                 'EQuery:Invalid asset pair' => '\\ccxt\\BadSymbol', // array("error":["EQuery:Invalid asset pair"])
@@ -271,7 +272,11 @@ class kraken extends Exchange {
 
     public function fetch_markets($params = array ()) {
         $response = $this->publicGetAssetPairs ($params);
-        $limits = $this->fetch_min_order_amounts();
+        $fetchMinOrderAmounts = $this->safe_value($this->options, 'fetchMinOrderAmounts', false);
+        $limits = array();
+        if ($fetchMinOrderAmounts) {
+            $limits = $this->fetch_min_order_amounts();
+        }
         $keys = is_array($response['result']) ? array_keys($response['result']) : array();
         $result = array();
         for ($i = 0; $i < count($keys); $i++) {
@@ -865,8 +870,10 @@ class kraken extends Exchange {
                 $id = ($length > 1) ? $id : $id[0];
             }
         }
+        $clientOrderId = $this->safe_string($params, 'userref');
         return array(
             'id' => $id,
+            'clientOrderId' => $clientOrderId,
             'info' => $response,
             'timestamp' => null,
             'datetime' => null,
@@ -988,8 +995,10 @@ class kraken extends Exchange {
         }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $id = $this->safe_string($order, 'id');
+        $clientOrderId = $this->safe_string($order, 'userref');
         return array(
             'id' => $id,
+            'clientOrderId' => $clientOrderId,
             'info' => $order,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -1006,6 +1015,7 @@ class kraken extends Exchange {
             'remaining' => $remaining,
             'fee' => $fee,
             // 'trades' => $this->parse_trades($order['trades'], $market),
+            'trades' => null,
         );
     }
 

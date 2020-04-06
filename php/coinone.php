@@ -14,7 +14,7 @@ use \ccxt\OrderNotFound;
 class coinone extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'coinone',
             'name' => 'CoinOne',
             'countries' => array( 'KR' ), // Korea
@@ -310,6 +310,8 @@ class coinone extends Exchange {
             'remaining' => $amount,
             'status' => 'open',
             'fee' => null,
+            'clientOrderId' => null,
+            'trades' => null,
         );
         $this->orders[$id] = $order;
         return $order;
@@ -361,6 +363,17 @@ class coinone extends Exchange {
     }
 
     public function parse_order($order, $market = null) {
+        //
+        //     {
+        //         "index" => "0",
+        //         "orderId" => "68665943-1eb5-4e4b-9d76-845fc54f5489",
+        //         "$timestamp" => "1449037367",
+        //         "$price" => "444000.0",
+        //         "qty" => "0.3456",
+        //         "type" => "ask",
+        //         "feeRate" => "-0.0015"
+        //     }
+        //
         $info = $this->safe_value($order, 'info');
         $id = $this->safe_string_upper($info, 'orderId');
         $timestamp = $this->safe_timestamp($info, 'timestamp');
@@ -403,6 +416,7 @@ class coinone extends Exchange {
         return array(
             'info' => $order,
             'id' => $id,
+            'clientOrderId' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
@@ -416,6 +430,8 @@ class coinone extends Exchange {
             'remaining' => $remaining,
             'status' => $status,
             'fee' => $fee,
+            'average' => null,
+            'trades' => null,
         );
     }
 

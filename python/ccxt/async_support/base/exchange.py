@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.24.78'
+__version__ = '1.25.81'
 
 # -----------------------------------------------------------------------------
 
@@ -100,7 +100,7 @@ class Exchange(BaseExchange):
         url = self.proxy + url
 
         if self.verbose:
-            print("\nRequest:", method, url, headers, body)
+            self.print("\nRequest:", method, url, headers, body)
         self.logger.debug("%s %s, Request: %s %s", method, url, headers, body)
 
         request_body = body
@@ -130,7 +130,7 @@ class Exchange(BaseExchange):
                 if self.enableLastJsonResponse:
                     self.last_json_response = json_response
                 if self.verbose:
-                    print("\nResponse:", method, url, http_status_code, headers, http_response)
+                    self.print("\nResponse:", method, url, http_status_code, headers, http_response)
                 self.logger.debug("%s %s, Response: %s %s %s", method, url, http_status_code, headers, http_response)
 
         except socket.gaierror as e:
@@ -294,3 +294,6 @@ class Exchange(BaseExchange):
 
     async def fetch_ticker(self, symbol, params={}):
         raise NotSupported('fetch_ticker() not supported yet')
+
+    async def sleep(self, milliseconds):
+        return await asyncio.sleep(milliseconds / 1000)

@@ -15,7 +15,7 @@ use \ccxt\OrderNotFound;
 class livecoin extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'livecoin',
             'name' => 'LiveCoin',
             'countries' => array( 'US', 'UK', 'RU' ),
@@ -260,6 +260,9 @@ class livecoin extends Exchange {
                     'max' => pow(10, $precision),
                 ),
             ),
+            'id' => null,
+            'code' => null,
+            'name' => null,
         );
         $currencies = array(
             array( 'id' => 'USD', 'code' => 'USD', 'name' => 'US Dollar' ),
@@ -608,6 +611,7 @@ class livecoin extends Exchange {
         return array(
             'info' => $order,
             'id' => $order['id'],
+            'clientOrderId' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
@@ -626,6 +630,7 @@ class livecoin extends Exchange {
                 'currency' => $feeCurrency,
                 'rate' => $feeRate,
             ),
+            'average' => null,
         );
     }
 

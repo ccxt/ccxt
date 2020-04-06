@@ -13,7 +13,7 @@ use \ccxt\InvalidOrder;
 class bcex extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'bcex',
             'name' => 'BCEX',
             'countries' => array( 'CN', 'CA' ),
@@ -373,6 +373,7 @@ class bcex extends Exchange {
             'cost' => $cost,
             'order' => $orderId,
             'fee' => null,
+            'takerOrMaker' => null,
         );
     }
 
@@ -521,6 +522,8 @@ class bcex extends Exchange {
             'remaining' => $this->safe_float($order, 'numberover'),
             'status' => $status,
             'fee' => null,
+            'clientOrderId' => null,
+            'trades' => null,
         );
     }
 
@@ -547,6 +550,7 @@ class bcex extends Exchange {
         $result = array(
             'info' => $order,
             'id' => $id,
+            'clientOrderId' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
@@ -561,6 +565,7 @@ class bcex extends Exchange {
             'remaining' => $remaining,
             'status' => $status,
             'fee' => $fee,
+            'trades' => null,
         );
         return $result;
     }

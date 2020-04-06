@@ -11,7 +11,7 @@ use \ccxt\ExchangeError;
 class bitbay extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'bitbay',
             'name' => 'BitBay',
             'countries' => array( 'MT', 'EU' ), // Malta
@@ -292,6 +292,7 @@ class bitbay extends Exchange {
         }
         return array(
             'id' => $this->safe_string($order, 'id'),
+            'clientOrderId' => null,
             'info' => $order,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -1047,6 +1048,7 @@ class bitbay extends Exchange {
             'average' => null,
             'fee' => null,
             'trades' => $trades,
+            'clientOrderId' => null,
         );
     }
 

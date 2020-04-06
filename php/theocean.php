@@ -18,7 +18,7 @@ class theocean extends Exchange {
 
     public function describe() {
         $this->check_required_dependencies();
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'theocean',
             'name' => 'The Ocean',
             'countries' => array( 'US' ),
@@ -718,6 +718,7 @@ class theocean extends Exchange {
         $result = array(
             'info' => $order,
             'id' => $id,
+            'clientOrderId' => null,
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -732,6 +733,7 @@ class theocean extends Exchange {
             'status' => $status,
             'fee' => $fee,
             'trades' => $trades,
+            'average' => null,
         );
         return $result;
     }

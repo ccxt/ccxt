@@ -206,6 +206,7 @@ module.exports = class kraken extends Exchange {
                 'delistedMarketsById': {},
                 // cannot withdraw/deposit these
                 'inactiveCurrencies': [ 'CAD', 'USD', 'JPY', 'GBP' ],
+                'fetchMinOrderAmounts': true,
             },
             'exceptions': {
                 'EQuery:Invalid asset pair': BadSymbol, // {"error":["EQuery:Invalid asset pair"]}
@@ -261,7 +262,11 @@ module.exports = class kraken extends Exchange {
 
     async fetchMarkets (params = {}) {
         const response = await this.publicGetAssetPairs (params);
-        const limits = await this.fetchMinOrderAmounts ();
+        const fetchMinOrderAmounts = this.safeValue (this.options, 'fetchMinOrderAmounts', false);
+        let limits = {};
+        if (fetchMinOrderAmounts) {
+            limits = await this.fetchMinOrderAmounts ();
+        }
         const keys = Object.keys (response['result']);
         let result = [];
         for (let i = 0; i < keys.length; i++) {
@@ -855,8 +860,10 @@ module.exports = class kraken extends Exchange {
                 id = (length > 1) ? id : id[0];
             }
         }
+        const clientOrderId = this.safeString (params, 'userref');
         return {
             'id': id,
+            'clientOrderId': clientOrderId,
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
@@ -978,8 +985,10 @@ module.exports = class kraken extends Exchange {
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const id = this.safeString (order, 'id');
+        const clientOrderId = this.safeString (order, 'userref');
         return {
             'id': id,
+            'clientOrderId': clientOrderId,
             'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -996,6 +1005,7 @@ module.exports = class kraken extends Exchange {
             'remaining': remaining,
             'fee': fee,
             // 'trades': this.parseTrades (order['trades'], market),
+            'trades': undefined,
         };
     }
 

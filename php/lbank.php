@@ -11,7 +11,7 @@ use \ccxt\ExchangeError;
 class lbank extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'lbank',
             'name' => 'LBank',
             'countries' => array( 'CN' ),
@@ -411,6 +411,19 @@ class lbank extends Exchange {
     }
 
     public function parse_order($order, $market = null) {
+        //
+        //     {
+        //         "$symbol"："eth_btc",
+        //         "$amount"：10.000000,
+        //         "create_time"：1484289832081,
+        //         "$price"：5000.000000,
+        //         "avg_price"：5277.301200,
+        //         "$type"："sell",
+        //         "order_id"："ab704110-af0d-48fd-a083-c218f19a4a55",
+        //         "deal_amount"：10.000000,
+        //         "$status"：2
+        //     }
+        //
         $symbol = null;
         $responseMarket = $this->safe_value($this->marketsById, $order['symbol']);
         if ($responseMarket !== null) {
@@ -441,6 +454,7 @@ class lbank extends Exchange {
         }
         return array(
             'id' => $id,
+            'clientOrderId' => null,
             'datetime' => $this->iso8601($timestamp),
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => null,
@@ -456,6 +470,7 @@ class lbank extends Exchange {
             'trades' => null,
             'fee' => null,
             'info' => $this->safe_value($order, 'info', $order),
+            'average' => null,
         );
     }
 

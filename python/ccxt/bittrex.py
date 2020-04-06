@@ -288,7 +288,6 @@ class bittrex(Exchange):
             },
             'commonCurrencies': {
                 'BITS': 'SWIFT',
-                'CPC': 'Capricoin',
             },
         })
 
@@ -685,6 +684,7 @@ class bittrex(Exchange):
         isCeilingOrder = isCeilingLimit or isCeilingMarket
         if isCeilingOrder:
             request['ceiling'] = self.price_to_precision(symbol, price)
+            # bittrex only accepts IMMEDIATE_OR_CANCEL or FILL_OR_KILL for ceiling orders
             request['timeInForce'] = 'IMMEDIATE_OR_CANCEL'
         else:
             request['quantity'] = self.amount_to_precision(symbol, amount)
@@ -692,7 +692,8 @@ class bittrex(Exchange):
                 request['limit'] = self.price_to_precision(symbol, price)
                 request['timeInForce'] = 'GOOD_TIL_CANCELLED'
             else:
-                request['timeInForce'] = 'FILL_OR_KILL'
+                # bittrex does not allow GOOD_TIL_CANCELLED for market orders
+                request['timeInForce'] = 'IMMEDIATE_OR_CANCEL'
         response = self.v3PostOrders(self.extend(request, params))
         #
         #     {
@@ -1005,6 +1006,7 @@ class bittrex(Exchange):
                 remaining = quantity - fillQuantity
         return {
             'id': self.safe_string(order, 'id'),
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -1023,6 +1025,7 @@ class bittrex(Exchange):
                 'currency': feeCurrency,
             },
             'info': order,
+            'trades': None,
         }
 
     def parse_order_v2(self, order, market=None):
@@ -1123,6 +1126,7 @@ class bittrex(Exchange):
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -1137,6 +1141,7 @@ class bittrex(Exchange):
             'remaining': remaining,
             'status': status,
             'fee': fee,
+            'trades': None,
         }
 
     def fetch_order(self, id, symbol=None, params={}):
@@ -1173,6 +1178,7 @@ class bittrex(Exchange):
             'datetime': self.iso8601(timestamp),
             'fee': self.safe_value(order, 'fee'),
             'info': order,
+            'takerOrMaker': None,
         }
 
     def orders_to_trades(self, orders):

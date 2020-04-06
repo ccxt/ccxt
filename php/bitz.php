@@ -12,7 +12,7 @@ use \ccxt\ArgumentsRequired;
 class bitz extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'bitz',
             'name' => 'Bit-Z',
             'countries' => array( 'HK' ),
@@ -757,6 +757,7 @@ class bitz extends Exchange {
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         return array(
             'id' => $id,
+            'clientOrderId' => null,
             'datetime' => $this->iso8601($timestamp),
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => null,
@@ -772,6 +773,7 @@ class bitz extends Exchange {
             'trades' => null,
             'fee' => null,
             'info' => $order,
+            'average' => null,
         );
     }
 

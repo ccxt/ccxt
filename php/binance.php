@@ -16,7 +16,7 @@ use \ccxt\DDoSProtection;
 class binance extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'binance',
             'name' => 'Binance',
             'countries' => array( 'JP', 'MT' ), // Japan, Malta
@@ -198,6 +198,8 @@ class binance extends Exchange {
                         'ticker/24hr',
                         'ticker/price',
                         'ticker/bookTicker',
+                        'allForceOrders',
+                        'openInterest',
                         'leverageBracket',
                     ),
                 ),
@@ -978,6 +980,46 @@ class binance extends Exchange {
     }
 
     public function parse_order($order, $market = null) {
+        //
+        //  spot
+        //
+        //     {
+        //         "$symbol" => "LTCBTC",
+        //         "orderId" => 1,
+        //         "$clientOrderId" => "myOrder1",
+        //         "$price" => "0.1",
+        //         "origQty" => "1.0",
+        //         "executedQty" => "0.0",
+        //         "cummulativeQuoteQty" => "0.0",
+        //         "$status" => "NEW",
+        //         "timeInForce" => "GTC",
+        //         "$type" => "LIMIT",
+        //         "$side" => "BUY",
+        //         "stopPrice" => "0.0",
+        //         "icebergQty" => "0.0",
+        //         "time" => 1499827319559,
+        //         "updateTime" => 1499827319559,
+        //         "isWorking" => true
+        //     }
+        //
+        //  futures
+        //
+        //     {
+        //         "$symbol" => "BTCUSDT",
+        //         "orderId" => 1,
+        //         "$clientOrderId" => "myOrder1",
+        //         "$price" => "0.1",
+        //         "origQty" => "1.0",
+        //         "executedQty" => "1.0",
+        //         "cumQuote" => "10.0",
+        //         "$status" => "NEW",
+        //         "timeInForce" => "GTC",
+        //         "$type" => "LIMIT",
+        //         "$side" => "BUY",
+        //         "stopPrice" => "0.0",
+        //         "updateTime" => 1499827319559
+        //     }
+        //
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $symbol = null;
         $marketId = $this->safe_string($order, 'symbol');
@@ -1062,9 +1104,11 @@ class binance extends Exchange {
                 $cost = floatval ($this->cost_to_precision($symbol, $cost));
             }
         }
+        $clientOrderId = $this->safe_string($order, 'clientOrderId');
         return array(
             'info' => $order,
             'id' => $id,
+            'clientOrderId' => $clientOrderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
@@ -1897,7 +1941,7 @@ class binance extends Exchange {
                     }
                     // a workaround for array("$code":-2015,"msg":"Invalid API-key, IP, or permissions for action.")
                     // despite that their $message is very confusing, it is raised by Binance
-                    // on a temporary ban (the API key is valid, but disabled for a while)
+                    // on a temporary ban, the API key is valid, but disabled for a while
                     if (($error === '-2015') && $this->options['hasAlreadyAuthenticatedSuccessfully']) {
                         throw new DDoSProtection($this->id . ' temporary banned => ' . $body);
                     }

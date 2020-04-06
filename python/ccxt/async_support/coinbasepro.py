@@ -567,6 +567,7 @@ class coinbasepro(Exchange):
         side = self.safe_string(order, 'side')
         return {
             'id': id,
+            'clientOrderId': None,
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -581,6 +582,8 @@ class coinbasepro(Exchange):
             'filled': filled,
             'remaining': remaining,
             'fee': fee,
+            'average': None,
+            'trades': None,
         }
 
     async def fetch_order(self, id, symbol=None, params={}):

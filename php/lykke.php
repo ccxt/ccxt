@@ -10,7 +10,7 @@ use Exception; // a common import
 class lykke extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'lykke',
             'name' => 'Lykke',
             'countries' => array( 'CH' ),
@@ -257,6 +257,8 @@ class lykke extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'baseId' => null,
+                'quoteId' => null,
             );
         }
         return $result;
@@ -318,6 +320,23 @@ class lykke extends Exchange {
     }
 
     public function parse_order($order, $market = null) {
+        //
+        //     {
+        //         "Id" => "string",
+        //         "Status" => "Unknown",
+        //         "AssetPairId" => "string",
+        //         "Volume" => 0,
+        //         "Price" => 0,
+        //         "RemainingVolume" => 0,
+        //         "LastMatchTime" => "2020-03-26T20:58:50.710Z",
+        //         "CreatedAt" => "2020-03-26T20:58:50.710Z",
+        //         "Type" => "Unknown",
+        //         "LowerLimitPrice" => 0,
+        //         "LowerPrice" => 0,
+        //         "UpperLimitPrice" => 0,
+        //         "UpperPrice" => 0
+        //     }
+        //
         $status = $this->parse_order_status($this->safe_string($order, 'Status'));
         $symbol = null;
         if ($market === null) {
@@ -343,6 +362,7 @@ class lykke extends Exchange {
         return array(
             'info' => $order,
             'id' => $id,
+            'clientOrderId' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
@@ -357,6 +377,7 @@ class lykke extends Exchange {
             'remaining' => $remaining,
             'status' => $status,
             'fee' => null,
+            'trades' => null,
         );
     }
 

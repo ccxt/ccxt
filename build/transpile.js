@@ -307,7 +307,9 @@ class Transpiler {
             [ /this\.stringToBase64\s/g, 'base64_encode' ],
             [ /this\.binaryToBase16\s/g, 'bin2hex' ],
             [ /this\.base64ToBinary\s/g, 'base64_decode' ],
-            [ /this\.deepExtend\s/g, 'array_replace_recursive'],
+            // deepExtend is commented for PHP because it does not overwrite linear arrays
+            // a proper \ccxt\Exchange::deep_extend() base method is implemented instead
+            // [ /this\.deepExtend\s/g, 'array_replace_recursive'],
             [ /(\w+)\.shift\s*\(\)/g, 'array_shift($1)' ],
             [ /(\w+)\.pop\s*\(\)/g, 'array_pop($1)' ],
             [ /Number\.MAX_SAFE_INTEGER/g, 'PHP_INT_MAX' ],
@@ -1172,11 +1174,11 @@ class Transpiler {
             "",
             "",
             "def toWei(amount, decimals):",
-            "    return Exchange.toWei(amount, decimals)",
+            "    return Exchange.to_wei(amount, decimals)",
             "",
             "",
             "def fromWei(amount, decimals):",
-            "    return Exchange.fromWei(amount, decimals)",
+            "    return Exchange.from_wei(amount, decimals)",
             "",
             "",
         ].join ("\n")
@@ -1201,10 +1203,10 @@ class Transpiler {
             "    return Exchange::number_to_string ($x);",
             "}",
             "function toWei ($amount, $decimals) {",
-            "    return Exchange::toWei ($amount, $decimals);",
+            "    return Exchange::to_wei ($amount, $decimals);",
             "}",
             "function fromWei ($amount, $decimals) {",
-            "    return Exchange::fromWei ($amount, $decimals);",
+            "    return Exchange::from_wei ($amount, $decimals);",
             "}",
             "",
         ].join ("\n")

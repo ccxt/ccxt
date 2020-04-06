@@ -13,7 +13,7 @@ use \ccxt\ArgumentsRequired;
 class bitmart extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'bitmart',
             'name' => 'BitMart',
             'countries' => array( 'US', 'CN', 'HK', 'KR' ),
@@ -254,6 +254,7 @@ class bitmart extends Exchange {
                 'precision' => $precision,
                 'limits' => $limits,
                 'info' => $market,
+                'active' => null,
             );
         }
         return $result;
@@ -687,6 +688,7 @@ class bitmart extends Exchange {
         $type = null;
         return array(
             'id' => $id,
+            'clientOrderId' => null,
             'info' => $order,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),

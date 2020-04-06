@@ -582,6 +582,7 @@ module.exports = class coinbasepro extends Exchange {
         const side = this.safeString (order, 'side');
         return {
             'id': id,
+            'clientOrderId': undefined,
             'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -596,6 +597,8 @@ module.exports = class coinbasepro extends Exchange {
             'filled': filled,
             'remaining': remaining,
             'fee': fee,
+            'average': undefined,
+            'trades': undefined,
         };
     }
 

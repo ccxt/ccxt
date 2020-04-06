@@ -267,7 +267,6 @@ module.exports = class bittrex extends Exchange {
             },
             'commonCurrencies': {
                 'BITS': 'SWIFT',
-                'CPC': 'Capricoin',
             },
         });
     }
@@ -701,6 +700,7 @@ module.exports = class bittrex extends Exchange {
         const isCeilingOrder = isCeilingLimit || isCeilingMarket;
         if (isCeilingOrder) {
             request['ceiling'] = this.priceToPrecision (symbol, price);
+            // bittrex only accepts IMMEDIATE_OR_CANCEL or FILL_OR_KILL for ceiling orders
             request['timeInForce'] = 'IMMEDIATE_OR_CANCEL';
         } else {
             request['quantity'] = this.amountToPrecision (symbol, amount);
@@ -708,7 +708,8 @@ module.exports = class bittrex extends Exchange {
                 request['limit'] = this.priceToPrecision (symbol, price);
                 request['timeInForce'] = 'GOOD_TIL_CANCELLED';
             } else {
-                request['timeInForce'] = 'FILL_OR_KILL';
+                // bittrex does not allow GOOD_TIL_CANCELLED for market orders
+                request['timeInForce'] = 'IMMEDIATE_OR_CANCEL';
             }
         }
         const response = await this.v3PostOrders (this.extend (request, params));
@@ -1049,6 +1050,7 @@ module.exports = class bittrex extends Exchange {
         }
         return {
             'id': this.safeString (order, 'id'),
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -1067,6 +1069,7 @@ module.exports = class bittrex extends Exchange {
                 'currency': feeCurrency,
             },
             'info': order,
+            'trades': undefined,
         };
     }
 
@@ -1191,6 +1194,7 @@ module.exports = class bittrex extends Exchange {
         return {
             'info': order,
             'id': id,
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -1205,6 +1209,7 @@ module.exports = class bittrex extends Exchange {
             'remaining': remaining,
             'status': status,
             'fee': fee,
+            'trades': undefined,
         };
     }
 
@@ -1247,6 +1252,7 @@ module.exports = class bittrex extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'fee': this.safeValue (order, 'fee'),
             'info': order,
+            'takerOrMaker': undefined,
         };
     }
 

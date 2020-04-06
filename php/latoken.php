@@ -12,7 +12,7 @@ use \ccxt\ArgumentsRequired;
 class latoken extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'latoken',
             'name' => 'Latoken',
             'countries' => array( 'KY' ), // Cayman Islands
@@ -650,8 +650,10 @@ class latoken extends Exchange {
         if (($timeFilled !== null) && ($timeFilled > 0)) {
             $lastTradeTimestamp = $timeFilled;
         }
+        $clientOrderId = $this->safe_string($order, 'cliOrdId');
         return array(
             'id' => $id,
+            'clientOrderId' => $clientOrderId,
             'info' => $order,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -667,6 +669,7 @@ class latoken extends Exchange {
             'average' => null,
             'remaining' => $remaining,
             'fee' => null,
+            'trades' => null,
         );
     }
 

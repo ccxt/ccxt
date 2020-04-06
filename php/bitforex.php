@@ -11,7 +11,7 @@ use \ccxt\ExchangeError;
 class bitforex extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'bitforex',
             'name' => 'Bitforex',
             'countries' => array( 'CN' ),
@@ -314,6 +314,7 @@ class bitforex extends Exchange {
             'cost' => $cost,
             'order' => $orderId,
             'fee' => null,
+            'takerOrMaker' => null,
         );
     }
 
@@ -467,6 +468,7 @@ class bitforex extends Exchange {
         $result = array(
             'info' => $order,
             'id' => $id,
+            'clientOrderId' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
@@ -481,6 +483,7 @@ class bitforex extends Exchange {
             'remaining' => $remaining,
             'status' => $status,
             'fee' => $fee,
+            'trades' => null,
         );
         return $result;
     }

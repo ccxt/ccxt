@@ -12,7 +12,7 @@ use \ccxt\ArgumentsRequired;
 class idex extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'idex',
             'name' => 'IDEX',
             'countries' => array( 'US' ),
@@ -763,6 +763,7 @@ class idex extends Exchange {
         return array(
             'info' => $order,
             'id' => $id,
+            'clientOrderId' => null,
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -774,6 +775,10 @@ class idex extends Exchange {
             'remaining' => $remaining,
             'cost' => $cost,
             'status' => $status,
+            'lastTradeTimestamp' => null,
+            'average' => null,
+            'trades' => null,
+            'fee' => null,
         );
     }
 

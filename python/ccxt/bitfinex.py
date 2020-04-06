@@ -804,6 +804,7 @@ class bitfinex(Exchange):
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -817,6 +818,8 @@ class bitfinex(Exchange):
             'filled': self.safe_float(order, 'executed_amount'),
             'status': status,
             'fee': None,
+            'cost': None,
+            'trades': None,
         }
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):

@@ -4,12 +4,19 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-import hashlib
+import base64
+import math
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import RequestTimeout
+from ccxt.base.decimal_to_precision import TRUNCATE
+from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 
 
 class hitbtc(Exchange):
@@ -20,23 +27,52 @@ class hitbtc(Exchange):
             'name': 'HitBTC',
             'countries': ['HK'],
             'rateLimit': 1500,
-            'version': '1',
+            'version': '2',
+            'pro': True,
             'has': {
+                'createDepositAddress': True,
+                'fetchDepositAddress': True,
                 'CORS': False,
-                'fetchTrades': True,
+                'editOrder': True,
+                'fetchCurrencies': True,
+                'fetchOHLCV': True,
                 'fetchTickers': True,
                 'fetchOrder': True,
+                'fetchOrders': False,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
-                'fetchOrderTrades': True,
+                'fetchMyTrades': True,
                 'withdraw': True,
+                'fetchOrderTrades': False,  # not implemented yet
+                'fetchDeposits': False,
+                'fetchWithdrawals': False,
+                'fetchTransactions': True,
+                'fetchTradingFee': True,
+            },
+            'timeframes': {
+                '1m': 'M1',
+                '3m': 'M3',
+                '5m': 'M5',
+                '15m': 'M15',
+                '30m': 'M30',  # default
+                '1h': 'H1',
+                '4h': 'H4',
+                '1d': 'D1',
+                '1w': 'D7',
+                '1M': '1M',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
-                'api': 'https://api.hitbtc.com',
+                'api': {
+                    'public': 'https://api.hitbtc.com',
+                    'private': 'https://api.hitbtc.com',
+                },
                 'www': 'https://hitbtc.com',
                 'referral': 'https://hitbtc.com/?ref_id=5a5d39a65d466',
-                'doc': 'https://github.com/hitbtc-com/hitbtc-api/blob/master/APIv1.md',
+                'doc': [
+                    'https://api.hitbtc.com',
+                    'https://github.com/hitbtc-com/hitbtc-api/blob/master/APIv2.md',
+                ],
                 'fees': [
                     'https://hitbtc.com/fees-and-limits',
                     'https://support.hitbtc.com/hc/en-us/articles/115005148605-Fees-and-limits',
@@ -45,52 +81,58 @@ class hitbtc(Exchange):
             'api': {
                 'public': {
                     'get': [
-                        '{symbol}/orderbook',
-                        '{symbol}/ticker',
-                        '{symbol}/trades',
-                        '{symbol}/trades/recent',
-                        'symbols',
-                        'ticker',
-                        'time',
+                        'symbol',  # Available Currency Symbols
+                        'symbol/{symbol}',  # Get symbol info
+                        'currency',  # Available Currencies
+                        'currency/{currency}',  # Get currency info
+                        'ticker',  # Ticker list for all symbols
+                        'ticker/{symbol}',  # Ticker for symbol
+                        'trades/{symbol}',  # Trades
+                        'orderbook/{symbol}',  # Orderbook
+                        'candles/{symbol}',  # Candles
                     ],
                 },
-                'trading': {
+                'private': {
                     'get': [
-                        'balance',
-                        'orders/active',
-                        'orders/recent',
-                        'order',
-                        'trades/by/order',
-                        'trades',
+                        'order',  # List your current open orders
+                        'order/{clientOrderId}',  # Get a single order by clientOrderId
+                        'trading/balance',  # Get trading balance
+                        'trading/fee/all',  # Get trading fee rate
+                        'trading/fee/{symbol}',  # Get trading fee rate
+                        'history/trades',  # Get historical trades
+                        'history/order',  # Get historical orders
+                        'history/order/{id}/trades',  # Get historical trades by specified order
+                        'account/balance',  # Get main acccount balance
+                        'account/transactions',  # Get account transactions
+                        'account/transactions/{id}',  # Get account transaction by id
+                        'account/crypto/address/{currency}',  # Get deposit crypro address
                     ],
                     'post': [
-                        'new_order',
-                        'cancel_order',
-                        'cancel_orders',
+                        'order',  # Create new order
+                        'account/crypto/withdraw',  # Withdraw crypro
+                        'account/crypto/address/{currency}',  # Create new deposit crypro address
+                        'account/transfer',  # Transfer amount to trading
                     ],
-                },
-                'payment': {
-                    'get': [
-                        'balance',
-                        'address/{currency}',
-                        'transactions',
-                        'transactions/{transaction}',
+                    'put': [
+                        'order/{clientOrderId}',  # Create new order
+                        'account/crypto/withdraw/{id}',  # Commit withdraw crypro
                     ],
-                    'post': [
-                        'transfer_to_trading',
-                        'transfer_to_main',
-                        'address/{currency}',
-                        'payout',
+                    'delete': [
+                        'order',  # Cancel all open orders
+                        'order/{clientOrderId}',  # Cancel order
+                        'account/crypto/withdraw/{id}',  # Rollback withdraw crypro
+                    ],
+                    'patch': [
+                        'order/{clientOrderId}',  # Cancel Replace order
                     ],
                 },
             },
-            # hardcoded fees are deprecated and should only be used when there's no other way to get fee info
             'fees': {
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': 0.07 / 100,
-                    'taker': 0.07 / 100,
+                    'maker': 0.1 / 100,
+                    'taker': 0.2 / 100,
                 },
                 'funding': {
                     'tierBased': False,
@@ -98,11 +140,12 @@ class hitbtc(Exchange):
                     'withdraw': {
                         'BTC': 0.001,
                         'BCC': 0.0018,
-                        'ETH': 0.00215,
+                        'ETH': 0.00958,
                         'BCH': 0.0018,
                         'USDT': 100,
                         'DASH': 0.03,
                         'BTG': 0.0005,
+                        'XRP': 0.509,
                         'LTC': 0.003,
                         'ZEC': 0.0001,
                         'XMR': 0.09,
@@ -111,7 +154,8 @@ class hitbtc(Exchange):
                         'AE': 6.7,
                         'AEON': 0.01006,
                         'AIR': 565,
-                        'AMP': 9,
+                        'AMM': 14,
+                        'AMP': 342,
                         'ANT': 6.7,
                         'ARDR': 1,
                         'ARN': 18.5,
@@ -123,32 +167,37 @@ class hitbtc(Exchange):
                         'AVT': 1.9,
                         'BAS': 113,
                         'BCN': 0.1,
-                        'DAO.Casino': 124,  # id = 'BET'
+                        'BET': 124,
                         'BKB': 46,
                         'BMC': 32,
                         'BMT': 100,
                         'BNT': 2.57,
                         'BQX': 4.7,
+                        'BTCA': 351.21,
                         'BTM': 40,
                         'BTX': 0.04,
                         'BUS': 0.004,
-                        'CCT': 115,
+                        'CAPP': 97,
+                        'CCT': 6,
                         'CDT': 100,
                         'CDX': 30,
                         'CFI': 61,
+                        'CL': 13.85,
                         'CLD': 0.88,
                         'CND': 574,
                         'CNX': 0.04,
                         'COSS': 65,
+                        'CPAY': 5.487,
                         'CSNO': 16,
                         'CTR': 15,
                         'CTX': 146,
                         'CVC': 8.46,
+                        'DATA': 12.949,
                         'DBIX': 0.0168,
-                        'DCN': 120000,
+                        'DCN': 1280,
                         'DCT': 0.02,
                         'DDF': 342,
-                        'DENT': 6240,
+                        'DENT': 1000,
                         'DGB': 0.4,
                         'DGD': 0.01,
                         'DICE': 0.32,
@@ -165,10 +214,11 @@ class hitbtc(Exchange):
                         'ECAT': 14,
                         'EDG': 2,
                         'EDO': 2.9,
+                        'EKO': 1136.36,
                         'ELE': 0.00172,
                         'ELM': 0.004,
                         'EMC': 0.03,
-                        'EMGO': 14,
+                        'MGO': 14,
                         'ENJ': 163,
                         'EOS': 1.5,
                         'ERO': 34,
@@ -177,14 +227,17 @@ class hitbtc(Exchange):
                         'ETP': 0.004,
                         'EVX': 5.4,
                         'EXN': 456,
+                        'FCN': 0.000005,
                         'FRD': 65,
                         'FUEL': 123.00105,
                         'FUN': 202.9598309,
                         'FYN': 1.849,
                         'FYP': 66.13,
+                        'GAME': 0.004,
                         'GNO': 0.0034,
                         'GUP': 4,
                         'GVT': 1.2,
+                        'HSR': 0.04,
                         'HAC': 144,
                         'HDG': 7,
                         'HGT': 1082,
@@ -194,16 +247,19 @@ class hitbtc(Exchange):
                         'ICO': 34,
                         'ICOS': 0.35,
                         'IND': 76,
-                        'INDI': 5913,
+                        'INDI': 790,
                         'ITS': 15.0012,
                         'IXT': 11,
                         'KBR': 143,
                         'KICK': 112,
+                        'KMD': 4,
                         'LA': 41,
+                        'LEND': 388,
                         'LAT': 1.44,
                         'LIFE': 13000,
                         'LRC': 27,
                         'LSK': 0.3,
+                        'LOC': 11.076,
                         'LUN': 0.34,
                         'MAID': 5,
                         'MANA': 143,
@@ -211,12 +267,14 @@ class hitbtc(Exchange):
                         'MIPS': 43,
                         'MNE': 1.33,
                         'MSP': 121,
+                        'MCO': 0.357,
                         'MTH': 92,
                         'MYB': 3.9,
                         'NDC': 165,
                         'NEBL': 0.04,
                         'NET': 3.96,
                         'NTO': 998,
+                        'NGC': 2.368,
                         'NXC': 13.39,
                         'NXT': 3,
                         'OAX': 15,
@@ -244,20 +302,26 @@ class hitbtc(Exchange):
                         'QVT': 64,
                         'REP': 0.02,
                         'RKC': 15,
+                        'RLC': 1.21,
                         'RVT': 14,
+                        'SC': 30,
                         'SAN': 2.24,
                         'SBD': 0.03,
                         'SCL': 2.6,
                         'SISA': 1640,
                         'SKIN': 407,
+                        'SWFTC': 352.94,
                         'SMART': 0.4,
                         'SMS': 0.0375,
                         'SNC': 36,
                         'SNGLS': 4,
                         'SNM': 48,
                         'SNT': 233,
+                        'STAR': 0.144,
+                        'STORM': 153.19,
                         'STEEM': 0.01,
                         'STRAT': 0.01,
+                        'SPF': 14.4,
                         'STU': 14,
                         'STX': 11,
                         'SUB': 17,
@@ -269,12 +333,14 @@ class hitbtc(Exchange):
                         'TIME': 0.03,
                         'TIX': 7.1,
                         'TKN': 1,
+                        'TGT': 173,
                         'TKR': 84,
                         'TNT': 90,
                         'TRST': 1.6,
-                        'TRX': 1395,
+                        'TRX': 270,
                         'UET': 480,
                         'UGT': 15,
+                        'UTT': 3,
                         'VEN': 14,
                         'VERI': 0.037,
                         'VIB': 50,
@@ -283,6 +349,7 @@ class hitbtc(Exchange):
                         'WEALTH': 0.0168,
                         'WINGS': 2.4,
                         'WTC': 0.75,
+                        'WRC': 48,
                         'XAUR': 3.23,
                         'XDN': 0.01,
                         'XEM': 15,
@@ -318,7 +385,7 @@ class hitbtc(Exchange):
                         'AVT': 0,
                         'BAS': 0,
                         'BCN': 0,
-                        'DAO.Casino': 0,  # id = 'BET'
+                        'BET': 0,
                         'BKB': 0,
                         'BMC': 0,
                         'BMT': 0,
@@ -489,6 +556,9 @@ class hitbtc(Exchange):
                     },
                 },
             },
+            'options': {
+                'defaultTimeInForce': 'FOK',
+            },
             'commonCurrencies': {
                 'BET': 'DAO.Casino',
                 'CAT': 'BitClave',
@@ -504,32 +574,43 @@ class hitbtc(Exchange):
                 'XBT': 'BTC',
             },
             'exceptions': {
-                'exact': {
-                    '2001': BadSymbol,  # {"error":{"code":2001,"message":"Symbol not found","description":"Try get /api/2/public/symbol, to get list of all available symbols."}}
-                },
-                'broad': {
-                },
-            },
-            'options': {
-                'defaultTimeInForce': 'FOK',
+                '504': RequestTimeout,  # {"error":{"code":504,"message":"Gateway Timeout"}}
+                '1002': AuthenticationError,  # {"error":{"code":1002,"message":"Authorization failed","description":""}}
+                '1003': PermissionDenied,  # "Action is forbidden for self API key"
+                '2010': InvalidOrder,  # "Quantity not a valid number"
+                '2001': BadSymbol,  # "Symbol not found"
+                '2011': InvalidOrder,  # "Quantity too low"
+                '2020': InvalidOrder,  # "Price not a valid number"
+                '20002': OrderNotFound,  # canceling non-existent order
+                '20001': InsufficientFunds,
             },
         })
 
+    def fee_to_precision(self, symbol, fee):
+        return self.decimal_to_precision(fee, TRUNCATE, 8, DECIMAL_PLACES)
+
     def fetch_markets(self, params={}):
-        response = self.publicGetSymbols(params)
-        markets = self.safe_value(response, 'symbols')
+        response = self.publicGetSymbol(params)
         result = []
-        for i in range(0, len(markets)):
-            market = markets[i]
-            id = self.safe_string(market, 'symbol')
-            baseId = self.safe_string(market, 'commodity')
-            quoteId = self.safe_string(market, 'currency')
-            lot = self.safe_float(market, 'lot')
-            step = self.safe_float(market, 'step')
+        for i in range(0, len(response)):
+            market = response[i]
+            id = self.safe_string(market, 'id')
+            baseId = self.safe_string(market, 'baseCurrency')
+            quoteId = self.safe_string(market, 'quoteCurrency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
-            result.append({
+            lot = self.safe_float(market, 'quantityIncrement')
+            step = self.safe_float(market, 'tickSize')
+            precision = {
+                'price': self.precision_from_string(market['tickSize']),
+                # FIXME: for lots > 1 the following line returns 0
+                # 'amount': self.precision_from_string(market['quantityIncrement']),
+                'amount': -1 * int(math.log10(lot)),
+            }
+            taker = self.safe_float(market, 'takeLiquidityRate')
+            maker = self.safe_float(market, 'provideLiquidityRate')
+            result.append(self.extend(self.fees['trading'], {
                 'info': market,
                 'id': id,
                 'symbol': symbol,
@@ -537,15 +618,10 @@ class hitbtc(Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'lot': lot,
-                'step': step,
                 'active': True,
-                'maker': self.safe_float(market, 'provideLiquidityRate'),
-                'taker': self.safe_float(market, 'takeLiquidityRate'),
-                'precision': {
-                    'amount': self.precision_from_string(market['lot']),
-                    'price': self.precision_from_string(market['step']),
-                },
+                'taker': taker,
+                'maker': maker,
+                'precision': precision,
                 'limits': {
                     'amount': {
                         'min': lot,
@@ -556,44 +632,161 @@ class hitbtc(Exchange):
                         'max': None,
                     },
                     'cost': {
-                        'min': None,
+                        'min': lot * step,
                         'max': None,
                     },
                 },
-            })
+            }))
         return result
+
+    def fetch_currencies(self, params={}):
+        response = self.publicGetCurrency(params)
+        result = {}
+        for i in range(0, len(response)):
+            currency = response[i]
+            id = self.safe_string(currency, 'id')
+            # todo: will need to rethink the fees
+            # to add support for multiple withdrawal/deposit methods and
+            # differentiated fees for each particular method
+            precision = 8  # default precision, todo: fix "magic constants"
+            code = self.safe_currency_code(id)
+            payin = self.safe_value(currency, 'payinEnabled')
+            payout = self.safe_value(currency, 'payoutEnabled')
+            transfer = self.safe_value(currency, 'transferEnabled')
+            active = payin and payout and transfer
+            if 'disabled' in currency:
+                if currency['disabled']:
+                    active = False
+            type = 'fiat'
+            if ('crypto' in currency) and currency['crypto']:
+                type = 'crypto'
+            name = self.safe_string(currency, 'fullName')
+            result[code] = {
+                'id': id,
+                'code': code,
+                'type': type,
+                'payin': payin,
+                'payout': payout,
+                'transfer': transfer,
+                'info': currency,
+                'name': name,
+                'active': active,
+                'fee': self.safe_float(currency, 'payoutFee'),  # todo: redesign
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': math.pow(10, -precision),
+                        'max': math.pow(10, precision),
+                    },
+                    'price': {
+                        'min': math.pow(10, -precision),
+                        'max': math.pow(10, precision),
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': None,
+                        'max': math.pow(10, precision),
+                    },
+                },
+            }
+        return result
+
+    def fetch_trading_fee(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = self.extend({
+            'symbol': market['id'],
+        }, self.omit(params, 'symbol'))
+        response = self.privateGetTradingFeeSymbol(request)
+        #
+        #     {
+        #         takeLiquidityRate: '0.001',
+        #         provideLiquidityRate: '-0.0001'
+        #     }
+        #
+        return {
+            'info': response,
+            'maker': self.safe_float(response, 'provideLiquidityRate'),
+            'taker': self.safe_float(response, 'takeLiquidityRate'),
+        }
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        method = self.safe_string(params, 'type', 'trading')
-        method += 'GetBalance'
+        type = self.safe_string(params, 'type', 'trading')
+        method = 'privateGet' + self.capitalize(type) + 'Balance'
         query = self.omit(params, 'type')
         response = getattr(self, method)(query)
-        balances = self.safe_value(response, 'balance', [])
         result = {'info': response}
-        for i in range(0, len(balances)):
-            balance = balances[i]
-            currencyId = self.safe_string(balance, 'currency_code')
+        for i in range(0, len(response)):
+            balance = response[i]
+            currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_float_2(balance, 'cash', 'balance')
+            account['free'] = self.safe_float(balance, 'available')
             account['used'] = self.safe_float(balance, 'reserved')
             result[code] = account
         return self.parse_balance(result)
 
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='1d', since=None, limit=None):
+        timestamp = self.parse8601(ohlcv['timestamp'])
+        return [
+            timestamp,
+            float(ohlcv['open']),
+            float(ohlcv['max']),
+            float(ohlcv['min']),
+            float(ohlcv['close']),
+            float(ohlcv['volume']),
+        ]
+
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+            'period': self.timeframes[timeframe],
+        }
+        if since is not None:
+            request['from'] = self.iso8601(since)
+        if limit is not None:
+            request['limit'] = limit
+        response = self.publicGetCandlesSymbol(self.extend(request, params))
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
-        orderbook = self.publicGetSymbolOrderbook(self.extend({
+        request = {
             'symbol': self.market_id(symbol),
-        }, params))
-        return self.parse_order_book(orderbook)
+        }
+        if limit is not None:
+            request['limit'] = limit  # default = 100, 0 = unlimited
+        response = self.publicGetOrderbookSymbol(self.extend(request, params))
+        return self.parse_order_book(response, None, 'bid', 'ask', 'price', 'size')
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = self.safe_integer(ticker, 'timestamp')
+        timestamp = self.parse8601(ticker['timestamp'])
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
+        baseVolume = self.safe_float(ticker, 'volume')
+        quoteVolume = self.safe_float(ticker, 'volumeQuote')
+        open = self.safe_float(ticker, 'open')
         last = self.safe_float(ticker, 'last')
+        change = None
+        percentage = None
+        average = None
+        if last is not None and open is not None:
+            change = last - open
+            average = self.sum(last, open) / 2
+            if open > 0:
+                percentage = change / open * 100
+        vwap = None
+        if quoteVolume is not None:
+            if baseVolume is not None:
+                if baseVolume > 0:
+                    vwap = quoteVolume / baseVolume
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -604,30 +797,33 @@ class hitbtc(Exchange):
             'bidVolume': None,
             'ask': self.safe_float(ticker, 'ask'),
             'askVolume': None,
-            'vwap': None,
-            'open': self.safe_float(ticker, 'open'),
+            'vwap': vwap,
+            'open': open,
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': None,
-            'percentage': None,
-            'average': None,
-            'baseVolume': self.safe_float(ticker, 'volume'),
-            'quoteVolume': self.safe_float(ticker, 'volume_quote'),
+            'change': change,
+            'percentage': percentage,
+            'average': average,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         }
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        tickers = self.publicGetTicker(params)
-        ids = list(tickers.keys())
+        response = self.publicGetTicker(params)
         result = {}
-        for i in range(0, len(ids)):
-            id = ids[i]
-            market = self.markets_by_id[id]
-            symbol = market['symbol']
-            ticker = tickers[id]
-            result[symbol] = self.parse_ticker(ticker, market)
+        for i in range(0, len(response)):
+            ticker = response[i]
+            marketId = self.safe_string(ticker, 'symbol')
+            if marketId is not None:
+                if marketId in self.markets_by_id:
+                    market = self.markets_by_id[marketId]
+                    symbol = market['symbol']
+                    result[symbol] = self.parse_ticker(ticker, market)
+                else:
+                    result[marketId] = self.parse_ticker(ticker)
         return result
 
     def fetch_ticker(self, symbol, params={}):
@@ -636,64 +832,54 @@ class hitbtc(Exchange):
         request = {
             'symbol': market['id'],
         }
-        response = self.publicGetSymbolTicker(self.extend(request, params))
+        response = self.publicGetTickerSymbol(self.extend(request, params))
         if 'message' in response:
             raise ExchangeError(self.id + ' ' + response['message'])
         return self.parse_ticker(response, market)
 
     def parse_trade(self, trade, market=None):
-        if isinstance(trade, list):
-            return self.parse_public_trade(trade, market)
-        return self.parse_order_trade(trade, market)
-
-    def parse_public_trade(self, trade, market=None):
+        #
+        # createMarketOrder
+        #
+        #  {      fee: "0.0004644",
+        #           id:  386394956,
+        #        price: "0.4644",
+        #     quantity: "1",
+        #    timestamp: "2018-10-25T16:41:44.780Z"}
+        #
+        # fetchTrades ...
+        #
+        # fetchMyTrades ...
+        #
+        timestamp = self.parse8601(trade['timestamp'])
         symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        side = None
-        tradeLength = len(trade)
-        if tradeLength > 4:
-            side = trade[4]
-        price = float(trade[1])
-        amount = float(trade[2])
-        cost = price * amount
-        return {
-            'info': trade,
-            'id': str(trade[0]),
-            'timestamp': trade[3],
-            'datetime': self.iso8601(trade[3]),
-            'symbol': symbol,
-            'type': None,
-            'side': side,
-            'order': None,
-            'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
-            'fee': None,
-        }
-
-    def parse_order_trade(self, trade, market=None):
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        amount = self.safe_float(trade, 'execQuantity')
-        if market:
-            amount *= market['lot']
-        price = self.safe_float(trade, 'execPrice')
-        cost = price * amount
-        fee = {
-            'cost': self.safe_float(trade, 'fee'),
-            'currency': None,
-            'rate': None,
-        }
-        timestamp = self.safe_integer(trade, 'timestamp')
-        id = self.safe_string(trade, 'tradeId')
+        marketId = self.safe_string(trade, 'symbol')
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+                symbol = market['symbol']
+            else:
+                symbol = marketId
+        if symbol is None:
+            if market is not None:
+                symbol = market['symbol']
+        fee = None
+        feeCost = self.safe_float(trade, 'fee')
+        if feeCost is not None:
+            feeCurrency = market['quote'] if market else None
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            }
         # we use clientOrderId as the order id with HitBTC intentionally
         # because most of their endpoints will require clientOrderId
         # explained here: https://github.com/ccxt/ccxt/issues/5674
         orderId = self.safe_string(trade, 'clientOrderId')
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'quantity')
+        cost = price * amount
         side = self.safe_string(trade, 'side')
+        id = self.safe_string(trade, 'id')
         return {
             'info': trade,
             'id': id,
@@ -703,65 +889,198 @@ class hitbtc(Exchange):
             'symbol': symbol,
             'type': None,
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
             'fee': fee,
         }
 
+    def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+        self.load_markets()
+        currency = None
+        request = {}
+        if code is not None:
+            currency = self.currency(code)
+            request['asset'] = currency['id']
+        if since is not None:
+            request['startTime'] = since
+        response = self.privateGetAccountTransactions(self.extend(request, params))
+        return self.parse_transactions(response, currency, since, limit)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        #     {
+        #         id: 'd53ee9df-89bf-4d09-886e-849f8be64647',
+        #         index: 1044718371,
+        #         type: 'payout',
+        #         status: 'success',
+        #         currency: 'ETH',
+        #         amount: '4.522683200000000000000000',
+        #         createdAt: '2018-06-07T00:43:32.426Z',
+        #         updatedAt: '2018-06-07T00:45:36.447Z',
+        #         hash: '0x973e5683dfdf80a1fb1e0b96e19085b6489221d2ddf864daa46903c5ec283a0f',
+        #         address: '0xC5a59b21948C1d230c8C54f05590000Eb3e1252c',
+        #         fee: '0.00958',
+        #     },
+        #     {
+        #         id: 'e6c63331-467e-4922-9edc-019e75d20ba3',
+        #         index: 1044714672,
+        #         type: 'exchangeToBank',
+        #         status: 'success',
+        #         currency: 'ETH',
+        #         amount: '4.532263200000000000',
+        #         createdAt: '2018-06-07T00:42:39.543Z',
+        #         updatedAt: '2018-06-07T00:42:39.683Z',
+        #     },
+        #     {
+        #         id: '3b052faa-bf97-4636-a95c-3b5260015a10',
+        #         index: 1009280164,
+        #         type: 'bankToExchange',
+        #         status: 'success',
+        #         currency: 'CAS',
+        #         amount: '104797.875800000000000000',
+        #         createdAt: '2018-05-19T02:34:36.750Z',
+        #         updatedAt: '2018-05-19T02:34:36.857Z',
+        #     },
+        #     {
+        #         id: 'd525249f-7498-4c81-ba7b-b6ae2037dc08',
+        #         index: 1009279948,
+        #         type: 'payin',
+        #         status: 'success',
+        #         currency: 'CAS',
+        #         amount: '104797.875800000000000000',
+        #         createdAt: '2018-05-19T02:30:16.698Z',
+        #         updatedAt: '2018-05-19T02:34:28.159Z',
+        #         hash: '0xa6530e1231de409cf1f282196ed66533b103eac1df2aa4a7739d56b02c5f0388',
+        #         address: '0xd53ed559a6d963af7cb3f3fcd0e7ca499054db8b',
+        #     }
+        #
+        #     {
+        #         "id": "4f351f4f-a8ee-4984-a468-189ed590ddbd",
+        #         "index": 3112719565,
+        #         "type": "withdraw",
+        #         "status": "success",
+        #         "currency": "BCHOLD",
+        #         "amount": "0.02423133",
+        #         "createdAt": "2019-07-16T16:52:04.494Z",
+        #         "updatedAt": "2019-07-16T16:54:07.753Z"
+        #     }
+        id = self.safe_string(transaction, 'id')
+        timestamp = self.parse8601(self.safe_string(transaction, 'createdAt'))
+        updated = self.parse8601(self.safe_string(transaction, 'updatedAt'))
+        currencyId = self.safe_string(transaction, 'currency')
+        code = self.safe_currency_code(currencyId, currency)
+        status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
+        amount = self.safe_float(transaction, 'amount')
+        address = self.safe_string(transaction, 'address')
+        txid = self.safe_string(transaction, 'hash')
+        fee = None
+        feeCost = self.safe_float(transaction, 'fee')
+        if feeCost is not None:
+            fee = {
+                'cost': feeCost,
+                'currency': code,
+            }
+        type = self.parse_transaction_type(self.safe_string(transaction, 'type'))
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'address': address,
+            'tag': None,
+            'type': type,
+            'amount': amount,
+            'currency': code,
+            'status': status,
+            'updated': updated,
+            'fee': fee,
+        }
+
+    def parse_transaction_status(self, status):
+        statuses = {
+            'pending': 'pending',
+            'failed': 'failed',
+            'success': 'ok',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_transaction_type(self, type):
+        types = {
+            'payin': 'deposit',
+            'payout': 'withdrawal',
+            'withdraw': 'withdrawal',
+        }
+        return self.safe_string(types, type, type)
+
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
-            # 'from': 0,
-            # 'till': 100,
-            # 'by': 'ts',  # or by trade_id
-            # 'sort': 'desc',  # or asc
-            # 'start_index': 0,
-            # 'max_results': 1000,
-            # 'format_item': 'object',
-            # 'format_price': 'number',
-            # 'format_amount': 'number',
-            # 'format_tid': 'string',
-            # 'format_timestamp': 'millisecond',
-            # 'format_wrap': False,
-            # 'side': 'true',
         }
-        if since is not None:
-            request['by'] = 'ts'
-            request['from'] = since
         if limit is not None:
-            request['max_results'] = limit
-        response = self.publicGetSymbolTrades(self.extend(request, params))
-        return self.parse_trades(response['trades'], market, since, limit)
+            request['limit'] = limit
+        if since is not None:
+            request['sort'] = 'ASC'
+            request['from'] = self.iso8601(since)
+        response = self.publicGetTradesSymbol(self.extend(request, params))
+        return self.parse_trades(response, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        # check if amount can be evenly divided into lots
-        # they want integer quantity in lot units
-        quantity = float(amount) / market['lot']
-        wholeLots = int(round(quantity))
-        difference = quantity - wholeLots
-        if abs(difference) > market['step']:
-            raise ExchangeError(self.id + ' order amount should be evenly divisible by lot unit size of ' + str(market['lot']))
-        clientOrderId = self.milliseconds()
+        # we use clientOrderId as the order id with HitBTC intentionally
+        # because most of their endpoints will require clientOrderId
+        # explained here: https://github.com/ccxt/ccxt/issues/5674
+        # their max accepted length is 32 characters
+        uuid = self.uuid()
+        parts = uuid.split('-')
+        clientOrderId = ''.join(parts)
+        clientOrderId = clientOrderId[0:32]
+        amount = float(amount)
         request = {
-            'clientOrderId': str(clientOrderId),
+            'clientOrderId': clientOrderId,
             'symbol': market['id'],
             'side': side,
-            'quantity': str(wholeLots),  # quantity in integer lot units
+            'quantity': self.amount_to_precision(symbol, amount),
             'type': type,
         }
         if type == 'limit':
             request['price'] = self.price_to_precision(symbol, price)
         else:
             request['timeInForce'] = self.options['defaultTimeInForce']
-        response = self.tradingPostNewOrder(self.extend(request, params))
-        order = self.parse_order(response['ExecutionReport'], market)
+        response = self.privatePostOrder(self.extend(request, params))
+        order = self.parse_order(response)
         if order['status'] == 'rejected':
             raise InvalidOrder(self.id + ' order was rejected by the exchange ' + self.json(order))
+        id = order['id']
+        self.orders[id] = order
+        return order
+
+    def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
+        self.load_markets()
+        # we use clientOrderId as the order id with HitBTC intentionally
+        # because most of their endpoints will require clientOrderId
+        # explained here: https://github.com/ccxt/ccxt/issues/5674
+        # their max accepted length is 32 characters
+        uuid = self.uuid()
+        parts = uuid.split('-')
+        requestClientId = ''.join(parts)
+        requestClientId = requestClientId[0:32]
+        request = {
+            'clientOrderId': id,
+            'requestClientId': requestClientId,
+        }
+        if amount is not None:
+            request['quantity'] = self.amount_to_precision(symbol, amount)
+        if price is not None:
+            request['price'] = self.price_to_precision(symbol, price)
+        response = self.privatePatchOrderClientOrderId(self.extend(request, params))
+        order = self.parse_order(response)
+        self.orders[order['id']] = order
         return order
 
     def cancel_order(self, id, symbol=None, params={}):
@@ -772,85 +1091,121 @@ class hitbtc(Exchange):
         request = {
             'clientOrderId': id,
         }
-        return self.tradingPostCancelOrder(self.extend(request, params))
+        response = self.privateDeleteOrderClientOrderId(self.extend(request, params))
+        return self.parse_order(response)
 
     def parse_order_status(self, status):
         statuses = {
             'new': 'open',
+            'suspended': 'open',
             'partiallyFilled': 'open',
             'filled': 'closed',
             'canceled': 'canceled',
-            'rejected': 'rejected',
-            'expired': 'expired',
+            'expired': 'failed',
         }
-        return self.safe_string(statuses, status)
+        return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
-        timestamp = self.safe_integer(order, 'lastTimestamp')
-        if timestamp is None:
-            timestamp = self.safe_integer(order, 'timestamp')
+        #
+        # createMarketOrder
+        #
+        #   {clientOrderId:   "fe36aa5e190149bf9985fb673bbb2ea0",
+        #         createdAt:   "2018-10-25T16:41:44.780Z",
+        #       cumQuantity:   "1",
+        #                id:   "66799540063",
+        #          quantity:   "1",
+        #              side:   "sell",
+        #            status:   "filled",
+        #            symbol:   "XRPUSDT",
+        #       timeInForce:   "FOK",
+        #      tradesReport: [{      fee: "0.0004644",
+        #                               id:  386394956,
+        #                            price: "0.4644",
+        #                         quantity: "1",
+        #                        timestamp: "2018-10-25T16:41:44.780Z"}],
+        #              type:   "market",
+        #         updatedAt:   "2018-10-25T16:41:44.780Z"                   }
+        #
+        created = self.parse8601(self.safe_string(order, 'createdAt'))
+        updated = self.parse8601(self.safe_string(order, 'updatedAt'))
+        marketId = self.safe_string(order, 'symbol')
         symbol = None
-        if market is None:
-            market = self.markets_by_id[order['symbol']]
-        status = self.parse_order_status(self.safe_string(order, 'orderStatus'))
-        price = self.safe_float(order, 'orderPrice')
-        price = self.safe_float(order, 'price', price)
-        price = self.safe_float(order, 'avgPrice', price)
-        amount = self.safe_float(order, 'orderQuantity')
-        amount = self.safe_float(order, 'quantity', amount)
-        remaining = self.safe_float(order, 'quantityLeaves')
-        remaining = self.safe_float(order, 'leavesQuantity', remaining)
-        filled = None
-        cost = None
-        amountDefined = (amount is not None)
-        remainingDefined = (remaining is not None)
-        if market is not None:
-            symbol = market['symbol']
-            if amountDefined:
-                amount *= market['lot']
-            if remainingDefined:
-                remaining *= market['lot']
-        else:
-            marketId = self.safe_string(order, 'symbol')
+        if marketId is not None:
             if marketId in self.markets_by_id:
                 market = self.markets_by_id[marketId]
-        if amountDefined:
-            if remainingDefined:
-                filled = amount - remaining
-                if price is not None:
-                    cost = price * filled
-        feeCost = self.safe_float(order, 'fee')
-        feeCurrency = None
-        if market is not None:
-            symbol = market['symbol']
-            feeCurrency = market['quote']
-        fee = {
-            'cost': feeCost,
-            'currency': feeCurrency,
-            'rate': None,
-        }
+                symbol = market['symbol']
+            else:
+                symbol = marketId
+        if symbol is None:
+            if market is not None:
+                symbol = market['id']
+        amount = self.safe_float(order, 'quantity')
+        filled = self.safe_float(order, 'cumQuantity')
+        status = self.parse_order_status(self.safe_string(order, 'status'))
         # we use clientOrderId as the order id with HitBTC intentionally
         # because most of their endpoints will require clientOrderId
         # explained here: https://github.com/ccxt/ccxt/issues/5674
         id = self.safe_string(order, 'clientOrderId')
+        clientOrderId = id
+        price = self.safe_float(order, 'price')
+        if price is None:
+            if id in self.orders:
+                price = self.orders[id]['price']
+        remaining = None
+        cost = None
+        if amount is not None:
+            if filled is not None:
+                remaining = amount - filled
+                if price is not None:
+                    cost = filled * price
         type = self.safe_string(order, 'type')
         side = self.safe_string(order, 'side')
+        trades = self.safe_value(order, 'tradesReport')
+        fee = None
+        average = None
+        if trades is not None:
+            trades = self.parse_trades(trades, market)
+            feeCost = None
+            numTrades = len(trades)
+            tradesCost = 0
+            for i in range(0, numTrades):
+                if feeCost is None:
+                    feeCost = 0
+                tradesCost = self.sum(tradesCost, trades[i]['cost'])
+                tradeFee = self.safe_value(trades[i], 'fee', {})
+                tradeFeeCost = self.safe_float(tradeFee, 'cost')
+                if tradeFeeCost is not None:
+                    feeCost = self.sum(feeCost, tradeFeeCost)
+            cost = tradesCost
+            if (filled is not None) and (filled > 0):
+                average = cost / filled
+                if type == 'market':
+                    if price is None:
+                        price = average
+            if feeCost is not None:
+                fee = {
+                    'cost': feeCost,
+                    'currency': market['quote'],
+                }
         return {
             'id': id,
-            'info': order,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': None,
+            'clientOrderId': clientOrderId,  # https://github.com/ccxt/ccxt/issues/5674
+            'timestamp': created,
+            'datetime': self.iso8601(created),
+            'lastTradeTimestamp': updated,
             'status': status,
             'symbol': symbol,
             'type': type,
             'side': side,
             'price': price,
-            'cost': cost,
+            'average': average,
             'amount': amount,
+            'cost': cost,
             'filled': filled,
             'remaining': remaining,
             'fee': fee,
+            'trades': trades,
+            'info': order,
         }
 
     def fetch_order(self, id, symbol=None, params={}):
@@ -861,117 +1216,215 @@ class hitbtc(Exchange):
         request = {
             'clientOrderId': id,
         }
-        response = self.tradingGetOrder(self.extend(request, params))
-        if response['orders'][0]:
-            return self.parse_order(response['orders'][0])
-        raise OrderNotFound(self.id + ' fetchOrder() error: ' + self.response)
+        response = self.privateGetHistoryOrder(self.extend(request, params))
+        numOrders = len(response)
+        if numOrders > 0:
+            return self.parse_order(response[0])
+        raise OrderNotFound(self.id + ' order ' + id + ' not found')
 
-    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_open_order(self, id, symbol=None, params={}):
         self.load_markets()
-        statuses = ['new', 'partiallyFiiled']
-        market = None
-        request = {
-            'sort': 'desc',
-            'statuses': ','.join(statuses),
-        }
-        if symbol is not None:
-            market = self.market(symbol)
-            request['symbols'] = market['id']
-        response = self.tradingGetOrdersActive(self.extend(request, params))
-        return self.parse_orders(response['orders'], market, since, limit)
-
-    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        self.load_markets()
-        market = None
-        statuses = ['filled', 'canceled', 'rejected', 'expired']
-        request = {
-            'sort': 'desc',
-            'statuses': ','.join(statuses),
-            'max_results': 1000,
-        }
-        if symbol is not None:
-            market = self.market(symbol)
-            request['symbols'] = market['id']
-        response = self.tradingGetOrdersRecent(self.extend(request, params))
-        return self.parse_orders(response['orders'], market, since, limit)
-
-    def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
-        self.load_markets()
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
         # we use clientOrderId as the order id with HitBTC intentionally
         # because most of their endpoints will require clientOrderId
         # explained here: https://github.com/ccxt/ccxt/issues/5674
         request = {
             'clientOrderId': id,
         }
-        response = self.tradingGetTradesByOrder(self.extend(request, params))
-        return self.parse_trades(response['trades'], market, since, limit)
+        response = self.privateGetOrderClientOrderId(self.extend(request, params))
+        return self.parse_order(response)
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
-        self.check_address(address)
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        market = None
+        request = {}
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        response = self.privateGetOrder(self.extend(request, params))
+        return self.parse_orders(response, market, since, limit)
+
+    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        market = None
+        request = {}
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        if limit is not None:
+            request['limit'] = limit
+        if since is not None:
+            request['from'] = self.iso8601(since)
+        response = self.privateGetHistoryOrder(self.extend(request, params))
+        parsedOrders = self.parse_orders(response, market)
+        orders = []
+        for i in range(0, len(parsedOrders)):
+            order = parsedOrders[i]
+            status = order['status']
+            if (status == 'closed') or (status == 'canceled'):
+                orders.append(order)
+        return self.filter_by_since_limit(orders, since, limit)
+
+    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        request = {
+            # 'symbol': 'BTC/USD',  # optional
+            # 'sort':   'DESC',  # or 'ASC'
+            # 'by':     'timestamp',  # or 'id' String timestamp by default, or id
+            # 'from':   'Datetime or Number',  # ISO 8601
+            # 'till':   'Datetime or Number',
+            # 'limit':  100,
+            # 'offset': 0,
+        }
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        if since is not None:
+            request['from'] = self.iso8601(since)
+        if limit is not None:
+            request['limit'] = limit
+        response = self.privateGetHistoryTrades(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #         "id": 9535486,
+        #         "clientOrderId": "f8dbaab336d44d5ba3ff578098a68454",
+        #         "orderId": 816088377,
+        #         "symbol": "ETHBTC",
+        #         "side": "sell",
+        #         "quantity": "0.061",
+        #         "price": "0.045487",
+        #         "fee": "0.000002775",
+        #         "timestamp": "2017-05-17T12:32:57.848Z"
+        #         },
+        #         {
+        #         "id": 9535437,
+        #         "clientOrderId": "27b9bfc068b44194b1f453c7af511ed6",
+        #         "orderId": 816088021,
+        #         "symbol": "ETHBTC",
+        #         "side": "buy",
+        #         "quantity": "0.038",
+        #         "price": "0.046000",
+        #         "fee": "-0.000000174",
+        #         "timestamp": "2017-05-17T12:30:57.848Z"
+        #         }
+        #     ]
+        #
+        return self.parse_trades(response, market, since, limit)
+
+    def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+        # The id needed here is the exchange's id, and not the clientOrderID,
+        # which is the id that is stored in the unified order id
+        # To get the exchange's id you need to grab it from order['info']['id']
+        self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        request = {
+            'id': id,
+        }
+        response = self.privateGetHistoryOrderIdTrades(self.extend(request, params))
+        numOrders = len(response)
+        if numOrders > 0:
+            return self.parse_trades(response, market, since, limit)
+        raise OrderNotFound(self.id + ' order ' + id + ' not found, ' + self.id + '.fetchOrderTrades() requires an exchange-specific order id, you need to grab it from order["info"]["id"]')
+
+    def create_deposit_address(self, code, params={}):
         self.load_markets()
         currency = self.currency(code)
         request = {
-            'currency_code': currency['id'],
-            'amount': amount,
+            'currency': currency['id'],
+        }
+        response = self.privatePostAccountCryptoAddressCurrency(self.extend(request, params))
+        address = self.safe_string(response, 'address')
+        self.check_address(address)
+        tag = self.safe_string(response, 'paymentId')
+        return {
+            'currency': currency,
+            'address': address,
+            'tag': tag,
+            'info': response,
+        }
+
+    def fetch_deposit_address(self, code, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        response = self.privateGetAccountCryptoAddressCurrency(self.extend(request, params))
+        address = self.safe_string(response, 'address')
+        self.check_address(address)
+        tag = self.safe_string(response, 'paymentId')
+        return {
+            'currency': currency['code'],
+            'address': address,
+            'tag': tag,
+            'info': response,
+        }
+
+    def withdraw(self, code, amount, address, tag=None, params={}):
+        self.load_markets()
+        self.check_address(address)
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+            'amount': float(amount),
             'address': address,
         }
-        if tag is not None:
-            request['extra_id'] = tag
-        response = self.paymentPostPayout(self.extend(request, params))
+        if tag:
+            request['paymentId'] = tag
+        response = self.privatePostAccountCryptoWithdraw(self.extend(request, params))
         return {
             'info': response,
-            'id': response['transaction'],
+            'id': response['id'],
         }
 
     def nonce(self):
         return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = '/' + 'api' + '/' + self.version + '/' + api + '/' + self.implode_params(path, params)
+        url = '/api/' + self.version + '/'
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
+            url += api + '/' + self.implode_params(path, params)
             if query:
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
-            nonce = self.nonce()
-            payload = {'nonce': nonce, 'apikey': self.apiKey}
-            query = self.extend(payload, query)
+            url += self.implode_params(path, params)
             if method == 'GET':
-                url += '?' + self.urlencode(query)
-            else:
-                url += '?' + self.urlencode(payload)
-            auth = url
-            if method == 'POST':
                 if query:
-                    body = self.urlencode(query)
-                    auth += body
+                    url += '?' + self.urlencode(query)
+            elif query:
+                body = self.json(query)
+            payload = self.encode(self.apiKey + ':' + self.secret)
+            auth = base64.b64encode(payload)
             headers = {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'X-Signature': self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512).lower(),
+                'Authorization': 'Basic ' + self.decode(auth),
+                'Content-Type': 'application/json',
             }
-        url = self.urls['api'] + url
+        url = self.urls['api'][api] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = self.fetch2(path, api, method, params, headers, body)
-        if 'code' in response:
-            if 'ExecutionReport' in response:
-                if response['ExecutionReport']['orderRejectReason'] == 'orderExceedsLimit':
-                    raise InsufficientFunds(self.id + ' ' + self.json(response))
-            raise ExchangeError(self.id + ' ' + self.json(response))
-        return response
-
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
-        if not response:
-            return  # fallback to default error handler
-        error = self.safe_value(response, 'error')
-        if error:
-            code = self.safe_value(error, 'code')
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        if response is None:
+            return
+        if code >= 400:
             feedback = self.id + ' ' + body
-            self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
-            self.throw_broadly_matched_exception(self.exceptions['broad'], error, feedback)
-            raise ExchangeError(feedback)  # unknown error
+            # {"code":504,"message":"Gateway Timeout","description":""}
+            if (code == 503) or (code == 504):
+                raise ExchangeNotAvailable(feedback)
+            # fallback to default error handler on rate limit errors
+            # {"code":429,"message":"Too many requests","description":"Too many requests"}
+            if code == 429:
+                return
+            # {"error":{"code":20002,"message":"Order not found","description":""}}
+            if body[0] == '{':
+                if 'error' in response:
+                    errorCode = self.safe_string(response['error'], 'code')
+                    self.throw_exactly_matched_exception(self.exceptions, errorCode, feedback)
+                    message = self.safe_string(response['error'], 'message')
+                    if message == 'Duplicate clientOrderId':
+                        raise InvalidOrder(feedback)
+            raise ExchangeError(feedback)

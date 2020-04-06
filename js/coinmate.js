@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound, RateLimitExceeded } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound, RateLimitExceeded, InsufficientFunds } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -99,15 +99,71 @@ module.exports = class coinmate extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'maker': 0.05 / 100,
-                    'taker': 0.15 / 100,
+                    'tierBased': true,
+                    'percentage': true,
+                    'maker': 0.12 / 100,
+                    'taker': 0.25 / 100,
+                    'tiers': {
+                        'taker': [
+                            [0, 0.25 / 100],
+                            [10000, 0.23 / 100],
+                            [100000, 0.21 / 100],
+                            [250000, 0.20 / 100],
+                            [500000, 0.15 / 100],
+                            [1000000, 0.13 / 100],
+                            [3000000, 0.10 / 100],
+                            [15000000, 0.05 / 100],
+                        ],
+                        'maker': [
+                            [0, 0.12 / 100],
+                            [10000, 0.11 / 100],
+                            [1000000, 0.10 / 100],
+                            [250000, 0.08 / 100],
+                            [500000, 0.05 / 100],
+                            [1000000, 0.03 / 100],
+                            [3000000, 0.02 / 100],
+                            [15000000, 0],
+                        ],
+                    },
                 },
+                'promotional': {
+                    'trading': {
+                        'maker': 0.05 / 100,
+                        'taker': 0.15 / 100,
+                        'tiers': {
+                            'taker': [
+                                [0, 0.15 / 100],
+                                [10000, 0.14 / 100],
+                                [100000, 0.13 / 100],
+                                [250000, 0.12 / 100],
+                                [500000, 0.11 / 100],
+                                [1000000, 0.1 / 100],
+                                [3000000, 0.08 / 100],
+                                [15000000, 0.05 / 100],
+                            ],
+                            'maker': [
+                                [0, 0.05 / 100],
+                                [10000, 0.04 / 100],
+                                [1000000, 0.03 / 100],
+                                [250000, 0.02 / 100],
+                                [500000, 0],
+                                [1000000, 0],
+                                [3000000, 0],
+                                [15000000, 0],
+                            ],
+                        },
+                    },
+                },
+            },
+            'options': {
+                'promotionalMarkets': ['ETH/EUR', 'ETH/CZK', 'ETH/BTC', 'XRP/EUR', 'XRP/CZK', 'XRP/BTC', 'DASH/EUR', 'DASH/CZK', 'DASH/BTC', 'BCH/EUR', 'BCH/CZK', 'BCH/BTC'],
             },
             'exceptions': {
                 'exact': {
                     'No order with given ID': OrderNotFound,
                 },
                 'broad': {
+                    'Not enough account balance available': InsufficientFunds,
                     'Incorrect order ID': InvalidOrder,
                     'Minimum Order Size ': InvalidOrder,
                     'TOO MANY REQUESTS': RateLimitExceeded,
@@ -147,6 +203,12 @@ module.exports = class coinmate extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
+            const promotionalMarkets = this.safeValue (this.options, 'promotionalMarkets', []);
+            let fees = this.safeValue (this.fees, 'trading');
+            if (this.inArray (symbol, promotionalMarkets)) {
+                const promotionalFees = this.safeValue (this.fees, 'promotional', {});
+                fees = this.safeValue (promotionalFees, 'trading', fees);
+            }
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -155,6 +217,8 @@ module.exports = class coinmate extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': undefined,
+                'maker': fees['maker'],
+                'taker': fees['taker'],
                 'info': market,
                 'precision': {
                     'price': this.safeInteger (market, 'priceDecimals'),
@@ -585,8 +649,10 @@ module.exports = class coinmate extends Exchange {
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
+        const clientOrderId = this.safeString (order, 'clientOrderId');
         return {
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -602,6 +668,7 @@ module.exports = class coinmate extends Exchange {
             'status': status,
             'trades': undefined,
             'info': order,
+            'fee': undefined,
         };
     }
 

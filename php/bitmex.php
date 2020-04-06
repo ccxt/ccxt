@@ -14,7 +14,7 @@ use \ccxt\DDoSProtection;
 class bitmex extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'bitmex',
             'name' => 'BitMEX',
             'countries' => array( 'SC' ), // Seychelles
@@ -57,7 +57,7 @@ class bitmex extends Exchange {
                     'https://github.com/BitMEX/api-connectors/tree/master/official-http',
                 ),
                 'fees' => 'https://www.bitmex.com/app/fees',
-                'referral' => 'https://www.bitmex.com/register/rm3C16',
+                'referral' => 'https://www.bitmex.com/register/upZpOX',
             ),
             'api' => array(
                 'public' => array(
@@ -320,7 +320,7 @@ class bitmex extends Exchange {
                 'orderID' => $id,
             ),
         );
-        $response = $this->fetch_orders($symbol, null, null, array_replace_recursive($filter, $params));
+        $response = $this->fetch_orders($symbol, null, null, $this->deep_extend($filter, $params));
         $numResults = is_array($response) ? count($response) : 0;
         if ($numResults === 1) {
             return $response[0];
@@ -342,7 +342,7 @@ class bitmex extends Exchange {
         if ($limit !== null) {
             $request['count'] = $limit;
         }
-        $request = array_replace_recursive($request, $params);
+        $request = $this->deep_extend($request, $params);
         // why the hassle? urlencode in python is kinda broken for nested dicts.
         // E.g. self.urlencode(array("filter" => array("open" => True))) will return "filter=array('open':+True)"
         // Bitmex doesn't like that. Hence resorting to this hack.
@@ -359,7 +359,7 @@ class bitmex extends Exchange {
                 'open' => true,
             ),
         );
-        return $this->fetch_orders($symbol, $since, $limit, array_replace_recursive($request, $params));
+        return $this->fetch_orders($symbol, $since, $limit, $this->deep_extend($request, $params));
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -382,7 +382,7 @@ class bitmex extends Exchange {
         if ($limit !== null) {
             $request['count'] = $limit;
         }
-        $request = array_replace_recursive($request, $params);
+        $request = $this->deep_extend($request, $params);
         // why the hassle? urlencode in python is kinda broken for nested dicts.
         // E.g. self.urlencode(array("filter" => array("open" => True))) will return "filter=array('open':+True)"
         // Bitmex doesn't like that. Hence resorting to this hack.
@@ -1115,9 +1115,11 @@ class bitmex extends Exchange {
         $id = $this->safe_string($order, 'orderID');
         $type = $this->safe_string_lower($order, 'ordType');
         $side = $this->safe_string_lower($order, 'side');
+        $clientOrderId = $this->safe_string($order, 'clOrdID');
         return array(
             'info' => $order,
             'id' => $id,
+            'clientOrderId' => $clientOrderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
@@ -1132,6 +1134,7 @@ class bitmex extends Exchange {
             'remaining' => $remaining,
             'status' => $status,
             'fee' => null,
+            'trades' => null,
         );
     }
 

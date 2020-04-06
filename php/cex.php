@@ -15,7 +15,7 @@ use \ccxt\NotSupported;
 class cex extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'cex',
             'name' => 'CEX.IO',
             'countries' => array( 'GB', 'EU', 'CY', 'RU' ),
@@ -360,6 +360,7 @@ class cex extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'active' => null,
             );
         }
         return $result;
@@ -811,11 +812,14 @@ class cex extends Exchange {
                         'currency' => $market['quote'],
                     ),
                     'info' => $item,
+                    'type' => null,
+                    'takerOrMaker' => null,
                 );
             }
         }
         return array(
             'id' => $orderId,
+            'clientOrderId' => null,
             'datetime' => $this->iso8601($timestamp),
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => null,
@@ -831,6 +835,7 @@ class cex extends Exchange {
             'trades' => $trades,
             'fee' => $fee,
             'info' => $order,
+            'average' => null,
         );
     }
 

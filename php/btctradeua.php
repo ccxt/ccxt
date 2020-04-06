@@ -12,7 +12,7 @@ use \ccxt\ArgumentsRequired;
 class btctradeua extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'btctradeua',
             'name' => 'BTC Trade UA',
             'countries' => array( 'UA' ), // Ukraine,
@@ -323,6 +323,7 @@ class btctradeua extends Exchange {
         }
         return array(
             'id' => $this->safe_string($order, 'id'),
+            'clientOrderId' => null,
             'timestamp' => $timestamp, // until they fix their $timestamp
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
@@ -336,6 +337,9 @@ class btctradeua extends Exchange {
             'remaining' => $this->safe_float($order, 'amnt_trade'),
             'trades' => null,
             'info' => $order,
+            'cost' => null,
+            'average' => null,
+            'fee' => null,
         );
     }
 

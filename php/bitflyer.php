@@ -13,7 +13,7 @@ use \ccxt\OrderNotFound;
 class bitflyer extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'bitflyer',
             'name' => 'bitFlyer',
             'countries' => array( 'JP' ),
@@ -360,6 +360,7 @@ class bitflyer extends Exchange {
         $id = $this->safe_string($order, 'child_order_acceptance_id');
         return array(
             'id' => $id,
+            'clientOrderId' => null,
             'info' => $order,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -374,6 +375,8 @@ class bitflyer extends Exchange {
             'filled' => $filled,
             'remaining' => $remaining,
             'fee' => $fee,
+            'average' => null,
+            'trades' => null,
         );
     }
 

@@ -12,7 +12,7 @@ use \ccxt\ArgumentsRequired;
 class luno extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'luno',
             'name' => 'luno',
             'countries' => array( 'GB', 'SG', 'ZA' ),
@@ -106,6 +106,9 @@ class luno extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'info' => $market,
+                'active' => null,
+                'precision' => $this->precision,
+                'limits' => $this->limits,
             );
         }
         return $result;
@@ -148,6 +151,23 @@ class luno extends Exchange {
     }
 
     public function parse_order($order, $market = null) {
+        //
+        //     {
+        //         "base" => "string",
+        //         "completed_timestamp" => "string",
+        //         "counter" => "string",
+        //         "creation_timestamp" => "string",
+        //         "expiration_timestamp" => "string",
+        //         "fee_base" => "string",
+        //         "fee_counter" => "string",
+        //         "limit_price" => "string",
+        //         "limit_volume" => "string",
+        //         "order_id" => "string",
+        //         "pair" => "string",
+        //         "state" => "PENDING",
+        //         "type" => "BID"
+        //     }
+        //
         $timestamp = $this->safe_integer($order, 'creation_timestamp');
         $status = ($order['state'] === 'PENDING') ? 'open' : 'closed';
         $side = ($order['type'] === 'ASK') ? 'sell' : 'buy';
@@ -186,6 +206,7 @@ class luno extends Exchange {
         $id = $this->safe_string($order, 'order_id');
         return array(
             'id' => $id,
+            'clientOrderId' => null,
             'datetime' => $this->iso8601($timestamp),
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => null,
@@ -201,6 +222,7 @@ class luno extends Exchange {
             'trades' => null,
             'fee' => $fee,
             'info' => $order,
+            'average' => null,
         );
     }
 

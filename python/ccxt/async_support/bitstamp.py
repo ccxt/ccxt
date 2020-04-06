@@ -905,6 +905,7 @@ class bitstamp(Exchange):
                 }
         return {
             'id': id,
+            'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -920,6 +921,7 @@ class bitstamp(Exchange):
             'trades': trades,
             'fee': fee,
             'info': order,
+            'average': None,
         }
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):

@@ -16,7 +16,7 @@ use \ccxt\DDoSProtection;
 class bittrex extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'bittrex',
             'name' => 'Bittrex',
             'countries' => array( 'US' ),
@@ -273,7 +273,6 @@ class bittrex extends Exchange {
             ),
             'commonCurrencies' => array(
                 'BITS' => 'SWIFT',
-                'CPC' => 'Capricoin',
             ),
         ));
     }
@@ -707,6 +706,7 @@ class bittrex extends Exchange {
         $isCeilingOrder = $isCeilingLimit || $isCeilingMarket;
         if ($isCeilingOrder) {
             $request['ceiling'] = $this->price_to_precision($symbol, $price);
+            // bittrex only accepts IMMEDIATE_OR_CANCEL or FILL_OR_KILL for ceiling orders
             $request['timeInForce'] = 'IMMEDIATE_OR_CANCEL';
         } else {
             $request['quantity'] = $this->amount_to_precision($symbol, $amount);
@@ -714,7 +714,8 @@ class bittrex extends Exchange {
                 $request['limit'] = $this->price_to_precision($symbol, $price);
                 $request['timeInForce'] = 'GOOD_TIL_CANCELLED';
             } else {
-                $request['timeInForce'] = 'FILL_OR_KILL';
+                // bittrex does not allow GOOD_TIL_CANCELLED for $market orders
+                $request['timeInForce'] = 'IMMEDIATE_OR_CANCEL';
             }
         }
         $response = $this->v3PostOrders (array_merge($request, $params));
@@ -1055,6 +1056,7 @@ class bittrex extends Exchange {
         }
         return array(
             'id' => $this->safe_string($order, 'id'),
+            'clientOrderId' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
@@ -1073,6 +1075,7 @@ class bittrex extends Exchange {
                 'currency' => $feeCurrency,
             ),
             'info' => $order,
+            'trades' => null,
         );
     }
 
@@ -1197,6 +1200,7 @@ class bittrex extends Exchange {
         return array(
             'info' => $order,
             'id' => $id,
+            'clientOrderId' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
@@ -1211,6 +1215,7 @@ class bittrex extends Exchange {
             'remaining' => $remaining,
             'status' => $status,
             'fee' => $fee,
+            'trades' => null,
         );
     }
 
@@ -1253,6 +1258,7 @@ class bittrex extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'fee' => $this->safe_value($order, 'fee'),
             'info' => $order,
+            'takerOrMaker' => null,
         );
     }
 

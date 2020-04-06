@@ -13,7 +13,7 @@ use \ccxt\OrderNotFound;
 class digifinex extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'digifinex',
             'name' => 'DigiFinex',
             'countries' => array( 'SG' ),
@@ -853,6 +853,7 @@ class digifinex extends Exchange {
         return array(
             'info' => $order,
             'id' => $id,
+            'clientOrderId' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
@@ -867,6 +868,7 @@ class digifinex extends Exchange {
             'average' => $average,
             'status' => $status,
             'fee' => null,
+            'trades' => null,
         );
     }
 

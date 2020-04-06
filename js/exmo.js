@@ -420,6 +420,7 @@ module.exports = class exmo extends Exchange {
                     '40015': ExchangeError, // API function do not exist
                     '40016': OnMaintenance, // {"result":false,"error":"Error 40016: Maintenance work in progress"}
                     '40017': AuthenticationError, // Wrong API Key
+                    '40034': RateLimitExceeded, // {"result":false,"error":"Error 40034: Access is denied, rate limit is exceeded"}
                     '50052': InsufficientFunds,
                     '50054': InsufficientFunds,
                     '50304': OrderNotFound, // "Order was not found '123456789'" (fetching order trades for an order that does not have trades yet)
@@ -899,6 +900,8 @@ module.exports = class exmo extends Exchange {
             'filled': 0.0,
             'fee': undefined,
             'trades': undefined,
+            'clientOrderId': undefined,
+            'average': undefined,
         };
         this.orders[id] = order;
         return order;
@@ -1166,6 +1169,7 @@ module.exports = class exmo extends Exchange {
         };
         return {
             'id': id,
+            'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': lastTradeTimestamp,

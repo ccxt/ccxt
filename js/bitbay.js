@@ -290,6 +290,7 @@ module.exports = class bitbay extends Exchange {
         }
         return {
             'id': this.safeString (order, 'id'),
+            'clientOrderId': undefined,
             'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1045,6 +1046,7 @@ module.exports = class bitbay extends Exchange {
             'average': undefined,
             'fee': undefined,
             'trades': trades,
+            'clientOrderId': undefined,
         };
     }
 

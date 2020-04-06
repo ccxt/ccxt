@@ -12,7 +12,7 @@ use \ccxt\ArgumentsRequired;
 class yobit extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'yobit',
             'name' => 'YoBit',
             'countries' => array( 'RU' ),
@@ -545,9 +545,13 @@ class yobit extends Exchange {
             'filled' => $filled,
             'fee' => null,
             // 'trades' => $this->parse_trades($order['trades'], $market),
+            'info' => $response,
+            'clientOrderId' => null,
+            'average' => null,
+            'trades' => null,
         );
         $this->orders[$id] = $order;
-        return array_merge(array( 'info' => $response ), $order);
+        return $order;
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
@@ -610,6 +614,7 @@ class yobit extends Exchange {
         $result = array(
             'info' => $order,
             'id' => $id,
+            'clientOrderId' => null,
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -623,6 +628,8 @@ class yobit extends Exchange {
             'filled' => $filled,
             'status' => $status,
             'fee' => $fee,
+            'average' => null,
+            'trades' => null,
         );
         return $result;
     }

@@ -46,14 +46,14 @@ module.exports = class bibox extends Exchange {
                 '1w': 'week',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/34902611-2be8bf1a-f830-11e7-91a2-11b2f292e750.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/77257418-3262b000-6c85-11ea-8fb8-20bdf20b3592.jpg',
                 'api': 'https://api.bibox.com',
                 'www': 'https://www.bibox.com',
                 'doc': [
                     'https://biboxcom.github.io/en/',
                 ],
                 'fees': 'https://bibox.zendesk.com/hc/en-us/articles/360002336133',
-                'referral': 'https://www.bibox.com/signPage?id=11114745&lang=en',
+                'referral': 'https://w2.bibox.com/login/register?invite_code=05Kj3I',
             },
             'api': {
                 'public': {
@@ -86,7 +86,7 @@ module.exports = class bibox extends Exchange {
                     'tierBased': false,
                     'percentage': true,
                     'taker': 0.001,
-                    'maker': 0.001,
+                    'maker': 0.0008,
                 },
                 'funding': {
                     'tierBased': false,
@@ -713,6 +713,7 @@ module.exports = class bibox extends Exchange {
         return {
             'info': order,
             'id': id,
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -727,6 +728,7 @@ module.exports = class bibox extends Exchange {
             'remaining': remaining,
             'status': status,
             'fee': fee,
+            'trades': undefined,
         };
     }
 

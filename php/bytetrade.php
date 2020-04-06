@@ -14,7 +14,7 @@ use \ccxt\DDoSProtection;
 class bytetrade extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'bytetrade',
             'name' => 'ByteTrade',
             'countries' => ['HK'],
@@ -51,10 +51,10 @@ class bytetrade extends Exchange {
                 '1M' => '1M',
             ),
             'urls' => array(
-                'test' => 'https://api-v2-test.bytetrade.com',
+                'test' => 'https://api-v2-test.byte-trade.com',
                 'logo' => 'https://user-images.githubusercontent.com/1294454/67288762-2f04a600-f4e6-11e9-9fd6-c60641919491.jpg',
-                'api' => 'https://api-v2.bytetrade.com',
-                'www' => 'https://www.bytetrade.com',
+                'api' => 'https://api-v2.byte-trade.com',
+                'www' => 'https://www.byte-trade.com',
                 'doc' => 'https://github.com/Bytetrade/bytetrade-official-api-docs/wiki',
             ),
             'api' => array(
@@ -121,7 +121,7 @@ class bytetrade extends Exchange {
                 $code = $this->safe_string($currency, 'name');
             }
             $name = $this->safe_string($currency, 'fullname');
-            // in bytetrade.com DEX, request https://api-v2.bytetrade.com/currencies will return $currencies,
+            // in byte-trade.com DEX, request https://api-v2.byte-trade.com/currencies will return $currencies,
             // the api doc is https://github.com/Bytetrade/bytetrade-official-api-docs/wiki/rest-api#get-$currencies-get-currencys-supported-in-bytetradecom
             // we can see the coin $name is none-unique in the $result, the coin which $code is 18 is the CyberMiles ERC20, and the coin which $code is 35 is the CyberMiles main chain, but their $name is same.
             // that is because bytetrade is a DEX, supports people create coin with the same $name, but the $id($code) of coin is unique, so we should use the $id or $name and $id as the identity of coin.
@@ -545,6 +545,7 @@ class bytetrade extends Exchange {
         return array(
             'info' => $order,
             'id' => $id,
+            'clientOrderId' => null,
             'timestamp' => $timestamp,
             'datetime' => $datetime,
             'lastTradeTimestamp' => $lastTradeTimestamp,
@@ -559,6 +560,7 @@ class bytetrade extends Exchange {
             'remaining' => $remaining,
             'status' => $status,
             'fee' => $fee,
+            'trades' => null,
         );
     }
 
@@ -732,6 +734,8 @@ class bytetrade extends Exchange {
             'cost' => null,
             'trades' => null,
             'fee' => null,
+            'clientOrderId' => null,
+            'average' => null,
         );
     }
 
@@ -908,6 +912,8 @@ class bytetrade extends Exchange {
             'cost' => null,
             'trades' => null,
             'fee' => null,
+            'clientOrderId' => null,
+            'average' => null,
         );
     }
 
@@ -1012,6 +1018,9 @@ class bytetrade extends Exchange {
             'remaining' => null,
             'cost' => null,
             'fee' => null,
+            'clientOrderId' => null,
+            'average' => null,
+            'trades' => null,
         );
     }
 

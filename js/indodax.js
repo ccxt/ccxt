@@ -280,6 +280,16 @@ module.exports = class indodax extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //
+        //     {
+        //         "order_id": "12345",
+        //         "submit_time": "1392228122",
+        //         "price": "8000000",
+        //         "type": "sell",
+        //         "order_ltc": "100000000",
+        //         "remain_ltc": "100000000"
+        //     }
+        //
         let side = undefined;
         if ('type' in order) {
             side = order['type'];
@@ -331,6 +341,7 @@ module.exports = class indodax extends Exchange {
         return {
             'info': order,
             'id': id,
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -345,6 +356,7 @@ module.exports = class indodax extends Exchange {
             'remaining': remaining,
             'status': status,
             'fee': fee,
+            'trades': undefined,
         };
     }
 

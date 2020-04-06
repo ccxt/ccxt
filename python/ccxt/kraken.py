@@ -231,6 +231,7 @@ class kraken(Exchange):
                 'delistedMarketsById': {},
                 # cannot withdraw/deposit these
                 'inactiveCurrencies': ['CAD', 'USD', 'JPY', 'GBP'],
+                'fetchMinOrderAmounts': True,
             },
             'exceptions': {
                 'EQuery:Invalid asset pair': BadSymbol,  # {"error":["EQuery:Invalid asset pair"]}
@@ -278,7 +279,10 @@ class kraken(Exchange):
 
     def fetch_markets(self, params={}):
         response = self.publicGetAssetPairs(params)
-        limits = self.fetch_min_order_amounts()
+        fetchMinOrderAmounts = self.safe_value(self.options, 'fetchMinOrderAmounts', False)
+        limits = {}
+        if fetchMinOrderAmounts:
+            limits = self.fetch_min_order_amounts()
         keys = list(response['result'].keys())
         result = []
         for i in range(0, len(keys)):
@@ -812,8 +816,10 @@ class kraken(Exchange):
             if isinstance(id, list):
                 length = len(id)
                 id = id if (length > 1) else id[0]
+        clientOrderId = self.safe_string(params, 'userref')
         return {
             'id': id,
+            'clientOrderId': clientOrderId,
             'info': response,
             'timestamp': None,
             'datetime': None,
@@ -921,8 +927,10 @@ class kraken(Exchange):
                     fee['currency'] = market['base']
         status = self.parse_order_status(self.safe_string(order, 'status'))
         id = self.safe_string(order, 'id')
+        clientOrderId = self.safe_string(order, 'userref')
         return {
             'id': id,
+            'clientOrderId': clientOrderId,
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -939,6 +947,7 @@ class kraken(Exchange):
             'remaining': remaining,
             'fee': fee,
             # 'trades': self.parse_trades(order['trades'], market),
+            'trades': None,
         }
 
     def parse_orders(self, orders, market=None, since=None, limit=None, params={}):

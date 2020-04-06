@@ -12,7 +12,7 @@ use \ccxt\ArgumentsRequired;
 class bit2c extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'bit2c',
             'name' => 'Bit2C',
             'countries' => array( 'IL' ), // Israel
@@ -282,6 +282,7 @@ class bit2c extends Exchange {
         $status = $this->safe_string($order, 'status');
         return array(
             'id' => $id,
+            'clientOrderId' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
@@ -297,6 +298,7 @@ class bit2c extends Exchange {
             'trades' => null,
             'fee' => null,
             'info' => $order,
+            'average' => null,
         );
     }
 

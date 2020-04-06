@@ -332,6 +332,7 @@ class bitflyer(Exchange):
         id = self.safe_string(order, 'child_order_acceptance_id')
         return {
             'id': id,
+            'clientOrderId': None,
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -346,6 +347,8 @@ class bitflyer(Exchange):
             'filled': filled,
             'remaining': remaining,
             'fee': fee,
+            'average': None,
+            'trades': None,
         }
 
     def fetch_orders(self, symbol=None, since=None, limit=100, params={}):

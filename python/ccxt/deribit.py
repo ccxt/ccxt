@@ -341,6 +341,11 @@ class deribit(Exchange):
         #
         return self.safe_integer(response, 'result')
 
+    def code_from_options(self, methodName):
+        defaultCode = self.safe_value(self.options, 'code', 'BTC')
+        options = self.safe_value(self.options, methodName, {})
+        return self.safe_value(options, 'code', defaultCode)
+
     def fetch_status(self, params={}):
         request = {
             # 'expected_result': False,  # True will trigger an error for testing purposes
@@ -425,8 +430,8 @@ class deribit(Exchange):
             #     }
             #
             instrumentsResult = self.safe_value(instrumentsResponse, 'result', [])
-            for i in range(0, len(instrumentsResult)):
-                market = instrumentsResult[i]
+            for k in range(0, len(instrumentsResult)):
+                market = instrumentsResult[k]
                 id = self.safe_string(market, 'instrument_name')
                 baseId = self.safe_string(market, 'base_currency')
                 quoteId = self.safe_string(market, 'quote_currency')
@@ -475,9 +480,7 @@ class deribit(Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        defaultCode = self.safe_value(self.options, 'code', 'BTC')
-        options = self.safe_value(self.options, 'fetchBalance', {})
-        code = self.safe_value(options, 'code', defaultCode)
+        code = self.code_from_options('fetchBalance')
         currency = self.currency(code)
         request = {
             'currency': currency['id'],
@@ -718,9 +721,7 @@ class deribit(Exchange):
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        defaultCode = self.safe_value(self.options, 'code', 'BTC')
-        options = self.safe_value(self.options, 'fetchTickers', {})
-        code = self.safe_value(options, 'code', defaultCode)
+        code = self.code_from_options('fetchTickers')
         currency = self.currency(code)
         request = {
             'currency': currency['id'],
@@ -1079,6 +1080,7 @@ class deribit(Exchange):
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -1284,9 +1286,7 @@ class deribit(Exchange):
         market = None
         method = None
         if symbol is None:
-            defaultCode = self.safe_value(self.options, 'code', 'BTC')
-            options = self.safe_value(self.options, 'fetchOpenOrders', {})
-            code = self.safe_value(options, 'code', defaultCode)
+            code = self.code_from_options('fetchOpenOrders')
             currency = self.currency(code)
             request['currency'] = currency['id']
             method = 'privateGetGetOpenOrdersByCurrency'
@@ -1304,9 +1304,7 @@ class deribit(Exchange):
         market = None
         method = None
         if symbol is None:
-            defaultCode = self.safe_value(self.options, 'code', 'BTC')
-            options = self.safe_value(self.options, 'fetchClosedOrders', {})
-            code = self.safe_value(options, 'code', defaultCode)
+            code = self.code_from_options('fetchClosedOrders')
             currency = self.currency(code)
             request['currency'] = currency['id']
             method = 'privateGetGetOrderHistoryByCurrency'
@@ -1369,9 +1367,7 @@ class deribit(Exchange):
         market = None
         method = None
         if symbol is None:
-            defaultCode = self.safe_value(self.options, 'code', 'BTC')
-            options = self.safe_value(self.options, 'fetchMyTrades', {})
-            code = self.safe_value(options, 'code', defaultCode)
+            code = self.code_from_options('fetchMyTrades')
             currency = self.currency(code)
             request['currency'] = currency['id']
             if since is None:
@@ -1429,7 +1425,7 @@ class deribit(Exchange):
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         if code is None:
-            raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires a currency code argument')
+            raise ArgumentsRequired(self.id + ' fetchDeposits() requires a currency code argument')
         self.load_markets()
         currency = self.currency(code)
         request = {
@@ -1540,7 +1536,7 @@ class deribit(Exchange):
         #
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId, currency)
-        timestamp = self.safe_integer(transaction, 'created_timestamp', 'received_timestamp')
+        timestamp = self.safe_integer_2(transaction, 'created_timestamp', 'received_timestamp')
         updated = self.safe_integer(transaction, 'updated_timestamp')
         status = self.parse_transaction_status(self.safe_string(transaction, 'state'))
         address = self.safe_string(transaction, 'address')
@@ -1611,7 +1607,7 @@ class deribit(Exchange):
             auth = timestamp + "\n" + nonce + "\n" + requestData  # eslint-disable-line quotes
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
             headers = {
-                'Authorization': 'deri-hmac-sha256 id=' + self.apiKey + ',ts=' + timestamp + ',sig=' + signature + ',nonce=' + nonce,
+                'Authorization': 'deri-hmac-sha256 id=' + self.apiKey + ',ts=' + timestamp + ',sig=' + signature + ',' + 'nonce=' + nonce,
             }
         url = self.urls['api'] + request
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

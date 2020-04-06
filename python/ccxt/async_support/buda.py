@@ -528,6 +528,7 @@ class buda(Exchange):
         }
         return {
             'id': id,
+            'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
@@ -543,6 +544,7 @@ class buda(Exchange):
             'trades': None,
             'fee': fee,
             'info': order,
+            'average': None,
         }
 
     def is_fiat(self, code):

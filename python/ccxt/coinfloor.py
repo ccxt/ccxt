@@ -414,6 +414,7 @@ class coinfloor(Exchange):
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
@@ -427,6 +428,8 @@ class coinfloor(Exchange):
             'remaining': None,
             'cost': cost,
             'fee': None,
+            'average': None,
+            'trades': None,
         }
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):

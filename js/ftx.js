@@ -16,6 +16,7 @@ module.exports = class ftx extends Exchange {
             'countries': [ 'HK' ],
             'rateLimit': 100,
             'certified': true,
+            'pro': true,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/67149189-df896480-f2b0-11e9-8816-41593e17f9ec.jpg',
                 'www': 'https://ftx.com',
@@ -162,6 +163,19 @@ module.exports = class ftx extends Exchange {
                 },
             },
             'precisionMode': TICK_SIZE,
+            'options': {
+                // support for canceling conditional orders
+                // https://github.com/ccxt/ccxt/issues/6669
+                'cancelOrder': {
+                    'method': 'privateDeleteOrdersOrderId', // privateDeleteConditionalOrdersOrderId
+                },
+                'fetchOpenOrders': {
+                    'method': 'privateGetOrders', // privateGetConditionalOrders
+                },
+                'fetchOrders': {
+                    'method': 'privateGetOrdersHistory', // privateGetConditionalOrdersHistory
+                },
+            },
         });
     }
 
@@ -337,14 +351,16 @@ module.exports = class ftx extends Exchange {
             } else {
                 const base = this.safeCurrencyCode (this.safeString (ticker, 'baseCurrency'));
                 const quote = this.safeCurrencyCode (this.safeString (ticker, 'quoteCurrency'));
-                symbol = base + '/' + quote;
+                if ((base !== undefined) && (quote !== undefined)) {
+                    symbol = base + '/' + quote;
+                }
             }
         }
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
         const last = this.safeFloat (ticker, 'last');
-        const timestamp = this.milliseconds ();
+        const timestamp = this.safeTimestamp (ticker, 'time', this.milliseconds ());
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -352,9 +368,9 @@ module.exports = class ftx extends Exchange {
             'high': this.safeFloat (ticker, 'high'),
             'low': this.safeFloat (ticker, 'low'),
             'bid': this.safeFloat (ticker, 'bid'),
-            'bidVolume': undefined,
+            'bidVolume': this.safeFloat (ticker, 'bidSize'),
             'ask': this.safeFloat (ticker, 'ask'),
-            'askVolume': undefined,
+            'askVolume': this.safeFloat (ticker, 'askSize'),
             'vwap': undefined,
             'open': undefined,
             'close': last,
@@ -848,9 +864,11 @@ module.exports = class ftx extends Exchange {
             cost = filled * price;
         }
         const lastTradeTimestamp = this.parse8601 (this.safeString (order, 'triggeredAt'));
+        const clientOrderId = this.safeString (order, 'clientId');
         return {
             'info': order,
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -963,7 +981,17 @@ module.exports = class ftx extends Exchange {
         const request = {
             'order_id': parseInt (id),
         };
-        const response = await this.privateDeleteOrdersOrderId (this.extend (request, params));
+        // support for canceling conditional orders
+        // https://github.com/ccxt/ccxt/issues/6669
+        const options = this.safeValue (this.options, 'cancelOrder', {});
+        const defaultMethod = this.safeString (options, 'method', 'privateDeleteOrdersOrderId');
+        let method = this.safeString (params, 'method', defaultMethod);
+        const type = this.safeValue (params, 'type');
+        if ((type === 'stop') || (type === 'trailingStop') || (type === 'takeProfit')) {
+            method = 'privateDeleteConditionalOrdersOrderId';
+        }
+        const query = this.omit (params, [ 'method', 'type' ]);
+        const response = await this[method] (this.extend (request, query));
         //
         //     {
         //         "success": true,
@@ -1038,7 +1066,17 @@ module.exports = class ftx extends Exchange {
             market = this.market (symbol);
             request['market'] = market['id'];
         }
-        const response = await this.privateGetOrders (this.extend (request, params));
+        // support for canceling conditional orders
+        // https://github.com/ccxt/ccxt/issues/6669
+        const options = this.safeValue (this.options, 'fetchOpenOrders', {});
+        const defaultMethod = this.safeString (options, 'method', 'privateGetOrders');
+        let method = this.safeString (params, 'method', defaultMethod);
+        const type = this.safeValue (params, 'type');
+        if ((type === 'stop') || (type === 'trailingStop') || (type === 'takeProfit')) {
+            method = 'privateGetConditionalOrders';
+        }
+        const query = this.omit (params, [ 'method', 'type' ]);
+        const response = await this[method] (this.extend (request, query));
         //
         //     {
         //         "success": true,
@@ -1082,7 +1120,17 @@ module.exports = class ftx extends Exchange {
         if (since !== undefined) {
             request['start_time'] = parseInt (since / 1000);
         }
-        const response = await this.privateGetOrdersHistory (this.extend (request, params));
+        // support for canceling conditional orders
+        // https://github.com/ccxt/ccxt/issues/6669
+        const options = this.safeValue (this.options, 'fetchOrders', {});
+        const defaultMethod = this.safeString (options, 'method', 'privateGetOrdersHistory');
+        let method = this.safeString (params, 'method', defaultMethod);
+        const type = this.safeValue (params, 'type');
+        if ((type === 'stop') || (type === 'trailingStop') || (type === 'takeProfit')) {
+            method = 'privateGetConditionalOrdersHistory';
+        }
+        const query = this.omit (params, [ 'method', 'type' ]);
+        const response = await this[method] (this.extend (request, query));
         //
         //     {
         //         "success": true,

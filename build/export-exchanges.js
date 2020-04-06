@@ -109,7 +109,7 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
     // ----------------------------------------------------------------------------
     // list all supported exchanges
 
-    const exchangesNotListedInDocs = [ 'okcoinusd', 'okex3' ]
+    const exchangesNotListedInDocs = [ 'hitbtc2' ]
 
     function makeTableData (exchanges) {
         return (
@@ -279,7 +279,9 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
 
 function exportExchangeIdsToExchangesJson (exchanges) {
     log.bright ('Exporting exchange ids to'.cyan, 'exchanges.json'.yellow)
-    fs.writeFileSync ('exchanges.json', JSON.stringify ({ ids: keys (exchanges) }, null, 4))
+    const ids = keys (exchanges)
+    console.log (ids)
+    fs.writeFileSync ('exchanges.json', JSON.stringify ({ ids }, null, 4))
 }
 
 // ----------------------------------------------------------------------------
@@ -326,7 +328,7 @@ function exportKeywordsToPackageJson (exchanges) {
     }
 
     packageJSON.keywords = [...keywords]
-    fs.writeFileSync ('./package.json', JSON.stringify (packageJSON, null, 2))
+    fs.writeFileSync ('./package.json', JSON.stringify (packageJSON, null, 2) + "\n")
 }
 
 // ----------------------------------------------------------------------------

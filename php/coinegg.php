@@ -11,7 +11,7 @@ use \ccxt\ExchangeError;
 class coinegg extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'coinegg',
             'name' => 'CoinEgg',
             'countries' => array( 'CN', 'UK' ),
@@ -354,6 +354,7 @@ class coinegg extends Exchange {
         $id = $this->safe_string($order, 'id');
         return array(
             'id' => $id,
+            'clientOrderId' => null,
             'datetime' => $this->iso8601($timestamp),
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => null,
@@ -369,6 +370,7 @@ class coinegg extends Exchange {
             'trades' => null,
             'fee' => null,
             'info' => $info,
+            'average' => null,
         );
     }
 

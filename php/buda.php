@@ -13,7 +13,7 @@ use \ccxt\NotSupported;
 class buda extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'buda',
             'name' => 'Buda',
             'countries' => array( 'AR', 'CL', 'CO', 'PE' ),
@@ -567,6 +567,7 @@ class buda extends Exchange {
         );
         return array(
             'id' => $id,
+            'clientOrderId' => null,
             'datetime' => $this->iso8601($timestamp),
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => null,
@@ -582,6 +583,7 @@ class buda extends Exchange {
             'trades' => null,
             'fee' => $fee,
             'info' => $order,
+            'average' => null,
         );
     }
 

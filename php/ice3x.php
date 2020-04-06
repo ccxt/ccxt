@@ -12,7 +12,7 @@ use \ccxt\AuthenticationError;
 class ice3x extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'ice3x',
             'name' => 'ICE3X',
             'countries' => array( 'ZA' ), // South Africa
@@ -119,6 +119,7 @@ class ice3x extends Exchange {
                     ),
                 ),
                 'info' => $currency,
+                'fee' => null,
             );
         }
         return $result;
@@ -151,6 +152,8 @@ class ice3x extends Exchange {
                 'quoteId' => $quoteId,
                 'active' => null,
                 'info' => $market,
+                'precision' => $this->precision,
+                'limits' => $this->limits,
             );
         }
         return $result;
@@ -333,6 +336,7 @@ class ice3x extends Exchange {
         }
         return array(
             'id' => $this->safe_string($order, 'order_id'),
+            'clientOrderId' => null,
             'datetime' => $this->iso8601($timestamp),
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => null,
@@ -348,6 +352,7 @@ class ice3x extends Exchange {
             'trades' => null,
             'fee' => $fee,
             'info' => $order,
+            'average' => null,
         );
     }
 

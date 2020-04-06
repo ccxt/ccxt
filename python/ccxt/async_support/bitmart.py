@@ -255,6 +255,7 @@ class bitmart(Exchange):
                 'precision': precision,
                 'limits': limits,
                 'info': market,
+                'active': None,
             })
         return result
 
@@ -647,6 +648,7 @@ class bitmart(Exchange):
         type = None
         return {
             'id': id,
+            'clientOrderId': None,
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),

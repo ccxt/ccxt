@@ -182,6 +182,7 @@ class coincheck(Exchange):
                 symbol = base + '/' + quote
         return {
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -196,6 +197,8 @@ class coincheck(Exchange):
             'cost': cost,
             'fee': None,
             'info': order,
+            'average': None,
+            'trades': None,
         }
 
     def fetch_order_book(self, symbol, limit=None, params={}):

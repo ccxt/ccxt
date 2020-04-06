@@ -329,6 +329,12 @@ module.exports = class deribit extends Exchange {
         return this.safeInteger (response, 'result');
     }
 
+    codeFromOptions (methodName) {
+        const defaultCode = this.safeValue (this.options, 'code', 'BTC');
+        const options = this.safeValue (this.options, methodName, {});
+        return this.safeValue (options, 'code', defaultCode);
+    }
+
     async fetchStatus (params = {}) {
         const request = {
             // 'expected_result': false, // true will trigger an error for testing purposes
@@ -414,8 +420,8 @@ module.exports = class deribit extends Exchange {
             //     }
             //
             const instrumentsResult = this.safeValue (instrumentsResponse, 'result', []);
-            for (let i = 0; i < instrumentsResult.length; i++) {
-                const market = instrumentsResult[i];
+            for (let k = 0; k < instrumentsResult.length; k++) {
+                const market = instrumentsResult[k];
                 const id = this.safeString (market, 'instrument_name');
                 const baseId = this.safeString (market, 'base_currency');
                 const quoteId = this.safeString (market, 'quote_currency');
@@ -467,9 +473,7 @@ module.exports = class deribit extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const defaultCode = this.safeValue (this.options, 'code', 'BTC');
-        const options = this.safeValue (this.options, 'fetchBalance', {});
-        const code = this.safeValue (options, 'code', defaultCode);
+        const code = this.codeFromOptions ('fetchBalance');
         const currency = this.currency (code);
         const request = {
             'currency': currency['id'],
@@ -717,9 +721,7 @@ module.exports = class deribit extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const defaultCode = this.safeValue (this.options, 'code', 'BTC');
-        const options = this.safeValue (this.options, 'fetchTickers', {});
-        const code = this.safeValue (options, 'code', defaultCode);
+        const code = this.codeFromOptions ('fetchTickers');
         const currency = this.currency (code);
         const request = {
             'currency': currency['id'],
@@ -1108,6 +1110,7 @@ module.exports = class deribit extends Exchange {
         return {
             'info': order,
             'id': id,
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -1327,9 +1330,7 @@ module.exports = class deribit extends Exchange {
         let market = undefined;
         let method = undefined;
         if (symbol === undefined) {
-            const defaultCode = this.safeValue (this.options, 'code', 'BTC');
-            const options = this.safeValue (this.options, 'fetchOpenOrders', {});
-            const code = this.safeValue (options, 'code', defaultCode);
+            const code = this.codeFromOptions ('fetchOpenOrders');
             const currency = this.currency (code);
             request['currency'] = currency['id'];
             method = 'privateGetGetOpenOrdersByCurrency';
@@ -1349,9 +1350,7 @@ module.exports = class deribit extends Exchange {
         let market = undefined;
         let method = undefined;
         if (symbol === undefined) {
-            const defaultCode = this.safeValue (this.options, 'code', 'BTC');
-            const options = this.safeValue (this.options, 'fetchClosedOrders', {});
-            const code = this.safeValue (options, 'code', defaultCode);
+            const code = this.codeFromOptions ('fetchClosedOrders');
             const currency = this.currency (code);
             request['currency'] = currency['id'];
             method = 'privateGetGetOrderHistoryByCurrency';
@@ -1417,9 +1416,7 @@ module.exports = class deribit extends Exchange {
         let market = undefined;
         let method = undefined;
         if (symbol === undefined) {
-            const defaultCode = this.safeValue (this.options, 'code', 'BTC');
-            const options = this.safeValue (this.options, 'fetchMyTrades', {});
-            const code = this.safeValue (options, 'code', defaultCode);
+            const code = this.codeFromOptions ('fetchMyTrades');
             const currency = this.currency (code);
             request['currency'] = currency['id'];
             if (since === undefined) {
@@ -1482,7 +1479,7 @@ module.exports = class deribit extends Exchange {
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a currency code argument');
+            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a currency code argument');
         }
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -1600,7 +1597,7 @@ module.exports = class deribit extends Exchange {
         //
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const timestamp = this.safeInteger (transaction, 'created_timestamp', 'received_timestamp');
+        const timestamp = this.safeInteger2 (transaction, 'created_timestamp', 'received_timestamp');
         const updated = this.safeInteger (transaction, 'updated_timestamp');
         const status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
         const address = this.safeString (transaction, 'address');
@@ -1679,7 +1676,7 @@ module.exports = class deribit extends Exchange {
             const auth = timestamp + "\n" + nonce + "\n" + requestData; // eslint-disable-line quotes
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');
             headers = {
-                'Authorization': 'deri-hmac-sha256 id=' + this.apiKey + ',ts=' + timestamp + ',sig=' + signature + ',nonce=' + nonce,
+                'Authorization': 'deri-hmac-sha256 id=' + this.apiKey + ',ts=' + timestamp + ',sig=' + signature + ',' + 'nonce=' + nonce,
             };
         }
         const url = this.urls['api'] + request;

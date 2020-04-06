@@ -12,7 +12,7 @@ use \ccxt\ArgumentsRequired;
 class bw extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'bw',
             'name' => 'BW',
             'countries' => array( 'CN' ),
@@ -669,6 +669,7 @@ class bw extends Exchange {
             'status' => 'open',
             'fee' => null,
             'trades' => null,
+            'clientOrderId' => null,
         );
     }
 
@@ -738,6 +739,7 @@ class bw extends Exchange {
         return array(
             'info' => $order,
             'id' => $this->safe_string($order, 'entrustId'),
+            'clientOrderId' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,

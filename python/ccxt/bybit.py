@@ -831,9 +831,9 @@ class bybit(Exchange):
             'Cancelled': 'canceled',
             'PendingCancel': 'canceling',  # the engine has received the cancellation but there is no guarantee that it will be successful
             # conditional orders
-            'Active': 'open',  # order is triggered and placed successfully
+            'Active': 'closed',  # order is triggered and placed successfully
             'Untriggered': 'open',  # order waits to be triggered
-            'Triggered': 'open',  # order is triggered
+            'Triggered': 'closed',  # order is triggered
             # 'Cancelled': 'canceled',  # order is cancelled
             # 'Rejected': 'rejected',  # order is triggered but fail to be placed
             'Deactivated': 'canceled',  # conditional order was cancelled before triggering
@@ -908,9 +908,13 @@ class bybit(Exchange):
                 'currency': base,
             }
         type = self.safe_string_lower(order, 'order_type')
+        clientOrderId = self.safe_string(order, 'order_link_id')
+        if (clientOrderId is not None) and (len(clientOrderId) < 1):
+            clientOrderId = None
         return {
             'info': order,
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -1173,7 +1177,7 @@ class bybit(Exchange):
         if amount is not None:
             request['p_r_qty'] = self.amount_to_precision(symbol, amount)
         if price is not None:
-            request['p_r_price'] = self.price_to_precision(symbol, amount)
+            request['p_r_price'] = self.price_to_precision(symbol, price)
         response = getattr(self, method)(self.extend(request, params))
         #
         #     {
@@ -1270,10 +1274,17 @@ class bybit(Exchange):
             request['limit'] = limit
         options = self.safe_value(self.options, 'fetchOrders', {})
         defaultMethod = 'openapiGetOrderList'
+        query = params
         if ('stop_order_id' in params) or ('stop_order_status' in params):
+            stopOrderStatus = self.safe_value(params, 'stopOrderStatus')
+            if stopOrderStatus is not None:
+                if isinstance(stopOrderStatus, list):
+                    stopOrderStatus = ','.join(stopOrderStatus)
+                request['stop_order_status'] = stopOrderStatus
+                query = self.omit(params, 'stop_order_status')
             defaultMethod = 'openapiGetStopOrderList'
         method = self.safe_string(options, 'method', defaultMethod)
-        response = getattr(self, method)(self.extend(request, params))
+        response = getattr(self, method)(self.extend(request, query))
         #
         #     {
         #         "ret_code": 0,
@@ -1369,15 +1380,23 @@ class bybit(Exchange):
             'Rejected',
             'Filled',
             'Cancelled',
-            'Deactivated',
+            # conditional orders
+            # 'Active',
+            # 'Triggered',
+            # 'Cancelled',
+            # 'Rejected',
+            # 'Deactivated',
         ]
         options = self.safe_value(self.options, 'fetchClosedOrders', {})
         status = self.safe_value(options, 'order_status', defaultStatuses)
         if isinstance(status, list):
             status = ','.join(status)
-        request = {
-            'order_status': status,
-        }
+        request = {}
+        stopOrderStatus = self.safe_value(params, 'stop_order_status')
+        if stopOrderStatus is None:
+            request['order_status'] = status
+        else:
+            request['stop_order_status'] = stopOrderStatus
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -1386,17 +1405,19 @@ class bybit(Exchange):
             'New',
             'PartiallyFilled',
             'PendingCancel',
-            'Active',
-            'Untriggered',
-            'Triggered',
+            # conditional orders
+            # 'Untriggered',
         ]
         options = self.safe_value(self.options, 'fetchOpenOrders', {})
         status = self.safe_value(options, 'order_status', defaultStatuses)
         if isinstance(status, list):
             status = ','.join(status)
-        request = {
-            'order_status': status,
-        }
+        request = {}
+        stopOrderStatus = self.safe_value(params, 'stop_order_status')
+        if stopOrderStatus is None:
+            request['order_status'] = status
+        else:
+            request['stop_order_status'] = stopOrderStatus
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):

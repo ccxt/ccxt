@@ -22,6 +22,7 @@ class ftx(Exchange):
             'countries': ['HK'],
             'rateLimit': 100,
             'certified': True,
+            'pro': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/67149189-df896480-f2b0-11e9-8816-41593e17f9ec.jpg',
                 'www': 'https://ftx.com',
@@ -168,6 +169,19 @@ class ftx(Exchange):
                 },
             },
             'precisionMode': TICK_SIZE,
+            'options': {
+                # support for canceling conditional orders
+                # https://github.com/ccxt/ccxt/issues/6669
+                'cancelOrder': {
+                    'method': 'privateDeleteOrdersOrderId',  # privateDeleteConditionalOrdersOrderId
+                },
+                'fetchOpenOrders': {
+                    'method': 'privateGetOrders',  # privateGetConditionalOrders
+                },
+                'fetchOrders': {
+                    'method': 'privateGetOrdersHistory',  # privateGetConditionalOrdersHistory
+                },
+            },
         })
 
     async def fetch_currencies(self, params={}):
@@ -338,11 +352,12 @@ class ftx(Exchange):
             else:
                 base = self.safe_currency_code(self.safe_string(ticker, 'baseCurrency'))
                 quote = self.safe_currency_code(self.safe_string(ticker, 'quoteCurrency'))
-                symbol = base + '/' + quote
+                if (base is not None) and (quote is not None):
+                    symbol = base + '/' + quote
         if (symbol is None) and (market is not None):
             symbol = market['symbol']
         last = self.safe_float(ticker, 'last')
-        timestamp = self.milliseconds()
+        timestamp = self.safe_timestamp(ticker, 'time', self.milliseconds())
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -350,9 +365,9 @@ class ftx(Exchange):
             'high': self.safe_float(ticker, 'high'),
             'low': self.safe_float(ticker, 'low'),
             'bid': self.safe_float(ticker, 'bid'),
-            'bidVolume': None,
+            'bidVolume': self.safe_float(ticker, 'bidSize'),
             'ask': self.safe_float(ticker, 'ask'),
-            'askVolume': None,
+            'askVolume': self.safe_float(ticker, 'askSize'),
             'vwap': None,
             'open': None,
             'close': last,
@@ -819,9 +834,11 @@ class ftx(Exchange):
         if filled is not None and price is not None:
             cost = filled * price
         lastTradeTimestamp = self.parse8601(self.safe_string(order, 'triggeredAt'))
+        clientOrderId = self.safe_string(order, 'clientId')
         return {
             'info': order,
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -930,7 +947,16 @@ class ftx(Exchange):
         request = {
             'order_id': int(id),
         }
-        response = await self.privateDeleteOrdersOrderId(self.extend(request, params))
+        # support for canceling conditional orders
+        # https://github.com/ccxt/ccxt/issues/6669
+        options = self.safe_value(self.options, 'cancelOrder', {})
+        defaultMethod = self.safe_string(options, 'method', 'privateDeleteOrdersOrderId')
+        method = self.safe_string(params, 'method', defaultMethod)
+        type = self.safe_value(params, 'type')
+        if (type == 'stop') or (type == 'trailingStop') or (type == 'takeProfit'):
+            method = 'privateDeleteConditionalOrdersOrderId'
+        query = self.omit(params, ['method', 'type'])
+        response = await getattr(self, method)(self.extend(request, query))
         #
         #     {
         #         "success": True,
@@ -1000,7 +1026,16 @@ class ftx(Exchange):
         if symbol is not None:
             market = self.market(symbol)
             request['market'] = market['id']
-        response = await self.privateGetOrders(self.extend(request, params))
+        # support for canceling conditional orders
+        # https://github.com/ccxt/ccxt/issues/6669
+        options = self.safe_value(self.options, 'fetchOpenOrders', {})
+        defaultMethod = self.safe_string(options, 'method', 'privateGetOrders')
+        method = self.safe_string(params, 'method', defaultMethod)
+        type = self.safe_value(params, 'type')
+        if (type == 'stop') or (type == 'trailingStop') or (type == 'takeProfit'):
+            method = 'privateGetConditionalOrders'
+        query = self.omit(params, ['method', 'type'])
+        response = await getattr(self, method)(self.extend(request, query))
         #
         #     {
         #         "success": True,
@@ -1040,7 +1075,16 @@ class ftx(Exchange):
             request['limit'] = limit  # default 100, max 100
         if since is not None:
             request['start_time'] = int(since / 1000)
-        response = await self.privateGetOrdersHistory(self.extend(request, params))
+        # support for canceling conditional orders
+        # https://github.com/ccxt/ccxt/issues/6669
+        options = self.safe_value(self.options, 'fetchOrders', {})
+        defaultMethod = self.safe_string(options, 'method', 'privateGetOrdersHistory')
+        method = self.safe_string(params, 'method', defaultMethod)
+        type = self.safe_value(params, 'type')
+        if (type == 'stop') or (type == 'trailingStop') or (type == 'takeProfit'):
+            method = 'privateGetConditionalOrdersHistory'
+        query = self.omit(params, ['method', 'type'])
+        response = await getattr(self, method)(self.extend(request, query))
         #
         #     {
         #         "success": True,

@@ -204,6 +204,7 @@ class itbit(Exchange):
             'price': price,
             'amount': amount,
             'cost': cost,
+            'fee': None,
         }
         if feeCost is not None:
             if rebatesApplied is not None:
@@ -435,19 +436,48 @@ class itbit(Exchange):
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
-        side = order['side']
-        type = order['type']
+        #
+        #     {
+        #         "id": "13d6af57-8b0b-41e5-af30-becf0bcc574d",
+        #         "walletId": "7e037345-1288-4c39-12fe-d0f99a475a98",
+        #         "side": "buy",
+        #         "instrument": "XBTUSD",
+        #         "type": "limit",
+        #         "currency": "XBT",
+        #         "amount": "2.50000000",
+        #         "displayAmount": "2.50000000",
+        #         "price": "650.00000000",
+        #         "volumeWeightedAveragePrice": "0.00000000",
+        #         "amountFilled": "0.00000000",
+        #         "createdTime": "2014-02-11T17:05:15Z",
+        #         "status": "submitted",
+        #         "funds": null,
+        #         "metadata": {},
+        #         "clientOrderIdentifier": null,
+        #         "postOnly": "False"
+        #     }
+        #
+        side = self.safe_string(order, 'side')
+        type = self.safe_string(order, 'type')
         symbol = self.markets_by_id[order['instrument']]['symbol']
         timestamp = self.parse8601(order['createdTime'])
         amount = self.safe_float(order, 'amount')
         filled = self.safe_float(order, 'amountFilled')
-        remaining = amount - filled
+        remaining = None
+        cost = None
         fee = None
         price = self.safe_float(order, 'price')
         average = self.safe_float(order, 'volumeWeightedAveragePrice')
-        cost = filled * average
+        if filled is not None:
+            if amount is not None:
+                remaining = amount - filled
+            if average is not None:
+                cost = filled * average
+        clientOrderId = self.safe_string(order, 'clientOrderIdentifier')
+        id = self.safe_string(order, 'id')
         return {
-            'id': order['id'],
+            'id': id,
+            'clientOrderId': clientOrderId,
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -464,6 +494,7 @@ class itbit(Exchange):
             'remaining': remaining,
             'fee': fee,
             # 'trades': self.parse_trades(order['trades'], market),
+            'trades': None,
         }
 
     def nonce(self):

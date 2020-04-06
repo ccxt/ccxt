@@ -11,7 +11,7 @@ use \ccxt\ArgumentsRequired;
 class coss extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'coss',
             'name' => 'COSS',
             'countries' => array( 'SG', 'NL' ),
@@ -835,6 +835,7 @@ class coss extends Exchange {
         return array(
             'info' => $order,
             'id' => $id,
+            'clientOrderId' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,

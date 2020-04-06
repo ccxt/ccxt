@@ -257,6 +257,23 @@ class coinfalcon(Exchange):
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
+        #
+        #     {
+        #         "id":"8bdd79f4-8414-40a2-90c3-e9f4d6d1eef4"
+        #         "market":"IOT-BTC"
+        #         "price":"0.0000003"
+        #         "size":"4.0"
+        #         "size_filled":"3.0"
+        #         "fee":"0.0075"
+        #         "fee_currency_code":"iot"
+        #         "funds":"0.0"
+        #         "status":"canceled"
+        #         "order_type":"buy"
+        #         "post_only":false
+        #         "operation_type":"market_order"
+        #         "created_at":"2018-01-12T21:14:06.747828Z"
+        #     }
+        #
         if market is None:
             marketId = self.safe_string(order, 'market')
             if marketId in self.markets_by_id:
@@ -283,6 +300,7 @@ class coinfalcon(Exchange):
         side = self.safe_string(order, 'order_type')
         return {
             'id': self.safe_string(order, 'id'),
+            'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'status': status,
@@ -297,6 +315,8 @@ class coinfalcon(Exchange):
             'trades': None,
             'fee': None,
             'info': order,
+            'lastTradeTimestamp': None,
+            'average': None,
         }
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):

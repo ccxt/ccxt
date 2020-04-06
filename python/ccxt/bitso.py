@@ -149,6 +149,7 @@ class bitso(Exchange):
                 'info': market,
                 'limits': limits,
                 'precision': precision,
+                'active': None,
             })
         return result
 
@@ -351,9 +352,11 @@ class bitso(Exchange):
         if amount is not None:
             if remaining is not None:
                 filled = amount - remaining
+        clientOrderId = self.safe_string(order, 'client_id')
         return {
             'info': order,
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -367,6 +370,8 @@ class bitso(Exchange):
             'filled': filled,
             'status': status,
             'fee': None,
+            'average': None,
+            'trades': None,
         }
 
     def fetch_open_orders(self, symbol=None, since=None, limit=25, params={}):

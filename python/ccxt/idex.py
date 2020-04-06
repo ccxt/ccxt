@@ -725,6 +725,7 @@ class idex(Exchange):
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -736,6 +737,10 @@ class idex(Exchange):
             'remaining': remaining,
             'cost': cost,
             'status': status,
+            'lastTradeTimestamp': None,
+            'average': None,
+            'trades': None,
+            'fee': None,
         }
 
     def parse_order_status(self, status):

@@ -13,7 +13,7 @@ use \ccxt\InvalidOrder;
 class coinfloor extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'coinfloor',
             'name' => 'coinfloor',
             'rateLimit' => 1000,
@@ -449,6 +449,7 @@ class coinfloor extends Exchange {
         return array(
             'info' => $order,
             'id' => $id,
+            'clientOrderId' => null,
             'datetime' => $this->iso8601($timestamp),
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => null,
@@ -462,6 +463,8 @@ class coinfloor extends Exchange {
             'remaining' => null,
             'cost' => $cost,
             'fee' => null,
+            'average' => null,
+            'trades' => null,
         );
     }
 

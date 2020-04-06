@@ -525,6 +525,7 @@ class zb(Exchange):
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -539,6 +540,7 @@ class zb(Exchange):
             'remaining': remaining,
             'status': status,
             'fee': None,
+            'trades': None,
         }
 
     def parse_order_status(self, status):

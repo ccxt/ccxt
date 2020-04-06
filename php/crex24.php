@@ -18,7 +18,7 @@ use \ccxt\RequestTimeout;
 class crex24 extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'crex24',
             'name' => 'CREX24',
             'countries' => array( 'EE' ), // Estonia
@@ -715,6 +715,7 @@ class crex24 extends Exchange {
         return array(
             'info' => $order,
             'id' => $id,
+            'clientOrderId' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,

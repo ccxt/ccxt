@@ -399,6 +399,20 @@ module.exports = class kkex extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //
+        //     {
+        //         "status": 2,
+        //         "source": "NORMAL",
+        //         "amount": "10.852019",
+        //         "create_date": 1523938461036,
+        //         "avg_price": "0.00096104",
+        //         "order_id": "100",
+        //         "price": "0.00096105",
+        //         "type": "buy",
+        //         "symbol": "READBTC",
+        //         "deal_amount": "10.852019"
+        //     }
+        //
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -427,6 +441,7 @@ module.exports = class kkex extends Exchange {
         }
         return {
             'id': id,
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -442,6 +457,7 @@ module.exports = class kkex extends Exchange {
             'remaining': remaining,
             'fee': undefined,
             'info': order,
+            'trades': undefined,
         };
     }
 
@@ -490,6 +506,8 @@ module.exports = class kkex extends Exchange {
             'remaining': undefined,
             'trades': undefined,
             'fee': undefined,
+            'clientOrderId': undefined,
+            'average': undefined,
         };
     }
 

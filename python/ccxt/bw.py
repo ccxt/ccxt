@@ -645,6 +645,7 @@ class bw(Exchange):
             'status': 'open',
             'fee': None,
             'trades': None,
+            'clientOrderId': None,
         }
 
     def parse_order_status(self, status):
@@ -705,6 +706,7 @@ class bw(Exchange):
         return {
             'info': order,
             'id': self.safe_string(order, 'entrustId'),
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,

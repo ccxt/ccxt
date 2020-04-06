@@ -12,7 +12,7 @@ use \ccxt\ArgumentsRequired;
 class kucoin extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'kucoin',
             'name' => 'KuCoin',
             'countries' => array( 'SC' ),
@@ -336,6 +336,9 @@ class kucoin extends Exchange {
                 'code' => $code,
                 'precision' => $precision,
                 'info' => $entry,
+                'active' => null,
+                'fee' => null,
+                'limits' => $this->limits,
             );
         }
         return $result;
@@ -901,8 +904,10 @@ class kucoin extends Exchange {
                 }
             }
         }
+        $clientOrderId = $this->safe_string($order, 'clientOid');
         return array(
             'id' => $orderId,
+            'clientOrderId' => $clientOrderId,
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
@@ -916,6 +921,9 @@ class kucoin extends Exchange {
             'fee' => $fee,
             'status' => $status,
             'info' => $order,
+            'lastTradeTimestamp' => null,
+            'average' => null,
+            'trades' => null,
         );
     }
 

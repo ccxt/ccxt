@@ -213,6 +213,7 @@ module.exports = class itbit extends Exchange {
             'price': price,
             'amount': amount,
             'cost': cost,
+            'fee': undefined,
         };
         if (feeCost !== undefined) {
             if (rebatesApplied !== undefined) {
@@ -472,19 +473,51 @@ module.exports = class itbit extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        const side = order['side'];
-        const type = order['type'];
+        //
+        //     {
+        //         "id": "13d6af57-8b0b-41e5-af30-becf0bcc574d",
+        //         "walletId": "7e037345-1288-4c39-12fe-d0f99a475a98",
+        //         "side": "buy",
+        //         "instrument": "XBTUSD",
+        //         "type": "limit",
+        //         "currency": "XBT",
+        //         "amount": "2.50000000",
+        //         "displayAmount": "2.50000000",
+        //         "price": "650.00000000",
+        //         "volumeWeightedAveragePrice": "0.00000000",
+        //         "amountFilled": "0.00000000",
+        //         "createdTime": "2014-02-11T17:05:15Z",
+        //         "status": "submitted",
+        //         "funds": null,
+        //         "metadata": {},
+        //         "clientOrderIdentifier": null,
+        //         "postOnly": "False"
+        //     }
+        //
+        const side = this.safeString (order, 'side');
+        const type = this.safeString (order, 'type');
         const symbol = this.markets_by_id[order['instrument']]['symbol'];
         const timestamp = this.parse8601 (order['createdTime']);
         const amount = this.safeFloat (order, 'amount');
         const filled = this.safeFloat (order, 'amountFilled');
-        const remaining = amount - filled;
+        let remaining = undefined;
+        let cost = undefined;
         const fee = undefined;
         const price = this.safeFloat (order, 'price');
         const average = this.safeFloat (order, 'volumeWeightedAveragePrice');
-        const cost = filled * average;
+        if (filled !== undefined) {
+            if (amount !== undefined) {
+                remaining = amount - filled;
+            }
+            if (average !== undefined) {
+                cost = filled * average;
+            }
+        }
+        const clientOrderId = this.safeString (order, 'clientOrderIdentifier');
+        const id = this.safeString (order, 'id');
         return {
-            'id': order['id'],
+            'id': id,
+            'clientOrderId': clientOrderId,
             'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -501,6 +534,7 @@ module.exports = class itbit extends Exchange {
             'remaining': remaining,
             'fee': fee,
             // 'trades': this.parseTrades (order['trades'], market),
+            'trades': undefined,
         };
     }
 

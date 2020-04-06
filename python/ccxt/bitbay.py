@@ -291,6 +291,7 @@ class bitbay(Exchange):
                 filled = max(0, amount - remaining)
         return {
             'id': self.safe_string(order, 'id'),
+            'clientOrderId': None,
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -1008,6 +1009,7 @@ class bitbay(Exchange):
             'average': None,
             'fee': None,
             'trades': trades,
+            'clientOrderId': None,
         }
 
     def cancel_order(self, id, symbol=None, params={}):

@@ -11,7 +11,7 @@ use \ccxt\ExchangeError;
 class coinmarketcap extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'coinmarketcap',
             'name' => 'CoinMarketCap',
             'rateLimit' => 10000,
@@ -172,6 +172,9 @@ class coinmarketcap extends Exchange {
                     'baseId' => $baseId,
                     'quoteId' => $quoteId,
                     'info' => $market,
+                    'active' => null,
+                    'precision' => $this->precision,
+                    'limits' => $this->limits,
                 );
             }
         }

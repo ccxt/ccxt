@@ -12,7 +12,7 @@ use \ccxt\ArgumentsRequired;
 class therock extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'therock',
             'name' => 'TheRockTrading',
             'countries' => array( 'MT' ),
@@ -959,6 +959,7 @@ class therock extends Exchange {
         }
         return array(
             'id' => $id,
+            'clientOrderId' => null,
             'info' => $order,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),

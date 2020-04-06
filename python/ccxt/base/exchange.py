@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.24.78'
+__version__ = '1.25.81'
 
 # -----------------------------------------------------------------------------
 
@@ -359,7 +359,7 @@ class Exchange(object):
             if name[0] != '_' and name[-1] != '_' and '_' in name:
                 parts = name.split('_')
                 # fetch_ohlcv → fetchOHLCV (not fetchOhlcv!)
-                exceptions = {'ohlcv': 'OHLCV'}
+                exceptions = {'ohlcv': 'OHLCV', 'le': 'LE', 'be': 'BE'}
                 camelcase = parts[0] + ''.join(exceptions.get(i, self.capitalize(i)) for i in parts[1:])
                 attr = getattr(self, name)
                 if isinstance(attr, types.MethodType):
@@ -512,13 +512,16 @@ class Exchange(object):
         headers.update({'Accept-Encoding': 'gzip, deflate'})
         return headers
 
+    def print(self, *args):
+        print(*args)
+
     def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
         request_headers = self.prepare_request_headers(headers)
         url = self.proxy + url
 
         if self.verbose:
-            print("\nRequest:", method, url, request_headers, body)
+            self.print("\nRequest:", method, url, request_headers, body)
         self.logger.debug("%s %s, Request: %s %s", method, url, request_headers, body)
 
         request_body = body
@@ -554,7 +557,7 @@ class Exchange(object):
             if self.enableLastResponseHeaders:
                 self.last_response_headers = headers
             if self.verbose:
-                print("\nResponse:", method, url, http_status_code, headers, http_response)
+                self.print("\nResponse:", method, url, http_status_code, headers, http_response)
             self.logger.debug("%s %s, Response: %s %s %s", method, url, http_status_code, headers, http_response)
             response.raise_for_status()
 
@@ -1129,7 +1132,7 @@ class Exchange(object):
         while fixed_length and (r_int > half_order or r_int <= minimum_size or s_int <= minimum_size):
             r_binary, s_binary, v = key.sign_digest_deterministic(digest, hashfunc=hash_function,
                                                                   sigencode=ecdsa.util.sigencode_strings_canonize,
-                                                                  extra_entropy=Exchange.numberToLE(counter, 32))
+                                                                  extra_entropy=Exchange.number_to_le(counter, 32))
             r_int, s_int = ecdsa.util.sigdecode_strings((r_binary, s_binary), key.privkey.order)
             counter += 1
         r, s = Exchange.decode(base64.b16encode(r_binary)).lower(), Exchange.decode(base64.b16encode(s_binary)).lower()
@@ -1243,7 +1246,7 @@ class Exchange(object):
             self.currencies = self.deep_extend(currencies, self.currencies)
         else:
             base_currencies = [{
-                'id': market['baseId'] if 'baseId' in market else market['base'],
+                'id': market['baseId'] if (('baseId' in market) and (market['baseId'] is not None)) else market['base'],
                 'numericId': market['baseNumericId'] if 'baseNumericId' in market else None,
                 'code': market['base'],
                 'precision': (
@@ -1253,7 +1256,7 @@ class Exchange(object):
                 ) if 'precision' in market else 8,
             } for market in values if 'base' in market]
             quote_currencies = [{
-                'id': market['quoteId'] if 'quoteId' in market else market['quote'],
+                'id': market['quoteId'] if (('quoteId' in market) and (market['quoteId'] is not None)) else market['quote'],
                 'numericId': market['quoteNumericId'] if 'quoteNumericId' in market else None,
                 'code': market['quote'],
                 'precision': (
@@ -1771,7 +1774,7 @@ class Exchange(object):
             raise NotSupported("Web3 functionality requires Python3 and web3 package installed: https://github.com/ethereum/web3.py")
 
     @staticmethod
-    def fromWei(amount, decimals=18):
+    def from_wei(amount, decimals=18):
         amount_float = float(amount)
         exponential = '{:e}'.format(amount_float)
         n, exponent = exponential.split('e')
@@ -1779,7 +1782,7 @@ class Exchange(object):
         return float(n + 'e' + str(new_exponent))
 
     @staticmethod
-    def toWei(amount, decimals=18):
+    def to_wei(amount, decimals=18):
         amount_float = float(amount)
         exponential = '{:e}'.format(amount_float)
         n, exponent = exponential.split('e')
@@ -2005,11 +2008,11 @@ class Exchange(object):
         return otp[-6:]
 
     @staticmethod
-    def numberToLE(n, size):
+    def number_to_le(n, size):
         return Exchange.decimal_to_bytes(int(n), 'little').ljust(size, b'\x00')
 
     @staticmethod
-    def numberToBE(n, size):
+    def number_to_be(n, size):
         return Exchange.decimal_to_bytes(int(n), 'big').rjust(size, b'\x00')
 
     @staticmethod
@@ -2028,3 +2031,6 @@ class Exchange(object):
     @staticmethod
     def integer_modulo(a, b):
         return int(a) % int(b)
+
+    def sleep(self, milliseconds):
+        return time.sleep(milliseconds / 1000)

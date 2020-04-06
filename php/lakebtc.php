@@ -11,7 +11,7 @@ use \ccxt\ExchangeError;
 class lakebtc extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'lakebtc',
             'name' => 'LakeBTC',
             'countries' => array( 'US' ),
@@ -80,6 +80,9 @@ class lakebtc extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'info' => $market,
+                'active' => null,
+                'precision' => $this->precision,
+                'limits' => $this->limits,
             );
         }
         return $result;

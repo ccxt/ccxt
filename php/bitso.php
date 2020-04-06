@@ -12,7 +12,7 @@ use \ccxt\OrderNotFound;
 class bitso extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'bitso',
             'name' => 'Bitso',
             'countries' => array( 'MX' ), // Mexico
@@ -142,6 +142,7 @@ class bitso extends Exchange {
                 'info' => $market,
                 'limits' => $limits,
                 'precision' => $precision,
+                'active' => null,
             );
         }
         return $result;
@@ -372,9 +373,11 @@ class bitso extends Exchange {
                 $filled = $amount - $remaining;
             }
         }
+        $clientOrderId = $this->safe_string($order, 'client_id');
         return array(
             'info' => $order,
             'id' => $id,
+            'clientOrderId' => $clientOrderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
@@ -388,6 +391,8 @@ class bitso extends Exchange {
             'filled' => $filled,
             'status' => $status,
             'fee' => null,
+            'average' => null,
+            'trades' => null,
         );
     }
 

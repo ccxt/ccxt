@@ -35,7 +35,7 @@ use kornrunner\Solidity;
 use Elliptic\EC;
 use BN\BN;
 
-$version = '1.24.78';
+$version = '1.25.81';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -54,13 +54,14 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.24.78';
+    const VERSION = '1.25.81';
 
     public static $exchanges = array(
         '_1btcxe',
         'acx',
         'adara',
         'anxpro',
+        'aofex',
         'bcex',
         'bequant',
         'bibox',
@@ -77,7 +78,6 @@ class Exchange {
         'bitforex',
         'bithumb',
         'bitkk',
-        'bitlish',
         'bitmart',
         'bitmax',
         'bitmex',
@@ -91,7 +91,6 @@ class Exchange {
         'braziliex',
         'btcalpha',
         'btcbox',
-        'btcchina',
         'btcmarkets',
         'btctradeim',
         'btctradeua',
@@ -102,7 +101,6 @@ class Exchange {
         'bytetrade',
         'cex',
         'chilebit',
-        'cobinhood',
         'coinbase',
         'coinbaseprime',
         'coinbasepro',
@@ -157,9 +155,7 @@ class Exchange {
         'mixcoins',
         'oceanex',
         'okcoin',
-        'okcoinusd',
         'okex',
-        'okex3',
         'paymium',
         'poloniex',
         'rightbtc',
@@ -388,7 +384,7 @@ class Exchange {
     }
 
     public static function is_associative($array) {
-        return count(array_filter(array_keys($array), 'is_string')) > 0;
+        return is_array($array) && (count(array_filter(array_keys($array), 'is_string')) > 0);
     }
 
     public static function omit($array, $keys) {
@@ -505,6 +501,27 @@ class Exchange {
             }
         }
         return $string;
+    }
+
+    public static function deep_extend() {
+        //
+        //     extend associative dictionaries only, replace everything else
+        //
+        $out = null;
+        $args = func_get_args();
+        foreach ($args as $arg) {
+            if (static::is_associative($arg) || (is_array ($arg) && (count($arg) === 0))) {
+                if (!static::is_associative($out)) {
+                    $out = array();
+                }
+                foreach ($arg as $k => $v) {
+                    $out[$k] = static::deep_extend(isset($out[$k]) ? $out[$k] : array(), $v);
+                }
+            } else {
+                $out = $arg;
+            }
+        }
+        return $out;
     }
 
     public static function indexBy($arrayOfArrays, $key) {
@@ -760,6 +777,7 @@ class Exchange {
     }
 
     public function __construct($options = array()) {
+
         // todo auto-camelcasing for methods in PHP
         // $method_names = get_class_methods ($this);
         // foreach ($method_names as $method_name) {
@@ -976,7 +994,6 @@ class Exchange {
         $this->urlencode_glue_warning = true;
 
         $options = array_replace_recursive($this->describe(), $options);
-
         if ($options) {
             foreach ($options as $key => $value) {
                 $this->{$key} =
@@ -1208,6 +1225,17 @@ class Exchange {
         return json_decode($json_string, $as_associative_array);
     }
 
+    public function print() {
+        $args = func_get_args();
+        if (is_array($args)) {
+            $array = array();
+            foreach ($args as $arg) {
+                $array[] = is_string($arg) ? $arg : json_encode($arg, JSON_PRETTY_PRINT);
+            }
+            echo implode(' ', $array), "\n";
+        }
+    }
+
     public function fetch($url, $method = 'GET', $headers = null, $body = null) {
         if ($this->enableRateLimit) {
             $this->throttle();
@@ -1293,8 +1321,8 @@ class Exchange {
         }
 
         if ($this->verbose) {
-            print_r("\nRequest:\n");
-            print_r(array($method, $url, $verbose_headers, $body));
+            $function = array($this, 'print');
+            $function('Request:', $method, $url, $verbose_headers, $body);
         }
 
         // we probably only need to set it once on startup
@@ -1376,8 +1404,8 @@ class Exchange {
         $http_status_code = curl_getinfo($this->curl, CURLINFO_HTTP_CODE);
 
         if ($this->verbose) {
-            print_r("\nResponse:\n");
-            print_r(array($method, $url, $http_status_code, $curl_error, $response_headers, $result));
+            $function = array($this, 'print');
+            $function('Response:', $method, $url, $http_status_code, $curl_error, $response_headers, $result);
         }
 
         $this->handle_errors($http_status_code, $http_status_text, $url, $method, $response_headers, $result ? $result : null, $json_response, $headers, $body);
@@ -1462,7 +1490,7 @@ class Exchange {
         } else {
             $base_currencies = array_map(function ($market) {
                 return array(
-                    'id' => array_key_exists('baseId', $market) ? $market['baseId'] : $market['base'],
+                    'id' => isset($market['baseId']) ? $market['baseId'] : $market['base'],
                     'numericId' => array_key_exists('baseNumericId', $market) ? $market['baseNumericId'] : null,
                     'code' => $market['base'],
                     'precision' => array_key_exists('precision', $market) ? (
@@ -1475,7 +1503,7 @@ class Exchange {
             }));
             $quote_currencies = array_map(function ($market) {
                 return array(
-                    'id' => array_key_exists('quoteId', $market) ? $market['quoteId'] : $market['quote'],
+                    'id' => isset($market['quoteId']) ? $market['quoteId'] : $market['quote'],
                     'numericId' => array_key_exists('quoteNumericId', $market) ? $market['quoteNumericId'] : null,
                     'code' => $market['quote'],
                     'precision' => array_key_exists('precision', $market) ? (
@@ -1840,7 +1868,7 @@ class Exchange {
         $array = array_values($array);
         $valueIsSet = isset($value);
         $sinceIsSet = isset($since);
-        $array = array_filter($array, function ($element) use ($valueIsSet, $value, $sinceIsSet, $since, $field) {
+        $array = array_filter($array, function ($element) use ($valueIsSet, $value, $sinceIsSet, $since, $field, $key) {
             return ($valueIsSet ? ($element[$field] === $value) : true) &&
                     ($sinceIsSet ? ($element[$key] >= $since) : true);
         });
@@ -2463,6 +2491,7 @@ class Exchange {
             $precisionDigitsString = static::decimal_to_precision ($numPrecisionDigits, ROUND, 100, DECIMAL_PLACES, NO_PADDING);
             $newNumPrecisionDigits = static::precisionFromString ($precisionDigitsString);
             $missing = fmod($x, $numPrecisionDigits);
+            $missing = floatval(static::decimal_to_precision ($missing, ROUND, 8, DECIMAL_PLACES, NO_PADDING));
             // See: https://github.com/ccxt/ccxt/pull/6486
             $fpError = static::decimal_to_precision ($missing / $numPrecisionDigits, ROUND, max($newNumPrecisionDigits, 8), DECIMAL_PLACES, NO_PADDING);
             if (static::precisionFromString ($fpError) !== 0) {
@@ -2610,14 +2639,14 @@ class Exchange {
         }
     }
 
-    public static function fromWei($amount, $decimals = 18) {
+    public static function from_wei($amount, $decimals = 18) {
         $exponential = sprintf('%e', $amount);
         list($n, $exponent) = explode('e', $exponential);
         $new_exponent = intval($exponent) - $decimals;
         return floatval($n . 'e' . strval($new_exponent));
     }
 
-    public static function toWei($amount, $decimals = 18) {
+    public static function to_wei($amount, $decimals = 18) {
         $exponential = sprintf('%e', $amount);
         list($n, $exponent) = explode('e', $exponential);
         $new_exponent = intval($exponent) + $decimals;
@@ -2739,12 +2768,12 @@ class Exchange {
         return pack('C', $n);
     }
 
-    public static function numberToBE($n, $padding) {
+    public static function number_to_be($n, $padding) {
         $n = new BN ($n);
         return array_reduce(array_map('static::pack_byte', $n->toArray('little', $padding)), function ($a, $b) { return $a . $b; });
     }
 
-    public static function numberToLE($n, $padding) {
+    public static function number_to_le($n, $padding) {
         $n = new BN ($n);
         return array_reduce(array_map('static::pack_byte', $n->toArray('little', $padding)), function ($a, $b) { return $b . $a; });
     }

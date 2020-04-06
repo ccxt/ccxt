@@ -261,6 +261,9 @@ class livecoin(Exchange):
                     'max': math.pow(10, precision),
                 },
             },
+            'id': None,
+            'code': None,
+            'name': None,
         }
         currencies = [
             {'id': 'USD', 'code': 'USD', 'name': 'US Dollar'},
@@ -571,6 +574,7 @@ class livecoin(Exchange):
         return {
             'info': order,
             'id': order['id'],
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -589,6 +593,7 @@ class livecoin(Exchange):
                 'currency': feeCurrency,
                 'rate': feeRate,
             },
+            'average': None,
         }
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):

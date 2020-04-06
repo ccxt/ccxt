@@ -104,6 +104,8 @@ class kuna(acx):
                                 'max': None,
                             },
                         },
+                        'active': None,
+                        'info': None,
                     })
                     break
         return markets

@@ -27,6 +27,7 @@ module.exports = class bleutrade extends Exchange {
                 'fetchTicker': true,
                 'fetchOrders': false,
                 'fetchClosedOrders': true,
+                'fetchOpenOrders': true,
                 'fetchWithdrawals': true,
                 'fetchOrderTrades': false,
                 'fetchLedger': true,
@@ -162,6 +163,7 @@ module.exports = class bleutrade extends Exchange {
                 'fee': this.safeFloat (item, 'WithdrawTxFee'),
                 'precision': this.safeFloat (item, 'DecimalPlaces'),
                 'info': item,
+                'limits': this.limits,
             };
         }
         return result;
@@ -679,6 +681,7 @@ module.exports = class bleutrade extends Exchange {
         return {
             'info': order,
             'id': id,
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -693,6 +696,7 @@ module.exports = class bleutrade extends Exchange {
             'remaining': remaining,
             'status': status,
             'fee': undefined,
+            'trades': undefined,
         };
     }
 

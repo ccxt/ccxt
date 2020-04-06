@@ -119,6 +119,7 @@ class ice3x(Exchange):
                     },
                 },
                 'info': currency,
+                'fee': None,
             }
         return result
 
@@ -148,6 +149,8 @@ class ice3x(Exchange):
                 'quoteId': quoteId,
                 'active': None,
                 'info': market,
+                'precision': self.precision,
+                'limits': self.limits,
             })
         return result
 
@@ -308,6 +311,7 @@ class ice3x(Exchange):
                 fee['currency'] = market['quote']
         return {
             'id': self.safe_string(order, 'order_id'),
+            'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
@@ -323,6 +327,7 @@ class ice3x(Exchange):
             'trades': None,
             'fee': fee,
             'info': order,
+            'average': None,
         }
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):

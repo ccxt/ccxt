@@ -12,7 +12,7 @@ use \ccxt\BadSymbol;
 class coincheck extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'coincheck',
             'name' => 'coincheck',
             'countries' => array( 'JP', 'ID' ),
@@ -195,6 +195,7 @@ class coincheck extends Exchange {
         }
         return array(
             'id' => $id,
+            'clientOrderId' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
@@ -209,6 +210,8 @@ class coincheck extends Exchange {
             'cost' => $cost,
             'fee' => null,
             'info' => $order,
+            'average' => null,
+            'trades' => null,
         );
     }
 

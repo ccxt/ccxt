@@ -754,6 +754,7 @@ module.exports = class bitz extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         return {
             'id': id,
+            'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
@@ -769,6 +770,7 @@ module.exports = class bitz extends Exchange {
             'trades': undefined,
             'fee': undefined,
             'info': order,
+            'average': undefined,
         };
     }
 

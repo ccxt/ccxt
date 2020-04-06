@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ExchangeNotAvailable, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, DDoSProtection, InsufficientFunds, InvalidNonce, CancelPending, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, NotSupported, BadSymbol } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
+const { TICK_SIZE, TRUNCATE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -29,7 +29,7 @@ module.exports = class okex extends Exchange {
                 'fetchWithdrawals': true,
                 'fetchTime': true,
                 'fetchTransactions': false,
-                'fetchMyTrades': false, // they don't have it
+                'fetchMyTrades': true,
                 'fetchDepositAddress': true,
                 'fetchOrderTrades': true,
                 'fetchTickers': true,
@@ -79,7 +79,7 @@ module.exports = class okex extends Exchange {
                         'ledger',
                         'deposit/address',
                         'deposit/history',
-                        'deposit/history{<currency}',
+                        'deposit/history/{currency}',
                         'currencies',
                         'withdrawal/fee',
                     ],
@@ -774,7 +774,6 @@ module.exports = class okex extends Exchange {
                 marketType = 'swap';
                 spot = false;
                 swap = true;
-                baseId = this.safeString (market, 'coin');
                 const futuresAlias = this.safeString (market, 'alias');
                 if (futuresAlias !== undefined) {
                     swap = false;
@@ -1819,10 +1818,13 @@ module.exports = class okex extends Exchange {
                                 notional = amount * price;
                             }
                         } else if (notional === undefined) {
-                            throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'notional' extra parameter (the exchange-specific behaviour)");
+                            throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'notional' extra parameter (the exchange-specific behaviour)");
                         }
+                    } else {
+                        notional = (notional === undefined) ? amount : notional;
                     }
-                    request['notional'] = this.costToPrecision (symbol, notional);
+                    const precision = market['precision']['price'];
+                    request['notional'] = this.decimalToPrecision (notional, TRUNCATE, precision, this.precisionMode);
                 } else {
                     request['size'] = this.amountToPrecision (symbol, amount);
                 }
@@ -1858,6 +1860,8 @@ module.exports = class okex extends Exchange {
             'cost': undefined,
             'trades': undefined,
             'fee': undefined,
+            'clientOrderId': undefined,
+            'average': undefined,
         };
     }
 
@@ -2065,9 +2069,11 @@ module.exports = class okex extends Exchange {
                 'currency': feeCurrency,
             };
         }
+        const clientOrderId = this.safeString (order, 'client_oid');
         return {
             'info': order,
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -2082,6 +2088,7 @@ module.exports = class okex extends Exchange {
             'remaining': remaining,
             'status': status,
             'fee': fee,
+            'trades': undefined,
         };
     }
 
@@ -2557,25 +2564,162 @@ module.exports = class okex extends Exchange {
         };
     }
 
-    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    parseMyTrade (pair, market = undefined) {
+        // check that trading symbols match in both entries
+        const first = pair[0];
+        const second = pair[1];
+        const firstMarketId = this.safeString (first, 'instrument_id');
+        const secondMarketId = this.safeString (second, 'instrument_id');
+        if (firstMarketId !== secondMarketId) {
+            throw new NotSupported (this.id + ' parseMyTrade() received unrecognized response format, differing instrument_ids in one fill, the exchange API might have changed, paste your verbose output: https://github.com/ccxt/ccxt/wiki/FAQ#what-is-required-to-get-help');
+        }
+        const marketId = firstMarketId;
+        // determine the base and quote
+        let quoteId = undefined;
+        let symbol = undefined;
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+            quoteId = market['quoteId'];
+            symbol = market['symbol'];
+        } else {
+            const parts = marketId.split ('-');
+            quoteId = this.safeString (parts, 1);
+            symbol = marketId;
+        }
+        const id = this.safeString (first, 'trade_id');
+        const price = this.safeFloat (first, 'price');
+        // determine buy/sell side and amounts
+        // get the side from either the first trade or the second trade
+        let feeCost = this.safeFloat (first, 'fee');
+        const index = (feeCost !== 0) ? 0 : 1;
+        const userTrade = this.safeValue (pair, index);
+        const otherTrade = this.safeValue (pair, 1 - index);
+        const receivedCurrencyId = this.safeString (userTrade, 'currency');
+        let side = undefined;
+        let amount = undefined;
+        let cost = undefined;
+        if (receivedCurrencyId === quoteId) {
+            side = 'sell';
+            amount = this.safeFloat (otherTrade, 'size');
+            cost = this.safeFloat (userTrade, 'size');
+        } else {
+            side = 'buy';
+            amount = this.safeFloat (userTrade, 'size');
+            cost = this.safeFloat (otherTrade, 'size');
+        }
+        feeCost = (feeCost !== 0) ? feeCost : this.safeFloat (second, 'fee');
+        const trade = this.safeValue (pair, index);
+        //
+        // simplified structures to show the underlying semantics
+        //
+        //     // market/limit sell
+        //
+        //     {
+        //         "currency":"USDT",
+        //         "fee":"-0.04647925", // ←--- fee in received quote currency
+        //         "price":"129.13", // ←------ price
+        //         "size":"30.98616393", // ←-- cost
+        //     },
+        //     {
+        //         "currency":"ETH",
+        //         "fee":"0",
+        //         "price":"129.13",
+        //         "size":"0.23996099", // ←--- amount
+        //     },
+        //
+        //     // market/limit buy
+        //
+        //     {
+        //         "currency":"ETH",
+        //         "fee":"-0.00036049", // ←--- fee in received base currency
+        //         "price":"129.16", // ←------ price
+        //         "size":"0.240322", // ←----- amount
+        //     },
+        //     {
+        //         "currency":"USDT",
+        //         "fee":"0",
+        //         "price":"129.16",
+        //         "size":"31.03998952", // ←-- cost
+        //     }
+        //
+        const timestamp = this.parse8601 (this.safeString2 (trade, 'timestamp', 'created_at'));
+        let takerOrMaker = this.safeString2 (trade, 'exec_type', 'liquidity');
+        if (takerOrMaker === 'M') {
+            takerOrMaker = 'maker';
+        } else if (takerOrMaker === 'T') {
+            takerOrMaker = 'taker';
+        }
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            const feeCurrencyId = this.safeString (userTrade, 'currency');
+            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+            fee = {
+                // fee is either a positive number (invitation rebate)
+                // or a negative number (transaction fee deduction)
+                // therefore we need to invert the fee
+                // more about it https://github.com/ccxt/ccxt/issues/5909
+                'cost': -feeCost,
+                'currency': feeCurrencyCode,
+            };
+        }
+        const orderId = this.safeString (trade, 'order_id');
+        return {
+            'info': pair,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'id': id,
+            'order': orderId,
+            'type': undefined,
+            'takerOrMaker': takerOrMaker,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
+        };
+    }
+
+    parseMyTrades (trades, market = undefined, since = undefined, limit = undefined, params = {}) {
+        const grouped = this.groupBy (trades, 'trade_id');
+        const tradeIds = Object.keys (grouped);
+        const result = [];
+        for (let i = 0; i < tradeIds.length; i++) {
+            const tradeId = tradeIds[i];
+            const pair = grouped[tradeId];
+            // make sure it has exactly 2 trades, no more, no less
+            const numTradesInPair = pair.length;
+            if (numTradesInPair === 2) {
+                const trade = this.parseMyTrade (pair);
+                result.push (trade);
+            }
+        }
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         // okex actually returns ledger entries instead of fills here, so each fill in the order
         // is represented by two trades with opposite buy/sell sides, not one :\
         // this aspect renders the 'fills' endpoint unusable for fetchOrderTrades
         // until either OKEX fixes the API or we workaround this on our side somehow
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrderTrades requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if ((limit === undefined) || (limit > 100)) {
+        if ((limit !== undefined) && (limit > 100)) {
             limit = 100;
         }
         const request = {
             'instrument_id': market['id'],
-            'order_id': id,
-            // from: '1', // return the page after the specified page number
-            // to: '1', // return the page before the specified page number
-            'limit': limit, // optional, number of results per request, default = maximum = 100
+            // 'order_id': id, // string
+            // 'after': '1', // return the page after the specified page number
+            // 'before': '1', // return the page before the specified page number
+            // 'limit': limit, // optional, number of results per request, default = maximum = 100
         };
         const defaultType = this.safeString2 (this.options, 'fetchMyTrades', 'defaultType');
         const type = this.safeString (params, 'type', defaultType);
@@ -2583,43 +2727,87 @@ module.exports = class okex extends Exchange {
         const method = type + 'GetFills';
         const response = await this[method] (this.extend (request, query));
         //
-        // spot trades, margin trades
-        //
         //     [
+        //         // sell
         //         {
-        //             "created_at":"2019-09-20T07:15:24.000Z",
+        //             "created_at":"2020-03-29T11:55:25.000Z",
+        //             "currency":"USDT",
+        //             "exec_type":"T",
+        //             "fee":"-0.04647925",
+        //             "instrument_id":"ETH-USDT",
+        //             "ledger_id":"10562924353",
+        //             "liquidity":"T",
+        //             "order_id":"4636470489136128",
+        //             "price":"129.13",
+        //             "product_id":"ETH-USDT",
+        //             "side":"buy",
+        //             "size":"30.98616393",
+        //             "timestamp":"2020-03-29T11:55:25.000Z",
+        //             "trade_id":"18551601"
+        //         },
+        //         {
+        //             "created_at":"2020-03-29T11:55:25.000Z",
+        //             "currency":"ETH",
         //             "exec_type":"T",
         //             "fee":"0",
         //             "instrument_id":"ETH-USDT",
-        //             "ledger_id":"7173486113",
+        //             "ledger_id":"10562924352",
         //             "liquidity":"T",
-        //             "order_id":"3553868136523776",
-        //             "price":"217.59",
+        //             "order_id":"4636470489136128",
+        //             "price":"129.13",
         //             "product_id":"ETH-USDT",
         //             "side":"sell",
-        //             "size":"0.04619899",
-        //             "timestamp":"2019-09-20T07:15:24.000Z"
-        //         }
-        //     ]
-        //
-        // futures trades, swap trades
-        //
-        //     [
+        //             "size":"0.23996099",
+        //             "timestamp":"2020-03-29T11:55:25.000Z",
+        //             "trade_id":"18551601"
+        //         },
+        //         // buy
         //         {
-        //             "trade_id":"197429674631450625",
-        //             "instrument_id":"EOS-USD-SWAP",
-        //             "order_id":"6a-7-54d663a28-0",
-        //             "price":"3.633",
-        //             "order_qty":"1.0000",
-        //             "fee":"-0.000551",
-        //             "created_at":"2019-03-21T04:41:58.0Z", // missing in swap trades
-        //             "timestamp":"2019-03-25T05:56:31.287Z", // missing in futures trades
-        //             "exec_type":"M", // whether the order is taker or maker
-        //             "side":"short", // "buy" in futures trades
+        //             "created_at":"2020-03-29T11:55:16.000Z",
+        //             "currency":"ETH",
+        //             "exec_type":"T",
+        //             "fee":"-0.00036049",
+        //             "instrument_id":"ETH-USDT",
+        //             "ledger_id":"10562922669",
+        //             "liquidity":"T",
+        //             "order_id": "4636469894136832",
+        //             "price":"129.16",
+        //             "product_id":"ETH-USDT",
+        //             "side":"buy",
+        //             "size":"0.240322",
+        //             "timestamp":"2020-03-29T11:55:16.000Z",
+        //             "trade_id":"18551600"
+        //         },
+        //         {
+        //             "created_at":"2020-03-29T11:55:16.000Z",
+        //             "currency":"USDT",
+        //             "exec_type":"T",
+        //             "fee":"0",
+        //             "instrument_id":"ETH-USDT",
+        //             "ledger_id":"10562922668",
+        //             "liquidity":"T",
+        //             "order_id":"4636469894136832",
+        //             "price":"129.16",
+        //             "product_id":"ETH-USDT",
+        //             "side":"sell",
+        //             "size":"31.03998952",
+        //             "timestamp":"2020-03-29T11:55:16.000Z",
+        //             "trade_id":"18551600"
         //         }
         //     ]
         //
-        return this.parseTrades (response, market, since, limit);
+        return this.parseMyTrades (response, market, since, limit, params);
+    }
+
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const request = {
+            // 'instrument_id': market['id'],
+            'order_id': id,
+            // 'after': '1', // return the page after the specified page number
+            // 'before': '1', // return the page before the specified page number
+            // 'limit': limit, // optional, number of results per request, default = maximum = 100
+        };
+        return await this.fetchMyTrades (symbol, since, limit, this.extend (request, params));
     }
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2999,7 +3187,8 @@ module.exports = class okex extends Exchange {
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         const feedback = this.id + ' ' + body;
         if (code === 503) {
-            throw new ExchangeError (feedback);
+            // {"message":"name resolution failed"}
+            throw new ExchangeNotAvailable (feedback);
         }
         if (!response) {
             return; // fallback to default error handler
@@ -3009,10 +3198,12 @@ module.exports = class okex extends Exchange {
         if (message !== undefined) {
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
-        }
-        this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
-        if (message !== undefined) {
-            throw new ExchangeError (feedback); // unknown message
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            const nonEmptyMessage = (message !== '');
+            const nonZeroErrorCode = (errorCode !== undefined) && (errorCode !== '0');
+            if (nonZeroErrorCode || nonEmptyMessage) {
+                throw new ExchangeError (feedback); // unknown message
+            }
         }
     }
 };
