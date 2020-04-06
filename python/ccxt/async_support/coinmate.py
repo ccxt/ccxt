@@ -536,6 +536,7 @@ class coinmate(Exchange):
         statuses = {
             'FILLED': 'closed',
             'CANCELLED': 'canceled',
+            'PARTIALLY_FILLED': 'open',
             'OPEN': 'open',
         }
         return self.safe_string(statuses, status, status)
@@ -601,7 +602,9 @@ class coinmate(Exchange):
         filled = None
         cost = None
         if (amount is not None) and (remaining is not None):
-            filled = amount - remaining
+            filled = min(amount - remaining, 0)
+            if remaining == 0:
+                status = 'closed'
             if price is not None:
                 cost = filled * price
         average = self.safe_float(order, 'avgPrice')
