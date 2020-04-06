@@ -2,7 +2,7 @@
 
 //  ---------------------------------------------------------------------------
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ArgumentsRequired, BadRequest, BadSymbol, OrderNotFound } = require ('./base/errors');
+const { ArgumentsRequired, BadRequest, BadSymbol, OrderNotFound } = require ('./base/errors');
 const { ROUND } = require ('./base/functions/number');
 //  ---------------------------------------------------------------------------
 
@@ -57,8 +57,8 @@ module.exports = class levidge extends Exchange {
             'urls': {
                 'logo': 'https://levidge.com/assets/LevidgeLogo.png',
                 'api': {
-                    'public': 'https://trading-api.dexp-qa.com/api/',
-                    'private': 'https://trading-api.dexp-qa.com/api/',
+                    'public': 'https://trading-api.dexp-dev.com/api/',
+                    'private': 'https://trading-api.dexp-dev.com/api/',
                 },
                 'www': 'https://levidge.com',
                 'doc': [
@@ -96,11 +96,11 @@ module.exports = class levidge extends Exchange {
                 },
             },
             'requiredCredentials': {
-                'apiKey': false,
-                'secret': false,
-                'uid': false,
-                'login': true,
-                'password': true,
+                'apiKey': true,
+                'secret': true,
+                'uid': true,
+                'login': false,
+                'password': false,
                 'twofa': false, // 2-factor authentication (one-time password key)
                 'privateKey': false, // a "0x"-prefixed hexstring private key for a wallet
                 'walletAddress': false, // the wallet address "0x"-prefixed hexstring
@@ -240,7 +240,6 @@ module.exports = class levidge extends Exchange {
     }
 
     async fetchBalance (params = {}) {
-        await this.logon ();
         const response = await this.privatePostGetPositions (params);
         const positions = this.safeValue (response, 'positions', []);
         const balance = {};
@@ -270,7 +269,6 @@ module.exports = class levidge extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        await this.logon ();
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market && !market['active']) {
@@ -369,7 +367,6 @@ module.exports = class levidge extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.logon ();
         await this.loadMarkets ();
         let market = undefined;
         const request = {};
@@ -415,7 +412,6 @@ module.exports = class levidge extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
-        await this.logon ();
         await this.loadMarkets ();
         const currency = this.getCurrency (code);
         const request = {
@@ -427,7 +423,6 @@ module.exports = class levidge extends Exchange {
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.logon ();
         await this.loadMarkets ();
         const request = {};
         let currency = undefined;
@@ -445,7 +440,6 @@ module.exports = class levidge extends Exchange {
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.logon ();
         await this.loadMarkets ();
         const request = {};
         let currency = undefined;
@@ -478,7 +472,6 @@ module.exports = class levidge extends Exchange {
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
-        await this.logon ();
         await this.loadMarkets ();
         const currency = this.getCurrency (code);
         const scale = this.getScale (amount);
@@ -558,7 +551,6 @@ module.exports = class levidge extends Exchange {
     }
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.logon ();
         await this.loadMarkets ();
         const request = {};
         let currency = undefined;
@@ -572,30 +564,30 @@ module.exports = class levidge extends Exchange {
         // return this.parseLedger (response['data'], undefined, since, limit);
     }
 
-    async logon () {
-        if (!this.isAuthenticated ()) {
-            this.checkRequiredCredentials ();
-            const request = {
-                'login': this.login,
-                'password': this.password,
-            };
-            const response = await this.publicPostLogon (request);
-            this.userId = this.safeString (response, 'id');
-            this.requestSecret = this.safeString (response, 'requestSecret');
-            this.requestToken = this.safeString (response, 'requestToken');
-            // console.log (this.userId, this.requestToken, this.requestSecret);
-            if (!this.requestToken || !this.requestSecret || !this.userId) {
-                throw new AuthenticationError (this.id + ': Either login or password is not correct');
-            }
-        }
-    }
+    // async logon () {
+    //     if (!this.isAuthenticated ()) {
+    //         this.checkRequiredCredentials ();
+    //         const request = {
+    //             'login': this.login,
+    //             'password': this.password,
+    //         };
+    //         const response = await this.publicPostLogon (request);
+    //         this.userId = this.safeString (response, 'id');
+    //         this.requestSecret = this.safeString (response, 'requestSecret');
+    //         this.requestToken = this.safeString (response, 'requestToken');
+    //         // console.log (this.userId, this.requestToken, this.requestSecret);
+    //         if (!this.requestToken || !this.requestSecret || !this.userId) {
+    //             throw new AuthenticationError (this.id + ': Either login or password is not correct');
+    //         }
+    //     }
+    // }
 
-    isAuthenticated () {
-        if (this.requestToken && this.requestSecret && this.userId) {
-            return true;
-        }
-        return false;
-    }
+    // isAuthenticated () {
+    //     if (this.requestToken && this.requestSecret && this.userId) {
+    //         return true;
+    //     }
+    //     return false;
+    // }
 
     nonce () {
         return this.milliseconds ();
@@ -1034,18 +1026,15 @@ module.exports = class levidge extends Exchange {
             };
             params['nonce'] = this.nonce ();
             // not logon method add signature and requestToken
-            if (path !== 'logon' && api === 'private') {
-                if (this.isAuthenticated ()) {
-                    headers['requestToken'] = this.requestToken;
-                    params['userId'] = this.userId;
-                    body = this.json (params);
-                    const signature = this.hmac (body, this.requestSecret, 'sha384').toString ();
-                    headers['signature'] = signature;
-                } else {
-                    throw new AuthenticationError (this.id + ': calling private API without Authentication');
-                }
+            if (api === 'private') {
+                this.checkRequiredCredentials ();
+                headers['requestToken'] = this.apiKey;
+                params['userId'] = this.uid;
+                body = this.json (params);
+                const signature = this.hmac (body, this.secret, 'sha384').toString ();
+                headers['signature'] = signature;
+                body = body === undefined ? this.json (params) : body;
             }
-            body = body === undefined ? this.json (params) : body;
         }
         const url = this.urls['api'][api] + query;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
