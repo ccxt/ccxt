@@ -6,6 +6,7 @@
 from ccxtpro.base.exchange import Exchange
 import ccxt.async_support as ccxt
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 
 
@@ -304,7 +305,7 @@ class bitmex(Exchange, ccxt.bitmex):
 
     async def watch_balance(self, params={}):
         await self.load_markets()
-        raise NotImplemented(self.id + ' watchBalance() not implemented yet')
+        raise NotSupported(self.id + ' watchBalance() not implemented yet')
 
     def handle_trades(self, client, message):
         #

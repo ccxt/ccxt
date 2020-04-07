@@ -7,6 +7,7 @@ namespace ccxtpro;
 
 use Exception; // a common import
 use \ccxt\ExchangeError;
+use \ccxt\NotSupported;
 
 class kraken extends \ccxt\kraken {
 
@@ -117,7 +118,7 @@ class kraken extends \ccxt\kraken {
 
     public function watch_balance($params = array ()) {
         $this->load_markets();
-        throw new NotImplemented($this->id . ' watchBalance() not implemented yet');
+        throw new NotSupported($this->id . ' watchBalance() not implemented yet');
     }
 
     public function handle_trades($client, $message, $subscription) {
@@ -261,9 +262,13 @@ class kraken extends \ccxt\kraken {
         $name = 'book';
         $request = array();
         if ($limit !== null) {
-            $request['subscription'] = array(
-                'depth' => $limit, // default 10, valid options 10, 25, 100, 500, 1000
-            );
+            if (($limit === 10) || ($limit === 25) || ($limit === 100) || ($limit === 500) || ($limit === 1000)) {
+                $request['subscription'] = array(
+                    'depth' => $limit, // default 10, valid options 10, 25, 100, 500, 1000
+                );
+            } else {
+                throw new NotSupported($this->id . ' watchOrderBook accepts $limit values of 10, 25,100, 500 and 1000 only');
+            }
         }
         $future = $this->watch_public($name, $symbol, array_merge($request, $params));
         return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
