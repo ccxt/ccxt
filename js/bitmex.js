@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { ExchangeError, NotImplemented, RateLimitExceeded } = require ('ccxt/js/base/errors');
+const { ExchangeError, NotSupported, RateLimitExceeded } = require ('ccxt/js/base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -306,7 +306,7 @@ module.exports = class bitmex extends ccxt.bitmex {
 
     async watchBalance (params = {}) {
         await this.loadMarkets ();
-        throw new NotImplemented (this.id + ' watchBalance() not implemented yet');
+        throw new NotSupported (this.id + ' watchBalance() not implemented yet');
     }
 
     handleTrades (client, message) {
