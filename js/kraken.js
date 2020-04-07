@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { BadSymbol, BadRequest, ExchangeError, NotImplemented } = require ('ccxt/js/base/errors');
+const { BadSymbol, BadRequest, ExchangeError, NotSupported } = require ('ccxt/js/base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -113,7 +113,7 @@ module.exports = class kraken extends ccxt.kraken {
 
     async watchBalance (params = {}) {
         await this.loadMarkets ();
-        throw new NotImplemented (this.id + ' watchBalance() not implemented yet');
+        throw new NotSupported (this.id + ' watchBalance() not implemented yet');
     }
 
     handleTrades (client, message, subscription) {
@@ -257,9 +257,13 @@ module.exports = class kraken extends ccxt.kraken {
         const name = 'book';
         const request = {};
         if (limit !== undefined) {
-            request['subscription'] = {
-                'depth': limit, // default 10, valid options 10, 25, 100, 500, 1000
-            };
+            if ((limit === 10) || (limit === 25) || (limit === 100) || (limit === 500) || (limit === 1000)) {
+                request['subscription'] = {
+                    'depth': limit, // default 10, valid options 10, 25, 100, 500, 1000
+                };
+            } else {
+                throw new NotSupported (this.id + ' watchOrderBook accepts limit values of 10, 25,100, 500 and 1000 only');
+            }
         }
         const future = this.watchPublic (name, symbol, this.extend (request, params));
         return await this.after (future, this.limitOrderBook, symbol, limit, params);
