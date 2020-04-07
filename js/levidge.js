@@ -420,7 +420,7 @@ module.exports = class levidge extends Exchange {
 
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        const currency = this.getCurrency (code);
+        const currency = this.getCurrencyByCode (code);
         const request = {
             'instrumentId': currency['id'],
         };
@@ -434,7 +434,7 @@ module.exports = class levidge extends Exchange {
         const request = {};
         let currency = undefined;
         if (code) {
-            currency = this.getCurrency (code);
+            currency = this.getCurrencyByCode (code);
             request['instrumentId'] = currency['id'];
         }
         const response = await this.privatePostGetDepositHistory (this.extend (request, params));
@@ -451,7 +451,7 @@ module.exports = class levidge extends Exchange {
         const request = {};
         let currency = undefined;
         if (code) {
-            currency = this.getCurrency (code);
+            currency = this.getCurrencyByCode (code);
             request['instrumentId'] = currency['id'];
         }
         // getWithdrawRequests
@@ -480,7 +480,7 @@ module.exports = class levidge extends Exchange {
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
-        const currency = this.getCurrency (code);
+        const currency = this.getCurrencyByCode (code);
         const scale = this.getScale (amount);
         const quantity = this.convertToScale (amount, scale);
         const instrumentId = currency['id'];
@@ -562,7 +562,7 @@ module.exports = class levidge extends Exchange {
         const request = {};
         let currency = undefined;
         if (code) {
-            currency = this.getCurrency (code);
+            currency = this.getCurrencyByCode (code);
             request['instrumentId'] = currency['id'];
         }
         // getUserHistory
@@ -575,7 +575,7 @@ module.exports = class levidge extends Exchange {
         return this.milliseconds ();
     }
 
-    getCurrency (code) {
+    getCurrencyByCode (code) {
         const currencies = this.indexBy (this.currencies, 'code');
         code = code.toUpperCase ();
         const currency = currencies[code];
@@ -1021,7 +1021,7 @@ module.exports = class levidge extends Exchange {
                 headers['requestToken'] = this.apiKey;
                 params['userId'] = this.uid;
                 body = this.json (params);
-                const signature = this.hmac (body, this.secret, 'sha384').toString ();
+                const signature = this.hmac (body, this.secret, 'sha384');
                 headers['signature'] = signature;
                 body = body === undefined ? this.json (params) : body;
             }
