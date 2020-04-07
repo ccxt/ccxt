@@ -73,6 +73,9 @@ module.exports = class bleutrade extends Exchange {
                     ],
                 },
                 'v3Private': {
+                    'get': [
+                        'statement'
+                    ],
                     'post': [
                         'getbalance',
                         'getbalances',
@@ -606,7 +609,7 @@ module.exports = class bleutrade extends Exchange {
         // only seems to return 100 items and there is no documented way to change page size or offset
         const request = {
         };
-        const response = await this.v3PrivatePostGetmytransactions (this.extend (request, params));
+        const response = await this.v3PrivateGetStatement (this.extend (request, params));
         const items = response['result'];
         return this.parseLedger (items, code, since, limit);
     }
