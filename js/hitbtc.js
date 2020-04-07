@@ -15,6 +15,7 @@ module.exports = class hitbtc extends Exchange {
             'countries': [ 'HK' ],
             'rateLimit': 1500,
             'version': '2',
+            'pro': true,
             'has': {
                 'createDepositAddress': true,
                 'fetchDepositAddress': true,

@@ -11,6 +11,7 @@ use \ccxt\ArgumentsRequired;
 use \ccxt\InvalidAddress;
 use \ccxt\InvalidOrder;
 use \ccxt\NotSupported;
+use \ccxt\ExchangeNotAvailable;
 
 class okex extends Exchange {
 
@@ -3192,7 +3193,8 @@ class okex extends Exchange {
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         $feedback = $this->id . ' ' . $body;
         if ($code === 503) {
-            throw new ExchangeError($feedback);
+            // array("$message":"name resolution failed")
+            throw new ExchangeNotAvailable($feedback);
         }
         if (!$response) {
             return; // fallback to default error handler
@@ -3202,10 +3204,12 @@ class okex extends Exchange {
         if ($message !== null) {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
-        }
-        $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
-        if ($message !== null) {
-            throw new ExchangeError($feedback); // unknown $message
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
+            $nonEmptyMessage = ($message !== '');
+            $nonZeroErrorCode = ($errorCode !== null) && ($errorCode !== '0');
+            if ($nonZeroErrorCode || $nonEmptyMessage) {
+                throw new ExchangeError($feedback); // unknown $message
+            }
         }
     }
 }

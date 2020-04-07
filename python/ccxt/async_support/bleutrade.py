@@ -35,6 +35,7 @@ class bleutrade(Exchange):
                 'fetchTicker': True,
                 'fetchOrders': False,
                 'fetchClosedOrders': True,
+                'fetchOpenOrders': True,
                 'fetchWithdrawals': True,
                 'fetchOrderTrades': False,
                 'fetchLedger': True,
