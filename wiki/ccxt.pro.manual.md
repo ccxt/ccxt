@@ -52,10 +52,11 @@ The CCXT Pro heavily relies on the transpiler of CCXT for [multilanguge support]
 
 # Exchanges
 
-The CCXT Pro library currently supports the following 18 cryptocurrency exchange markets and WebSocket trading APIs:
+The CCXT Pro library currently supports the following 21 cryptocurrency exchange markets and WebSocket trading APIs:
 
 |&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;logo&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                                                                                                    | id            | name                                                                                | ver | doc                                                                                          | certified                                                                                                                   | pro                                                                         |
 |--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------|-------------------------------------------------------------------------------------|:---:|:--------------------------------------------------------------------------------------------:|-----------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------|
+|[![bequant](https://user-images.githubusercontent.com/1294454/55248342-a75dfe00-525a-11e9-8aa2-05e9dca943c6.jpg)](https://bequant.io)                                                       | bequant       | [Bequant](https://bequant.io)                                                       | 2   | [API](https://api.bequant.io/)                                                               |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro)|
 |[![binance](https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg)](https://www.binance.com/?ref=10205187)                                    | binance       | [Binance](https://www.binance.com/?ref=10205187)                                    | *   | [API](https://binance-docs.github.io/apidocs/spot/en)                                        | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro)|
 |[![binanceje](https://user-images.githubusercontent.com/1294454/54874009-d526eb00-4df3-11e9-928c-ce6a2b914cd1.jpg)](https://www.binance.je/?ref=35047921)                                   | binanceje     | [Binance Jersey](https://www.binance.je/?ref=35047921)                              | *   | [API](https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md) |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro)|
 |[![binanceus](https://user-images.githubusercontent.com/1294454/65177307-217b7c80-da5f-11e9-876e-0b748ba0a358.jpg)](https://www.binance.us/?ref=35005074)                                   | binanceus     | [Binance US](https://www.binance.us/?ref=35005074)                                  | *   | [API](https://github.com/binance-us/binance-official-api-docs)                               |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro)|
@@ -65,7 +66,9 @@ The CCXT Pro library currently supports the following 18 cryptocurrency exchange
 |[![bittrex](https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg)](https://bittrex.com/Account/Register?referralCode=1ZE-G0G-M3B)            | bittrex       | [Bittrex](https://bittrex.com/Account/Register?referralCode=1ZE-G0G-M3B)            | 1.1 | [API](https://bittrex.github.io/api/)                                                        | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro)|
 |[![coinbaseprime](https://user-images.githubusercontent.com/1294454/44539184-29f26e00-a70c-11e8-868f-e907fc236a7c.jpg)](https://prime.coinbase.com)                                         | coinbaseprime | [Coinbase Prime](https://prime.coinbase.com)                                        | *   | [API](https://docs.prime.coinbase.com)                                                       |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro)|
 |[![coinbasepro](https://user-images.githubusercontent.com/1294454/41764625-63b7ffde-760a-11e8-996d-a6328fa9347a.jpg)](https://pro.coinbase.com/)                                            | coinbasepro   | [Coinbase Pro](https://pro.coinbase.com/)                                           | *   | [API](https://docs.pro.coinbase.com)                                                         |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro)|
+|[![ftx](https://user-images.githubusercontent.com/1294454/67149189-df896480-f2b0-11e9-8816-41593e17f9ec.jpg)](https://ftx.com/#a=1623029)                                                   | ftx           | [FTX](https://ftx.com/#a=1623029)                                                   | *   | [API](https://github.com/ftexchange/ftx)                                                     | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro)|
 |[![gateio](https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg)](https://www.gate.io/signup/2436035)                                        | gateio        | [Gate.io](https://www.gate.io/signup/2436035)                                       | 2   | [API](https://gate.io/api2)                                                                  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro)|
+|[![hitbtc](https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg)](https://hitbtc.com/?ref_id=5a5d39a65d466)                                  | hitbtc        | [HitBTC](https://hitbtc.com/?ref_id=5a5d39a65d466)                                  | 2   | [API](https://api.hitbtc.com)                                                                |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro)|
 |[![huobipro](https://user-images.githubusercontent.com/1294454/76137448-22748a80-604e-11ea-8069-6e389271911d.jpg)](https://www.huobi.co/en-us/topic/invited/?invite_code=rwrd3)             | huobipro      | [Huobi Pro](https://www.huobi.co/en-us/topic/invited/?invite_code=rwrd3)            | 1   | [API](https://huobiapi.github.io/docs/spot/v1/cn/)                                           |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro)|
 |[![huobiru](https://user-images.githubusercontent.com/1294454/52978816-e8552e00-33e3-11e9-98ed-845acfece834.jpg)](https://www.huobi.com.ru/invite?invite_code=esc74)                        | huobiru       | [Huobi Russia](https://www.huobi.com.ru/invite?invite_code=esc74)                   | 1   | [API](https://github.com/cloudapidoc/API_Docs_en)                                            |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro)|
 |[![kraken](https://user-images.githubusercontent.com/51840849/76173629-fc67fb00-61b1-11ea-84fe-f2de582f58a3.jpg)](https://www.kraken.com)                                                   | kraken        | [Kraken](https://www.kraken.com)                                                    | 0   | [API](https://www.kraken.com/features/api)                                                   | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro)|
@@ -738,25 +741,25 @@ if ($exchange->has['watchBalance']) {
 ##### watchOrders
 
 ```diff
-- work in progress now
+- this method is a work in progress now (may be unavailable)
 ```
 
 ##### watchCreateOrder
 
 ```diff
-- work in progress now
+- this method is a work in progress now (may be unavailable)
 ```
 
 ##### watchCancelOrder
 
 ```diff
-- work in progress now
+- this method is a work in progress now (may be unavailable)
 ```
 
 ##### watchMyTrades
 
 ```diff
-- work in progress now
+- this method is a work in progress now (may be unavailable)
 ```
 
 ```JavaScript
@@ -779,7 +782,7 @@ watch_my_trades($symbol = null, $since = null, $lmit = null, $params = array());
 ##### watchTransactions
 
 ```diff
-- work in progress now
+- this method is a work in progress now (may be unavailable)
 ```
 
 ## Error Handling

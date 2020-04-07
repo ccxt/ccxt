@@ -434,7 +434,7 @@ declare module 'ccxt' {
     export class anxpro extends Exchange {}
     export class aofex extends Exchange {}
     export class bcex extends Exchange {}
-    export class bequant extends hitbtc2 {}
+    export class bequant extends hitbtc {}
     export class bibox extends Exchange {}
     export class bigone extends Exchange {}
     export class binance extends Exchange {}

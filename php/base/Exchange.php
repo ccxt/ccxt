@@ -35,7 +35,7 @@ use kornrunner\Solidity;
 use Elliptic\EC;
 use BN\BN;
 
-$version = '1.25.62';
+$version = '1.25.83';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -54,7 +54,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.25.62';
+    const VERSION = '1.25.83';
 
     public static $exchanges = array(
         '_1btcxe',
@@ -1228,9 +1228,11 @@ class Exchange {
     public function print() {
         $args = func_get_args();
         if (is_array($args)) {
+            $array = array();
             foreach ($args as $arg) {
-                print_r($arg);
+                $array[] = is_string($arg) ? $arg : json_encode($arg, JSON_PRETTY_PRINT);
             }
+            echo implode(' ', $array), "\n";
         }
     }
 
@@ -1319,7 +1321,8 @@ class Exchange {
         }
 
         if ($this->verbose) {
-            $this->print("\nRequest:\n", array($method, $url, $verbose_headers, $body));
+            $function = array($this, 'print');
+            $function('Request:', $method, $url, $verbose_headers, $body);
         }
 
         // we probably only need to set it once on startup
@@ -1401,7 +1404,8 @@ class Exchange {
         $http_status_code = curl_getinfo($this->curl, CURLINFO_HTTP_CODE);
 
         if ($this->verbose) {
-            $this->print("\nResponse:\n", array($method, $url, $http_status_code, $curl_error, $response_headers, $result));
+            $function = array($this, 'print');
+            $function('Response:', $method, $url, $http_status_code, $curl_error, $response_headers, $result);
         }
 
         $this->handle_errors($http_status_code, $http_status_text, $url, $method, $response_headers, $result ? $result : null, $json_response, $headers, $body);
@@ -2487,6 +2491,7 @@ class Exchange {
             $precisionDigitsString = static::decimal_to_precision ($numPrecisionDigits, ROUND, 100, DECIMAL_PLACES, NO_PADDING);
             $newNumPrecisionDigits = static::precisionFromString ($precisionDigitsString);
             $missing = fmod($x, $numPrecisionDigits);
+            $missing = floatval(static::decimal_to_precision ($missing, ROUND, 8, DECIMAL_PLACES, NO_PADDING));
             // See: https://github.com/ccxt/ccxt/pull/6486
             $fpError = static::decimal_to_precision ($missing / $numPrecisionDigits, ROUND, max($newNumPrecisionDigits, 8), DECIMAL_PLACES, NO_PADDING);
             if (static::precisionFromString ($fpError) !== 0) {

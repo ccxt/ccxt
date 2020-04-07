@@ -20,6 +20,7 @@ class hitbtc extends Exchange {
             'countries' => array( 'HK' ),
             'rateLimit' => 1500,
             'version' => '2',
+            'pro' => true,
             'has' => array(
                 'createDepositAddress' => true,
                 'fetchDepositAddress' => true,

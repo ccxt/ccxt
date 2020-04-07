@@ -214,6 +214,9 @@ assert (decimalToPrecision ('-44', ROUND, 4.4, TICK_SIZE) === '-44');
 assert (decimalToPrecision ('44.00000001', ROUND, 4.4, TICK_SIZE) === '44');
 assert (decimalToPrecision ('-44.00000001', ROUND, 4.4, TICK_SIZE) === '-44');
 
+// https://github.com/ccxt/ccxt/issues/6731
+assert (decimalToPrecision ('20', TRUNCATE, 0.00000001, TICK_SIZE) === '20');
+
 // ----------------------------------------------------------------------------
 // testDecimalToPrecisionNegativeNumbers
 

@@ -425,6 +425,7 @@ class exmo extends Exchange {
                     '40015' => '\\ccxt\\ExchangeError', // API function do not exist
                     '40016' => '\\ccxt\\OnMaintenance', // array("result":false,"error":"Error 40016 => Maintenance work in progress")
                     '40017' => '\\ccxt\\AuthenticationError', // Wrong API Key
+                    '40034' => '\\ccxt\\RateLimitExceeded', // array("result":false,"error":"Error 40034 => Access is denied, rate limit is exceeded")
                     '50052' => '\\ccxt\\InsufficientFunds',
                     '50054' => '\\ccxt\\InsufficientFunds',
                     '50304' => '\\ccxt\\OrderNotFound', // "Order was not found '123456789'" (fetching order trades for an order that does not have trades yet)

@@ -561,6 +561,7 @@ module.exports = class coinmate extends Exchange {
         const statuses = {
             'FILLED': 'closed',
             'CANCELLED': 'canceled',
+            'PARTIALLY_FILLED': 'open',
             'OPEN': 'open',
         };
         return this.safeString (statuses, status, status);
@@ -623,12 +624,15 @@ module.exports = class coinmate extends Exchange {
         const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat2 (order, 'originalAmount', 'amount');
         const remaining = this.safeFloat (order, 'remainingAmount', amount);
-        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
         const type = this.parseOrderType (this.safeString (order, 'orderTradeType'));
         let filled = undefined;
         let cost = undefined;
         if ((amount !== undefined) && (remaining !== undefined)) {
-            filled = amount - remaining;
+            filled = Math.min (amount - remaining, 0);
+            if (remaining === 0) {
+                status = 'closed';
+            }
             if (price !== undefined) {
                 cost = filled * price;
             }
