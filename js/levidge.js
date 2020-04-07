@@ -75,9 +75,6 @@ module.exports = class levidge extends Exchange {
                         'getTradeHistory',
                         'getExchangeInfo',
                     ],
-                    'post': [
-                        'logon',
-                    ],
                 },
                 'private': {
                     'post': [
@@ -125,10 +122,12 @@ module.exports = class levidge extends Exchange {
 
     async fetchCurrencies (params = {}) {
         const response = await this.publicGetGetInstruments (params);
-        const currencies = [];
+        const currencies = {};
         const results = this.safeValue (response, 'instruments', []);
         for (let i = 0; i < results.length; i++) {
-            currencies.push (this.parseCurrency (results[i]));
+            const currency = this.parseCurrency (results[i]);
+            const code = currency['code'];
+            currencies[code] = currency;
         }
         // we need this to parse Markets
         this.currencies = currencies;
@@ -194,8 +193,8 @@ module.exports = class levidge extends Exchange {
                 'bids': [],
                 'asks': [],
             };
-            const bidData = response['bids'];
-            const askData = response['asks'];
+            const bidData = this.safeValue (response, 'bids');
+            const askData = this.safeValue (response, 'asks');
             if (bidData) {
                 for (let i = 0; i < bidData.length; i++) {
                     if (bidData[i]) {
@@ -264,7 +263,7 @@ module.exports = class levidge extends Exchange {
                 const free = this.convertFromScale (availableQuantity, scale);
                 const total = this.convertFromScale (quantity, scale);
                 const used = parseFloat (this.decimalToPrecision (total - free, ROUND, scale));
-                if (!balance[symbol]) {
+                if (!this.safeValue (balance, symbol)) {
                     balance[symbol] = this.account ();
                 }
                 balance[symbol]['free'] = free;
@@ -288,7 +287,7 @@ module.exports = class levidge extends Exchange {
         const order = await this.privatePostOrder (request);
         return {
             'info': order,
-            'id': order['id'],
+            'id': this.safeInteger (order, 'id'),
             'timestamp': undefined,
             'datetime': undefined,
             'lastTradeTimestamp': undefined,
@@ -301,18 +300,27 @@ module.exports = class levidge extends Exchange {
             'average': undefined,
             'filled': undefined,
             'remaining': undefined,
-            'status': order['status'],
+            'status': this.safeString (order, 'status'),
             'fee': undefined,
         };
     }
 
     createOrderRequest (market, type, side, amount, price = undefined, params = {}) {
+        if (!price) {
+            price = 0;
+        }
         const amount_scale = this.getScale (amount);
-        const price_scale = price > 0 ? this.getScale (price) : 0;
+        const price_scale = this.getScale (price);
         const stopPx = 0;
         const stopPx_scale = this.getScale (stopPx);
-        const ordType = type === 'limit' ? 2 : 1;
-        const requestSide = side === 'sell' ? 2 : 1;
+        let ordType = 1;
+        let requestSide = 1;
+        if (type === 'limit') {
+            ordType = 2;
+        }
+        if (side === 'sell') {
+            requestSide = 2;
+        }
         const request = {
             'id': 0,
             'instrumentId': market['id'],
@@ -576,9 +584,8 @@ module.exports = class levidge extends Exchange {
     }
 
     getCurrencyByCode (code) {
-        const currencies = this.indexBy (this.currencies, 'code');
         code = code.toUpperCase ();
-        const currency = currencies[code];
+        const currency = this.currencies[code];
         if (!currency) {
             throw new BadSymbol (this.id + ': code ' + code + ' is not listed');
         }
@@ -667,7 +674,11 @@ module.exports = class levidge extends Exchange {
         if (quoteCurrency) {
             quote = quoteCurrency['code'].toLowerCase ();
         }
-        const active = market[6] === 1 ? true : false; // status
+        // status
+        let active = false;
+        if (market[6] === 1) {
+            active = true;
+        }
         const precision = {
             'amount': market[5], // quantity_scale
             'price': market[4], // price_scale
@@ -705,7 +716,11 @@ module.exports = class levidge extends Exchange {
         const id = currency[0]; // instrumentId
         const code = currency[1]; // symbol
         const name = currency[6]; // name
-        const active = currency[4] === 1 ? true : false; // status
+        let active = false;
+        // status
+        if (currency[4] === 1) {
+            active = true;
+        }
         const precision = currency[2]; // price_scale
         const fee = currency[5]; // withdraw_fee
         const limits = {
@@ -1015,15 +1030,16 @@ module.exports = class levidge extends Exchange {
                 'Content-Type': 'application/json',
             };
             params['nonce'] = this.nonce ();
-            // not logon method add signature and requestToken
             if (api === 'private') {
                 this.checkRequiredCredentials ();
                 headers['requestToken'] = this.apiKey;
                 params['userId'] = this.uid;
                 body = this.json (params);
-                const signature = this.hmac (body, this.secret, 'sha384');
+                const signature = this.hmac (this.encode (body), this.encode (this.secret), 'sha384');
                 headers['signature'] = signature;
-                body = body === undefined ? this.json (params) : body;
+            }
+            if (!body) {
+                body = this.json (params);
             }
         }
         const url = this.urls['api'][api] + query;
