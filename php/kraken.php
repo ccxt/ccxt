@@ -451,6 +451,13 @@ class kraken extends Exchange {
         );
     }
 
+    public function parse_bid_ask($bidask, $priceKey = 0, $amountKey = 1) {
+        $price = $this->safe_float($bidask, $priceKey);
+        $amount = $this->safe_float($bidask, $amountKey);
+        $timestamp = $this->safe_integer($bidask, 2);
+        return array( $price, $amount, $timestamp );
+    }
+
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
@@ -464,7 +471,27 @@ class kraken extends Exchange {
             $request['count'] = $limit; // 100
         }
         $response = $this->publicGetDepth (array_merge($request, $params));
-        $orderbook = $response['result'][$market['id']];
+        //
+        //     {
+        //         "error":array(),
+        //         "$result":{
+        //             "XETHXXBT":{
+        //                 "asks":[
+        //                     ["0.023480","4.000",1586321307],
+        //                     ["0.023490","50.095",1586321306],
+        //                     ["0.023500","28.535",1586321302],
+        //                 ],
+        //                 "bids":[
+        //                     ["0.023470","59.580",1586321307],
+        //                     ["0.023460","20.000",1586321301],
+        //                     ["0.023440","67.832",1586321306],
+        //                 ]
+        //             }
+        //         }
+        //     }
+        //
+        $result = $this->safe_value($response, 'result', array());
+        $orderbook = $this->safe_value($result, $market['id']);
         return $this->parse_order_book($orderbook);
     }
 
