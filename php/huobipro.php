@@ -555,6 +555,33 @@ class huobipro extends \ccxt\huobipro {
     }
 
     public function handle_error_message($client, $message) {
+        //
+        //     {
+        //         ts => 1586323747018,
+        //         $status => 'error',
+        //         'err-code' => 'bad-request',
+        //         'err-msg' => 'invalid mbp.150.symbol linkusdt',
+        //         $id => '2'
+        //     }
+        //
+        $status = $this->safe_string($message, 'status');
+        if ($status === 'error') {
+            $id = $this->safe_string($message, 'id');
+            $subscriptionsById = $this->index_by($client->subscriptions, 'id');
+            $subscription = $this->safe_value($subscriptionsById, $id);
+            if ($subscription !== null) {
+                $errorCode = $this->safe_string($message, 'err-code');
+                try {
+                    $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $this->json($message));
+                } catch (Exception $e) {
+                    $messageHash = $this->safe_string($subscription, 'messageHash');
+                    $client->reject ($e, $messageHash);
+                    $client->reject ($e, $id);
+                    unset($client->subscriptions[$id]);
+                }
+            }
+            return false;
+        }
         return $message;
     }
 

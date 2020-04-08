@@ -508,6 +508,30 @@ class huobipro(Exchange, ccxt.huobipro):
         self.spawn(self.pong, client, message)
 
     def handle_error_message(self, client, message):
+        #
+        #     {
+        #         ts: 1586323747018,
+        #         status: 'error',
+        #         'err-code': 'bad-request',
+        #         'err-msg': 'invalid mbp.150.symbol linkusdt',
+        #         id: '2'
+        #     }
+        #
+        status = self.safe_string(message, 'status')
+        if status == 'error':
+            id = self.safe_string(message, 'id')
+            subscriptionsById = self.index_by(client.subscriptions, 'id')
+            subscription = self.safe_value(subscriptionsById, id)
+            if subscription is not None:
+                errorCode = self.safe_string(message, 'err-code')
+                try:
+                    self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, self.json(message))
+                except Exception as e:
+                    messageHash = self.safe_string(subscription, 'messageHash')
+                    client.reject(e, messageHash)
+                    client.reject(e, id)
+                    del client.subscriptions[id]
+            return False
         return message
 
     def handle_message(self, client, message):
