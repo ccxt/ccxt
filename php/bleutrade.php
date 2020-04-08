@@ -77,6 +77,9 @@ class bleutrade extends Exchange {
                     ),
                 ),
                 'v3Private' => array(
+                    'get' => array(
+                        'statement',
+                    ),
                     'post' => array(
                         'getbalance',
                         'getbalances',

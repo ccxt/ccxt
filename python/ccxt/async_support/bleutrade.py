@@ -81,6 +81,9 @@ class bleutrade(Exchange):
                     ],
                 },
                 'v3Private': {
+                    'get': [
+                        'statement',
+                    ],
                     'post': [
                         'getbalance',
                         'getbalances',
