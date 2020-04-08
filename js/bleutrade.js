@@ -73,6 +73,9 @@ module.exports = class bleutrade extends Exchange {
                     ],
                 },
                 'v3Private': {
+                    'get': [
+                        'statement',
+                    ],
                     'post': [
                         'getbalance',
                         'getbalances',
