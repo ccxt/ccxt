@@ -1753,6 +1753,7 @@ Notes On Order Book Structure
 -  The ``orderbook['timestamp']`` is the time when the exchange generated this orderbook response (before replying it back to you). This may be missing (``undefined/None/null``), as documented in the Manual, not all exchanges provide a timestamp there. If it is defined, then it is the UTC timestamp **in milliseconds** since 1 Jan 1970 00:00:00.
 -  Some exchanges may index orders in the orderbook by order ids, in that case the order id may be returned as the third element of bids and asks: ``[ price, amount, id ]``. This is often the case with L3 orderbooks without aggregation. The order ``id``, if shown in the orderbook, refers to the orderbook and does not necessarily correspond to the actual order id from the exchanges’ database as seen by the owner or by the others. The order id is an ``id`` of the row inside the orderbook, but not necessarily the true-\ ``id`` of the order (though, they may be equal as well, depending on the exchange in question).
 -  In some cases the exchanges may supply L2 aggregated orderbooks with order counts for each aggregated level, in that case the order count may be returned as the third element of bids and asks: ``[ price, amount, count ]``. The ``count`` tells how many orders are aggregated on each price level in bids and asks.
+-  Also, some exchanges may return the order timestamp as the third element of bids and asks: ``[ price, amount, timestamp ]``. The ``timestamp`` tells when the order was placed on the orderbook.
 
 Market Depth
 ~~~~~~~~~~~~
