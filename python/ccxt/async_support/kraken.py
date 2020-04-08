@@ -441,6 +441,12 @@ class kraken(Exchange):
             'taker': taker,
         }
 
+    def parse_bid_ask(self, bidask, priceKey=0, amountKey=1):
+        price = self.safe_float(bidask, priceKey)
+        amount = self.safe_float(bidask, amountKey)
+        timestamp = self.safe_integer(bidask, 2)
+        return [price, amount, timestamp]
+
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
@@ -452,7 +458,27 @@ class kraken(Exchange):
         if limit is not None:
             request['count'] = limit  # 100
         response = await self.publicGetDepth(self.extend(request, params))
-        orderbook = response['result'][market['id']]
+        #
+        #     {
+        #         "error":[],
+        #         "result":{
+        #             "XETHXXBT":{
+        #                 "asks":[
+        #                     ["0.023480","4.000",1586321307],
+        #                     ["0.023490","50.095",1586321306],
+        #                     ["0.023500","28.535",1586321302],
+        #                 ],
+        #                 "bids":[
+        #                     ["0.023470","59.580",1586321307],
+        #                     ["0.023460","20.000",1586321301],
+        #                     ["0.023440","67.832",1586321306],
+        #                 ]
+        #             }
+        #         }
+        #     }
+        #
+        result = self.safe_value(response, 'result', {})
+        orderbook = self.safe_value(result, market['id'])
         return self.parse_order_book(orderbook)
 
     def parse_ticker(self, ticker, market=None):
