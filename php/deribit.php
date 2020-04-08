@@ -885,7 +885,7 @@ class deribit extends Exchange {
             // M = maker, T = taker, MT = both
             $takerOrMaker = ($liquidity === 'M') ? 'maker' : 'taker';
         }
-        $feeCost = $this->safe_float($trade, 'feeCost');
+        $feeCost = $this->safe_float($trade, 'fee');
         $fee = null;
         if ($feeCost !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'fee_currency');

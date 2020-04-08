@@ -872,7 +872,7 @@ class deribit(Exchange):
         if liquidity is not None:
             # M = maker, T = taker, MT = both
             takerOrMaker = 'maker' if (liquidity == 'M') else 'taker'
-        feeCost = self.safe_float(trade, 'feeCost')
+        feeCost = self.safe_float(trade, 'fee')
         fee = None
         if feeCost is not None:
             feeCurrencyId = self.safe_string(trade, 'fee_currency')
