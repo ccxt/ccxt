@@ -1842,7 +1842,7 @@ module.exports = class okex extends Exchange {
         //         "result":true
         //     }
         //
-        const timestamp = this.milliseconds ();
+        const timestamp = undefined;
         const id = this.safeString (response, 'order_id');
         return {
             'info': response,
