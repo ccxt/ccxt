@@ -67,7 +67,7 @@ module.exports = class bitfinex extends ccxt.bitfinex {
         //
         //     [
         //         2,
-        //             [
+        //         [
         //             [ null, 1580565020, 9374.9, 0.005 ],
         //             [ null, 1580565004, 9374.9, 0.005 ],
         //             [ null, 1580565003, 9374.9, 0.005 ],
@@ -84,8 +84,9 @@ module.exports = class bitfinex extends ccxt.bitfinex {
         //     // channel id, update type, seq, trade id, time, price, amount
         //     [ 2, 'tu', '28462857-BTCUSD', 413357662, 1580565041, 9374.9, 0.005 ]
         //
-        const messageHash = this.safeValue (subscription, 'messageHash');
+        const channel = this.safeValue (subscription, 'channel');
         const marketId = this.safeString (subscription, 'pair');
+        const messageHash = channel + ':' + marketId;
         const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
         if (marketId in this.markets_by_id) {
             const market = this.markets_by_id[marketId];

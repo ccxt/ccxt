@@ -8,6 +8,7 @@ import ccxt.async_support as ccxt
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
+from ccxt.base.errors import NotSupported
 
 
 class kraken(Exchange, ccxt.kraken):
@@ -114,7 +115,7 @@ class kraken(Exchange, ccxt.kraken):
 
     async def watch_balance(self, params={}):
         await self.load_markets()
-        raise NotImplemented(self.id + ' watchBalance() not implemented yet')
+        raise NotSupported(self.id + ' watchBalance() not implemented yet')
 
     def handle_trades(self, client, message, subscription):
         #
@@ -243,9 +244,12 @@ class kraken(Exchange, ccxt.kraken):
         name = 'book'
         request = {}
         if limit is not None:
-            request['subscription'] = {
-                'depth': limit,  # default 10, valid options 10, 25, 100, 500, 1000
-            }
+            if (limit == 10) or (limit == 25) or (limit == 100) or (limit == 500) or (limit == 1000):
+                request['subscription'] = {
+                    'depth': limit,  # default 10, valid options 10, 25, 100, 500, 1000
+                }
+            else:
+                raise NotSupported(self.id + ' watchOrderBook accepts limit values of 10, 25,100, 500 and 1000 only')
         future = self.watch_public(name, symbol, self.extend(request, params))
         return await self.after(future, self.limit_order_book, symbol, limit, params)
 

@@ -65,7 +65,7 @@ class bitfinex(Exchange, ccxt.bitfinex):
         #
         #     [
         #         2,
-        #             [
+        #         [
         #             [null, 1580565020, 9374.9, 0.005],
         #             [null, 1580565004, 9374.9, 0.005],
         #             [null, 1580565003, 9374.9, 0.005],
@@ -82,8 +82,9 @@ class bitfinex(Exchange, ccxt.bitfinex):
         #     # channel id, update type, seq, trade id, time, price, amount
         #     [2, 'tu', '28462857-BTCUSD', 413357662, 1580565041, 9374.9, 0.005]
         #
-        messageHash = self.safe_value(subscription, 'messageHash')
+        channel = self.safe_value(subscription, 'channel')
         marketId = self.safe_string(subscription, 'pair')
+        messageHash = channel + ':' + marketId
         tradesLimit = self.safe_integer(self.options, 'tradesLimit', 1000)
         if marketId in self.markets_by_id:
             market = self.markets_by_id[marketId]

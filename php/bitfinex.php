@@ -71,7 +71,7 @@ class bitfinex extends \ccxt\bitfinex {
         //
         //     array(
         //         2,
-        //             array(
+        //         array(
         //             array( null, 1580565020, 9374.9, 0.005 ),
         //             array( null, 1580565004, 9374.9, 0.005 ),
         //             array( null, 1580565003, 9374.9, 0.005 ),
@@ -80,16 +80,17 @@ class bitfinex extends \ccxt\bitfinex {
         //
         // when a $trade does not have an id yet
         //
-        //     // channel id, update type, seq, time, price, amount
+        //     // $channel id, update type, seq, time, price, amount
         //     array( 2, 'te', '28462857-BTCUSD', 1580565041, 9374.9, 0.005 ),
         //
         // when a $trade already has an id
         //
-        //     // channel id, update type, seq, $trade id, time, price, amount
+        //     // $channel id, update type, seq, $trade id, time, price, amount
         //     array( 2, 'tu', '28462857-BTCUSD', 413357662, 1580565041, 9374.9, 0.005 )
         //
-        $messageHash = $this->safe_value($subscription, 'messageHash');
+        $channel = $this->safe_value($subscription, 'channel');
         $marketId = $this->safe_string($subscription, 'pair');
+        $messageHash = $channel . ':' . $marketId;
         $tradesLimit = $this->safe_integer($this->options, 'tradesLimit', 1000);
         if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
             $market = $this->markets_by_id[$marketId];

@@ -7,6 +7,7 @@ namespace ccxtpro;
 
 use Exception; // a common import
 use \ccxt\ExchangeError;
+use \ccxt\NotSupported;
 
 class bitmex extends \ccxt\bitmex {
 
@@ -310,7 +311,7 @@ class bitmex extends \ccxt\bitmex {
 
     public function watch_balance($params = array ()) {
         $this->load_markets();
-        throw new NotImplemented($this->id . ' watchBalance() not implemented yet');
+        throw new NotSupported($this->id . ' watchBalance() not implemented yet');
     }
 
     public function handle_trades($client, $message) {
