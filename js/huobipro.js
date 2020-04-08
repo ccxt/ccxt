@@ -551,6 +551,33 @@ module.exports = class huobipro extends ccxt.huobipro {
     }
 
     handleErrorMessage (client, message) {
+        //
+        //     {
+        //         ts: 1586323747018,
+        //         status: 'error',
+        //         'err-code': 'bad-request',
+        //         'err-msg': 'invalid mbp.150.symbol linkusdt',
+        //         id: '2'
+        //     }
+        //
+        const status = this.safeString (message, 'status');
+        if (status === 'error') {
+            const id = this.safeString (message, 'id');
+            const subscriptionsById = this.indexBy (client.subscriptions, 'id');
+            const subscription = this.safeValue (subscriptionsById, id);
+            if (subscription !== undefined) {
+                const errorCode = this.safeString (message, 'err-code');
+                try {
+                    this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, this.json (message));
+                } catch (e) {
+                    const messageHash = this.safeString (subscription, 'messageHash');
+                    client.reject (e, messageHash);
+                    client.reject (e, id);
+                    delete client.subscriptions[id];
+                }
+            }
+            return false;
+        }
         return message;
     }
 
