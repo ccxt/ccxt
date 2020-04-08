@@ -1805,7 +1805,7 @@ class okex(Exchange):
         #         "result":true
         #     }
         #
-        timestamp = self.milliseconds()
+        timestamp = None
         id = self.safe_string(response, 'order_id')
         return {
             'info': response,
