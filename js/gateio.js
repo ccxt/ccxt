@@ -483,6 +483,26 @@ module.exports = class gateio extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //  from createOrder
+        //    {"fee": "0 ZEC",
+        //     "code": 0,
+        //     "rate": "0.0055",
+        //     "side": 2,
+        //     "type": "buy",
+        //     "ctime": 1586460839.138,
+        //     "market": "ZEC_BTC",
+        //     "result": "true",
+        //     "status": "open",
+        //     "iceberg": "0",
+        //     "message": "Success",
+        //     "feeValue": "0",
+        //     "filledRate": "0.005500000",
+        //     "leftAmount": "0.60607456",
+        //     "feeCurrency": "ZEC",
+        //     "orderNumber": 10755887009,
+        //     "filledAmount": "0",
+        //     "feePercentage": 0.002,
+        //     "initialAmount": "0.60607456"}
         //
         //    {'amount': '0.00000000',
         //     'currencyPair': 'xlm_usdt',
@@ -520,7 +540,7 @@ module.exports = class gateio extends Exchange {
         } else if (side === '2') {
             side = 'buy';
         }
-        const price = this.safeFloat2 (order, 'initialRate', 'price');
+        const price = this.safeFloat2 (order, 'initialRate', 'rate');
         const average = this.safeFloat (order, 'filledRate');
         const amount = this.safeFloat2 (order, 'initialAmount', 'amount');
         const filled = this.safeFloat (order, 'filledAmount');
