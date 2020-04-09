@@ -237,7 +237,7 @@ module.exports = class paymium extends Exchange {
                     url += '?' + queryString;
                 }
             }
-            headers['Api-Signature'] = this.hmac (this.encode (auth), this.encode (this.secret)),
+            headers['Api-Signature'] = this.hmac (this.encode (auth), this.encode (this.secret));
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
