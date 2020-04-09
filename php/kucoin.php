@@ -718,7 +718,7 @@ class kucoin extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'fee' => null,
             'status' => 'open',
-            'clientOid' => $clientOid,
+            'clientOrderId' => $clientOid,
             'info' => $data,
         );
         if (!$this->safe_value($params, 'quoteAmount')) {
