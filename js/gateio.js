@@ -520,7 +520,7 @@ module.exports = class gateio extends Exchange {
         } else if (side === '2') {
             side = 'buy';
         }
-        const price = this.safeFloat2 (order, 'initialRate', 'price');
+        const price = this.safeFloat2 (order, 'initialRate', 'rate');
         const average = this.safeFloat (order, 'filledRate');
         const amount = this.safeFloat2 (order, 'initialAmount', 'amount');
         const filled = this.safeFloat (order, 'filledAmount');

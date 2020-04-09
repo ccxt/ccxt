@@ -1848,7 +1848,7 @@ class okex extends Exchange {
         //         "result":true
         //     }
         //
-        $timestamp = $this->milliseconds();
+        $timestamp = null;
         $id = $this->safe_string($response, 'order_id');
         return array(
             'info' => $response,

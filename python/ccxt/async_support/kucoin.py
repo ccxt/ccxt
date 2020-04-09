@@ -696,7 +696,7 @@ class kucoin(Exchange):
             'datetime': self.iso8601(timestamp),
             'fee': None,
             'status': 'open',
-            'clientOid': clientOid,
+            'clientOrderId': clientOid,
             'info': data,
         }
         if not self.safe_value(params, 'quoteAmount'):
