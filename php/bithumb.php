@@ -10,8 +10,8 @@ use \ccxt\ExchangeError;
 
 class bithumb extends Exchange {
 
-    public function describe () {
-        return array_replace_recursive(parent::describe (), array(
+    public function describe() {
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'bithumb',
             'name' => 'Bithumb',
             'countries' => array( 'KR' ), // South Korea
@@ -85,7 +85,7 @@ class bithumb extends Exchange {
         ));
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         $response = $this->publicGetTickerAll ($params);
         $data = $this->safe_value($response, 'data');
         $currencyIds = is_array($data) ? array_keys($data) : array();
@@ -131,12 +131,14 @@ class bithumb extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'baseId' => null,
+                'quoteId' => null,
             );
         }
         return $result;
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $request = array(
             'currency' => 'ALL',
@@ -147,8 +149,8 @@ class bithumb extends Exchange {
         $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
         for ($i = 0; $i < count($codes); $i++) {
             $code = $codes[$i];
-            $account = $this->account ();
-            $currency = $this->currency ($code);
+            $account = $this->account();
+            $currency = $this->currency($code);
             $lowerCurrencyId = $this->safe_string_lower($currency, 'id');
             $account['total'] = $this->safe_float($balances, 'total_' . $lowerCurrencyId);
             $account['used'] = $this->safe_float($balances, 'in_use_' . $lowerCurrencyId);
@@ -158,9 +160,9 @@ class bithumb extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'currency' => $market['base'],
         );
@@ -173,7 +175,7 @@ class bithumb extends Exchange {
         return $this->parse_order_book($orderbook, $timestamp, 'bids', 'asks', 'price', 'quantity');
     }
 
-    public function parse_ticker ($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null) {
         $timestamp = $this->safe_integer($ticker, 'date');
         $symbol = null;
         if ($market !== null) {
@@ -189,7 +191,7 @@ class bithumb extends Exchange {
             if ($open > 0) {
                 $percentage = $change / $open * 100;
             }
-            $average = $this->sum ($open, $close) / 2;
+            $average = $this->sum($open, $close) / 2;
         }
         $baseVolume = $this->safe_float($ticker, 'units_traded_24H');
         $quoteVolume = $this->safe_float($ticker, 'acc_trade_value_24H');
@@ -200,7 +202,7 @@ class bithumb extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'max_price'),
             'low' => $this->safe_float($ticker, 'min_price'),
             'bid' => $this->safe_float($ticker, 'buy_price'),
@@ -221,12 +223,12 @@ class bithumb extends Exchange {
         );
     }
 
-    public function fetch_tickers ($symbols = null, $params = array ()) {
+    public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
         $response = $this->publicGetTickerAll ($params);
         $result = array();
         $timestamp = $this->safe_integer($response['data'], 'date');
-        $tickers = $this->omit ($response['data'], 'date');
+        $tickers = $this->omit($response['data'], 'date');
         $ids = is_array($tickers) ? array_keys($tickers) : array();
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
@@ -246,9 +248,9 @@ class bithumb extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'currency' => $market['base'],
         );
@@ -256,7 +258,7 @@ class bithumb extends Exchange {
         return $this->parse_ticker($response['data'], $market);
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         // a workaround for their bug in date format, hours are not 0-padded
         $parts = explode(' ', $trade['transaction_date']);
         $transaction_date = $parts[0];
@@ -264,7 +266,7 @@ class bithumb extends Exchange {
         if (strlen($transaction_time) < 8) {
             $transaction_time = '0' . $transaction_time;
         }
-        $timestamp = $this->parse8601 ($transaction_date . ' ' . $transaction_time);
+        $timestamp = $this->parse8601($transaction_date . ' ' . $transaction_time);
         $timestamp -= 9 * 3600000; // they report UTC . 9 hours (is_array(Korean timezone) && array_key_exists(server, Korean timezone))
         $type = null;
         $side = $this->safe_string($trade, 'type');
@@ -286,7 +288,7 @@ class bithumb extends Exchange {
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'order' => null,
             'type' => $type,
@@ -299,9 +301,9 @@ class bithumb extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'currency' => $market['base'],
         );
@@ -312,9 +314,9 @@ class bithumb extends Exchange {
         return $this->parse_trades($response['data'], $market, $since, $limit);
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = null;
         $method = 'privatePostTrade';
         if ($type === 'limit') {
@@ -331,7 +333,7 @@ class bithumb extends Exchange {
                 'currency' => $market['id'],
                 'units' => $amount,
             );
-            $method .= 'Market' . $this->capitalize ($side);
+            $method .= 'Market' . $this->capitalize($side);
         }
         $response = $this->$method (array_merge($request, $params));
         $id = $this->safe_string($response, 'order_id');
@@ -341,7 +343,7 @@ class bithumb extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         $side_in_params = (is_array($params) && array_key_exists('side', $params));
         if (!$side_in_params) {
             throw new ExchangeError($this->id . ' cancelOrder requires a `$side` parameter (sell or buy) and a `$currency` parameter');
@@ -351,7 +353,7 @@ class bithumb extends Exchange {
             throw new ExchangeError($this->id . ' cancelOrder requires a `$currency` parameter (a $currency $id)');
         }
         $side = ($params['side'] === 'buy') ? 'bid' : 'ask';
-        $params = $this->omit ($params, array( 'side', 'currency' ));
+        $params = $this->omit($params, array( 'side', 'currency' ));
         $request = array(
             'order_id' => $id,
             'type' => $side,
@@ -360,10 +362,10 @@ class bithumb extends Exchange {
         return $this->privatePostTradeCancel (array_merge($request, $params));
     }
 
-    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $request = array(
             'units' => $amount,
             'address' => $address,
@@ -384,27 +386,27 @@ class bithumb extends Exchange {
         );
     }
 
-    public function nonce () {
-        return $this->milliseconds ();
+    public function nonce() {
+        return $this->milliseconds();
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $endpoint = '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . $endpoint;
-        $query = $this->omit ($params, $this->extract_params($path));
+        $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
             if ($query) {
-                $url .= '?' . $this->urlencode ($query);
+                $url .= '?' . $this->urlencode($query);
             }
         } else {
             $this->check_required_credentials();
-            $body = $this->urlencode (array_merge(array(
+            $body = $this->urlencode(array_merge(array(
                 'endpoint' => $endpoint,
             ), $query));
-            $nonce = (string) $this->nonce ();
+            $nonce = (string) $this->nonce();
             $auth = $endpoint . "\0" . $body . "\0" . $nonce; // eslint-disable-line quotes
-            $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha512');
-            $signature64 = $this->decode (base64_encode($this->encode ($signature)));
+            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha512');
+            $signature64 = $this->decode(base64_encode($this->encode($signature)));
             $headers = array(
                 'Accept' => 'application/json',
                 'Content-Type' => 'application/x-www-form-urlencoded',
@@ -416,7 +418,7 @@ class bithumb extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return; // fallback to default error handler
         }
@@ -438,13 +440,13 @@ class bithumb extends Exchange {
         }
     }
 
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
+    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $response = $this->fetch2($path, $api, $method, $params, $headers, $body);
         if (is_array($response) && array_key_exists('status', $response)) {
             if ($response['status'] === '0000') {
                 return $response;
             }
-            throw new ExchangeError($this->id . ' ' . $this->json ($response));
+            throw new ExchangeError($this->id . ' ' . $this->json($response));
         }
         return $response;
     }

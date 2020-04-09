@@ -42,7 +42,7 @@ module.exports = (exchange, ticker, method, symbol) => {
     assert (!('first' in ticker), '`first` field leftover in ' + exchange.id)
     assert (ticker['last'] === ticker['close'], '`last` != `close` in ' + exchange.id)
 
-    // log (ticker)
+    log (ticker['datetime'], exchange.id, method, ticker['symbol'].green, ticker['last'])
 
     keys.forEach (key => assert (key in ticker))
 

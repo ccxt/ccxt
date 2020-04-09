@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, AuthenticationError, NotSupported, InvalidOrder, OrderNotFound, ExchangeNotAvailable, DDoSProtection, InsufficientFunds } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, AuthenticationError, NotSupported, InvalidOrder, OrderNotFound, ExchangeNotAvailable, RateLimitExceeded, InsufficientFunds } = require ('./base/errors');
 const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -104,6 +104,7 @@ module.exports = class livecoin extends Exchange {
                 'RUR': 'RUB',
                 'SCT': 'SpaceCoin',
                 'TPI': 'ThaneCoin',
+                'WAX': 'WAXP',
                 'wETT': 'WETT',
                 'XBT': 'Bricktox',
             },
@@ -124,7 +125,7 @@ module.exports = class livecoin extends Exchange {
                     '30': AuthenticationError,
                     '31': NotSupported,
                     '32': ExchangeError,
-                    '429': DDoSProtection,
+                    '429': RateLimitExceeded,
                     '503': ExchangeNotAvailable,
                 },
                 'broad': {
@@ -254,6 +255,9 @@ module.exports = class livecoin extends Exchange {
                     'max': Math.pow (10, precision),
                 },
             },
+            'id': undefined,
+            'code': undefined,
+            'name': undefined,
         };
         const currencies = [
             { 'id': 'USD', 'code': 'USD', 'name': 'US Dollar' },
@@ -602,6 +606,7 @@ module.exports = class livecoin extends Exchange {
         return {
             'info': order,
             'id': order['id'],
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -620,6 +625,7 @@ module.exports = class livecoin extends Exchange {
                 'currency': feeCurrency,
                 'rate': feeRate,
             },
+            'average': undefined,
         };
     }
 

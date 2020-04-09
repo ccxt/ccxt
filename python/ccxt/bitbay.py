@@ -7,9 +7,13 @@ from ccxt.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import AccountSuspended
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import OrderImmediatelyFillable
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
 
 
@@ -26,6 +30,22 @@ class bitbay(Exchange):
                 'withdraw': True,
                 'fetchMyTrades': True,
                 'fetchOpenOrders': True,
+                'fetchOHLCV': True,
+            },
+            'timeframes': {
+                '1m': '60',
+                '3m': '180',
+                '5m': '300',
+                '15m': '900',
+                '30m': '1800',
+                '1h': '3600',
+                '2h': '7200',
+                '4h': '14400',
+                '6h': '21600',
+                '12h': '43200',
+                '1d': '86400',
+                '3d': '259200',
+                '1w': '604800',
             },
             'urls': {
                 'referral': 'https://auth.bitbay.net/ref/jHlbB4mIkdS1',
@@ -141,13 +161,15 @@ class bitbay(Exchange):
                 '503': InvalidNonce,  # Invalid moment parameter. Request time doesn't match current server time
                 '504': ExchangeError,  # Invalid method
                 '505': AuthenticationError,  # Key has no permission for self action
-                '506': AuthenticationError,  # Account locked. Please contact with customer service
+                '506': AccountSuspended,  # Account locked. Please contact with customer service
                 # codes 507 and 508 are not specified in their docs
                 '509': ExchangeError,  # The BIC/SWIFT is required for self currency
-                '510': ExchangeError,  # Invalid market name
+                '510': BadSymbol,  # Invalid market name
                 'FUNDS_NOT_SUFFICIENT': InsufficientFunds,
                 'OFFER_FUNDS_NOT_EXCEEDING_MINIMUMS': InvalidOrder,
                 'OFFER_NOT_FOUND': OrderNotFound,
+                'OFFER_WOULD_HAVE_BEEN_PARTIALLY_FILLED': OrderImmediatelyFillable,
+                'ACTION_LIMIT_EXCEEDED': RateLimitExceeded,
             },
         })
 
@@ -269,6 +291,7 @@ class bitbay(Exchange):
                 filled = max(0, amount - remaining)
         return {
             'id': self.safe_string(order, 'id'),
+            'clientOrderId': None,
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -723,6 +746,51 @@ class bitbay(Exchange):
         }
         return self.safe_string(types, type, type)
 
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+        # [
+        #     '1582399800000',
+        #     {
+        #         o: '0.0001428',
+        #         c: '0.0001428',
+        #         h: '0.0001428',
+        #         l: '0.0001428',
+        #         v: '4',
+        #         co: '1'
+        #     }
+        # ]
+        return [
+            int(ohlcv[0]),
+            self.safe_float(ohlcv[1], 'o'),
+            self.safe_float(ohlcv[1], 'h'),
+            self.safe_float(ohlcv[1], 'l'),
+            self.safe_float(ohlcv[1], 'c'),
+            self.safe_float(ohlcv[1], 'v'),
+        ]
+
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        tradingSymbol = market['baseId'] + '-' + market['quoteId']
+        request = {
+            'symbol': tradingSymbol,
+            'resolution': self.timeframes[timeframe],
+            # 'from': 1574709092000,  # unix timestamp in milliseconds, required
+            # 'to': 1574709092000,  # unix timestamp in milliseconds, required
+        }
+        if limit is None:
+            limit = 100
+        duration = self.parse_timeframe(timeframe)
+        timerange = limit * duration * 1000
+        if since is None:
+            request['to'] = self.milliseconds()
+            request['from'] = request['to'] - timerange
+        else:
+            request['from'] = int(since)
+            request['to'] = self.sum(request['from'], timerange)
+        response = self.v1_01PublicGetTradingCandleHistorySymbolResolution(self.extend(request, params))
+        ohlcvs = self.safe_value(response, 'items', [])
+        return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
+
     def parse_trade(self, trade, market=None):
         #
         # createOrder trades
@@ -941,6 +1009,7 @@ class bitbay(Exchange):
             'average': None,
             'fee': None,
             'trades': trades,
+            'clientOrderId': None,
         }
 
     def cancel_order(self, id, symbol=None, params={}):

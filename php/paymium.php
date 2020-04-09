@@ -10,8 +10,8 @@ use \ccxt\ExchangeError;
 
 class paymium extends Exchange {
 
-    public function describe () {
-        return array_replace_recursive(parent::describe (), array(
+    public function describe() {
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'paymium',
             'name' => 'Paymium',
             'countries' => array( 'FR', 'EU' ),
@@ -43,12 +43,12 @@ class paymium extends Exchange {
                 ),
                 'private' => array(
                     'get' => array(
-                        'merchant/get_payment/{UUID}',
+                        'merchant/get_payment/{uuid}',
                         'user',
                         'user/addresses',
                         'user/addresses/{btc_address}',
                         'user/orders',
-                        'user/orders/{UUID}',
+                        'user/orders/{uuid}',
                         'user/price_alerts',
                     ),
                     'post' => array(
@@ -59,7 +59,7 @@ class paymium extends Exchange {
                         'merchant/create_payment',
                     ),
                     'delete' => array(
-                        'user/orders/{UUID}/cancel',
+                        'user/orders/{uuid}/cancel',
                         'user/price_alerts/{id}',
                     ),
                 ),
@@ -76,17 +76,17 @@ class paymium extends Exchange {
         ));
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $response = $this->privateGetUser ($params);
         $result = array( 'info' => $response );
         $currencies = is_array($this->currencies) ? array_keys($this->currencies) : array();
         for ($i = 0; $i < count($currencies); $i++) {
             $code = $currencies[$i];
-            $currencyId = $this->currencyId ($code);
+            $currencyId = $this->currency_id($code);
             $free = 'balance_' . $currencyId;
             if (is_array($response) && array_key_exists($free, $response)) {
-                $account = $this->account ();
+                $account = $this->account();
                 $used = 'locked_' . $currencyId;
                 $account['free'] = $this->safe_float($response, $free);
                 $account['used'] = $this->safe_float($response, $used);
@@ -96,7 +96,7 @@ class paymium extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'id' => $this->market_id($symbol),
@@ -105,7 +105,7 @@ class paymium extends Exchange {
         return $this->parse_order_book($response, null, 'bids', 'asks', 'price', 'amount');
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $request = array(
             'id' => $this->market_id($symbol),
         );
@@ -121,7 +121,7 @@ class paymium extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
             'bid' => $this->safe_float($ticker, 'bid'),
@@ -142,7 +142,7 @@ class paymium extends Exchange {
         );
     }
 
-    public function parse_trade ($trade, $market) {
+    public function parse_trade($trade, $market) {
         $timestamp = $this->safe_timestamp($trade, 'created_at_int');
         $id = $this->safe_string($trade, 'uuid');
         $symbol = null;
@@ -164,7 +164,7 @@ class paymium extends Exchange {
             'id' => $id,
             'order' => null,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'type' => null,
             'side' => $side,
@@ -176,9 +176,9 @@ class paymium extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'id' => $market['id'],
         );
@@ -186,10 +186,10 @@ class paymium extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $request = array(
-            'type' => $this->capitalize ($type) . 'Order',
+            'type' => $this->capitalize($type) . 'Order',
             'currency' => $this->market_id($symbol),
             'direction' => $side,
             'amount' => $amount,
@@ -204,44 +204,50 @@ class paymium extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         $request = array(
             'UUID' => $id,
         );
         return $this->privateDeleteUserOrdersUUIDCancel (array_merge($request, $params));
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
-        $query = $this->omit ($params, $this->extract_params($path));
+        $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
             if ($query) {
-                $url .= '?' . $this->urlencode ($query);
+                $url .= '?' . $this->urlencode($query);
             }
         } else {
             $this->check_required_credentials();
-            $nonce = (string) $this->nonce ();
+            $nonce = (string) $this->nonce();
             $auth = $nonce . $url;
-            if ($method === 'POST') {
-                if ($query) {
-                    $body = $this->json ($query);
-                    $auth .= $body;
-                }
-            }
             $headers = array(
                 'Api-Key' => $this->apiKey,
-                'Api-Signature' => $this->hmac ($this->encode ($auth), $this->encode ($this->secret)),
                 'Api-Nonce' => $nonce,
-                'Content-Type' => 'application/json',
             );
+            if ($method === 'POST') {
+                if ($query) {
+                    $body = $this->json($query);
+                    $auth .= $body;
+                    $headers['Content-Type'] = 'application/json';
+                }
+            } else {
+                if ($query) {
+                    $queryString = $this->urlencode($query);
+                    $auth .= $queryString;
+                    $url .= '?' . $queryString;
+                }
+            }
+            $headers['Api-Signature'] = $this->hmac($this->encode($auth), $this->encode($this->secret));
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
+    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $response = $this->fetch2($path, $api, $method, $params, $headers, $body);
         if (is_array($response) && array_key_exists('errors', $response)) {
-            throw new ExchangeError($this->id . ' ' . $this->json ($response));
+            throw new ExchangeError($this->id . ' ' . $this->json($response));
         }
         return $response;
     }

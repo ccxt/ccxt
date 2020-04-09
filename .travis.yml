@@ -15,7 +15,7 @@ before_install:
 - nvm use 10.15.3
 - rm -rf node_modules
 - npm install
-- npm install web3@1.0.0-beta.37 ethereumjs-util ethereumjs-abi bignumber.js --no-save
+- npm install web3@1.0.0-beta.37 ethereumjs-util ethereumjs-abi --no-save
 - git checkout package.json package-lock.json
 - sudo wget --quiet https://github.com/jgm/pandoc/releases/download/2.2.1/pandoc-2.2.1-1-amd64.deb
 - sudo dpkg -i pandoc-2.2.1-1-amd64.deb
@@ -40,16 +40,12 @@ script:
 - tox -e doc
 - cd ..
 - npm run test-base
-- set +e # (we deactivate set -e here, to prevent sudden log truncation in Travis, as it was suggested by the support team)
-- node run-tests --js --python 5; export TESTS_FAILED=$?
-- set -e # activate it again!
-- if [ "$TESTS_FAILED" -ne 0 ]; then exit 1; fi
+- bash -c 'node run-tests --js --python 5' 2>&1
 # - export TWINE_REPOSITORY_URL=https://pypi.python.org/pypi
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then env COMMIT_MESSAGE=${NPM_VERSION:1} GITHUB_TOKEN=${GITHUB_TOKEN} ./build/push.sh; fi
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then cd python && env PYPI_PASSWORD=${PYPI_PASSWORD} ./deploy.sh && cd ..; fi
 after_failure:
 - dmesg | grep -i kill
-- sleep 4 # to prevent sudden log truncation, as it was suggested by someone on the internetz (doesn't seem to work...)
 deploy:
   - provider: npm
     email: igor.kroitor@gmail.com

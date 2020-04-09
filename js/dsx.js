@@ -32,7 +32,7 @@ module.exports = class dsx extends Exchange {
                 'withdraw': true,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27990275-1413158a-645a-11e7-931c-94717f7510e3.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/76909626-cb2bb100-68bc-11ea-99e0-28ba54f04792.jpg',
                 'api': {
                     'public': 'https://dsx.uk/mapi', // market data
                     'private': 'https://dsx.uk/tapi', // trading
@@ -444,7 +444,7 @@ module.exports = class dsx extends Exchange {
         return this.parseOrderBook (orderbook);
     }
 
-    async fetchOrderBooks (symbols = undefined, params = {}) {
+    async fetchOrderBooks (symbols = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let ids = undefined;
         if (symbols === undefined) {
@@ -461,6 +461,9 @@ module.exports = class dsx extends Exchange {
         const request = {
             'pair': ids,
         };
+        if (limit !== undefined) {
+            request['limit'] = limit; // default = 150, max = 2000
+        }
         const response = await this.publicGetDepthPair (this.extend (request, params));
         const result = {};
         ids = Object.keys (response);
@@ -711,6 +714,9 @@ module.exports = class dsx extends Exchange {
             'filled': filled,
             'fee': undefined,
             // 'trades': this.parseTrades (order['trades'], market),
+            'clientOrderId': undefined,
+            'average': undefined,
+            'trades': undefined,
         };
     }
 
@@ -822,6 +828,7 @@ module.exports = class dsx extends Exchange {
         return {
             'info': order,
             'id': id,
+            'clientOrderId': undefined,
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -836,6 +843,7 @@ module.exports = class dsx extends Exchange {
             'status': status,
             'fee': fee,
             'trades': trades,
+            'average': undefined,
         };
     }
 

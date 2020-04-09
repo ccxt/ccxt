@@ -69,7 +69,7 @@ foreach ($config as $id => $params) {
     }
 }
 
-$exchanges['gdax']->urls['api'] = 'https://api-public.sandbox.gdax.com';
+$exchanges['coinbasepro']->urls['api'] = $exchanges['coinbasepro']->urls['test'];
 $exchanges['anxpro']->proxy = 'https://cors-anywhere.herokuapp.com/';
 
 function test_ticker($exchange, $symbol) {

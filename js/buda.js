@@ -563,6 +563,7 @@ module.exports = class buda extends Exchange {
         };
         return {
             'id': id,
+            'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
@@ -578,6 +579,7 @@ module.exports = class buda extends Exchange {
             'trades': undefined,
             'fee': fee,
             'info': order,
+            'average': undefined,
         };
     }
 

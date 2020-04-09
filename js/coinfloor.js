@@ -59,7 +59,6 @@ module.exports = class coinfloor extends Exchange {
             'markets': {
                 'BTC/GBP': { 'id': 'XBT/GBP', 'symbol': 'BTC/GBP', 'base': 'BTC', 'quote': 'GBP', 'baseId': 'XBT', 'quoteId': 'GBP', 'precision': { 'price': 0, 'amount': 4 }},
                 'BTC/EUR': { 'id': 'XBT/EUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'XBT', 'quoteId': 'EUR', 'precision': { 'price': 0, 'amount': 4 }},
-                'ETH/GBP': { 'id': 'ETH/GBP', 'symbol': 'ETH/GBP', 'base': 'ETH', 'quote': 'GBP', 'baseId': 'ETH', 'quoteId': 'GBP', 'precision': { 'price': 0, 'amount': 4 }},
             },
             'exceptions': {
                 'exact': {
@@ -446,6 +445,7 @@ module.exports = class coinfloor extends Exchange {
         return {
             'info': order,
             'id': id,
+            'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
@@ -459,6 +459,8 @@ module.exports = class coinfloor extends Exchange {
             'remaining': undefined,
             'cost': cost,
             'fee': undefined,
+            'average': undefined,
+            'trades': undefined,
         };
     }
 

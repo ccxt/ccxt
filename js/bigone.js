@@ -22,6 +22,7 @@ module.exports = class bigone extends Exchange {
                 'fetchDeposits': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOrder': true,
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
@@ -43,7 +44,7 @@ module.exports = class bigone extends Exchange {
                 '1w': 'week1',
                 '1M': 'month1',
             },
-            'hostname': 'big.one', // set to 'b1.run' for China mainland
+            'hostname': 'big.one', // or 'bigone.com'
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/69354403-1d532180-0c91-11ea-88ed-44c06cefdf87.jpg',
                 'api': {
@@ -734,6 +735,7 @@ module.exports = class bigone extends Exchange {
         return {
             'info': order,
             'id': id,
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -921,7 +923,7 @@ module.exports = class bigone extends Exchange {
         //     }
         //
         const trades = this.safeValue (response, 'data', []);
-        return this.parseTrades (trades, market, since, limit, params);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     parseOrderStatus (status) {

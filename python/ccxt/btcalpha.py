@@ -156,6 +156,8 @@ class btcalpha(Exchange):
                     },
                 },
                 'info': market,
+                'baseId': None,
+                'quoteId': None,
             })
         return result
 
@@ -167,8 +169,16 @@ class btcalpha(Exchange):
         if limit:
             request['limit_sell'] = limit
             request['limit_buy'] = limit
-        reponse = self.publicGetOrderbookPairName(self.extend(request, params))
-        return self.parse_order_book(reponse, None, 'buy', 'sell', 'price', 'amount')
+        response = self.publicGetOrderbookPairName(self.extend(request, params))
+        return self.parse_order_book(response, None, 'buy', 'sell', 'price', 'amount')
+
+    def parse_bids_asks(self, bidasks, priceKey=0, amountKey=1):
+        result = []
+        for i in range(0, len(bidasks)):
+            bidask = bidasks[i]
+            if bidask:
+                result.append(self.parse_bid_ask(bidask, priceKey, amountKey))
+        return result
 
     def parse_trade(self, trade, market=None):
         symbol = None
@@ -285,6 +295,7 @@ class btcalpha(Exchange):
             remaining = max(0, amount - filled)
         return {
             'id': id,
+            'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'status': status,
@@ -299,6 +310,8 @@ class btcalpha(Exchange):
             'trades': trades,
             'fee': None,
             'info': order,
+            'lastTradeTimestamp': None,
+            'average': None,
         }
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):

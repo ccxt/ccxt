@@ -31,7 +31,7 @@ module.exports = class bitforex extends Exchange {
             },
             'timeframes': {
                 '1m': '1min',
-                '5m': 'M5',
+                '5m': '5min',
                 '15m': '15min',
                 '30m': '30min',
                 '1h': '1hour',
@@ -46,7 +46,7 @@ module.exports = class bitforex extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/1294454/44310033-69e9e600-a3d8-11e8-873d-54d74d1bc4e4.jpg',
                 'api': 'https://api.bitforex.com',
                 'www': 'https://www.bitforex.com',
-                'doc': 'https://github.com/bitforexapi/API_Docs/wiki',
+                'doc': 'https://github.com/githubdev2020/API_Doc_en/wiki',
                 'fees': 'https://help.bitforex.com/en_us/?cat=13',
                 'referral': 'https://www.bitforex.com/en/invitationRegister?inviterId=1867438',
             },
@@ -220,6 +220,9 @@ module.exports = class bitforex extends Exchange {
                     },
                 },
             },
+            'commonCurrencies': {
+                'UOS': 'UOS Network',
+            },
             'exceptions': {
                 '4004': OrderNotFound,
                 '1013': AuthenticationError,
@@ -309,6 +312,7 @@ module.exports = class bitforex extends Exchange {
             'cost': cost,
             'order': orderId,
             'fee': undefined,
+            'takerOrMaker': undefined,
         };
     }
 
@@ -462,6 +466,7 @@ module.exports = class bitforex extends Exchange {
         const result = {
             'info': order,
             'id': id,
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -476,6 +481,7 @@ module.exports = class bitforex extends Exchange {
             'remaining': remaining,
             'status': status,
             'fee': fee,
+            'trades': undefined,
         };
         return result;
     }

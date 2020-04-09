@@ -12,8 +12,8 @@ use \ccxt\OrderNotFound;
 
 class bitflyer extends Exchange {
 
-    public function describe () {
-        return array_replace_recursive(parent::describe (), array(
+    public function describe() {
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'bitflyer',
             'name' => 'bitFlyer',
             'countries' => array( 'JP' ),
@@ -93,7 +93,7 @@ class bitflyer extends Exchange {
         ));
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         $jp_markets = $this->publicGetGetmarkets ($params);
         $us_markets = $this->publicGetGetmarketsUsa ($params);
         $eu_markets = $this->publicGetGetmarketsEu ($params);
@@ -153,7 +153,7 @@ class bitflyer extends Exchange {
         return $result;
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $response = $this->privateGetGetbalance ($params);
         //
@@ -180,7 +180,7 @@ class bitflyer extends Exchange {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'currency_code');
             $code = $this->safe_currency_code($currencyId);
-            $account = $this->account ();
+            $account = $this->account();
             $account['total'] = $this->safe_float($balance, 'amount');
             $account['free'] = $this->safe_float($balance, 'available');
             $result[$code] = $account;
@@ -188,7 +188,7 @@ class bitflyer extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'product_code' => $this->market_id($symbol),
@@ -197,18 +197,18 @@ class bitflyer extends Exchange {
         return $this->parse_order_book($orderbook, null, 'bids', 'asks', 'price', 'size');
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
         $request = array(
             'product_code' => $this->market_id($symbol),
         );
         $ticker = $this->publicGetGetticker (array_merge($request, $params));
-        $timestamp = $this->parse8601 ($this->safe_string($ticker, 'timestamp'));
+        $timestamp = $this->parse8601($this->safe_string($ticker, 'timestamp'));
         $last = $this->safe_float($ticker, 'ltp');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => null,
             'low' => null,
             'bid' => $this->safe_float($ticker, 'best_bid'),
@@ -229,7 +229,7 @@ class bitflyer extends Exchange {
         );
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         $side = $this->safe_string_lower($trade, 'side');
         if ($side !== null) {
             if (strlen($side) < 1) {
@@ -246,7 +246,7 @@ class bitflyer extends Exchange {
         if ($order === null) {
             $order = $this->safe_string($trade, 'child_order_acceptance_id');
         }
-        $timestamp = $this->parse8601 ($this->safe_string($trade, 'exec_date'));
+        $timestamp = $this->parse8601($this->safe_string($trade, 'exec_date'));
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'size');
         $cost = null;
@@ -264,7 +264,7 @@ class bitflyer extends Exchange {
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'order' => $order,
             'type' => null,
@@ -277,9 +277,9 @@ class bitflyer extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'product_code' => $market['id'],
         );
@@ -287,7 +287,7 @@ class bitflyer extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'product_code' => $this->market_id($symbol),
@@ -305,7 +305,7 @@ class bitflyer extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a `$symbol` argument');
         }
@@ -317,7 +317,7 @@ class bitflyer extends Exchange {
         return $this->privatePostCancelchildorder (array_merge($request, $params));
     }
 
-    public function parse_order_status ($status) {
+    public function parse_order_status($status) {
         $statuses = array(
             'ACTIVE' => 'open',
             'COMPLETED' => 'closed',
@@ -328,8 +328,8 @@ class bitflyer extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order ($order, $market = null) {
-        $timestamp = $this->parse8601 ($this->safe_string($order, 'child_order_date'));
+    public function parse_order($order, $market = null) {
+        $timestamp = $this->parse8601($this->safe_string($order, 'child_order_date'));
         $amount = $this->safe_float($order, 'size');
         $remaining = $this->safe_float($order, 'outstanding_size');
         $filled = $this->safe_float($order, 'executed_size');
@@ -360,9 +360,10 @@ class bitflyer extends Exchange {
         $id = $this->safe_string($order, 'child_order_acceptance_id');
         return array(
             'id' => $id,
+            'clientOrderId' => null,
             'info' => $order,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
@@ -374,15 +375,17 @@ class bitflyer extends Exchange {
             'filled' => $filled,
             'remaining' => $remaining,
             'fee' => $fee,
+            'average' => null,
+            'trades' => null,
         );
     }
 
-    public function fetch_orders ($symbol = null, $since = null, $limit = 100, $params = array ()) {
+    public function fetch_orders($symbol = null, $since = null, $limit = 100, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrders() requires a `$symbol` argument');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'product_code' => $market['id'],
             'count' => $limit,
@@ -395,21 +398,21 @@ class bitflyer extends Exchange {
         return $orders;
     }
 
-    public function fetch_open_orders ($symbol = null, $since = null, $limit = 100, $params = array ()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = 100, $params = array ()) {
         $request = array(
             'child_order_state' => 'ACTIVE',
         );
         return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
-    public function fetch_closed_orders ($symbol = null, $since = null, $limit = 100, $params = array ()) {
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = 100, $params = array ()) {
         $request = array(
             'child_order_state' => 'COMPLETED',
         );
         return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
-    public function fetch_order ($id, $symbol = null, $params = array ()) {
+    public function fetch_order($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrder() requires a `$symbol` argument');
         }
@@ -421,12 +424,12 @@ class bitflyer extends Exchange {
         throw new OrderNotFound($this->id . ' No order found with $id ' . $id);
     }
 
-    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a `$symbol` argument');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'product_code' => $market['id'],
         );
@@ -437,13 +440,13 @@ class bitflyer extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
         if ($code !== 'JPY' && $code !== 'USD' && $code !== 'EUR') {
             throw new ExchangeError($this->id . ' allows withdrawing JPY, USD, EUR only, ' . $code . ' is not supported');
         }
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $request = array(
             'currency_code' => $currency['id'],
             'amount' => $amount,
@@ -457,7 +460,7 @@ class bitflyer extends Exchange {
         );
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = '/' . $this->version . '/';
         if ($api === 'private') {
             $request .= 'me/';
@@ -465,24 +468,24 @@ class bitflyer extends Exchange {
         $request .= $path;
         if ($method === 'GET') {
             if ($params) {
-                $request .= '?' . $this->urlencode ($params);
+                $request .= '?' . $this->urlencode($params);
             }
         }
         $url = $this->urls['api'] . $request;
         if ($api === 'private') {
             $this->check_required_credentials();
-            $nonce = (string) $this->nonce ();
+            $nonce = (string) $this->nonce();
             $auth = implode('', array($nonce, $method, $request));
             if ($params) {
                 if ($method !== 'GET') {
-                    $body = $this->json ($params);
+                    $body = $this->json($params);
                     $auth .= $body;
                 }
             }
             $headers = array(
                 'ACCESS-KEY' => $this->apiKey,
                 'ACCESS-TIMESTAMP' => $nonce,
-                'ACCESS-SIGN' => $this->hmac ($this->encode ($auth), $this->encode ($this->secret)),
+                'ACCESS-SIGN' => $this->hmac($this->encode($auth), $this->encode($this->secret)),
                 'Content-Type' => 'application/json',
             );
         }

@@ -225,6 +225,7 @@ class stronghold(Exchange):
                 'precision': precision,
                 'info': entry,
                 'limits': limits,
+                'active': None,
             }
         return result
 
@@ -280,6 +281,7 @@ class stronghold(Exchange):
                 'active': None,
                 'name': None,
                 'limits': limits,
+                'fee': None,
             }
         return result
 
@@ -549,6 +551,7 @@ class stronghold(Exchange):
                 cost = amount * price
         return {
             'id': id,
+            'clientOrderId': None,
             'info': order,
             'symbol': symbol,
             'datetime': datetime,
@@ -564,6 +567,7 @@ class stronghold(Exchange):
             'status': None,
             'type': None,
             'average': None,
+            'fee': None,
         }
 
     def nonce(self):
@@ -619,7 +623,7 @@ class stronghold(Exchange):
         request = self.extend({
             'venueId': self.options['venueId'],
             'accountId': self.get_active_account(),
-            'assetId': self.currencyId(code),
+            'assetId': self.currency_id(code),
             'paymentMethod': paymentMethod,
         }, params)
         if not request['accountId']:
@@ -654,7 +658,7 @@ class stronghold(Exchange):
         request = self.extend({
             'venueId': self.options['venueId'],
             'accountId': self.get_active_account(),
-            'assetId': self.currencyId(code),
+            'assetId': self.currency_id(code),
             'amount': amount,
             'paymentMethod': paymentMethod,
             'paymentMethodDetails': {

@@ -46,14 +46,14 @@ module.exports = class bibox extends Exchange {
                 '1w': 'week',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/34902611-2be8bf1a-f830-11e7-91a2-11b2f292e750.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/77257418-3262b000-6c85-11ea-8fb8-20bdf20b3592.jpg',
                 'api': 'https://api.bibox.com',
                 'www': 'https://www.bibox.com',
                 'doc': [
                     'https://biboxcom.github.io/en/',
                 ],
                 'fees': 'https://bibox.zendesk.com/hc/en-us/articles/360002336133',
-                'referral': 'https://www.bibox.com/signPage?id=11114745&lang=en',
+                'referral': 'https://w2.bibox.com/login/register?invite_code=05Kj3I',
             },
             'api': {
                 'public': {
@@ -62,11 +62,14 @@ module.exports = class bibox extends Exchange {
                         'mdata',
                     ],
                     'get': [
+                        'cquery',
                         'mdata',
                     ],
                 },
                 'private': {
                     'post': [
+                        'cquery',
+                        'ctrade',
                         'user',
                         'orderpending',
                         'transfer',
@@ -83,7 +86,7 @@ module.exports = class bibox extends Exchange {
                     'tierBased': false,
                     'percentage': true,
                     'taker': 0.001,
-                    'maker': 0.001,
+                    'maker': 0.0008,
                 },
                 'funding': {
                     'tierBased': false,
@@ -171,8 +174,8 @@ module.exports = class bibox extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'baseId': base,
-                'quoteId': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'active': true,
                 'info': market,
                 'precision': precision,
@@ -400,7 +403,7 @@ module.exports = class bibox extends Exchange {
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const id = this.safeString (currency, 'symbol');
-            const name = this.safeString (currency, 'name');
+            const name = currency['name']; // contains hieroglyphs causing python ASCII bug
             const code = this.safeCurrencyCode (id);
             const precision = 8;
             const deposit = this.safeValue (currency, 'enable_deposit');
@@ -710,6 +713,7 @@ module.exports = class bibox extends Exchange {
         return {
             'info': order,
             'id': id,
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -724,6 +728,7 @@ module.exports = class bibox extends Exchange {
             'remaining': remaining,
             'status': status,
             'fee': fee,
+            'trades': undefined,
         };
     }
 
@@ -818,12 +823,21 @@ module.exports = class bibox extends Exchange {
         const response = await this.privatePostTransfer (request);
         //
         //     {
+        //         "result":"3Jx6RZ9TNMsAoy9NUzBwZf68QBppDruSKW","cmd":"transfer/transferIn"
+        //     }
+        //
+        //     {
         //         "result":"{\"account\":\"PERSONALLY OMITTED\",\"memo\":\"PERSONALLY OMITTED\"}","cmd":"transfer/transferIn"
         //     }
         //
-        const result = JSON.parse (this.safeString (response, 'result'));
-        const address = this.safeString (result, 'account');
-        const tag = this.safeString (result, 'memo');
+        const result = this.safeString (response, 'result');
+        let address = result;
+        let tag = undefined;
+        if (this.isJsonEncodedObject (result)) {
+            const parsed = JSON.parse (result);
+            address = this.safeString (parsed, 'account');
+            tag = this.safeString (parsed, 'memo');
+        }
         return {
             'currency': code,
             'address': address,

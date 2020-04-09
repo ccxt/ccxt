@@ -97,8 +97,11 @@ module.exports = class idex extends Exchange {
                 'secret': false,
             },
             'commonCurrencies': {
-                'ONE': 'Menlo One',
                 'FT': 'Fabric Token',
+                'MT': 'Monarch',
+                'ONE': 'Menlo One',
+                'PLA': 'PlayChip',
+                'WAX': 'WAXP',
             },
         });
     }
@@ -382,13 +385,13 @@ module.exports = class idex extends Exchange {
             if (side === 'buy') {
                 tokenBuy = market['baseId'];
                 tokenSell = market['quoteId'];
-                amountBuy = this.toWei (amount, 'ether', market['precision']['amount']);
-                amountSell = this.toWei (quoteAmount, 'ether', 18);
+                amountBuy = this.toWei (amount, market['precision']['amount']);
+                amountSell = this.toWei (quoteAmount, 18);
             } else {
                 tokenBuy = market['quoteId'];
                 tokenSell = market['baseId'];
-                amountBuy = this.toWei (quoteAmount, 'ether', 18);
-                amountSell = this.toWei (amount, 'ether', market['precision']['amount']);
+                amountBuy = this.toWei (quoteAmount, 18);
+                amountSell = this.toWei (amount, market['precision']['amount']);
             }
             const nonce = await this.getNonce ();
             const orderToHash = {
@@ -733,8 +736,11 @@ module.exports = class idex extends Exchange {
             amount = this.safeFloat (order, 'amount');
         }
         const filled = this.safeFloat (order, 'filled');
-        const cost = this.safeFloat (order, 'total');
         const price = this.safeFloat (order, 'price');
+        let cost = this.safeFloat (order, 'total');
+        if ((cost !== undefined) && (filled !== undefined) && !cost) {
+            cost = filled * price;
+        }
         if ('market' in order) {
             const marketId = order['market'];
             symbol = this.markets_by_id[marketId]['symbol'];
@@ -754,6 +760,7 @@ module.exports = class idex extends Exchange {
         return {
             'info': order,
             'id': id,
+            'clientOrderId': undefined,
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -765,6 +772,10 @@ module.exports = class idex extends Exchange {
             'remaining': remaining,
             'cost': cost,
             'status': status,
+            'lastTradeTimestamp': undefined,
+            'average': undefined,
+            'trades': undefined,
+            'fee': undefined,
         };
     }
 
@@ -988,7 +999,7 @@ module.exports = class idex extends Exchange {
         const currency = this.currency (code);
         const tokenAddress = currency['id'];
         const nonce = await this.getNonce ();
-        amount = this.toWei (amount, 'ether', currency['precision']);
+        amount = this.toWei (amount, currency['precision']);
         const requestToHash = {
             'contractAddress': await this.getContractAddress (),
             'token': tokenAddress,

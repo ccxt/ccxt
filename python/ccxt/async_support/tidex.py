@@ -183,11 +183,11 @@ class tidex(Exchange):
                         'max': None,
                     },
                     'withdraw': {
-                        'min': currency['withdrawMinAmout'],
+                        'min': self.safe_float(currency, 'withdrawMinAmount'),
                         'max': None,
                     },
                     'deposit': {
-                        'min': currency['depositMinAmount'],
+                        'min': self.safe_float(currency, 'depositMinAmount'),
                         'max': None,
                     },
                 },
@@ -289,7 +289,7 @@ class tidex(Exchange):
         orderbook = response[market['id']]
         return self.parse_order_book(orderbook)
 
-    async def fetch_order_books(self, symbols=None, params={}):
+    async def fetch_order_books(self, symbols=None, limit=None, params={}):
         await self.load_markets()
         ids = None
         if symbols is None:
@@ -304,6 +304,8 @@ class tidex(Exchange):
         request = {
             'pair': ids,
         }
+        if limit is not None:
+            request['limit'] = limit  # default = 150, max = 2000
         response = await self.publicGetDepthPair(self.extend(request, params))
         result = {}
         ids = list(response.keys())
@@ -331,6 +333,8 @@ class tidex(Exchange):
         symbol = None
         if market is not None:
             symbol = market['symbol']
+            if not market['active']:
+                timestamp = None
         last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
@@ -500,9 +504,13 @@ class tidex(Exchange):
             'filled': filled,
             'fee': None,
             # 'trades': self.parse_trades(order['trades'], market),
+            'info': response,
+            'clientOrderId': None,
+            'average': None,
+            'trades': None,
         }
         self.orders[id] = order
-        return self.extend({'info': response}, order)
+        return order
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
@@ -567,6 +575,9 @@ class tidex(Exchange):
             'filled': filled,
             'status': status,
             'fee': fee,
+            'clientOrderId': None,
+            'average': None,
+            'trades': None,
         }
 
     def parse_orders(self, orders, market=None, since=None, limit=None, params={}):

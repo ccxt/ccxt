@@ -12,6 +12,7 @@ try:
 except NameError:
     basestring = str  # Python 2
 import math
+import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -33,6 +34,7 @@ class bitstamp(Exchange):
             'rateLimit': 1000,
             'version': 'v2',
             'userAgent': self.userAgents['chrome'],
+            'pro': True,
             'has': {
                 'CORS': True,
                 'fetchDepositAddress': True,
@@ -48,6 +50,7 @@ class bitstamp(Exchange):
                 'api': {
                     'public': 'https://www.bitstamp.net/api',
                     'private': 'https://www.bitstamp.net/api',
+                    'v1': 'https://www.bitstamp.net/api',
                 },
                 'www': 'https://www.bitstamp.net',
                 'doc': 'https://www.bitstamp.net/api',
@@ -247,8 +250,27 @@ class bitstamp(Exchange):
             'pair': self.market_id(symbol),
         }
         response = self.publicGetOrderBookPair(self.extend(request, params))
-        timestamp = self.safe_timestamp(response, 'timestamp')
-        return self.parse_order_book(response, timestamp)
+        #
+        #     {
+        #         "timestamp": "1583652948",
+        #         "microtimestamp": "1583652948955826",
+        #         "bids": [
+        #             ["8750.00", "1.33685271"],
+        #             ["8749.39", "0.07700000"],
+        #             ["8746.98", "0.07400000"],
+        #         ]
+        #         "asks": [
+        #             ["8754.10", "1.51995636"],
+        #             ["8754.71", "1.40000000"],
+        #             ["8754.72", "2.50000000"],
+        #         ]
+        #     }
+        #
+        microtimestamp = self.safe_integer(response, 'microtimestamp')
+        timestamp = int(microtimestamp / 1000)
+        orderbook = self.parse_order_book(response, timestamp)
+        orderbook['nonce'] = microtimestamp
+        return orderbook
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -883,6 +905,7 @@ class bitstamp(Exchange):
                 }
         return {
             'id': id,
+            'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -898,6 +921,7 @@ class bitstamp(Exchange):
             'trades': trades,
             'fee': fee,
             'info': order,
+            'average': None,
         }
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -950,6 +974,8 @@ class bitstamp(Exchange):
         method += 'Deposit' if v1 else ''
         method += 'Address'
         response = getattr(self, method)(params)
+        if v1:
+            response = json.loads(response)
         address = response if v1 else self.safe_string(response, 'address')
         tag = None if v1 else self.safe_string(response, 'destination_tag')
         self.check_address(address)
@@ -995,18 +1021,41 @@ class bitstamp(Exchange):
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
-            nonce = str(self.nonce())
-            auth = nonce + self.uid + self.apiKey
-            signature = self.encode(self.hmac(self.encode(auth), self.encode(self.secret)))
-            query = self.extend({
-                'key': self.apiKey,
-                'signature': signature.upper(),
-                'nonce': nonce,
-            }, query)
-            body = self.urlencode(query)
-            headers = {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            }
+            authVersion = self.safe_value(self.options, 'auth', 'v2')
+            if (authVersion == 'v1') or (api == 'v1'):
+                nonce = str(self.nonce())
+                auth = nonce + self.uid + self.apiKey
+                signature = self.encode(self.hmac(self.encode(auth), self.encode(self.secret)))
+                query = self.extend({
+                    'key': self.apiKey,
+                    'signature': signature.upper(),
+                    'nonce': nonce,
+                }, query)
+                body = self.urlencode(query)
+                headers = {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                }
+            else:
+                xAuth = 'BITSTAMP ' + self.apiKey
+                xAuthNonce = self.uuid()
+                xAuthTimestamp = str(self.milliseconds())
+                xAuthVersion = 'v2'
+                contentType = ''
+                headers = {
+                    'X-Auth': xAuth,
+                    'X-Auth-Nonce': xAuthNonce,
+                    'X-Auth-Timestamp': xAuthTimestamp,
+                    'X-Auth-Version': xAuthVersion,
+                }
+                if method == 'POST':
+                    if query:
+                        body = self.urlencode(query)
+                        contentType = 'application/x-www-form-urlencoded'
+                        headers['Content-Type'] = contentType
+                authBody = body if body else ''
+                auth = xAuth + method + url.replace('https://', '') + contentType + xAuthNonce + xAuthTimestamp + xAuthVersion + authBody
+                signature = self.encode(self.hmac(self.encode(auth), self.encode(self.secret)))
+                headers['X-Auth-Signature'] = signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):

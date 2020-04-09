@@ -295,7 +295,7 @@ module.exports = class yobit extends Exchange {
         return this.parseOrderBook (orderbook);
     }
 
-    async fetchOrderBooks (symbols = undefined, params = {}) {
+    async fetchOrderBooks (symbols = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let ids = undefined;
         if (symbols === undefined) {
@@ -311,7 +311,11 @@ module.exports = class yobit extends Exchange {
         }
         const request = {
             'pair': ids,
+            // 'ignore_invalid': true,
         };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
         const response = await this.publicGetDepthPair (this.extend (request, params));
         const result = {};
         ids = Object.keys (response);
@@ -538,9 +542,13 @@ module.exports = class yobit extends Exchange {
             'filled': filled,
             'fee': undefined,
             // 'trades': this.parseTrades (order['trades'], market),
+            'info': response,
+            'clientOrderId': undefined,
+            'average': undefined,
+            'trades': undefined,
         };
         this.orders[id] = order;
-        return this.extend ({ 'info': response }, order);
+        return order;
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -603,6 +611,7 @@ module.exports = class yobit extends Exchange {
         const result = {
             'info': order,
             'id': id,
+            'clientOrderId': undefined,
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -616,6 +625,8 @@ module.exports = class yobit extends Exchange {
             'filled': filled,
             'status': status,
             'fee': fee,
+            'average': undefined,
+            'trades': undefined,
         };
         return result;
     }

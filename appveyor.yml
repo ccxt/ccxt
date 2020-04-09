@@ -6,12 +6,13 @@ install:
   - set CI=true
   - npm install --global npm@latest
   - set PATH=%APPDATA%\npm;%PATH%
+  - echo %PATH%
   - npm install
+  - python --version
   - python -m pip install --upgrade pip setuptools
   - pip install tox
   - pip install requests
   - pip install cryptography
-  - cinst -y curl
   - SET PATH=C:\Program Files\curl;%PATH%
   - ps: Set-Service wuauserv -StartupType Manual
   - cinst -y php --allow-empty-checksums
@@ -25,7 +26,7 @@ install:
 matrix:
   fast_finish: true
 build: off
-shallow_clone: true
+# shallow_clone: true
 before_test:
   - cinst pandoc --version 2.3.1
   - pandoc -v
@@ -33,8 +34,9 @@ test_script:
   - refreshenv
   - node --version
   - npm --version
+  - python --version
   - npm run build
-  - npm run test-base
+  # - npm run test-base
 cache:
   - '%APPDATA%\npm-cache'
   - '%LOCALAPPDATA%\pip\Cache'

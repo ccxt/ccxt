@@ -14,7 +14,7 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import NotSupported
-from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 
@@ -156,7 +156,7 @@ class fcoin(Exchange):
                 '400': NotSupported,  # Bad Request
                 '401': AuthenticationError,
                 '405': NotSupported,
-                '429': DDoSProtection,  # Too Many Requests, exceed api request limit
+                '429': RateLimitExceeded,  # Too Many Requests, exceed api request limit
                 '1002': ExchangeNotAvailable,  # System busy
                 '1016': InsufficientFunds,
                 '2136': AuthenticationError,  # The API key is expired
@@ -494,6 +494,22 @@ class fcoin(Exchange):
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
+        #
+        #     {
+        #         "id": "string",
+        #         "symbol": "string",
+        #         "type": "limit",
+        #         "side": "buy",
+        #         "price": "string",
+        #         "amount": "string",
+        #         "state": "submitted",
+        #         "executed_value": "string",
+        #         "fill_fees": "string",
+        #         "filled_amount": "string",
+        #         "created_at": 0,
+        #         "source": "web"
+        #     }
+        #
         id = self.safe_string(order, 'id')
         side = self.safe_string(order, 'side')
         status = self.parse_order_status(self.safe_string(order, 'state'))
@@ -533,6 +549,7 @@ class fcoin(Exchange):
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,

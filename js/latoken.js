@@ -92,6 +92,7 @@ module.exports = class latoken extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'MT': 'Monarch',
                 'TSL': 'Treasure SL',
             },
             'options': {
@@ -647,8 +648,10 @@ module.exports = class latoken extends Exchange {
         if ((timeFilled !== undefined) && (timeFilled > 0)) {
             lastTradeTimestamp = timeFilled;
         }
+        const clientOrderId = this.safeString (order, 'cliOrdId');
         return {
             'id': id,
+            'clientOrderId': clientOrderId,
             'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -664,6 +667,7 @@ module.exports = class latoken extends Exchange {
             'average': undefined,
             'remaining': remaining,
             'fee': undefined,
+            'trades': undefined,
         };
     }
 

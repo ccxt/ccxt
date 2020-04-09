@@ -11,8 +11,8 @@ use \ccxt\ArgumentsRequired;
 
 class indodax extends Exchange {
 
-    public function describe () {
-        return array_replace_recursive(parent::describe (), array(
+    public function describe() {
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'indodax',
             'name' => 'INDODAX',
             'countries' => array( 'ID' ), // Indonesia
@@ -74,11 +74,13 @@ class indodax extends Exchange {
                 'ATOM/IDR' => array( 'id' => 'atom_idr', 'symbol' => 'ATOM/IDR', 'base' => 'ATOM', 'quote' => 'IDR', 'baseId' => 'atom', 'quoteId' => 'idr', 'precision' => array( 'amount' => 8, 'price' => 0 ), 'limits' => array( 'amount' => array( 'min' => null, 'max' => null ))),
                 'BAT/IDR' => array( 'id' => 'bat_idr', 'symbol' => 'BAT/IDR', 'base' => 'BAT', 'quote' => 'IDR', 'baseId' => 'bat', 'quoteId' => 'idr', 'precision' => array( 'amount' => 8, 'price' => 0 ), 'limits' => array( 'amount' => array( 'min' => null, 'max' => null ))),
                 'BCD/IDR' => array( 'id' => 'bcd_idr', 'symbol' => 'BCD/IDR', 'base' => 'BCD', 'quote' => 'IDR', 'baseId' => 'bcd', 'quoteId' => 'idr', 'precision' => array( 'amount' => 8, 'price' => 0 ), 'limits' => array( 'amount' => array( 'min' => null, 'max' => null ))),
-                'BCH/IDR' => array( 'id' => 'bch_idr', 'symbol' => 'BCH/IDR', 'base' => 'BCH', 'quote' => 'IDR', 'baseId' => 'bch', 'quoteId' => 'idr', 'precision' => array( 'amount' => 8, 'price' => 0 ), 'limits' => array( 'amount' => array( 'min' => 0.001, 'max' => null ))),
-                'BSV/IDR' => array( 'id' => 'bsv_idr', 'symbol' => 'BSV/IDR', 'base' => 'BSV', 'quote' => 'IDR', 'baseId' => 'bsv', 'quoteId' => 'idr', 'precision' => array( 'amount' => 8, 'price' => 0 ), 'limits' => array( 'amount' => array( 'min' => 0.001, 'max' => null ))),
+                'BCH/IDR' => array( 'id' => 'bchabc_idr', 'symbol' => 'BCH/IDR', 'base' => 'BCH', 'quote' => 'IDR', 'baseId' => 'bchabc', 'quoteId' => 'idr', 'precision' => array( 'amount' => 8, 'price' => 0 ), 'limits' => array( 'amount' => array( 'min' => 0.001, 'max' => null ))),
+                'BSV/IDR' => array( 'id' => 'bchsv_idr', 'symbol' => 'BSV/IDR', 'base' => 'BSV', 'quote' => 'IDR', 'baseId' => 'bchsv', 'quoteId' => 'idr', 'precision' => array( 'amount' => 8, 'price' => 0 ), 'limits' => array( 'amount' => array( 'min' => 0.001, 'max' => null ))),
                 'BNB/IDR' => array( 'id' => 'bnb_idr', 'symbol' => 'BNB/IDR', 'base' => 'BNB', 'quote' => 'IDR', 'baseId' => 'bnb', 'quoteId' => 'idr', 'precision' => array( 'amount' => 8, 'price' => 0 ), 'limits' => array( 'amount' => array( 'min' => 0.001, 'max' => null ))),
                 'BTG/IDR' => array( 'id' => 'btg_idr', 'symbol' => 'BTG/IDR', 'base' => 'BTG', 'quote' => 'IDR', 'baseId' => 'btg', 'quoteId' => 'idr', 'precision' => array( 'amount' => 8, 'price' => 0 ), 'limits' => array( 'amount' => array( 'min' => 0.01, 'max' => null ))),
                 'BTS/IDR' => array( 'id' => 'bts_idr', 'symbol' => 'BTS/IDR', 'base' => 'BTS', 'quote' => 'IDR', 'baseId' => 'bts', 'quoteId' => 'idr', 'precision' => array( 'amount' => 8, 'price' => 0 ), 'limits' => array( 'amount' => array( 'min' => 0.01, 'max' => null ))),
+                'BTT/IDR' => array( 'id' => 'btt_idr', 'symbol' => 'BTT/IDR', 'base' => 'BTT', 'quote' => 'IDR', 'baseId' => 'btt', 'quoteId' => 'idr', 'precision' => array( 'amount' => 8, 'price' => 0 ), 'limits' => array( 'amount' => array( 'min' => 1000, 'max' => null ))),
+                'COAL/IDR' => array( 'id' => 'coal_idr', 'symbol' => 'COAL/IDR', 'base' => 'COAL', 'quote' => 'IDR', 'baseId' => 'coal', 'quoteId' => 'idr', 'precision' => array( 'amount' => 8, 'price' => 0 ), 'limits' => array( 'amount' => array( 'min' => 50, 'max' => null ))),
                 'CRO/IDR' => array( 'id' => 'cro_idr', 'symbol' => 'CRO/IDR', 'base' => 'CRO', 'quote' => 'IDR', 'baseId' => 'cro', 'quoteId' => 'idr', 'precision' => array( 'amount' => 8, 'price' => 0 ), 'limits' => array( 'amount' => array( 'min' => 0.01, 'max' => null ))),
                 'DASH/IDR' => array( 'id' => 'drk_idr', 'symbol' => 'DASH/IDR', 'base' => 'DASH', 'quote' => 'IDR', 'baseId' => 'drk', 'quoteId' => 'idr', 'precision' => array( 'amount' => 8, 'price' => 0 ), 'limits' => array( 'amount' => array( 'min' => 0.01, 'max' => null ))),
                 'DAX/IDR' => array( 'id' => 'dax_idr', 'symbol' => 'DAX/IDR', 'base' => 'DAX', 'quote' => 'IDR', 'baseId' => 'dax', 'quoteId' => 'idr', 'precision' => array( 'amount' => 8, 'price' => 0 ), 'limits' => array( 'amount' => array( 'min' => 0.01, 'max' => null ))),
@@ -88,15 +90,18 @@ class indodax extends Exchange {
                 'ETC/IDR' => array( 'id' => 'etc_idr', 'symbol' => 'ETC/IDR', 'base' => 'ETC', 'quote' => 'IDR', 'baseId' => 'etc', 'quoteId' => 'idr', 'precision' => array( 'amount' => 8, 'price' => 0 ), 'limits' => array( 'amount' => array( 'min' => 0.1, 'max' => null ))),
                 'GARD/IDR' => array( 'id' => 'gard_idr', 'symbol' => 'GARD/IDR', 'base' => 'GARD', 'quote' => 'IDR', 'baseId' => 'gard', 'quoteId' => 'idr', 'precision' => array( 'amount' => 8, 'price' => 0 ), 'limits' => array( 'amount' => array( 'min' => 0.1, 'max' => null ))),
                 'GSC/IDR' => array( 'id' => 'gsc_idr', 'symbol' => 'GSC/IDR', 'base' => 'GSC', 'quote' => 'IDR', 'baseId' => 'gsc', 'quoteId' => 'idr', 'precision' => array( 'amount' => 8, 'price' => 0 ), 'limits' => array( 'amount' => array( 'min' => 0.1, 'max' => null ))),
-                'GXC/IDR' => array( 'id' => 'gxc_idr', 'symbol' => 'GXC/IDR', 'base' => 'GXC', 'quote' => 'IDR', 'baseId' => 'gxc', 'quoteId' => 'idr', 'precision' => array( 'amount' => 8, 'price' => 0 ), 'limits' => array( 'amount' => array( 'min' => 0.1, 'max' => null ))),
+                'GXC/IDR' => array( 'id' => 'gxs_idr', 'symbol' => 'GXC/IDR', 'base' => 'GXC', 'quote' => 'IDR', 'baseId' => 'gxs', 'quoteId' => 'idr', 'precision' => array( 'amount' => 8, 'price' => 0 ), 'limits' => array( 'amount' => array( 'min' => 0.1, 'max' => null ))),
+                'HPB/IDR' => array( 'id' => 'hpb_idr', 'symbol' => 'HPB/IDR', 'base' => 'HPB', 'quote' => 'IDR', 'baseId' => 'hpb', 'quoteId' => 'idr', 'precision' => array( 'amount' => 8, 'price' => 0 ), 'limits' => array( 'amount' => array( 'min' => 5, 'max' => null ))),
                 'IGNIS/IDR' => array( 'id' => 'ignis_idr', 'symbol' => 'IGNIS/IDR', 'base' => 'IGNIS', 'quote' => 'IDR', 'baseId' => 'ignis', 'quoteId' => 'idr', 'precision' => array( 'amount' => 8, 'price' => 0 ), 'limits' => array( 'amount' => array( 'min' => 1, 'max' => null ))),
                 'INX/IDR' => array( 'id' => 'inx_idr', 'symbol' => 'INX/IDR', 'base' => 'INX', 'quote' => 'IDR', 'baseId' => 'inx', 'quoteId' => 'idr', 'precision' => array( 'amount' => 8, 'price' => 0 ), 'limits' => array( 'amount' => array( 'min' => 1, 'max' => null ))),
+                'IOTA/IDR' => array( 'id' => 'iota_idr', 'symbol' => 'IOTA/IDR', 'base' => 'IOTA', 'quote' => 'IDR', 'baseId' => 'iota', 'quoteId' => 'idr', 'precision' => array( 'amount' => 8, 'price' => 0 ), 'limits' => array( 'amount' => array( 'min' => 5, 'max' => null ))),
                 'LINK/IDR' => array( 'id' => 'link_idr', 'symbol' => 'LINK/IDR', 'base' => 'LINK', 'quote' => 'IDR', 'baseId' => 'link', 'quoteId' => 'idr', 'precision' => array( 'amount' => 8, 'price' => 0 ), 'limits' => array( 'amount' => array( 'min' => 1, 'max' => null ))),
                 'LTC/IDR' => array( 'id' => 'ltc_idr', 'symbol' => 'LTC/IDR', 'base' => 'LTC', 'quote' => 'IDR', 'baseId' => 'ltc', 'quoteId' => 'idr', 'precision' => array( 'amount' => 8, 'price' => 0 ), 'limits' => array( 'amount' => array( 'min' => 0.01, 'max' => null ))),
                 'MBL/IDR' => array( 'id' => 'mbl_idr', 'symbol' => 'MBL/IDR', 'base' => 'MBL', 'quote' => 'IDR', 'baseId' => 'mbl', 'quoteId' => 'idr', 'precision' => array( 'amount' => 8, 'price' => 0 ), 'limits' => array( 'amount' => array( 'min' => 0.01, 'max' => null ))),
                 'NEO/IDR' => array( 'id' => 'neo_idr', 'symbol' => 'NEO/IDR', 'base' => 'NEO', 'quote' => 'IDR', 'baseId' => 'neo', 'quoteId' => 'idr', 'precision' => array( 'amount' => 8, 'price' => 0 ), 'limits' => array( 'amount' => array( 'min' => 0.01, 'max' => null ))),
                 'NPXS/IDR' => array( 'id' => 'npxs_idr', 'symbol' => 'NPXS/IDR', 'base' => 'NPXS', 'quote' => 'IDR', 'baseId' => 'npxs', 'quoteId' => 'idr', 'precision' => array( 'amount' => 8, 'price' => 0 ), 'limits' => array( 'amount' => array( 'min' => 1, 'max' => null ))),
                 'NXT/IDR' => array( 'id' => 'nxt_idr', 'symbol' => 'NXT/IDR', 'base' => 'NXT', 'quote' => 'IDR', 'baseId' => 'nxt', 'quoteId' => 'idr', 'precision' => array( 'amount' => 8, 'price' => 0 ), 'limits' => array( 'amount' => array( 'min' => 5, 'max' => null ))),
+                'OKB/IDR' => array( 'id' => 'okb_idr', 'symbol' => 'OKB/IDR', 'base' => 'OKB', 'quote' => 'IDR', 'baseId' => 'okb', 'quoteId' => 'idr', 'precision' => array( 'amount' => 8, 'price' => 0 ), 'limits' => array( 'amount' => array( 'min' => 0.5, 'max' => null ))),
                 'ONT/IDR' => array( 'id' => 'ont_idr', 'symbol' => 'ONT/IDR', 'base' => 'ONT', 'quote' => 'IDR', 'baseId' => 'ont', 'quoteId' => 'idr', 'precision' => array( 'amount' => 8, 'price' => 0 ), 'limits' => array( 'amount' => array( 'min' => 5, 'max' => null ))),
                 'PXG/IDR' => array( 'id' => 'pxg_idr', 'symbol' => 'PXG/IDR', 'base' => 'PXG', 'quote' => 'IDR', 'baseId' => 'pxg', 'quoteId' => 'idr', 'precision' => array( 'amount' => 8, 'price' => 0 ), 'limits' => array( 'amount' => array( 'min' => 5, 'max' => null ))),
                 'QTUM/IDR' => array( 'id' => 'qtum_idr', 'symbol' => 'QTUM/IDR', 'base' => 'QTUM', 'quote' => 'IDR', 'baseId' => 'qtum', 'quoteId' => 'idr', 'precision' => array( 'amount' => 8, 'price' => 0 ), 'limits' => array( 'amount' => array( 'min' => 5, 'max' => null ))),
@@ -108,13 +113,16 @@ class indodax extends Exchange {
                 'USDC/IDR' => array( 'id' => 'usdc_idr', 'symbol' => 'USDC/IDR', 'base' => 'USDC', 'quote' => 'IDR', 'baseId' => 'usdc', 'quoteId' => 'idr', 'precision' => array( 'amount' => 8, 'price' => 0 ), 'limits' => array( 'amount' => array( 'min' => null, 'max' => null ))),
                 'USDT/IDR' => array( 'id' => 'usdt_idr', 'symbol' => 'USDT/IDR', 'base' => 'USDT', 'quote' => 'IDR', 'baseId' => 'usdt', 'quoteId' => 'idr', 'precision' => array( 'amount' => 8, 'price' => 0 ), 'limits' => array( 'amount' => array( 'min' => null, 'max' => null ))),
                 'VEX/IDR' => array( 'id' => 'vex_idr', 'symbol' => 'VEX/IDR', 'base' => 'VEX', 'quote' => 'IDR', 'baseId' => 'vex', 'quoteId' => 'idr', 'precision' => array( 'amount' => 8, 'price' => 0 ), 'limits' => array( 'amount' => array( 'min' => null, 'max' => null ))),
+                'VIDY/IDR' => array( 'id' => 'vidy_idr', 'symbol' => 'VIDY/IDR', 'base' => 'VIDY', 'quote' => 'IDR', 'baseId' => 'vidy', 'quoteId' => 'idr', 'precision' => array( 'amount' => 8, 'price' => 0 ), 'limits' => array( 'amount' => array( 'min' => 100, 'max' => null ))),
                 'WAVES/IDR' => array( 'id' => 'waves_idr', 'symbol' => 'WAVES/IDR', 'base' => 'WAVES', 'quote' => 'IDR', 'baseId' => 'waves', 'quoteId' => 'idr', 'precision' => array( 'amount' => 8, 'price' => 0 ), 'limits' => array( 'amount' => array( 'min' => 0.1, 'max' => null ))),
                 'XEM/IDR' => array( 'id' => 'nem_idr', 'symbol' => 'XEM/IDR', 'base' => 'XEM', 'quote' => 'IDR', 'baseId' => 'nem', 'quoteId' => 'idr', 'precision' => array( 'amount' => 8, 'price' => 0 ), 'limits' => array( 'amount' => array( 'min' => 1, 'max' => null ))),
                 'XLM/IDR' => array( 'id' => 'str_idr', 'symbol' => 'XLM/IDR', 'base' => 'XLM', 'quote' => 'IDR', 'baseId' => 'str', 'quoteId' => 'idr', 'precision' => array( 'amount' => 8, 'price' => 0 ), 'limits' => array( 'amount' => array( 'min' => 20, 'max' => null ))),
                 'XDCE/IDR' => array( 'id' => 'xdce_idr', 'symbol' => 'XDCE/IDR', 'base' => 'XDCE', 'quote' => 'IDR', 'baseId' => 'xdce', 'quoteId' => 'idr', 'precision' => array( 'amount' => 8, 'price' => 0 ), 'limits' => array( 'amount' => array( 'min' => 10, 'max' => null ))),
+                'XMR/IDR' => array( 'id' => 'xmr_idr', 'symbol' => 'XMR/IDR', 'base' => 'XMR', 'quote' => 'IDR', 'baseId' => 'xmr', 'quoteId' => 'idr', 'precision' => array( 'amount' => 8, 'price' => 0 ), 'limits' => array( 'amount' => array( 'min' => 0.01, 'max' => null ))),
                 'XRP/IDR' => array( 'id' => 'xrp_idr', 'symbol' => 'XRP/IDR', 'base' => 'XRP', 'quote' => 'IDR', 'baseId' => 'xrp', 'quoteId' => 'idr', 'precision' => array( 'amount' => 8, 'price' => 0 ), 'limits' => array( 'amount' => array( 'min' => 10, 'max' => null ))),
                 'XZC/IDR' => array( 'id' => 'xzc_idr', 'symbol' => 'XZC/IDR', 'base' => 'XZC', 'quote' => 'IDR', 'baseId' => 'xzc', 'quoteId' => 'idr', 'precision' => array( 'amount' => 8, 'price' => 0 ), 'limits' => array( 'amount' => array( 'min' => 0.1, 'max' => null ))),
                 'VSYS/IDR' => array( 'id' => 'vsys_idr', 'symbol' => 'VSYS/IDR', 'base' => 'VSYS', 'quote' => 'IDR', 'baseId' => 'vsys', 'quoteId' => 'idr', 'precision' => array( 'amount' => 8, 'price' => 0 ), 'limits' => array( 'amount' => array( 'min' => 0.1, 'max' => null ))),
+                'ZEC/IDR' => array( 'id' => 'zec_idr', 'symbol' => 'ZEC/IDR', 'base' => 'ZEC', 'quote' => 'IDR', 'baseId' => 'zec', 'quoteId' => 'idr', 'precision' => array( 'amount' => 8, 'price' => 0 ), 'limits' => array( 'amount' => array( 'min' => 0.01, 'max' => null ))),
                 // BTC markets
                 'BTS/BTC' => array( 'id' => 'bts_btc', 'symbol' => 'BTS/BTC', 'base' => 'BTS', 'quote' => 'BTC', 'baseId' => 'bts', 'quoteId' => 'btc', 'precision' => array( 'amount' => 8, 'price' => 8 ), 'limits' => array( 'amount' => array( 'min' => 0.01, 'max' => null ))),
                 'DASH/BTC' => array( 'id' => 'drk_btc', 'symbol' => 'DASH/BTC', 'base' => 'DASH', 'quote' => 'BTC', 'baseId' => 'drk', 'quoteId' => 'btc', 'precision' => array( 'amount' => 8, 'price' => 6 ), 'limits' => array( 'amount' => array( 'min' => 0.01, 'max' => null ))),
@@ -152,7 +160,7 @@ class indodax extends Exchange {
         ));
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostGetInfo ($params);
         $balances = $this->safe_value($response, 'return', array());
@@ -163,7 +171,7 @@ class indodax extends Exchange {
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $code = $this->safe_currency_code($currencyId);
-            $account = $this->account ();
+            $account = $this->account();
             $account['free'] = $this->safe_float($free, $currencyId);
             $account['used'] = $this->safe_float($used, $currencyId);
             $result[$code] = $account;
@@ -171,7 +179,7 @@ class indodax extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'pair' => $this->market_id($symbol),
@@ -180,9 +188,9 @@ class indodax extends Exchange {
         return $this->parse_order_book($orderbook, null, 'buy', 'sell');
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
         );
@@ -209,7 +217,7 @@ class indodax extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
             'bid' => $this->safe_float($ticker, 'buy'),
@@ -230,7 +238,7 @@ class indodax extends Exchange {
         );
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         $timestamp = $this->safe_timestamp($trade, 'date');
         $id = $this->safe_string($trade, 'tid');
         $symbol = null;
@@ -251,7 +259,7 @@ class indodax extends Exchange {
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
@@ -264,9 +272,9 @@ class indodax extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
         );
@@ -274,7 +282,17 @@ class indodax extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_order ($order, $market = null) {
+    public function parse_order($order, $market = null) {
+        //
+        //     {
+        //         "order_id" => "12345",
+        //         "submit_time" => "1392228122",
+        //         "$price" => "8000000",
+        //         "type" => "sell",
+        //         "order_ltc" => "100000000",
+        //         "remain_ltc" => "100000000"
+        //     }
+        //
         $side = null;
         if (is_array($order) && array_key_exists('type', $order)) {
             $side = $order['type'];
@@ -282,7 +300,7 @@ class indodax extends Exchange {
         $status = $this->safe_string($order, 'status', 'open');
         if ($status === 'filled') {
             $status = 'closed';
-        } else if ($status === 'calcelled') {
+        } else if ($status === 'cancelled') {
             $status = 'canceled';
         }
         $symbol = null;
@@ -326,8 +344,9 @@ class indodax extends Exchange {
         return array(
             'info' => $order,
             'id' => $id,
+            'clientOrderId' => null,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => 'limit',
@@ -340,15 +359,16 @@ class indodax extends Exchange {
             'remaining' => $remaining,
             'status' => $status,
             'fee' => $fee,
+            'trades' => null,
         );
     }
 
-    public function fetch_order ($id, $symbol = null, $params = array ()) {
+    public function fetch_order($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
             throw new ExchangeError($this->id . ' fetchOrder requires a symbol');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
             'order_id' => $id,
@@ -359,12 +379,12 @@ class indodax extends Exchange {
         return array_merge(array( 'info' => $response ), $order);
     }
 
-    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = null;
         $request = array();
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
             $request['pair'] = $market['id'];
         }
         $response = $this->privatePostOpenOrders (array_merge($request, $params));
@@ -390,7 +410,7 @@ class indodax extends Exchange {
         return $exchangeOrders;
     }
 
-    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
             throw new ExchangeError($this->id . ' fetchOrders requires a symbol');
         }
@@ -398,7 +418,7 @@ class indodax extends Exchange {
         $request = array();
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
             $request['pair'] = $market['id'];
         }
         $response = $this->privatePostOrderHistory (array_merge($request, $params));
@@ -410,12 +430,12 @@ class indodax extends Exchange {
         return $orders;
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         if ($type !== 'limit') {
             throw new ExchangeError($this->id . ' allows limit orders only');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
             'type' => $side,
@@ -435,7 +455,7 @@ class indodax extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder requires a $symbol argument');
         }
@@ -444,7 +464,7 @@ class indodax extends Exchange {
             throw new ExchangeError($this->id . ' cancelOrder requires an extra "$side" param');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'order_id' => $id,
             'pair' => $market['id'],
@@ -453,17 +473,17 @@ class indodax extends Exchange {
         return $this->privatePostCancelOrder (array_merge($request, $params));
     }
 
-    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         // Custom string you need to provide to identify each withdrawal.
         // Will be passed to callback URL (assigned via website to the API key)
         // so your system can identify the $request and confirm it.
         // Alphanumeric, max length 255.
-        $requestId = $this->milliseconds ();
+        $requestId = $this->milliseconds();
         // Alternatively:
-        // $requestId = $this->uuid ();
+        // $requestId = $this->uuid();
         $request = array(
             'currency' => $currency['id'],
             'withdraw_amount' => $amount,
@@ -499,26 +519,26 @@ class indodax extends Exchange {
         );
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api];
         if ($api === 'public') {
             $url .= '/' . $this->implode_params($path, $params);
         } else {
             $this->check_required_credentials();
-            $body = $this->urlencode (array_merge(array(
+            $body = $this->urlencode(array_merge(array(
                 'method' => $path,
-                'nonce' => $this->nonce (),
+                'nonce' => $this->nonce(),
             ), $params));
             $headers = array(
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Key' => $this->apiKey,
-                'Sign' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512'),
+                'Sign' => $this->hmac($this->encode($body), $this->encode($this->secret), 'sha512'),
             );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return;
         }
@@ -535,7 +555,7 @@ class indodax extends Exchange {
         if ($this->safe_integer($response, 'success', 0) === 1) {
             // array( success => 1, return => array( orders => array() ))
             if (!(is_array($response) && array_key_exists('return', $response))) {
-                throw new ExchangeError($this->id . ' => malformed $response => ' . $this->json ($response));
+                throw new ExchangeError($this->id . ' => malformed $response => ' . $this->json($response));
             } else {
                 return;
             }

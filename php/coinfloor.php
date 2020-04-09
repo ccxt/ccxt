@@ -12,8 +12,8 @@ use \ccxt\InvalidOrder;
 
 class coinfloor extends Exchange {
 
-    public function describe () {
-        return array_replace_recursive(parent::describe (), array(
+    public function describe() {
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'coinfloor',
             'name' => 'coinfloor',
             'rateLimit' => 1000,
@@ -63,7 +63,6 @@ class coinfloor extends Exchange {
             'markets' => array(
                 'BTC/GBP' => array( 'id' => 'XBT/GBP', 'symbol' => 'BTC/GBP', 'base' => 'BTC', 'quote' => 'GBP', 'baseId' => 'XBT', 'quoteId' => 'GBP', 'precision' => array( 'price' => 0, 'amount' => 4 )),
                 'BTC/EUR' => array( 'id' => 'XBT/EUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR', 'baseId' => 'XBT', 'quoteId' => 'EUR', 'precision' => array( 'price' => 0, 'amount' => 4 )),
-                'ETH/GBP' => array( 'id' => 'ETH/GBP', 'symbol' => 'ETH/GBP', 'base' => 'ETH', 'quote' => 'GBP', 'baseId' => 'ETH', 'quoteId' => 'GBP', 'precision' => array( 'price' => 0, 'amount' => 4 )),
             ),
             'exceptions' => array(
                 'exact' => array(
@@ -74,14 +73,14 @@ class coinfloor extends Exchange {
         ));
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $market = null;
         $query = $params;
         $symbol = $this->safe_string($params, 'symbol');
         if ($symbol !== null) {
-            $market = $this->market ($params['symbol']);
-            $query = $this->omit ($params, 'symbol');
+            $market = $this->market($params['symbol']);
+            $query = $this->omit($params, 'symbol');
         }
         $marketId = $this->safe_string($params, 'id');
         if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
@@ -115,7 +114,7 @@ class coinfloor extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'id' => $this->market_id($symbol),
@@ -124,9 +123,9 @@ class coinfloor extends Exchange {
         return $this->parse_order_book($response);
     }
 
-    public function parse_ticker ($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null) {
         // rewrite to get the $timestamp from HTTP headers
-        $timestamp = $this->milliseconds ();
+        $timestamp = $this->milliseconds();
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -141,7 +140,7 @@ class coinfloor extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
             'bid' => $this->safe_float($ticker, 'bid'),
@@ -162,9 +161,9 @@ class coinfloor extends Exchange {
         );
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'id' => $market['id'],
         );
@@ -172,7 +171,7 @@ class coinfloor extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         $timestamp = $this->safe_timestamp($trade, 'date');
         $id = $this->safe_string($trade, 'tid');
         $price = $this->safe_float($trade, 'price');
@@ -192,7 +191,7 @@ class coinfloor extends Exchange {
             'id' => $id,
             'order' => null,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'type' => null,
             'side' => null,
@@ -204,9 +203,9 @@ class coinfloor extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'id' => $market['id'],
         );
@@ -214,12 +213,12 @@ class coinfloor extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_ledger ($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
         // $code is actually a $market symbol in this situation, not a currency $code
         $this->load_markets();
         $market = null;
         if ($code !== null) {
-            $market = $this->market ($code);
+            $market = $this->market($code);
             if ($market === null) {
                 throw new ArgumentsRequired($this->id . ' fetchTransactions requires a $code argument (a $market symbol)');
             }
@@ -232,14 +231,14 @@ class coinfloor extends Exchange {
         return $this->parse_ledger($response, null, $since, null);
     }
 
-    public function parse_ledger_entry_status ($status) {
+    public function parse_ledger_entry_status($status) {
         $types = array(
             'completed' => 'ok',
         );
         return $this->safe_string($types, $status, $status);
     }
 
-    public function parse_ledger_entry_type ($type) {
+    public function parse_ledger_entry_type($type) {
         $types = array(
             '0' => 'transaction', // deposit
             '1' => 'transaction', // withdrawal
@@ -248,7 +247,7 @@ class coinfloor extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_entry ($item, $currency = null) {
+    public function parse_ledger_entry($item, $currency = null) {
         //
         // trade
         //
@@ -313,15 +312,15 @@ class coinfloor extends Exchange {
         }
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
-        $type = $this->parse_ledger_entry_type ($this->safe_string($item, 'type'));
+        $type = $this->parse_ledger_entry_type($this->safe_string($item, 'type'));
         $referenceId = $this->safe_string($item, 'id');
-        $timestamp = $this->parse8601 ($this->safe_string($item, 'datetime'));
+        $timestamp = $this->parse8601($this->safe_string($item, 'datetime'));
         $fee = null;
         $feeCost = $this->safe_float($item, 'fee');
         $result = array(
             'id' => null,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'amount' => null,
             'direction' => null,
             'currency' => null,
@@ -391,12 +390,12 @@ class coinfloor extends Exchange {
         }
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'id' => $this->market_id($symbol),
         );
-        $method = 'privatePostId' . $this->capitalize ($side);
+        $method = 'privatePostId' . $this->capitalize($side);
         if ($type === 'market') {
             $request['quantity'] = $amount;
             $method .= 'Market';
@@ -407,12 +406,12 @@ class coinfloor extends Exchange {
         return $this->$method (array_merge($request, $params));
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder requires a $symbol argument');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
             'id' => $id,
@@ -425,8 +424,8 @@ class coinfloor extends Exchange {
         return $response;
     }
 
-    public function parse_order ($order, $market = null) {
-        $timestamp = $this->parse8601 ($this->safe_string($order, 'datetime'));
+    public function parse_order($order, $market = null) {
+        $timestamp = $this->parse8601($this->safe_string($order, 'datetime'));
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'amount');
         $cost = null;
@@ -450,7 +449,8 @@ class coinfloor extends Exchange {
         return array(
             'info' => $order,
             'id' => $id,
-            'datetime' => $this->iso8601 ($timestamp),
+            'clientOrderId' => null,
+            'datetime' => $this->iso8601($timestamp),
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => null,
             'status' => $status,
@@ -463,15 +463,17 @@ class coinfloor extends Exchange {
             'remaining' => null,
             'cost' => $cost,
             'fee' => null,
+            'average' => null,
+            'trades' => null,
         );
     }
 
-    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOpenOrders requires a $symbol param');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'id' => $market['id'],
         );
@@ -486,7 +488,7 @@ class coinfloor extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit, array( 'status' => 'open' ));
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($code < 400) {
             return;
         }
@@ -499,20 +501,20 @@ class coinfloor extends Exchange {
         throw new ExchangeError($feedback);
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         // curl -k -u '[User ID]/[API key]:[Passphrase]' https://webapi.coinfloor.co.uk:8090/bist/XBT/GBP/balance/
         $url = $this->urls['api'] . '/' . $this->implode_params($path, $params);
-        $query = $this->omit ($params, $this->extract_params($path));
+        $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
             if ($query) {
-                $url .= '?' . $this->urlencode ($query);
+                $url .= '?' . $this->urlencode($query);
             }
         } else {
             $this->check_required_credentials();
-            $nonce = $this->nonce ();
-            $body = $this->urlencode (array_merge(array( 'nonce' => $nonce ), $query));
+            $nonce = $this->nonce();
+            $body = $this->urlencode(array_merge(array( 'nonce' => $nonce ), $query));
             $auth = $this->uid . '/' . $this->apiKey . ':' . $this->password;
-            $signature = $this->decode (base64_encode($this->encode ($auth)));
+            $signature = $this->decode(base64_encode($this->encode($auth)));
             $headers = array(
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Authorization' => 'Basic ' . $signature,

@@ -26,7 +26,7 @@ class adara(Exchange):
             'certified': False,
             # new metainfo interface
             'has': {
-                'CORS': True,
+                'CORS': False,
                 'fetchCurrencies': True,
                 'fetchOrderBooks': False,
                 'createMarketOrder': False,
@@ -937,6 +937,7 @@ class adara(Exchange):
         result = {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,

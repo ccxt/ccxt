@@ -17,6 +17,7 @@ module.exports = class bitfinex extends Exchange {
             'version': 'v1',
             'rateLimit': 1500,
             'certified': true,
+            'pro': true,
             // new metainfo interface
             'has': {
                 'CORS': false,
@@ -274,6 +275,7 @@ module.exports = class bitfinex extends Exchange {
                     },
                 },
             },
+            // todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
             'commonCurrencies': {
                 'ABS': 'ABYSS',
                 'AIO': 'AION',
@@ -309,7 +311,9 @@ module.exports = class bitfinex extends Exchange {
                 'UST': 'USDT',
                 'UTN': 'UTNP',
                 'VSY': 'VSYS',
+                'WAX': 'WAXP',
                 'XCH': 'XCHF',
+                'ZBT': 'ZB',
             },
             'exceptions': {
                 'exact': {
@@ -411,7 +415,7 @@ module.exports = class bitfinex extends Exchange {
                     'YOYOW': 'yoyow',
                     'ZEC': 'zcash',
                     'ZRX': 'zrx',
-                    'XTZ': 'tezos',
+                    'XTZ': 'xtz',
                 },
                 'orderTypes': {
                     'limit': 'exchange limit',
@@ -543,11 +547,19 @@ module.exports = class bitfinex extends Exchange {
         } else {
             key = 'base';
         }
+        const code = market[key];
+        const currency = this.safeValue (this.currencies, code);
+        if (currency !== undefined) {
+            const precision = this.safeInteger (currency, 'precision');
+            if (precision !== undefined) {
+                cost = parseFloat (this.currencyToPrecision (code, cost));
+            }
+        }
         return {
             'type': takerOrMaker,
             'currency': market[key],
             'rate': rate,
-            'cost': parseFloat (this.currencyToPrecision (market[key], cost)),
+            'cost': cost,
         };
     }
 
@@ -618,6 +630,7 @@ module.exports = class bitfinex extends Exchange {
         if (timestamp !== undefined) {
             timestamp *= 1000;
         }
+        timestamp = parseInt (timestamp);
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -832,6 +845,7 @@ module.exports = class bitfinex extends Exchange {
         return {
             'info': order,
             'id': id,
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -845,6 +859,8 @@ module.exports = class bitfinex extends Exchange {
             'filled': this.safeFloat (order, 'executed_amount'),
             'status': status,
             'fee': undefined,
+            'cost': undefined,
+            'trades': undefined,
         };
     }
 
@@ -919,6 +935,7 @@ module.exports = class bitfinex extends Exchange {
     }
 
     getCurrencyName (code) {
+        // todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
         if (code in this.options['currencyNames']) {
             return this.options['currencyNames'][code];
         }
@@ -931,18 +948,12 @@ module.exports = class bitfinex extends Exchange {
             'renew': 1,
         };
         const response = await this.fetchDepositAddress (code, this.extend (request, params));
-        const address = this.safeString (response, 'address');
-        this.checkAddress (address);
-        return {
-            'info': response['info'],
-            'currency': code,
-            'address': address,
-            'tag': undefined,
-        };
+        return response;
     }
 
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
+        // todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
         const name = this.getCurrencyName (code);
         const request = {
             'method': name,
@@ -1084,11 +1095,13 @@ module.exports = class bitfinex extends Exchange {
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
+        await this.loadMarkets ();
+        // todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
         const name = this.getCurrencyName (code);
         const request = {
             'withdraw_type': name,
             'walletselected': 'exchange',
-            'amount': amount.toString (),
+            'amount': this.numberToString (amount),
             'address': address,
         };
         if (tag !== undefined) {

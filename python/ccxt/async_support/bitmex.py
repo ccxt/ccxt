@@ -26,6 +26,7 @@ class bitmex(Exchange):
             'version': 'v1',
             'userAgent': None,
             'rateLimit': 2000,
+            'pro': True,
             'has': {
                 'CORS': False,
                 'fetchOHLCV': True,
@@ -61,7 +62,7 @@ class bitmex(Exchange):
                     'https://github.com/BitMEX/api-connectors/tree/master/official-http',
                 ],
                 'fees': 'https://www.bitmex.com/app/fees',
-                'referral': 'https://www.bitmex.com/register/rm3C16',
+                'referral': 'https://www.bitmex.com/register/upZpOX',
             },
             'api': {
                 'public': {
@@ -1043,9 +1044,11 @@ class bitmex(Exchange):
         id = self.safe_string(order, 'orderID')
         type = self.safe_string_lower(order, 'ordType')
         side = self.safe_string_lower(order, 'side')
+        clientOrderId = self.safe_string(order, 'clOrdID')
         return {
             'info': order,
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -1060,6 +1063,7 @@ class bitmex(Exchange):
             'remaining': remaining,
             'status': status,
             'fee': None,
+            'trades': None,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -1135,7 +1139,14 @@ class bitmex(Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        response = await self.privateDeleteOrder(self.extend({'orderID': id}, params))
+        # https://github.com/ccxt/ccxt/issues/6507
+        clOrdID = self.safe_value(params, 'clOrdID')
+        request = {}
+        if clOrdID is None:
+            request['orderID'] = id
+        else:
+            request['clOrdID'] = clOrdID
+        response = await self.privateDeleteOrder(self.extend(request, params))
         order = response[0]
         error = self.safe_string(order, 'error')
         if error is not None:

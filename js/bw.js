@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { BadSymbol, ExchangeError, AuthenticationError, ArgumentsRequired, ExchangeNotAvailable } = require ('./base/errors');
+const { RateLimitExceeded, BadSymbol, OrderNotFound, ExchangeError, AuthenticationError, ArgumentsRequired, ExchangeNotAvailable } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -28,7 +28,7 @@ module.exports = class bw extends Exchange {
                 'editOrder': false,
                 'fetchBalance': true,
                 'fetchBidsAsks': false,
-                'fetchClosedOrders': false,
+                'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
@@ -77,18 +77,10 @@ module.exports = class bw extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'tierBased': true,
+                    'tierBased': false,
                     'percentage': true,
                     'taker': 0.2 / 100,
                     'maker': 0.2 / 100,
-                    'tiers': {
-                        'taker': [
-                            [ 0, 0.2 / 100 ],
-                        ],
-                        'maker': [
-                            [ 0, 0.2 / 100 ],
-                        ],
-                    },
                 },
                 'funding': {
                 },
@@ -97,7 +89,9 @@ module.exports = class bw extends Exchange {
                 'exact': {
                     '999': AuthenticationError,
                     '1000': ExchangeNotAvailable, // {"datas":null,"resMsg":{"message":"getKlines error:data not exitsts\uff0cplease wait ,dataType=4002_KLINE_1M","method":null,"code":"1000"}}
+                    '2012': OrderNotFound, // {"datas":null,"resMsg":{"message":"entrust not exists or on dealing with system","method":null,"code":"2012"}}
                     '5017': BadSymbol, // {"datas":null,"resMsg":{"message":"market not exist","method":null,"code":"5017"}}
+                    '10001': RateLimitExceeded, // {"resMsg":{"code":"10001","message":"API frequency limit"}}
                 },
             },
             'api': {
@@ -119,6 +113,7 @@ module.exports = class bw extends Exchange {
                         'exchange/entrust/controller/website/EntrustController/getUserEntrustList',
                         'exchange/fund/controller/website/fundwebsitecontroller/getwithdrawaddress',
                         'exchange/fund/controller/website/fundwebsitecontroller/getpayoutcoinrecord',
+                        'exchange/entrust/controller/website/EntrustController/getUserEntrustList',
                         // the docs say that the following URLs are HTTP POST
                         // in the docs header and HTTP GET in the docs body
                         // the docs contradict themselves, a typo most likely
@@ -313,7 +308,7 @@ module.exports = class bw extends Exchange {
                     },
                     'withdraw': {
                         'min': undefined,
-                        'max': parseFloat (this.safeInteger (currency, 'onceDrawLimit')),
+                        'max': this.safeFloat (currency, 'onceDrawLimit'),
                     },
                 },
             };
@@ -342,8 +337,10 @@ module.exports = class bw extends Exchange {
         if (marketId in this.markets_by_id) {
             market = this.markets_by_id[marketId];
         }
-        if ((symbol === undefined) && (market !== undefined)) {
+        if (market !== undefined) {
             symbol = market['symbol'];
+        } else {
+            symbol = marketId;
         }
         const timestamp = this.milliseconds ();
         const close = parseFloat (this.safeValue (ticker, 1));
@@ -613,7 +610,7 @@ module.exports = class bw extends Exchange {
         const result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
-            const currencyId = this.safeInteger (balance, 'currencyTypeId');
+            const currencyId = this.safeString (balance, 'currencyTypeId');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             account['free'] = this.safeFloat (balance, 'amount');
@@ -669,6 +666,7 @@ module.exports = class bw extends Exchange {
             'status': 'open',
             'fee': undefined,
             'trades': undefined,
+            'clientOrderId': undefined,
         };
     }
 
@@ -738,6 +736,7 @@ module.exports = class bw extends Exchange {
         return {
             'info': order,
             'id': this.safeString (order, 'entrustId'),
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -861,6 +860,27 @@ module.exports = class bw extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'marketId': market['id'],
+        };
+        if (limit !== undefined) {
+            request['pageSize'] = limit; // default limit is 20
+        }
+        if (since !== undefined) {
+            request['startDateTime'] = since;
+        }
+        const response = await this.privateGetExchangeEntrustControllerWebsiteEntrustControllerGetUserEntrustList (this.extend (request, params));
+        const data = this.safeValue (response, 'datas', {});
+        const orders = this.safeValue (data, 'entrustList', []);
+        return this.parseOrders (orders, market, since, limit);
+    }
+
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
@@ -932,13 +952,13 @@ module.exports = class bw extends Exchange {
                 const keys = Object.keys (sortedParams);
                 for (let i = 0; i < keys.length; i++) {
                     const key = keys[i];
-                    content += key + sortedParams[key];
+                    content += key + sortedParams[key].toString ();
                 }
             } else {
                 content = body;
             }
-            const signing = this.apiKey + ms + content + this.secret;
-            const hash = this.hash (this.encode (signing), 'md5');
+            const signature = this.apiKey + ms + content + this.secret;
+            const hash = this.hash (this.encode (signature), 'md5');
             if (!headers) {
                 headers = {};
             }

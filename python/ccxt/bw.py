@@ -8,6 +8,8 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadSymbol
+from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 
 
@@ -33,7 +35,7 @@ class bw(Exchange):
                 'editOrder': False,
                 'fetchBalance': True,
                 'fetchBidsAsks': False,
-                'fetchClosedOrders': False,
+                'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
@@ -82,18 +84,10 @@ class bw(Exchange):
             },
             'fees': {
                 'trading': {
-                    'tierBased': True,
+                    'tierBased': False,
                     'percentage': True,
                     'taker': 0.2 / 100,
                     'maker': 0.2 / 100,
-                    'tiers': {
-                        'taker': [
-                            [0, 0.2 / 100],
-                        ],
-                        'maker': [
-                            [0, 0.2 / 100],
-                        ],
-                    },
                 },
                 'funding': {
                 },
@@ -102,7 +96,9 @@ class bw(Exchange):
                 'exact': {
                     '999': AuthenticationError,
                     '1000': ExchangeNotAvailable,  # {"datas":null,"resMsg":{"message":"getKlines error:data not exitsts\uff0cplease wait ,dataType=4002_KLINE_1M","method":null,"code":"1000"}}
+                    '2012': OrderNotFound,  # {"datas":null,"resMsg":{"message":"entrust not exists or on dealing with system","method":null,"code":"2012"}}
                     '5017': BadSymbol,  # {"datas":null,"resMsg":{"message":"market not exist","method":null,"code":"5017"}}
+                    '10001': RateLimitExceeded,  # {"resMsg":{"code":"10001","message":"API frequency limit"}}
                 },
             },
             'api': {
@@ -124,6 +120,7 @@ class bw(Exchange):
                         'exchange/entrust/controller/website/EntrustController/getUserEntrustList',
                         'exchange/fund/controller/website/fundwebsitecontroller/getwithdrawaddress',
                         'exchange/fund/controller/website/fundwebsitecontroller/getpayoutcoinrecord',
+                        'exchange/entrust/controller/website/EntrustController/getUserEntrustList',
                         # the docs say that the following URLs are HTTP POST
                         # in the docs header and HTTP GET in the docs body
                         # the docs contradict themselves, a typo most likely
@@ -315,7 +312,7 @@ class bw(Exchange):
                     },
                     'withdraw': {
                         'min': None,
-                        'max': float(self.safe_integer(currency, 'onceDrawLimit')),
+                        'max': self.safe_float(currency, 'onceDrawLimit'),
                     },
                 },
             }
@@ -341,8 +338,10 @@ class bw(Exchange):
         marketId = self.safe_string(ticker, 0)
         if marketId in self.markets_by_id:
             market = self.markets_by_id[marketId]
-        if (symbol is None) and (market is not None):
+        if market is not None:
             symbol = market['symbol']
+        else:
+            symbol = marketId
         timestamp = self.milliseconds()
         close = float(self.safe_value(ticker, 1))
         bid = self.safe_value(ticker, 'bid', {})
@@ -593,7 +592,7 @@ class bw(Exchange):
         result = {'info': response}
         for i in range(0, len(balances)):
             balance = balances[i]
-            currencyId = self.safe_integer(balance, 'currencyTypeId')
+            currencyId = self.safe_string(balance, 'currencyTypeId')
             code = self.safe_currency_code(currencyId)
             account = self.account()
             account['free'] = self.safe_float(balance, 'amount')
@@ -646,6 +645,7 @@ class bw(Exchange):
             'status': 'open',
             'fee': None,
             'trades': None,
+            'clientOrderId': None,
         }
 
     def parse_order_status(self, status):
@@ -706,6 +706,7 @@ class bw(Exchange):
         return {
             'info': order,
             'id': self.safe_string(order, 'entrustId'),
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -821,6 +822,23 @@ class bw(Exchange):
         orders = self.safe_value(data, 'entrustList', [])
         return self.parse_orders(orders, market, since, limit)
 
+    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'marketId': market['id'],
+        }
+        if limit is not None:
+            request['pageSize'] = limit  # default limit is 20
+        if since is not None:
+            request['startDateTime'] = since
+        response = self.privateGetExchangeEntrustControllerWebsiteEntrustControllerGetUserEntrustList(self.extend(request, params))
+        data = self.safe_value(response, 'datas', {})
+        orders = self.safe_value(data, 'entrustList', [])
+        return self.parse_orders(orders, market, since, limit)
+
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
@@ -886,11 +904,11 @@ class bw(Exchange):
                 keys = list(sortedParams.keys())
                 for i in range(0, len(keys)):
                     key = keys[i]
-                    content += key + sortedParams[key]
+                    content += key + str(sortedParams[key])
             else:
                 content = body
-            signing = self.apiKey + ms + content + self.secret
-            hash = self.hash(self.encode(signing), 'md5')
+            signature = self.apiKey + ms + content + self.secret
+            hash = self.hash(self.encode(signature), 'md5')
             if not headers:
                 headers = {}
             headers['Apiid'] = self.apiKey

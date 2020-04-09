@@ -9,13 +9,11 @@ const debug = process.argv.includes ('--debug') || false
 /*  ------------------------------------------------------------------------ */
 
 const asTable   = require ('as-table')
-    , util      = require ('util')
     , log       = require ('ololog')
     , ansi      = require ('ansicolor').nice
     , fs        = require ('fs')
     , ccxt      = require ('../../ccxt.js')
     , chai      = require ('chai')
-    , expect    = chai.expect
     , assert    = chai.assert
 
 /*  ------------------------------------------------------------------------ */
@@ -35,8 +33,7 @@ log.bright ('\nTESTING', { exchange: exchangeId, symbol: exchangeSymbol || 'all'
 
 let proxies = [
     '',
-    'https://cors-anywhere.herokuapp.com/',
-    // 'https://crossorigin.me/',
+    'https://cors-anywhere.herokuapp.com/'
 ]
 
 //-----------------------------------------------------------------------------
@@ -82,14 +79,12 @@ Object.keys (errors)
 const keysGlobal = 'keys.json'
 const keysLocal = 'keys.local.json'
 
-let keysFile = fs.existsSync (keysLocal) ? keysLocal : keysGlobal
+const keysFile = fs.existsSync (keysLocal) ? keysLocal : keysGlobal
 // eslint-disable-next-line import/no-dynamic-require
-let settings = require (__dirname + '/../../' + keysFile)[exchangeId]
+const settings = require (__dirname + '/../../' + keysFile)[exchangeId]
 
 if (settings) {
-    const keys = Object.keys (settings)
-    for (let i = 0; i < keys.length; i++) {
-        const key = keys[i]
+    for (const key in settings) {
         if (settings[key]) {
             settings[key] = ccxt.deepExtend (exchange[key] || {}, settings[key])
         }
@@ -124,7 +119,7 @@ let testSymbol = async (exchange, symbol) => {
 
     } else if (exchange.id === 'coinbase') {
 
-        // do nothing for now
+        // nothing for now
 
     } else {
 
@@ -224,7 +219,6 @@ let testExchange = async exchange => {
 
     await loadExchange (exchange)
 
-    let delay = exchange.rateLimit
     let symbol = exchange.symbols[0]
     const symbols = [
         'BTC/USD',
@@ -341,10 +335,12 @@ let tryAllProxies = async function (exchange, proxies) {
             exchange.proxy = proxies[currentProxy]
 
             // add random origin for proxies
-            if (exchange.proxy.length > 0)
+            if (exchange.proxy.length > 0) {
                 exchange.origin = exchange.uuid ()
+            }
 
             await testExchange (exchange)
+
             break
 
         } catch (e) {
@@ -374,12 +370,9 @@ let tryAllProxies = async function (exchange, proxies) {
 ;(async function test () {
 
     if (exchangeSymbol) {
-
         await loadExchange (exchange)
         await testSymbol (exchange, exchangeSymbol)
-
     } else {
-
         await tryAllProxies (exchange, proxies)
     }
 

@@ -129,6 +129,8 @@ module.exports = class bithumb extends Exchange {
                         'max': undefined,
                     },
                 },
+                'baseId': undefined,
+                'quoteId': undefined,
             });
         }
         return result;

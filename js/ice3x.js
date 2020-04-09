@@ -116,6 +116,7 @@ module.exports = class ice3x extends Exchange {
                     },
                 },
                 'info': currency,
+                'fee': undefined,
             };
         }
         return result;
@@ -148,6 +149,8 @@ module.exports = class ice3x extends Exchange {
                 'quoteId': quoteId,
                 'active': undefined,
                 'info': market,
+                'precision': this.precision,
+                'limits': this.limits,
             });
         }
         return result;
@@ -330,6 +333,7 @@ module.exports = class ice3x extends Exchange {
         }
         return {
             'id': this.safeString (order, 'order_id'),
+            'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
@@ -345,6 +349,7 @@ module.exports = class ice3x extends Exchange {
             'trades': undefined,
             'fee': fee,
             'info': order,
+            'average': undefined,
         };
     }
 

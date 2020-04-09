@@ -383,6 +383,19 @@ class lbank(Exchange):
         return self.safe_string(statuses, status)
 
     def parse_order(self, order, market=None):
+        #
+        #     {
+        #         "symbol"："eth_btc",
+        #         "amount"：10.000000,
+        #         "create_time"：1484289832081,
+        #         "price"：5000.000000,
+        #         "avg_price"：5277.301200,
+        #         "type"："sell",
+        #         "order_id"："ab704110-af0d-48fd-a083-c218f19a4a55",
+        #         "deal_amount"：10.000000,
+        #         "status"：2
+        #     }
+        #
         symbol = None
         responseMarket = self.safe_value(self.marketsById, order['symbol'])
         if responseMarket is not None:
@@ -409,6 +422,7 @@ class lbank(Exchange):
                 remaining = amount - filled
         return {
             'id': id,
+            'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
@@ -424,6 +438,7 @@ class lbank(Exchange):
             'trades': None,
             'fee': None,
             'info': self.safe_value(order, 'info', order),
+            'average': None,
         }
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -550,7 +565,7 @@ class lbank(Exchange):
                     self.options['pem'] = pem
             else:
                 pem = self.convert_secret_to_pem(self.secret)
-            sign = self.binaryToBase64(self.rsa(message, self.encode(pem), 'RS256'))
+            sign = self.binary_to_base64(self.rsa(message, self.encode(pem), 'RS256'))
             query['sign'] = sign
             body = self.urlencode(query)
             headers = {'Content-Type': 'application/x-www-form-urlencoded'}

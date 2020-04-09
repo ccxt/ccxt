@@ -31,6 +31,7 @@ class bitfinex(Exchange):
             'version': 'v1',
             'rateLimit': 1500,
             'certified': True,
+            'pro': True,
             # new metainfo interface
             'has': {
                 'CORS': False,
@@ -288,6 +289,7 @@ class bitfinex(Exchange):
                     },
                 },
             },
+            # todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
             'commonCurrencies': {
                 'ABS': 'ABYSS',
                 'AIO': 'AION',
@@ -323,7 +325,9 @@ class bitfinex(Exchange):
                 'UST': 'USDT',
                 'UTN': 'UTNP',
                 'VSY': 'VSYS',
+                'WAX': 'WAXP',
                 'XCH': 'XCHF',
+                'ZBT': 'ZB',
             },
             'exceptions': {
                 'exact': {
@@ -425,7 +429,7 @@ class bitfinex(Exchange):
                     'YOYOW': 'yoyow',
                     'ZEC': 'zcash',
                     'ZRX': 'zrx',
-                    'XTZ': 'tezos',
+                    'XTZ': 'xtz',
                 },
                 'orderTypes': {
                     'limit': 'exchange limit',
@@ -547,11 +551,17 @@ class bitfinex(Exchange):
             cost *= price
         else:
             key = 'base'
+        code = market[key]
+        currency = self.safe_value(self.currencies, code)
+        if currency is not None:
+            precision = self.safe_integer(currency, 'precision')
+            if precision is not None:
+                cost = float(self.currency_to_precision(code, cost))
         return {
             'type': takerOrMaker,
             'currency': market[key],
             'rate': rate,
-            'cost': float(self.currency_to_precision(market[key], cost)),
+            'cost': cost,
         }
 
     async def fetch_balance(self, params={}):
@@ -611,6 +621,7 @@ class bitfinex(Exchange):
         timestamp = self.safe_float(ticker, 'timestamp')
         if timestamp is not None:
             timestamp *= 1000
+        timestamp = int(timestamp)
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -793,6 +804,7 @@ class bitfinex(Exchange):
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -806,6 +818,8 @@ class bitfinex(Exchange):
             'filled': self.safe_float(order, 'executed_amount'),
             'status': status,
             'fee': None,
+            'cost': None,
+            'trades': None,
         }
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -867,6 +881,7 @@ class bitfinex(Exchange):
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def get_currency_name(self, code):
+        # todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
         if code in self.options['currencyNames']:
             return self.options['currencyNames'][code]
         raise NotSupported(self.id + ' ' + code + ' not supported for withdrawal')
@@ -877,17 +892,11 @@ class bitfinex(Exchange):
             'renew': 1,
         }
         response = await self.fetch_deposit_address(code, self.extend(request, params))
-        address = self.safe_string(response, 'address')
-        self.check_address(address)
-        return {
-            'info': response['info'],
-            'currency': code,
-            'address': address,
-            'tag': None,
-        }
+        return response
 
     async def fetch_deposit_address(self, code, params={}):
         await self.load_markets()
+        # todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
         name = self.get_currency_name(code)
         request = {
             'method': name,
@@ -1019,11 +1028,13 @@ class bitfinex(Exchange):
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
+        await self.load_markets()
+        # todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
         name = self.get_currency_name(code)
         request = {
             'withdraw_type': name,
             'walletselected': 'exchange',
-            'amount': str(amount),
+            'amount': self.number_to_string(amount),
             'address': address,
         }
         if tag is not None:

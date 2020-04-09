@@ -60,7 +60,7 @@ log ('Looking up for:', argument.bright, strict ? '(strict search)' : '(non-stri
 
 const checkAgainst = strict ?
     (a, b) => ((a == b.toLowerCase ()) || (a == b.toUpperCase ())) :
-    (a, b) => a.toLowerCase ().includes (b.toLowerCase ())
+    (a, b) => (a || '').toLowerCase ().includes ((b || '').toLowerCase ())
 
 ;(async function test () {
 

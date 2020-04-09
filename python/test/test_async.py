@@ -98,6 +98,7 @@ def dump_error(*args):
     string = ' '.join([str(arg) for arg in args])
     print(string)
     sys.stderr.write(string + "\n")
+    sys.stderr.flush()
 
 
 # ------------------------------------------------------------------------------

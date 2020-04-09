@@ -42,6 +42,7 @@ class kraken(Exchange):
             'version': '0',
             'rateLimit': 3000,
             'certified': True,
+            'pro': True,
             'has': {
                 'createDepositAddress': True,
                 'fetchDepositAddress': True,
@@ -63,18 +64,18 @@ class kraken(Exchange):
             },
             'marketsByAltname': {},
             'timeframes': {
-                '1m': '1',
-                '5m': '5',
-                '15m': '15',
-                '30m': '30',
-                '1h': '60',
-                '4h': '240',
-                '1d': '1440',
-                '1w': '10080',
-                '2w': '21600',
+                '1m': 1,
+                '5m': 5,
+                '15m': 15,
+                '30m': 30,
+                '1h': 60,
+                '4h': 240,
+                '1d': 1440,
+                '1w': 10080,
+                '2w': 21600,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766599-22709304-5ede-11e7-9de1-9f33732e1509.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/76173629-fc67fb00-61b1-11ea-84fe-f2de582f58a3.jpg',
                 'api': {
                     'public': 'https://api.kraken.com',
                     'private': 'https://api.kraken.com',
@@ -230,6 +231,7 @@ class kraken(Exchange):
                 'delistedMarketsById': {},
                 # cannot withdraw/deposit these
                 'inactiveCurrencies': ['CAD', 'USD', 'JPY', 'GBP'],
+                'fetchMinOrderAmounts': True,
             },
             'exceptions': {
                 'EQuery:Invalid asset pair': BadSymbol,  # {"error":["EQuery:Invalid asset pair"]}
@@ -277,7 +279,10 @@ class kraken(Exchange):
 
     def fetch_markets(self, params={}):
         response = self.publicGetAssetPairs(params)
-        limits = self.fetch_min_order_amounts()
+        fetchMinOrderAmounts = self.safe_value(self.options, 'fetchMinOrderAmounts', False)
+        limits = {}
+        if fetchMinOrderAmounts:
+            limits = self.fetch_min_order_amounts()
         keys = list(response['result'].keys())
         result = []
         for i in range(0, len(keys)):
@@ -436,6 +441,12 @@ class kraken(Exchange):
             'taker': taker,
         }
 
+    def parse_bid_ask(self, bidask, priceKey=0, amountKey=1):
+        price = self.safe_float(bidask, priceKey)
+        amount = self.safe_float(bidask, amountKey)
+        timestamp = self.safe_integer(bidask, 2)
+        return [price, amount, timestamp]
+
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
@@ -447,7 +458,27 @@ class kraken(Exchange):
         if limit is not None:
             request['count'] = limit  # 100
         response = self.publicGetDepth(self.extend(request, params))
-        orderbook = response['result'][market['id']]
+        #
+        #     {
+        #         "error":[],
+        #         "result":{
+        #             "XETHXXBT":{
+        #                 "asks":[
+        #                     ["0.023480","4.000",1586321307],
+        #                     ["0.023490","50.095",1586321306],
+        #                     ["0.023500","28.535",1586321302],
+        #                 ],
+        #                 "bids":[
+        #                     ["0.023470","59.580",1586321307],
+        #                     ["0.023460","20.000",1586321301],
+        #                     ["0.023440","67.832",1586321306],
+        #                 ]
+        #             }
+        #         }
+        #     }
+        #
+        result = self.safe_value(response, 'result', {})
+        orderbook = self.safe_value(result, market['id'])
         return self.parse_order_book(orderbook)
 
     def parse_ticker(self, ticker, market=None):
@@ -695,14 +726,14 @@ class kraken(Exchange):
         if market is not None:
             symbol = market['symbol']
         if isinstance(trade, list):
-            timestamp = int(trade[2] * 1000)
+            timestamp = self.safe_timestamp(trade, 2)
             side = 'sell' if (trade[3] == 's') else 'buy'
             type = 'limit' if (trade[4] == 'l') else 'market'
-            price = float(trade[0])
-            amount = float(trade[1])
+            price = self.safe_float(trade, 0)
+            amount = self.safe_float(trade, 1)
             tradeLength = len(trade)
             if tradeLength > 6:
-                id = trade[6]  # artificially added as per  #1794
+                id = self.safe_string(trade, 6)  # artificially added as per  #1794
         elif 'ordertxid' in trade:
             order = trade['ordertxid']
             id = self.safe_string_2(trade, 'id', 'postxid')
@@ -811,8 +842,10 @@ class kraken(Exchange):
             if isinstance(id, list):
                 length = len(id)
                 id = id if (length > 1) else id[0]
+        clientOrderId = self.safe_string(params, 'userref')
         return {
             'id': id,
+            'clientOrderId': clientOrderId,
             'info': response,
             'timestamp': None,
             'datetime': None,
@@ -920,8 +953,10 @@ class kraken(Exchange):
                     fee['currency'] = market['base']
         status = self.parse_order_status(self.safe_string(order, 'status'))
         id = self.safe_string(order, 'id')
+        clientOrderId = self.safe_string(order, 'userref')
         return {
             'id': id,
+            'clientOrderId': clientOrderId,
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -938,6 +973,7 @@ class kraken(Exchange):
             'remaining': remaining,
             'fee': fee,
             # 'trades': self.parse_trades(order['trades'], market),
+            'trades': None,
         }
 
     def parse_orders(self, orders, market=None, since=None, limit=None, params={}):
@@ -1149,7 +1185,7 @@ class kraken(Exchange):
                 'type': type,
             }, transactions[i]))
             result.append(transaction)
-        return self.filterByCurrencySinceLimit(result, code, since, limit)
+        return self.filter_by_currency_since_limit(result, code, since, limit)
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         self.load_markets()

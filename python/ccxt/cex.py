@@ -13,6 +13,7 @@ except NameError:
     basestring = str  # Python 2
 import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import NullResponse
 from ccxt.base.errors import InsufficientFunds
@@ -32,7 +33,7 @@ class cex(Exchange):
             'countries': ['GB', 'EU', 'CY', 'RU'],
             'rateLimit': 1500,
             'has': {
-                'CORS': True,
+                'CORS': False,
                 'fetchCurrencies': True,
                 'fetchTickers': True,
                 'fetchOHLCV': True,
@@ -143,6 +144,8 @@ class cex(Exchange):
                     'Invalid Order': InvalidOrder,
                     'Order not found': OrderNotFound,
                     'Rate limit exceeded': RateLimitExceeded,
+                    'Invalid API key': AuthenticationError,
+                    'There was an error while placing your order': InvalidOrder,
                 },
             },
             'options': {
@@ -362,6 +365,7 @@ class cex(Exchange):
                         'max': None,
                     },
                 },
+                'active': None,
             })
         return result
 
@@ -771,9 +775,12 @@ class cex(Exchange):
                         'currency': market['quote'],
                     },
                     'info': item,
+                    'type': None,
+                    'takerOrMaker': None,
                 })
         return {
             'id': orderId,
+            'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
@@ -789,6 +796,7 @@ class cex(Exchange):
             'trades': trades,
             'fee': fee,
             'info': order,
+            'average': None,
         }
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -1096,10 +1104,10 @@ class cex(Exchange):
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if isinstance(response, list):
             return response  # public endpoints may return []-arrays
+        if body == 'true':
+            return
         if response is None:
             raise NullResponse(self.id + ' returned ' + self.json(response))
-        if response is True or response == 'true':
-            return
         if 'e' in response:
             if 'ok' in response:
                 if response['ok'] == 'ok':

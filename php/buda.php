@@ -12,8 +12,8 @@ use \ccxt\NotSupported;
 
 class buda extends Exchange {
 
-    public function describe () {
-        return array_replace_recursive(parent::describe (), array(
+    public function describe() {
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'buda',
             'name' => 'Buda',
             'countries' => array( 'AR', 'CL', 'CO', 'PE' ),
@@ -143,7 +143,7 @@ class buda extends Exchange {
         ));
     }
 
-    public function fetch_currency_info ($currency, $currencies = null) {
+    public function fetch_currency_info($currency, $currencies = null) {
         if (!$currencies) {
             $response = $this->publicGetCurrencies ();
             $currencies = $this->safe_value($response, 'currencies');
@@ -157,7 +157,7 @@ class buda extends Exchange {
         return null;
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         $marketsResponse = $this->publicGetMarkets ($params);
         $markets = $this->safe_value($marketsResponse, 'markets');
         $currenciesResponse = $this->publicGetCurrencies ();
@@ -170,8 +170,8 @@ class buda extends Exchange {
             $quoteId = $this->safe_string($market, 'quote_currency');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $baseInfo = $this->fetch_currency_info ($baseId, $currencies);
-            $quoteInfo = $this->fetch_currency_info ($quoteId, $currencies);
+            $baseInfo = $this->fetch_currency_info($baseId, $currencies);
+            $quoteInfo = $this->fetch_currency_info($quoteId, $currencies);
             $symbol = $base . '/' . $quote;
             $precision = array(
                 'amount' => $baseInfo['input_decimals'],
@@ -207,7 +207,7 @@ class buda extends Exchange {
         return $result;
     }
 
-    public function fetch_currencies ($params = array ()) {
+    public function fetch_currencies($params = array ()) {
         $response = $this->publicGetCurrencies ();
         $currencies = $response['currencies'];
         $result = array();
@@ -254,7 +254,7 @@ class buda extends Exchange {
         return $result;
     }
 
-    public function fetch_funding_fees ($codes = null, $params = array ()) {
+    public function fetch_funding_fees($codes = null, $params = array ()) {
         //  by default it will try load withdrawal fees of all currencies (with separate requests)
         //  however if you define $codes = array( 'ETH', 'BTC' ) in args it will only load those
         $this->load_markets();
@@ -266,12 +266,12 @@ class buda extends Exchange {
         }
         for ($i = 0; $i < count($codes); $i++) {
             $code = $codes[$i];
-            $currency = $this->currency ($code);
+            $currency = $this->currency($code);
             $request = array( 'currency' => $currency['id'] );
             $withdrawResponse = $this->publicGetCurrenciesCurrencyFeesWithdrawal ($request);
             $depositResponse = $this->publicGetCurrenciesCurrencyFeesDeposit ($request);
-            $withdrawFees[$code] = $this->parse_funding_fee ($withdrawResponse['fee']);
-            $depositFees[$code] = $this->parse_funding_fee ($depositResponse['fee']);
+            $withdrawFees[$code] = $this->parse_funding_fee($withdrawResponse['fee']);
+            $depositFees[$code] = $this->parse_funding_fee($depositResponse['fee']);
             $info[$code] = array(
                 'withdraw' => $withdrawResponse,
                 'deposit' => $depositResponse,
@@ -284,7 +284,7 @@ class buda extends Exchange {
         );
     }
 
-    public function parse_funding_fee ($fee, $type = null) {
+    public function parse_funding_fee($fee, $type = null) {
         if ($type === null) {
             $type = $fee['name'];
         }
@@ -299,9 +299,9 @@ class buda extends Exchange {
         );
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
         );
@@ -310,8 +310,8 @@ class buda extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function parse_ticker ($ticker, $market = null) {
-        $timestamp = $this->milliseconds ();
+    public function parse_ticker($ticker, $market = null) {
+        $timestamp = $this->milliseconds();
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -320,11 +320,11 @@ class buda extends Exchange {
         $percentage = floatval ($ticker['price_variation_24h']);
         $open = floatval ($this->price_to_precision($symbol, $last / ($percentage . 1)));
         $change = $last - $open;
-        $average = $this->sum ($last, $open) / 2;
+        $average = $this->sum($last, $open) / 2;
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => null,
             'low' => null,
             'bid' => floatval ($ticker['max_bid'][0]),
@@ -345,9 +345,9 @@ class buda extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
         );
@@ -371,7 +371,7 @@ class buda extends Exchange {
         return $this->parse_trades($response['trades']['entries'], $market, $since, $limit);
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         //
         // fetchTrades (public)
         //  array( "1540077456791", "0.0063767", "0.03", "sell", 479842 )
@@ -402,7 +402,7 @@ class buda extends Exchange {
             'order' => $order,
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
@@ -414,9 +414,9 @@ class buda extends Exchange {
         );
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
         );
@@ -425,23 +425,23 @@ class buda extends Exchange {
         return $this->parse_order_book($orderbook);
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         if ($since === null) {
-            $since = $this->milliseconds () - 86400000;
+            $since = $this->milliseconds() - 86400000;
         }
         $request = array(
             'symbol' => $market['id'],
             'resolution' => $this->timeframes[$timeframe],
             'from' => $since / 1000,
-            'to' => $this->seconds (),
+            'to' => $this->seconds(),
         );
         $response = $this->publicGetTvHistory (array_merge($request, $params));
         return $this->parse_trading_view_ohlcv($response, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $response = $this->privateGetBalances ($params);
         $result = array( 'info' => $response );
@@ -450,7 +450,7 @@ class buda extends Exchange {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'id');
             $code = $this->safe_currency_code($currencyId);
-            $account = $this->account ();
+            $account = $this->account();
             $account['free'] = floatval ($balance['available_amount'][0]);
             $account['total'] = floatval ($balance['amount'][0]);
             $result[$code] = $account;
@@ -458,7 +458,7 @@ class buda extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order ($id, $symbol = null, $params = array ()) {
+    public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'id' => intval ($id),
@@ -468,11 +468,11 @@ class buda extends Exchange {
         return $this->parse_order($order);
     }
 
-    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
         }
         $request = array(
             'market' => $market['id'],
@@ -483,21 +483,21 @@ class buda extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $request = array(
             'state' => 'pending',
         );
         return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
-    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $request = array(
             'state' => 'traded',
         );
         return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $side = ($side === 'buy') ? 'Bid' : 'Ask';
         $request = array(
@@ -514,7 +514,7 @@ class buda extends Exchange {
         return $this->parse_order($order);
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'id' => intval ($id),
@@ -525,7 +525,7 @@ class buda extends Exchange {
         return $this->parse_order($order);
     }
 
-    public function parse_order_status ($status) {
+    public function parse_order_status($status) {
         $statuses = array(
             'traded' => 'closed',
             'received' => 'open',
@@ -534,9 +534,9 @@ class buda extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order ($order, $market = null) {
+    public function parse_order($order, $market = null) {
         $id = $this->safe_string($order, 'id');
-        $timestamp = $this->parse8601 ($this->safe_string($order, 'created_at'));
+        $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
         $symbol = null;
         if ($market === null) {
             $marketId = $order['market_id'];
@@ -567,7 +567,8 @@ class buda extends Exchange {
         );
         return array(
             'id' => $id,
-            'datetime' => $this->iso8601 ($timestamp),
+            'clientOrderId' => null,
+            'datetime' => $this->iso8601($timestamp),
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => null,
             'status' => $status,
@@ -582,10 +583,11 @@ class buda extends Exchange {
             'trades' => null,
             'fee' => $fee,
             'info' => $order,
+            'average' => null,
         );
     }
 
-    public function is_fiat ($code) {
+    public function is_fiat($code) {
         $fiats = array(
             'ARS' => true,
             'CLP' => true,
@@ -595,10 +597,10 @@ class buda extends Exchange {
         return $this->safe_value($fiats, $code, false);
     }
 
-    public function fetch_deposit_address ($code, $params = array ()) {
+    public function fetch_deposit_address($code, $params = array ()) {
         $this->load_markets();
-        $currency = $this->currency ($code);
-        if ($this->is_fiat ($code)) {
+        $currency = $this->currency($code);
+        if ($this->is_fiat($code)) {
             throw new NotSupported($this->id . ' fetchDepositAddress() for fiat ' . $code . ' is not supported');
         }
         $request = array(
@@ -628,10 +630,10 @@ class buda extends Exchange {
         );
     }
 
-    public function create_deposit_address ($code, $params = array ()) {
+    public function create_deposit_address($code, $params = array ()) {
         $this->load_markets();
-        $currency = $this->currency ($code);
-        if ($this->is_fiat ($code)) {
+        $currency = $this->currency($code);
+        if ($this->is_fiat($code)) {
             throw new NotSupported($this->id . ' => fiat fetchDepositAddress() for ' . $code . ' is not supported');
         }
         $request = array(
@@ -647,7 +649,7 @@ class buda extends Exchange {
         );
     }
 
-    public function parse_transaction_status ($status) {
+    public function parse_transaction_status($status) {
         $statuses = array(
             'rejected' => 'failed',
             'confirmed' => 'ok',
@@ -658,26 +660,26 @@ class buda extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction ($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null) {
         $id = $this->safe_string($transaction, 'id');
-        $timestamp = $this->parse8601 ($this->safe_string($transaction, 'created_at'));
+        $timestamp = $this->parse8601($this->safe_string($transaction, 'created_at'));
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
         $amount = floatval ($transaction['amount'][0]);
         $fee = floatval ($transaction['fee'][0]);
         $feeCurrency = $transaction['fee'][1];
-        $status = $this->parse_transaction_status ($this->safe_string($transaction, 'state'));
+        $status = $this->parse_transaction_status($this->safe_string($transaction, 'state'));
         $type = (is_array($transaction) && array_key_exists('deposit_data', $transaction)) ? 'deposit' : 'withdrawal';
         $data = $this->safe_value($transaction, $type . '_data', array());
         $address = $this->safe_value($data, 'target_address');
         $txid = $this->safe_string($data, 'tx_hash');
-        $updated = $this->parse8601 ($this->safe_string($data, 'updated_at'));
+        $updated = $this->parse8601($this->safe_string($data, 'updated_at'));
         return array(
             'info' => $transaction,
             'id' => $id,
             'txid' => $txid,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'address' => $address,
             'type' => $type,
             'amount' => $amount,
@@ -691,12 +693,12 @@ class buda extends Exchange {
         );
     }
 
-    public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         if ($code === null) {
             throw new ExchangeError($this->id . ' => fetchDeposits() requires a $currency $code argument');
         }
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $request = array(
             'currency' => $currency['id'],
             'per' => $limit,
@@ -706,12 +708,12 @@ class buda extends Exchange {
         return $this->parse_transactions($deposits, $currency, $since, $limit);
     }
 
-    public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         if ($code === null) {
             throw new ExchangeError($this->id . ' => fetchDeposits() requires a $currency $code argument');
         }
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $request = array(
             'currency' => $currency['id'],
             'per' => $limit,
@@ -721,10 +723,10 @@ class buda extends Exchange {
         return $this->parse_transactions($withdrawals, $currency, $since, $limit);
     }
 
-    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $request = array(
             'currency' => $currency['id'],
             'amount' => $amount,
@@ -737,32 +739,32 @@ class buda extends Exchange {
         return $this->parse_transaction($withdrawal);
     }
 
-    public function nonce () {
-        return $this->microseconds ();
+    public function nonce() {
+        return $this->microseconds();
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = $this->implode_params($path, $params);
-        $query = $this->omit ($params, $this->extract_params($path));
+        $query = $this->omit($params, $this->extract_params($path));
         if ($query) {
             if ($method === 'GET') {
-                $request .= '?' . $this->urlencode ($query);
+                $request .= '?' . $this->urlencode($query);
             } else {
-                $body = $this->json ($query);
+                $body = $this->json($query);
             }
         }
         $url = $this->urls['api'] . '/' . $this->version . '/' . $request;
         if ($api === 'private') {
             $this->check_required_credentials();
-            $nonce = (string) $this->nonce ();
+            $nonce = (string) $this->nonce();
             $components = array( $method, '/api/' . $this->version . '/' . $request );
             if ($body) {
-                $base64Body = base64_encode($this->encode ($body));
-                $components[] = $this->decode ($base64Body);
+                $base64Body = base64_encode($this->encode($body));
+                $components[] = $this->decode($base64Body);
             }
             $components[] = $nonce;
             $message = implode(' ', $components);
-            $signature = $this->hmac ($this->encode ($message), $this->encode ($this->secret), 'sha384');
+            $signature = $this->hmac($this->encode($message), $this->encode($this->secret), 'sha384');
             $headers = array(
                 'X-SBTC-APIKEY' => $this->apiKey,
                 'X-SBTC-SIGNATURE' => $signature,
@@ -773,7 +775,7 @@ class buda extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return; // fallback to default error handler
         }

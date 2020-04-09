@@ -18,7 +18,7 @@ module.exports = class adara extends Exchange {
             'certified': false,
             // new metainfo interface
             'has': {
-                'CORS': true,
+                'CORS': false,
                 'fetchCurrencies': true,
                 'fetchOrderBooks': false,
                 'createMarketOrder': false,
@@ -970,6 +970,7 @@ module.exports = class adara extends Exchange {
         const result = {
             'info': order,
             'id': id,
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,

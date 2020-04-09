@@ -17,6 +17,7 @@ module.exports = class bitmex extends Exchange {
             'version': 'v1',
             'userAgent': undefined,
             'rateLimit': 2000,
+            'pro': true,
             'has': {
                 'CORS': false,
                 'fetchOHLCV': true,
@@ -52,7 +53,7 @@ module.exports = class bitmex extends Exchange {
                     'https://github.com/BitMEX/api-connectors/tree/master/official-http',
                 ],
                 'fees': 'https://www.bitmex.com/app/fees',
-                'referral': 'https://www.bitmex.com/register/rm3C16',
+                'referral': 'https://www.bitmex.com/register/upZpOX',
             },
             'api': {
                 'public': {
@@ -1110,9 +1111,11 @@ module.exports = class bitmex extends Exchange {
         const id = this.safeString (order, 'orderID');
         const type = this.safeStringLower (order, 'ordType');
         const side = this.safeStringLower (order, 'side');
+        const clientOrderId = this.safeString (order, 'clOrdID');
         return {
             'info': order,
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -1127,6 +1130,7 @@ module.exports = class bitmex extends Exchange {
             'remaining': remaining,
             'status': status,
             'fee': undefined,
+            'trades': undefined,
         };
     }
 
@@ -1211,7 +1215,15 @@ module.exports = class bitmex extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateDeleteOrder (this.extend ({ 'orderID': id }, params));
+        // https://github.com/ccxt/ccxt/issues/6507
+        const clOrdID = this.safeValue (params, 'clOrdID');
+        const request = {};
+        if (clOrdID === undefined) {
+            request['orderID'] = id;
+        } else {
+            request['clOrdID'] = clOrdID;
+        }
+        const response = await this.privateDeleteOrder (this.extend (request, params));
         let order = response[0];
         const error = this.safeString (order, 'error');
         if (error !== undefined) {

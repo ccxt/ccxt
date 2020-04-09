@@ -508,6 +508,7 @@ class rightbtc(Exchange):
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -522,6 +523,7 @@ class rightbtc(Exchange):
             'status': status,
             'fee': fee,
             'trades': trades,
+            'average': None,
         }
 
     def fetch_order(self, id, symbol=None, params={}):

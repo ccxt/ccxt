@@ -409,6 +409,19 @@ module.exports = class lbank extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //
+        //     {
+        //         "symbol"："eth_btc",
+        //         "amount"：10.000000,
+        //         "create_time"：1484289832081,
+        //         "price"：5000.000000,
+        //         "avg_price"：5277.301200,
+        //         "type"："sell",
+        //         "order_id"："ab704110-af0d-48fd-a083-c218f19a4a55",
+        //         "deal_amount"：10.000000,
+        //         "status"：2
+        //     }
+        //
         let symbol = undefined;
         const responseMarket = this.safeValue (this.marketsById, order['symbol']);
         if (responseMarket !== undefined) {
@@ -439,6 +452,7 @@ module.exports = class lbank extends Exchange {
         }
         return {
             'id': id,
+            'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
@@ -454,6 +468,7 @@ module.exports = class lbank extends Exchange {
             'trades': undefined,
             'fee': undefined,
             'info': this.safeValue (order, 'info', order),
+            'average': undefined,
         };
     }
 

@@ -300,6 +300,7 @@ class bitbank(Exchange):
         side = self.safe_string_lower(order, 'side')
         return {
             'id': id,
+            'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,

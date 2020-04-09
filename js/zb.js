@@ -559,6 +559,7 @@ module.exports = class zb extends Exchange {
         return {
             'info': order,
             'id': id,
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -573,6 +574,7 @@ module.exports = class zb extends Exchange {
             'remaining': remaining,
             'status': status,
             'fee': undefined,
+            'trades': undefined,
         };
     }
 

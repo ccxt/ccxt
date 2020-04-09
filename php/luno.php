@@ -11,8 +11,8 @@ use \ccxt\ArgumentsRequired;
 
 class luno extends Exchange {
 
-    public function describe () {
-        return array_replace_recursive(parent::describe (), array(
+    public function describe() {
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'luno',
             'name' => 'luno',
             'countries' => array( 'GB', 'SG', 'ZA' ),
@@ -87,7 +87,7 @@ class luno extends Exchange {
         ));
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         $response = $this->publicGetTickers ($params);
         $result = array();
         for ($i = 0; $i < count($response['tickers']); $i++) {
@@ -106,12 +106,15 @@ class luno extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'info' => $market,
+                'active' => null,
+                'precision' => $this->precision,
+                'limits' => $this->limits,
             );
         }
         return $result;
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $response = $this->privateGetBalance ($params);
         $wallets = $this->safe_value($response, 'balance', array());
@@ -123,15 +126,15 @@ class luno extends Exchange {
             $reserved = $this->safe_float($wallet, 'reserved');
             $unconfirmed = $this->safe_float($wallet, 'unconfirmed');
             $balance = $this->safe_float($wallet, 'balance');
-            $account = $this->account ();
-            $account['used'] = $this->sum ($reserved, $unconfirmed);
-            $account['total'] = $this->sum ($balance, $unconfirmed);
+            $account = $this->account();
+            $account['used'] = $this->sum($reserved, $unconfirmed);
+            $account['total'] = $this->sum($balance, $unconfirmed);
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $method = 'publicGetOrderbook';
         if ($limit !== null) {
@@ -147,7 +150,24 @@ class luno extends Exchange {
         return $this->parse_order_book($response, $timestamp, 'bids', 'asks', 'price', 'volume');
     }
 
-    public function parse_order ($order, $market = null) {
+    public function parse_order($order, $market = null) {
+        //
+        //     {
+        //         "base" => "string",
+        //         "completed_timestamp" => "string",
+        //         "counter" => "string",
+        //         "creation_timestamp" => "string",
+        //         "expiration_timestamp" => "string",
+        //         "fee_base" => "string",
+        //         "fee_counter" => "string",
+        //         "limit_price" => "string",
+        //         "limit_volume" => "string",
+        //         "order_id" => "string",
+        //         "pair" => "string",
+        //         "state" => "PENDING",
+        //         "type" => "BID"
+        //     }
+        //
         $timestamp = $this->safe_integer($order, 'creation_timestamp');
         $status = ($order['state'] === 'PENDING') ? 'open' : 'closed';
         $side = ($order['type'] === 'ASK') ? 'sell' : 'buy';
@@ -186,7 +206,8 @@ class luno extends Exchange {
         $id = $this->safe_string($order, 'order_id');
         return array(
             'id' => $id,
-            'datetime' => $this->iso8601 ($timestamp),
+            'clientOrderId' => null,
+            'datetime' => $this->iso8601($timestamp),
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => null,
             'status' => $status,
@@ -201,10 +222,11 @@ class luno extends Exchange {
             'trades' => null,
             'fee' => $fee,
             'info' => $order,
+            'average' => null,
         );
     }
 
-    public function fetch_order ($id, $symbol = null, $params = array ()) {
+    public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'id' => $id,
@@ -213,7 +235,7 @@ class luno extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function fetch_orders_by_state ($state = null, $symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders_by_state($state = null, $symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array();
         $market = null;
@@ -221,7 +243,7 @@ class luno extends Exchange {
             $request['state'] = $state;
         }
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
             $request['pair'] = $market['id'];
         }
         $response = $this->privateGetListorders (array_merge($request, $params));
@@ -229,19 +251,19 @@ class luno extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders_by_state (null, $symbol, $since, $limit, $params);
+    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_orders_by_state(null, $symbol, $since, $limit, $params);
     }
 
-    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders_by_state ('PENDING', $symbol, $since, $limit, $params);
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_orders_by_state('PENDING', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders_by_state ('COMPLETE', $symbol, $since, $limit, $params);
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_orders_by_state('COMPLETE', $symbol, $since, $limit, $params);
     }
 
-    public function parse_ticker ($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null) {
         $timestamp = $this->safe_integer($ticker, 'timestamp');
         $symbol = null;
         if ($market) {
@@ -251,7 +273,7 @@ class luno extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => null,
             'low' => null,
             'bid' => $this->safe_float($ticker, 'bid'),
@@ -272,7 +294,7 @@ class luno extends Exchange {
         );
     }
 
-    public function fetch_tickers ($symbols = null, $params = array ()) {
+    public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
         $response = $this->publicGetTickers ($params);
         $tickers = $this->index_by($response['tickers'], 'pair');
@@ -288,9 +310,9 @@ class luno extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
         );
@@ -298,7 +320,7 @@ class luno extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function parse_trade ($trade, $market) {
+    public function parse_trade($trade, $market) {
         // For public $trade data (is_buy === True) indicates 'buy' $side but for private $trade data
         // is_buy indicates maker or taker. The value of "type" (ASK/BID) indicate sell/buy $side->
         // Private $trade data includes ID field which public $trade data does not.
@@ -337,7 +359,7 @@ class luno extends Exchange {
             'info' => $trade,
             'id' => null,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $market['symbol'],
             'order' => $orderId,
             'type' => null,
@@ -354,9 +376,9 @@ class luno extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
         );
@@ -368,12 +390,12 @@ class luno extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a $symbol argument');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
         );
@@ -388,7 +410,7 @@ class luno extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_trading_fees ($params = array ()) {
+    public function fetch_trading_fees($params = array ()) {
         $this->load_markets();
         $response = $this->privateGetFeeInfo ($params);
         return array(
@@ -398,7 +420,7 @@ class luno extends Exchange {
         );
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $method = 'privatePost';
         $request = array(
@@ -425,7 +447,7 @@ class luno extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'order_id' => $id,
@@ -433,25 +455,25 @@ class luno extends Exchange {
         return $this->privatePostStoporder (array_merge($request, $params));
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
-        $query = $this->omit ($params, $this->extract_params($path));
+        $query = $this->omit($params, $this->extract_params($path));
         if ($query) {
-            $url .= '?' . $this->urlencode ($query);
+            $url .= '?' . $this->urlencode($query);
         }
         if ($api === 'private') {
             $this->check_required_credentials();
-            $auth = $this->encode ($this->apiKey . ':' . $this->secret);
+            $auth = $this->encode($this->apiKey . ':' . $this->secret);
             $auth = base64_encode($auth);
-            $headers = array( 'Authorization' => 'Basic ' . $this->decode ($auth) );
+            $headers = array( 'Authorization' => 'Basic ' . $this->decode($auth) );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
+    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $response = $this->fetch2($path, $api, $method, $params, $headers, $body);
         if (is_array($response) && array_key_exists('error', $response)) {
-            throw new ExchangeError($this->id . ' ' . $this->json ($response));
+            throw new ExchangeError($this->id . ' ' . $this->json($response));
         }
         return $response;
     }

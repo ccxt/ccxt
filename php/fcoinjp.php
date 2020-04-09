@@ -9,8 +9,8 @@ use Exception; // a common import
 
 class fcoinjp extends fcoin {
 
-    public function describe () {
-        return array_replace_recursive(parent::describe (), array(
+    public function describe() {
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'fcoinjp',
             'name' => 'FCoinJP',
             'countries' => array( 'JP' ),

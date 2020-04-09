@@ -30,6 +30,7 @@ class poloniex(Exchange):
             'countries': ['US'],
             'rateLimit': 1000,  # up to 6 calls per second
             'certified': True,  # 2019-06-07
+            'pro': True,
             'has': {
                 'CORS': False,
                 'createDepositAddress': True,
@@ -124,12 +125,9 @@ class poloniex(Exchange):
             },
             'fees': {
                 'trading': {
-                    # https://github.com/ccxt/ccxt/issues/6064
-                    # starting from October 21, 2019 17:00 UTC
-                    # all spot trading fees will be reduced to 0.00%
-                    # until December 31, 2019 23:59 UTC
-                    'maker': 0.0,
-                    'taker': 0.0,
+                    # starting from Jan 8 2020
+                    'maker': 0.0009,
+                    'taker': 0.0009,
                 },
                 'funding': {},
             },
@@ -242,7 +240,7 @@ class poloniex(Exchange):
             if limit is None:
                 request['start'] = request['end'] - self.parse_timeframe('1w')  # max range = 1 week
             else:
-                request['start'] = request['end'] - self.sum(limit) * self.parse_timeframe(timeframe)
+                request['start'] = request['end'] - limit * self.parse_timeframe(timeframe)
         else:
             request['start'] = int(since / 1000)
             if limit is not None:
@@ -325,16 +323,13 @@ class poloniex(Exchange):
         orderbook['nonce'] = self.safe_integer(response, 'seq')
         return orderbook
 
-    async def fetch_order_books(self, symbols=None, params={}):
+    async def fetch_order_books(self, symbols=None, limit=None, params={}):
         await self.load_markets()
         request = {
             'currencyPair': 'all',
         }
-        #
-        #     if limit is not None:
-        #         request['depth'] = limit  # 100
-        #     }
-        #
+        if limit is not None:
+            request['depth'] = limit  # 100
         response = await self.publicGetReturnOrderBook(self.extend(request, params))
         marketIds = list(response.keys())
         result = {}
@@ -419,9 +414,6 @@ class poloniex(Exchange):
         for i in range(0, len(ids)):
             id = ids[i]
             currency = response[id]
-            # todo: will need to rethink the fees
-            # to add support for multiple withdrawal/deposit methods and
-            # differentiated fees for each particular method
             precision = 8  # default precision, todo: fix "magic constants"
             code = self.safe_currency_code(id)
             active = (currency['delisted'] == 0) and not currency['disabled']
@@ -723,6 +715,7 @@ class poloniex(Exchange):
         #             },
         #         ],
         #         'fee': '0.00000000',
+        #         'clientOrderId': '12345',
         #         'currencyPair': 'BTC_MANA',
         #         # ---------------------------------------------------------
         #         # the following fields are injected by createOrder
@@ -794,9 +787,11 @@ class poloniex(Exchange):
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
             }
+        clientOrderId = self.safe_string(order, 'clientOrderId')
         return {
             'info': order,
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -1199,7 +1194,7 @@ class poloniex(Exchange):
         withdrawals = self.parse_transactions(response['withdrawals'], currency, since, limit)
         deposits = self.parse_transactions(response['deposits'], currency, since, limit)
         transactions = self.array_concat(deposits, withdrawals)
-        return self.filterByCurrencySinceLimit(self.sort_by(transactions, 'timestamp'), code, since, limit)
+        return self.filter_by_currency_since_limit(self.sort_by(transactions, 'timestamp'), code, since, limit)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         response = await self.fetch_transactions_helper(code, since, limit, params)
@@ -1209,7 +1204,7 @@ class poloniex(Exchange):
         if code is not None:
             currency = self.currency(code)
         withdrawals = self.parse_transactions(response['withdrawals'], currency, since, limit)
-        return self.filterByCurrencySinceLimit(withdrawals, code, since, limit)
+        return self.filter_by_currency_since_limit(withdrawals, code, since, limit)
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         response = await self.fetch_transactions_helper(code, since, limit, params)
@@ -1219,7 +1214,7 @@ class poloniex(Exchange):
         if code is not None:
             currency = self.currency(code)
         deposits = self.parse_transactions(response['deposits'], currency, since, limit)
-        return self.filterByCurrencySinceLimit(deposits, code, since, limit)
+        return self.filter_by_currency_since_limit(deposits, code, since, limit)
 
     def parse_transaction_status(self, status):
         statuses = {

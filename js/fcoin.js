@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { BadSymbol, ExchangeError, ExchangeNotAvailable, ArgumentsRequired, InsufficientFunds, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, NotSupported } = require ('./base/errors');
+const { BadSymbol, ExchangeError, ExchangeNotAvailable, ArgumentsRequired, InsufficientFunds, InvalidOrder, RateLimitExceeded, InvalidNonce, AuthenticationError, NotSupported } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -143,7 +143,7 @@ module.exports = class fcoin extends Exchange {
                 '400': NotSupported, // Bad Request
                 '401': AuthenticationError,
                 '405': NotSupported,
-                '429': DDoSProtection, // Too Many Requests, exceed api request limit
+                '429': RateLimitExceeded, // Too Many Requests, exceed api request limit
                 '1002': ExchangeNotAvailable, // System busy
                 '1016': InsufficientFunds,
                 '2136': AuthenticationError, // The API key is expired
@@ -514,6 +514,22 @@ module.exports = class fcoin extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //
+        //     {
+        //         "id": "string",
+        //         "symbol": "string",
+        //         "type": "limit",
+        //         "side": "buy",
+        //         "price": "string",
+        //         "amount": "string",
+        //         "state": "submitted",
+        //         "executed_value": "string",
+        //         "fill_fees": "string",
+        //         "filled_amount": "string",
+        //         "created_at": 0,
+        //         "source": "web"
+        //     }
+        //
         const id = this.safeString (order, 'id');
         const side = this.safeString (order, 'side');
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
@@ -562,6 +578,7 @@ module.exports = class fcoin extends Exchange {
         return {
             'info': order,
             'id': id,
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
