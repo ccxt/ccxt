@@ -303,7 +303,7 @@ module.exports = class p2pb2b extends Exchange {
     }
 
     nonce () {
-        return this.microseconds () * 1000;
+        return 1000 * this.microseconds ();
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
