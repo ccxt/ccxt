@@ -1848,28 +1848,7 @@ class okex extends Exchange {
         //         "result":true
         //     }
         //
-        $timestamp = $this->milliseconds();
-        $id = $this->safe_string($response, 'order_id');
-        return array(
-            'info' => $response,
-            'id' => $id,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'lastTradeTimestamp' => null,
-            'status' => null,
-            'symbol' => $symbol,
-            'type' => $type,
-            'side' => $side,
-            'price' => $price,
-            'amount' => $amount,
-            'filled' => null,
-            'remaining' => null,
-            'cost' => null,
-            'trades' => null,
-            'fee' => null,
-            'clientOrderId' => null,
-            'average' => null,
-        );
+        return $this->parse_order($response, $market);
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {

@@ -463,6 +463,26 @@ class gateio(Exchange):
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
+        #  from createOrder
+        #    {"fee": "0 ZEC",
+        #     "code": 0,
+        #     "rate": "0.0055",
+        #     "side": 2,
+        #     "type": "buy",
+        #     "ctime": 1586460839.138,
+        #     "market": "ZEC_BTC",
+        #     "result": "true",
+        #     "status": "open",
+        #     "iceberg": "0",
+        #     "message": "Success",
+        #     "feeValue": "0",
+        #     "filledRate": "0.005500000",
+        #     "leftAmount": "0.60607456",
+        #     "feeCurrency": "ZEC",
+        #     "orderNumber": 10755887009,
+        #     "filledAmount": "0",
+        #     "feePercentage": 0.002,
+        #     "initialAmount": "0.60607456"}
         #
         #    {'amount': '0.00000000',
         #     'currencyPair': 'xlm_usdt',
@@ -497,7 +517,7 @@ class gateio(Exchange):
             side = 'sell'
         elif side == '2':
             side = 'buy'
-        price = self.safe_float_2(order, 'initialRate', 'price')
+        price = self.safe_float_2(order, 'initialRate', 'rate')
         average = self.safe_float(order, 'filledRate')
         amount = self.safe_float_2(order, 'initialAmount', 'amount')
         filled = self.safe_float(order, 'filledAmount')

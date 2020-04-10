@@ -30,6 +30,7 @@ module.exports = class aofex extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchClosedOrder': true,
+                'fetchOrderTrades': true,
                 'fetchTradingFee': true,
             },
             'timeframes': {
@@ -559,7 +560,7 @@ module.exports = class aofex extends Exchange {
         //
         const id = this.safeString (trade, 'id');
         const ctime = this.parse8601 (this.safeString (trade, 'ctime'));
-        const timestamp = this.safeTimestamp (trade, 'ts', ctime);
+        const timestamp = this.safeTimestamp (trade, 'ts', ctime) - 28800000; // 8 hours, adjust to UTC;
         let symbol = undefined;
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
@@ -725,7 +726,7 @@ module.exports = class aofex extends Exchange {
             base = market['base'];
             quote = market['quote'];
         }
-        const timestamp = this.parse8601 (this.safeString (order, 'ctime'));
+        const timestamp = this.parse8601 (this.safeString (order, 'ctime')) - 28800000; // 8 hours, adjust to UTC
         const orderType = this.safeString (order, 'type');
         const type = (orderType === '2') ? 'limit' : 'market';
         const side = this.safeString (order, 'side');
@@ -883,11 +884,16 @@ module.exports = class aofex extends Exchange {
         return this.parseOrder (order);
     }
 
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const response = await this.fetchClosedOrder (id, symbol, params);
+        return this.safeValue (response, 'trades', []);
+    }
+
     async fetchOrdersWithMethod (method, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             // 'from': 'BM7442641584965237751ZMAKJ5', // query start order_sn
-            // 'direct': 'prev', // next
+            'direct': 'prev', // next
         };
         let market = undefined;
         if (symbol !== undefined) {
