@@ -30,6 +30,7 @@ module.exports = class aofex extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchClosedOrder': true,
+                'fetchOrderTrades': true,
                 'fetchTradingFee': true,
             },
             'timeframes': {
@@ -881,6 +882,11 @@ module.exports = class aofex extends Exchange {
         const order = this.safeValue (result, 'entrust', {});
         order['trades'] = trades;
         return this.parseOrder (order);
+    }
+
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const responce = await this.fetchClosedOrder (id, symbol, params);
+        return responce['trades'];
     }
 
     async fetchOrdersWithMethod (method, symbol = undefined, since = undefined, limit = undefined, params = {}) {
