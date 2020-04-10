@@ -118,6 +118,7 @@ module.exports = class binance extends ccxt.binance {
             'method': this.handleOrderBookSubscription,
             'limit': limit,
             'type': type,
+            'params': params,
         };
         const message = this.extend (request, query);
         // 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
@@ -129,9 +130,11 @@ module.exports = class binance extends ccxt.binance {
         const type = this.safeValue (subscription, 'type');
         const symbol = this.safeString (subscription, 'symbol');
         const messageHash = this.safeString (subscription, 'messageHash');
+        const limit = this.safeInteger (subscription, 'limit');
+        const params = this.safeValue (subscription, 'params');
         // 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
         // todo: this is a synch blocking call in ccxt.php - make it async
-        const snapshot = await this.fetchOrderBook (symbol);
+        const snapshot = await this.fetchOrderBook (symbol, limit, params);
         const orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook === undefined) {
             // if the orderbook is dropped before the snapshot is received
