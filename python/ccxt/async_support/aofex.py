@@ -549,7 +549,7 @@ class aofex(Exchange):
         #
         id = self.safe_string(trade, 'id')
         ctime = self.parse8601(self.safe_string(trade, 'ctime'))
-        timestamp = self.safe_timestamp(trade, 'ts', ctime)
+        timestamp = self.safe_timestamp(trade, 'ts', ctime) - 28800000  # 8 hours, adjust to UTC
         symbol = None
         if (symbol is None) and (market is not None):
             symbol = market['symbol']
@@ -704,7 +704,7 @@ class aofex(Exchange):
             symbol = market['symbol']
             base = market['base']
             quote = market['quote']
-        timestamp = self.parse8601(self.safe_string(order, 'ctime'))
+        timestamp = self.parse8601(self.safe_string(order, 'ctime')) - 28800000  # 8 hours, adjust to UTC
         orderType = self.safe_string(order, 'type')
         type = 'limit' if (orderType == '2') else 'market'
         side = self.safe_string(order, 'side')
@@ -852,7 +852,7 @@ class aofex(Exchange):
         await self.load_markets()
         request = {
             # 'from': 'BM7442641584965237751ZMAKJ5',  # query start order_sn
-            # 'direct': 'prev',  # next
+            'direct': 'prev',  # next
         }
         market = None
         if symbol is not None:
