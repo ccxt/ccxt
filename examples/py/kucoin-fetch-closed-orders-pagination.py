@@ -9,9 +9,9 @@ sys.path.append(root + '/python')
 import ccxt  # noqa: E402
 
 exchange = ccxt.kucoin({
-    "apiKey": "5c6ad928134ab726d08eff05",
-    "secret": "b0987f7f-855e-415d-a44f-43b421abc2f9",
-    "password": "cy7QE9fDDtc2LbrK"
+    "apiKey": "YOUR_API_KEY",
+    "secret": "YOUR_SECRET",
+    "password": "YOUR_PASSWORD"
 })
 
 symbol = 'ETH/USDT'
