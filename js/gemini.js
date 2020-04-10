@@ -38,7 +38,7 @@ module.exports = class gemini extends Exchange {
                 'api': {
                     'public': 'https://api.gemini.com',
                     'private': 'https://api.gemini.com',
-                    'web': 'https://docs.gemini.com',
+                    'web': 'https://web.archive.org/web/20200329112807/https://docs.gemini.com',
                 },
                 'www': 'https://gemini.com/',
                 'doc': [
