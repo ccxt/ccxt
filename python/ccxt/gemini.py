@@ -307,6 +307,7 @@ class gemini(Exchange):
                         'max': None,
                     },
                 },
+                'active': None,
             })
         return result
 
@@ -448,8 +449,10 @@ class gemini(Exchange):
             symbol = market['symbol']
         id = self.safe_string(order, 'order_id')
         side = self.safe_string_lower(order, 'side')
+        clientOrderId = self.safe_string(order, 'client_order_id')
         return {
             'id': id,
+            'clientOrderId': clientOrderId,
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -465,6 +468,7 @@ class gemini(Exchange):
             'filled': filled,
             'remaining': remaining,
             'fee': fee,
+            'trades': None,
         }
 
     def fetch_order(self, id, symbol=None, params={}):

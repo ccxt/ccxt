@@ -298,6 +298,7 @@ class gemini extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'active' => null,
             );
         }
         return $result;
@@ -459,8 +460,10 @@ class gemini extends Exchange {
         }
         $id = $this->safe_string($order, 'order_id');
         $side = $this->safe_string_lower($order, 'side');
+        $clientOrderId = $this->safe_string($order, 'client_order_id');
         return array(
             'id' => $id,
+            'clientOrderId' => $clientOrderId,
             'info' => $order,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -476,6 +479,7 @@ class gemini extends Exchange {
             'filled' => $filled,
             'remaining' => $remaining,
             'fee' => $fee,
+            'trades' => null,
         );
     }
 
