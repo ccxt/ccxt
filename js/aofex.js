@@ -885,8 +885,8 @@ module.exports = class aofex extends Exchange {
     }
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const responce = await this.fetchClosedOrder (id, symbol, params);
-        return responce['trades'];
+        const response = await this.fetchClosedOrder (id, symbol, params);
+        return this.safeValue (response, 'trades', []);
     }
 
     async fetchOrdersWithMethod (method, symbol = undefined, since = undefined, limit = undefined, params = {}) {
