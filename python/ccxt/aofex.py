@@ -41,6 +41,7 @@ class aofex(Exchange):
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'fetchClosedOrder': True,
+                'fetchOrderTrades': True,
                 'fetchTradingFee': True,
             },
             'timeframes': {
@@ -842,6 +843,10 @@ class aofex(Exchange):
         order = self.safe_value(result, 'entrust', {})
         order['trades'] = trades
         return self.parse_order(order)
+
+    def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+        response = self.fetch_closed_order(id, symbol, params)
+        return self.safe_value(response, 'trades', [])
 
     def fetch_orders_with_method(self, method, symbol=None, since=None, limit=None, params={}):
         self.load_markets()

@@ -34,6 +34,7 @@ class aofex extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
                 'fetchClosedOrder' => true,
+                'fetchOrderTrades' => true,
                 'fetchTradingFee' => true,
             ),
             'timeframes' => array(
@@ -885,6 +886,11 @@ class aofex extends Exchange {
         $order = $this->safe_value($result, 'entrust', array());
         $order['trades'] = $trades;
         return $this->parse_order($order);
+    }
+
+    public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        $response = $this->fetch_closed_order($id, $symbol, $params);
+        return $this->safe_value($response, 'trades', array());
     }
 
     public function fetch_orders_with_method($method, $symbol = null, $since = null, $limit = null, $params = array ()) {
