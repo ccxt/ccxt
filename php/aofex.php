@@ -564,7 +564,7 @@ class aofex extends Exchange {
         //
         $id = $this->safe_string($trade, 'id');
         $ctime = $this->parse8601($this->safe_string($trade, 'ctime'));
-        $timestamp = $this->safe_timestamp($trade, 'ts', $ctime);
+        $timestamp = $this->safe_timestamp($trade, 'ts', $ctime) - 28800000; // 8 hours, adjust to UTC;
         $symbol = null;
         if (($symbol === null) && ($market !== null)) {
             $symbol = $market['symbol'];
@@ -730,7 +730,7 @@ class aofex extends Exchange {
             $base = $market['base'];
             $quote = $market['quote'];
         }
-        $timestamp = $this->parse8601($this->safe_string($order, 'ctime'));
+        $timestamp = $this->parse8601($this->safe_string($order, 'ctime')) - 28800000; // 8 hours, adjust to UTC
         $orderType = $this->safe_string($order, 'type');
         $type = ($orderType === '2') ? 'limit' : 'market';
         $side = $this->safe_string($order, 'side');
@@ -897,7 +897,7 @@ class aofex extends Exchange {
         $this->load_markets();
         $request = array(
             // 'from' => 'BM7442641584965237751ZMAKJ5', // query start order_sn
-            // 'direct' => 'prev', // next
+            'direct' => 'prev', // next
         );
         $market = null;
         if ($symbol !== null) {
