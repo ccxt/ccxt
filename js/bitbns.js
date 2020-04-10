@@ -269,7 +269,7 @@ module.exports = class bitbns extends Exchange {
             'symbol': this.safeString (market, 'symbol'),      // symbol
             'type': 'limit',        // 'market', 'limit'
             'side': this.safeString (orderData, 'side'),          // 'buy', 'sell'
-            'price': this.safeFloat (orderData, 'cost'),    // float price in quote currency
+            'price': this.safeFloat (orderData, 'rate'),    // float price in quote currency
             'amount': this.safeFloat (orderData, 'amount'),           // ordered amount of base currency
             'filled': this.safeFloat (orderData, 'filled'),           // filled amount of base currency
             'remaining': this.safeFloat (orderData, 'remaining'), // remaining amount to fill
