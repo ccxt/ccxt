@@ -118,6 +118,7 @@ class binance(Exchange, ccxt.binance):
             'method': self.handle_order_book_subscription,
             'limit': limit,
             'type': type,
+            'params': params,
         }
         message = self.extend(request, query)
         # 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
@@ -128,9 +129,11 @@ class binance(Exchange, ccxt.binance):
         type = self.safe_value(subscription, 'type')
         symbol = self.safe_string(subscription, 'symbol')
         messageHash = self.safe_string(subscription, 'messageHash')
+        limit = self.safe_integer(subscription, 'limit')
+        params = self.safe_value(subscription, 'params')
         # 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
         # todo: self is a synch blocking call in ccxt.php - make it async
-        snapshot = await self.fetch_order_book(symbol)
+        snapshot = await self.fetch_order_book(symbol, limit, params)
         orderbook = self.safe_value(self.orderbooks, symbol)
         if orderbook is None:
             # if the orderbook is dropped before the snapshot is received

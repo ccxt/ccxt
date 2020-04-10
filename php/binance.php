@@ -122,6 +122,7 @@ class binance extends \ccxt\binance {
             'method' => array($this, 'handle_order_book_subscription'),
             'limit' => $limit,
             'type' => $type,
+            'params' => $params,
         );
         $message = array_merge($request, $query);
         // 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
@@ -133,9 +134,11 @@ class binance extends \ccxt\binance {
         $type = $this->safe_value($subscription, 'type');
         $symbol = $this->safe_string($subscription, 'symbol');
         $messageHash = $this->safe_string($subscription, 'messageHash');
-        // 3. Get a depth $snapshot from https://www.binance.com/api/v1/depth?$symbol=BNBBTC&limit=1000 .
+        $limit = $this->safe_integer($subscription, 'limit');
+        $params = $this->safe_value($subscription, 'params');
+        // 3. Get a depth $snapshot from https://www.binance.com/api/v1/depth?$symbol=BNBBTC&$limit=1000 .
         // todo => this is a synch blocking call in ccxt.php - make it async
-        $snapshot = $this->fetch_order_book($symbol);
+        $snapshot = $this->fetch_order_book($symbol, $limit, $params);
         $orderbook = $this->safe_value($this->orderbooks, $symbol);
         if ($orderbook === null) {
             // if the $orderbook is dropped before the $snapshot is received
