@@ -346,18 +346,19 @@ class bithumb extends Exchange {
     public function cancel_order($id, $symbol = null, $params = array ()) {
         $side_in_params = (is_array($params) && array_key_exists('side', $params));
         if (!$side_in_params) {
-            throw new ExchangeError($this->id . ' cancelOrder requires a `$side` parameter (sell or buy) and a `$currency` parameter');
+            throw new ExchangeError($this->id . ' cancelOrder requires a `$symbol` argument and a `$side` parameter (sell or buy)');
         }
-        $currency = $this->safe_string($params, 'currency');
-        if ($currency === null) {
-            throw new ExchangeError($this->id . ' cancelOrder requires a `$currency` parameter (a $currency $id)');
+        if ($symbol === null) {
+            throw new ExchangeError($this->id . ' cancelOrder requires a `$symbol` argument and a `$side` parameter (sell or buy)');
         }
+        $market = $this->market($symbol);
         $side = ($params['side'] === 'buy') ? 'bid' : 'ask';
         $params = $this->omit($params, array( 'side', 'currency' ));
         $request = array(
             'order_id' => $id,
             'type' => $side,
-            'currency' => $currency,
+            'order_currency' => $market['baseId'],
+            'payment_currency' => $market['quoteId'],
         );
         return $this->privatePostTradeCancel (array_merge($request, $params));
     }
