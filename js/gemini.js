@@ -227,7 +227,7 @@ module.exports = class gemini extends Exchange {
                 const pricePrecisionParts = pricePrecisionString.split (' ');
                 const pricePrecision = this.precisionFromString (pricePrecisionParts[0]);
                 const symbol = base + '/' + quote;
-                const id = base + quote;
+                const id = baseId + quoteId;
                 const active = undefined;
                 result.push ({
                     'id': id,
