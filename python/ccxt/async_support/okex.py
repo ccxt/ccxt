@@ -1805,28 +1805,7 @@ class okex(Exchange):
         #         "result":true
         #     }
         #
-        timestamp = None
-        id = self.safe_string(response, 'order_id')
-        return {
-            'info': response,
-            'id': id,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': None,
-            'status': None,
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'price': price,
-            'amount': amount,
-            'filled': None,
-            'remaining': None,
-            'cost': None,
-            'trades': None,
-            'fee': None,
-            'clientOrderId': None,
-            'average': None,
-        }
+        return self.parse_order(response, market)
 
     async def cancel_order(self, id, symbol=None, params={}):
         if symbol is None:
