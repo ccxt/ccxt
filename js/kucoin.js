@@ -648,22 +648,6 @@ module.exports = class kucoin extends Exchange {
         };
     }
 
-    parseBidAsk (bidask, priceKey = 0, amountKey = 0) {
-        const bidaskLength = bidask.length;
-        if (bidaskLength > 2) {
-            return [
-                this.safeFloat (bidask, priceKey),
-                this.safeFloat (bidask, amountKey),
-                this.safeString (bidask, 0),
-                this.safeString (bidask, 3),
-            ];
-        }
-        return [
-            this.safeFloat (bidask, priceKey),
-            this.safeFloat (bidask, amountKey),
-        ];
-    }
-
     async fetchL3OrderBook (symbol, limit = undefined, params = {}) {
         return await this.fetchOrderBook (symbol, limit, { 'level': 3 });
     }
