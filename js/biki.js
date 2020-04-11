@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, BadResponse } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -92,6 +92,7 @@ module.exports = class biki extends Exchange {
                 },
             },
             'exceptions': {
+                '1': BadResponse,
             },
             'errorCodeNames': {
             },
@@ -116,25 +117,21 @@ module.exports = class biki extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = market['symbol'];
-            const details = market;
-            // all of their symbols are separated with an underscore
-            // but not boe_eth_eth (BOE_ETH/ETH) which has two underscores
-            // https://github.com/ccxt/ccxt/issues/4894
             const baseId = market['base_coin'];
             const quoteId = market['count_coin'];
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const precision = {
-                'amount': details['amount_precision'],
-                'price': details['price_precision'],
+                'amount': this.safeInteger (market, 'amount_precision'),
+                'price': this.safeInteger (market, 'price_precision'),
             };
             const amountLimits = {
-                'min': Math.pow (10, -details['amount_precision']),
+                'min': Math.pow (10, -market['amount_precision']),
                 'max': undefined,
             };
             const priceLimits = {
-                'min': Math.pow (10, -details['price_precision']),
+                'min': Math.pow (10, -market['price_precision']),
                 'max': undefined,
             };
             const defaultCost = amountLimits['min'] * priceLimits['min'];
@@ -177,7 +174,7 @@ module.exports = class biki extends Exchange {
         const coins = this.safeValue (respData, 'coin_list');
         for (let i = 0; i < coins.length; i++) {
             const coin = coins[i];
-            const currencyId = this.safeValue (coin['coin']);
+            const currencyId = this.safeValue (coin, 'coin');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             account['free'] = this.safeFloat (coin, 'normal');
@@ -379,14 +376,25 @@ module.exports = class biki extends Exchange {
             id = this.safeString (order, 'order_id');
         }
         let symbol = undefined;
-        const marketId = this.safeStringLower (order, 'baseCoin') + this.safeStringLower (order, 'countCoin');
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
+        let marketId = undefined;
+        if (('baseCoin' in order) && ('countCoin' in order)) {
+            marketId = this.safeStringLower (order, 'baseCoin') + this.safeStringLower (order, 'countCoin');
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            }
+            if (market !== undefined) {
+                symbol = market['symbol'];
+            }
         }
-        if (market !== undefined) {
-            symbol = market['symbol'];
+        if ('symbol' in order) {
+            symbol = this.safeString (order, 'symbol');
         }
-        const timestamp = this.safeTimestamp (order, 'created_at') / 1000;
+        let timestamp = undefined;
+        let datetime = undefined;
+        if ('created_at' in order) {
+            timestamp = this.safeTimestamp (order, 'created_at') / 1000;
+            datetime = this.iso8601 (timestamp);
+        }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const side = this.parseOrderSide (this.safeString (order, 'type'));
         const price = this.safeFloat (order, 'price');
@@ -396,7 +404,7 @@ module.exports = class biki extends Exchange {
         const remaining = this.safeFloat (order, 'remain_volume');
         return {
             'id': id,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': datetime,
             'timestamp': timestamp,
             'status': status,
             'symbol': symbol,
@@ -428,7 +436,7 @@ module.exports = class biki extends Exchange {
         const market = this.market (symbol);
         const request = {
             'api_key': this.apiKey,
-            'req_time': this.milliseconds (),
+            'time': this.milliseconds (),
             'symbol': this.marketId (symbol),
             'price': price,
             'volume': amount,
@@ -468,8 +476,9 @@ module.exports = class biki extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
-            const auth = this.rawencode (this.keysort (query).replace ('=', ''));
-            const signature = this.hash (this.encode (auth + this.secret), 'md5');
+            const auth = this.rawencode (this.keysort (query));
+            const to_sign = auth.replace ('=', '').replace ('&', '');
+            const signature = this.hash (this.encode (to_sign + this.secret), 'md5');
             const suffix = 'sign=' + signature;
             url += '?' + auth + '&' + suffix;
         }
@@ -480,15 +489,13 @@ module.exports = class biki extends Exchange {
         if (response === undefined) {
             return;
         }
-        const resultString = this.safeString (response, 'result', '');
-        if (resultString !== 'false') {
-            return;
-        }
+        // use response code for error
         const errorCode = this.safeString (response, 'code');
-        const message = this.safeString (response, 'message', body);
-        if (errorCode !== undefined) {
+        const message = this.safeString (response, 'msg', body);
+        if (errorCode !== undefined && errorCode !== '0') {
             const feedback = this.safeString (this.errorCodeNames, errorCode, message);
-            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            // XXX: just throwing generic error when API call went wrong
+            this.throwExactlyMatchedException (this.exceptions, '1', feedback);
         }
     }
 };
