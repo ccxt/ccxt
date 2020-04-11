@@ -463,43 +463,65 @@ class gateio(Exchange):
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
-        #  from createOrder
-        #    {"fee": "0 ZEC",
-        #     "code": 0,
-        #     "rate": "0.0055",
-        #     "side": 2,
-        #     "type": "buy",
-        #     "ctime": 1586460839.138,
-        #     "market": "ZEC_BTC",
-        #     "result": "true",
-        #     "status": "open",
-        #     "iceberg": "0",
-        #     "message": "Success",
-        #     "feeValue": "0",
-        #     "filledRate": "0.005500000",
-        #     "leftAmount": "0.60607456",
-        #     "feeCurrency": "ZEC",
-        #     "orderNumber": 10755887009,
-        #     "filledAmount": "0",
-        #     "feePercentage": 0.002,
-        #     "initialAmount": "0.60607456"}
         #
-        #    {'amount': '0.00000000',
-        #     'currencyPair': 'xlm_usdt',
-        #     'fee': '0.0113766632239302 USDT',
-        #     'feeCurrency': 'USDT',
-        #     'feePercentage': 0.18,
-        #     'feeValue': '0.0113766632239302',
-        #     'filledAmount': '30.14004987',
-        #     'filledRate': 0.2097,
-        #     'initialAmount': '30.14004987',
-        #     'initialRate': '0.2097',
-        #     'left': 0,
-        #     'orderNumber': '998307286',
-        #     'rate': '0.2097',
-        #     'status': 'closed',
-        #     'timestamp': 1531158583,
-        #     'type': 'sell'},
+        # createOrder
+        #
+        #     {
+        #        "fee": "0 ZEC",
+        #         "code": 0,
+        #         "rate": "0.0055",
+        #         "side": 2,
+        #         "type": "buy",
+        #         "ctime": 1586460839.138,
+        #         "market": "ZEC_BTC",
+        #         "result": "true",
+        #         "status": "open",
+        #         "iceberg": "0",
+        #         "message": "Success",
+        #         "feeValue": "0",
+        #         "filledRate": "0.005500000",
+        #         "leftAmount": "0.60607456",
+        #         "feeCurrency": "ZEC",
+        #         "orderNumber": 10755887009,
+        #         "filledAmount": "0",
+        #         "feePercentage": 0.002,
+        #         "initialAmount": "0.60607456"
+        #     }
+        #
+        #     {
+        #         'amount': '0.00000000',
+        #         'currencyPair': 'xlm_usdt',
+        #         'fee': '0.0113766632239302 USDT',
+        #         'feeCurrency': 'USDT',
+        #         'feePercentage': 0.18,
+        #         'feeValue': '0.0113766632239302',
+        #         'filledAmount': '30.14004987',
+        #         'filledRate': 0.2097,
+        #         'initialAmount': '30.14004987',
+        #         'initialRate': '0.2097',
+        #         'left': 0,
+        #         'orderNumber': '998307286',
+        #         'rate': '0.2097',
+        #         'status': 'closed',
+        #         'timestamp': 1531158583,
+        #         'type': 'sell'
+        #     }
+        #
+        #     {
+        #         "orderNumber": 10802237760,
+        #         "orderType": 1,
+        #         "type": "buy",
+        #         "rate": "0.54250000",
+        #         "amount": "45.55638518",
+        #         "total": "24.71433896",
+        #         "initialRate": "0.54250000",
+        #         "initialAmount": "45.55638518",
+        #         "filledRate": "0.54250000",
+        #         "filledAmount": "0",
+        #         "currencyPair": "nano_usdt",
+        #         "timestamp": 1586556143,
+        #         "status": "open"
+        #     }
         #
         id = self.safe_string_2(order, 'orderNumber', 'id')
         symbol = None
@@ -523,6 +545,8 @@ class gateio(Exchange):
         filled = self.safe_float(order, 'filledAmount')
         # In the order status response, self field has a different name.
         remaining = self.safe_float_2(order, 'leftAmount', 'left')
+        if remaining is None:
+            remaining = amount - filled
         feeCost = self.safe_float(order, 'feeValue')
         feeCurrencyId = self.safe_string(order, 'feeCurrency')
         feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
