@@ -651,30 +651,72 @@ class kucoin extends Exchange {
         );
     }
 
+    public function fetch_l3_order_book($symbol, $limit = null, $params = array ()) {
+        return $this->fetch_order_book($symbol, $limit, array( 'level' => 3 ));
+    }
+
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
-        $level = '2';
-        if ($limit !== null) {
-            if (($limit !== 20) && ($limit !== 100)) {
-                throw new ExchangeError($this->id . ' fetchOrderBook $limit argument must be null, 20 or 100');
+        $level = $this->safe_integer($params, 'level', 2);
+        $levelLimit = (string) $level;
+        if ($level === '2') {
+            if ($limit !== null) {
+                if (($limit !== 20) && ($limit !== 100)) {
+                    throw new ExchangeError($this->id . ' fetchOrderBook $limit argument must be null, 20 or 100');
+                }
+                $levelLimit .= '_' . (string) $limit;
             }
-            $level .= '_' . (string) $limit;
         }
         $this->load_markets();
         $marketId = $this->market_id($symbol);
-        $request = array_merge(array( 'symbol' => $marketId, 'level' => $level ), $params);
-        $response = $this->publicGetMarketOrderbookLevelLevel ($request);
+        $request = array( 'symbol' => $marketId, 'level' => $levelLimit );
+        $response = $this->publicGetMarketOrderbookLevelLevel (array_merge($request, $params));
         //
-        // { sequence => '1547731421688',
-        //   asks => array( array( '5c419328ef83c75456bd615c', '0.9', '0.09' ), ... ),
-        //   bids => array( array( '5c419328ef83c75456bd615c', '0.9', '0.09' ), ... ), }
+        // 'market/orderbook/level2'
+        // 'market/orderbook/level2_20'
+        // 'market/orderbook/level2_100'
         //
-        $data = $response['data'];
+        //     {
+        //         "code":"200000",
+        //         "$data":{
+        //             "sequence":"1583235112106",
+        //             "asks":[
+        //                 // ...
+        //                 ["0.023197","12.5067468"],
+        //                 ["0.023194","1.8"],
+        //                 ["0.023191","8.1069672"]
+        //             ],
+        //             "bids":[
+        //                 ["0.02319","1.6000002"],
+        //                 ["0.023189","2.2842325"],
+        //             ],
+        //             "time":1586584067274
+        //         }
+        //     }
+        //
+        // 'market/orderbook/level3'
+        //
+        //     {
+        //         "code":"200000",
+        //         "$data":{
+        //             "sequence":"1583731857120",
+        //             "asks":[
+        //                 // id, price, size, $timestamp in nanoseconds
+        //                 ["5e915f8acd26670009675300","6925.7","0.2","1586585482194286069"],
+        //                 ["5e915f8ace35a200090bba48","6925.7","0.001","1586585482229569826"],
+        //                 ["5e915f8a8857740009ca7d33","6926","0.00001819","1586585482149148621"],
+        //             ],
+        //             "bids":[
+        //                 ["5e915f8acca406000ac88194","6925.6","0.05","1586585482384384842"],
+        //                 ["5e915f93cd26670009676075","6925.6","0.08","1586585491334914600"],
+        //                 ["5e915f906aa6e200099b49f6","6925.4","0.2","1586585488941126340"],
+        //             ],
+        //             "time":1586585492487
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
         $timestamp = $this->safe_integer($data, 'time');
-        // $level can be a string such as 2_20 or 2_100
-        $levelString = $this->safe_string($request, 'level');
-        $levelParts = explode('_', $levelString);
-        $offset = intval ($levelParts[0]);
-        $orderbook = $this->parse_order_book($data, $timestamp, 'bids', 'asks', $offset - 2, $offset - 1);
+        $orderbook = $this->parse_order_book($data, $timestamp, 'bids', 'asks', $level - 2, $level - 1);
         $orderbook['nonce'] = $this->safe_integer($data, 'sequence');
         return $orderbook;
     }
