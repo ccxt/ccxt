@@ -167,6 +167,8 @@ module.exports = class probit extends Exchange {
                 'price': this.precisionFromString (priceIncrement),
                 'cost': this.safeInteger (market, 'cost_precision'),
             };
+            const takerFeeRate = this.safeFloat (market, 'taker_fee_rate');
+            const makerFeeRate = this.safeFloat (market, 'maker_fee_rate');
             result.push ({
                 'id': id,
                 'info': market,
@@ -177,6 +179,8 @@ module.exports = class probit extends Exchange {
                 'quoteId': quoteId,
                 'active': active,
                 'precision': precision,
+                'taker': takerFeeRate / 100,
+                'maker': makerFeeRate / 100,
                 'limits': {
                     'amount': {
                         'min': this.safeFloat (market, 'min_quantity'),
