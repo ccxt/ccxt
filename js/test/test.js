@@ -49,6 +49,8 @@ const exchangeOptions = {
 }
 const exchange = new (ccxtpro)[exchangeId] (exchangeOptions)
 
+// exchange.urls.api = exchange.urls.test
+
 // ----------------------------------------------------------------------------
 
 const tests = {}
@@ -159,6 +161,9 @@ async function testExchange (exchange) {
 
     let symbol = exchange.symbols[0]
     const symbols = [
+        // 'NEO/USDT',
+        // 'TRX/USDT',
+        // 'LINK/USDT',
         'BTC/KRW',
         'BTC/USD',
         'BTC/USDT',
