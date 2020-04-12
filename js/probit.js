@@ -299,28 +299,18 @@ module.exports = class probit extends Exchange {
             'market_id': market['id'],
         };
         const response = await this.publicGetOrderBook (this.extend (request, params));
-        const orderbook = this.safeValue (response, 'data');
-        return this.parseOrderBook (orderbook, undefined, 'buy', 'sell', 'price', 'quantity');
-    }
-
-    parseOrderBook (orderbook, timestamp = undefined, bidsKey = 'buy', asksKey = 'sell', priceKey = 'price', amountKey = 'quantity') {
-        const bids = [];
-        const asks = [];
-        for (let i = 0; i < orderbook.length; i++) {
-            const item = orderbook[i];
-            if (item['side'] === bidsKey) {
-                bids.push (item);
-            } else if (item['side'] === asksKey) {
-                asks.push (item);
-            }
-        }
-        return {
-            'bids': this.sortBy (this.parseBidsAsks (bids, priceKey, amountKey), 0, true),
-            'asks': this.sortBy (this.parseBidsAsks (asks, priceKey, amountKey), 0),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'nonce': undefined,
-        };
+        //
+        //     {
+        //         data: [
+        //             { side: 'buy', price: '0.000031', quantity: '10' },
+        //             { side: 'buy', price: '0.00356007', quantity: '4.92156877' },
+        //             { side: 'sell', price: '0.1857', quantity: '0.17' },
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const dataBySide = this.groupBy (data, 'side');
+        return this.parseOrderBook (dataBySide, undefined, 'buy', 'sell', 'price', 'quantity');
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
