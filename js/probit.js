@@ -205,18 +205,18 @@ module.exports = class probit extends Exchange {
         //     {
         //         data: [
         //             {
-        //                 id: 'CXAT',
-        //                 name: 'CXA',
-        //                 display_name: [Object],
-        //                 platform: 'ETH',
-        //                 precision: 18,
+        //                 id: 'DOGE',
+        //                 name: 'Dogecoin',
+        //                 display_name: { 'ko-kr': '도지코인', 'en-us': 'Dogecoin' },
+        //                 platform: 'DOGE',
+        //                 precision: 8,
         //                 display_precision: 8,
         //                 min_confirmation_count: 20,
-        //                 min_withdrawal_amount: '2000',
-        //                 withdrawal_fee: '1000',
-        //                 deposit_suspended: false,
-        //                 withdrawal_suspended: false,
-        //                 internal_precision: 18,
+        //                 min_withdrawal_amount: '4',
+        //                 withdrawal_fee: '2',
+        //                 deposit_suspended: true,
+        //                 withdrawal_suspended: true,
+        //                 internal_precision: 8,
         //                 show_in_ui: true,
         //                 suspended_reason: '',
         //                 min_deposit_amount: '0'
@@ -228,13 +228,45 @@ module.exports = class probit extends Exchange {
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
-            const code = this.safeCurrencyCode (currency['id']);
+            const id = this.safeString (currency, 'id');
+            const code = this.safeCurrencyCode (id);
+            const name = this.safeString (currency, 'name');
+            const precision = this.safeInteger (currency, 'precision');
+            const suspendedReason = this.safeString (currency, 'suspended_reason');
+            let active = true;
+            if (suspendedReason.length > 0) {
+                active = false;
+            }
             result[code] = {
-                'id': code,
+                'id': id,
                 'code': code,
-                'name': currency['name'],
                 'info': currency,
-                'precision': currency['precision'],
+                'name': name,
+                'active': active,
+                'fee': this.safeFloat (currency, 'withdrawal_fee'),
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': Math.pow (10, -precision),
+                        'max': Math.pow (10, precision),
+                    },
+                    'price': {
+                        'min': Math.pow (10, -precision),
+                        'max': Math.pow (10, precision),
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': this.safeFloat (currency, 'min_deposit_amount'),
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': this.safeFloat (currency, 'min_withdrawal_amount'),
+                        'max': undefined,
+                    },
+                },
             };
         }
         return result;
