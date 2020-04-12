@@ -21,6 +21,11 @@ module.exports = class binance extends ccxt.binance {
                 'watchBalance': true,
             },
             'urls': {
+                'test': {
+                    'ws': {
+                        'future': 'wss://stream.binancefuture.com/ws',
+                    },
+                },
                 'api': {
                     'ws': {
                         'spot': 'wss://stream.binance.com:9443/ws',
