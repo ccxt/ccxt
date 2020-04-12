@@ -124,7 +124,7 @@ module.exports = class probit extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.publicGetMarket ();
+        const response = await this.publicGetMarket (params);
         const markets = this.safeValue (response, 'data');
         const result = [];
         for (let i = 0; i < markets.length; i++) {
