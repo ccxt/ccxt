@@ -377,30 +377,71 @@ module.exports = class probit extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        //
+        //     {
+        //         "last":"0.022902",
+        //         "low":"0.021693",
+        //         "high":"0.024093",
+        //         "change":"-0.000047",
+        //         "base_volume":"15681.986",
+        //         "quote_volume":"360.514403624",
+        //         "market_id":"ETH-BTC",
+        //         "time":"2020-04-12T18:43:38.000Z"
+        //     }
+        //
         const timestamp = this.parse8601 (this.safeString (ticker, 'time'));
-        const symbol = this.findSymbol (this.safeString (ticker, 'market_id'), market);
-        const last = this.safeFloat (ticker, 'last');
+        let symbol = undefined;
+        const marketId = this.safeString (ticker, 'market_id');
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('-');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
+        const close = this.safeFloat (ticker, 'last');
+        const change = this.safeFloat (ticker, 'change');
+        let percentage = undefined;
+        let open = undefined;
+        if (change !== undefined) {
+            percentage = change / 100;
+            if (close !== undefined) {
+                open = close - change;
+            }
+        }
+        const baseVolume = this.safeFloat (ticker, 'base_volume');
+        const quoteVolume = this.safeFloat (ticker, 'quote_volume');
+        let vwap = undefined;
+        if ((baseVolume !== undefined) && (quoteVolume !== undefined)) {
+            vwap = baseVolume / quoteVolume;
+        }
         return {
-            'close': last,
-            'last': last,
-            'low': this.safeFloat (ticker, 'low'),
-            'high': this.safeFloat (ticker, 'high'),
-            'change': this.safeFloat (ticker, 'change'),
-            'baseVolume': this.safeFloat (ticker, 'base_volume'),
-            'quoteVolume': this.safeFloat (ticker, 'quote_volume'),
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'info': ticker,
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
             'bid': undefined,
             'bidVolume': undefined,
             'ask': undefined,
             'askVolume': undefined,
-            'vwap': undefined,
-            'open': undefined,
-            'previousClose': undefined,
-            'percentage': undefined,
+            'vwap': vwap,
+            'open': open,
+            'close': close,
+            'last': close,
+            'previousClose': undefined, // previous day close
+            'change': change,
+            'percentage': percentage,
             'average': undefined,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
+            'info': ticker,
         };
     }
 
