@@ -1873,7 +1873,7 @@ module.exports = class bybit extends Exchange {
                 request = '/' + this.version + '/' + api + '/' + request;
             } else {
                 // position, user
-                request += '/' + api + '/' + request;
+                request = '/' + api + '/' + request;
             }
             const timestamp = this.nonce ();
             const query = this.extend (params, {
