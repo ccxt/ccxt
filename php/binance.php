@@ -25,6 +25,11 @@ class binance extends \ccxt\binance {
                 'watchBalance' => true,
             ),
             'urls' => array(
+                'test' => array(
+                    'ws' => array(
+                        'future' => 'wss://stream.binancefuture.com/ws',
+                    ),
+                ),
                 'api' => array(
                     'ws' => array(
                         'spot' => 'wss://stream.binance.com:9443/ws',

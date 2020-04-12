@@ -23,6 +23,11 @@ class binance(Exchange, ccxt.binance):
                 'watchBalance': True,
             },
             'urls': {
+                'test': {
+                    'ws': {
+                        'future': 'wss://stream.binancefuture.com/ws',
+                    },
+                },
                 'api': {
                     'ws': {
                         'spot': 'wss://stream.binance.com:9443/ws',
