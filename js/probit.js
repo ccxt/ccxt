@@ -315,16 +315,30 @@ module.exports = class probit extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const marketIds = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const market = this.market (symbols[i]);
-            marketIds.push (market['id']);
+        const request = {};
+        if (symbols !== undefined) {
+            const marketIds = this.marketIds (symbols);
+            request['market_ids'] = marketIds.join (',');
         }
-        const request = {
-            'market_ids': marketIds.join (','),
-        };
         const response = await this.publicGetTicker (this.extend (request, params));
-        return this.parseTickers (response['data'], symbols);
+        //
+        //     {
+        //         "data":[
+        //             {
+        //                 "last":"0.022902",
+        //                 "low":"0.021693",
+        //                 "high":"0.024093",
+        //                 "change":"-0.000047",
+        //                 "base_volume":"15681.986",
+        //                 "quote_volume":"360.514403624",
+        //                 "market_id":"ETH-BTC",
+        //                 "time":"2020-04-12T18:43:38.000Z"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTickers (data, symbols);
     }
 
     parseTickers (rawTickers, symbols = undefined) {
