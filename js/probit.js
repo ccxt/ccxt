@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, BadRequest, InvalidOrder, InsufficientFunds, AuthenticationError, ArgumentsRequired, NotSupported } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, BadResponse, BadRequest, InvalidOrder, InsufficientFunds, AuthenticationError, ArgumentsRequired, NotSupported } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -352,7 +352,28 @@ module.exports = class probit extends Exchange {
             'market_ids': market['id'],
         };
         const response = await this.publicGetTicker (this.extend (request, params));
-        return this.parseTicker (this.safeValue (response, 'data')[0], market);
+        //
+        //     {
+        //         "data":[
+        //             {
+        //                 "last":"0.022902",
+        //                 "low":"0.021693",
+        //                 "high":"0.024093",
+        //                 "change":"-0.000047",
+        //                 "base_volume":"15681.986",
+        //                 "quote_volume":"360.514403624",
+        //                 "market_id":"ETH-BTC",
+        //                 "time":"2020-04-12T18:43:38.000Z"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const ticker = this.safeValue (data, 0);
+        if (ticker === undefined) {
+            throw new BadResponse (this.id + ' fetchTicker() returned an empty response');
+        }
+        return this.parseTicker (ticker, market);
     }
 
     parseTicker (ticker, market = undefined) {
