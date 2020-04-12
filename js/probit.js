@@ -454,7 +454,10 @@ module.exports = class probit extends Exchange {
     }
 
     async fetchTime (params = {}) {
-        const response = await this.publicGetTime ();
+        const response = await this.publicGetTime (params);
+        //
+        //     { "data":"2020-04-12T18:54:25.390Z" }
+        //
         const timestamp = this.parse8601 (this.safeString (response, 'data'));
         return timestamp;
     }
