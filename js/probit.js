@@ -202,8 +202,28 @@ module.exports = class probit extends Exchange {
 
     async fetchCurrencies (params = {}) {
         const response = await this.publicGetCurrency (params);
-        console.log (response);
-        process.exit ();
+        //     {
+        //         data: [
+        //             {
+        //                 id: 'CXAT',
+        //                 name: 'CXA',
+        //                 display_name: [Object],
+        //                 platform: 'ETH',
+        //                 precision: 18,
+        //                 display_precision: 8,
+        //                 min_confirmation_count: 20,
+        //                 min_withdrawal_amount: '2000',
+        //                 withdrawal_fee: '1000',
+        //                 deposit_suspended: false,
+        //                 withdrawal_suspended: false,
+        //                 internal_precision: 18,
+        //                 show_in_ui: true,
+        //                 suspended_reason: '',
+        //                 min_deposit_amount: '0'
+        //             },
+        //         ]
+        //     }
+        //
         const currencies = this.safeValue (response, 'data');
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
