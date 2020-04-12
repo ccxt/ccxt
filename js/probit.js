@@ -125,41 +125,72 @@ module.exports = class probit extends Exchange {
 
     async fetchMarkets (params = {}) {
         const response = await this.publicGetMarket (params);
-        const markets = this.safeValue (response, 'data');
+        //
+        //     {
+        //         "data":[
+        //             {
+        //                 "id":"MONA-USDT",
+        //                 "base_currency_id":"MONA",
+        //                 "quote_currency_id":"USDT",
+        //                 "min_price":"0.001",
+        //                 "max_price":"9999999999999999",
+        //                 "price_increment":"0.001",
+        //                 "min_quantity":"0.0001",
+        //                 "max_quantity":"9999999999999999",
+        //                 "quantity_precision":4,
+        //                 "min_cost":"1",
+        //                 "max_cost":"9999999999999999",
+        //                 "cost_precision":8,
+        //                 "taker_fee_rate":"0.2",
+        //                 "maker_fee_rate":"0.2",
+        //                 "show_in_ui":true,
+        //                 "closed":false
+        //             },
+        //         ]
+        //     }
+        //
+        const markets = this.safeValue (response, 'data', []);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
-            const base = market['base_currency_id'];
-            const quote = market['quote_currency_id'];
+            const id = this.safeString (market, 'id');
+            const baseId = this.safeString (market, 'base_currency_id');
+            const quoteId = this.safeString (market, 'quote_currency_id');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
-            const closed = market['closed'];
+            const closed = this.safeValue (market, 'closed', false);
+            const active = !closed;
+            const priceIncrement = this.safeString (market, 'price_increment');
+            const precision = {
+                'amount': this.safeInteger (market, 'quantity_precision'),
+                'price': this.precisionFromString (priceIncrement),
+                'cost': this.safeInteger (market, 'cost_precision'),
+            };
             result.push ({
-                'id': market['id'],
+                'id': id,
+                'info': market,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'baseId': base,
-                'quoteId': quote,
-                'active': !closed,
-                'precision': {
-                    'amount': market['quantity_precision'],
-                    'cost': market['cost_precision'],
-                },
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': active,
+                'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': market['min_quantity'],
-                        'max': market['max_quantity'],
+                        'min': this.safeFloat (market, 'min_quantity'),
+                        'max': this.safeFloat (market, 'max_quantity'),
                     },
                     'price': {
-                        'min': market['min_price'],
-                        'max': market['max_price'],
+                        'min': this.safeFloat (market, 'min_price'),
+                        'max': this.safeFloat (market, 'max_price'),
                     },
                     'cost': {
-                        'min': market['min_cost'],
-                        'max': market['max_cost'],
+                        'min': this.safeFloat (market, 'min_cost'),
+                        'max': this.safeFloat (market, 'max_cost'),
                     },
                 },
-                'info': market,
             });
         }
         return result;
