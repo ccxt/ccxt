@@ -354,11 +354,12 @@ class bithumb extends Exchange {
         $market = $this->market($symbol);
         $side = ($params['side'] === 'buy') ? 'bid' : 'ask';
         $params = $this->omit($params, array( 'side', 'currency' ));
+        // https://github.com/ccxt/ccxt/issues/6771
         $request = array(
             'order_id' => $id,
             'type' => $side,
-            'order_currency' => $market['baseId'],
-            'payment_currency' => $market['quoteId'],
+            'order_currency' => $market['base'],
+            'payment_currency' => $market['quote'],
         );
         return $this->privatePostTradeCancel (array_merge($request, $params));
     }

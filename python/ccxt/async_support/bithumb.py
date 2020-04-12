@@ -329,11 +329,12 @@ class bithumb(Exchange):
         market = self.market(symbol)
         side = 'bid' if (params['side'] == 'buy') else 'ask'
         params = self.omit(params, ['side', 'currency'])
+        # https://github.com/ccxt/ccxt/issues/6771
         request = {
             'order_id': id,
             'type': side,
-            'order_currency': market['baseId'],
-            'payment_currency': market['quoteId'],
+            'order_currency': market['base'],
+            'payment_currency': market['quote'],
         }
         return await self.privatePostTradeCancel(self.extend(request, params))
 
