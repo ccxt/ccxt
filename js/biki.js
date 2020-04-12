@@ -398,7 +398,7 @@ module.exports = class biki extends Exchange {
             datetime = this.iso8601 (timestamp);
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const side = this.parseOrderSide (this.safeString (order, 'type'));
+        const side = this.parseOrderSide (this.safeString (order, 'side'));
         const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'volume');
         const filled = this.safeFloat (order, 'deal_volume');
