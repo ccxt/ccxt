@@ -1775,7 +1775,7 @@ class bybit(Exchange):
                 request = '/' + self.version + '/' + api + '/' + request
             else:
                 # position, user
-                request += '/' + api + '/' + request
+                request = '/' + api + '/' + request
             timestamp = self.nonce()
             query = self.extend(params, {
                 'api_key': self.apiKey,

@@ -1875,7 +1875,7 @@ class bybit extends Exchange {
                 $request = '/' . $this->version . '/' . $api . '/' . $request;
             } else {
                 // position, user
-                $request .= '/' . $api . '/' . $request;
+                $request = '/' . $api . '/' . $request;
             }
             $timestamp = $this->nonce();
             $query = array_merge($params, array(
