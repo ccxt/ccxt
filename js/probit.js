@@ -3,16 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const {
-    ExchangeError,
-    ExchangeNotAvailable,
-    BadRequest,
-    InvalidOrder,
-    InsufficientFunds,
-    AuthenticationError,
-    ArgumentsRequired,
-    NotSupported,
-} = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, BadRequest, InvalidOrder, InsufficientFunds, AuthenticationError, ArgumentsRequired, NotSupported } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -21,7 +12,7 @@ module.exports = class probit extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'probit',
             'name': 'ProBit',
-            'countries': ['SC', 'KR'],
+            'countries': [ 'SC', 'KR' ], // Seychelles, South Korea
             'rateLimit': 250, // ms
             'has': {
                 'CORS': true,
@@ -75,14 +66,35 @@ module.exports = class probit extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': ['market', 'currency', 'time', 'ticker', 'order_book', 'trade', 'candle'],
+                    'get': [
+                        'market',
+                        'currency',
+                        'time',
+                        'ticker',
+                        'order_book',
+                        'trade',
+                        'candle',
+                    ],
                 },
                 'private': {
-                    'post': ['new_order', 'cancel_order', 'withdrawal'],
-                    'get': ['balance', 'order', 'open_order', 'order_history', 'trade_history', 'deposit_address'],
+                    'post': [
+                        'new_order',
+                        'cancel_order',
+                        'withdrawal',
+                    ],
+                    'get': [
+                        'balance',
+                        'order',
+                        'open_order',
+                        'order_history',
+                        'trade_history',
+                        'deposit_address',
+                    ],
                 },
                 'auth': {
-                    'post': ['token'],
+                    'post': [
+                        'token',
+                    ],
                 },
             },
             'fees': {
