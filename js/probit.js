@@ -201,7 +201,9 @@ module.exports = class probit extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        const response = await this.publicGetCurrency ();
+        const response = await this.publicGetCurrency (params);
+        console.log (response);
+        process.exit ();
         const currencies = this.safeValue (response, 'data');
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
@@ -802,7 +804,7 @@ module.exports = class probit extends Exchange {
         return tokenResponse;
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response) {
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return; // fallback to default error handler
         }
