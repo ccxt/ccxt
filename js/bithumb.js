@@ -352,11 +352,12 @@ module.exports = class bithumb extends Exchange {
         const market = this.market (symbol);
         const side = (params['side'] === 'buy') ? 'bid' : 'ask';
         params = this.omit (params, [ 'side', 'currency' ]);
+        // https://github.com/ccxt/ccxt/issues/6771
         const request = {
             'order_id': id,
             'type': side,
-            'order_currency': market['baseId'],
-            'payment_currency': market['quoteId'],
+            'order_currency': market['base'],
+            'payment_currency': market['quote'],
         };
         return await this.privatePostTradeCancel (this.extend (request, params));
     }
