@@ -352,6 +352,8 @@ module.exports = class biki extends Exchange {
         const sides = {
             '1': 'buy',
             '2': 'sell',
+            'BUY': 'buy',
+            'SELL': 'sell',
         };
         return this.safeString (sides, side, side);
     }
