@@ -477,7 +477,7 @@ module.exports = class probit extends Exchange {
         const request = {
             'market_id': market['id'],
             'limit': 100,
-            'start_time': this.iso8601 (0),
+            'start_time': '1970-01-01T00:00:00.000Z',
             'end_time': this.iso8601 (this.milliseconds ()),
         };
         if (since !== undefined) {
@@ -487,35 +487,92 @@ module.exports = class probit extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.publicGetTrade (this.extend (request, params));
-        return this.parseTrades (response['data'], market, since, limit);
+        //
+        //     {
+        //         "data":[
+        //             {
+        //                 "id":"ETH-BTC:3331886",
+        //                 "price":"0.022981",
+        //                 "quantity":"12.337",
+        //                 "time":"2020-04-12T20:55:42.371Z",
+        //                 "side":"sell",
+        //                 "tick_direction":"down"
+        //             },
+        //             {
+        //                 "id":"ETH-BTC:3331885",
+        //                 "price":"0.022982",
+        //                 "quantity":"6.472",
+        //                 "time":"2020-04-12T20:55:39.652Z",
+        //                 "side":"sell",
+        //                 "tick_direction":"down"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTrades (data, market, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
-        const time = this.safeString (trade, 'time');
-        const timestamp = this.parse8601 (time);
-        const symbol = this.safeString (market, 'symbol');
-        let fee = undefined;
-        const feeAmount = this.safeFloat (trade, 'fee_amount');
-        if (feeAmount !== undefined && feeAmount !== 0) {
-            fee = {
-                'currency': this.safeString (trade, 'fee_currency_id'),
-                'cost': feeAmount,
-            };
+        //
+        // fetchTrades (public)
+        //
+        //     {
+        //         "id":"ETH-BTC:3331886",
+        //         "price":"0.022981",
+        //         "quantity":"12.337",
+        //         "time":"2020-04-12T20:55:42.371Z",
+        //         "side":"sell",
+        //         "tick_direction":"down"
+        //     }
+        //
+        // fetchMyTrades (private)
+        //
+        //     ...
+        //
+        const timestamp = this.parse8601 (this.safeString (trade, 'time'));
+        let symbol = undefined;
+        const id = this.safeString (trade, 'id');
+        if (id !== undefined) {
+            const parts = id.split (':');
+            const marketId = this.safeString (parts, 0);
+            if (marketId !== undefined) {
+                if (marketId in this.markets_by_id) {
+                    market = this.markets_by_id[marketId];
+                } else {
+                    const [ baseId, quoteId ] = marketId.split ('-');
+                    const base = this.safeCurrencyCode (baseId);
+                    const quote = this.safeCurrencyCode (quoteId);
+                    symbol = base + '/' + quote;
+                }
+            }
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
+        const side = this.safeString (trade, 'side');
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'quantity');
+        let cost = undefined;
+        if (price !== undefined) {
+            if (amount !== undefined) {
+                cost = price * amount;
+            }
         }
         return {
-            'id': this.safeString (trade, 'id'),
+            'id': id,
+            'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'order': this.safeString (trade, 'order_id'),
+            'order': undefined,
             'type': undefined,
-            'side': this.safeString (trade, 'side'),
+            'side': side,
             'takerOrMaker': undefined,
-            'price': this.safeFloat (trade, 'price'),
-            'amount': this.safeFloat (trade, 'quantity'),
-            'cost': this.safeFloat (trade, 'cost'),
-            'fee': fee,
-            'info': trade,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
         };
     }
 
