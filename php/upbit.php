@@ -142,6 +142,11 @@ class upbit extends \ccxt\upbit {
             $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
         }
         $orderBook = $this->orderbooks[$symbol];
+        // upbit always returns a snapshot of 15 topmost entries
+        // the "REALTIME" deltas are not incremental
+        // therefore we reset the orderbook on each update
+        // and reinitialize it again with new bidasks
+        $orderBook->reset (array());
         $bids = $orderBook['bids'];
         $asks = $orderBook['asks'];
         $data = $this->safe_value($message, 'orderbook_units', array());

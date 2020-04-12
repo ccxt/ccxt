@@ -132,6 +132,11 @@ class upbit(Exchange, ccxt.upbit):
         if type == 'SNAPSHOT':
             self.orderbooks[symbol] = self.order_book({}, limit)
         orderBook = self.orderbooks[symbol]
+        # upbit always returns a snapshot of 15 topmost entries
+        # the "REALTIME" deltas are not incremental
+        # therefore we reset the orderbook on each update
+        # and reinitialize it again with new bidasks
+        orderBook.reset({})
         bids = orderBook['bids']
         asks = orderBook['asks']
         data = self.safe_value(message, 'orderbook_units', [])
