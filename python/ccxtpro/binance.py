@@ -49,18 +49,14 @@ class binance(Exchange, ccxt.binance):
 
     async def watch_order_book(self, symbol, limit=None, params={}):
         #
-        # https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md#partial-book-depth-streams
-        #
-        # <symbol>@depth<levels>@100ms or <symbol>@depth<levels>(1000ms)
+        # todo add support for <levels>-snapshots(depth)
+        # https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md#partial-book-depth-streams        # <symbol>@depth<levels>@100ms or <symbol>@depth<levels>(1000ms)
         # valid <levels> are 5, 10, or 20
         #
-        # todo add support for <levels>-snapshots(depth)
-        #
-        #     if limit is not None:
-        #         if (limit != 5) and (limit != 10) and (limit != 20):
-        #             raise ExchangeError(self.id + ' watchOrderBook limit argument must be None, 5, 10 or 20')
-        #         }
-        #     }
+        # default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
+        if limit is not None:
+            if (limit != 5) and (limit != 10) and (limit != 20) and (limit != 50) and (limit != 100) and (limit != 500) and (limit != 1000):
+                raise ExchangeError(self.id + ' watchOrderBook limit argument must be None, 5, 10, 20, 50, 100, 500 or 1000')
         #
         await self.load_markets()
         defaultType = self.safe_string_2(self.options, 'watchOrderBook', 'defaultType', 'spot')
@@ -133,6 +129,7 @@ class binance(Exchange, ccxt.binance):
         params = self.safe_value(subscription, 'params')
         # 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
         # todo: self is a synch blocking call in ccxt.php - make it async
+        # default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
         snapshot = await self.fetch_order_book(symbol, limit, params)
         orderbook = self.safe_value(self.orderbooks, symbol)
         if orderbook is None:

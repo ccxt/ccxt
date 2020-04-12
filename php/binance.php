@@ -53,18 +53,16 @@ class binance extends \ccxt\binance {
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
         //
-        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md#partial-book-depth-streams
-        //
-        // <$symbol>@depth<levels>@100ms or <$symbol>@depth<levels> (1000ms)
+        // todo add support for <levels>-snapshots (depth)
+        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md#partial-book-depth-streams        // <$symbol>@depth<levels>@100ms or <$symbol>@depth<levels> (1000ms)
         // valid <levels> are 5, 10, or 20
         //
-        // todo add support for <levels>-snapshots (depth)
-        //
-        //     if ($limit !== null) {
-        //         if (($limit !== 5) && ($limit !== 10) && ($limit !== 20)) {
-        //             throw new ExchangeError($this->id . ' watchOrderBook $limit argument must be null, 5, 10 or 20');
-        //         }
-        //     }
+        // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
+        if ($limit !== null) {
+            if (($limit !== 5) && ($limit !== 10) && ($limit !== 20) && ($limit !== 50) && ($limit !== 100) && ($limit !== 500) && ($limit !== 1000)) {
+                throw new ExchangeError($this->id . ' watchOrderBook $limit argument must be null, 5, 10, 20, 50, 100, 500 or 1000');
+            }
+        }
         //
         $this->load_markets();
         $defaultType = $this->safe_string_2($this->options, 'watchOrderBook', 'defaultType', 'spot');
@@ -138,6 +136,7 @@ class binance extends \ccxt\binance {
         $params = $this->safe_value($subscription, 'params');
         // 3. Get a depth $snapshot from https://www.binance.com/api/v1/depth?$symbol=BNBBTC&$limit=1000 .
         // todo => this is a synch blocking call in ccxt.php - make it async
+        // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
         $snapshot = $this->fetch_order_book($symbol, $limit, $params);
         $orderbook = $this->safe_value($this->orderbooks, $symbol);
         if ($orderbook === null) {
