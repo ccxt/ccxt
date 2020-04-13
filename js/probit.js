@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ExchangeNotAvailable, BadResponse, BadRequest, InvalidOrder, InsufficientFunds, AuthenticationError, ArgumentsRequired } = require ('./base/errors');
+const { TRUNCATE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -119,8 +120,11 @@ module.exports = class probit extends Exchange {
                 'secret': true,
             },
             'options': {
-                'defaultLimitOrderTimeInForce': 'gtc',
-                'defaultMarketOrderTimeInForce': 'ioc',
+                'createMarketBuyOrderRequiresPrice': true,
+                'timeInForce': {
+                    'limit': 'gtc',
+                    'market': 'ioc',
+                },
             },
         });
     }
@@ -288,10 +292,10 @@ module.exports = class probit extends Exchange {
         //         ]
         //     }
         //
-        const balances = this.safeValue (response, 'data');
-        const result = { 'info': balances };
-        for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
+        const data = this.safeValue (response, 'data');
+        const result = { 'info': data };
+        for (let i = 0; i < data.length; i++) {
+            const balance = data[i];
             const currencyId = this.safeFloat (balance, 'currency_id');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -742,7 +746,26 @@ module.exports = class probit extends Exchange {
         return this.parseOrder (order, symbol);
     }
 
-    parseOrder (order, symbol) {
+    parseOrder (order, market = undefined) {
+        //
+        //     {
+        //         id: string,
+        //         user_id: string,
+        //         market_id: string,
+        //         type: OrderType,
+        //         side: Side,
+        //         quantity: string,
+        //         limit_price: string,
+        //         time_in_force: TimeInForce,
+        //         filled_cost: string,
+        //         filled_quantity: string,
+        //         open_quantity: string,
+        //         cancelled_quantity: string,
+        //         status: OrderStatus,
+        //         time: Date,
+        //         client_order_id: string,
+        //     }
+        //
         let status = order['status'];
         if (status === 'filled') {
             status = 'closed';
@@ -761,7 +784,7 @@ module.exports = class probit extends Exchange {
         }
         return {
             'id': order['id'],
-            'symbol': symbol,
+            // 'symbol': symbol,
             'type': order['type'],
             'side': order['side'],
             'datetime': time,
@@ -777,46 +800,82 @@ module.exports = class probit extends Exchange {
         };
     }
 
+    costToPrecision (symbol, cost) {
+        return this.decimalToPrecision (cost, TRUNCATE, this.markets[symbol]['precision']['cost'], this.precisionMode);
+    }
+
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const req = {
+        const options = this.safeValue (this.options, 'timeInForce');
+        const defaultTimeInForce = this.safeValue (options, type);
+        const timeInForce = this.safeString2 (params, 'timeInForce', 'time_in_force', defaultTimeInForce);
+        const request = {
             'market_id': market['id'],
             'type': type,
             'side': side,
+            'time_in_force': timeInForce,
         };
-        const clientOrderId = this.safeString (params, 'clientOrderId');
-        if (clientOrderId) {
-            req['client_order_id'] = clientOrderId;
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
+        if (clientOrderId !== undefined) {
+            request['client_order_id'] = clientOrderId;
         }
-        let timeInForce = this.safeString (params, 'timeInForce');
         if (type === 'limit') {
-            if (!timeInForce) {
-                timeInForce = this.options['defaultLimitOrderTimeInForce'];
-            }
-            req['time_in_force'] = timeInForce;
-            req['limit_price'] = this.priceToPrecision (symbol, price);
-            req['quantity'] = this.amountToPrecision (symbol, amount);
+            request['limit_price'] = this.priceToPrecision (symbol, price);
+            request['quantity'] = this.amountToPrecision (symbol, amount);
         } else if (type === 'market') {
-            if (!timeInForce) {
-                timeInForce = this.options['defaultMarketOrderTimeInForce'];
-            }
-            req['time_in_force'] = timeInForce;
-            if (side === 'sell') {
-                req['quantity'] = this.amountToPrecision (symbol, amount);
-            } else if (side === 'buy') {
-                req['cost'] = this.costToPrecision (symbol, amount);
+            // for market buy it requires the amount of quote currency to spend
+            if (side === 'buy') {
+                let cost = this.safeFloat (params, 'cost');
+                const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
+                if (createMarketBuyOrderRequiresPrice) {
+                    if (price !== undefined) {
+                        if (cost === undefined) {
+                            cost = amount * price;
+                        }
+                    } else if (cost === undefined) {
+                        throw new InvalidOrder (this.id + " createOrder() requires the price argument for market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'cost' extra parameter (the exchange-specific behaviour)");
+                    }
+                } else {
+                    cost = (cost === undefined) ? amount : cost;
+                }
+                request['cost'] = this.costToPrecision (symbol, cost);
+            } else {
+                request['quantity'] = this.amountToPrecision (symbol, amount);
             }
         }
-        const resp = await this.privatePostNewOrder (this.extend (req, params));
-        return this.parseOrder (this.safeValue (resp, 'data'), symbol);
+        const query = this.omit (params, [ 'timeInForce', 'time_in_force', 'clientOrderId', 'client_order_id' ]);
+        const response = await this.privatePostNewOrder (this.extend (request, query));
+        //
+        //     {
+        //         data: {
+        //             id: string,
+        //             user_id: string,
+        //             market_id: string,
+        //             type: OrderType,
+        //             side: Side,
+        //             quantity: string,
+        //             limit_price: string,
+        //             time_in_force: TimeInForce,
+        //             filled_cost: string,
+        //             filled_quantity: string,
+        //             open_quantity: string,
+        //             cancelled_quantity: string,
+        //             status: OrderStatus,
+        //             time: Date,
+        //             client_order_id: string,
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.parseOrder (data, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         const market = this.market (symbol);
         const request = {
             'market_id': market['id'],
-            'order_id': id.toString (),
+            'order_id': id,
         };
         const resp = await this.privatePostCancelOrder (this.extend (request, params));
         return this.parseOrder (this.safeValue (resp, 'data'));
