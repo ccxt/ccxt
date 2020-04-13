@@ -612,21 +612,22 @@ module.exports = class probit extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const interval = this.timeframes[timeframe];
+        limit = (limit === undefined) ? 100 : limit;
         const request = {
             'market_ids': market['id'],
             'interval': interval,
-            'start_time': '1970-01-01T00:00:00.000Z',
-            'end_time': this.iso8601 (this.milliseconds ()),
-            // 'start_time': this.iso8601 (this.normalizeCandleTimestamp (0, interval)),
-            // 'end_time': this.iso8601 (this.normalizeCandleTimestamp (this.milliseconds (), interval)),
             'sort': 'asc',
-            'limit': 100,
+            'limit': limit, // max 1000
         };
-        if (since !== undefined) {
+        const now = this.milliseconds ();
+        const duration = this.parseTimeframe (timeframe);
+        const difference = limit * duration * 1000;
+        if (since === undefined) {
+            request['end_time'] = this.iso8601 (now);
+            request['start_time'] = this.iso8601 (now - difference);
+        } else {
             request['start_time'] = this.iso8601 (since);
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit;
+            request['end_time'] = this.iso8601 (this.sum (since, difference));
         }
         const response = await this.publicGetCandle (this.extend (request, params));
         //
