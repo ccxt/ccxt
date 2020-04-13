@@ -295,10 +295,8 @@ module.exports = class probit extends Exchange {
             const currencyId = this.safeFloat (balance, 'currency_id');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            const total = this.safeFloat (balance, 'total');
-            const available = this.safeFloat (balance, 'available');
-            account['total'] = total;
-            account['free'] = available;
+            account['total'] = this.safeFloat (balance, 'total');
+            account['free'] = this.safeFloat (balance, 'available');
             result[code] = account;
         }
         return this.parseBalance (result);
