@@ -54,8 +54,9 @@ module.exports = class probit extends Exchange {
             'urls': {
                 'logo': 'https://static.probit.com/landing/assets/images/probit-logo-global.png',
                 'api': {
-                    'account': 'https://accounts.probit.com',
-                    'exchange': 'https://api.probit.com/api/exchange',
+                    'accounts': 'https://accounts.probit.com',
+                    'public': 'https://api.probit.com/api/exchange',
+                    'private': 'https://api.probit.com/api/exchange',
                 },
                 'www': 'https://www.probit.com',
                 'doc': [
@@ -91,7 +92,7 @@ module.exports = class probit extends Exchange {
                         'deposit_address',
                     ],
                 },
-                'auth': {
+                'accounts': {
                     'post': [
                         'token',
                     ],
@@ -106,6 +107,7 @@ module.exports = class probit extends Exchange {
                 },
             },
             'exceptions': {
+                'UNAUTHORIZED': AuthenticationError,
                 'INVALID_ARGUMENT': BadRequest,
                 'TRADING_UNAVAILABLE': ExchangeNotAvailable,
                 'NOT_ENOUGH_BALANCE': InsufficientFunds,
@@ -274,7 +276,7 @@ module.exports = class probit extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateGetBalance ();
+        const response = await this.privateGetBalance (params);
         const balances = this.safeValue (response, 'data');
         const result = { 'info': balances };
         for (let i = 0; i < balances.length; i++) {
@@ -934,49 +936,47 @@ module.exports = class probit extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api']['exchange'] + '/' + this.version + '/';
-        if (api === 'auth') {
-            url = this.urls['api']['account'] + '/';
-        }
+        let url = this.urls['api'][api] + '/';
         const query = this.omit (params, this.extractParams (path));
-        if (api === 'public') {
+        if (api === 'accounts') {
+            this.checkRequiredCredentials ();
             url += this.implodeParams (path, params);
+            const auth = this.apiKey + ':' + this.secret;
+            const auth64 = this.stringToBase64 (this.encode (auth));
+            headers = {
+                'Authorization': 'Basic ' + this.decode (auth64),
+                'Content-Type': 'application/json',
+            };
             if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
+                body = this.json (query);
             }
-        } else if (api === 'private') {
-            this.checkRequiredCredentials ();
-            const expires = this.safeInteger (this.options, 'expires');
-            if (!expires || expires < this.milliseconds ()) {
-                throw new AuthenticationError (this.id + ' accessToken expired, call signIn() method');
-            }
-            url += this.implodeParams (path, params);
-            if (method === 'GET') {
+        } else {
+            url += this.version + '/';
+            if (api === 'public') {
+                url += this.implodeParams (path, params);
                 if (Object.keys (query).length) {
                     url += '?' + this.urlencode (query);
                 }
-            } else if (Object.keys (query).length) {
-                body = this.json (query);
-            }
-            headers = {
-                'Authorization': 'Bearer ' + this.options['accessToken'],
-                'Content-Type': 'application/json',
-            };
-        } else if (api === 'auth') {
-            this.checkRequiredCredentials ();
-            url += this.implodeParams (path, params);
-            const encoded = this.encode (this.apiKey + ':' + this.secret);
-            const basicAuth = this.stringToBase64 (encoded);
-            headers = {
-                'Authorization': 'Basic ' + this.decode (basicAuth),
-                'Content-Type': 'application/json',
-            };
-            if (method === 'GET') {
-                if (Object.keys (query).length) {
-                    url += '?' + this.urlencode (query);
+            } else if (api === 'private') {
+                const now = this.milliseconds ();
+                this.checkRequiredCredentials ();
+                const expires = this.safeInteger (this.options, 'expires');
+                if ((expires === undefined) || (expires < now)) {
+                    throw new AuthenticationError (this.id + ' accessToken expired, call signIn() method');
                 }
-            } else if (Object.keys (query).length) {
-                body = this.json (query);
+                const accessToken = this.safeString (this.options, 'accessToken');
+                headers = {
+                    'Authorization': 'Bearer ' + accessToken,
+                };
+                url += this.implodeParams (path, params);
+                if (method === 'GET') {
+                    if (Object.keys (query).length) {
+                        url += '?' + this.urlencode (query);
+                    }
+                } else if (Object.keys (query).length) {
+                    body = this.json (query);
+                    headers['Content-Type'] = 'application/json';
+                }
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
@@ -984,16 +984,22 @@ module.exports = class probit extends Exchange {
 
     async signIn (params = {}) {
         this.checkRequiredCredentials ();
-        const body = {
-            'grant_type': 'client_credentials',
+        const request = {
+            'grant_type': 'client_credentials', // the only supported value
         };
-        const tokenResponse = await this.authPostToken (body);
-        const expiresIn = this.safeInteger (tokenResponse, 'expires_in');
-        const accessToken = this.safeString (tokenResponse, 'access_token');
+        const response = await this.accountsPostToken (this.extend (request, params));
+        //
+        //     {
+        //         access_token: '0ttDv/2hTTn3bLi8GP1gKaneiEQ6+0hOBenPrxNQt2s=',
+        //         token_type: 'bearer',
+        //         expires_in: 900
+        //     }
+        //
+        const expiresIn = this.safeInteger (response, 'expires_in');
+        const accessToken = this.safeString (response, 'access_token');
         this.options['accessToken'] = accessToken;
         this.options['expires'] = this.sum (this.milliseconds (), expiresIn * 1000);
-        this.options['tokenType'] = this.safeString (tokenResponse, 'token_type');
-        return tokenResponse;
+        return response;
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
