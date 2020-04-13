@@ -652,12 +652,12 @@ module.exports = class probit extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         return [
-            parseFloat (this.parse8601 (this.safeString (ohlcv, 'start_time'))),
-            parseFloat (this.safeFloat (ohlcv, 'open')),
-            parseFloat (this.safeFloat (ohlcv, 'high')),
-            parseFloat (this.safeFloat (ohlcv, 'low')),
-            parseFloat (this.safeFloat (ohlcv, 'close')),
-            parseFloat (this.safeFloat (ohlcv, 'base_volume')),
+            this.parse8601 (this.safeString (ohlcv, 'start_time')),
+            this.safeFloat (ohlcv, 'open'),
+            this.safeFloat (ohlcv, 'high'),
+            this.safeFloat (ohlcv, 'low'),
+            this.safeFloat (ohlcv, 'close'),
+            this.safeFloat (ohlcv, 'base_volume'),
         ];
     }
 
