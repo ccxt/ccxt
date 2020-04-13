@@ -277,19 +277,29 @@ module.exports = class probit extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetBalance (params);
+        //
+        //     {
+        //         data: [
+        //             {
+        //                 "currency_id":"XRP",
+        //                 "total":"100",
+        //                 "available":"0",
+        //             }
+        //         ]
+        //     }
+        //
         const balances = this.safeValue (response, 'data');
         const result = { 'info': balances };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
-            const currencyId = balance['currency_id'];
+            const currencyId = this.safeFloat (balance, 'currency_id');
+            const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             const total = this.safeFloat (balance, 'total');
             const available = this.safeFloat (balance, 'available');
-            const hold = this.sum (total, -available);
             account['total'] = total;
             account['free'] = available;
-            account['used'] = hold;
-            result[currencyId] = account;
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
