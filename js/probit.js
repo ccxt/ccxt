@@ -984,9 +984,6 @@ module.exports = class probit extends Exchange {
 
     async signIn (params = {}) {
         this.checkRequiredCredentials ();
-        if (!this.apiKey || !this.secret) {
-            throw new AuthenticationError (this.id + ' signIn() requires this.apiKey and this.secret credentials');
-        }
         const body = {
             'grant_type': 'client_credentials',
         };
