@@ -612,24 +612,40 @@ module.exports = class probit extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const interval = this.timeframes[timeframe];
-        if (!interval) {
-            throw new NotSupported ('Timeframe ' + timeframe + ' is not supported.');
-        }
         const request = {
             'market_ids': market['id'],
             'interval': interval,
-            'start_time': this.iso8601 (this.normalizeCandleTimestamp (0, interval)),
-            'end_time': this.iso8601 (this.normalizeCandleTimestamp (this.milliseconds (), interval)),
-            'sort': 'desc',
+            'start_time': '1970-01-01T00:00:00.000Z',
+            'end_time': this.iso8601 (this.milliseconds ()),
+            // 'start_time': this.iso8601 (this.normalizeCandleTimestamp (0, interval)),
+            // 'end_time': this.iso8601 (this.normalizeCandleTimestamp (this.milliseconds (), interval)),
+            'sort': 'asc',
             'limit': 100,
         };
         if (since !== undefined) {
-            request['start_time'] = this.iso8601 (this.normalizeCandleTimestamp (since, interval));
+            request['start_time'] = this.iso8601 (since);
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
         const response = await this.publicGetCandle (this.extend (request, params));
+        //
+        //     {
+        //         "data":[
+        //             {
+        //                 "market_id":"ETH-BTC",
+        //                 "open":"0.02811",
+        //                 "close":"0.02811",
+        //                 "low":"0.02811",
+        //                 "high":"0.02811",
+        //                 "base_volume":"0.0005",
+        //                 "quote_volume":"0.000014055",
+        //                 "start_time":"2018-11-30T18:19:00.000Z",
+        //                 "end_time":"2018-11-30T18:20:00.000Z"
+        //             },
+        //         ]
+        //     }
+        //
         const data = this.safeValue (response, 'data');
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
