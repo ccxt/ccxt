@@ -872,13 +872,14 @@ module.exports = class probit extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'market_id': market['id'],
             'order_id': id,
         };
-        const resp = await this.privatePostCancelOrder (this.extend (request, params));
-        return this.parseOrder (this.safeValue (resp, 'data'));
+        const response = await this.privatePostCancelOrder (this.extend (request, params));
+        return this.parseOrder (this.safeValue (response, 'data'));
     }
 
     parseDepositAddress (depositAddress, currency = undefined) {
