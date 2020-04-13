@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, BadResponse, BadRequest, InvalidOrder, InsufficientFunds, AuthenticationError, ArgumentsRequired } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, BadResponse, BadRequest, InvalidOrder, InsufficientFunds, AuthenticationError, ArgumentsRequired, InvalidAddress } = require ('./base/errors');
 const { TRUNCATE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -907,7 +907,23 @@ module.exports = class probit extends Exchange {
             'currency_id': currency['id'],
         };
         const response = await this.privateGetDepositAddress (this.extend (request, params));
-        return this.parseDepositAddress (response['data'][0]);
+        //
+        //     {
+        //         "data":[
+        //             {
+        //                 "currency_id":"ETH",
+        //                 "address":"0x12e2caf3c4051ba1146e612f532901a423a9898a",
+        //                 "destination_tag":null
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const firstAddress = this.safeValue (data, 0);
+        if (firstAddress === undefined) {
+            throw new InvalidAddress (this.id + ' fetchDepositAddress returned an empty response');
+        }
+        return this.parseDepositAddress (firstAddress);
     }
 
     async fetchDepositAddresses (codes = undefined, params = {}) {
@@ -922,15 +938,18 @@ module.exports = class probit extends Exchange {
             request['currency_id'] = codes.join (',');
         }
         const response = await this.privateGetDepositAddress (this.extend (request, params));
-        return this.parseDepositAddresses (response['data']);
+        const data = this.safeValue (response, 'data', []);
+        return this.parseDepositAddresses (data);
     }
 
-    async parseDepositAddresses (rawAddresses) {
-        const addresses = [];
-        for (let i = 0; i < rawAddresses.length; i++) {
-            addresses.push (this.parseDepositAddress (rawAddresses[i]));
+    parseDepositAddresses (addresses) {
+        const result = {};
+        for (let i = 0; i < addresses.length; i++) {
+            const address = this.parseDepositAddress (addresses[i]);
+            const code = address['currency'];
+            result[code] = address;
         }
-        return addresses;
+        return result;
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
