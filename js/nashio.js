@@ -24,6 +24,8 @@ module.exports = class nashio extends Exchange {
                 'fetchTickers': true,
                 'fetchOHLCV': true,
                 'fetchTrades': true,
+                'fetchOrderBook': true,
+                'fetchOrderBooks': false,
             },
             'marketsByAltname': {},
             'timeframes': {
@@ -119,8 +121,15 @@ module.exports = class nashio extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        const marketFields = this.gqlFragments['MarketFields'];
+        let query = '';
+        query += 'query ListMarkets { ';
+        query += '  listMarkets { ';
+        query += '      ' + marketFields.join (' ');
+        query += '  }';
+        query += '}';
         const request = {
-            'query': 'query ListMarkets { listMarkets { ' + this.gqlFragments.MarketFields.join (' ') + ' } }',
+            'query': query,
         };
         const response = await this.publicPostGql (this.extend (request, params));
         // console.warn ('fetchMarkets', response);
@@ -145,9 +154,9 @@ module.exports = class nashio extends Exchange {
                 'active': active,
                 'info': market,
             };
-            if (this.verbose) {
-                this.print ('market', row);
-            }
+            // if (this.verbose) {
+            //     this.print ('market', row);
+            // }
             result.push (row);
         }
         return result;
@@ -157,21 +166,24 @@ module.exports = class nashio extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         // console.warn ('fetchTicker', symbol, market);
+        const marketFields = this.gqlFragments['MarketFields'];
+        const currencyAmountFields = this.gqlFragments['CurrencyAmountFields'];
+        const currencyPriceFields = this.gqlFragments['CurrencyPriceFields'];
         let query = '';
         query += 'query GetTicker($marketName: MarketName!) { ';
         query += '  getTicker(marketName: $marketName) { ';
         query += '      market { ';
-        query += '          ' + this.gqlFragments.MarketFields.join (' ');
+        query += '          ' + marketFields.join (' ');
         query += '      } ';
         query += '      priceChange24hPct ';
         query += '      volume24h { ';
-        query += '          ' + this.gqlFragments.CurrencyAmountFields.join (' ');
+        query += '          ' + currencyAmountFields.join (' ');
         query += '      } ';
         query += '      lastPrice { ';
-        query += '          ' + this.gqlFragments.CurrencyPriceFields.join (' ');
+        query += '          ' + currencyPriceFields.join (' ');
         query += '      } ';
         query += '      usdLastPrice { ';
-        query += '          ' + this.gqlFragments.CurrencyPriceFields.join (' ');
+        query += '          ' + currencyPriceFields.join (' ');
         query += '      } ';
         query += '  } ';
         query += '} ';
@@ -201,21 +213,24 @@ module.exports = class nashio extends Exchange {
                 marketIds.push (market['id']);
             }
         }
+        const marketFields = this.gqlFragments['MarketFields'];
+        const currencyAmountFields = this.gqlFragments['CurrencyAmountFields'];
+        const currencyPriceFields = this.gqlFragments['CurrencyPriceFields'];
         let query = '';
         query += 'query Tickers { ';
         query += '  listTickers { ';
         query += '      market { ';
-        query += '          ' + this.gqlFragments.MarketFields.join (' ');
+        query += '          ' + marketFields.join (' ');
         query += '      } ';
         query += '      priceChange24hPct ';
         query += '      volume24h { ';
-        query += '          ' + this.gqlFragments.CurrencyAmountFields.join (' ');
+        query += '          ' + currencyAmountFields.join (' ');
         query += '      } ';
         query += '      lastPrice { ';
-        query += '          ' + this.gqlFragments.CurrencyPriceFields.join (' ');
+        query += '          ' + currencyPriceFields.join (' ');
         query += '      } ';
         query += '      usdLastPrice { ';
-        query += '          ' + this.gqlFragments.CurrencyPriceFields.join (' ');
+        query += '          ' + currencyPriceFields.join (' ');
         query += '      } ';
         query += '  } ';
         query += '}';
@@ -242,24 +257,26 @@ module.exports = class nashio extends Exchange {
         await this.loadMarkets ();
         // this.verbose = true;
         const market = this.market (symbol);
+        const currencyAmountPartialFields = this.gqlFragments['CurrencyAmountPartialFields'];
+        const currencyPricePartialFields = this.gqlFragments['CurrencyPricePartialFields'];
         let query = '';
         query += 'query listCandles($before: DateTime, $interval: CandleInterval, $marketName: MarketName!, $limit: Int) { ';
         query += '  listCandles (before: $before, interval: $interval, marketName: $marketName, limit: $limit) { ';
         query += '      candles { ';
         query += '          aVolume { ';
-        query += '               ' + this.gqlFragments.CurrencyAmountPartialFields.join (' ');
+        query += '               ' + currencyAmountPartialFields.join (' ');
         query += '          }';
         query += '          openPrice { ';
-        query += '               ' + this.gqlFragments.CurrencyPricePartialFields.join (' ');
+        query += '               ' + currencyPricePartialFields.join (' ');
         query += '          }';
         query += '          closePrice { ';
-        query += '               ' + this.gqlFragments.CurrencyPricePartialFields.join (' ');
+        query += '               ' + currencyPricePartialFields.join (' ');
         query += '          }';
         query += '          highPrice { ';
-        query += '               ' + this.gqlFragments.CurrencyPricePartialFields.join (' ');
+        query += '               ' + currencyPricePartialFields.join (' ');
         query += '          }';
         query += '          lowPrice { ';
-        query += '               ' + this.gqlFragments.CurrencyPricePartialFields.join (' ');
+        query += '               ' + currencyPricePartialFields.join (' ');
         query += '          } ';
         query += '          interval ';
         query += '          intervalStartingAt ';
@@ -278,6 +295,7 @@ module.exports = class nashio extends Exchange {
             request['variables']['before'] = this.iso8601 (since);
         }
         const response = await this.publicPostGql (this.extend (request, params));
+        // console.warn('response', response);
         const ohlcvs = response['data']['listCandles']['candles'];
         // console.warn ('ohlcvs', ohlcvs);
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
@@ -286,6 +304,8 @@ module.exports = class nashio extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const currencyAmountFields = this.gqlFragments['CurrencyAmountFields'];
+        const currencyPriceFields = this.gqlFragments['CurrencyPriceFields'];
         let query = '';
         query += 'query ListTrades($marketName: MarketName!, $limit: Int, $before: DateTime) { ';
         query += '  listTrades(marketName: $marketName, limit: $limit, before: $before) { ';
@@ -296,29 +316,29 @@ module.exports = class nashio extends Exchange {
         query += '          executedAt ';
         query += '          accountSide ';
         query += '          limitPrice { ';
-        query += '              ' + this.gqlFragments.CurrencyPriceFields.join (' ');
+        query += '              ' + currencyPriceFields.join (' ');
         query += '          } ';
         query += '          amount { ';
-        query += '              ' + this.gqlFragments.CurrencyAmountFields.join (' ');
+        query += '              ' + currencyAmountFields.join (' ');
         query += '          } ';
         query += '          direction ';
         query += '          makerGave { ';
-        query += '              ' + this.gqlFragments.CurrencyAmountFields.join (' ');
+        query += '              ' + currencyAmountFields.join (' ');
         query += '          } ';
         query += '          takerGave { ';
-        query += '              ' + this.gqlFragments.CurrencyAmountFields.join (' ');
+        query += '              ' + currencyAmountFields.join (' ');
         query += '          } ';
         query += '          makerReceived { ';
-        query += '              ' + this.gqlFragments.CurrencyAmountFields.join (' ');
+        query += '              ' + currencyAmountFields.join (' ');
         query += '          } ';
         query += '          takerReceived { ';
-        query += '              ' + this.gqlFragments.CurrencyAmountFields.join (' ');
+        query += '              ' + currencyAmountFields.join (' ');
         query += '          } ';
         query += '          makerFee { ';
-        query += '              ' + this.gqlFragments.CurrencyAmountFields.join (' ');
+        query += '              ' + currencyAmountFields.join (' ');
         query += '          } ';
         query += '          takerFee { ';
-        query += '              ' + this.gqlFragments.CurrencyAmountFields.join (' ');
+        query += '              ' + currencyAmountFields.join (' ');
         query += '          } ';
         query += '      } ';
         query += '      next ';
@@ -339,6 +359,8 @@ module.exports = class nashio extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const currencyAmountFields = this.gqlFragments['CurrencyAmountFields'];
+        const currencyPriceFields = this.gqlFragments['CurrencyPriceFields'];
         let query = '';
         query += 'query GetOrderBook($marketName: MarketName!) { ';
         query += '  getOrderBook(marketName: $marketName) { ';
@@ -346,18 +368,18 @@ module.exports = class nashio extends Exchange {
         query += '      updateId ';
         query += '      asks { ';
         query += '          amount { ';
-        query += '              ' + this.gqlFragments.CurrencyAmountFields.join (' ');
+        query += '              ' + currencyAmountFields.join (' ');
         query += '          } ';
         query += '          price { ';
-        query += '              ' + this.gqlFragments.CurrencyPriceFields.join (' ');
+        query += '              ' + currencyPriceFields.join (' ');
         query += '          } ';
         query += '      } ';
         query += '      bids { ';
         query += '          amount { ';
-        query += '              ' + this.gqlFragments.CurrencyAmountFields.join (' ');
+        query += '              ' + currencyAmountFields.join (' ');
         query += '          } ';
         query += '          price { ';
-        query += '              ' + this.gqlFragments.CurrencyPriceFields.join (' ');
+        query += '              ' + currencyPriceFields.join (' ');
         query += '          } ';
         query += '      } ';
         query += '  } ';
@@ -374,15 +396,15 @@ module.exports = class nashio extends Exchange {
         const response = await this.publicPostGql (this.extend (request, params));
         const orderbook = response['data']['getOrderBook'];
         // console.warn ('orderbook', orderbook);
-        return this.parseOrderBook (orderbook);
+        return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 0, 'amount');
     }
 
-    parseBidAsk (bidask, priceKey = 0, amountKey = 1, market = undefined) {
-        if (this.verbose) {
-            this.print ('bidask', bidask, priceKey, amountKey, market);
-        }
-        const price = parseFloat (bidask['price']['amount']);
-        const amount = parseFloat (bidask['amount']['amount']);
+    parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
+        // if (this.verbose) {
+        //     this.print ('bidask', bidask, priceKey, amountKey, market);
+        // }
+        const price = parseFloat (bidask['price'][amountKey]);
+        const amount = parseFloat (bidask['amount'][amountKey]);
         return [ price, amount ];
     }
 
@@ -396,8 +418,8 @@ module.exports = class nashio extends Exchange {
         const open = ticker['candles'] ? ticker['candles'][0][1] : undefined;
         const high = ticker['candles'] ? ticker['candles'][0][2] : undefined;
         const low = ticker['candles'] ? ticker['candles'][0][3] : undefined;
-        const last = ticker['lastPrice']['amount'];
-        const close = ticker['candles'] ? ticker['candles'][0][4] : last;
+        const last = ticker['lastPrice'] ? ticker['lastPrice']['amount'] : undefined;
+        const close = ticker['candles'] && last ? ticker['candles'][0][4] : last;
         const average = last && open ? (last + open) / 2 : undefined;
         const change = last && open ? last - open : undefined;
         const percentage = ticker['priceChange24hPct'];
@@ -488,17 +510,17 @@ module.exports = class nashio extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        if (this.verbose) {
-            this.print ('sign', path, api, method, params, headers, body);
-        }
+        // if (this.verbose) {
+        //     this.print ('sign', path, api, method, params, headers, body);
+        // }
         const url = this.urls['api'][api];
         headers = {
             'Content-Type': 'application/json',
         };
         body = this.json (params);
-        if (this.verbose) {
-            this.print ('sign', { 'url': url, 'method': method, 'body': body, 'headers': headers });
-        }
+        // if (this.verbose) {
+        //     this.print ('sign', { 'url': url, 'method': method, 'body': body, 'headers': headers });
+        // }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 };
