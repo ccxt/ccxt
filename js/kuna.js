@@ -207,7 +207,7 @@ module.exports = class kuna extends acx {
                 ohlcv[3],
                 ohlcv[4],
                 ohlcv[5],
-            ])
+            ]);
         }
         return result;
     }
