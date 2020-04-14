@@ -27,7 +27,6 @@ module.exports = class probit extends Exchange {
                 'fetchTrades': true,
                 'fetchBalance': true,
                 'createOrder': true,
-                'createLimitOrder': true,
                 'createMarketOrder': true,
                 'cancelOrder': true,
                 'fetchOrder': true,
@@ -894,10 +893,6 @@ module.exports = class probit extends Exchange {
             'tag': tag,
             'info': depositAddress,
         };
-    }
-
-    async createDepositAddress (code, params = {}) {
-        return this.fetchDepositAddress (code, params);
     }
 
     async fetchDepositAddress (code, params = {}) {
