@@ -197,6 +197,18 @@ module.exports = class kuna extends acx {
         await this.loadMarkets ();
         const trades = await this.fetchTrades (symbol, since, limits, params);
         const ohlcvc = this.buildOHLCVC (trades, timeframe, since, limits);
-        return ohlcvc.map (c => c.slice (0, -1));
+        const result = [];
+        for (let i = 0; i < ohlcvc.length; i++) {
+            const ohlcv = ohlcvc[i];
+            result.push ([
+                ohlcv[0],
+                ohlcv[1],
+                ohlcv[2],
+                ohlcv[3],
+                ohlcv[4],
+                ohlcv[5],
+            ])
+        }
+        return result;
     }
 };
