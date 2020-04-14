@@ -53,7 +53,10 @@ class bytetrade extends Exchange {
             'urls' => array(
                 'test' => 'https://api-v2-test.byte-trade.com',
                 'logo' => 'https://user-images.githubusercontent.com/1294454/67288762-2f04a600-f4e6-11e9-9fd6-c60641919491.jpg',
-                'api' => 'https://api-v2.byte-trade.com',
+                'api' => array(
+                    'market' => 'https://api-v2.bytetrade.com',
+                    'public' => 'https://api-v2.bytetrade.com',
+                ),
                 'www' => 'https://www.byte-trade.com',
                 'doc' => 'https://github.com/Bytetrade/bytetrade-official-api-docs/wiki',
             ),
@@ -1362,7 +1365,7 @@ class bytetrade extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'];
+        $url = $this->urls['api'][$api];
         $url .= '/' . $path;
         if ($params) {
             $url .= '?' . $this->urlencode($params);
