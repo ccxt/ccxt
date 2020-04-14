@@ -81,8 +81,9 @@ keys_global = os.path.join(keys_folder, 'keys.json')
 keys_local = os.path.join(keys_folder, 'keys.local.json')
 keys_file = keys_local if os.path.exists(keys_local) else keys_global
 
+
 # load the api keys from config
-if os.path.exists(keys_local):
+if os.path.exists(keys_file):
     with open(keys_file) as file:
         config = json.load(file)
 
@@ -126,6 +127,7 @@ async def test_exchange(exchange):
     keys = list(exchange.markets.keys())
     symbol = keys[0]
     symbols = [
+        # 'NEO/USDT',
         'BTC/KRW',
         'BTC/USD',
         'BTC/USDT',
