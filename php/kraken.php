@@ -267,7 +267,7 @@ class kraken extends \ccxt\kraken {
                     'depth' => $limit, // default 10, valid options 10, 25, 100, 500, 1000
                 );
             } else {
-                throw new NotSupported($this->id . ' watchOrderBook accepts $limit values of 10, 25,100, 500 and 1000 only');
+                throw new NotSupported($this->id . ' watchOrderBook accepts $limit values of 10, 25, 100, 500 and 1000 only');
             }
         }
         $future = $this->watch_public($name, $symbol, array_merge($request, $params));
