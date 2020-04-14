@@ -429,7 +429,6 @@ declare module 'ccxt' {
 
     /* tslint:disable */
 
-    export class _1btcxe extends Exchange {}
     export class acx extends Exchange {}
     export class adara extends Exchange {}
     export class anxpro extends Exchange {}
@@ -457,6 +456,7 @@ declare module 'ccxt' {
     export class bitstamp extends Exchange {}
     export class bitstamp1 extends Exchange {}
     export class bittrex extends Exchange {}
+    export class bittrexglobal extends bittrex {}
     export class bitz extends Exchange {}
     export class bl3p extends Exchange {}
     export class bleutrade extends Exchange {}
@@ -551,6 +551,7 @@ declare module 'ccxt' {
     export class yobit extends Exchange {}
     export class zaif extends Exchange {}
     export class zb extends Exchange {}
+    export class _1btcxe extends Exchange {}
 
     /* tslint:enable */
 
