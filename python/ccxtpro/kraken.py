@@ -249,7 +249,7 @@ class kraken(Exchange, ccxt.kraken):
                     'depth': limit,  # default 10, valid options 10, 25, 100, 500, 1000
                 }
             else:
-                raise NotSupported(self.id + ' watchOrderBook accepts limit values of 10, 25,100, 500 and 1000 only')
+                raise NotSupported(self.id + ' watchOrderBook accepts limit values of 10, 25, 100, 500 and 1000 only')
         future = self.watch_public(name, symbol, self.extend(request, params))
         return await self.after(future, self.limit_order_book, symbol, limit, params)
 
