@@ -18,11 +18,12 @@ module.exports = class kuna extends acx {
             'has': {
                 'CORS': false,
                 'fetchTickers': true,
-                'fetchOHLCV': false,
+                'fetchOHLCV': 'emulated',
                 'fetchOpenOrders': true,
                 'fetchMyTrades': true,
                 'withdraw': false,
             },
+            'timeframes': undefined,
             'urls': {
                 'referral': 'https://kuna.io?r=kunaid-gvfihe8az7o4',
                 'logo': 'https://user-images.githubusercontent.com/1294454/31697638-912824fa-b3c1-11e7-8c36-cf9606eb94ac.jpg',
@@ -190,5 +191,12 @@ module.exports = class kuna extends acx {
         };
         const response = await this.privateGetTradesMy (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limits = undefined, params = {}) {
+        await this.loadMarkets ();
+        const trades = await this.fetchTrades (symbol, since, limits, params);
+        const ohlcvc = this.buildOHLCVC (trades, timeframe, since, limits);
+        return ohlcvc.map (c => c.slice (0, -1));
     }
 };
