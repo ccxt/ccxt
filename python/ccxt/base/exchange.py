@@ -917,12 +917,12 @@ class Exchange(object):
     @staticmethod
     def aggregate(bidasks):
         ordered = Exchange.ordered({})
-        for [price, volume] in bidasks:
+        for [price, volume, *_] in bidasks:
             if volume > 0:
                 ordered[price] = (ordered[price] if price in ordered else 0) + volume
         result = []
         items = list(ordered.items())
-        for price, volume, *_ in items:
+        for price, volume in items:
             result.append([price, volume])
         return result
 
