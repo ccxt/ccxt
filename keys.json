@@ -1,6 +1,5 @@
 {
     "kraken": {
-        "skip": true,
         "options": {
             "fetchMinOrderAmounts": false
         }
