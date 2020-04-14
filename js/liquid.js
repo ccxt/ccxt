@@ -177,7 +177,7 @@ module.exports = class liquid extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const markets = await this.publicGetProducts ();
+        const spot = await this.publicGetProducts (params);
         //
         //     [
         //         {
@@ -208,20 +208,69 @@ module.exports = class liquid extends Exchange {
         //         },
         //     ]
         //
+        const perpetual = await this.publicGetProducts ({ 'perpetual': '1' });
+        //
+        //     [
+        //         {
+        //             "id": "603",
+        //             "product_type": "Perpetual",
+        //             "code": "CASH",
+        //             "name": null,
+        //             "market_ask": "1143900",
+        //             "market_bid": "1143250",
+        //             "currency": "JPY",
+        //             "currency_pair_code": "P-BTCJPY",
+        //             "pusher_channel": "product_cash_p-btcjpy_603",
+        //             "taker_fee": "0.0",
+        //             "maker_fee": "0.0",
+        //             "low_market_bid": "1124450.0",
+        //             "high_market_ask": "1151750.0",
+        //             "volume_24h": "0.1756",
+        //             "last_price_24h": "1129850.0",
+        //             "last_traded_price": "1144700.0",
+        //             "last_traded_quantity": "0.014",
+        //             "quoted_currency": "JPY",
+        //             "base_currency": "P-BTC",
+        //             "tick_size": "50.0",
+        //             "perpetual_enabled": true,
+        //             "index_price": "1142636.03935",
+        //             "mark_price": "1143522.18417",
+        //             "funding_rate": "0.00033",
+        //             "fair_price": "1143609.31009",
+        //             "timestamp": "1581558659.195353100",
+        //         },
+        //     ]
+        //
         const currencies = await this.fetchCurrencies ();
         const currenciesByCode = this.indexBy (currencies, 'code');
         const result = [];
+        const markets = this.arrayConcat (spot, perpetual);
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
-            const id = market['id'].toString ();
-            const baseId = market['base_currency'];
-            const quoteId = market['quoted_currency'];
+            const id = this.safeString (market, 'id');
+            const baseId = this.safeString (market, 'base_currency');
+            const quoteId = this.safeString (market, 'quoted_currency');
+            const productType = this.safeString (market, 'product_type');
+            let type = 'spot';
+            let spot = true;
+            let swap = false;
+            if (productType === 'Perpetual') {
+                spot = false;
+                swap = true;
+                type = 'swap';
+            }
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
+            let symbol = undefined;
+            if (swap) {
+                symbol = this.safeString (market, 'currency_pair_code');
+            } else {
+                symbol = base + '/' + quote;
+            }
             const maker = this.safeFloat (market, 'maker_fee');
             const taker = this.safeFloat (market, 'taker_fee');
-            const active = !market['disabled'];
+            const disabled = this.safeValue (market, 'disabled', false);
+            const active = !disabled;
             const baseCurrency = this.safeValue (currenciesByCode, base);
             const quoteCurrency = this.safeValue (currenciesByCode, quote);
             const precision = {
@@ -265,6 +314,9 @@ module.exports = class liquid extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': type,
+                'spot': spot,
+                'swap': swap,
                 'maker': maker,
                 'taker': taker,
                 'limits': limits,
@@ -393,7 +445,7 @@ module.exports = class liquid extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    parseTrade (trade, market) {
+    parseTrade (trade, market = undefined) {
         // {             id:  12345,
         //         quantity: "6.789",
         //            price: "98765.4321",
@@ -420,13 +472,17 @@ module.exports = class liquid extends Exchange {
             }
         }
         const id = this.safeString (trade, 'id');
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
         return {
             'info': trade,
             'id': id,
             'order': orderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': undefined,
             'side': side,
             'takerOrMaker': takerOrMaker,
