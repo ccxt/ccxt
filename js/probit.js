@@ -482,7 +482,8 @@ module.exports = class probit extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.privateGetTradeHistory (this.extend (request, params));
-        return this.parseTrades (response['data'], market, since, limit);
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTrades (data, market, since, limit);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -735,15 +736,17 @@ module.exports = class probit extends Exchange {
         const market = this.market (symbol);
         const request = {
             'market_id': market['id'],
-            'order_id': id.toString (),
         };
-        const clientOrderId = this.safeString (params, 'clientOrderId');
-        if (clientOrderId) {
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
+        if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
+        } else {
+            request['order_id'] = id;
         }
-        const response = await this.privateGetOrder (this.extend (request, params));
+        const query = this.omit (params, [ 'clientOrderId', 'client_order_id' ]);
+        const response = await this.privateGetOrder (this.extend (query, params));
         const order = this.safeValue (response, 'data')[0];
-        return this.parseOrder (order, symbol);
+        return this.parseOrder (order, market);
     }
 
     parseOrder (order, market = undefined) {
@@ -1086,6 +1089,10 @@ module.exports = class probit extends Exchange {
         const accessToken = this.safeString (response, 'access_token');
         this.options['accessToken'] = accessToken;
         this.options['expires'] = this.sum (this.milliseconds (), expiresIn * 1000);
+        console.log ({
+            'accessToken': accessToken,
+            'expires': this.options['expires'],
+        });
         return response;
     }
 
