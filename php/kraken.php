@@ -216,7 +216,7 @@ class kraken extends Exchange {
                 'delistedMarketsById' => array(),
                 // cannot withdraw/deposit these
                 'inactiveCurrencies' => array( 'CAD', 'USD', 'JPY', 'GBP' ),
-                'fetchMinOrderAmounts' => true,
+                'fetchMinOrderAmounts' => false,
             ),
             'exceptions' => array(
                 'EQuery:Invalid asset pair' => '\\ccxt\\BadSymbol', // array("error":["EQuery:Invalid asset pair"])
@@ -244,8 +244,8 @@ class kraken extends Exchange {
         return $this->decimal_to_precision($fee, TRUNCATE, $this->markets[$symbol]['precision']['amount'], DECIMAL_PLACES);
     }
 
-    public function fetch_min_order_amounts() {
-        $html = $this->zendeskGet205893708WhatIsTheMinimumOrderSize ();
+    public function fetch_min_order_amounts($params) {
+        $html = $this->zendeskGet205893708WhatIsTheMinimumOrderSize ($params);
         $parts = explode('<td class="wysiwyg-text-align-right">', $html);
         $numParts = is_array($parts) ? count($parts) : 0;
         if ($numParts < 3) {

@@ -231,7 +231,7 @@ class kraken(Exchange):
                 'delistedMarketsById': {},
                 # cannot withdraw/deposit these
                 'inactiveCurrencies': ['CAD', 'USD', 'JPY', 'GBP'],
-                'fetchMinOrderAmounts': True,
+                'fetchMinOrderAmounts': False,
             },
             'exceptions': {
                 'EQuery:Invalid asset pair': BadSymbol,  # {"error":["EQuery:Invalid asset pair"]}
@@ -256,8 +256,8 @@ class kraken(Exchange):
     def fee_to_precision(self, symbol, fee):
         return self.decimal_to_precision(fee, TRUNCATE, self.markets[symbol]['precision']['amount'], DECIMAL_PLACES)
 
-    async def fetch_min_order_amounts(self):
-        html = await self.zendeskGet205893708WhatIsTheMinimumOrderSize()
+    async def fetch_min_order_amounts(self, params):
+        html = await self.zendeskGet205893708WhatIsTheMinimumOrderSize(params)
         parts = html.split('<td class="wysiwyg-text-align-right">')
         numParts = len(parts)
         if numParts < 3:
