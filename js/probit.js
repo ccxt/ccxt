@@ -64,6 +64,7 @@ module.exports = class probit extends Exchange {
                     'https://docs-ko.probit.com',
                 ],
                 'fees': 'https://support.probit.com/hc/en-us/articles/360020968611-Trading-Fees',
+                'referral': 'https://www.probit.com/r/34608773',
             },
             'api': {
                 'public': {
@@ -871,6 +872,9 @@ module.exports = class probit extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -878,7 +882,8 @@ module.exports = class probit extends Exchange {
             'order_id': id,
         };
         const response = await this.privatePostCancelOrder (this.extend (request, params));
-        return this.parseOrder (this.safeValue (response, 'data'));
+        const data = this.safeValue (response, 'data');
+        return this.parseOrder (data);
     }
 
     parseDepositAddress (depositAddress, currency = undefined) {
@@ -918,7 +923,7 @@ module.exports = class probit extends Exchange {
         if (firstAddress === undefined) {
             throw new InvalidAddress (this.id + ' fetchDepositAddress returned an empty response');
         }
-        return this.parseDepositAddress (firstAddress);
+        return this.parseDepositAddress (firstAddress, currency);
     }
 
     async fetchDepositAddresses (codes = undefined, params = {}) {
