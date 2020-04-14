@@ -153,10 +153,6 @@ module.exports = class bhex extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
-            const precision = {
-                'price': Math.floor (Math.log10 (1 / this.safeFloat (market, 'quotePrecision'))),
-                'amount': Math.floor (Math.log10 (1 / this.safeFloat (market, 'baseAssetPrecision'))),
-            };
             // get limits
             let amountMin = undefined;
             let amountMax = undefined;
@@ -178,6 +174,10 @@ module.exports = class bhex extends Exchange {
             if (amountMin !== undefined && priceMin !== undefined) {
                 costMin = amountMin * priceMin;
             }
+            const precision = {
+                'price': priceMin === undefined ? undefined : Math.floor (Math.log10 (1 / priceMin)),
+                'amount': Math.floor (Math.log10 (1 / this.safeFloat (market, 'baseAssetPrecision'))),
+            };
             const limits = {
                 'amount': {
                     'min': amountMin,
