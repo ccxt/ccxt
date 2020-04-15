@@ -1047,17 +1047,15 @@ module.exports = class probit extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        if (!tag) {
-            tag = undefined;
-        }
         const request = {
             'currency_id': currency['id'],
             'address': address,
-            'destination_tag': tag,
-            'amount': this.numberToString (amount),
+            // 'destination_tag': tag,
+            'amount': this.currencyToPrecision (code, amount),
         };
         const response = await this.privatePostWithdrawal (this.extend (request, params));
-        return this.parseTransaction (response['data']);
+        const data = this.safeValue (response, 'data');
+        return this.parseTransaction (data, currency);
     }
 
     parseTransaction (transaction, currency = undefined) {
