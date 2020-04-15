@@ -653,7 +653,7 @@ class bitz extends Exchange {
             }
         } else {
             if ($since !== null) {
-                throw new ExchangeError($this->id . ' fetchOHLCV requires a $limit argument if the $since argument is specified');
+                throw new ArgumentsRequired($this->id . ' fetchOHLCV requires a $limit argument if the $since argument is specified');
             }
         }
         $response = $this->marketGetKline (array_merge($request, $params));

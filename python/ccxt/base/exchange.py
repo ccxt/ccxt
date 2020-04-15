@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.26.12'
+__version__ = '1.26.40'
 
 # -----------------------------------------------------------------------------
 
@@ -917,7 +917,7 @@ class Exchange(object):
     @staticmethod
     def aggregate(bidasks):
         ordered = Exchange.ordered({})
-        for [price, volume] in bidasks:
+        for [price, volume, *_] in bidasks:
             if volume > 0:
                 ordered[price] = (ordered[price] if price in ordered else 0) + volume
         result = []
@@ -1776,7 +1776,7 @@ class Exchange(object):
     @staticmethod
     def from_wei(amount, decimals=18):
         amount_float = float(amount)
-        exponential = '{:e}'.format(amount_float)
+        exponential = '{:.15e}'.format(amount_float)
         n, exponent = exponential.split('e')
         new_exponent = int(exponent) - decimals
         return float(n + 'e' + str(new_exponent))
@@ -1784,7 +1784,7 @@ class Exchange(object):
     @staticmethod
     def to_wei(amount, decimals=18):
         amount_float = float(amount)
-        exponential = '{:e}'.format(amount_float)
+        exponential = '{:.15e}'.format(amount_float)
         n, exponent = exponential.split('e')
         new_exponent = int(exponent) + decimals
         return number_to_string(n + 'e' + str(new_exponent))

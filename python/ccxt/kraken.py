@@ -231,7 +231,7 @@ class kraken(Exchange):
                 'delistedMarketsById': {},
                 # cannot withdraw/deposit these
                 'inactiveCurrencies': ['CAD', 'USD', 'JPY', 'GBP'],
-                'fetchMinOrderAmounts': True,
+                'fetchMinOrderAmounts': False,
             },
             'exceptions': {
                 'EQuery:Invalid asset pair': BadSymbol,  # {"error":["EQuery:Invalid asset pair"]}
@@ -256,8 +256,8 @@ class kraken(Exchange):
     def fee_to_precision(self, symbol, fee):
         return self.decimal_to_precision(fee, TRUNCATE, self.markets[symbol]['precision']['amount'], DECIMAL_PLACES)
 
-    def fetch_min_order_amounts(self):
-        html = self.zendeskGet205893708WhatIsTheMinimumOrderSize()
+    def fetch_min_order_amounts(self, params):
+        html = self.zendeskGet205893708WhatIsTheMinimumOrderSize(params)
         parts = html.split('<td class="wysiwyg-text-align-right">')
         numParts = len(parts)
         if numParts < 3:
@@ -1188,10 +1188,10 @@ class kraken(Exchange):
         return self.filter_by_currency_since_limit(result, code, since, limit)
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
-        self.load_markets()
         # https://www.kraken.com/en-us/help/api#deposit-status
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchDeposits requires a currency code argument')
+        self.load_markets()
         currency = self.currency(code)
         request = {
             'asset': currency['id'],
@@ -1213,10 +1213,10 @@ class kraken(Exchange):
         return self.parse_transactions_by_type('deposit', response['result'], code, since, limit)
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
-        self.load_markets()
         # https://www.kraken.com/en-us/help/api#withdraw-status
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchWithdrawals requires a currency code argument')
+        self.load_markets()
         currency = self.currency(code)
         request = {
             'asset': currency['id'],
@@ -1262,7 +1262,7 @@ class kraken(Exchange):
                     self.options['depositMethods'][code] = self.fetch_deposit_methods(code)
                 method = self.options['depositMethods'][code][0]['method']
             else:
-                raise ExchangeError(self.id + ' fetchDepositAddress() requires an extra `method` parameter. Use fetchDepositMethods("' + code + '") to get a list of available deposit methods or enable the exchange property .options["cacheDepositMethodsOnFetchDepositAddress"] = True')
+                raise ArgumentsRequired(self.id + ' fetchDepositAddress() requires an extra `method` parameter. Use fetchDepositMethods("' + code + '") to get a list of available deposit methods or enable the exchange property .options["cacheDepositMethodsOnFetchDepositAddress"] = True')
         request = {
             'asset': currency['id'],
             'method': method,

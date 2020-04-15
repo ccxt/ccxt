@@ -7,6 +7,7 @@ namespace ccxt;
 
 use Exception; // a common import
 use \ccxt\ExchangeError;
+use \ccxt\ArgumentsRequired;
 use \ccxt\OrderNotFound;
 
 class tidebit extends Exchange {
@@ -463,7 +464,7 @@ class tidebit extends Exchange {
         $currency = $this->currency($code);
         $id = $this->safe_string($params, 'id');
         if ($id === null) {
-            throw new ExchangeError($this->id . ' withdraw() requires an extra `$id` param (withdraw account $id according to withdraws/bind_account_list endpoint');
+            throw new ArgumentsRequired($this->id . ' withdraw() requires an extra `$id` param (withdraw account $id according to withdraws/bind_account_list endpoint');
         }
         $request = array(
             'id' => $id,

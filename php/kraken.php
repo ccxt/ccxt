@@ -216,7 +216,7 @@ class kraken extends Exchange {
                 'delistedMarketsById' => array(),
                 // cannot withdraw/deposit these
                 'inactiveCurrencies' => array( 'CAD', 'USD', 'JPY', 'GBP' ),
-                'fetchMinOrderAmounts' => true,
+                'fetchMinOrderAmounts' => false,
             ),
             'exceptions' => array(
                 'EQuery:Invalid asset pair' => '\\ccxt\\BadSymbol', // array("error":["EQuery:Invalid asset pair"])
@@ -244,8 +244,8 @@ class kraken extends Exchange {
         return $this->decimal_to_precision($fee, TRUNCATE, $this->markets[$symbol]['precision']['amount'], DECIMAL_PLACES);
     }
 
-    public function fetch_min_order_amounts() {
-        $html = $this->zendeskGet205893708WhatIsTheMinimumOrderSize ();
+    public function fetch_min_order_amounts($params) {
+        $html = $this->zendeskGet205893708WhatIsTheMinimumOrderSize ($params);
         $parts = explode('<td class="wysiwyg-text-align-right">', $html);
         $numParts = is_array($parts) ? count($parts) : 0;
         if ($numParts < 3) {
@@ -1285,11 +1285,11 @@ class kraken extends Exchange {
     }
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
         // https://www.kraken.com/en-us/help/api#deposit-status
         if ($code === null) {
             throw new ArgumentsRequired($this->id . ' fetchDeposits requires a $currency $code argument');
         }
+        $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
             'asset' => $currency['id'],
@@ -1312,11 +1312,11 @@ class kraken extends Exchange {
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
         // https://www.kraken.com/en-us/help/api#withdraw-status
         if ($code === null) {
             throw new ArgumentsRequired($this->id . ' fetchWithdrawals requires a $currency $code argument');
         }
+        $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
             'asset' => $currency['id'],
@@ -1365,7 +1365,7 @@ class kraken extends Exchange {
                 }
                 $method = $this->options['depositMethods'][$code][0]['method'];
             } else {
-                throw new ExchangeError($this->id . ' fetchDepositAddress() requires an extra `$method` parameter. Use fetchDepositMethods ("' . $code . '") to get a list of available deposit methods or enable the exchange property .options["cacheDepositMethodsOnFetchDepositAddress"] = true');
+                throw new ArgumentsRequired($this->id . ' fetchDepositAddress() requires an extra `$method` parameter. Use fetchDepositMethods ("' . $code . '") to get a list of available deposit methods or enable the exchange property .options["cacheDepositMethodsOnFetchDepositAddress"] = true');
             }
         }
         $request = array(

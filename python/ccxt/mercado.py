@@ -377,15 +377,15 @@ class mercado(Exchange):
         if code == 'BRL':
             account_ref = ('account_ref' in params)
             if not account_ref:
-                raise ExchangeError(self.id + ' requires account_ref parameter to withdraw ' + code)
+                raise ArgumentsRequired(self.id + ' requires account_ref parameter to withdraw ' + code)
         elif code != 'LTC':
             tx_fee = ('tx_fee' in params)
             if not tx_fee:
-                raise ExchangeError(self.id + ' requires tx_fee parameter to withdraw ' + code)
+                raise ArgumentsRequired(self.id + ' requires tx_fee parameter to withdraw ' + code)
             if code == 'XRP':
                 if tag is None:
                     if not ('destination_tag' in params):
-                        raise ExchangeError(self.id + ' requires a tag argument or destination_tag parameter to withdraw ' + code)
+                        raise ArgumentsRequired(self.id + ' requires a tag argument or destination_tag parameter to withdraw ' + code)
                 else:
                     request['destination_tag'] = tag
         response = self.privatePostWithdrawCoin(self.extend(request, params))
