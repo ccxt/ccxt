@@ -833,10 +833,9 @@ module.exports = class probit extends Exchange {
         let price = this.safeFloat (order, 'limit_price');
         const filled = this.safeFloat (order, 'filled_quantity');
         const remaining = this.safeFloat (order, 'open_quantity');
-        let amount = this.safeFloat (order, 'quantity', this.sum (filled, remaining));
+        const amount = this.safeFloat (order, 'quantity', this.sum (filled, remaining));
         let cost = this.safeFloat (order, 'filled_cost');
         if (type === 'market') {
-            amount = this.sum (filled, cost);
             price = undefined;
         }
         let average = undefined;
