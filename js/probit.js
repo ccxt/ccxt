@@ -482,6 +482,25 @@ module.exports = class probit extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.privateGetTradeHistory (this.extend (request, params));
+        //
+        //     {
+        //         data: [
+        //             {
+        //                 "id":"BTC-USDT:183566",
+        //                 "order_id":"17209376",
+        //                 "side":"sell",
+        //                 "fee_amount":"0.657396569175",
+        //                 "fee_currency_id":"USDT",
+        //                 "status":"settled",
+        //                 "price":"6573.96569175",
+        //                 "quantity":"0.1",
+        //                 "cost":"657.396569175",
+        //                 "time":"2018-08-10T06:06:46.000Z",
+        //                 "market_id":"BTC-USDT"
+        //             }
+        //         ]
+        //     }
+        //
         const data = this.safeValue (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
     }
@@ -543,14 +562,29 @@ module.exports = class probit extends Exchange {
         //
         // fetchMyTrades (private)
         //
-        //     ...
+        //     {
+        //         "id":"BTC-USDT:183566",
+        //         "order_id":"17209376",
+        //         "side":"sell",
+        //         "fee_amount":"0.657396569175",
+        //         "fee_currency_id":"USDT",
+        //         "status":"settled",
+        //         "price":"6573.96569175",
+        //         "quantity":"0.1",
+        //         "cost":"657.396569175",
+        //         "time":"2018-08-10T06:06:46.000Z",
+        //         "market_id":"BTC-USDT"
+        //     }
         //
         const timestamp = this.parse8601 (this.safeString (trade, 'time'));
         let symbol = undefined;
         const id = this.safeString (trade, 'id');
         if (id !== undefined) {
             const parts = id.split (':');
-            const marketId = this.safeString (parts, 0);
+            let marketId = this.safeString (parts, 0);
+            if (marketId === undefined) {
+                marketId = this.safeString (trade, 'market_id');
+            }
             if (marketId !== undefined) {
                 if (marketId in this.markets_by_id) {
                     market = this.markets_by_id[marketId];
@@ -574,20 +608,31 @@ module.exports = class probit extends Exchange {
                 cost = price * amount;
             }
         }
+        const orderId = this.safeString (trade, 'order_id');
+        const feeCost = this.safeFloat (trade, 'fee_amount');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            const feeCurrencyId = this.safeString (trade, 'fee_currency_id');
+            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            };
+        }
         return {
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'order': undefined,
+            'order': orderId,
             'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': undefined,
+            'fee': fee,
         };
     }
 
