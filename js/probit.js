@@ -744,8 +744,9 @@ module.exports = class probit extends Exchange {
             request['order_id'] = id;
         }
         const query = this.omit (params, [ 'clientOrderId', 'client_order_id' ]);
-        const response = await this.privateGetOrder (this.extend (query, params));
-        const order = this.safeValue (response, 'data')[0];
+        const response = await this.privateGetOrder (this.extend (request, query));
+        const data = this.safeValue (response, 'data', []);
+        const order = this.safeValue (data, 0);
         return this.parseOrder (order, market);
     }
 
@@ -1089,10 +1090,6 @@ module.exports = class probit extends Exchange {
         const accessToken = this.safeString (response, 'access_token');
         this.options['accessToken'] = accessToken;
         this.options['expires'] = this.sum (this.milliseconds (), expiresIn * 1000);
-        console.log ({
-            'accessToken': accessToken,
-            'expires': this.options['expires'],
-        });
         return response;
     }
 
