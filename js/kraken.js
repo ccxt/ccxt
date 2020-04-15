@@ -28,6 +28,7 @@ module.exports = class kraken extends Exchange {
                 'fetchTickers': true,
                 'fetchOHLCV': true,
                 'fetchOrder': true,
+                'fetchOrderTrades': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchMyTrades': true,
@@ -1061,6 +1062,28 @@ module.exports = class kraken extends Exchange {
         const orders = response['result'];
         const order = this.parseOrder (this.extend ({ 'id': id }, orders[id]));
         return this.extend ({ 'info': response }, order);
+    }
+
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privatePostQueryOrders (this.extend ({
+            'trades': true, // whether or not to include trades in output (optional, default false)
+            'txid': id, // do not comma separate a list of ids - use fetchOrdersByIds instead
+            // 'userref': 'optional', // restrict results to given user reference id (optional)
+        }, params));
+        const tradeIds = response['result'][id]['trades'];
+        let trades = {};
+        const batchSize = 20; // maximum trade query request size
+        for (let i = 0; i < tradeIds.length; i += batchSize) {
+            const tradeIdBatch = tradeIds.slice (i, i + batchSize);
+            const tradeResponse = await this.privatePostQueryTrades ({ 'txid': tradeIdBatch.join (',') });
+            trades = this.extend (trades, tradeResponse['result']);
+        }
+        const ids = Object.keys (trades);
+        for (let i = 0; i < ids.length; i++) {
+            trades[ids[i]]['id'] = ids[i];
+        }
+        return this.parseTrades (trades, undefined, since, limit);
     }
 
     async fetchOrdersByIds (ids, symbol = undefined, params = {}) {
