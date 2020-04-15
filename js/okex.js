@@ -2348,7 +2348,7 @@ module.exports = class okex extends Exchange {
         }
         const fee = this.safeString (params, 'fee');
         if (fee === undefined) {
-            throw new ExchangeError (this.id + " withdraw() requires a `fee` string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKEx are fee-free, please set '0'. Withdrawing to external digital asset address requires network transaction fee.");
+            throw new ArgumentsRequired (this.id + " withdraw() requires a `fee` string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKEx are fee-free, please set '0'. Withdrawing to external digital asset address requires network transaction fee.");
         }
         const request = {
             'currency': currency['id'],
