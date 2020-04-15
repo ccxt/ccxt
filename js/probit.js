@@ -743,8 +743,10 @@ module.exports = class probit extends Exchange {
             'end_time': this.iso8601 (this.milliseconds ()),
             'limit': 100,
         };
-        if (symbol) {
-            request['market_id'] = this.marketId (symbol);
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['market_id'] = market['id'];
         }
         if (since) {
             request['start_time'] = this.iso8601 (since);
@@ -752,14 +754,9 @@ module.exports = class probit extends Exchange {
         if (limit) {
             request['limit'] = limit;
         }
-        const resp = await this.privateGetOrderHistory (this.extend (request, params));
-        const orders = this.safeValue (resp, 'data');
-        const arr = [];
-        for (let i = 0; i < orders.length; i++) {
-            const symbol = this.findSymbol (this.safeString (orders[i], 'market_id'));
-            arr.push (this.parseOrder (orders[i], symbol));
-        }
-        return arr;
+        const response = await this.privateGetOrderHistory (this.extend (request, params));
+        const data = this.safeValue (response, 'data');
+        return this.parseOrders (data, market, since, limit);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -784,6 +781,15 @@ module.exports = class probit extends Exchange {
         return this.parseOrder (order, market);
     }
 
+    parseOrderStatus (status) {
+        const statuses = {
+            'open': 'open',
+            'cancelled': 'canceled',
+            'filled': 'closed',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     parseOrder (order, market = undefined) {
         //
         //     {
@@ -804,23 +810,7 @@ module.exports = class probit extends Exchange {
         //         client_order_id: string,
         //     }
         //
-        let status = order['status'];
-        if (status === 'filled') {
-            status = 'closed';
-        }
-        const time = order['time'];
-        const filledCost = this.safeFloat (order, 'filled_cost');
-        const filledQty = this.safeFloat (order, 'filled_quantity');
-        const openQty = this.safeFloat (order, 'open_quantity');
-        let qty = this.safeFloat (order, 'quantity');
-        // let price = this.safeFloat (order, 'limit_price');
-        if (order['type'] === 'market') {
-            qty = this.sum (filledQty, openQty);
-            if (filledCost > 0 && filledQty > 0) {
-                price = filledCost / filledQty;
-            }
-        }
-        // --------------------------------------------------------------------
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const id = this.safeString (order, 'id');
         const type = this.safeString (order, 'type');
         const side = this.safeString (order, 'side');
@@ -840,39 +830,51 @@ module.exports = class probit extends Exchange {
             symbol = market['symbol'];
         }
         const timestamp = this.parse8601 (this.safeString (order, 'time'));
-        const price = this.safeFloat (order, 'limit_price');
+        let price = this.safeFloat (order, 'limit_price');
         const filled = this.safeFloat (order, 'filled_quantity');
         const remaining = this.safeFloat (order, 'open_quantity');
         let amount = this.safeFloat (order, 'quantity', this.sum (filled, remaining));
         let cost = this.safeFloat (order, 'filled_cost');
-        if (filled !== undefined) {
+        if (type === 'market') {
+            amount = this.sum (filled, cost);
+            price = undefined;
         }
-        if (cost === undefined) {
-            if (filled !== undefined) {
-                if (price === undefined) {
-
-                } else {
+        let average = undefined;
+        if (filled !== undefined) {
+            if (cost === undefined) {
+                if (price !== undefined) {
                     cost = price * filled;
                 }
-
             }
+            if (cost !== undefined) {
+                if (filled > 0) {
+                    average = cost / filled;
+                }
+            }
+        }
+        let clientOrderId = this.safeString (order, 'client_order_id');
+        if (clientOrderId === '') {
+            clientOrderId = undefined;
         }
         return {
             'id': id,
+            'info': order,
+            'clientOrderId': clientOrderId,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
             'side': side,
-            'datetime': this.iso8601 (timestamp),
-            'timestamp': timestamp,
-            'lastTradeTimestamp': undefined,
             'status': status,
             'price': price,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
-            'average': undefined,
+            'average': average,
             'cost': cost,
-            'info': order,
+            'fee': undefined,
+            'trades': undefined,
         };
     }
 
