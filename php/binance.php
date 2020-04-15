@@ -209,6 +209,7 @@ class binance extends Exchange {
                 ),
                 'fapiPrivate' => array(
                     'get' => array(
+                        'batchOrders',
                         'allOrders',
                         'openOrder',
                         'openOrders',
@@ -221,6 +222,7 @@ class binance extends Exchange {
                         'income',
                     ),
                     'post' => array(
+                        'positionSide/dual',
                         'positionMargin',
                         'marginType',
                         'order',

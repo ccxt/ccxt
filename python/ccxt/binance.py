@@ -218,6 +218,7 @@ class binance(Exchange):
                 },
                 'fapiPrivate': {
                     'get': [
+                        'batchOrders',
                         'allOrders',
                         'openOrder',
                         'openOrders',
@@ -230,6 +231,7 @@ class binance(Exchange):
                         'income',
                     ],
                     'post': [
+                        'positionSide/dual',
                         'positionMargin',
                         'marginType',
                         'order',
