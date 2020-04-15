@@ -203,7 +203,6 @@ module.exports = class binance extends Exchange {
                 },
                 'fapiPrivate': {
                     'get': [
-                        'batchOrders',
                         'allOrders',
                         'openOrder',
                         'openOrders',
@@ -216,6 +215,7 @@ module.exports = class binance extends Exchange {
                         'income',
                     ],
                     'post': [
+                        'batchOrders',
                         'positionSide/dual',
                         'positionMargin',
                         'marginType',
@@ -227,6 +227,7 @@ module.exports = class binance extends Exchange {
                         'listenKey',
                     ],
                     'delete': [
+                        'batchOrders',
                         'order',
                         'allOpenOrders',
                         'listenKey',
