@@ -7,6 +7,7 @@ namespace ccxt;
 
 use Exception; // a common import
 use \ccxt\ExchangeError;
+use \ccxt\ArgumentsRequired;
 
 class bithumb extends Exchange {
 
@@ -346,10 +347,10 @@ class bithumb extends Exchange {
     public function cancel_order($id, $symbol = null, $params = array ()) {
         $side_in_params = (is_array($params) && array_key_exists('side', $params));
         if (!$side_in_params) {
-            throw new ExchangeError($this->id . ' cancelOrder requires a `$symbol` argument and a `$side` parameter (sell or buy)');
+            throw new ArgumentsRequired($this->id . ' cancelOrder requires a `$symbol` argument and a `$side` parameter (sell or buy)');
         }
         if ($symbol === null) {
-            throw new ExchangeError($this->id . ' cancelOrder requires a `$symbol` argument and a `$side` parameter (sell or buy)');
+            throw new ArgumentsRequired($this->id . ' cancelOrder requires a `$symbol` argument and a `$side` parameter (sell or buy)');
         }
         $market = $this->market($symbol);
         $side = ($params['side'] === 'buy') ? 'bid' : 'ask';
@@ -376,7 +377,7 @@ class bithumb extends Exchange {
         if ($currency === 'XRP' || $currency === 'XMR') {
             $destination = $this->safe_string($params, 'destination');
             if (($tag === null) && ($destination === null)) {
-                throw new ExchangeError($this->id . ' ' . $code . ' withdraw() requires a $tag argument or an extra $destination param');
+                throw new ArgumentsRequired($this->id . ' ' . $code . ' withdraw() requires a $tag argument or an extra $destination param');
             } else if ($tag !== null) {
                 $request['destination'] = $tag;
             }
