@@ -296,7 +296,7 @@ module.exports = class probit extends Exchange {
         const result = { 'info': data };
         for (let i = 0; i < data.length; i++) {
             const balance = data[i];
-            const currencyId = this.safeFloat (balance, 'currency_id');
+            const currencyId = this.safeString (balance, 'currency_id');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             account['total'] = this.safeFloat (balance, 'total');
@@ -726,25 +726,14 @@ module.exports = class probit extends Exchange {
         await this.loadMarkets ();
         since = this.parse8601 (since);
         const request = {};
-        if (symbol) {
-            request['market_id'] = this.marketId (symbol);
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['market_id'] = market['id'];
         }
-        const resp = await this.privateGetOpenOrder (this.extend (request, params));
-        const orders = this.safeValue (resp, 'data');
-        let arr = [];
-        for (let i = 0; i < orders.length; i++) {
-            if (since && this.parse8601 (orders[i]['time']) < since) {
-                continue;
-            }
-            const symbol = this.findSymbol (this.safeString (orders[i], 'market_id'));
-            arr.push (this.parseOrder (orders[i], symbol));
-        }
-        // order by desc
-        arr = this.sortBy (arr, 'timestamp', true);
-        if (limit) {
-            arr = arr.slice (0, limit);
-        }
-        return arr;
+        const response = await this.privateGetOpenOrder (this.extend (request, params));
+        const data = this.safeValue (response, 'data');
+        return this.parseOrders (data, market, since, limit);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -824,27 +813,65 @@ module.exports = class probit extends Exchange {
         const filledQty = this.safeFloat (order, 'filled_quantity');
         const openQty = this.safeFloat (order, 'open_quantity');
         let qty = this.safeFloat (order, 'quantity');
-        let price = this.safeFloat (order, 'limit_price');
+        // let price = this.safeFloat (order, 'limit_price');
         if (order['type'] === 'market') {
             qty = this.sum (filledQty, openQty);
             if (filledCost > 0 && filledQty > 0) {
                 price = filledCost / filledQty;
             }
         }
+        // --------------------------------------------------------------------
+        const id = this.safeString (order, 'id');
+        const type = this.safeString (order, 'type');
+        const side = this.safeString (order, 'side');
+        let symbol = undefined;
+        const marketId = this.safeString (order, 'market_id');
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('-');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
+        const timestamp = this.parse8601 (this.safeString (order, 'time'));
+        const price = this.safeFloat (order, 'limit_price');
+        const filled = this.safeFloat (order, 'filled_quantity');
+        const remaining = this.safeFloat (order, 'open_quantity');
+        let amount = this.safeFloat (order, 'quantity', this.sum (filled, remaining));
+        let cost = this.safeFloat (order, 'filled_cost');
+        if (filled !== undefined) {
+        }
+        if (cost === undefined) {
+            if (filled !== undefined) {
+                if (price === undefined) {
+
+                } else {
+                    cost = price * filled;
+                }
+
+            }
+        }
         return {
-            'id': order['id'],
-            // 'symbol': symbol,
-            'type': order['type'],
-            'side': order['side'],
-            'datetime': time,
-            'timestamp': this.parse8601 (time),
+            'id': id,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'datetime': this.iso8601 (timestamp),
+            'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
             'status': status,
             'price': price,
-            'amount': qty,
-            'filled': filledQty,
-            'remaining': openQty,
-            'cost': filledCost,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'average': undefined,
+            'cost': cost,
             'info': order,
         };
     }
