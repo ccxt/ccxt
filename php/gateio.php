@@ -700,7 +700,7 @@ class gateio extends Exchange {
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades requires $symbol param');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades requires $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
