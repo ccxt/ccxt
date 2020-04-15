@@ -832,7 +832,11 @@ module.exports = class probit extends Exchange {
         const timestamp = this.parse8601 (this.safeString (order, 'time'));
         let price = this.safeFloat (order, 'limit_price');
         const filled = this.safeFloat (order, 'filled_quantity');
-        const remaining = this.safeFloat (order, 'open_quantity');
+        let remaining = this.safeFloat (order, 'open_quantity');
+        const canceledAmount = this.safeFloat (order, 'cancelled_quantity');
+        if (canceledAmount !== undefined) {
+            remaining = this.sum (remaining, canceledAmount);
+        }
         const amount = this.safeFloat (order, 'quantity', this.sum (filled, remaining));
         let cost = this.safeFloat (order, 'filled_cost');
         if (type === 'market') {
@@ -897,6 +901,7 @@ module.exports = class probit extends Exchange {
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
         }
+        let costToPrecision = undefined;
         if (type === 'limit') {
             request['limit_price'] = this.priceToPrecision (symbol, price);
             request['quantity'] = this.amountToPrecision (symbol, amount);
@@ -916,7 +921,8 @@ module.exports = class probit extends Exchange {
                 } else {
                     cost = (cost === undefined) ? amount : cost;
                 }
-                request['cost'] = this.costToPrecision (symbol, cost);
+                costToPrecision = this.costToPrecision (symbol, cost);
+                request['cost'] = costToPrecision;
             } else {
                 request['quantity'] = this.amountToPrecision (symbol, amount);
             }
@@ -945,7 +951,15 @@ module.exports = class probit extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data');
-        return this.parseOrder (data, market);
+        const order = this.parseOrder (data, market);
+        // a workaround for incorrect huge amounts
+        // returned by the exchange on market buys
+        if ((type === 'market') && (side === 'buy')) {
+            order['amount'] = undefined;
+            order['cost'] = parseFloat (costToPrecision);
+            order['remaining'] = undefined;
+        }
+        return order;
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
