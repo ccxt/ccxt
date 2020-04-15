@@ -2271,7 +2271,7 @@ class okex(Exchange):
             address = address + ':' + tag
         fee = self.safe_string(params, 'fee')
         if fee is None:
-            raise ExchangeError(self.id + " withdraw() requires a `fee` string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKEx are fee-free, please set '0'. Withdrawing to external digital asset address requires network transaction fee.")
+            raise ArgumentsRequired(self.id + " withdraw() requires a `fee` string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKEx are fee-free, please set '0'. Withdrawing to external digital asset address requires network transaction fee.")
         request = {
             'currency': currency['id'],
             'to_address': address,
