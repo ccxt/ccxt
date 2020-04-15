@@ -218,7 +218,6 @@ class binance(Exchange):
                 },
                 'fapiPrivate': {
                     'get': [
-                        'batchOrders',
                         'allOrders',
                         'openOrder',
                         'openOrders',
@@ -231,6 +230,7 @@ class binance(Exchange):
                         'income',
                     ],
                     'post': [
+                        'batchOrders',
                         'positionSide/dual',
                         'positionMargin',
                         'marginType',
@@ -242,6 +242,7 @@ class binance(Exchange):
                         'listenKey',
                     ],
                     'delete': [
+                        'batchOrders',
                         'order',
                         'allOpenOrders',
                         'listenKey',
