@@ -1,7 +1,1 @@
-{
-    "kraken": {
-        "options": {
-            "fetchMinOrderAmounts": false
-        }
-    }
-}
+{}
