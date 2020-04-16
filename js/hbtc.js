@@ -213,7 +213,7 @@ module.exports = class hbtc extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-            'limit': limit
+            'limit': limit,
         };
         const response = await this.marketGetDepth (this.extend (request, params));
         const result = this.parseOrderBook (response);
