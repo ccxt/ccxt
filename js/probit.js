@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, BadResponse, BadRequest, InvalidOrder, InsufficientFunds, AuthenticationError, ArgumentsRequired, InvalidAddress } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, BadResponse, BadRequest, InvalidOrder, InsufficientFunds, AuthenticationError, ArgumentsRequired, InvalidAddress, RateLimitExceedded, DDoSProtection, BadSymbol } = require ('./base/errors');
 const { TRUNCATE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -109,11 +109,17 @@ module.exports = class probit extends Exchange {
             },
             'exceptions': {
                 'UNAUTHORIZED': AuthenticationError,
-                'INVALID_ARGUMENT': BadRequest,
+                'INVALID_ARGUMENT': BadRequest, // Parameters are not a valid format, parameters are empty, or out of range, or a parameter was sent when not required.
                 'TRADING_UNAVAILABLE': ExchangeNotAvailable,
                 'NOT_ENOUGH_BALANCE': InsufficientFunds,
                 'NOT_ALLOWED_COMBINATION': BadRequest,
-                'INVALID_ORDER': InvalidOrder,
+                'INVALID_ORDER': InvalidOrder, // Requested order does not exist, or it is not your order
+                'RATE_LIMIT_EXCEEDED': RateLimitExceedded, // You are sending requests too frequently. Please try it later.
+                'MARKET_UNAVAILABLE': ExchangeNotAvailable, // Market is closed today
+                'INVALID_MARKET': BadSymbol, // Requested market is not exist
+                'INVALID_CURRENCY': BadRequest, // Requested currency is not exist on ProBit system
+                'TOO_MANY_OPEN_ORDERS': DDoSProtection, // Too many open orders
+                'DUPLICATE_ADDRESS': InvalidAddress, // Address already exists in withdrawal address list
             },
             'requiredCredentials': {
                 'apiKey': true,
