@@ -28,6 +28,8 @@ module.exports = class gateio extends ccxt.gateio {
             'options': {
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
+                'watchTradesSubscriptions': [],
+                'watchTickerSubscriptions': [],
             },
         });
     }
@@ -113,10 +115,13 @@ module.exports = class gateio extends ccxt.gateio {
         const wsMarketId = marketId.toUpperCase ();
         const requestId = this.nonce ();
         const url = this.urls['api']['ws'];
+        const marketIdSubscriptions = this.safeValue (this.options, 'watchTickerSubscriptions', []);
+        marketIdSubscriptions.push (wsMarketId);
+        this.options['watchTickerSubscriptions'] = marketIdSubscriptions;
         const subscribeMessage = {
             'id': requestId,
             'method': 'ticker.subscribe',
-            'params': [ wsMarketId ],
+            'params': marketIdSubscriptions,
         };
         const subscription = {
             'id': requestId,
@@ -166,10 +171,13 @@ module.exports = class gateio extends ccxt.gateio {
         const marketId = market['id'].toUpperCase ();
         const requestId = this.nonce ();
         const url = this.urls['api']['ws'];
+        const marketIdSubscriptions = this.safeValue (this.options, 'watchTradesSubscriptions', []);
+        marketIdSubscriptions.push (marketId);
+        this.options['watchTradesSubscriptions'] = marketIdSubscriptions;
         const subscribeMessage = {
             'id': requestId,
             'method': 'trades.subscribe',
-            'params': [ marketId ],
+            'params': marketIdSubscriptions,
         };
         const subscription = {
             'id': requestId,
