@@ -234,7 +234,7 @@ module.exports = class kraken extends Exchange {
         return this.decimalToPrecision (fee, TRUNCATE, this.markets[symbol]['precision']['amount'], DECIMAL_PLACES);
     }
 
-    async fetchMinOrderAmounts (params) {
+    async fetchMinOrderAmounts (params = {}) {
         const response = await this.zendeskGet205893708 (params);
         const article = this.safeValue (response, 'article');
         const html = this.safeString (article, 'body');
