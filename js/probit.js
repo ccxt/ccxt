@@ -52,7 +52,7 @@ module.exports = class probit extends Exchange {
             },
             'version': 'v1',
             'urls': {
-                'logo': 'https://static.probit.com/landing/assets/images/probit-logo-global.png',
+                'logo': 'https://user-images.githubusercontent.com/51840849/79268032-c4379480-7ea2-11ea-80b3-dd96bb29fd0d.jpg',
                 'api': {
                     'accounts': 'https://accounts.probit.com',
                     'public': 'https://api.probit.com/api/exchange',
