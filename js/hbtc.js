@@ -213,6 +213,7 @@ module.exports = class hbtc extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
+            'limit': limit
         };
         const response = await this.marketGetDepth (this.extend (request, params));
         const result = this.parseOrderBook (response);
@@ -434,10 +435,9 @@ module.exports = class hbtc extends Exchange {
         const id = this.safeString (trade, 'id');
         const timestamp = this.safeFloat (trade, 'time');
         const type = undefined;
-        const side = this.safeStringLower (trade, 'type');
         const orderId = this.safeString (trade, 'orderId');
         const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'amount');
+        const amount = this.safeFloat (trade, 'qty');
         let cost = undefined;
         if (price !== undefined) {
             if (amount !== undefined) {
@@ -450,6 +450,17 @@ module.exports = class hbtc extends Exchange {
             takerOrMaker = 'taker';
         } else {
             takerOrMaker = 'maker';
+        }
+        const isBuyer = this.safeValue (trade, 'isBuyer');
+        const side = isBuyer ? 'BUY' : 'SELL';
+        let fee = undefined;
+        const commission = this.safeFloat (trade, 'commission');
+        const commissionAsset = this.safeString (trade, 'commissionAsset');
+        if (commission !== undefined && commissionAsset !== undefined) {
+            fee = {
+                'cost': commission,
+                'currency': commissionAsset,
+            };
         }
         return {
             'id': id,
@@ -464,13 +475,16 @@ module.exports = class hbtc extends Exchange {
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': undefined,
+            'fee': fee,
         };
     }
 
     parseOrder (order, market = undefined) {
         const id = this.safeString (order, 'orderId');
-        const timestamp = this.safeInteger (order, 'time');
+        let timestamp = this.safeInteger (order, 'time');
+        if (timestamp === undefined) {
+            timestamp = this.safeInteger (order, 'transactTime');
+        }
         let symbol = undefined;
         if (market === undefined) {
             let marketId = this.safeString (order, 'symbol');
@@ -488,6 +502,7 @@ module.exports = class hbtc extends Exchange {
         const side = this.safeString (order, 'side');
         const amount = this.safeFloat (order, 'origQty');
         const filled = this.safeFloat (order, 'executedQty');
+        const cost = this.safeFloat (order, 'executedAmount');
         let remaining = undefined;
         if (filled !== undefined) {
             if (amount !== undefined) {
@@ -505,7 +520,7 @@ module.exports = class hbtc extends Exchange {
             'side': side,
             'price': this.safeFloat (order, 'price'),
             'average': this.safeFloat (order, 'avgPrice'),
-            'cost': undefined,
+            'cost': cost,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
