@@ -1196,7 +1196,7 @@ module.exports = class probit extends Exchange {
             if (errorCode !== undefined) {
                 const feedback = this.id + ' ' + body;
                 this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
-                this.throwBroadlyMatchedException (this.exceptions['broad'], errorCode, feedback);
+                this.throwBroadlyMatchedException (this.exceptions['exact'], errorCode, feedback);
                 throw new ExchangeError (feedback);
             }
         }
