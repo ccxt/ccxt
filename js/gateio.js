@@ -28,8 +28,8 @@ module.exports = class gateio extends ccxt.gateio {
             'options': {
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
-                'watchTradesSubscriptions': [],
-                'watchTickerSubscriptions': [],
+                'watchTradesSubscriptions': {},
+                'watchTickerSubscriptions': {},
             },
         });
     }
@@ -115,13 +115,13 @@ module.exports = class gateio extends ccxt.gateio {
         const wsMarketId = marketId.toUpperCase ();
         const requestId = this.nonce ();
         const url = this.urls['api']['ws'];
-        const marketIdSubscriptions = this.safeValue (this.options, 'watchTickerSubscriptions', []);
-        marketIdSubscriptions.push (wsMarketId);
+        const marketIdSubscriptions = this.safeValue (this.options, 'watchTickerSubscriptions', {});
+        marketIdSubscriptions[wsMarketId] = true;
         this.options['watchTickerSubscriptions'] = marketIdSubscriptions;
         const subscribeMessage = {
             'id': requestId,
             'method': 'ticker.subscribe',
-            'params': marketIdSubscriptions,
+            'params': Object.keys (marketIdSubscriptions),
         };
         const subscription = {
             'id': requestId,
@@ -171,13 +171,13 @@ module.exports = class gateio extends ccxt.gateio {
         const marketId = market['id'].toUpperCase ();
         const requestId = this.nonce ();
         const url = this.urls['api']['ws'];
-        const marketIdSubscriptions = this.safeValue (this.options, 'watchTradesSubscriptions', []);
-        marketIdSubscriptions.push (marketId);
+        const marketIdSubscriptions = this.safeValue (this.options, 'watchTradesSubscriptions', {});
+        marketIdSubscriptions[marketId] = true;
         this.options['watchTradesSubscriptions'] = marketIdSubscriptions;
         const subscribeMessage = {
             'id': requestId,
             'method': 'trades.subscribe',
-            'params': marketIdSubscriptions,
+            'params': Object.keys (marketIdSubscriptions),
         };
         const subscription = {
             'id': requestId,
