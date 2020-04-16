@@ -54,7 +54,7 @@ module.exports = class kraken extends Exchange {
                 'api': {
                     'public': 'https://api.kraken.com',
                     'private': 'https://api.kraken.com',
-                    'zendesk': 'https://kraken.zendesk.com/api/v2/help_center/en-us/articles/', // use the public zendesk api to receive article bodies and bypass new anti-spam protections
+                    'zendesk': 'https://kraken.zendesk.com/api/v2/help_center/en-us/articles', // use the public zendesk api to receive article bodies and bypass new anti-spam protections
                 },
                 'www': 'https://www.kraken.com',
                 'doc': 'https://www.kraken.com/features/api',
@@ -206,7 +206,7 @@ module.exports = class kraken extends Exchange {
                 'delistedMarketsById': {},
                 // cannot withdraw/deposit these
                 'inactiveCurrencies': [ 'CAD', 'USD', 'JPY', 'GBP' ],
-                'fetchMinOrderAmounts': false,
+                'fetchMinOrderAmounts': true,
             },
             'exceptions': {
                 'EQuery:Invalid asset pair': BadSymbol, // {"error":["EQuery:Invalid asset pair"]}
@@ -235,8 +235,9 @@ module.exports = class kraken extends Exchange {
     }
 
     async fetchMinOrderAmounts (params) {
-        const data = await this.zendeskGet205893708 (params);
-        const html = data['article']['body'];
+        const response = await this.zendeskGet205893708 (params);
+        const article = this.safeValue (response, 'article');
+        const html = this.safeString (article, 'body');
         const parts = html.split ('<td class="wysiwyg-text-align-right">');
         const numParts = parts.length;
         if (numParts < 3) {
