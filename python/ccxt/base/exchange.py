@@ -876,8 +876,8 @@ class Exchange(object):
         return _urlencode.unquote(Exchange.urlencode(params))
 
     @staticmethod
-    def encode_uri_component(uri):
-        return _urlencode.quote(uri, safe="~()*!.'")
+    def encode_uri_component(uri, safe="~()*!.'"):
+        return _urlencode.quote(uri, safe=safe)
 
     @staticmethod
     def omit(d, *args):
