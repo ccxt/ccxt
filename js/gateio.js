@@ -53,18 +53,11 @@ module.exports = class gateio extends ccxt.gateio {
         if ((precision < 0) || (precision > 8) || (precision % 1 !== 0.0)) {
             throw new ExchangeError (this.id + ' invalid interval');
         }
-        const parameters = [ wsMarketId, limit.toString (), interval ];
-        const hashableParameters = parameters.join ('+');
+        const parameters = [ wsMarketId, limit, interval ];
         const orderBookSubscriptions = this.safeValue (this.options, 'watchOrderBookSubscriptions', {});
-        orderBookSubscriptions[hashableParameters] = true;
+        orderBookSubscriptions[symbol] = parameters;
         this.options['watchOrderBookSubscriptions'] = orderBookSubscriptions;
-        const toSend = [];
-        const keys = Object.keys (orderBookSubscriptions);
-        for (let i = 0; i < keys.length; i++) {
-            const expanded = keys[i].split ('+');
-            expanded[1] = parseInt (expanded[1]);
-            toSend.push (expanded);
-        }
+        const toSend = Object.values (orderBookSubscriptions);
         const messageHash = 'depth.update' + ':' + marketId;
         const subscribeMessage = {
             'id': requestId,
