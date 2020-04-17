@@ -30,6 +30,7 @@ module.exports = class gateio extends ccxt.gateio {
                 'OHLCVLimit': 1000,
                 'watchTradesSubscriptions': {},
                 'watchTickerSubscriptions': {},
+                'watchOrderBookSubscriptions': {},
             },
         });
     }
@@ -52,11 +53,23 @@ module.exports = class gateio extends ccxt.gateio {
         if ((precision < 0) || (precision > 8) || (precision % 1 !== 0.0)) {
             throw new ExchangeError (this.id + ' invalid interval');
         }
+        const parameters = [ wsMarketId, limit.toString (), interval ];
+        const hashableParameters = parameters.join ('+');
+        const orderBookSubscriptions = this.safeValue (this.options, 'watchOrderBookSubscriptions', {});
+        orderBookSubscriptions[hashableParameters] = true;
+        this.options['watchOrderBookSubscriptions'] = orderBookSubscriptions;
+        const toSend = [];
+        const keys = Object.keys (orderBookSubscriptions);
+        for (let i = 0; i < keys.length; i++) {
+            const expanded = keys[i].split ('+');
+            expanded[1] = parseInt (expanded[1]);
+            toSend.push (expanded);
+        }
         const messageHash = 'depth.update' + ':' + marketId;
         const subscribeMessage = {
             'id': requestId,
             'method': 'depth.subscribe',
-            'params': [ wsMarketId, limit, interval ],
+            'params': toSend,
         };
         const subscription = {
             'id': requestId,
