@@ -1861,6 +1861,11 @@ module.exports = class binance extends Exchange {
                     'timestamp': this.nonce (),
                     'recvWindow': this.options['recvWindow'],
                 }, params));
+            } else if (path === 'batchOrders') {
+                query = this.rawencode (this.extend ({
+                    'timestamp': this.nonce (),
+                    'recvWindow': this.options['recvWindow'],
+                }, params));
             } else {
                 query = this.urlencode (this.extend ({
                     'timestamp': this.nonce (),
