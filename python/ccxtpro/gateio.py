@@ -35,6 +35,7 @@ class gateio(Exchange, ccxt.gateio):
                 'OHLCVLimit': 1000,
                 'watchTradesSubscriptions': {},
                 'watchTickerSubscriptions': {},
+                'watchOrderBookSubscriptions': {},
             },
         })
 
@@ -54,11 +55,16 @@ class gateio(Exchange, ccxt.gateio):
         precision = -1 * math.log10(floatInterval)
         if (precision < 0) or (precision > 8) or (precision % 1 != 0.0):
             raise ExchangeError(self.id + ' invalid interval')
+        parameters = [wsMarketId, limit, interval]
+        orderBookSubscriptions = self.safe_value(self.options, 'watchOrderBookSubscriptions', {})
+        orderBookSubscriptions[symbol] = parameters
+        self.options['watchOrderBookSubscriptions'] = orderBookSubscriptions
+        toSend = list(orderBookSubscriptions.values())
         messageHash = 'depth.update' + ':' + marketId
         subscribeMessage = {
             'id': requestId,
             'method': 'depth.subscribe',
-            'params': [wsMarketId, limit, interval],
+            'params': toSend,
         }
         subscription = {
             'id': requestId,

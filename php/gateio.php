@@ -35,6 +35,7 @@ class gateio extends \ccxt\gateio {
                 'OHLCVLimit' => 1000,
                 'watchTradesSubscriptions' => array(),
                 'watchTickerSubscriptions' => array(),
+                'watchOrderBookSubscriptions' => array(),
             ),
         ));
     }
@@ -57,11 +58,16 @@ class gateio extends \ccxt\gateio {
         if (($precision < 0) || ($precision > 8) || (fmod($precision, 1) !== 0.0)) {
             throw new ExchangeError($this->id . ' invalid interval');
         }
+        $parameters = array( $wsMarketId, $limit, $interval );
+        $orderBookSubscriptions = $this->safe_value($this->options, 'watchOrderBookSubscriptions', array());
+        $orderBookSubscriptions[$symbol] = $parameters;
+        $this->options['watchOrderBookSubscriptions'] = $orderBookSubscriptions;
+        $toSend = is_array($orderBookSubscriptions) ? array_values($orderBookSubscriptions) : array();
         $messageHash = 'depth.update' . ':' . $marketId;
         $subscribeMessage = array(
             'id' => $requestId,
             'method' => 'depth.subscribe',
-            'params' => array( $wsMarketId, $limit, $interval ),
+            'params' => $toSend,
         );
         $subscription = array(
             'id' => $requestId,
