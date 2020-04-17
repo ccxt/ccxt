@@ -33,6 +33,8 @@ class gateio(Exchange, ccxt.gateio):
             'options': {
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
+                'watchTradesSubscriptions': {},
+                'watchTickerSubscriptions': {},
             },
         })
 
@@ -107,10 +109,13 @@ class gateio(Exchange, ccxt.gateio):
         wsMarketId = marketId.upper()
         requestId = self.nonce()
         url = self.urls['api']['ws']
+        marketIdSubscriptions = self.safe_value(self.options, 'watchTickerSubscriptions', {})
+        marketIdSubscriptions[wsMarketId] = True
+        self.options['watchTickerSubscriptions'] = marketIdSubscriptions
         subscribeMessage = {
             'id': requestId,
             'method': 'ticker.subscribe',
-            'params': [wsMarketId],
+            'params': list(marketIdSubscriptions.keys()),
         }
         subscription = {
             'id': requestId,
@@ -157,10 +162,13 @@ class gateio(Exchange, ccxt.gateio):
         marketId = market['id'].upper()
         requestId = self.nonce()
         url = self.urls['api']['ws']
+        marketIdSubscriptions = self.safe_value(self.options, 'watchTradesSubscriptions', {})
+        marketIdSubscriptions[marketId] = True
+        self.options['watchTradesSubscriptions'] = marketIdSubscriptions
         subscribeMessage = {
             'id': requestId,
             'method': 'trades.subscribe',
-            'params': [marketId],
+            'params': list(marketIdSubscriptions.keys()),
         }
         subscription = {
             'id': requestId,

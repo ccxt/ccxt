@@ -33,6 +33,8 @@ class gateio extends \ccxt\gateio {
             'options' => array(
                 'tradesLimit' => 1000,
                 'OHLCVLimit' => 1000,
+                'watchTradesSubscriptions' => array(),
+                'watchTickerSubscriptions' => array(),
             ),
         ));
     }
@@ -118,10 +120,13 @@ class gateio extends \ccxt\gateio {
         $wsMarketId = strtoupper($marketId);
         $requestId = $this->nonce();
         $url = $this->urls['api']['ws'];
+        $marketIdSubscriptions = $this->safe_value($this->options, 'watchTickerSubscriptions', array());
+        $marketIdSubscriptions[$wsMarketId] = true;
+        $this->options['watchTickerSubscriptions'] = $marketIdSubscriptions;
         $subscribeMessage = array(
             'id' => $requestId,
             'method' => 'ticker.subscribe',
-            'params' => array( $wsMarketId ),
+            'params' => is_array($marketIdSubscriptions) ? array_keys($marketIdSubscriptions) : array(),
         );
         $subscription = array(
             'id' => $requestId,
@@ -171,10 +176,13 @@ class gateio extends \ccxt\gateio {
         $marketId = strtoupper($market['id']);
         $requestId = $this->nonce();
         $url = $this->urls['api']['ws'];
+        $marketIdSubscriptions = $this->safe_value($this->options, 'watchTradesSubscriptions', array());
+        $marketIdSubscriptions[$marketId] = true;
+        $this->options['watchTradesSubscriptions'] = $marketIdSubscriptions;
         $subscribeMessage = array(
             'id' => $requestId,
             'method' => 'trades.subscribe',
-            'params' => array( $marketId ),
+            'params' => is_array($marketIdSubscriptions) ? array_keys($marketIdSubscriptions) : array(),
         );
         $subscription = array(
             'id' => $requestId,
