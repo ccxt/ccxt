@@ -799,14 +799,6 @@ class okex extends Exchange {
             'price' => $this->safe_float($market, 'tick_size'),
         );
         $minAmount = $this->safe_float_2($market, 'min_size', 'base_min_size');
-        $minPrice = $this->safe_float($market, 'tick_size');
-        if ($precision['price'] !== null) {
-            $minPrice = pow(10, -$precision['price']);
-        }
-        $minCost = null;
-        if ($minAmount !== null && $minPrice !== null) {
-            $minCost = $minAmount * $minPrice;
-        }
         $active = true;
         $fees = $this->safe_value_2($this->fees, $marketType, 'trading', array());
         return array_merge($fees, array(
@@ -830,11 +822,11 @@ class okex extends Exchange {
                     'max' => null,
                 ),
                 'price' => array(
-                    'min' => $minPrice,
+                    'min' => $precision['price'],
                     'max' => null,
                 ),
                 'cost' => array(
-                    'min' => $minCost,
+                    'min' => $precision['price'],
                     'max' => null,
                 ),
             ),
