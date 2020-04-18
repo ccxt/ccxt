@@ -3,7 +3,7 @@
 The easiest way to install the ccxt library is to use builtin package managers:
 
 - [ccxt in **NPM**](http://npmjs.com/package/ccxt) (JavaScript / Node v7.6+)
-- [ccxt in **PyPI**](https://pypi.python.org/pypi/ccxt) (Python 2 and 3)
+- [ccxt in **PyPI**](https://pypi.python.org/pypi/ccxt) (Python 3)
 
 This library is shipped as an all-in-one module implementation with minimalistic dependencies and requirements:
 
@@ -184,7 +184,7 @@ exchange.proxies = {
 }
 ```
 
-#### Python 2 and 3 sync proxies
+#### Python 3 sync proxies
 
 - https://github.com/ccxt/ccxt/blob/master/examples/py/proxy-sync-python-requests-2-and-3.py
 
@@ -212,7 +212,7 @@ exchange = ccxt.poloniex({
     # This gets passed to the `python-requests` implementation directly
     # You can also enable this with environment variables, as described here:
     # http://docs.python-requests.org/en/master/user/advanced/#proxies
-    # This is the setting you should be using with synchronous version of ccxt in Python 2 and 3
+    # This is the setting you should be using with synchronous version of ccxt in Python 3
     #
     'proxies': {
         'http': 'http://10.10.1.10:3128',

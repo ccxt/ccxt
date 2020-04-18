@@ -17,7 +17,7 @@ Current feature list:
 - fully implemented public and private APIs
 - optional normalized data for cross-exchange analytics and arbitrage
 - an out of the box unified API that is extremely easy to integrate
-- works in Node 7.6+, Python 2 and 3, PHP 5.4+, and web browsers
+- works in Node 7.6+, Python 3, PHP 5.4+, and web browsers
 
 ## Sponsored Promotion
 
@@ -183,7 +183,7 @@ The library is under [MIT license](https://github.com/ccxt/ccxt/blob/master/LICE
 The easiest way to install the CCXT library is to use a package manager:
 
 - [ccxt in **NPM**](https://www.npmjs.com/package/ccxt) (JavaScript / Node v7.6+)
-- [ccxt in **PyPI**](https://pypi.python.org/pypi/ccxt) (Python 2 and 3.5.3+)
+- [ccxt in **PyPI**](https://pypi.python.org/pypi/ccxt) (Python 3.5.3+)
 - [ccxt in **Packagist/Composer**](https://packagist.org/packages/ccxt/ccxt) (PHP 5.4+)
 
 This library is shipped as an all-in-one module implementation with minimalistic dependencies and requirements:
