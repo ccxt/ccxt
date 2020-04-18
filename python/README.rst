@@ -19,7 +19,7 @@ Current feature list:
 -  fully implemented public and private APIs
 -  optional normalized data for cross-exchange analytics and arbitrage
 -  an out of the box unified API that is extremely easy to integrate
--  works in Node 7.6+, Python 2 and 3, PHP 5.4+, and web browsers
+-  works in Node 7.6+, Python 3, PHP 5.4+, and web browsers
 
 Sponsored Promotion
 -------------------
@@ -318,7 +318,7 @@ Install
 The easiest way to install the CCXT library is to use a package manager:
 
 -  `ccxt in NPM <https://www.npmjs.com/package/ccxt>`__ (JavaScript / Node v7.6+)
--  `ccxt in PyPI <https://pypi.python.org/pypi/ccxt>`__ (Python 2 and 3.5.3+)
+-  `ccxt in PyPI <https://pypi.python.org/pypi/ccxt>`__ (Python 3.5.3+)
 -  `ccxt in Packagist/Composer <https://packagist.org/packages/ccxt/ccxt>`__ (PHP 5.4+)
 
 This library is shipped as an all-in-one module implementation with minimalistic dependencies and requirements:
@@ -355,14 +355,14 @@ JavaScript (for use with the ``<script>`` tag):
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
--  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.26.49/dist/ccxt.browser.js
--  unpkg: https://unpkg.com/ccxt@1.26.49/dist/ccxt.browser.js
+-  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.26.50/dist/ccxt.browser.js
+-  unpkg: https://unpkg.com/ccxt@1.26.50/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code:: html
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.26.49/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.26.50/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 
