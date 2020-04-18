@@ -12,7 +12,6 @@ try:
 except NameError:
     basestring = str  # Python 2
 import hashlib
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -812,12 +811,6 @@ class okex(Exchange):
             'price': self.safe_float(market, 'tick_size'),
         }
         minAmount = self.safe_float_2(market, 'min_size', 'base_min_size')
-        minPrice = self.safe_float(market, 'tick_size')
-        if precision['price'] is not None:
-            minPrice = math.pow(10, -precision['price'])
-        minCost = None
-        if minAmount is not None and minPrice is not None:
-            minCost = minAmount * minPrice
         active = True
         fees = self.safe_value_2(self.fees, marketType, 'trading', {})
         return self.extend(fees, {
@@ -841,11 +834,11 @@ class okex(Exchange):
                     'max': None,
                 },
                 'price': {
-                    'min': minPrice,
+                    'min': precision['price'],
                     'max': None,
                 },
                 'cost': {
-                    'min': minCost,
+                    'min': precision['price'],
                     'max': None,
                 },
             },
