@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { ExchangeError } = require ('ccxt/js/base/errors');
+const { ExchangeError, InvalidNonce } = require ('ccxt/js/base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -242,20 +242,51 @@ module.exports = class kucoin extends ccxt.kucoin {
         const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeInteger (subscription, 'limit');
         const messageHash = this.safeString (subscription, 'messageHash');
-        // 2. Initiate a REST request to get the snapshot data of Level 2 order book.
-        // todo: this is a synch blocking call in ccxt.php - make it async
-        const snapshot = await this.fetchOrderBook (symbol, limit);
-        const orderbook = this.orderbooks[symbol];
-        orderbook.reset (snapshot);
-        // unroll the accumulated deltas
-        const messages = orderbook.cache;
-        // 3. Playback the cached Level 2 data flow.
-        for (let i = 0; i < messages.length; i++) {
-            const message = messages[i];
-            this.handleOrderBookMessage (client, message, orderbook);
+        try {
+            // 2. Initiate a REST request to get the snapshot data of Level 2 order book.
+            // todo: this is a synch blocking call in ccxt.php - make it async
+            const snapshot = await this.fetchOrderBook (symbol, limit);
+            const orderbook = this.orderbooks[symbol];
+            const messages = orderbook.cache;
+            const firstMessage = this.safeValue (messages, 0, {});
+            const data = this.safeValue (firstMessage, 'data', {});
+            const sequenceStart = this.safeInteger (data, 'sequenceStart');
+            const nonce = this.safeInteger (snapshot, 'nonce');
+            const previousSequence = sequenceStart - 1;
+            // if the received snapshot is earlier than the first cached delta
+            // then we cannot align it with the cached deltas and we need to
+            // retry synchronizing in maxAttempts
+            if (nonce < previousSequence) {
+                const options = this.safeValue (this.options, 'fetchOrderBookSnapshot', {});
+                const maxAttempts = this.safeValue (options, 'maxAttempts', 3);
+                let numAttempts = this.safeValue (subscription, 'numAttempts', 0);
+                // retry to syncrhonize if we haven't reached maxAttempts yet
+                if (numAttempts < maxAttempts) {
+                    // safety guard
+                    if (messageHash in client.subscriptions) {
+                        numAttempts = this.sum (numAttempts, 1);
+                        subscription['numAttempts'] = numAttempts;
+                        client.subscriptions[messageHash] = subscription;
+                        this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+                    }
+                } else {
+                    // throw upon failing to synchronize in maxAttempts
+                    throw new InvalidNonce (this.id + ' failed to synchronize WebSocket feed with the snapshot for symbol ' + symbol + ' in ' + maxAttempts.toString () + ' attempts');
+                }
+            } else {
+                orderbook.reset (snapshot);
+                // unroll the accumulated deltas
+                // 3. Playback the cached Level 2 data flow.
+                for (let i = 0; i < messages.length; i++) {
+                    const message = messages[i];
+                    this.handleOrderBookMessage (client, message, orderbook);
+                }
+                this.orderbooks[symbol] = orderbook;
+                client.resolve (orderbook, messageHash);
+            }
+        } catch (e) {
+            client.reject (e, messageHash);
         }
-        this.orderbooks[symbol] = orderbook;
-        client.resolve (orderbook, messageHash);
     }
 
     handleDelta (bookside, delta, nonce) {
@@ -355,6 +386,16 @@ module.exports = class kucoin extends ccxt.kucoin {
         }
         const orderbook = this.orderbooks[symbol];
         if (orderbook['nonce'] === undefined) {
+            // ----------------------------------------------------------------
+            // const subscription = this.safeValue (client.subscriptions, messageHash);
+            // const fetchingOrderBookSnapshot = this.safeValue (subscription, 'fetchingOrderBookSnapshot');
+            // if (fetchingOrderBookSnapshot === undefined) {
+            //     subscription['fetchingOrderBookSnapshot'] = true;
+            //     client.subscriptions[messageHash] = subscription;
+            //     // fetch the snapshot in a separate async call
+            //     this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+            // }
+            // ----------------------------------------------------------------
             // 1. After receiving the websocket Level 2 data flow, cache the data.
             orderbook.cache.push (message);
         } else {
@@ -375,8 +416,12 @@ module.exports = class kucoin extends ccxt.kucoin {
             delete this.orderbooks[symbol];
         }
         this.orderbooks[symbol] = this.orderBook ({}, limit);
-        // fetch the snapshot in a separate async call
-        this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+        const options = this.safeValue (this.options, 'fetchOrderBookSnapshot', {});
+        const delay = this.safeInteger (options, 'delay', this.rateLimit);
+        // fetch the snapshot in a separate async call after a warmup delay
+        this.delay (delay, this.fetchOrderBookSnapshot, client, message, subscription);
+        // fetch the snapshot in a separate async call immediately
+        // this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
     }
 
     handleSubscriptionStatus (client, message) {
