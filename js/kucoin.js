@@ -248,6 +248,10 @@ module.exports = class kucoin extends ccxt.kucoin {
             const snapshot = await this.fetchOrderBook (symbol, limit);
             const orderbook = this.orderbooks[symbol];
             const messages = orderbook.cache;
+            // make sure we have at least one delta before fetching the snapshot
+            // otherwise we cannot synchronize the feed with the snapshot
+            // and that will lead to a bidask cross as reported here
+            // https://github.com/ccxt/ccxt/issues/6762
             const firstMessage = this.safeValue (messages, 0, {});
             const data = this.safeValue (firstMessage, 'data', {});
             const sequenceStart = this.safeInteger (data, 'sequenceStart');
@@ -395,8 +399,6 @@ module.exports = class kucoin extends ccxt.kucoin {
                 const delay = this.safeInteger (options, 'delay', this.rateLimit);
                 // fetch the snapshot in a separate async call after a warmup delay
                 this.delay (delay, this.fetchOrderBookSnapshot, client, message, subscription);
-                // // fetch the snapshot in a separate async call
-                // this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
             }
             // 1. After receiving the websocket Level 2 data flow, cache the data.
             orderbook.cache.push (message);
@@ -418,11 +420,10 @@ module.exports = class kucoin extends ccxt.kucoin {
             delete this.orderbooks[symbol];
         }
         this.orderbooks[symbol] = this.orderBook ({}, limit);
-        // moved snapshot initialization to handleOrderBook
-        // const options = this.safeValue (this.options, 'fetchOrderBookSnapshot', {});
-        // const delay = this.safeInteger (options, 'delay', this.rateLimit);
-        // // fetch the snapshot in a separate async call after a warmup delay
-        // this.delay (delay, this.fetchOrderBookSnapshot, client, message, subscription);
+        // moved snapshot initialization to handleOrderBook to fix
+        // https://github.com/ccxt/ccxt/issues/6820
+        // the general idea is to fetch the snapshot after the first delta
+        // but not before, because otherwise we cannot synchronize the feed
     }
 
     handleSubscriptionStatus (client, message) {
