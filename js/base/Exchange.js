@@ -77,6 +77,12 @@ module.exports = class Exchange extends ccxt.Exchange {
         })
     }
 
+    delay (timeout, method, ... args) {
+        setTimeout (() => {
+            this.spawn (method, ... args)
+        }, timeout)
+    }
+
     watch (url, messageHash, message = undefined, subscribeHash = undefined, subscription = undefined) {
         //
         // Without comments the code of this method is short and easy:
