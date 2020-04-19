@@ -95,6 +95,16 @@ trait ClientTrait {
         });
     }
 
+    public function delay($timeout, $method, ... $args) {
+        $this->loop->addTimer($timeout / 1000, function () use ($method, $args) {
+            try {
+                $method(... $args);
+            } catch (\Exception $e) {
+                // todo: handle spawned errors
+            }
+        });
+    }
+
     public function watch($url, $message_hash, $message = null, $subscribe_hash = null, $subscription = null) {
         $client = $this->client($url);
         // todo: calculate the backoff delay in php
