@@ -2566,7 +2566,7 @@ Below are examples of using the fetchOrder method to get order info from an auth
 
 .. code:: python
 
-   # Python 2/3 (synchronous)
+   # Python 3 (synchronous)
    if exchange.has['fetchOrder']:
        order = exchange.fetch_order(id)
        print(order)
