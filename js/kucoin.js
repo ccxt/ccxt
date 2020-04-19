@@ -386,6 +386,18 @@ module.exports = class kucoin extends ccxt.kucoin {
         }
         const orderbook = this.orderbooks[symbol];
         if (orderbook['nonce'] === undefined) {
+            const subscription = this.safeValue (client.subscriptions, messageHash);
+            const fetchingOrderBookSnapshot = this.safeValue (subscription, 'fetchingOrderBookSnapshot');
+            if (fetchingOrderBookSnapshot === undefined) {
+                subscription['fetchingOrderBookSnapshot'] = true;
+                client.subscriptions[messageHash] = subscription;
+                const options = this.safeValue (this.options, 'fetchOrderBookSnapshot', {});
+                const delay = this.safeInteger (options, 'delay', this.rateLimit);
+                // fetch the snapshot in a separate async call after a warmup delay
+                this.delay (delay, this.fetchOrderBookSnapshot, client, message, subscription);
+                // // fetch the snapshot in a separate async call
+                // this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+            }
             // 1. After receiving the websocket Level 2 data flow, cache the data.
             orderbook.cache.push (message);
         } else {
@@ -406,10 +418,11 @@ module.exports = class kucoin extends ccxt.kucoin {
             delete this.orderbooks[symbol];
         }
         this.orderbooks[symbol] = this.orderBook ({}, limit);
-        const options = this.safeValue (this.options, 'fetchOrderBookSnapshot', {});
-        const delay = this.safeInteger (options, 'delay', this.rateLimit);
-        // fetch the snapshot in a separate async call after a warmup delay
-        this.delay (delay, this.fetchOrderBookSnapshot, client, message, subscription);
+        // moved snapshot initialization to handleOrderBook
+        // const options = this.safeValue (this.options, 'fetchOrderBookSnapshot', {});
+        // const delay = this.safeInteger (options, 'delay', this.rateLimit);
+        // // fetch the snapshot in a separate async call after a warmup delay
+        // this.delay (delay, this.fetchOrderBookSnapshot, client, message, subscription);
     }
 
     handleSubscriptionStatus (client, message) {
