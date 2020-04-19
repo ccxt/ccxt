@@ -253,6 +253,10 @@ class kucoin extends \ccxt\kucoin {
             $snapshot = $this->fetch_order_book($symbol, $limit);
             $orderbook = $this->orderbooks[$symbol];
             $messages = $orderbook->cache;
+            // make sure we have at least one delta before fetching the $snapshot
+            // otherwise we cannot synchronize the feed with the $snapshot
+            // and that will lead to a bidask cross as reported here
+            // https://github.com/ccxt/ccxt/issues/6762
             $firstMessage = $this->safe_value($messages, 0, array());
             $data = $this->safe_value($firstMessage, 'data', array());
             $sequenceStart = $this->safe_integer($data, 'sequenceStart');
@@ -391,6 +395,16 @@ class kucoin extends \ccxt\kucoin {
         }
         $orderbook = $this->orderbooks[$symbol];
         if ($orderbook['nonce'] === null) {
+            $subscription = $this->safe_value($client->subscriptions, $messageHash);
+            $fetchingOrderBookSnapshot = $this->safe_value($subscription, 'fetchingOrderBookSnapshot');
+            if ($fetchingOrderBookSnapshot === null) {
+                $subscription['fetchingOrderBookSnapshot'] = true;
+                $client->subscriptions[$messageHash] = $subscription;
+                $options = $this->safe_value($this->options, 'fetchOrderBookSnapshot', array());
+                $delay = $this->safe_integer($options, 'delay', $this->rateLimit);
+                // fetch the snapshot in a separate async call after a warmup $delay
+                $this->delay($delay, array($this, 'fetch_order_book_snapshot'), $client, $message, $subscription);
+            }
             // 1. After receiving the websocket Level 2 $data flow, cache the $data->
             $orderbook->cache[] = $message;
         } else {
@@ -411,10 +425,10 @@ class kucoin extends \ccxt\kucoin {
             unset($this->orderbooks[$symbol]);
         }
         $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
-        $options = $this->safe_value($this->options, 'fetchOrderBookSnapshot', array());
-        $delay = $this->safe_integer($options, 'delay', $this->rateLimit);
-        // fetch the snapshot in a separate async call after a warmup $delay
-        $this->delay($delay, array($this, 'fetch_order_book_snapshot'), $client, $message, $subscription);
+        // moved snapshot initialization to handleOrderBook to fix
+        // https://github.com/ccxt/ccxt/issues/6820
+        // the general idea is to fetch the snapshot after the first delta
+        // but not before, because otherwise we cannot synchronize the feed
     }
 
     public function handle_subscription_status($client, $message) {

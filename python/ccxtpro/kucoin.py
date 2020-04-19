@@ -236,6 +236,10 @@ class kucoin(Exchange, ccxt.kucoin):
             snapshot = await self.fetch_order_book(symbol, limit)
             orderbook = self.orderbooks[symbol]
             messages = orderbook.cache
+            # make sure we have at least one delta before fetching the snapshot
+            # otherwise we cannot synchronize the feed with the snapshot
+            # and that will lead to a bidask cross as reported here
+            # https://github.com/ccxt/ccxt/issues/6762
             firstMessage = self.safe_value(messages, 0, {})
             data = self.safe_value(firstMessage, 'data', {})
             sequenceStart = self.safe_integer(data, 'sequenceStart')
@@ -358,6 +362,15 @@ class kucoin(Exchange, ccxt.kucoin):
                 symbol = market['symbol']
         orderbook = self.orderbooks[symbol]
         if orderbook['nonce'] is None:
+            subscription = self.safe_value(client.subscriptions, messageHash)
+            fetchingOrderBookSnapshot = self.safe_value(subscription, 'fetchingOrderBookSnapshot')
+            if fetchingOrderBookSnapshot is None:
+                subscription['fetchingOrderBookSnapshot'] = True
+                client.subscriptions[messageHash] = subscription
+                options = self.safe_value(self.options, 'fetchOrderBookSnapshot', {})
+                delay = self.safe_integer(options, 'delay', self.rateLimit)
+                # fetch the snapshot in a separate async call after a warmup delay
+                self.delay(delay, self.fetch_order_book_snapshot, client, message, subscription)
             # 1. After receiving the websocket Level 2 data flow, cache the data.
             orderbook.cache.append(message)
         else:
@@ -374,10 +387,10 @@ class kucoin(Exchange, ccxt.kucoin):
         if symbol in self.orderbooks:
             del self.orderbooks[symbol]
         self.orderbooks[symbol] = self.order_book({}, limit)
-        options = self.safe_value(self.options, 'fetchOrderBookSnapshot', {})
-        delay = self.safe_integer(options, 'delay', self.rateLimit)
-        # fetch the snapshot in a separate async call after a warmup delay
-        self.delay(delay, self.fetch_order_book_snapshot, client, message, subscription)
+        # moved snapshot initialization to handleOrderBook to fix
+        # https://github.com/ccxt/ccxt/issues/6820
+        # the general idea is to fetch the snapshot after the first delta
+        # but not before, because otherwise we cannot synchronize the feed
 
     def handle_subscription_status(self, client, message):
         #
