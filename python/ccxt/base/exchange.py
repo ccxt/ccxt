@@ -372,7 +372,7 @@ class Exchange(object):
             'delay': 0.001,
             'capacity': 1.0,
             'defaultCost': 1.0,
-        }, getattr(self, 'tokenBucket') if hasattr(self, 'tokenBucket') else {})
+        }, getattr(self, 'tokenBucket', {}))
 
         self.session = self.session if self.session or self.asyncio_loop else Session()
         self.logger = self.logger if self.logger else logging.getLogger(__name__)
