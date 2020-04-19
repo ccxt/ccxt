@@ -90,8 +90,19 @@ class Exchange(BaseExchange):
             # todo: handle spawned errors
             pass
 
+    async def delay_async(self, timeout, method, *args):
+        await self.sleep(timeout)
+        try:
+            await method(*args)
+        except Exception:
+            # todo: handle spawned errors
+            pass
+
     def spawn(self, method, *args):
         ensure_future(self.spawn_async(method, *args))
+
+    def delay(self, timeout, method, *args):
+        ensure_future(self.delay_async(timeout, method, *args))
 
     def handle_message(self, client, message):
         always = True
