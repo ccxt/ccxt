@@ -7,6 +7,7 @@ namespace ccxtpro;
 
 use Exception; // a common import
 use \ccxt\ExchangeError;
+use \ccxt\InvalidNonce;
 
 class kucoin extends \ccxt\kucoin {
 
@@ -246,20 +247,51 @@ class kucoin extends \ccxt\kucoin {
         $symbol = $this->safe_string($subscription, 'symbol');
         $limit = $this->safe_integer($subscription, 'limit');
         $messageHash = $this->safe_string($subscription, 'messageHash');
-        // 2. Initiate a REST request to get the $snapshot data of Level 2 order book.
-        // todo => this is a synch blocking call in ccxt.php - make it async
-        $snapshot = $this->fetch_order_book($symbol, $limit);
-        $orderbook = $this->orderbooks[$symbol];
-        $orderbook->reset ($snapshot);
-        // unroll the accumulated deltas
-        $messages = $orderbook->cache;
-        // 3. Playback the cached Level 2 data flow.
-        for ($i = 0; $i < count($messages); $i++) {
-            $message = $messages[$i];
-            $this->handle_order_book_message($client, $message, $orderbook);
+        try {
+            // 2. Initiate a REST request to get the $snapshot $data of Level 2 order book.
+            // todo => this is a synch blocking call in ccxt.php - make it async
+            $snapshot = $this->fetch_order_book($symbol, $limit);
+            $orderbook = $this->orderbooks[$symbol];
+            $messages = $orderbook->cache;
+            $firstMessage = $this->safe_value($messages, 0, array());
+            $data = $this->safe_value($firstMessage, 'data', array());
+            $sequenceStart = $this->safe_integer($data, 'sequenceStart');
+            $nonce = $this->safe_integer($snapshot, 'nonce');
+            $previousSequence = $sequenceStart - 1;
+            // if the received $snapshot is earlier than the first cached delta
+            // then we cannot align it with the cached deltas and we need to
+            // retry synchronizing in $maxAttempts
+            if ($nonce < $previousSequence) {
+                $options = $this->safe_value($this->options, 'fetchOrderBookSnapshot', array());
+                $maxAttempts = $this->safe_value($options, 'maxAttempts', 3);
+                $numAttempts = $this->safe_value($subscription, 'numAttempts', 0);
+                // retry to syncrhonize if we haven't reached $maxAttempts yet
+                if ($numAttempts < $maxAttempts) {
+                    // safety guard
+                    if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+                        $numAttempts = $this->sum($numAttempts, 1);
+                        $subscription['numAttempts'] = $numAttempts;
+                        $client->subscriptions[$messageHash] = $subscription;
+                        $this->spawn(array($this, 'fetch_order_book_snapshot'), $client, $message, $subscription);
+                    }
+                } else {
+                    // throw upon failing to synchronize in $maxAttempts
+                    throw new InvalidNonce($this->id . ' failed to synchronize WebSocket feed with the $snapshot for $symbol ' . $symbol . ' in ' . (string) $maxAttempts . ' attempts');
+                }
+            } else {
+                $orderbook->reset ($snapshot);
+                // unroll the accumulated deltas
+                // 3. Playback the cached Level 2 $data flow.
+                for ($i = 0; $i < count($messages); $i++) {
+                    $message = $messages[$i];
+                    $this->handle_order_book_message($client, $message, $orderbook);
+                }
+                $this->orderbooks[$symbol] = $orderbook;
+                $client->resolve ($orderbook, $messageHash);
+            }
+        } catch (Exception $e) {
+            $client->reject ($e, $messageHash);
         }
-        $this->orderbooks[$symbol] = $orderbook;
-        $client->resolve ($orderbook, $messageHash);
     }
 
     public function handle_delta($bookside, $delta, $nonce) {
@@ -379,8 +411,10 @@ class kucoin extends \ccxt\kucoin {
             unset($this->orderbooks[$symbol]);
         }
         $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
-        // fetch the snapshot in a separate async call
-        $this->spawn(array($this, 'fetch_order_book_snapshot'), $client, $message, $subscription);
+        $options = $this->safe_value($this->options, 'fetchOrderBookSnapshot', array());
+        $delay = $this->safe_integer($options, 'delay', $this->rateLimit);
+        // fetch the snapshot in a separate async call after a warmup $delay
+        $this->delay($delay, array($this, 'fetch_order_book_snapshot'), $client, $message, $subscription);
     }
 
     public function handle_subscription_status($client, $message) {

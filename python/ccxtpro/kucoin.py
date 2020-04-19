@@ -6,6 +6,7 @@
 from ccxtpro.base.exchange import Exchange
 import ccxt.async_support as ccxt
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import InvalidNonce
 
 
 class kucoin(Exchange, ccxt.kucoin):
@@ -229,19 +230,46 @@ class kucoin(Exchange, ccxt.kucoin):
         symbol = self.safe_string(subscription, 'symbol')
         limit = self.safe_integer(subscription, 'limit')
         messageHash = self.safe_string(subscription, 'messageHash')
-        # 2. Initiate a REST request to get the snapshot data of Level 2 order book.
-        # todo: self is a synch blocking call in ccxt.php - make it async
-        snapshot = await self.fetch_order_book(symbol, limit)
-        orderbook = self.orderbooks[symbol]
-        orderbook.reset(snapshot)
-        # unroll the accumulated deltas
-        messages = orderbook.cache
-        # 3. Playback the cached Level 2 data flow.
-        for i in range(0, len(messages)):
-            message = messages[i]
-            self.handle_order_book_message(client, message, orderbook)
-        self.orderbooks[symbol] = orderbook
-        client.resolve(orderbook, messageHash)
+        try:
+            # 2. Initiate a REST request to get the snapshot data of Level 2 order book.
+            # todo: self is a synch blocking call in ccxt.php - make it async
+            snapshot = await self.fetch_order_book(symbol, limit)
+            orderbook = self.orderbooks[symbol]
+            messages = orderbook.cache
+            firstMessage = self.safe_value(messages, 0, {})
+            data = self.safe_value(firstMessage, 'data', {})
+            sequenceStart = self.safe_integer(data, 'sequenceStart')
+            nonce = self.safe_integer(snapshot, 'nonce')
+            previousSequence = sequenceStart - 1
+            # if the received snapshot is earlier than the first cached delta
+            # then we cannot align it with the cached deltas and we need to
+            # retry synchronizing in maxAttempts
+            if nonce < previousSequence:
+                options = self.safe_value(self.options, 'fetchOrderBookSnapshot', {})
+                maxAttempts = self.safe_value(options, 'maxAttempts', 3)
+                numAttempts = self.safe_value(subscription, 'numAttempts', 0)
+                # retry to syncrhonize if we haven't reached maxAttempts yet
+                if numAttempts < maxAttempts:
+                    # safety guard
+                    if messageHash in client.subscriptions:
+                        numAttempts = self.sum(numAttempts, 1)
+                        subscription['numAttempts'] = numAttempts
+                        client.subscriptions[messageHash] = subscription
+                        self.spawn(self.fetch_order_book_snapshot, client, message, subscription)
+                else:
+                    # raise upon failing to synchronize in maxAttempts
+                    raise InvalidNonce(self.id + ' failed to synchronize WebSocket feed with the snapshot for symbol ' + symbol + ' in ' + str(maxAttempts) + ' attempts')
+            else:
+                orderbook.reset(snapshot)
+                # unroll the accumulated deltas
+                # 3. Playback the cached Level 2 data flow.
+                for i in range(0, len(messages)):
+                    message = messages[i]
+                    self.handle_order_book_message(client, message, orderbook)
+                self.orderbooks[symbol] = orderbook
+                client.resolve(orderbook, messageHash)
+        except Exception as e:
+            client.reject(e, messageHash)
 
     def handle_delta(self, bookside, delta, nonce):
         price = self.safe_float(delta, 0)
@@ -346,8 +374,10 @@ class kucoin(Exchange, ccxt.kucoin):
         if symbol in self.orderbooks:
             del self.orderbooks[symbol]
         self.orderbooks[symbol] = self.order_book({}, limit)
-        # fetch the snapshot in a separate async call
-        self.spawn(self.fetch_order_book_snapshot, client, message, subscription)
+        options = self.safe_value(self.options, 'fetchOrderBookSnapshot', {})
+        delay = self.safe_integer(options, 'delay', self.rateLimit)
+        # fetch the snapshot in a separate async call after a warmup delay
+        self.delay(delay, self.fetch_order_book_snapshot, client, message, subscription)
 
     def handle_subscription_status(self, client, message):
         #
