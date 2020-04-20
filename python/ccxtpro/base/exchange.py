@@ -12,6 +12,7 @@ from ccxtpro.base.aiohttp_client import AiohttpClient
 from ccxt.async_support import Exchange as BaseExchange
 from ccxt import NotSupported
 from ccxtpro.base.order_book import OrderBook, IndexedOrderBook, CountedOrderBook
+from ccxt.async_support.base.throttle import throttle
 
 
 # -----------------------------------------------------------------------------
@@ -68,6 +69,9 @@ class Exchange(BaseExchange):
                 'print': getattr(self, 'print'),
                 'ping': getattr(self, 'ping', None),
                 'verbose': self.verbose,
+                'throttle': throttle(self.extend({
+                    'loop': self.asyncio_loop,
+                }, self.tokenBucket))
             }, ws_options)
             self.clients[url] = AiohttpClient(url, on_message, on_error, on_close, options)
         return self.clients[url]
@@ -124,10 +128,10 @@ class Exchange(BaseExchange):
             await client.connect(self.session, backoff_delay)
             if message and (subscribe_hash not in client.subscriptions):
                 client.subscriptions[subscribe_hash] = subscription or True
-                if self.enableRateLimit:
+                if self.enableRateLimit and client.throttle:
                     options = self.safe_value(self.options, 'ws', {})
                     rateLimit = self.safe_integer(options, 'rateLimit', self.rateLimit)
-                    await self.throttle(rateLimit)
+                    await client.throttle(rateLimit)
                 # todo: decouple signing from subscriptions
                 message = self.sign_message(client, message_hash, message)
                 await client.send(message)
