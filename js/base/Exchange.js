@@ -47,6 +47,7 @@ module.exports = class Exchange extends ccxt.Exchange {
                 'print': this.print ? this.print.bind (this) : this.print,
                 'ping': this.ping ? this.ping.bind (this) : this.ping,
                 'verbose': this.verbose,
+                'throttle': ccxt.throttle (this.tokenBucket),
             }, wsOptions)
             this.clients[url] = new WsClient (url, onMessage, onError, onClose, options)
         }
@@ -130,8 +131,8 @@ module.exports = class Exchange extends ccxt.Exchange {
                 client.subscriptions[subscribeHash] = subscription || true
                 const options = this.safeValue (this.options, 'ws');
                 const rateLimit = this.safeValue (options, 'rateLimit', this.rateLimit);
-                if (this.enableRateLimit) {
-                    this.throttle (rateLimit).then (() => {
+                if (this.enableRateLimit && client.throttle) {
+                    client.throttle (rateLimit).then (() => {
                         // todo: decouple signing from subscriptions
                         message = this.signMessage (client, messageHash, message)
                         client.send (message)
