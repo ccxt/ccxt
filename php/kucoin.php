@@ -271,8 +271,8 @@ class kucoin extends \ccxt\kucoin {
             // retry synchronizing in $maxAttempts
             if ($nonce < $previousSequence) {
                 $options = $this->safe_value($this->options, 'fetchOrderBookSnapshot', array());
-                $maxAttempts = $this->safe_value($options, 'maxAttempts', 3);
-                $numAttempts = $this->safe_value($subscription, 'numAttempts', 0);
+                $maxAttempts = $this->safe_integer($options, 'maxAttempts', 3);
+                $numAttempts = $this->safe_integer($subscription, 'numAttempts', 0);
                 // retry to syncrhonize if we haven't reached $maxAttempts yet
                 if ($numAttempts < $maxAttempts) {
                     // safety guard

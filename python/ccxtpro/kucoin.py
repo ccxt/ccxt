@@ -254,8 +254,8 @@ class kucoin(Exchange, ccxt.kucoin):
             # retry synchronizing in maxAttempts
             if nonce < previousSequence:
                 options = self.safe_value(self.options, 'fetchOrderBookSnapshot', {})
-                maxAttempts = self.safe_value(options, 'maxAttempts', 3)
-                numAttempts = self.safe_value(subscription, 'numAttempts', 0)
+                maxAttempts = self.safe_integer(options, 'maxAttempts', 3)
+                numAttempts = self.safe_integer(subscription, 'numAttempts', 0)
                 # retry to syncrhonize if we haven't reached maxAttempts yet
                 if numAttempts < maxAttempts:
                     # safety guard
