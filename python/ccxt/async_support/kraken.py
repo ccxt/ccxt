@@ -714,19 +714,11 @@ class kraken(Exchange):
         type = None
         price = None
         amount = None
+        cost = None
         id = None
         order = None
         fee = None
-        marketId = self.safe_string(trade, 'pair')
-        foundMarket = self.find_market_by_altname_or_id(marketId)
         symbol = None
-        if foundMarket is not None:
-            market = foundMarket
-        elif marketId is not None:
-            # delisted market ids go here
-            market = self.get_delisted_market_by_id(marketId)
-        if market is not None:
-            symbol = market['symbol']
         if isinstance(trade, list):
             timestamp = self.safe_timestamp(trade, 2)
             side = 'sell' if (trade[3] == 's') else 'buy'
@@ -736,22 +728,36 @@ class kraken(Exchange):
             tradeLength = len(trade)
             if tradeLength > 6:
                 id = self.safe_string(trade, 6)  # artificially added as per  #1794
+        elif isinstance(trade, basestring):
+            id = trade
         elif 'ordertxid' in trade:
+            marketId = self.safe_string(trade, 'pair')
+            foundMarket = self.find_market_by_altname_or_id(marketId)
+            if foundMarket is not None:
+                market = foundMarket
+            elif marketId is not None:
+                # delisted market ids go here
+                market = self.get_delisted_market_by_id(marketId)
             order = trade['ordertxid']
             id = self.safe_string_2(trade, 'id', 'postxid')
             timestamp = self.safe_timestamp(trade, 'time')
-            side = trade['type']
-            type = trade['ordertype']
+            side = self.safe_string(trade, 'type')
+            type = self.safe_string(trade, 'ordertype')
             price = self.safe_float(trade, 'price')
             amount = self.safe_float(trade, 'vol')
             if 'fee' in trade:
                 currency = None
-                if market:
+                if market is not None:
                     currency = market['quote']
                 fee = {
                     'cost': self.safe_float(trade, 'fee'),
                     'currency': currency,
                 }
+        if market is not None:
+            symbol = market['symbol']
+        if price is not None:
+            if amount is not None:
+                cost = price * amount
         return {
             'id': id,
             'order': order,
@@ -764,7 +770,7 @@ class kraken(Exchange):
             'takerOrMaker': None,
             'price': price,
             'amount': amount,
-            'cost': price * amount,
+            'cost': cost,
             'fee': fee,
         }
 
@@ -956,6 +962,8 @@ class kraken(Exchange):
         status = self.parse_order_status(self.safe_string(order, 'status'))
         id = self.safe_string(order, 'id')
         clientOrderId = self.safe_string(order, 'userref')
+        rawTrades = self.safe_value(order, 'trades')
+        trades = self.parse_trades(rawTrades, market, None, None, {'order': id})
         return {
             'id': id,
             'clientOrderId': clientOrderId,
@@ -974,8 +982,7 @@ class kraken(Exchange):
             'average': average,
             'remaining': remaining,
             'fee': fee,
-            # 'trades': self.parse_trades(order['trades'], market),
-            'trades': None,
+            'trades': trades,
         }
 
     def parse_orders(self, orders, market=None, since=None, limit=None, params={}):
@@ -992,12 +999,50 @@ class kraken(Exchange):
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        response = await self.privatePostQueryOrders(self.extend({
+        request = {
             'trades': True,  # whether or not to include trades in output(optional, default False)
             'txid': id,  # do not comma separate a list of ids - use fetchOrdersByIds instead
             # 'userref': 'optional',  # restrict results to given user reference id(optional)
-        }, params))
-        orders = response['result']
+        }
+        response = await self.privatePostQueryOrders(self.extend(request, params))
+        #
+        #     {
+        #         "error":[],
+        #         "result":{
+        #             "OTLAS3-RRHUF-NDWH5A":{
+        #                 "refid":null,
+        #                 "userref":null,
+        #                 "status":"closed",
+        #                 "reason":null,
+        #                 "opentm":1586822919.3342,
+        #                 "closetm":1586822919.365,
+        #                 "starttm":0,
+        #                 "expiretm":0,
+        #                 "descr":{
+        #                     "pair":"XBTUSDT",
+        #                     "type":"sell",
+        #                     "ordertype":"market",
+        #                     "price":"0",
+        #                     "price2":"0",
+        #                     "leverage":"none",
+        #                     "order":"sell 0.21804000 XBTUSDT @ market",
+        #                     "close":""
+        #                 },
+        #                 "vol":"0.21804000",
+        #                 "vol_exec":"0.21804000",
+        #                 "cost":"1493.9",
+        #                 "fee":"3.8",
+        #                 "price":"6851.5",
+        #                 "stopprice":"0.00000",
+        #                 "limitprice":"0.00000",
+        #                 "misc":"",
+        #                 "oflags":"fciq",
+        #                 "trades":["TT5UC3-GOIRW-6AZZ6R"]
+        #             }
+        #         }
+        #     }
+        #
+        orders = self.safe_value(response, 'result', [])
         order = self.parse_order(self.extend({'id': id}, orders[id]))
         return self.extend({'info': response}, order)
 
