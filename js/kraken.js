@@ -742,21 +742,11 @@ module.exports = class kraken extends Exchange {
         let type = undefined;
         let price = undefined;
         let amount = undefined;
+        let cost = undefined;
         let id = undefined;
         let order = undefined;
         let fee = undefined;
-        const marketId = this.safeString (trade, 'pair');
-        const foundMarket = this.findMarketByAltnameOrId (marketId);
         let symbol = undefined;
-        if (foundMarket !== undefined) {
-            market = foundMarket;
-        } else if (marketId !== undefined) {
-            // delisted market ids go here
-            market = this.getDelistedMarketById (marketId);
-        }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
         if (Array.isArray (trade)) {
             timestamp = this.safeTimestamp (trade, 2);
             side = (trade[3] === 's') ? 'sell' : 'buy';
@@ -767,23 +757,41 @@ module.exports = class kraken extends Exchange {
             if (tradeLength > 6) {
                 id = this.safeString (trade, 6); // artificially added as per #1794
             }
+        } else if (typeof trade === 'string') {
+            id = trade;
         } else if ('ordertxid' in trade) {
+            const marketId = this.safeString (trade, 'pair');
+            const foundMarket = this.findMarketByAltnameOrId (marketId);
+            if (foundMarket !== undefined) {
+                market = foundMarket;
+            } else if (marketId !== undefined) {
+                // delisted market ids go here
+                market = this.getDelistedMarketById (marketId);
+            }
             order = trade['ordertxid'];
             id = this.safeString2 (trade, 'id', 'postxid');
             timestamp = this.safeTimestamp (trade, 'time');
-            side = trade['type'];
-            type = trade['ordertype'];
+            side = this.safeString (trade, 'type');
+            type = this.safeString (trade, 'ordertype');
             price = this.safeFloat (trade, 'price');
             amount = this.safeFloat (trade, 'vol');
             if ('fee' in trade) {
                 let currency = undefined;
-                if (market) {
+                if (market !== undefined) {
                     currency = market['quote'];
                 }
                 fee = {
                     'cost': this.safeFloat (trade, 'fee'),
                     'currency': currency,
                 };
+            }
+        }
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        if (price !== undefined) {
+            if (amount !== undefined) {
+                cost = price * amount;
             }
         }
         return {
@@ -798,7 +806,7 @@ module.exports = class kraken extends Exchange {
             'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
-            'cost': price * amount,
+            'cost': cost,
             'fee': fee,
         };
     }
@@ -1015,6 +1023,8 @@ module.exports = class kraken extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const id = this.safeString (order, 'id');
         const clientOrderId = this.safeString (order, 'userref');
+        const rawTrades = this.safeValue (order, 'trades');
+        const trades = this.parseTrades (rawTrades, market, undefined, undefined, { 'order': id });
         return {
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1033,8 +1043,7 @@ module.exports = class kraken extends Exchange {
             'average': average,
             'remaining': remaining,
             'fee': fee,
-            // 'trades': this.parseTrades (order['trades'], market),
-            'trades': undefined,
+            'trades': trades,
         };
     }
 
@@ -1055,12 +1064,50 @@ module.exports = class kraken extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.privatePostQueryOrders (this.extend ({
+        const request = {
             'trades': true, // whether or not to include trades in output (optional, default false)
             'txid': id, // do not comma separate a list of ids - use fetchOrdersByIds instead
             // 'userref': 'optional', // restrict results to given user reference id (optional)
-        }, params));
-        const orders = response['result'];
+        };
+        const response = await this.privatePostQueryOrders (this.extend (request, params));
+        //
+        //     {
+        //         "error":[],
+        //         "result":{
+        //             "OTLAS3-RRHUF-NDWH5A":{
+        //                 "refid":null,
+        //                 "userref":null,
+        //                 "status":"closed",
+        //                 "reason":null,
+        //                 "opentm":1586822919.3342,
+        //                 "closetm":1586822919.365,
+        //                 "starttm":0,
+        //                 "expiretm":0,
+        //                 "descr":{
+        //                     "pair":"XBTUSDT",
+        //                     "type":"sell",
+        //                     "ordertype":"market",
+        //                     "price":"0",
+        //                     "price2":"0",
+        //                     "leverage":"none",
+        //                     "order":"sell 0.21804000 XBTUSDT @ market",
+        //                     "close":""
+        //                 },
+        //                 "vol":"0.21804000",
+        //                 "vol_exec":"0.21804000",
+        //                 "cost":"1493.9",
+        //                 "fee":"3.8",
+        //                 "price":"6851.5",
+        //                 "stopprice":"0.00000",
+        //                 "limitprice":"0.00000",
+        //                 "misc":"",
+        //                 "oflags":"fciq",
+        //                 "trades":["TT5UC3-GOIRW-6AZZ6R"]
+        //             }
+        //         }
+        //     }
+        //
+        const orders = this.safeValue (response, 'result', []);
         const order = this.parseOrder (this.extend ({ 'id': id }, orders[id]));
         return this.extend ({ 'info': response }, order);
     }
