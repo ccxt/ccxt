@@ -25,6 +25,10 @@ class kucoin(Exchange, ccxt.kucoin):
             'options': {
                 'tradesLimit': 1000,
                 'watchOrderBookRate': 100,  # get updates every 100ms or 1000ms
+                'fetchOrderBookSnapshot': {
+                    'maxAttempts': 3,  # default number of sync attempts
+                    'delay': 1000,  # warmup delay in ms before synchronizing
+                },
             },
             'streaming': {
                 # kucoin does not support built-in ws protocol-level ping-pong
