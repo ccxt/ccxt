@@ -266,8 +266,8 @@ module.exports = class kucoin extends ccxt.kucoin {
             // retry synchronizing in maxAttempts
             if (nonce < previousSequence) {
                 const options = this.safeValue (this.options, 'fetchOrderBookSnapshot', {});
-                const maxAttempts = this.safeValue (options, 'maxAttempts', 3);
-                let numAttempts = this.safeValue (subscription, 'numAttempts', 0);
+                const maxAttempts = this.safeInteger (options, 'maxAttempts', 3);
+                let numAttempts = this.safeInteger (subscription, 'numAttempts', 0);
                 // retry to syncrhonize if we haven't reached maxAttempts yet
                 if (numAttempts < maxAttempts) {
                     // safety guard
