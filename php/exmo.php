@@ -444,6 +444,7 @@ class exmo extends Exchange {
                     '40015' => '\\ccxt\\ExchangeError', // API function do not exist
                     '40016' => '\\ccxt\\OnMaintenance', // array("result":false,"error":"Error 40016 => Maintenance work in progress")
                     '40017' => '\\ccxt\\AuthenticationError', // Wrong API Key
+                    '40032' => '\\ccxt\\PermissionDenied', // array("result":false,"error":"Error 40032 => Access is denied for this API key")
                     '40034' => '\\ccxt\\RateLimitExceeded', // array("result":false,"error":"Error 40034 => Access is denied, rate limit is exceeded")
                     '50052' => '\\ccxt\\InsufficientFunds',
                     '50054' => '\\ccxt\\InsufficientFunds',
@@ -694,7 +695,8 @@ class exmo extends Exchange {
                 if ($limit > $maxLimit) {
                     throw new BadRequest($this->id . ' fetchOHLCV will serve ' . (string) $maxLimit . ' $candles at most');
                 }
-                $request['from'] = $now - $limit * $duration * 1000;
+                $request['from'] = intval ($now / 1000) - $limit * $duration;
+                $request['to'] = intval ($now / 1000);
             }
         } else {
             $request['from'] = intval ($since / 1000);

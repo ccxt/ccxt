@@ -14,6 +14,7 @@ except NameError:
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
@@ -457,6 +458,7 @@ class exmo(Exchange):
                     '40015': ExchangeError,  # API function do not exist
                     '40016': OnMaintenance,  # {"result":false,"error":"Error 40016: Maintenance work in progress"}
                     '40017': AuthenticationError,  # Wrong API Key
+                    '40032': PermissionDenied,  # {"result":false,"error":"Error 40032: Access is denied for self API key"}
                     '40034': RateLimitExceeded,  # {"result":false,"error":"Error 40034: Access is denied, rate limit is exceeded"}
                     '50052': InsufficientFunds,
                     '50054': InsufficientFunds,
@@ -685,7 +687,8 @@ class exmo(Exchange):
             else:
                 if limit > maxLimit:
                     raise BadRequest(self.id + ' fetchOHLCV will serve ' + str(maxLimit) + ' candles at most')
-                request['from'] = now - limit * duration * 1000
+                request['from'] = int(now / 1000) - limit * duration
+                request['to'] = int(now / 1000)
         else:
             request['from'] = int(since / 1000)
             if limit is None:
