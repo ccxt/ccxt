@@ -36,6 +36,7 @@ module.exports = class kraken extends Exchange {
                 'withdraw': true,
                 'fetchLedgerEntry': true,
                 'fetchLedger': true,
+                'fetchOrderTrades': 'emulated',
             },
             'marketsByAltname': {},
             'timeframes': {
@@ -783,6 +784,36 @@ module.exports = class kraken extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        // fetchTrades (public)
+        //
+        //     [
+        //         "0.032310", // price
+        //         "4.28169434", // amount
+        //         1541390792.763, // timestamp
+        //         "s", // sell or buy
+        //         "l", // limit or market
+        //         ""
+        //     ]
+        //
+        // fetchOrderTrades (private)
+        //
+        //     {
+        //         id: 'TIMIRG-WUNNE-RRJ6GT', // injected from outside
+        //         ordertxid: 'OQRPN2-LRHFY-HIFA7D',
+        //         postxid: 'TKH2SE-M7IF5-CFI7LT',
+        //         pair: 'USDCUSDT',
+        //         time: 1586340086.457,
+        //         type: 'sell',
+        //         ordertype: 'market',
+        //         price: '0.99860000',
+        //         cost: '22.16892001',
+        //         fee: '0.04433784',
+        //         vol: '22.20000000',
+        //         margin: '0.00000000',
+        //         misc: ''
+        //     }
+        //
         let timestamp = undefined;
         let side = undefined;
         let type = undefined;
@@ -1156,6 +1187,73 @@ module.exports = class kraken extends Exchange {
         const orders = this.safeValue (response, 'result', []);
         const order = this.parseOrder (this.extend ({ 'id': id }, orders[id]));
         return this.extend ({ 'info': response }, order);
+    }
+
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const orderTrades = this.safeValue (params, 'trades');
+        const tradeIds = [];
+        if (orderTrades === undefined) {
+            throw new ArgumentsRequired (this.id + " fetchOrderTrades requires a unified order structure in the params argument or a 'trades' param (an array of trade id strings)");
+        } else {
+            for (let i = 0; i < orderTrades.length; i++) {
+                const orderTrade = orderTrades[i];
+                if (typeof orderTrade === 'string') {
+                    tradeIds.push (orderTrade);
+                } else {
+                    tradeIds.push (orderTrade['id']);
+                }
+            }
+        }
+        await this.loadMarkets ();
+        const options = this.safeValue (this.options, 'fetchOrderTrades', {});
+        const batchSize = this.safeInteger (options, 'batchSize', 20);
+        let numBatches = parseInt (tradeIds / batchSize);
+        numBatches = this.sum (numBatches, 1);
+        const numTradeIds = tradeIds.length;
+        let result = [];
+        for (let j = 0; j < numBatches; j++) {
+            const requestIds = [];
+            for (let k = 0; k < batchSize; k++) {
+                const index = this.sum (j * batchSize, k);
+                if (index < numTradeIds) {
+                    requestIds.push (tradeIds[index]);
+                }
+            }
+            const request = {
+                'txid': requestIds.join (','),
+            };
+            const response = await this.privatePostQueryTrades (request);
+            //
+            //     {
+            //         error: [],
+            //         result: {
+            //             'TIMIRG-WUNNE-RRJ6GT': {
+            //                 ordertxid: 'OQRPN2-LRHFY-HIFA7D',
+            //                 postxid: 'TKH2SE-M7IF5-CFI7LT',
+            //                 pair: 'USDCUSDT',
+            //                 time: 1586340086.457,
+            //                 type: 'sell',
+            //                 ordertype: 'market',
+            //                 price: '0.99860000',
+            //                 cost: '22.16892001',
+            //                 fee: '0.04433784',
+            //                 vol: '22.20000000',
+            //                 margin: '0.00000000',
+            //                 misc: ''
+            //             }
+            //         }
+            //     }
+            //
+            const rawTrades = this.safeValue (response, 'result');
+            const ids = Object.keys (rawTrades);
+            for (let i = 0; i < ids.length; i++) {
+                rawTrades[ids[i]]['id'] = ids[i];
+            }
+            const trades = this.parseTrades (rawTrades, undefined, since, limit);
+            const tradesFilteredBySymbol = this.filterBySymbol (trades, symbol);
+            result = this.arrayConcat (result, tradesFilteredBySymbol);
+        }
+        return result;
     }
 
     async fetchOrdersByIds (ids, symbol = undefined, params = {}) {

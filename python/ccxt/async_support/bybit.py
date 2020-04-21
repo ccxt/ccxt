@@ -994,14 +994,16 @@ class bybit(Exchange):
             # conditional orders ---------------------------------------------
             # 'stop_order_id': id,  # one of stop_order_id or order_link_id is required for conditional orders
         }
-        method = 'privateGetOrder'
+        options = self.safe_value(self.options, 'marketTypes')
+        marketType = self.safe_string(options, symbol)
+        method = 'privateLinearGetOrderSearch' if (marketType == 'linear') else 'privateGetOrder'
         stopOrderId = self.safe_string(params, 'stop_order_id')
         if stopOrderId is None:
             orderLinkId = self.safe_string(params, 'order_link_id')
             if orderLinkId is None:
                 request['order_id'] = id
         else:
-            method = 'privateGetStopOrder'
+            method = 'privateLinearGetStopOrderSearch' if (marketType == 'linear') else 'privateGetStopOrder'
         response = await getattr(self, method)(self.extend(request, params))
         #
         #     {
