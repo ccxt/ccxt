@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { TICK_SIZE } = require ('./base/functions/number');
-const { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, InsufficientFunds, BadRequest, RateLimitExceeded, InvalidNonce } = require ('./base/errors');
+const { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, InsufficientFunds, BadRequest, RateLimitExceeded, InvalidNonce, NotSupported } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -1259,6 +1259,11 @@ module.exports = class bybit extends Exchange {
     async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' editOrder requires an symbol argument');
+        }
+        const marketTypes = this.safeValue (this.options, 'marketTypes', {});
+        const marketType = this.safeString (marketTypes, symbol);
+        if (marketType === 'linear') {
+            throw new NotSupported (this.id + ' does not support editOrder for ' + marketType + ' ' + symbol + ' market type');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
