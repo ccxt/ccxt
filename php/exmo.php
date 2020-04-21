@@ -8,6 +8,7 @@ namespace ccxt;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\BadRequest;
 use \ccxt\OrderNotFound;
 use \ccxt\NotSupported;
 
@@ -37,6 +38,21 @@ class exmo extends Exchange {
                 'fetchFundingFees' => true,
                 'fetchCurrencies' => true,
                 'fetchTransactions' => true,
+                'fetchOHLCV' => true,
+            ),
+            'timeframes' => array(
+                '1m' => '1',
+                '5m' => '5',
+                '15m' => '15',
+                '30m' => '30',
+                '45m' => '45',
+                '1h' => '60',
+                '2h' => '120',
+                '3h' => '180',
+                '4h' => '240',
+                '1d' => 'D',
+                '1w' => 'W',
+                '1M' => 'M',
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg',
@@ -67,6 +83,7 @@ class exmo extends Exchange {
                         'pair_settings',
                         'ticker',
                         'trades',
+                        'candles_history',
                     ),
                 ),
                 'private' => array(
@@ -434,6 +451,8 @@ class exmo extends Exchange {
                     '50321' => '\\ccxt\\InvalidOrder', // Price by order is more than permissible maximum for this pair
                 ),
                 'broad' => array(
+                    'range period is too long' => '\\ccxt\\BadRequest',
+                    'invalid syntax' => '\\ccxt\\BadRequest',
                     'API rate limit exceeded' => '\\ccxt\\RateLimitExceeded', // array("result":false,"error":"API rate limit exceeded for 99.33.55.224. Retry after 60 sec.","history":array(),"begin":1579392000,"end":1579478400)
                 ),
             ),
@@ -653,6 +672,73 @@ class exmo extends Exchange {
             );
         }
         return $result;
+    }
+
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+            'resolution' => $this->timeframes[$timeframe],
+        );
+        $options = $this->safe_value($this->options, 'fetchOHLCV');
+        $maxLimit = $this->safe_integer($options, 'maxLimit', 3000);
+        $duration = $this->parse_timeframe($timeframe);
+        $now = $this->milliseconds();
+        if ($since === null) {
+            if ($limit === null) {
+                throw new ArgumentsRequired($this->id . ' fetchOHLCV requires a $since argument or a $limit argument');
+            } else {
+                if ($limit > $maxLimit) {
+                    throw new BadRequest($this->id . ' fetchOHLCV will serve ' . (string) $maxLimit . ' $candles at most');
+                }
+                $request['from'] = $now - $limit * $duration * 1000;
+            }
+        } else {
+            $request['from'] = intval ($since / 1000);
+            if ($limit === null) {
+                $request['to'] = intval ($now / 1000);
+            } else {
+                if ($limit > $maxLimit) {
+                    throw new BadRequest($this->id . ' fetchOHLCV will serve ' . (string) $maxLimit . ' $candles at most');
+                }
+                $to = $this->sum($since, $limit * $duration * 1000);
+                $request['to'] = intval ($to / 1000);
+            }
+        }
+        $response = $this->publicGetCandlesHistory (array_merge($request, $params));
+        //
+        //     {
+        //         "$candles":array(
+        //             array("t":1584057600000,"o":0.02235144,"c":0.02400233,"h":0.025171,"l":0.02221,"v":5988.34031761),
+        //             array("t":1584144000000,"o":0.0240373,"c":0.02367413,"h":0.024399,"l":0.0235,"v":2027.82522329),
+        //             array("t":1584230400000,"o":0.02363458,"c":0.02319242,"h":0.0237948,"l":0.02223196,"v":1707.96944997),
+        //         )
+        //     }
+        //
+        $candles = $this->safe_value($response, 'candles', array());
+        return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
+    }
+
+    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '5m', $since = null, $limit = null) {
+        //
+        //     {
+        //         "t":1584057600000,
+        //         "o":0.02235144,
+        //         "c":0.02400233,
+        //         "h":0.025171,
+        //         "l":0.02221,
+        //         "v":5988.34031761
+        //     }
+        //
+        return array(
+            $this->safe_integer($ohlcv, 't'),
+            $this->safe_float($ohlcv, 'o'),
+            $this->safe_float($ohlcv, 'h'),
+            $this->safe_float($ohlcv, 'l'),
+            $this->safe_float($ohlcv, 'c'),
+            $this->safe_float($ohlcv, 'v'),
+        );
     }
 
     public function fetch_balance($params = array ()) {
@@ -1435,9 +1521,10 @@ class exmo extends Exchange {
         if ($response === null) {
             return; // fallback to default error handler
         }
-        if (is_array($response) && array_key_exists('result', $response)) {
+        if ((is_array($response) && array_key_exists('result', $response)) || (is_array($response) && array_key_exists('errmsg', $response))) {
             //
             //     array("result":false,"error":"Error 50052 => Insufficient funds")
+            //     array("s":"error","errmsg":"strconv.ParseInt => parsing \"\" => invalid syntax")
             //
             $success = $this->safe_value($response, 'result', false);
             if (gettype($success) === 'string') {
@@ -1449,7 +1536,7 @@ class exmo extends Exchange {
             }
             if (!$success) {
                 $code = null;
-                $message = $this->safe_string($response, 'error');
+                $message = $this->safe_string_2($response, 'error', 'errmsg');
                 $errorParts = explode(':', $message);
                 $numParts = is_array($errorParts) ? count($errorParts) : 0;
                 if ($numParts > 1) {

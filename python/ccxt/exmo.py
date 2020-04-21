@@ -15,6 +15,7 @@ import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -50,6 +51,21 @@ class exmo(Exchange):
                 'fetchFundingFees': True,
                 'fetchCurrencies': True,
                 'fetchTransactions': True,
+                'fetchOHLCV': True,
+            },
+            'timeframes': {
+                '1m': '1',
+                '5m': '5',
+                '15m': '15',
+                '30m': '30',
+                '45m': '45',
+                '1h': '60',
+                '2h': '120',
+                '3h': '180',
+                '4h': '240',
+                '1d': 'D',
+                '1w': 'W',
+                '1M': 'M',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg',
@@ -80,6 +96,7 @@ class exmo(Exchange):
                         'pair_settings',
                         'ticker',
                         'trades',
+                        'candles_history',
                     ],
                 },
                 'private': {
@@ -447,6 +464,8 @@ class exmo(Exchange):
                     '50321': InvalidOrder,  # Price by order is more than permissible maximum for self pair
                 },
                 'broad': {
+                    'range period is too long': BadRequest,
+                    'invalid syntax': BadRequest,
                     'API rate limit exceeded': RateLimitExceeded,  # {"result":false,"error":"API rate limit exceeded for 99.33.55.224. Retry after 60 sec.","history":[],"begin":1579392000,"end":1579478400}
                 },
             },
@@ -646,6 +665,66 @@ class exmo(Exchange):
                 'info': market,
             })
         return result
+
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+            'resolution': self.timeframes[timeframe],
+        }
+        options = self.safe_value(self.options, 'fetchOHLCV')
+        maxLimit = self.safe_integer(options, 'maxLimit', 3000)
+        duration = self.parse_timeframe(timeframe)
+        now = self.milliseconds()
+        if since is None:
+            if limit is None:
+                raise ArgumentsRequired(self.id + ' fetchOHLCV requires a since argument or a limit argument')
+            else:
+                if limit > maxLimit:
+                    raise BadRequest(self.id + ' fetchOHLCV will serve ' + str(maxLimit) + ' candles at most')
+                request['from'] = now - limit * duration * 1000
+        else:
+            request['from'] = int(since / 1000)
+            if limit is None:
+                request['to'] = int(now / 1000)
+            else:
+                if limit > maxLimit:
+                    raise BadRequest(self.id + ' fetchOHLCV will serve ' + str(maxLimit) + ' candles at most')
+                to = self.sum(since, limit * duration * 1000)
+                request['to'] = int(to / 1000)
+        response = self.publicGetCandlesHistory(self.extend(request, params))
+        #
+        #     {
+        #         "candles":[
+        #             {"t":1584057600000,"o":0.02235144,"c":0.02400233,"h":0.025171,"l":0.02221,"v":5988.34031761},
+        #             {"t":1584144000000,"o":0.0240373,"c":0.02367413,"h":0.024399,"l":0.0235,"v":2027.82522329},
+        #             {"t":1584230400000,"o":0.02363458,"c":0.02319242,"h":0.0237948,"l":0.02223196,"v":1707.96944997},
+        #         ]
+        #     }
+        #
+        candles = self.safe_value(response, 'candles', [])
+        return self.parse_ohlcvs(candles, market, timeframe, since, limit)
+
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='5m', since=None, limit=None):
+        #
+        #     {
+        #         "t":1584057600000,
+        #         "o":0.02235144,
+        #         "c":0.02400233,
+        #         "h":0.025171,
+        #         "l":0.02221,
+        #         "v":5988.34031761
+        #     }
+        #
+        return [
+            self.safe_integer(ohlcv, 't'),
+            self.safe_float(ohlcv, 'o'),
+            self.safe_float(ohlcv, 'h'),
+            self.safe_float(ohlcv, 'l'),
+            self.safe_float(ohlcv, 'c'),
+            self.safe_float(ohlcv, 'v'),
+        ]
 
     def fetch_balance(self, params={}):
         self.load_markets()
@@ -1328,9 +1407,10 @@ class exmo(Exchange):
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return  # fallback to default error handler
-        if 'result' in response:
+        if ('result' in response) or ('errmsg' in response):
             #
             #     {"result":false,"error":"Error 50052: Insufficient funds"}
+            #     {"s":"error","errmsg":"strconv.ParseInt: parsing \"\": invalid syntax"}
             #
             success = self.safe_value(response, 'result', False)
             if isinstance(success, basestring):
@@ -1340,7 +1420,7 @@ class exmo(Exchange):
                     success = False
             if not success:
                 code = None
-                message = self.safe_string(response, 'error')
+                message = self.safe_string_2(response, 'error', 'errmsg')
                 errorParts = message.split(':')
                 numParts = len(errorParts)
                 if numParts > 1:
