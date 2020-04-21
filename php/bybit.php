@@ -819,7 +819,10 @@ class bybit extends Exchange {
         if ($limit !== null) {
             $request['count'] = $limit; // default 500, max 1000
         }
-        $response = $this->publicGetTradingRecords (array_merge($request, $params));
+        $options = $this->safe_value($this->options, 'marketTypes');
+        $marketType = $this->safe_string($options, $symbol);
+        $method = ($marketType === 'linear') ? 'publicLinearGetRecentTradingRecords' : 'publicGetTradingRecords';
+        $response = $this->$method (array_merge($request, $params));
         //
         //     {
         //         ret_code => 0,

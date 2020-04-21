@@ -795,7 +795,10 @@ class bybit(Exchange):
         }
         if limit is not None:
             request['count'] = limit  # default 500, max 1000
-        response = await self.publicGetTradingRecords(self.extend(request, params))
+        options = self.safe_value(self.options, 'marketTypes')
+        marketType = self.safe_string(options, symbol)
+        method = 'publicLinearGetRecentTradingRecords' if (marketType == 'linear') else 'publicGetTradingRecords'
+        response = await getattr(self, method)(self.extend(request, params))
         #
         #     {
         #         ret_code: 0,
