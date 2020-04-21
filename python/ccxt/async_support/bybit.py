@@ -12,6 +12,7 @@ from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -1208,6 +1209,10 @@ class bybit(Exchange):
     async def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' editOrder requires an symbol argument')
+        marketTypes = self.safe_value(self.options, 'marketTypes', {})
+        marketType = self.safe_string(marketTypes, symbol)
+        if marketType == 'linear':
+            raise NotSupported(self.id + ' does not support editOrder for ' + marketType + ' ' + symbol + ' market type')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1332,7 +1337,9 @@ class bybit(Exchange):
         if limit is not None:
             request['limit'] = limit
         options = self.safe_value(self.options, 'fetchOrders', {})
-        defaultMethod = 'openapiGetOrderList'
+        marketTypes = self.safe_value(self.options, 'marketTypes', {})
+        marketType = self.safe_string(marketTypes, symbol)
+        defaultMethod = 'privateLinearGetOrderList' if (marketType == 'linear') else 'openapiGetOrderList'
         query = params
         if ('stop_order_id' in params) or ('stop_order_status' in params):
             stopOrderStatus = self.safe_value(params, 'stopOrderStatus')
@@ -1341,7 +1348,7 @@ class bybit(Exchange):
                     stopOrderStatus = ','.join(stopOrderStatus)
                 request['stop_order_status'] = stopOrderStatus
                 query = self.omit(params, 'stop_order_status')
-            defaultMethod = 'openapiGetStopOrderList'
+            defaultMethod = 'privateLinearGetStopOrderList' if (marketType == 'linear') else 'openapiGetStopOrderList'
         method = self.safe_string(options, 'method', defaultMethod)
         response = await getattr(self, method)(self.extend(request, query))
         #

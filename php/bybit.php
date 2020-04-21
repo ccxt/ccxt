@@ -8,6 +8,7 @@ namespace ccxt;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\NotSupported;
 
 class bybit extends Exchange {
 
@@ -1262,6 +1263,11 @@ class bybit extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' editOrder requires an $symbol argument');
         }
+        $marketTypes = $this->safe_value($this->options, 'marketTypes', array());
+        $marketType = $this->safe_string($marketTypes, $symbol);
+        if ($marketType === 'linear') {
+            throw new NotSupported($this->id . ' does not support editOrder for ' . $marketType . ' ' . $symbol . ' $market type');
+        }
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -1398,7 +1404,9 @@ class bybit extends Exchange {
             $request['limit'] = $limit;
         }
         $options = $this->safe_value($this->options, 'fetchOrders', array());
-        $defaultMethod = 'openapiGetOrderList';
+        $marketTypes = $this->safe_value($this->options, 'marketTypes', array());
+        $marketType = $this->safe_string($marketTypes, $symbol);
+        $defaultMethod = ($marketType === 'linear') ? 'privateLinearGetOrderList' : 'openapiGetOrderList';
         $query = $params;
         if ((is_array($params) && array_key_exists('stop_order_id', $params)) || (is_array($params) && array_key_exists('stop_order_status', $params))) {
             $stopOrderStatus = $this->safe_value($params, 'stopOrderStatus');
@@ -1409,7 +1417,7 @@ class bybit extends Exchange {
                 $request['stop_order_status'] = $stopOrderStatus;
                 $query = $this->omit($params, 'stop_order_status');
             }
-            $defaultMethod = 'openapiGetStopOrderList';
+            $defaultMethod = ($marketType === 'linear') ? 'privateLinearGetStopOrderList' : 'openapiGetStopOrderList';
         }
         $method = $this->safe_string($options, 'method', $defaultMethod);
         $response = $this->$method (array_merge($request, $query));
