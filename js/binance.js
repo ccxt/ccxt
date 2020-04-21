@@ -1187,6 +1187,8 @@ module.exports = class binance extends Exchange {
         } else if (uppercaseType === 'STOP') {
             stopPriceIsRequired = true;
             priceIsRequired = true;
+        } else if (uppercaseType === 'STOP_MARKET') {
+            stopPriceIsRequired = true;
         }
         if (priceIsRequired) {
             if (price === undefined) {
