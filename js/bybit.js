@@ -117,6 +117,40 @@ module.exports = class bybit extends Exchange {
                         'position/trading-stop',
                     ],
                 },
+                'publicLinear': {
+                    'get': [
+                        'kline',
+                        'recent-trading-records',
+                        'funding/prev-funding-rate',
+                        'mark-price-kline',
+                    ],
+                },
+                'privateLinear': {
+                    'get': [
+                        'order-list',
+                        'order-search',
+                        'stop-order/list',
+                        'stop-order/search',
+                        'position/list',
+                        'position/set-auto-add-margin',
+                        'position/set-leverage',
+                        'position/switch-isolated',
+                        'position/trading-stop',
+                        'position/add-margin',
+                        'trade/execution/list',
+                        'trade/closed-pnl/list',
+                        'risk-limit',
+                        'funding/prev-funding',
+                        'funding/predicted-funding',
+                    ],
+                    'post': [
+                        'order/create',
+                        'order/cancel',
+                        'order/cancelAll',
+                        'stop-order/cancel',
+                        'stop-order/cancelAll',
+                    ],
+                },
                 'position': {
                     'post': [
                         'change-position-margin',
@@ -228,6 +262,9 @@ module.exports = class bybit extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'options': {
+                'marketTypes': {
+                    'BTC/USDT': 'linear',
+                },
                 'code': 'BTC',
                 'fetchBalance': {
                     'code': 'BTC',
@@ -612,7 +649,7 @@ module.exports = class bybit extends Exchange {
         //     },
         //
         return [
-            this.safeTimestamp (ohlcv, 'open_time'),
+            this.safeTimestamp (ohlcv, 'open_time', 'start_at'),
             this.safeFloat (ohlcv, 'open'),
             this.safeFloat (ohlcv, 'high'),
             this.safeFloat (ohlcv, 'low'),
@@ -642,7 +679,11 @@ module.exports = class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // max 200, default 200
         }
-        const response = await this.publicGetKlineList (this.extend (request, params));
+        const options = this.safeValue (this.options, 'marketTypes', {});
+        const marketType = this.safeString (options, symbol);
+        const method = (marketType === 'linear') ? 'publicLinearGetKline' : 'publicGetKlineList';
+        const response = await this[method] (this.extend (request, params));
+        //
         //     {
         //         ret_code: 0,
         //         ret_msg: 'OK',
@@ -663,6 +704,7 @@ module.exports = class bybit extends Exchange {
         //         ],
         //         time_now: '1583953082.397330'
         //     }
+        //
         const result = this.safeValue (response, 'result', {});
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
@@ -1533,7 +1575,10 @@ module.exports = class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 20, max 50
         }
-        const response = await this.privateGetExecutionList (this.extend (request, params));
+        const options = this.safeValue (this.options, 'marketTypes', {});
+        const marketType = this.safeString (options, symbol);
+        const method = (marketType === 'linear') ? 'privateLinearGetTradeExecutionList' : 'privateGetExecutionList';
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "ret_code": 0,
@@ -1868,6 +1913,11 @@ module.exports = class bybit extends Exchange {
             if (Object.keys (params).length) {
                 request += '?' + this.rawencode (params);
             }
+        } else if (api === 'publicLinear') {
+            request = '/public/linear/' + request;
+            if (Object.keys (params).length) {
+                request += '?' + this.rawencode (params);
+            }
         } else {
             this.checkRequiredCredentials ();
             if (api === 'openapi') {
@@ -1875,6 +1925,8 @@ module.exports = class bybit extends Exchange {
             } else if (api === 'private') {
                 // private v2
                 request = '/' + this.version + '/' + api + '/' + request;
+            } else if (api === 'privateLinear') {
+                request = '/private/linear/' + request;
             } else {
                 // position, user
                 request = '/' + api + '/' + request;
