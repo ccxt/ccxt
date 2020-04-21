@@ -1337,7 +1337,9 @@ module.exports = class bybit extends Exchange {
             // conditional orders ---------------------------------------------
             // 'stop_order_id': id, // one of stop_order_id or order_link_id is required for conditional orders
         };
-        let method = 'privatePostOrderCancel';
+        const options = this.safeValue (this.options, 'marketTypes', {});
+        const marketType = this.safeValue (options, symbol);
+        let method = (marketType === 'linear') ? 'privateLinearPostOrderCancel' : 'privatePostOrderCancel';
         const stopOrderId = this.safeString (params, 'stop_order_id');
         if (stopOrderId === undefined) {
             const orderLinkId = this.safeString (params, 'order_link_id');
@@ -1345,7 +1347,7 @@ module.exports = class bybit extends Exchange {
                 request['order_id'] = id;
             }
         } else {
-            method = 'openapiPostStopOrderCancel';
+            method = (marketType === 'linear') ? 'privateLinearPostStopOrderCancel' : 'openapiPostStopOrderCancel';
         }
         const response = await this[method] (this.extend (request, params));
         const result = this.safeValue (response, 'result', {});
@@ -1362,7 +1364,10 @@ module.exports = class bybit extends Exchange {
             'symbol': market['id'],
         };
         const options = this.safeValue (this.options, 'cancelAllOrders');
-        const method = this.safeString (options, 'method', 'privatePostOrderCancelAll');
+        const marketTypes = this.safeValue (this.options, 'marketTypes');
+        const marketType = this.safeString (marketTypes, symbol);
+        const defaultMethod = (marketType === 'linear') ? 'privateLinearPostOrderCancelAll' : 'privatePostOrderCancelAll';
+        const method = this.safeString (options, 'method', defaultMethod);
         const response = await this[method] (this.extend (request, params));
         const result = this.safeValue (response, 'result', []);
         return this.parseOrders (result, market);
