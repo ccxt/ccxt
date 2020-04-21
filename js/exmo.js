@@ -590,7 +590,6 @@ module.exports = class exmo extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const fees = await this.fetchTradingFees ();
         const response = await this.publicGetPairSettings (params);
         //
         //     {
