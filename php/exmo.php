@@ -19,7 +19,7 @@ class exmo extends Exchange {
             'name' => 'EXMO',
             'countries' => array( 'ES', 'RU' ), // Spain, Russia
             'rateLimit' => 350, // once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
-            'version' => 'v1',
+            'version' => 'v1.1',
             'has' => array(
                 'CORS' => false,
                 'fetchClosedOrders' => 'emulated',
@@ -595,8 +595,21 @@ class exmo extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
-        $fees = $this->fetch_trading_fees();
         $response = $this->publicGetPairSettings ($params);
+        //
+        //     {
+        //         "EXM_ETH" => array(
+        //         "min_quantity" => "1",
+        //         "max_quantity" => "1000",
+        //         "min_price" => "1",
+        //         "max_price" => "1000",
+        //         "max_amount" => "1000",
+        //         "min_amount" => "1",
+        //         "commission_taker_percent" => "0.2",
+        //         "commission_maker_percent" => "0.2"
+        //         ),
+        //     }
+        //
         $keys = is_array($response) ? array_keys($response) : array();
         $result = array();
         for ($i = 0; $i < count($keys); $i++) {
@@ -606,6 +619,8 @@ class exmo extends Exchange {
             list($baseId, $quoteId) = explode('/', $symbol);
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            $taker = $this->safe_float($market, 'commission_taker_percent');
+            $maker = $this->safe_float($market, 'commission_maker_percent');
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -614,8 +629,8 @@ class exmo extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'active' => true,
-                'taker' => $fees['taker'],
-                'maker' => $fees['maker'],
+                'taker' => $taker / 100,
+                'maker' => $maker / 100,
                 'limits' => array(
                     'amount' => array(
                         'min' => $this->safe_float($market, 'min_quantity'),

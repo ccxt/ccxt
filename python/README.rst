@@ -193,7 +193,7 @@ The CCXT library currently supports the following 119 cryptocurrency exchange ma
 +--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 | dsx                | `DSX <https://dsx.uk>`__                                                                | 3   | `API <https://dsx.uk/developers/publicApi>`__                                                   |                                                                      |                                 |
 +--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| exmo               | `EXMO <https://exmo.me/?ref=131685>`__                                                  | 1   | `API <https://exmo.me/en/api_doc?ref=131685>`__                                                 |                                                                      |                                 |
+| exmo               | `EXMO <https://exmo.me/?ref=131685>`__                                                  | 1.1 | `API <https://exmo.me/en/api_doc?ref=131685>`__                                                 |                                                                      |                                 |
 +--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 | exx                | `EXX <https://www.exx.com/r/fde4260159e53ab8a58cc9186d35501f?recommQd=1>`__             | \*  | `API <https://www.exx.com/help/restApi>`__                                                      |                                                                      |                                 |
 +--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
@@ -355,14 +355,14 @@ JavaScript (for use with the ``<script>`` tag):
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
--  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.26.59/dist/ccxt.browser.js
--  unpkg: https://unpkg.com/ccxt@1.26.59/dist/ccxt.browser.js
+-  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.26.60/dist/ccxt.browser.js
+-  unpkg: https://unpkg.com/ccxt@1.26.60/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code:: html
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.26.59/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.26.60/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 
