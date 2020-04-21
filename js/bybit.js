@@ -817,7 +817,10 @@ module.exports = class bybit extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit; // default 500, max 1000
         }
-        const response = await this.publicGetTradingRecords (this.extend (request, params));
+        const options = this.safeValue (this.options, 'marketTypes');
+        const marketType = this.safeString (options, symbol);
+        const method = (marketType === 'linear') ? 'publicLinearGetRecentTradingRecords' : 'publicGetTradingRecords';
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         ret_code: 0,
