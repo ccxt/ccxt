@@ -32,7 +32,7 @@ class exmo(Exchange):
             'name': 'EXMO',
             'countries': ['ES', 'RU'],  # Spain, Russia
             'rateLimit': 350,  # once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
-            'version': 'v1',
+            'version': 'v1.1',
             'has': {
                 'CORS': False,
                 'fetchClosedOrders': 'emulated',
@@ -589,8 +589,21 @@ class exmo(Exchange):
         return result
 
     async def fetch_markets(self, params={}):
-        fees = await self.fetch_trading_fees()
         response = await self.publicGetPairSettings(params)
+        #
+        #     {
+        #         "EXM_ETH": {
+        #         "min_quantity": "1",
+        #         "max_quantity": "1000",
+        #         "min_price": "1",
+        #         "max_price": "1000",
+        #         "max_amount": "1000",
+        #         "min_amount": "1",
+        #         "commission_taker_percent": "0.2",
+        #         "commission_maker_percent": "0.2"
+        #         },
+        #     }
+        #
         keys = list(response.keys())
         result = []
         for i in range(0, len(keys)):
@@ -600,6 +613,8 @@ class exmo(Exchange):
             baseId, quoteId = symbol.split('/')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            taker = self.safe_float(market, 'commission_taker_percent')
+            maker = self.safe_float(market, 'commission_maker_percent')
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -608,8 +623,8 @@ class exmo(Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': True,
-                'taker': fees['taker'],
-                'maker': fees['maker'],
+                'taker': taker / 100,
+                'maker': maker / 100,
                 'limits': {
                     'amount': {
                         'min': self.safe_float(market, 'min_quantity'),
