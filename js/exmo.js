@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, ExchangeError, OrderNotFound, AuthenticationError, InsufficientFunds, InvalidOrder, InvalidNonce, NotSupported, OnMaintenance, RateLimitExceeded, BadRequest } = require ('./base/errors');
+const { ArgumentsRequired, ExchangeError, OrderNotFound, AuthenticationError, InsufficientFunds, InvalidOrder, InvalidNonce, NotSupported, OnMaintenance, RateLimitExceeded, BadRequest, PermissionDenied } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -438,6 +438,7 @@ module.exports = class exmo extends Exchange {
                     '40015': ExchangeError, // API function do not exist
                     '40016': OnMaintenance, // {"result":false,"error":"Error 40016: Maintenance work in progress"}
                     '40017': AuthenticationError, // Wrong API Key
+                    '40032': PermissionDenied, // {"result":false,"error":"Error 40032: Access is denied for this API key"}
                     '40034': RateLimitExceeded, // {"result":false,"error":"Error 40034: Access is denied, rate limit is exceeded"}
                     '50052': InsufficientFunds,
                     '50054': InsufficientFunds,
@@ -688,7 +689,8 @@ module.exports = class exmo extends Exchange {
                 if (limit > maxLimit) {
                     throw new BadRequest (this.id + ' fetchOHLCV will serve ' + maxLimit.toString () + ' candles at most');
                 }
-                request['from'] = now - limit * duration * 1000;
+                request['from'] = parseInt (now / 1000) - limit * duration;
+                request['to'] = parseInt (now / 1000);
             }
         } else {
             request['from'] = parseInt (since / 1000);
