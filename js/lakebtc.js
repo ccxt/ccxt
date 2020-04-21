@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, BadSymbol, InvalidOrder, InsufficientFunds } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -53,6 +53,14 @@ module.exports = class lakebtc extends Exchange {
                 'trading': {
                     'maker': 0.15 / 100,
                     'taker': 0.2 / 100,
+                },
+            },
+            'exceptions': {
+                'broad': {
+                    'Signature': AuthenticationError,
+                    'invalid symbol': BadSymbol,
+                    'Volume doit': InvalidOrder,
+                    'insufficient_balance': InsufficientFunds,
                 },
             },
         });
@@ -248,28 +256,27 @@ module.exports = class lakebtc extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ();
+            const nonceAsString = nonce.toString ();
             let queryParams = '';
             if ('params' in params) {
                 const paramsList = params['params'];
                 queryParams = paramsList.join (',');
             }
-            const query = this.urlencode ({
-                'tonce': nonce,
-                'accesskey': this.apiKey,
-                'requestmethod': method.toLowerCase (),
-                'id': nonce,
-                'method': path,
-                'params': queryParams,
-            });
+            let query = 'tonce=' + nonceAsString;
+            query += '&accesskey=' + this.apiKey;
+            query += '&requestmethod=' + method.toLowerCase ();
+            query += '&id=' + nonceAsString;
+            query += '&method=' + path;
+            query += '&params=' + queryParams;
             body = this.json ({
                 'method': path,
-                'params': queryParams,
+                'params': params['params'],
                 'id': nonce,
             });
             const signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha1');
             const auth = this.encode (this.apiKey + ':' + signature);
             headers = {
-                'Json-Rpc-Tonce': nonce.toString (),
+                'Json-Rpc-Tonce': nonceAsString,
                 'Authorization': 'Basic ' + this.decode (this.stringToBase64 (auth)),
                 'Content-Type': 'application/json',
             };
@@ -277,11 +284,20 @@ module.exports = class lakebtc extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('error' in response) {
-            throw new ExchangeError (this.id + ' ' + this.json (response));
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return; // fallback to the default error handler
         }
-        return response;
+        //
+        //     {"error":"Failed to submit order: invalid symbol"}
+        //     {"error":"Failed to submit order: La validation a échoué : Volume doit être supérieur ou égal à 1.0"}
+        //     {"error":"Failed to submit order: insufficient_balance"}
+        //
+        const feedback = this.id + ' ' + body;
+        const error = this.safeString (response, 'error');
+        if (error !== undefined) {
+            this.throwBroadlyMatchedException (this.exceptions['broad'], error, feedback);
+            throw new ExchangeError (feedback); // unknown message
+        }
     }
 };
