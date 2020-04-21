@@ -61,6 +61,7 @@ class kraken(Exchange):
                 'withdraw': True,
                 'fetchLedgerEntry': True,
                 'fetchLedger': True,
+                'fetchOrderTrades': 'emulated',
             },
             'marketsByAltname': {},
             'timeframes': {
@@ -755,6 +756,36 @@ class kraken(Exchange):
         return items[0]
 
     def parse_trade(self, trade, market=None):
+        #
+        # fetchTrades(public)
+        #
+        #     [
+        #         "0.032310",  # price
+        #         "4.28169434",  # amount
+        #         1541390792.763,  # timestamp
+        #         "s",  # sell or buy
+        #         "l",  # limit or market
+        #         ""
+        #     ]
+        #
+        # fetchOrderTrades(private)
+        #
+        #     {
+        #         id: 'TIMIRG-WUNNE-RRJ6GT',  # injected from outside
+        #         ordertxid: 'OQRPN2-LRHFY-HIFA7D',
+        #         postxid: 'TKH2SE-M7IF5-CFI7LT',
+        #         pair: 'USDCUSDT',
+        #         time: 1586340086.457,
+        #         type: 'sell',
+        #         ordertype: 'market',
+        #         price: '0.99860000',
+        #         cost: '22.16892001',
+        #         fee: '0.04433784',
+        #         vol: '22.20000000',
+        #         margin: '0.00000000',
+        #         misc: ''
+        #     }
+        #
         timestamp = None
         side = None
         type = None
@@ -1091,6 +1122,65 @@ class kraken(Exchange):
         orders = self.safe_value(response, 'result', [])
         order = self.parse_order(self.extend({'id': id}, orders[id]))
         return self.extend({'info': response}, order)
+
+    def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+        orderTrades = self.safe_value(params, 'trades')
+        tradeIds = []
+        if orderTrades is None:
+            raise ArgumentsRequired(self.id + " fetchOrderTrades requires a unified order structure in the params argument or a 'trades' param(an array of trade id strings)")
+        else:
+            for i in range(0, len(orderTrades)):
+                orderTrade = orderTrades[i]
+                if isinstance(orderTrade, basestring):
+                    tradeIds.append(orderTrade)
+                else:
+                    tradeIds.append(orderTrade['id'])
+        self.load_markets()
+        options = self.safe_value(self.options, 'fetchOrderTrades', {})
+        batchSize = self.safe_integer(options, 'batchSize', 20)
+        numBatches = int(tradeIds / batchSize)
+        numBatches = self.sum(numBatches, 1)
+        numTradeIds = len(tradeIds)
+        result = []
+        for j in range(0, numBatches):
+            requestIds = []
+            for k in range(0, batchSize):
+                index = self.sum(j * batchSize, k)
+                if index < numTradeIds:
+                    requestIds.append(tradeIds[index])
+            request = {
+                'txid': ','.join(requestIds),
+            }
+            response = self.privatePostQueryTrades(request)
+            #
+            #     {
+            #         error: [],
+            #         result: {
+            #             'TIMIRG-WUNNE-RRJ6GT': {
+            #                 ordertxid: 'OQRPN2-LRHFY-HIFA7D',
+            #                 postxid: 'TKH2SE-M7IF5-CFI7LT',
+            #                 pair: 'USDCUSDT',
+            #                 time: 1586340086.457,
+            #                 type: 'sell',
+            #                 ordertype: 'market',
+            #                 price: '0.99860000',
+            #                 cost: '22.16892001',
+            #                 fee: '0.04433784',
+            #                 vol: '22.20000000',
+            #                 margin: '0.00000000',
+            #                 misc: ''
+            #             }
+            #         }
+            #     }
+            #
+            rawTrades = self.safe_value(response, 'result')
+            ids = list(rawTrades.keys())
+            for i in range(0, len(ids)):
+                rawTrades[ids[i]]['id'] = ids[i]
+            trades = self.parse_trades(rawTrades, None, since, limit)
+            tradesFilteredBySymbol = self.filter_by_symbol(trades, symbol)
+            result = self.array_concat(result, tradesFilteredBySymbol)
+        return result
 
     def fetch_orders_by_ids(self, ids, symbol=None, params={}):
         self.load_markets()
