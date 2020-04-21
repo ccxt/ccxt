@@ -57,6 +57,14 @@ class lakebtc extends Exchange {
                     'taker' => 0.2 / 100,
                 ),
             ),
+            'exceptions' => array(
+                'broad' => array(
+                    'Signature' => '\\ccxt\\AuthenticationError',
+                    'invalid symbol' => '\\ccxt\\BadSymbol',
+                    'Volume doit' => '\\ccxt\\InvalidOrder',
+                    'insufficient_balance' => '\\ccxt\\InsufficientFunds',
+                ),
+            ),
         ));
     }
 
@@ -250,28 +258,27 @@ class lakebtc extends Exchange {
         } else {
             $this->check_required_credentials();
             $nonce = $this->nonce();
+            $nonceAsString = (string) $nonce;
             $queryParams = '';
             if (is_array($params) && array_key_exists('params', $params)) {
                 $paramsList = $params['params'];
                 $queryParams = implode(',', $paramsList);
             }
-            $query = $this->urlencode(array(
-                'tonce' => $nonce,
-                'accesskey' => $this->apiKey,
-                'requestmethod' => strtolower($method),
-                'id' => $nonce,
-                'method' => $path,
-                'params' => $queryParams,
-            ));
+            $query = 'tonce=' . $nonceAsString;
+            $query .= '&accesskey=' . $this->apiKey;
+            $query .= '&requestmethod=' . strtolower($method);
+            $query .= '&id=' . $nonceAsString;
+            $query .= '&$method=' . $path;
+            $query .= '&$params=' . $queryParams;
             $body = $this->json(array(
                 'method' => $path,
-                'params' => $queryParams,
+                'params' => $params['params'],
                 'id' => $nonce,
             ));
             $signature = $this->hmac($this->encode($query), $this->encode($this->secret), 'sha1');
             $auth = $this->encode($this->apiKey . ':' . $signature);
             $headers = array(
-                'Json-Rpc-Tonce' => (string) $nonce,
+                'Json-Rpc-Tonce' => $nonceAsString,
                 'Authorization' => 'Basic ' . $this->decode(base64_encode($auth)),
                 'Content-Type' => 'application/json',
             );
@@ -279,11 +286,20 @@ class lakebtc extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2($path, $api, $method, $params, $headers, $body);
-        if (is_array($response) && array_key_exists('error', $response)) {
-            throw new ExchangeError($this->id . ' ' . $this->json($response));
+    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+        if ($response === null) {
+            return; // fallback to the default $error handler
         }
-        return $response;
+        //
+        //     array("$error":"Failed to submit order => invalid symbol")
+        //     array("$error":"Failed to submit order => La validation a échoué : Volume doit être supérieur ou égal à 1.0")
+        //     array("$error":"Failed to submit order => insufficient_balance")
+        //
+        $feedback = $this->id . ' ' . $body;
+        $error = $this->safe_string($response, 'error');
+        if ($error !== null) {
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $error, $feedback);
+            throw new ExchangeError($feedback); // unknown message
+        }
     }
 }
