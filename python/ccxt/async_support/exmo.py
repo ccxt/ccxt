@@ -834,8 +834,36 @@ class exmo(Exchange):
         return self.parse_ticker(response[market['id']], market)
 
     def parse_trade(self, trade, market=None):
+        #
+        # fetchTrades(public)
+        #
+        #     {
+        #         "trade_id":165087520,
+        #         "date":1587470005,
+        #         "type":"buy",
+        #         "quantity":"1.004",
+        #         "price":"0.02491461",
+        #         "amount":"0.02501426"
+        #     },
+        #
+        # fetchMyTrades, fetchOrderTrades
+        #
+        #     {
+        #         "trade_id": 3,
+        #         "date": 1435488248,
+        #         "type": "buy",
+        #         "pair": "BTC_USD",
+        #         "order_id": 12345,
+        #         "quantity": 1,
+        #         "price": 100,
+        #         "amount": 100,
+        #         "exec_type": "taker",
+        #         "commission_amount": "0.02",
+        #         "commission_currency": "BTC",
+        #         "commission_percent": "0.2"
+        #     }
+        #
         timestamp = self.safe_timestamp(trade, 'date')
-        fee = None
         symbol = None
         id = self.safe_string(trade, 'trade_id')
         orderId = self.safe_string(trade, 'order_id')
@@ -844,22 +872,31 @@ class exmo(Exchange):
         cost = self.safe_float(trade, 'amount')
         side = self.safe_string(trade, 'type')
         type = None
-        if market is not None:
+        marketId = self.safe_string(trade, 'pair')
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+            else:
+                baseId, quoteId = marketId.split('_')
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
+                symbol = base + '/' + quote
+        if (symbol is None) and (market is not None):
             symbol = market['symbol']
-            if market['taker'] != market['maker']:
-                raise ExchangeError(self.id + ' parseTrade can not deduce proper fee costs, taker and maker fees now differ')
-            if (side == 'buy') and (amount is not None):
-                fee = {
-                    'currency': market['base'],
-                    'cost': amount * market['taker'],
-                    'rate': market['taker'],
-                }
-            elif (side == 'sell') and (cost is not None):
-                fee = {
-                    'currency': market['quote'],
-                    'cost': cost * market['taker'],
-                    'rate': market['taker'],
-                }
+        takerOrMaker = self.safe_string(trade, 'exec_type')
+        fee = None
+        feeCost = self.safe_float(trade, 'commission_amount')
+        if feeCost is not None:
+            feeCurrencyId = self.safe_string(trade, 'commision_currency')
+            feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
+            feeRate = self.safe_float(trade, 'commision_percent')
+            if feeRate is not None:
+                feeRate /= 1000
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+                'rate': feeRate,
+            }
         return {
             'id': id,
             'info': trade,
@@ -869,7 +906,7 @@ class exmo(Exchange):
             'order': orderId,
             'type': type,
             'side': side,
-            'takerOrMaker': None,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -883,6 +920,28 @@ class exmo(Exchange):
             'pair': market['id'],
         }
         response = await self.publicGetTrades(self.extend(request, params))
+        #
+        #     {
+        #         "ETH_BTC":[
+        #             {
+        #                 "trade_id":165087520,
+        #                 "date":1587470005,
+        #                 "type":"buy",
+        #                 "quantity":"1.004",
+        #                 "price":"0.02491461",
+        #                 "amount":"0.02501426"
+        #             },
+        #             {
+        #                 "trade_id":165087369,
+        #                 "date":1587469938,
+        #                 "type":"buy",
+        #                 "quantity":"0.94",
+        #                 "price":"0.02492348",
+        #                 "amount":"0.02342807"
+        #             }
+        #         ]
+        #     }
+        #
         data = self.safe_value(response, market['id'], [])
         return self.parse_trades(data, market, since, limit)
 
@@ -1023,6 +1082,31 @@ class exmo(Exchange):
             'order_id': str(id),
         }
         response = await self.privatePostOrderTrades(self.extend(request, params))
+        #
+        #     {
+        #         "type": "buy",
+        #         "in_currency": "BTC",
+        #         "in_amount": "1",
+        #         "out_currency": "USD",
+        #         "out_amount": "100",
+        #         "trades": [
+        #             {
+        #                 "trade_id": 3,
+        #                 "date": 1435488248,
+        #                 "type": "buy",
+        #                 "pair": "BTC_USD",
+        #                 "order_id": 12345,
+        #                 "quantity": 1,
+        #                 "price": 100,
+        #                 "amount": 100,
+        #                 "exec_type": "taker",
+        #                 "commission_amount": "0.02",
+        #                 "commission_currency": "BTC",
+        #                 "commission_percent": "0.2"
+        #             }
+        #         ]
+        #     }
+        #
         trades = self.safe_value(response, 'trades')
         return self.parse_trades(trades, market, since, limit)
 

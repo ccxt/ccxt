@@ -866,8 +866,36 @@ class exmo extends Exchange {
     }
 
     public function parse_trade($trade, $market = null) {
+        //
+        // fetchTrades (public)
+        //
+        //     array(
+        //         "trade_id":165087520,
+        //         "date":1587470005,
+        //         "$type":"buy",
+        //         "quantity":"1.004",
+        //         "$price":"0.02491461",
+        //         "$amount":"0.02501426"
+        //     ),
+        //
+        // fetchMyTrades, fetchOrderTrades
+        //
+        //     {
+        //         "trade_id" => 3,
+        //         "date" => 1435488248,
+        //         "$type" => "buy",
+        //         "pair" => "BTC_USD",
+        //         "order_id" => 12345,
+        //         "quantity" => 1,
+        //         "$price" => 100,
+        //         "$amount" => 100,
+        //         "exec_type" => "taker",
+        //         "commission_amount" => "0.02",
+        //         "commission_currency" => "BTC",
+        //         "commission_percent" => "0.2"
+        //     }
+        //
         $timestamp = $this->safe_timestamp($trade, 'date');
-        $fee = null;
         $symbol = null;
         $id = $this->safe_string($trade, 'trade_id');
         $orderId = $this->safe_string($trade, 'order_id');
@@ -876,24 +904,35 @@ class exmo extends Exchange {
         $cost = $this->safe_float($trade, 'amount');
         $side = $this->safe_string($trade, 'type');
         $type = null;
-        if ($market !== null) {
+        $marketId = $this->safe_string($trade, 'pair');
+        if ($marketId !== null) {
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+            } else {
+                list($baseId, $quoteId) = explode('_', $marketId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
+                $symbol = $base . '/' . $quote;
+            }
+        }
+        if (($symbol === null) && ($market !== null)) {
             $symbol = $market['symbol'];
-            if ($market['taker'] !== $market['maker']) {
-                throw new ExchangeError($this->id . ' parseTrade can not deduce proper $fee costs, taker and maker fees now differ');
+        }
+        $takerOrMaker = $this->safe_string($trade, 'exec_type');
+        $fee = null;
+        $feeCost = $this->safe_float($trade, 'commission_amount');
+        if ($feeCost !== null) {
+            $feeCurrencyId = $this->safe_string($trade, 'commision_currency');
+            $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
+            $feeRate = $this->safe_float($trade, 'commision_percent');
+            if ($feeRate !== null) {
+                $feeRate /= 1000;
             }
-            if (($side === 'buy') && ($amount !== null)) {
-                $fee = array(
-                    'currency' => $market['base'],
-                    'cost' => $amount * $market['taker'],
-                    'rate' => $market['taker'],
-                );
-            } else if (($side === 'sell') && ($cost !== null)) {
-                $fee = array(
-                    'currency' => $market['quote'],
-                    'cost' => $cost * $market['taker'],
-                    'rate' => $market['taker'],
-                );
-            }
+            $fee = array(
+                'cost' => $feeCost,
+                'currency' => $feeCurrencyCode,
+                'rate' => $feeRate,
+            );
         }
         return array(
             'id' => $id,
@@ -904,7 +943,7 @@ class exmo extends Exchange {
             'order' => $orderId,
             'type' => $type,
             'side' => $side,
-            'takerOrMaker' => null,
+            'takerOrMaker' => $takerOrMaker,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
@@ -919,6 +958,28 @@ class exmo extends Exchange {
             'pair' => $market['id'],
         );
         $response = $this->publicGetTrades (array_merge($request, $params));
+        //
+        //     {
+        //         "ETH_BTC":array(
+        //             array(
+        //                 "trade_id":165087520,
+        //                 "date":1587470005,
+        //                 "type":"buy",
+        //                 "quantity":"1.004",
+        //                 "price":"0.02491461",
+        //                 "amount":"0.02501426"
+        //             ),
+        //             {
+        //                 "trade_id":165087369,
+        //                 "date":1587469938,
+        //                 "type":"buy",
+        //                 "quantity":"0.94",
+        //                 "price":"0.02492348",
+        //                 "amount":"0.02342807"
+        //             }
+        //         )
+        //     }
+        //
         $data = $this->safe_value($response, $market['id'], array());
         return $this->parse_trades($data, $market, $since, $limit);
     }
@@ -1076,6 +1137,31 @@ class exmo extends Exchange {
             'order_id' => (string) $id,
         );
         $response = $this->privatePostOrderTrades (array_merge($request, $params));
+        //
+        //     {
+        //         "type" => "buy",
+        //         "in_currency" => "BTC",
+        //         "in_amount" => "1",
+        //         "out_currency" => "USD",
+        //         "out_amount" => "100",
+        //         "$trades" => array(
+        //             {
+        //                 "trade_id" => 3,
+        //                 "date" => 1435488248,
+        //                 "type" => "buy",
+        //                 "pair" => "BTC_USD",
+        //                 "order_id" => 12345,
+        //                 "quantity" => 1,
+        //                 "price" => 100,
+        //                 "amount" => 100,
+        //                 "exec_type" => "taker",
+        //                 "commission_amount" => "0.02",
+        //                 "commission_currency" => "BTC",
+        //                 "commission_percent" => "0.2"
+        //             }
+        //         )
+        //     }
+        //
         $trades = $this->safe_value($response, 'trades');
         return $this->parse_trades($trades, $market, $since, $limit);
     }
