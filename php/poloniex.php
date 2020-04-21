@@ -175,6 +175,7 @@ class poloniex extends Exchange {
                     'Permission denied' => '\\ccxt\\PermissionDenied',
                     'Connection timed out. Please try again.' => '\\ccxt\\RequestTimeout',
                     'Internal error. Please try again.' => '\\ccxt\\ExchangeNotAvailable',
+                    'Currently in maintenance mode.' => '\\ccxt\\OnMaintenance',
                     'Order not found, or you are not the person who placed it.' => '\\ccxt\\OrderNotFound',
                     'Invalid API key/secret pair.' => '\\ccxt\\AuthenticationError',
                     'Please do not make more than 8 API calls per second.' => '\\ccxt\\DDoSProtection',

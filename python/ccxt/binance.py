@@ -1126,6 +1126,8 @@ class binance(Exchange):
         elif uppercaseType == 'STOP':
             stopPriceIsRequired = True
             priceIsRequired = True
+        elif uppercaseType == 'STOP_MARKET':
+            stopPriceIsRequired = True
         if priceIsRequired:
             if price is None:
                 raise InvalidOrder(self.id + ' createOrder method requires a price argument for a ' + type + ' order')
