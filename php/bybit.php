@@ -690,6 +690,8 @@ class bybit extends Exchange {
         //         "exec_id" => "256e5ef8-abfe-5772-971b-f944e15e0d68",
         //         "exec_price" => "8178.5",
         //         "exec_qty" => 1,
+        //         // the docs say the exec_time field is "abandoned" now
+        //         // the user should use "trade_time_ms"
         //         "exec_time" => "1571676941.70682",
         //         "exec_type" => "Trade", //Exec Type Enum
         //         "exec_value" => "0.00012227",
@@ -704,7 +706,8 @@ class bybit extends Exchange {
         //         "order_type" => "Market", //Order Type Enum
         //         "$side" => "Buy", //Side Enum
         //         "$symbol" => "BTCUSD", //Symbol Enum
-        //         "user_id" => 1
+        //         "user_id" => 1,
+        //         "trade_time_ms" => 1577480599000
         //     }
         //
         $id = $this->safe_string_2($trade, 'id', 'exec_id');
@@ -722,7 +725,7 @@ class bybit extends Exchange {
         }
         $timestamp = $this->parse8601($this->safe_string($trade, 'time'));
         if ($timestamp === null) {
-            $timestamp = $this->safe_timestamp($trade, 'exec_time');
+            $timestamp = $this->safe_integer($trade, 'trade_time_ms');
         }
         $side = $this->safe_string_lower($trade, 'side');
         $price = $this->safe_float_2($trade, 'price', 'exec_price');
@@ -1526,7 +1529,7 @@ class bybit extends Exchange {
             $request['symbol'] = $market['id'];
         }
         if ($since !== null) {
-            $request['start_time'] = intval ($since / 1000);
+            $request['start_time'] = $since;
         }
         if ($limit !== null) {
             $request['limit'] = $limit; // default 20, max 50
