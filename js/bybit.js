@@ -1036,7 +1036,9 @@ module.exports = class bybit extends Exchange {
             // conditional orders ---------------------------------------------
             // 'stop_order_id': id, // one of stop_order_id or order_link_id is required for conditional orders
         };
-        let method = 'privateGetOrder';
+        const options = this.safeValue (this.options, 'marketTypes');
+        const marketType = this.safeString (options, symbol);
+        let method = (marketType === 'linear') ? 'privateLinearGetOrderSearch' : 'privateGetOrder';
         const stopOrderId = this.safeString (params, 'stop_order_id');
         if (stopOrderId === undefined) {
             const orderLinkId = this.safeString (params, 'order_link_id');
@@ -1044,7 +1046,7 @@ module.exports = class bybit extends Exchange {
                 request['order_id'] = id;
             }
         } else {
-            method = 'privateGetStopOrder';
+            method = (marketType === 'linear') ? 'privateLinearGetStopOrderSearch' : 'privateGetStopOrder';
         }
         const response = await this[method] (this.extend (request, params));
         //
