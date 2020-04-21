@@ -675,6 +675,8 @@ class bybit(Exchange):
         #         "exec_id": "256e5ef8-abfe-5772-971b-f944e15e0d68",
         #         "exec_price": "8178.5",
         #         "exec_qty": 1,
+        #         # the docs say the exec_time field is "abandoned" now
+        #         # the user should use "trade_time_ms"
         #         "exec_time": "1571676941.70682",
         #         "exec_type": "Trade",  #Exec Type Enum
         #         "exec_value": "0.00012227",
@@ -689,7 +691,8 @@ class bybit(Exchange):
         #         "order_type": "Market",  #Order Type Enum
         #         "side": "Buy",  #Side Enum
         #         "symbol": "BTCUSD",  #Symbol Enum
-        #         "user_id": 1
+        #         "user_id": 1,
+        #         "trade_time_ms": 1577480599000
         #     }
         #
         id = self.safe_string_2(trade, 'id', 'exec_id')
@@ -705,7 +708,7 @@ class bybit(Exchange):
             base = market['base']
         timestamp = self.parse8601(self.safe_string(trade, 'time'))
         if timestamp is None:
-            timestamp = self.safe_timestamp(trade, 'exec_time')
+            timestamp = self.safe_integer(trade, 'trade_time_ms')
         side = self.safe_string_lower(trade, 'side')
         price = self.safe_float_2(trade, 'price', 'exec_price')
         amount = self.safe_float_2(trade, 'qty', 'exec_qty')
@@ -1447,7 +1450,7 @@ class bybit(Exchange):
             market = self.market(symbol)
             request['symbol'] = market['id']
         if since is not None:
-            request['start_time'] = int(since / 1000)
+            request['start_time'] = since
         if limit is not None:
             request['limit'] = limit  # default 20, max 50
         response = self.privateGetExecutionList(self.extend(request, params))
