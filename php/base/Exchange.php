@@ -35,7 +35,7 @@ use kornrunner\Solidity;
 use Elliptic\EC;
 use BN\BN;
 
-$version = '1.26.72';
+$version = '1.26.73';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -54,7 +54,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.26.72';
+    const VERSION = '1.26.73';
 
     public static $exchanges = array(
         '_1btcxe',
@@ -703,6 +703,14 @@ class Exchange {
 
     public static function binaryToBase64($binary) {
         return static::binary_to_base64($binary);
+    }
+
+    public static function base16_to_binary($data) {
+        return hex2bin($data);
+    }
+
+    public static function base16ToBinary($data) {
+        return static::base16_to_binary($data);
     }
 
     public static function json($data, $params = array()) {
