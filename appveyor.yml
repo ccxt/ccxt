@@ -14,6 +14,7 @@ install:
   - python -m pip install --upgrade pip setuptools
   - pip install tox
   - pip install requests
+  - pip install libffi
   - pip install cryptography
   - SET PATH=C:\Program Files\curl;%PATH%
   - ps: Set-Service wuauserv -StartupType Manual
