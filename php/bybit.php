@@ -682,8 +682,8 @@ class bybit extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // max 200, default 200
         }
-        $options = $this->safe_value($this->options, 'marketTypes', array());
-        $marketType = $this->safe_string($options, $symbol);
+        $marketTypes = $this->safe_value($this->options, 'marketTypes', array());
+        $marketType = $this->safe_string($marketTypes, $symbol);
         $method = ($marketType === 'linear') ? 'publicLinearGetKline' : 'publicGetKlineList';
         $response = $this->$method (array_merge($request, $params));
         //
@@ -820,8 +820,8 @@ class bybit extends Exchange {
         if ($limit !== null) {
             $request['count'] = $limit; // default 500, max 1000
         }
-        $options = $this->safe_value($this->options, 'marketTypes');
-        $marketType = $this->safe_string($options, $symbol);
+        $marketTypes = $this->safe_value($this->options, 'marketTypes', array());
+        $marketType = $this->safe_string($marketTypes, $symbol);
         $method = ($marketType === 'linear') ? 'publicLinearGetRecentTradingRecords' : 'publicGetTradingRecords';
         $response = $this->$method (array_merge($request, $params));
         //
@@ -1039,8 +1039,8 @@ class bybit extends Exchange {
             // conditional orders ---------------------------------------------
             // 'stop_order_id' => $id, // one of stop_order_id or order_link_id is required for conditional orders
         );
-        $options = $this->safe_value($this->options, 'marketTypes');
-        $marketType = $this->safe_string($options, $symbol);
+        $marketTypes = $this->safe_value($this->options, 'marketTypes', array());
+        $marketType = $this->safe_string($marketTypes, $symbol);
         $method = ($marketType === 'linear') ? 'privateLinearGetOrderSearch' : 'privateGetOrder';
         $stopOrderId = $this->safe_string($params, 'stop_order_id');
         if ($stopOrderId === null) {
@@ -1161,8 +1161,8 @@ class bybit extends Exchange {
         }
         $stopPx = $this->safe_value($params, 'stop_px');
         $basePrice = $this->safe_value($params, 'base_price');
-        $options = $this->safe_value($this->options, 'marketTypes');
-        $marketType = $this->safe_string($options, $symbol);
+        $marketTypes = $this->safe_value($this->options, 'marketTypes', array());
+        $marketType = $this->safe_string($marketTypes, $symbol);
         $method = ($marketType === 'linear') ? 'privateLinearPostOrderCreate' : 'privatePostOrderCreate';
         if ($stopPx !== null) {
             if ($basePrice === null) {
@@ -1339,7 +1339,9 @@ class bybit extends Exchange {
             // conditional orders ---------------------------------------------
             // 'stop_order_id' => $id, // one of stop_order_id or order_link_id is required for conditional orders
         );
-        $method = 'privatePostOrderCancel';
+        $marketTypes = $this->safe_value($this->options, 'marketTypes', array());
+        $marketType = $this->safe_value($marketTypes, $symbol);
+        $method = ($marketType === 'linear') ? 'privateLinearPostOrderCancel' : 'privatePostOrderCancel';
         $stopOrderId = $this->safe_string($params, 'stop_order_id');
         if ($stopOrderId === null) {
             $orderLinkId = $this->safe_string($params, 'order_link_id');
@@ -1347,7 +1349,7 @@ class bybit extends Exchange {
                 $request['order_id'] = $id;
             }
         } else {
-            $method = 'openapiPostStopOrderCancel';
+            $method = ($marketType === 'linear') ? 'privateLinearPostStopOrderCancel' : 'openapiPostStopOrderCancel';
         }
         $response = $this->$method (array_merge($request, $params));
         $result = $this->safe_value($response, 'result', array());
@@ -1364,7 +1366,10 @@ class bybit extends Exchange {
             'symbol' => $market['id'],
         );
         $options = $this->safe_value($this->options, 'cancelAllOrders');
-        $method = $this->safe_string($options, 'method', 'privatePostOrderCancelAll');
+        $marketTypes = $this->safe_value($this->options, 'marketTypes', array());
+        $marketType = $this->safe_string($marketTypes, $symbol);
+        $defaultMethod = ($marketType === 'linear') ? 'privateLinearPostOrderCancelAll' : 'privatePostOrderCancelAll';
+        $method = $this->safe_string($options, 'method', $defaultMethod);
         $response = $this->$method (array_merge($request, $params));
         $result = $this->safe_value($response, 'result', array());
         return $this->parse_orders($result, $market);
@@ -1585,8 +1590,8 @@ class bybit extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 20, max 50
         }
-        $options = $this->safe_value($this->options, 'marketTypes', array());
-        $marketType = $this->safe_string($options, $symbol);
+        $marketTypes = $this->safe_value($this->options, 'marketTypes', array());
+        $marketType = $this->safe_string($marketTypes, $symbol);
         $method = ($marketType === 'linear') ? 'privateLinearGetTradeExecutionList' : 'privateGetExecutionList';
         $response = $this->$method (array_merge($request, $params));
         //
