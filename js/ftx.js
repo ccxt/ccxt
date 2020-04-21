@@ -580,6 +580,7 @@ module.exports = class ftx extends Exchange {
         //     {
         //         "fee": 20.1374935,
         //         "feeRate": 0.0005,
+        //         "feeCurrency": "USD",
         //         "future": "EOS-0329",
         //         "id": 11215,
         //         "liquidity": "taker",
@@ -626,8 +627,11 @@ module.exports = class ftx extends Exchange {
         let fee = undefined;
         const feeCost = this.safeFloat (trade, 'fee');
         if (feeCost !== undefined) {
+            const feeCurrencyId = this.safeString (trade, 'feeCurrency');
+            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
                 'cost': feeCost,
+                'currency': feeCurrencyCode,
                 'rate': this.safeFloat (trade, 'feeRate'),
             };
         }
