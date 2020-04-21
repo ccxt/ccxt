@@ -46,6 +46,7 @@ class kraken extends Exchange {
                 'withdraw' => true,
                 'fetchLedgerEntry' => true,
                 'fetchLedger' => true,
+                'fetchOrderTrades' => 'emulated',
             ),
             'marketsByAltname' => array(),
             'timeframes' => array(
@@ -793,6 +794,36 @@ class kraken extends Exchange {
     }
 
     public function parse_trade($trade, $market = null) {
+        //
+        // fetchTrades (public)
+        //
+        //     array(
+        //         "0.032310", // $price
+        //         "4.28169434", // $amount
+        //         1541390792.763, // $timestamp
+        //         "s", // sell or buy
+        //         "l", // limit or $market
+        //         ""
+        //     )
+        //
+        // fetchOrderTrades (private)
+        //
+        //     {
+        //         $id => 'TIMIRG-WUNNE-RRJ6GT', // injected from outside
+        //         ordertxid => 'OQRPN2-LRHFY-HIFA7D',
+        //         postxid => 'TKH2SE-M7IF5-CFI7LT',
+        //         pair => 'USDCUSDT',
+        //         time => 1586340086.457,
+        //         $type => 'sell',
+        //         ordertype => 'market',
+        //         $price => '0.99860000',
+        //         $cost => '22.16892001',
+        //         $fee => '0.04433784',
+        //         vol => '22.20000000',
+        //         margin => '0.00000000',
+        //         misc => ''
+        //     }
+        //
         $timestamp = null;
         $side = null;
         $type = null;
@@ -1166,6 +1197,73 @@ class kraken extends Exchange {
         $orders = $this->safe_value($response, 'result', array());
         $order = $this->parse_order(array_merge(array( 'id' => $id ), $orders[$id]));
         return array_merge(array( 'info' => $response ), $order);
+    }
+
+    public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        $orderTrades = $this->safe_value($params, 'trades');
+        $tradeIds = array();
+        if ($orderTrades === null) {
+            throw new ArgumentsRequired($this->id . " fetchOrderTrades requires a unified order structure in the $params argument or a 'trades' param (an array of trade $id strings)");
+        } else {
+            for ($i = 0; $i < count($orderTrades); $i++) {
+                $orderTrade = $orderTrades[$i];
+                if (gettype($orderTrade) === 'string') {
+                    $tradeIds[] = $orderTrade;
+                } else {
+                    $tradeIds[] = $orderTrade['id'];
+                }
+            }
+        }
+        $this->load_markets();
+        $options = $this->safe_value($this->options, 'fetchOrderTrades', array());
+        $batchSize = $this->safe_integer($options, 'batchSize', 20);
+        $numBatches = intval ($tradeIds / $batchSize);
+        $numBatches = $this->sum($numBatches, 1);
+        $numTradeIds = is_array($tradeIds) ? count($tradeIds) : 0;
+        $result = array();
+        for ($j = 0; $j < $numBatches; $j++) {
+            $requestIds = array();
+            for ($k = 0; $k < $batchSize; $k++) {
+                $index = $this->sum($j * $batchSize, $k);
+                if ($index < $numTradeIds) {
+                    $requestIds[] = $tradeIds[$index];
+                }
+            }
+            $request = array(
+                'txid' => implode(',', $requestIds),
+            );
+            $response = $this->privatePostQueryTrades ($request);
+            //
+            //     {
+            //         error => array(),
+            //         $result => {
+            //             'TIMIRG-WUNNE-RRJ6GT' => {
+            //                 ordertxid => 'OQRPN2-LRHFY-HIFA7D',
+            //                 postxid => 'TKH2SE-M7IF5-CFI7LT',
+            //                 pair => 'USDCUSDT',
+            //                 time => 1586340086.457,
+            //                 type => 'sell',
+            //                 ordertype => 'market',
+            //                 price => '0.99860000',
+            //                 cost => '22.16892001',
+            //                 fee => '0.04433784',
+            //                 vol => '22.20000000',
+            //                 margin => '0.00000000',
+            //                 misc => ''
+            //             }
+            //         }
+            //     }
+            //
+            $rawTrades = $this->safe_value($response, 'result');
+            $ids = is_array($rawTrades) ? array_keys($rawTrades) : array();
+            for ($i = 0; $i < count($ids); $i++) {
+                $rawTrades[$ids[$i]]['id'] = $ids[$i];
+            }
+            $trades = $this->parse_trades($rawTrades, null, $since, $limit);
+            $tradesFilteredBySymbol = $this->filter_by_symbol($trades, $symbol);
+            $result = $this->array_concat($result, $tradesFilteredBySymbol);
+        }
+        return $result;
     }
 
     public function fetch_orders_by_ids($ids, $symbol = null, $params = array ()) {
