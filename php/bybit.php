@@ -149,6 +149,7 @@ class bybit extends Exchange {
                         'order/create',
                         'order/cancel',
                         'order/cancelAll',
+                        'stop-order/create',
                         'stop-order/cancel',
                         'stop-order/cancelAll',
                     ),
@@ -1160,12 +1161,14 @@ class bybit extends Exchange {
         }
         $stopPx = $this->safe_value($params, 'stop_px');
         $basePrice = $this->safe_value($params, 'base_price');
-        $method = 'privatePostOrderCreate';
+        $options = $this->safe_value($this->options, 'marketTypes');
+        $marketType = $this->safe_string($options, $symbol);
+        $method = ($marketType === 'linear') ? 'privateLinearPostOrderCreate' : 'privatePostOrderCreate';
         if ($stopPx !== null) {
             if ($basePrice === null) {
                 throw new ArgumentsRequired($this->id . ' createOrder requires both the stop_px and base_price $params for a conditional ' . $type . ' order');
             } else {
-                $method = 'openapiPostStopOrderCreate';
+                $method = ($marketType === 'linear') ? 'privateLinearPostStopOrderCreate' : 'openapiPostStopOrderCreate';
                 $request['stop_px'] = $this->price_to_precision($symbol, $stopPx);
                 $request['base_price'] = $this->price_to_precision($symbol, $basePrice);
                 $params = $this->omit($params, array( 'stop_px', 'base_price' ));

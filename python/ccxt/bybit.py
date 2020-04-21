@@ -157,6 +157,7 @@ class bybit(Exchange):
                         'order/create',
                         'order/cancel',
                         'order/cancelAll',
+                        'stop-order/create',
                         'stop-order/cancel',
                         'stop-order/cancelAll',
                     ],
@@ -1110,12 +1111,14 @@ class bybit(Exchange):
                 raise ArgumentsRequired(self.id + ' createOrder requires a price argument for a ' + type + ' order')
         stopPx = self.safe_value(params, 'stop_px')
         basePrice = self.safe_value(params, 'base_price')
-        method = 'privatePostOrderCreate'
+        options = self.safe_value(self.options, 'marketTypes')
+        marketType = self.safe_string(options, symbol)
+        method = 'privateLinearPostOrderCreate' if (marketType == 'linear') else 'privatePostOrderCreate'
         if stopPx is not None:
             if basePrice is None:
                 raise ArgumentsRequired(self.id + ' createOrder requires both the stop_px and base_price params for a conditional ' + type + ' order')
             else:
-                method = 'openapiPostStopOrderCreate'
+                method = 'privateLinearPostStopOrderCreate' if (marketType == 'linear') else 'openapiPostStopOrderCreate'
                 request['stop_px'] = self.price_to_precision(symbol, stopPx)
                 request['base_price'] = self.price_to_precision(symbol, basePrice)
                 params = self.omit(params, ['stop_px', 'base_price'])
