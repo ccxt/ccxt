@@ -170,7 +170,7 @@ module.exports = class poloniex extends Exchange {
                     'Permission denied': PermissionDenied,
                     'Connection timed out. Please try again.': RequestTimeout,
                     'Internal error. Please try again.': ExchangeNotAvailable,
-            	    'Currently in maintenance mode.': ExchangeNotAvailable,
+            	      'Currently in maintenance mode.': ExchangeNotAvailable,
                     'Order not found, or you are not the person who placed it.': OrderNotFound,
                     'Invalid API key/secret pair.': AuthenticationError,
                     'Please do not make more than 8 API calls per second.': DDoSProtection,
