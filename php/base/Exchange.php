@@ -713,7 +713,6 @@ class Exchange {
         return static::base16_to_binary($data);
     }
 
-
     public static function json($data, $params = array()) {
         $options = array(
             'convertArraysToObjects' => JSON_FORCE_OBJECT,
