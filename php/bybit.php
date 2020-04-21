@@ -1038,7 +1038,9 @@ class bybit extends Exchange {
             // conditional orders ---------------------------------------------
             // 'stop_order_id' => $id, // one of stop_order_id or order_link_id is required for conditional orders
         );
-        $method = 'privateGetOrder';
+        $options = $this->safe_value($this->options, 'marketTypes');
+        $marketType = $this->safe_string($options, $symbol);
+        $method = ($marketType === 'linear') ? 'privateLinearGetOrderSearch' : 'privateGetOrder';
         $stopOrderId = $this->safe_string($params, 'stop_order_id');
         if ($stopOrderId === null) {
             $orderLinkId = $this->safe_string($params, 'order_link_id');
@@ -1046,7 +1048,7 @@ class bybit extends Exchange {
                 $request['order_id'] = $id;
             }
         } else {
-            $method = 'privateGetStopOrder';
+            $method = ($marketType === 'linear') ? 'privateLinearGetStopOrderSearch' : 'privateGetStopOrder';
         }
         $response = $this->$method (array_merge($request, $params));
         //
