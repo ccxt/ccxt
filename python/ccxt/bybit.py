@@ -73,6 +73,7 @@ class bybit(Exchange):
                 'www': 'https://www.bybit.com/',
                 'doc': [
                     'https://bybit-exchange.github.io/docs/inverse/',
+                    'https://bybit-exchange.github.io/docs/linear/',
                     'https://github.com/bybit-exchange',
                 ],
                 'fees': 'https://help.bybit.com/hc/en-us/articles/360039261154',
@@ -124,6 +125,40 @@ class bybit(Exchange):
                         'stop-order/cancel',
                         'stop-order/replace',
                         'position/trading-stop',
+                    ],
+                },
+                'publicLinear': {
+                    'get': [
+                        'kline',
+                        'recent-trading-records',
+                        'funding/prev-funding-rate',
+                        'mark-price-kline',
+                    ],
+                },
+                'privateLinear': {
+                    'get': [
+                        'order-list',
+                        'order-search',
+                        'stop-order/list',
+                        'stop-order/search',
+                        'position/list',
+                        'position/set-auto-add-margin',
+                        'position/set-leverage',
+                        'position/switch-isolated',
+                        'position/trading-stop',
+                        'position/add-margin',
+                        'trade/execution/list',
+                        'trade/closed-pnl/list',
+                        'risk-limit',
+                        'funding/prev-funding',
+                        'funding/predicted-funding',
+                    ],
+                    'post': [
+                        'order/create',
+                        'order/cancel',
+                        'order/cancelAll',
+                        'stop-order/cancel',
+                        'stop-order/cancelAll',
                     ],
                 },
                 'position': {
@@ -237,6 +272,9 @@ class bybit(Exchange):
             },
             'precisionMode': TICK_SIZE,
             'options': {
+                'marketTypes': {
+                    'BTC/USDT': 'linear',
+                },
                 'code': 'BTC',
                 'fetchBalance': {
                     'code': 'BTC',
@@ -603,7 +641,7 @@ class bybit(Exchange):
         #     },
         #
         return [
-            self.safe_timestamp(ohlcv, 'open_time'),
+            self.safe_timestamp(ohlcv, 'open_time', 'start_at'),
             self.safe_float(ohlcv, 'open'),
             self.safe_float(ohlcv, 'high'),
             self.safe_float(ohlcv, 'low'),
@@ -629,7 +667,11 @@ class bybit(Exchange):
             request['from'] = int(since / 1000)
         if limit is not None:
             request['limit'] = limit  # max 200, default 200
-        response = self.publicGetKlineList(self.extend(request, params))
+        options = self.safe_value(self.options, 'marketTypes', {})
+        marketType = self.safe_string(options, symbol)
+        method = 'publicLinearGetKline' if (marketType == 'linear') else 'publicGetKlineList'
+        response = getattr(self, method)(self.extend(request, params))
+        #
         #     {
         #         ret_code: 0,
         #         ret_msg: 'OK',
@@ -650,6 +692,7 @@ class bybit(Exchange):
         #         ],
         #         time_now: '1583953082.397330'
         #     }
+        #
         result = self.safe_value(response, 'result', {})
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
@@ -1453,7 +1496,10 @@ class bybit(Exchange):
             request['start_time'] = since
         if limit is not None:
             request['limit'] = limit  # default 20, max 50
-        response = self.privateGetExecutionList(self.extend(request, params))
+        options = self.safe_value(self.options, 'marketTypes', {})
+        marketType = self.safe_string(options, symbol)
+        method = 'privateLinearGetTradeExecutionList' if (marketType == 'linear') else 'privateGetExecutionList'
+        response = getattr(self, method)(self.extend(request, params))
         #
         #     {
         #         "ret_code": 0,
@@ -1769,6 +1815,10 @@ class bybit(Exchange):
             request = '/' + self.version + '/' + api + '/' + request
             if params:
                 request += '?' + self.rawencode(params)
+        elif api == 'publicLinear':
+            request = '/public/linear/' + request
+            if params:
+                request += '?' + self.rawencode(params)
         else:
             self.check_required_credentials()
             if api == 'openapi':
@@ -1776,6 +1826,8 @@ class bybit(Exchange):
             elif api == 'private':
                 # private v2
                 request = '/' + self.version + '/' + api + '/' + request
+            elif api == 'privateLinear':
+                request = '/private/linear/' + request
             else:
                 # position, user
                 request = '/' + api + '/' + request

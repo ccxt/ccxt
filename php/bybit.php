@@ -65,6 +65,7 @@ class bybit extends Exchange {
                 'www' => 'https://www.bybit.com/',
                 'doc' => array(
                     'https://bybit-exchange.github.io/docs/inverse/',
+                    'https://bybit-exchange.github.io/docs/linear/',
                     'https://github.com/bybit-exchange',
                 ),
                 'fees' => 'https://help.bybit.com/hc/en-us/articles/360039261154',
@@ -116,6 +117,40 @@ class bybit extends Exchange {
                         'stop-order/cancel',
                         'stop-order/replace',
                         'position/trading-stop',
+                    ),
+                ),
+                'publicLinear' => array(
+                    'get' => array(
+                        'kline',
+                        'recent-trading-records',
+                        'funding/prev-funding-rate',
+                        'mark-price-kline',
+                    ),
+                ),
+                'privateLinear' => array(
+                    'get' => array(
+                        'order-list',
+                        'order-search',
+                        'stop-order/list',
+                        'stop-order/search',
+                        'position/list',
+                        'position/set-auto-add-margin',
+                        'position/set-leverage',
+                        'position/switch-isolated',
+                        'position/trading-stop',
+                        'position/add-margin',
+                        'trade/execution/list',
+                        'trade/closed-pnl/list',
+                        'risk-limit',
+                        'funding/prev-funding',
+                        'funding/predicted-funding',
+                    ),
+                    'post' => array(
+                        'order/create',
+                        'order/cancel',
+                        'order/cancelAll',
+                        'stop-order/cancel',
+                        'stop-order/cancelAll',
                     ),
                 ),
                 'position' => array(
@@ -229,6 +264,9 @@ class bybit extends Exchange {
             ),
             'precisionMode' => TICK_SIZE,
             'options' => array(
+                'marketTypes' => array(
+                    'BTC/USDT' => 'linear',
+                ),
                 'code' => 'BTC',
                 'fetchBalance' => array(
                     'code' => 'BTC',
@@ -613,7 +651,7 @@ class bybit extends Exchange {
         //     ),
         //
         return array(
-            $this->safe_timestamp($ohlcv, 'open_time'),
+            $this->safe_timestamp($ohlcv, 'open_time', 'start_at'),
             $this->safe_float($ohlcv, 'open'),
             $this->safe_float($ohlcv, 'high'),
             $this->safe_float($ohlcv, 'low'),
@@ -643,7 +681,11 @@ class bybit extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // max 200, default 200
         }
-        $response = $this->publicGetKlineList (array_merge($request, $params));
+        $options = $this->safe_value($this->options, 'marketTypes', array());
+        $marketType = $this->safe_string($options, $symbol);
+        $method = ($marketType === 'linear') ? 'publicLinearGetKline' : 'publicGetKlineList';
+        $response = $this->$method (array_merge($request, $params));
+        //
         //     {
         //         ret_code => 0,
         //         ret_msg => 'OK',
@@ -664,6 +706,7 @@ class bybit extends Exchange {
         //         ),
         //         time_now => '1583953082.397330'
         //     }
+        //
         $result = $this->safe_value($response, 'result', array());
         return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
     }
@@ -1534,7 +1577,10 @@ class bybit extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 20, max 50
         }
-        $response = $this->privateGetExecutionList (array_merge($request, $params));
+        $options = $this->safe_value($this->options, 'marketTypes', array());
+        $marketType = $this->safe_string($options, $symbol);
+        $method = ($marketType === 'linear') ? 'privateLinearGetTradeExecutionList' : 'privateGetExecutionList';
+        $response = $this->$method (array_merge($request, $params));
         //
         //     {
         //         "ret_code" => 0,
@@ -1869,6 +1915,11 @@ class bybit extends Exchange {
             if ($params) {
                 $request .= '?' . $this->rawencode($params);
             }
+        } else if ($api === 'publicLinear') {
+            $request = '/public/linear/' . $request;
+            if ($params) {
+                $request .= '?' . $this->rawencode($params);
+            }
         } else {
             $this->check_required_credentials();
             if ($api === 'openapi') {
@@ -1876,6 +1927,8 @@ class bybit extends Exchange {
             } else if ($api === 'private') {
                 // private v2
                 $request = '/' . $this->version . '/' . $api . '/' . $request;
+            } else if ($api === 'privateLinear') {
+                $request = '/private/linear/' . $request;
             } else {
                 // position, user
                 $request = '/' . $api . '/' . $request;
