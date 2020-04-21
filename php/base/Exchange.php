@@ -705,6 +705,14 @@ class Exchange {
         return static::binary_to_base64($binary);
     }
 
+    public static function base16_to_binary($data) {
+        return hex2bin($data);
+    }
+
+    public static function base16ToBinary($data) {
+        return static::base16_to_binary($data);
+    }
+
     public static function json($data, $params = array()) {
         $options = array(
             'convertArraysToObjects' => JSON_FORCE_OBJECT,
