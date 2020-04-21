@@ -680,8 +680,8 @@ module.exports = class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // max 200, default 200
         }
-        const options = this.safeValue (this.options, 'marketTypes', {});
-        const marketType = this.safeString (options, symbol);
+        const marketTypes = this.safeValue (this.options, 'marketTypes', {});
+        const marketType = this.safeString (marketTypes, symbol);
         const method = (marketType === 'linear') ? 'publicLinearGetKline' : 'publicGetKlineList';
         const response = await this[method] (this.extend (request, params));
         //
@@ -818,8 +818,8 @@ module.exports = class bybit extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit; // default 500, max 1000
         }
-        const options = this.safeValue (this.options, 'marketTypes');
-        const marketType = this.safeString (options, symbol);
+        const marketTypes = this.safeValue (this.options, 'marketTypes', {});
+        const marketType = this.safeString (marketTypes, symbol);
         const method = (marketType === 'linear') ? 'publicLinearGetRecentTradingRecords' : 'publicGetTradingRecords';
         const response = await this[method] (this.extend (request, params));
         //
@@ -1037,8 +1037,8 @@ module.exports = class bybit extends Exchange {
             // conditional orders ---------------------------------------------
             // 'stop_order_id': id, // one of stop_order_id or order_link_id is required for conditional orders
         };
-        const options = this.safeValue (this.options, 'marketTypes');
-        const marketType = this.safeString (options, symbol);
+        const marketTypes = this.safeValue (this.options, 'marketTypes', {});
+        const marketType = this.safeString (marketTypes, symbol);
         let method = (marketType === 'linear') ? 'privateLinearGetOrderSearch' : 'privateGetOrder';
         const stopOrderId = this.safeString (params, 'stop_order_id');
         if (stopOrderId === undefined) {
@@ -1159,8 +1159,8 @@ module.exports = class bybit extends Exchange {
         }
         const stopPx = this.safeValue (params, 'stop_px');
         const basePrice = this.safeValue (params, 'base_price');
-        const options = this.safeValue (this.options, 'marketTypes');
-        const marketType = this.safeString (options, symbol);
+        const marketTypes = this.safeValue (this.options, 'marketTypes', {});
+        const marketType = this.safeString (marketTypes, symbol);
         let method = (marketType === 'linear') ? 'privateLinearPostOrderCreate' : 'privatePostOrderCreate';
         if (stopPx !== undefined) {
             if (basePrice === undefined) {
@@ -1337,8 +1337,8 @@ module.exports = class bybit extends Exchange {
             // conditional orders ---------------------------------------------
             // 'stop_order_id': id, // one of stop_order_id or order_link_id is required for conditional orders
         };
-        const options = this.safeValue (this.options, 'marketTypes', {});
-        const marketType = this.safeValue (options, symbol);
+        const marketTypes = this.safeValue (this.options, 'marketTypes', {});
+        const marketType = this.safeValue (marketTypes, symbol);
         let method = (marketType === 'linear') ? 'privateLinearPostOrderCancel' : 'privatePostOrderCancel';
         const stopOrderId = this.safeString (params, 'stop_order_id');
         if (stopOrderId === undefined) {
@@ -1364,7 +1364,7 @@ module.exports = class bybit extends Exchange {
             'symbol': market['id'],
         };
         const options = this.safeValue (this.options, 'cancelAllOrders');
-        const marketTypes = this.safeValue (this.options, 'marketTypes');
+        const marketTypes = this.safeValue (this.options, 'marketTypes', {});
         const marketType = this.safeString (marketTypes, symbol);
         const defaultMethod = (marketType === 'linear') ? 'privateLinearPostOrderCancelAll' : 'privatePostOrderCancelAll';
         const method = this.safeString (options, 'method', defaultMethod);
@@ -1588,8 +1588,8 @@ module.exports = class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 20, max 50
         }
-        const options = this.safeValue (this.options, 'marketTypes', {});
-        const marketType = this.safeString (options, symbol);
+        const marketTypes = this.safeValue (this.options, 'marketTypes', {});
+        const marketType = this.safeString (marketTypes, symbol);
         const method = (marketType === 'linear') ? 'privateLinearGetTradeExecutionList' : 'privateGetExecutionList';
         const response = await this[method] (this.extend (request, params));
         //
