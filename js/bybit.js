@@ -1527,7 +1527,7 @@ module.exports = class bybit extends Exchange {
             request['symbol'] = market['id'];
         }
         if (since !== undefined) {
-            request['start_time'] = parseInt (since / 1000);
+            request['start_time'] = since;
         }
         if (limit !== undefined) {
             request['limit'] = limit; // default 20, max 50
