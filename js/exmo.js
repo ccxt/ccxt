@@ -32,6 +32,7 @@ module.exports = class exmo extends Exchange {
                 'fetchFundingFees': true,
                 'fetchCurrencies': true,
                 'fetchTransactions': true,
+                'fetchOHLCV': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -711,6 +712,27 @@ module.exports = class exmo extends Exchange {
         //
         const candles = this.safeValue (response, 'candles', []);
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market = undefined, timeframe = '5m', since = undefined, limit = undefined) {
+        //
+        //     {
+        //         "t":1584057600000,
+        //         "o":0.02235144,
+        //         "c":0.02400233,
+        //         "h":0.025171,
+        //         "l":0.02221,
+        //         "v":5988.34031761
+        //     }
+        //
+        return [
+            this.safeInteger (ohlcv, 't'),
+            this.safeFloat (ohlcv, 'o'),
+            this.safeFloat (ohlcv, 'h'),
+            this.safeFloat (ohlcv, 'l'),
+            this.safeFloat (ohlcv, 'c'),
+            this.safeFloat (ohlcv, 'v'),
+        ];
     }
 
     async fetchBalance (params = {}) {
