@@ -14,7 +14,7 @@ module.exports = class exmo extends Exchange {
             'name': 'EXMO',
             'countries': [ 'ES', 'RU' ], // Spain, Russia
             'rateLimit': 350, // once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
-            'version': 'v1',
+            'version': 'v1.1',
             'has': {
                 'CORS': false,
                 'fetchClosedOrders': 'emulated',
@@ -592,6 +592,20 @@ module.exports = class exmo extends Exchange {
     async fetchMarkets (params = {}) {
         const fees = await this.fetchTradingFees ();
         const response = await this.publicGetPairSettings (params);
+        //
+        //     {
+        //         "EXM_ETH": {
+        //         "min_quantity": "1",
+        //         "max_quantity": "1000",
+        //         "min_price": "1",
+        //         "max_price": "1000",
+        //         "max_amount": "1000",
+        //         "min_amount": "1",
+        //         "commission_taker_percent": "0.2",
+        //         "commission_maker_percent": "0.2"
+        //         },
+        //     }
+        //
         const keys = Object.keys (response);
         const result = [];
         for (let i = 0; i < keys.length; i++) {
@@ -601,6 +615,8 @@ module.exports = class exmo extends Exchange {
             const [ baseId, quoteId ] = symbol.split ('/');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            const taker = this.safeFloat (market, 'commission_taker_percent');
+            const maker = this.safeFloat (market, 'commission_maker_percent');
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -609,8 +625,8 @@ module.exports = class exmo extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': true,
-                'taker': fees['taker'],
-                'maker': fees['maker'],
+                'taker': taker / 100,
+                'maker': maker / 100,
                 'limits': {
                     'amount': {
                         'min': this.safeFloat (market, 'min_quantity'),
