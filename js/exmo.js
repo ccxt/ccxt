@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, ExchangeError, OrderNotFound, AuthenticationError, InsufficientFunds, InvalidOrder, InvalidNonce, NotSupported, OnMaintenance, RateLimitExceeded } = require ('./base/errors');
+const { ArgumentsRequired, ExchangeError, OrderNotFound, AuthenticationError, InsufficientFunds, InvalidOrder, InvalidNonce, NotSupported, OnMaintenance, RateLimitExceeded, BadRequest } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -32,6 +32,20 @@ module.exports = class exmo extends Exchange {
                 'fetchFundingFees': true,
                 'fetchCurrencies': true,
                 'fetchTransactions': true,
+            },
+            'timeframes': {
+                '1m': '1',
+                '5m': '5',
+                '15m': '15',
+                '30m': '30',
+                '45m': '45',
+                '1h': '60',
+                '2h': '120',
+                '3h': '180',
+                '4h': '240',
+                '1d': 'D',
+                '1w': 'W',
+                '1M': 'M',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg',
@@ -62,6 +76,7 @@ module.exports = class exmo extends Exchange {
                         'pair_settings',
                         'ticker',
                         'trades',
+                        'candles_history',
                     ],
                 },
                 'private': {
@@ -429,6 +444,8 @@ module.exports = class exmo extends Exchange {
                     '50321': InvalidOrder, // Price by order is more than permissible maximum for this pair
                 },
                 'broad': {
+                    'range period is too long': BadRequest,
+                    'invalid syntax': BadRequest,
                     'API rate limit exceeded': RateLimitExceeded, // {"result":false,"error":"API rate limit exceeded for 99.33.55.224. Retry after 60 sec.","history":[],"begin":1579392000,"end":1579478400}
                 },
             },
@@ -648,6 +665,52 @@ module.exports = class exmo extends Exchange {
             });
         }
         return result;
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'resolution': this.timeframes[timeframe],
+        };
+        const options = this.safeValue (this.options, 'fetchOHLCV');
+        const maxLimit = this.safeInteger (options, 'maxLimit', 3000);
+        const duration = this.parseTimeframe (timeframe);
+        const now = this.milliseconds ();
+        if (since === undefined) {
+            if (limit === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchOHLCV requires a since argument or a limit argument');
+            } else {
+                if (limit > maxLimit) {
+                    throw new BadRequest (this.id + ' fetchOHLCV will serve ' + maxLimit.toString () + ' candles at most');
+                }
+                request['from'] = now - limit * duration * 1000;
+            }
+        } else {
+            request['from'] = parseInt (since / 1000);
+            if (limit === undefined) {
+                request['to'] = parseInt (now / 1000);
+            } else {
+                if (limit > maxLimit) {
+                    throw new BadRequest (this.id + ' fetchOHLCV will serve ' + maxLimit.toString () + ' candles at most');
+                }
+                const to = this.sum (since, limit * duration * 1000);
+                request['to'] = parseInt (to / 1000);
+            }
+        }
+        const response = await this.publicGetCandlesHistory (this.extend (request, params));
+        //
+        //     {
+        //         "candles":[
+        //             {"t":1584057600000,"o":0.02235144,"c":0.02400233,"h":0.025171,"l":0.02221,"v":5988.34031761},
+        //             {"t":1584144000000,"o":0.0240373,"c":0.02367413,"h":0.024399,"l":0.0235,"v":2027.82522329},
+        //             {"t":1584230400000,"o":0.02363458,"c":0.02319242,"h":0.0237948,"l":0.02223196,"v":1707.96944997},
+        //         ]
+        //     }
+        //
+        const candles = this.safeValue (response, 'candles', []);
+        return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
     async fetchBalance (params = {}) {
@@ -1430,9 +1493,10 @@ module.exports = class exmo extends Exchange {
         if (response === undefined) {
             return; // fallback to default error handler
         }
-        if ('result' in response) {
+        if (('result' in response) || ('errmsg' in response)) {
             //
             //     {"result":false,"error":"Error 50052: Insufficient funds"}
+            //     {"s":"error","errmsg":"strconv.ParseInt: parsing \"\": invalid syntax"}
             //
             let success = this.safeValue (response, 'result', false);
             if (typeof success === 'string') {
@@ -1444,7 +1508,7 @@ module.exports = class exmo extends Exchange {
             }
             if (!success) {
                 let code = undefined;
-                const message = this.safeString (response, 'error');
+                const message = this.safeString2 (response, 'error', 'errmsg');
                 const errorParts = message.split (':');
                 const numParts = errorParts.length;
                 if (numParts > 1) {
