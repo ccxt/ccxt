@@ -860,8 +860,36 @@ module.exports = class exmo extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        // fetchTrades (public)
+        //
+        //     {
+        //         "trade_id":165087520,
+        //         "date":1587470005,
+        //         "type":"buy",
+        //         "quantity":"1.004",
+        //         "price":"0.02491461",
+        //         "amount":"0.02501426"
+        //     },
+        //
+        // fetchMyTrades, fetchOrderTrades
+        //
+        //     {
+        //         "trade_id": 3,
+        //         "date": 1435488248,
+        //         "type": "buy",
+        //         "pair": "BTC_USD",
+        //         "order_id": 12345,
+        //         "quantity": 1,
+        //         "price": 100,
+        //         "amount": 100,
+        //         "exec_type": "taker",
+        //         "commission_amount": "0.02",
+        //         "commission_currency": "BTC",
+        //         "commission_percent": "0.2"
+        //     }
+        //
         const timestamp = this.safeTimestamp (trade, 'date');
-        let fee = undefined;
         let symbol = undefined;
         const id = this.safeString (trade, 'trade_id');
         const orderId = this.safeString (trade, 'order_id');
@@ -870,24 +898,35 @@ module.exports = class exmo extends Exchange {
         const cost = this.safeFloat (trade, 'amount');
         const side = this.safeString (trade, 'type');
         const type = undefined;
-        if (market !== undefined) {
+        const marketId = this.safeString (trade, 'pair');
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('_');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
-            if (market['taker'] !== market['maker']) {
-                throw new ExchangeError (this.id + ' parseTrade can not deduce proper fee costs, taker and maker fees now differ');
+        }
+        const takerOrMaker = this.safeString (trade, 'exec_type');
+        let fee = undefined;
+        const feeCost = this.safeFloat (trade, 'commission_amount');
+        if (feeCost !== undefined) {
+            const feeCurrencyId = this.safeString (trade, 'commision_currency');
+            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+            let feeRate = this.safeFloat (trade, 'commision_percent');
+            if (feeRate !== undefined) {
+                feeRate /= 1000;
             }
-            if ((side === 'buy') && (amount !== undefined)) {
-                fee = {
-                    'currency': market['base'],
-                    'cost': amount * market['taker'],
-                    'rate': market['taker'],
-                };
-            } else if ((side === 'sell') && (cost !== undefined)) {
-                fee = {
-                    'currency': market['quote'],
-                    'cost': cost * market['taker'],
-                    'rate': market['taker'],
-                };
-            }
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+                'rate': feeRate,
+            };
         }
         return {
             'id': id,
@@ -898,7 +937,7 @@ module.exports = class exmo extends Exchange {
             'order': orderId,
             'type': type,
             'side': side,
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -913,6 +952,28 @@ module.exports = class exmo extends Exchange {
             'pair': market['id'],
         };
         const response = await this.publicGetTrades (this.extend (request, params));
+        //
+        //     {
+        //         "ETH_BTC":[
+        //             {
+        //                 "trade_id":165087520,
+        //                 "date":1587470005,
+        //                 "type":"buy",
+        //                 "quantity":"1.004",
+        //                 "price":"0.02491461",
+        //                 "amount":"0.02501426"
+        //             },
+        //             {
+        //                 "trade_id":165087369,
+        //                 "date":1587469938,
+        //                 "type":"buy",
+        //                 "quantity":"0.94",
+        //                 "price":"0.02492348",
+        //                 "amount":"0.02342807"
+        //             }
+        //         ]
+        //     }
+        //
         const data = this.safeValue (response, market['id'], []);
         return this.parseTrades (data, market, since, limit);
     }
@@ -1070,6 +1131,31 @@ module.exports = class exmo extends Exchange {
             'order_id': id.toString (),
         };
         const response = await this.privatePostOrderTrades (this.extend (request, params));
+        //
+        //     {
+        //         "type": "buy",
+        //         "in_currency": "BTC",
+        //         "in_amount": "1",
+        //         "out_currency": "USD",
+        //         "out_amount": "100",
+        //         "trades": [
+        //             {
+        //                 "trade_id": 3,
+        //                 "date": 1435488248,
+        //                 "type": "buy",
+        //                 "pair": "BTC_USD",
+        //                 "order_id": 12345,
+        //                 "quantity": 1,
+        //                 "price": 100,
+        //                 "amount": 100,
+        //                 "exec_type": "taker",
+        //                 "commission_amount": "0.02",
+        //                 "commission_currency": "BTC",
+        //                 "commission_percent": "0.2"
+        //             }
+        //         ]
+        //     }
+        //
         const trades = this.safeValue (response, 'trades');
         return this.parseTrades (trades, market, since, limit);
     }
