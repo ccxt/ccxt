@@ -16,6 +16,7 @@ class lakebtc extends Exchange {
             'name' => 'LakeBTC',
             'countries' => array( 'US' ),
             'version' => 'api_v2',
+            'rateLimit' => 1000,
             'has' => array(
                 'CORS' => true,
                 'createMarketOrder' => false,
@@ -259,27 +260,47 @@ class lakebtc extends Exchange {
             $this->check_required_credentials();
             $nonce = $this->nonce();
             $nonceAsString = (string) $nonce;
+            $requestId = $this->seconds();
             $queryParams = '';
             if (is_array($params) && array_key_exists('params', $params)) {
                 $paramsList = $params['params'];
-                $queryParams = implode(',', $paramsList);
+                $stringParams = array();
+                for ($i = 0; $i < count($paramsList); $i++) {
+                    $param = $paramsList[$i];
+                    if (gettype($paramsList) !== 'string') {
+                        $param = (string) $param;
+                    }
+                    $stringParams[] = $param;
+                }
+                $queryParams = implode(',', $stringParams);
+                $body = array(
+                    'method' => $path,
+                    'params' => $params['params'],
+                    'id' => $requestId,
+                );
+            } else {
+                $body = array(
+                    'method' => $path,
+                    'params' => '',
+                    'id' => $requestId,
+                );
             }
-            $query = 'tonce=' . $nonceAsString;
-            $query .= '&accesskey=' . $this->apiKey;
-            $query .= '&requestmethod=' . strtolower($method);
-            $query .= '&id=' . $nonceAsString;
-            $query .= '&$method=' . $path;
-            $query .= '&$params=' . $queryParams;
-            $body = $this->json(array(
-                'method' => $path,
-                'params' => $params['params'],
-                'id' => $nonce,
-            ));
+            $body = $this->json($body);
+            $query = array(
+                'tonce=' . $nonceAsString,
+                'accesskey=' . $this->apiKey,
+                'requestmethod=' . strtolower($method),
+                'id=' . (string) $requestId,
+                'method=' . $path,
+                'params=' . $queryParams,
+            );
+            $query = implode('&', $query);
             $signature = $this->hmac($this->encode($query), $this->encode($this->secret), 'sha1');
             $auth = $this->encode($this->apiKey . ':' . $signature);
+            $signature64 = $this->decode(base64_encode($auth));
             $headers = array(
                 'Json-Rpc-Tonce' => $nonceAsString,
-                'Authorization' => 'Basic ' . $this->decode(base64_encode($auth)),
+                'Authorization' => 'Basic ' . $signature64,
                 'Content-Type' => 'application/json',
             );
         }

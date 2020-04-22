@@ -4,6 +4,13 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 import base64
 import hashlib
 from ccxt.base.errors import ExchangeError
@@ -21,6 +28,7 @@ class lakebtc(Exchange):
             'name': 'LakeBTC',
             'countries': ['US'],
             'version': 'api_v2',
+            'rateLimit': 1000,
             'has': {
                 'CORS': True,
                 'createMarketOrder': False,
@@ -242,26 +250,44 @@ class lakebtc(Exchange):
             self.check_required_credentials()
             nonce = self.nonce()
             nonceAsString = str(nonce)
+            requestId = self.seconds()
             queryParams = ''
             if 'params' in params:
                 paramsList = params['params']
-                queryParams = ','.join(paramsList)
-            query = 'tonce=' + nonceAsString
-            query += '&accesskey=' + self.apiKey
-            query += '&requestmethod=' + method.lower()
-            query += '&id=' + nonceAsString
-            query += '&method=' + path
-            query += '&params=' + queryParams
-            body = self.json({
-                'method': path,
-                'params': params['params'],
-                'id': nonce,
-            })
+                stringParams = []
+                for i in range(0, len(paramsList)):
+                    param = paramsList[i]
+                    if not isinstance(paramsList, basestring):
+                        param = str(param)
+                    stringParams.append(param)
+                queryParams = ','.join(stringParams)
+                body = {
+                    'method': path,
+                    'params': params['params'],
+                    'id': requestId,
+                }
+            else:
+                body = {
+                    'method': path,
+                    'params': '',
+                    'id': requestId,
+                }
+            body = self.json(body)
+            query = [
+                'tonce=' + nonceAsString,
+                'accesskey=' + self.apiKey,
+                'requestmethod=' + method.lower(),
+                'id=' + str(requestId),
+                'method=' + path,
+                'params=' + queryParams,
+            ]
+            query = '&'.join(query)
             signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha1)
             auth = self.encode(self.apiKey + ':' + signature)
+            signature64 = self.decode(base64.b64encode(auth))
             headers = {
                 'Json-Rpc-Tonce': nonceAsString,
-                'Authorization': 'Basic ' + self.decode(base64.b64encode(auth)),
+                'Authorization': 'Basic ' + signature64,
                 'Content-Type': 'application/json',
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
