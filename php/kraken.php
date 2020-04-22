@@ -1111,7 +1111,10 @@ class kraken extends Exchange {
         $id = $this->safe_string($order, 'id');
         $clientOrderId = $this->safe_string($order, 'userref');
         $rawTrades = $this->safe_value($order, 'trades');
-        $trades = $this->parse_trades($rawTrades, $market, null, null, array( 'order' => $id ));
+        $trades = null;
+        if ($rawTrades !== null) {
+            $trades = $this->parse_trades($rawTrades, $market, null, null, array( 'order' => $id ));
+        }
         return array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,

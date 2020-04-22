@@ -1040,7 +1040,9 @@ class kraken(Exchange):
         id = self.safe_string(order, 'id')
         clientOrderId = self.safe_string(order, 'userref')
         rawTrades = self.safe_value(order, 'trades')
-        trades = self.parse_trades(rawTrades, market, None, None, {'order': id})
+        trades = None
+        if rawTrades is not None:
+            trades = self.parse_trades(rawTrades, market, None, None, {'order': id})
         return {
             'id': id,
             'clientOrderId': clientOrderId,
