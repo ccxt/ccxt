@@ -14,6 +14,7 @@ module.exports = class lakebtc extends Exchange {
             'name': 'LakeBTC',
             'countries': [ 'US' ],
             'version': 'api_v2',
+            'rateLimit': 1000,
             'has': {
                 'CORS': true,
                 'createMarketOrder': false,
@@ -257,27 +258,47 @@ module.exports = class lakebtc extends Exchange {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ();
             const nonceAsString = nonce.toString ();
+            const requestId = this.seconds ();
             let queryParams = '';
             if ('params' in params) {
                 const paramsList = params['params'];
-                queryParams = paramsList.join (',');
+                const stringParams = [];
+                for (let i = 0; i < paramsList.length; i++) {
+                    let param = paramsList[i];
+                    if (typeof paramsList !== 'string') {
+                        param = param.toString ();
+                    }
+                    stringParams.push (param);
+                }
+                queryParams = stringParams.join (',');
+                body = {
+                    'method': path,
+                    'params': params['params'],
+                    'id': requestId,
+                };
+            } else {
+                body = {
+                    'method': path,
+                    'params': '',
+                    'id': requestId,
+                };
             }
-            let query = 'tonce=' + nonceAsString;
-            query += '&accesskey=' + this.apiKey;
-            query += '&requestmethod=' + method.toLowerCase ();
-            query += '&id=' + nonceAsString;
-            query += '&method=' + path;
-            query += '&params=' + queryParams;
-            body = this.json ({
-                'method': path,
-                'params': params['params'],
-                'id': nonce,
-            });
+            body = this.json (body);
+            let query = [
+                'tonce=' + nonceAsString,
+                'accesskey=' + this.apiKey,
+                'requestmethod=' + method.toLowerCase (),
+                'id=' + requestId.toString (),
+                'method=' + path,
+                'params=' + queryParams,
+            ];
+            query = query.join ('&');
             const signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha1');
             const auth = this.encode (this.apiKey + ':' + signature);
+            const signature64 = this.decode (this.stringToBase64 (auth));
             headers = {
                 'Json-Rpc-Tonce': nonceAsString,
-                'Authorization': 'Basic ' + this.decode (this.stringToBase64 (auth)),
+                'Authorization': 'Basic ' + signature64,
                 'Content-Type': 'application/json',
             };
         }
