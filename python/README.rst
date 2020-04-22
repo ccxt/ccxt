@@ -285,7 +285,7 @@ The CCXT library currently supports the following 119 cryptocurrency exchange ma
 +--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 | tidex              | `Tidex <https://tidex.com/exchange/?ref=57f5638d9cd7>`__                                | 3   | `API <https://tidex.com/exchange/public-api>`__                                                 |                                                                      |                                 |
 +--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| timex              | `TimeX <https://timex.io>`__                                                            | 1   | `API <https://docs.timex.io>`__                                                                 |                                                                      |                                 |
+| timex              | `TimeX <https://timex.io/?refcode=1x27vNkTbP1uwkCck>`__                                 | 1   | `API <https://docs.timex.io>`__                                                                 |                                                                      |                                 |
 +--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 | topq               | `TOP.Q <https://www.topliq.com>`__                                                      | 1   | `API <https://github.com/topq-exchange/api_docs_en/wiki/REST_api_reference>`__                  |                                                                      |                                 |
 +--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
@@ -355,14 +355,14 @@ JavaScript (for use with the ``<script>`` tag):
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
--  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.26.77/dist/ccxt.browser.js
--  unpkg: https://unpkg.com/ccxt@1.26.77/dist/ccxt.browser.js
+-  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.26.78/dist/ccxt.browser.js
+-  unpkg: https://unpkg.com/ccxt@1.26.78/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code:: html
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.26.77/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.26.78/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 
