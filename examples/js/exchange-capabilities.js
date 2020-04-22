@@ -34,7 +34,7 @@ const ccxt        = require ('../../ccxt.pro.js')
                         // 'watchMarkets', // coinbasepro
                         // 'watchCurrencies', // coinbasepro
                         'watchBalance',
-                        // 'watchOrders',
+                        'watchOrders',
                         // 'watchMyTrades',
 
                     ].forEach (key => {
