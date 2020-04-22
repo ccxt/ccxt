@@ -695,11 +695,11 @@ class exmo extends Exchange {
                 if ($limit > $maxLimit) {
                     throw new BadRequest($this->id . ' fetchOHLCV will serve ' . (string) $maxLimit . ' $candles at most');
                 }
-                $request['from'] = intval ($now / 1000) - $limit * $duration;
+                $request['from'] = intval ($now / 1000) - $limit * $duration - 1;
                 $request['to'] = intval ($now / 1000);
             }
         } else {
-            $request['from'] = intval ($since / 1000);
+            $request['from'] = intval ($since / 1000) - 1;
             if ($limit === null) {
                 $request['to'] = intval ($now / 1000);
             } else {

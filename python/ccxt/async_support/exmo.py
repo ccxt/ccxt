@@ -687,10 +687,10 @@ class exmo(Exchange):
             else:
                 if limit > maxLimit:
                     raise BadRequest(self.id + ' fetchOHLCV will serve ' + str(maxLimit) + ' candles at most')
-                request['from'] = int(now / 1000) - limit * duration
+                request['from'] = int(now / 1000) - limit * duration - 1
                 request['to'] = int(now / 1000)
         else:
-            request['from'] = int(since / 1000)
+            request['from'] = int(since / 1000) - 1
             if limit is None:
                 request['to'] = int(now / 1000)
             else:
