@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, AuthenticationError, BadRequest, PermissionDenied, InvalidAddress, ArgumentsRequired } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, AuthenticationError, BadRequest, PermissionDenied, InvalidAddress, ArgumentsRequired, InvalidOrder } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -335,8 +335,14 @@ module.exports = class bithumb extends Exchange {
         }
         const response = await this[method] (this.extend (request, params));
         const id = this.safeString (response, 'order_id');
+        if (id === undefined) {
+            throw new InvalidOrder (this.id + ' createOrder did not return an order id');
+        }
         return {
             'info': response,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
             'id': id,
         };
     }
