@@ -51,7 +51,6 @@ module.exports = class bithumb extends Exchange {
                         'info/user_transactions',
                         'info/order_detail',
                         'trade/place',
-                        'info/order_detail',
                         'trade/cancel',
                         'trade/btc_withdrawal',
                         'trade/krw_deposit',
