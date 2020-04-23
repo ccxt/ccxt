@@ -71,6 +71,7 @@ module.exports = class probit extends Exchange {
                     'get': [
                         'market',
                         'currency',
+                        'currency_with_platform',
                         'time',
                         'ticker',
                         'order_book',
