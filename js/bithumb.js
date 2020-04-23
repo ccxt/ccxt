@@ -389,6 +389,7 @@ module.exports = class bithumb extends Exchange {
         const statuses = {
             'Pending': 'open',
             'Completed': 'closed',
+            'Cancel': 'canceled',
         };
         return this.safeString (statuses, status, status);
     }
