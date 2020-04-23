@@ -216,26 +216,60 @@ module.exports = class probit extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        const response = await this.publicGetCurrency (params);
+        const response = await this.publicGetCurrencyWithPlatform (params);
+        //
         //     {
-        //         data: [
+        //         "data":[
         //             {
-        //                 id: 'DOGE',
-        //                 name: 'Dogecoin',
-        //                 display_name: { 'ko-kr': '도지코인', 'en-us': 'Dogecoin' },
-        //                 platform: 'DOGE',
-        //                 precision: 8,
-        //                 display_precision: 8,
-        //                 min_confirmation_count: 20,
-        //                 min_withdrawal_amount: '4',
-        //                 withdrawal_fee: '2',
-        //                 deposit_suspended: true,
-        //                 withdrawal_suspended: true,
-        //                 internal_precision: 8,
-        //                 show_in_ui: true,
-        //                 suspended_reason: '',
-        //                 min_deposit_amount: '0'
-        //             },
+        //                 "id":"USDT",
+        //                 "display_name":{"ko-kr":"테더","en-us":"Tether"},
+        //                 "show_in_ui":true,
+        //                 "platform":[
+        //                     {
+        //                         "id":"ETH",
+        //                         "priority":1,
+        //                         "deposit":true,
+        //                         "withdrawal":true,
+        //                         "currency_id":"USDT",
+        //                         "precision":6,
+        //                         "min_confirmation_count":15,
+        //                         "require_destination_tag":false,
+        //                         "display_name":{"name":{"ko-kr":"ERC-20","en-us":"ERC-20"}},
+        //                         "min_deposit_amount":"0",
+        //                         "min_withdrawal_amount":"1",
+        //                         "withdrawal_fee":[
+        //                             {"amount":"0.01","priority":2,"currency_id":"ETH"},
+        //                             {"amount":"1.5","priority":1,"currency_id":"USDT"},
+        //                         ],
+        //                         "deposit_fee":{},
+        //                         "suspended_reason":"",
+        //                         "deposit_suspended":false,
+        //                         "withdrawal_suspended":false
+        //                     },
+        //                     {
+        //                         "id":"OMNI",
+        //                         "priority":2,
+        //                         "deposit":true,
+        //                         "withdrawal":true,
+        //                         "currency_id":"USDT",
+        //                         "precision":6,
+        //                         "min_confirmation_count":3,
+        //                         "require_destination_tag":false,
+        //                         "display_name":{"name":{"ko-kr":"OMNI","en-us":"OMNI"}},
+        //                         "min_deposit_amount":"0",
+        //                         "min_withdrawal_amount":"5",
+        //                         "withdrawal_fee":[{"amount":"5","priority":1,"currency_id":"USDT"}],
+        //                         "deposit_fee":{},
+        //                         "suspended_reason":"wallet_maintenance",
+        //                         "deposit_suspended":false,
+        //                         "withdrawal_suspended":false
+        //                     }
+        //                 ],
+        //                 "stakeable":false,
+        //                 "unstakeable":false,
+        //                 "auto_stake":false,
+        //                 "auto_stake_amount":"0"
+        //             }
         //         ]
         //     }
         //
@@ -245,22 +279,28 @@ module.exports = class probit extends Exchange {
             const currency = currencies[i];
             const id = this.safeString (currency, 'id');
             const code = this.safeCurrencyCode (id);
-            const name = this.safeString (currency, 'name');
-            const precision = this.safeInteger (currency, 'precision');
-            const suspendedReason = this.safeString (currency, 'suspended_reason');
+            const displayName = this.safeValue (currency, 'display_name');
+            const name = this.safeString (displayName, 'en-us');
+            const platforms = this.safeValue (currency, 'platform', []);
+            const platformsByPriority = this.sortBy (platforms, 'priority');
+            const platform = this.safeValue (platformsByPriority, 0, {});
+            const precision = this.safeInteger (platform, 'precision');
+            const suspendedReason = this.safeString (platform, 'suspended_reason');
             let active = true;
             if (suspendedReason.length > 0) {
                 active = false;
             }
-            const type = this.safeString (currency, 'platform');
+            const withdrawalFees = this.safeValue (platform, 'withdrawal_fee', {});
+            const withdrawalFeesByPriority = this.sortBy (withdrawalFees, 'priority');
+            const withdrawalFee = this.safeValue (withdrawalFeesByPriority, 0, {});
+            const fee = this.safeFloat (withdrawalFee, 'amount');
             result[code] = {
                 'id': id,
                 'code': code,
                 'info': currency,
                 'name': name,
-                'type': type,
                 'active': active,
-                'fee': this.safeFloat (currency, 'withdrawal_fee'),
+                'fee': fee,
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -276,11 +316,11 @@ module.exports = class probit extends Exchange {
                         'max': undefined,
                     },
                     'deposit': {
-                        'min': this.safeFloat (currency, 'min_deposit_amount'),
+                        'min': this.safeFloat (platform, 'min_deposit_amount'),
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': this.safeFloat (currency, 'min_withdrawal_amount'),
+                        'min': this.safeFloat (platform, 'min_withdrawal_amount'),
                         'max': undefined,
                     },
                 },
