@@ -523,10 +523,15 @@ module.exports = class bithumb extends Exchange {
         //     }
         //
         const timestamp = this.safeIntegerProduct (order, 'order_date', 0.001);
-        const price = this.safeFloat2 (order, 'order_price', 'price');
         const sideProperty = this.safeValue2 (order, 'type', 'side');
         const side = (sideProperty === 'bid') ? 'buy' : 'sell';
         const status = this.parseOrderStatus (this.safeString (order, 'order_status'));
+        let price = this.safeFloat2 (order, 'order_price', 'price');
+        let type = 'limit';
+        if (price === 0) {
+            price = undefined;
+            type = 'market';
+        }
         const amount = this.safeFloat2 (order, 'order_qty', 'units');
         let remaining = this.safeFloat (order, 'units_remaining');
         if (remaining === undefined) {
@@ -568,7 +573,7 @@ module.exports = class bithumb extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
-            'type': undefined,
+            'type': type,
             'side': side,
             'price': price,
             'amount': amount,
