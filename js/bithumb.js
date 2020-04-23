@@ -367,6 +367,50 @@ module.exports = class bithumb extends Exchange {
         };
     }
 
+    parseOrderStatus (status) {
+        const statuses = {
+            'Pending': 'open',
+            'Completed': 'closed',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrder (order, market = undefined, id = undefined) {
+        const timestamp = parseInt (this.safeInteger (order, 'order_date') / 1000);
+        const price = this.safeFloat (order, 'order_price');
+        const side = (order['side'] === 'bid') ? 'buy' : 'sell';
+        const status = this.parseOrderStatus (this.safeString (order, 'order_status'));
+        const amount = this.safeFloat2 (order, 'order_qty', 'units');
+        let remaining = this.safeFloat (order, 'units_remaining');
+        if (remaining === undefined) {
+            if (status === 'closed') {
+                remaining = 0;
+            } else {
+                remaining = amount;
+            }
+        }
+        const filled = amount - remaining;
+        return {
+            'info': order,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'symbol': market['symbol'],
+            'type': undefined,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': undefined,
+            'average': undefined,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': undefined,
+            'trades': undefined,
+        };
+    }
+
     async cancelOrder (id, symbol = undefined, params = {}) {
         const side_in_params = ('side' in params);
         if (!side_in_params) {
