@@ -28,6 +28,9 @@ class okex extends \ccxt\okex {
                 'api' => array(
                     'ws' => 'wss://real.okex.com:8443/ws/v3',
                 ),
+                'test' => array(
+                    'ws' => 'wss://real.okex.com:8443/ws/v3?BrokerId=181',
+                ),
             ),
             'options' => array(
                 'watchOrderBook' => array(
