@@ -252,11 +252,13 @@ module.exports = class probit extends Exchange {
             if (suspendedReason.length > 0) {
                 active = false;
             }
+            const type = this.safeString (currency, 'platform');
             result[code] = {
                 'id': id,
                 'code': code,
                 'info': currency,
                 'name': name,
+                'type': type,
                 'active': active,
                 'fee': this.safeFloat (currency, 'withdrawal_fee'),
                 'precision': precision,
