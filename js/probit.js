@@ -714,8 +714,6 @@ module.exports = class probit extends Exchange {
             }
             return year + '-' + month + '-01T00:00:00.000Z';
         } else if (timeframe === '1w') {
-            // console.log ('hir');
-            // process.exit ();
             timestamp = parseInt (timestamp / 1000);
             const firstSunday = 259200; // 1970-01-04T00:00:00.000Z
             const difference = timestamp - firstSunday;
