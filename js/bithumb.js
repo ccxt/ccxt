@@ -17,6 +17,7 @@ module.exports = class bithumb extends Exchange {
             'has': {
                 'CORS': true,
                 'fetchTickers': true,
+                'fetchOrder': true,
                 'withdraw': true,
             },
             'urls': {
