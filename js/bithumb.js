@@ -396,7 +396,8 @@ module.exports = class bithumb extends Exchange {
     parseOrder (order, market = undefined, id = undefined) {
         const timestamp = parseInt (this.safeInteger (order, 'order_date') / 1000);
         const price = this.safeFloat (order, 'order_price');
-        const side = (order['side'] === 'bid') ? 'buy' : 'sell';
+        const sideProperty = this.safeValue2 (order, 'type', 'side');
+        const side = (sideProperty === 'bid') ? 'buy' : 'sell';
         const status = this.parseOrderStatus (this.safeString (order, 'order_status'));
         const amount = this.safeFloat2 (order, 'order_qty', 'units');
         let remaining = this.safeFloat (order, 'units_remaining');
