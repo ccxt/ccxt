@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, BadResponse, BadRequest, InvalidOrder, InsufficientFunds, AuthenticationError, ArgumentsRequired, InvalidAddress, RateLimitExceedded, DDoSProtection, BadSymbol } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, BadResponse, BadRequest, InvalidOrder, InsufficientFunds, AuthenticationError, ArgumentsRequired, InvalidAddress, RateLimitExceeded, DDoSProtection, BadSymbol } = require ('./base/errors');
 const { TRUNCATE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -116,7 +116,7 @@ module.exports = class probit extends Exchange {
                     'NOT_ENOUGH_BALANCE': InsufficientFunds,
                     'NOT_ALLOWED_COMBINATION': BadRequest,
                     'INVALID_ORDER': InvalidOrder, // Requested order does not exist, or it is not your order
-                    'RATE_LIMIT_EXCEEDED': RateLimitExceedded, // You are sending requests too frequently. Please try it later.
+                    'RATE_LIMIT_EXCEEDED': RateLimitExceeded, // You are sending requests too frequently. Please try it later.
                     'MARKET_UNAVAILABLE': ExchangeNotAvailable, // Market is closed today
                     'INVALID_MARKET': BadSymbol, // Requested market is not exist
                     'INVALID_CURRENCY': BadRequest, // Requested currency is not exist on ProBit system
@@ -1055,14 +1055,27 @@ module.exports = class probit extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        // In order to use this method
+        // you need to allow API withdrawal from the API Settings Page, and
+        // and register the list of withdrawal addresses and destination tags on the API Settings page
+        // you can only withdraw to the registered addresses using the API
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
+        if (tag === undefined) {
+            tag = '';
+        }
         const request = {
             'currency_id': currency['id'],
+            // 'platform_id': 'ETH', // if omitted it will use the default platform for the currency
             'address': address,
-            // 'destination_tag': tag,
+            'destination_tag': tag,
             'amount': this.currencyToPrecision (code, amount),
+            // which currency to pay the withdrawal fees
+            // only applicable for currencies that accepts multiple withdrawal fee options
+            // 'fee_currency_id': 'ETH', // if omitted it will use the default fee policy for each currency
+            // whether the amount field includes fees
+            // 'include_fee': false, // makes sense only when fee_currency_id is equal to currency_id
         };
         const response = await this.privatePostWithdrawal (this.extend (request, params));
         const data = this.safeValue (response, 'data');
