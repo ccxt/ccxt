@@ -17,6 +17,7 @@ module.exports = class bithumb extends Exchange {
             'has': {
                 'CORS': true,
                 'fetchTickers': true,
+                'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'withdraw': true,
             },
@@ -395,7 +396,7 @@ module.exports = class bithumb extends Exchange {
 
     parseOrder (order, market = undefined, id = undefined) {
         const timestamp = parseInt (this.safeInteger (order, 'order_date') / 1000);
-        const price = this.safeFloat (order, 'order_price');
+        const price = this.safeFloat2 (order, 'order_price', 'price');
         const sideProperty = this.safeValue2 (order, 'type', 'side');
         const side = (sideProperty === 'bid') ? 'buy' : 'sell';
         const status = this.parseOrderStatus (this.safeString (order, 'order_status'));
@@ -428,6 +429,27 @@ module.exports = class bithumb extends Exchange {
             'fee': undefined,
             'trades': undefined,
         };
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (limit === undefined) {
+            limit = 100;
+        }
+        const request = {
+            'count': limit,
+            'order_currency': market['base'],
+            'payment_currency': market['quote'],
+        };
+        if (since !== undefined) {
+            request['after'] = since;
+        }
+        const response = await this.privatePostInfoOrders (this.extend (request, params));
+        return this.parseOrders (response['data'], market, since, limit);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
