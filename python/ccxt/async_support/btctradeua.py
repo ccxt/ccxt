@@ -20,6 +20,7 @@ class btctradeua(Exchange):
                 'CORS': False,
                 'createMarketOrder': False,
                 'fetchOpenOrders': True,
+                'signIn': True,
             },
             'urls': {
                 'referral': 'https://btc-trade.com.ua/registration/22689',
