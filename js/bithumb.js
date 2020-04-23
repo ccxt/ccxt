@@ -335,6 +335,9 @@ module.exports = class bithumb extends Exchange {
         }
         const response = await this[method] (this.extend (request, params));
         const id = this.safeString (response, 'order_id');
+        if (id === undefined) {
+            throw new ExchangeError(this.id + " did not return an order id");
+        }
         return {
             'info': response,
             'symbol': symbol,
