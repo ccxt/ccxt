@@ -169,12 +169,32 @@ class bithumb extends Exchange {
             'currency' => $market['base'],
         );
         if ($limit !== null) {
-            $request['count'] = $limit; // max = 50
+            $request['count'] = $limit; // default 30, max 30
         }
         $response = $this->publicGetOrderbookCurrency (array_merge($request, $params));
-        $orderbook = $this->safe_value($response, 'data');
-        $timestamp = $this->safe_integer($orderbook, 'timestamp');
-        return $this->parse_order_book($orderbook, $timestamp, 'bids', 'asks', 'price', 'quantity');
+        //
+        //     {
+        //         "status":"0000",
+        //         "$data":{
+        //             "$timestamp":"1587621553942",
+        //             "payment_currency":"KRW",
+        //             "order_currency":"BTC",
+        //             "bids":array(
+        //                 array("price":"8652000","quantity":"0.0043"),
+        //                 array("price":"8651000","quantity":"0.0049"),
+        //                 array("price":"8650000","quantity":"8.4791"),
+        //             ),
+        //             "asks":array(
+        //                 array("price":"8654000","quantity":"0.119"),
+        //                 array("price":"8655000","quantity":"0.254"),
+        //                 array("price":"8658000","quantity":"0.119"),
+        //             )
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $timestamp = $this->safe_integer($data, 'timestamp');
+        return $this->parse_order_book($data, $timestamp, 'bids', 'asks', 'price', 'quantity');
     }
 
     public function parse_ticker($ticker, $market = null) {

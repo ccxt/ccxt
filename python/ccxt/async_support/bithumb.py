@@ -167,11 +167,31 @@ class bithumb(Exchange):
             'currency': market['base'],
         }
         if limit is not None:
-            request['count'] = limit  # max = 50
+            request['count'] = limit  # default 30, max 30
         response = await self.publicGetOrderbookCurrency(self.extend(request, params))
-        orderbook = self.safe_value(response, 'data')
-        timestamp = self.safe_integer(orderbook, 'timestamp')
-        return self.parse_order_book(orderbook, timestamp, 'bids', 'asks', 'price', 'quantity')
+        #
+        #     {
+        #         "status":"0000",
+        #         "data":{
+        #             "timestamp":"1587621553942",
+        #             "payment_currency":"KRW",
+        #             "order_currency":"BTC",
+        #             "bids":[
+        #                 {"price":"8652000","quantity":"0.0043"},
+        #                 {"price":"8651000","quantity":"0.0049"},
+        #                 {"price":"8650000","quantity":"8.4791"},
+        #             ],
+        #             "asks":[
+        #                 {"price":"8654000","quantity":"0.119"},
+        #                 {"price":"8655000","quantity":"0.254"},
+        #                 {"price":"8658000","quantity":"0.119"},
+        #             ]
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        timestamp = self.safe_integer(data, 'timestamp')
+        return self.parse_order_book(data, timestamp, 'bids', 'asks', 'price', 'quantity')
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.safe_integer(ticker, 'date')
