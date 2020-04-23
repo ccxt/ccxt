@@ -410,8 +410,10 @@ module.exports = class bithumb extends Exchange {
             method += 'Place';
         } else if (type === 'market') {
             request = {
-                'currency': market['id'],
+                'order_currency': market['id'],
+                'Payment_currency': market['quote'],
                 'units': amount,
+                'type': (side === 'buy') ? 'bid' : 'ask',
             };
             method += 'Market' + this.capitalize (side);
         }
