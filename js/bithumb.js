@@ -445,34 +445,31 @@ module.exports = class bithumb extends Exchange {
         //
         //     {
         //         "status": "0000",
-        //         "data": [
-        //             {
-        //                 "transaction_date": "1572497603668315",
-        //                 "type": "bid",
-        //                 "order_status": "Completed",
-        //                 "order_currency": "BTC",
-        //                 "payment_currency": "KRW",
-        //                 "order_price": "8601000",
-        //                 "order_qty": "0.007",
-        //                 "cancel_date": "",
-        //                 "cancel_type": "",
-        //                 "contract": [
-        //                     {
-        //                         "transaction_date": "1572497603902030",
-        //                         "price": "8601000",
-        //                         "units": "0.005",
-        //                         "fee_currency": "KRW",
-        //                         "fee": "107.51",
-        //                         "total": "43005"
-        //                     },
-        //                 ]
-        //             }
-        //         ]
+        //         "data": {
+        //             "transaction_date": "1572497603668315",
+        //             "type": "bid",
+        //             "order_status": "Completed",
+        //             "order_currency": "BTC",
+        //             "payment_currency": "KRW",
+        //             "order_price": "8601000",
+        //             "order_qty": "0.007",
+        //             "cancel_date": "",
+        //             "cancel_type": "",
+        //             "contract": [
+        //                 {
+        //                     "transaction_date": "1572497603902030",
+        //                     "price": "8601000",
+        //                     "units": "0.005",
+        //                     "fee_currency": "KRW",
+        //                     "fee": "107.51",
+        //                     "total": "43005"
+        //                 },
+        //             ]
+        //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
-        const order = this.safeValue (data, 0, {});
-        return this.parseOrder (this.extend (order, { 'order_id': id }, market));
+        const data = this.safeValue (response, 'data');
+        return this.parseOrder (this.extend (data, { 'order_id': id }, market));
     }
 
     parseOrderStatus (status) {
