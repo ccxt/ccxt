@@ -337,6 +337,9 @@ module.exports = class bithumb extends Exchange {
         const id = this.safeString (response, 'order_id');
         return {
             'info': response,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
             'id': id,
         };
     }
