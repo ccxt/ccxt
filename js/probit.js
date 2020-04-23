@@ -35,6 +35,7 @@ module.exports = class probit extends Exchange {
                 'fetchMyTrades': true,
                 'fetchDepositAddress': true,
                 'withdraw': true,
+                'signIn': true,
             },
             'timeframes': {
                 '1m': '1m',
