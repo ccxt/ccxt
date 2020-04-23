@@ -48,6 +48,7 @@ module.exports = class bithumb extends Exchange {
                         'info/ticker',
                         'info/orders',
                         'info/user_transactions',
+                        'info/order_detail',
                         'trade/place',
                         'info/order_detail',
                         'trade/cancel',
@@ -365,6 +366,22 @@ module.exports = class bithumb extends Exchange {
             'side': side,
             'id': id,
         };
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'order_id': id,
+            'count': 1,
+            'order_currency': market['base'],
+            'payment_currency': market['quote'],
+        };
+        const response = await this.privatePostInfoOrderDetail (this.extend (request, params));
+        return this.parseOrder (response['data'], market, id);
     }
 
     parseOrderStatus (status) {
