@@ -49,6 +49,7 @@ module.exports = class probit extends Exchange {
                 '12h': '12h',
                 '1d': '1D',
                 '1w': '1W',
+                '1M': '1M',
             },
             'version': 'v1',
             'urls': {
@@ -696,27 +697,43 @@ module.exports = class probit extends Exchange {
         return timestamp;
     }
 
-    normalizeCandleTimestamp (timestamp, timeframe) {
-        const coeff = parseInt (timeframe.slice (0, -1), 10);
-        const unitLetter = timeframe.slice (-1);
-        const m = 60 * 1000;
-        const h = 60 * m;
-        const D = 24 * h;
-        const W = 7 * D;
-        const units = {
-            'm': m,
-            'h': h,
-            'D': D,
-            'W': W,
-        };
-        const unit = units[unitLetter];
-        const mod = coeff * unit;
-        const diff = (timestamp % mod);
-        timestamp = timestamp - diff;
-        if (unit === W) {
-            timestamp = timestamp + 3 * D;
+    normalizeOHLCVTimestamp (timestamp, timeframe, after = false) {
+        const duration = this.parseTimeframe (timeframe);
+        if (timeframe === '1M') {
+            const iso8601 = this.iso8601 (timestamp);
+            const parts = iso8601.split ('-');
+            const year = this.safeString (parts, 0);
+            let month = this.safeInteger (parts, 1);
+            if (after) {
+                month = this.sum (month, 1);
+            }
+            if (month < 10) {
+                month = '0' + month.toString ();
+            } else {
+                month = month.toString ();
+            }
+            return year + '-' + month + '-01T00:00:00.000Z';
+        } else if (timeframe === '1w') {
+            // console.log ('hir');
+            // process.exit ();
+            timestamp = parseInt (timestamp / 1000);
+            const firstSunday = 259200; // 1970-01-04T00:00:00.000Z
+            const difference = timestamp - firstSunday;
+            const numWeeks = this.integerDivide (difference, duration);
+            let previousSunday = this.sum (firstSunday, numWeeks * duration);
+            if (after) {
+                previousSunday = this.sum (previousSunday, duration);
+            }
+            return this.iso8601 (previousSunday * 1000);
+        } else {
+            timestamp = parseInt (timestamp / 1000);
+            const difference = this.integerModulo (timestamp, duration);
+            timestamp -= difference;
+            if (after) {
+                timestamp = this.sum (timestamp, duration);
+            }
+            return this.iso8601 (timestamp * 1000);
         }
-        return timestamp;
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -727,19 +744,30 @@ module.exports = class probit extends Exchange {
         const request = {
             'market_ids': market['id'],
             'interval': interval,
-            'sort': 'asc',
-            'limit': limit, // max 1000
+            'sort': 'asc', // 'asc' will always include the start_time, 'desc' will always include end_time
+            'limit': this.sum (limit, 1), // max 1000
         };
         const now = this.milliseconds ();
         const duration = this.parseTimeframe (timeframe);
-        const difference = limit * duration * 1000;
+        let startTime = since;
+        let endTime = now;
         if (since === undefined) {
-            request['end_time'] = this.iso8601 (now);
-            request['start_time'] = this.iso8601 (now - difference);
+            if (limit === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchOHLCV requires either a since argument or a limit argument');
+            } else {
+                startTime = now - limit * duration * 1000;
+            }
         } else {
-            request['start_time'] = this.iso8601 (since);
-            request['end_time'] = this.iso8601 (this.sum (since, difference));
+            if (limit === undefined) {
+                endTime = now;
+            } else {
+                endTime = this.sum (since, this.sum (limit, 1) * duration * 1000);
+            }
         }
+        const startTimeNormalized = this.normalizeOHLCVTimestamp (startTime, timeframe);
+        const endTimeNormalized = this.normalizeOHLCVTimestamp (endTime, timeframe, true);
+        request['start_time'] = startTimeNormalized;
+        request['end_time'] = endTimeNormalized;
         const response = await this.publicGetCandle (this.extend (request, params));
         //
         //     {
