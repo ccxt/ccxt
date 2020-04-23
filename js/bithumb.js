@@ -472,7 +472,7 @@ module.exports = class bithumb extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         const order = this.safeValue (data, 0, {});
-        return this.parseOrder (order, market, id);
+        return this.parseOrder (this.extend (order, { 'order_id': id }, market));
     }
 
     parseOrderStatus (status) {
@@ -484,7 +484,7 @@ module.exports = class bithumb extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined, id = undefined) {
+    parseOrder (order, market = undefined) {
         //
         // fetchOrder
         //
@@ -508,6 +508,19 @@ module.exports = class bithumb extends Exchange {
         //                 "total": "43005"
         //             },
         //         ]
+        //     }
+        //
+        // fetchOpenOrders
+        //
+        //     {
+        //         "order_currency": "BTC",
+        //         "payment_currency": "KRW",
+        //         "order_id": "C0101000007408440032",
+        //         "order_date": "1571728739360570",
+        //         "type": "bid",
+        //         "units": "5.0",
+        //         "units_remaining": "5.0",
+        //         "price": "501000",
         //     }
         //
         const timestamp = this.safeIntegerProduct (order, 'order_date', 0.001);
@@ -541,6 +554,7 @@ module.exports = class bithumb extends Exchange {
         }
         const rawTrades = this.safeValue (order, 'contract');
         let trades = undefined;
+        const id = this.safeString (order, 'order_id');
         if (rawTrades !== undefined) {
             trades = this.parseTrades (rawTrades, market, undefined, undefined, {
                 'side': side,
@@ -587,7 +601,25 @@ module.exports = class bithumb extends Exchange {
             request['after'] = since;
         }
         const response = await this.privatePostInfoOrders (this.extend (request, params));
-        return this.parseOrders (response['data'], market, since, limit);
+        //
+        //     {
+        //         "status": "0000",
+        //         "data": [
+        //             {
+        //                 "order_currency": "BTC",
+        //                 "payment_currency": "KRW",
+        //                 "order_id": "C0101000007408440032",
+        //                 "order_date": "1571728739360570",
+        //                 "type": "bid",
+        //                 "units": "5.0",
+        //                 "units_remaining": "5.0",
+        //                 "price": "501000",
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOrders (data, market, since, limit);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
