@@ -21,6 +21,8 @@ class bithumb extends Exchange {
             'has' => array(
                 'CORS' => true,
                 'fetchTickers' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
                 'withdraw' => true,
             ),
             'urls' => array(
@@ -52,8 +54,8 @@ class bithumb extends Exchange {
                         'info/ticker',
                         'info/orders',
                         'info/user_transactions',
-                        'trade/place',
                         'info/order_detail',
+                        'trade/place',
                         'trade/cancel',
                         'trade/btc_withdrawal',
                         'trade/krw_deposit',
@@ -281,15 +283,48 @@ class bithumb extends Exchange {
     }
 
     public function parse_trade($trade, $market = null) {
+        //
+        // fetchTrades (public)
+        //
+        //     {
+        //         "transaction_date":"2020-04-23 22:21:46",
+        //         "$type":"ask",
+        //         "units_traded":"0.0125",
+        //         "$price":"8667000",
+        //         "total":"108337"
+        //     }
+        //
+        // fetchOrder (private)
+        //
+        //     {
+        //         "transaction_date" => "1572497603902030",
+        //         "$price" => "8601000",
+        //         "units" => "0.005",
+        //         "fee_currency" => "KRW",
+        //         "$fee" => "107.51",
+        //         "total" => "43005"
+        //     }
+        //
         // a workaround for their bug in date format, hours are not 0-padded
-        $parts = explode(' ', $trade['transaction_date']);
-        $transaction_date = $parts[0];
-        $transaction_time = $parts[1];
-        if (strlen($transaction_time) < 8) {
-            $transaction_time = '0' . $transaction_time;
+        $timestamp = null;
+        $transactionDatetime = $this->safe_string($trade, 'transaction_date');
+        if ($transactionDatetime !== null) {
+            $parts = explode(' ', $transactionDatetime);
+            $numParts = is_array($parts) ? count($parts) : 0;
+            if ($numParts > 1) {
+                $transactionDate = $parts[0];
+                $transactionTime = $parts[1];
+                if (strlen($transactionTime) < 8) {
+                    $transactionTime = '0' . $transactionTime;
+                }
+                $timestamp = $this->parse8601($transactionDate . ' ' . $transactionTime);
+            } else {
+                $timestamp = $this->safe_integer_product($trade, 'transaction_date', 0.001);
+            }
         }
-        $timestamp = $this->parse8601($transaction_date . ' ' . $transaction_time);
-        $timestamp -= 9 * 3600000; // they report UTC . 9 hours (is_array(Korean timezone) && array_key_exists(server, Korean timezone))
+        if ($timestamp !== null) {
+            $timestamp -= 9 * 3600000; // they report UTC . 9 hours, server in Korean timezone
+        }
         $type = null;
         $side = $this->safe_string($trade, 'type');
         $side = ($side === 'ask') ? 'sell' : 'buy';
@@ -300,11 +335,23 @@ class bithumb extends Exchange {
         }
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'units_traded');
-        $cost = null;
-        if ($amount !== null) {
-            if ($price !== null) {
-                $cost = $price * $amount;
+        $cost = $this->safe_float($trade, 'total');
+        if ($cost === null) {
+            if ($amount !== null) {
+                if ($price !== null) {
+                    $cost = $price * $amount;
+                }
             }
+        }
+        $fee = null;
+        $feeCost = $this->safe_float($trade, 'fee');
+        if ($feeCost !== null) {
+            $feeCurrencyId = $this->safe_string($trade, 'fee_currency');
+            $feeCurrencyCode = $this->common_currency_code($feeCurrencyId);
+            $fee = array(
+                'cost' => $feeCost,
+                'currency' => $feeCurrencyCode,
+            );
         }
         return array(
             'id' => $id,
@@ -319,7 +366,7 @@ class bithumb extends Exchange {
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
-            'fee' => null,
+            'fee' => $fee,
         );
     }
 
@@ -333,7 +380,22 @@ class bithumb extends Exchange {
             $request['count'] = $limit; // default 20, max 100
         }
         $response = $this->publicGetTransactionHistoryCurrency (array_merge($request, $params));
-        return $this->parse_trades($response['data'], $market, $since, $limit);
+        //
+        //     {
+        //         "status":"0000",
+        //         "$data":array(
+        //             array(
+        //                 "transaction_date":"2020-04-23 22:21:46",
+        //                 "type":"ask",
+        //                 "units_traded":"0.0125",
+        //                 "price":"8667000",
+        //                 "total":"108337"
+        //             ),
+        //         )
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_trades($data, $market, $since, $limit);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -369,6 +431,196 @@ class bithumb extends Exchange {
             'side' => $side,
             'id' => $id,
         );
+    }
+
+    public function fetch_order($id, $symbol = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchOrder requires a $symbol argument');
+        }
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'order_id' => $id,
+            'count' => 1,
+            'order_currency' => $market['base'],
+            'payment_currency' => $market['quote'],
+        );
+        $response = $this->privatePostInfoOrderDetail (array_merge($request, $params));
+        //
+        //     {
+        //         "status" => "0000",
+        //         "$data" => {
+        //             "transaction_date" => "1572497603668315",
+        //             "type" => "bid",
+        //             "order_status" => "Completed",
+        //             "order_currency" => "BTC",
+        //             "payment_currency" => "KRW",
+        //             "order_price" => "8601000",
+        //             "order_qty" => "0.007",
+        //             "cancel_date" => "",
+        //             "cancel_type" => "",
+        //             "contract" => array(
+        //                 array(
+        //                     "transaction_date" => "1572497603902030",
+        //                     "price" => "8601000",
+        //                     "units" => "0.005",
+        //                     "fee_currency" => "KRW",
+        //                     "fee" => "107.51",
+        //                     "total" => "43005"
+        //                 ),
+        //             )
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data');
+        return $this->parse_order(array_merge($data, array( 'order_id' => $id ), $market));
+    }
+
+    public function parse_order_status($status) {
+        $statuses = array(
+            'Pending' => 'open',
+            'Completed' => 'closed',
+            'Cancel' => 'canceled',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_order($order, $market = null) {
+        //
+        // fetchOrder
+        //
+        //     {
+        //         "transaction_date" => "1572497603668315",
+        //         "type" => "bid",
+        //         "order_status" => "Completed",
+        //         "order_currency" => "BTC",
+        //         "payment_currency" => "KRW",
+        //         "order_price" => "8601000",
+        //         "order_qty" => "0.007",
+        //         "cancel_date" => "",
+        //         "cancel_type" => "",
+        //         "contract" => array(
+        //             array(
+        //                 "transaction_date" => "1572497603902030",
+        //                 "$price" => "8601000",
+        //                 "units" => "0.005",
+        //                 "fee_currency" => "KRW",
+        //                 "fee" => "107.51",
+        //                 "total" => "43005"
+        //             ),
+        //         )
+        //     }
+        //
+        // fetchOpenOrders
+        //
+        //     {
+        //         "order_currency" => "BTC",
+        //         "payment_currency" => "KRW",
+        //         "order_id" => "C0101000007408440032",
+        //         "order_date" => "1571728739360570",
+        //         "type" => "bid",
+        //         "units" => "5.0",
+        //         "units_remaining" => "5.0",
+        //         "$price" => "501000",
+        //     }
+        //
+        $timestamp = $this->safe_integer_product($order, 'order_date', 0.001);
+        $price = $this->safe_float_2($order, 'order_price', 'price');
+        $sideProperty = $this->safe_value_2($order, 'type', 'side');
+        $side = ($sideProperty === 'bid') ? 'buy' : 'sell';
+        $status = $this->parse_order_status($this->safe_string($order, 'order_status'));
+        $amount = $this->safe_float_2($order, 'order_qty', 'units');
+        $remaining = $this->safe_float($order, 'units_remaining');
+        if ($remaining === null) {
+            if ($status === 'closed') {
+                $remaining = 0;
+            } else {
+                $remaining = $amount;
+            }
+        }
+        $filled = null;
+        if (($amount !== null) && ($remaining !== null)) {
+            $filled = $amount - $remaining;
+        }
+        $symbol = null;
+        $baseId = $this->safe_string($order, 'order_currency');
+        $quoteId = $this->safe_string($order, 'payment_currency');
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
+        if (($base !== null) && ($quote !== null)) {
+            $symbol = $base . '/' . $quote;
+        }
+        if (($symbol === null) && ($market !== null)) {
+            $symbol = $market['symbol'];
+        }
+        $rawTrades = $this->safe_value($order, 'contract');
+        $trades = null;
+        $id = $this->safe_string($order, 'order_id');
+        if ($rawTrades !== null) {
+            $trades = $this->parse_trades($rawTrades, $market, null, null, array(
+                'side' => $side,
+                'symbol' => $symbol,
+                'order' => $id,
+            ));
+        }
+        return array(
+            'info' => $order,
+            'id' => $id,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'lastTradeTimestamp' => null,
+            'symbol' => $symbol,
+            'type' => null,
+            'side' => $side,
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => null,
+            'average' => null,
+            'filled' => $filled,
+            'remaining' => $remaining,
+            'status' => $status,
+            'fee' => null,
+            'trades' => $trades,
+        );
+    }
+
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrders requires a $symbol argument');
+        }
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if ($limit === null) {
+            $limit = 100;
+        }
+        $request = array(
+            'count' => $limit,
+            'order_currency' => $market['base'],
+            'payment_currency' => $market['quote'],
+        );
+        if ($since !== null) {
+            $request['after'] = $since;
+        }
+        $response = $this->privatePostInfoOrders (array_merge($request, $params));
+        //
+        //     {
+        //         "status" => "0000",
+        //         "$data" => array(
+        //             {
+        //                 "order_currency" => "BTC",
+        //                 "payment_currency" => "KRW",
+        //                 "order_id" => "C0101000007408440032",
+        //                 "order_date" => "1571728739360570",
+        //                 "type" => "bid",
+        //                 "units" => "5.0",
+        //                 "units_remaining" => "5.0",
+        //                 "price" => "501000",
+        //             }
+        //         )
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_orders($data, $market, $since, $limit);
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {

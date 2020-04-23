@@ -27,6 +27,8 @@ class bithumb(Exchange):
             'has': {
                 'CORS': True,
                 'fetchTickers': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
                 'withdraw': True,
             },
             'urls': {
@@ -58,8 +60,8 @@ class bithumb(Exchange):
                         'info/ticker',
                         'info/orders',
                         'info/user_transactions',
-                        'trade/place',
                         'info/order_detail',
+                        'trade/place',
                         'trade/cancel',
                         'trade/btc_withdrawal',
                         'trade/krw_deposit',
@@ -267,14 +269,44 @@ class bithumb(Exchange):
         return self.parse_ticker(response['data'], market)
 
     def parse_trade(self, trade, market=None):
+        #
+        # fetchTrades(public)
+        #
+        #     {
+        #         "transaction_date":"2020-04-23 22:21:46",
+        #         "type":"ask",
+        #         "units_traded":"0.0125",
+        #         "price":"8667000",
+        #         "total":"108337"
+        #     }
+        #
+        # fetchOrder(private)
+        #
+        #     {
+        #         "transaction_date": "1572497603902030",
+        #         "price": "8601000",
+        #         "units": "0.005",
+        #         "fee_currency": "KRW",
+        #         "fee": "107.51",
+        #         "total": "43005"
+        #     }
+        #
         # a workaround for their bug in date format, hours are not 0-padded
-        parts = trade['transaction_date'].split(' ')
-        transaction_date = parts[0]
-        transaction_time = parts[1]
-        if len(transaction_time) < 8:
-            transaction_time = '0' + transaction_time
-        timestamp = self.parse8601(transaction_date + ' ' + transaction_time)
-        timestamp -= 9 * 3600000  # they report UTC + 9 hours(server in Korean timezone)
+        timestamp = None
+        transactionDatetime = self.safe_string(trade, 'transaction_date')
+        if transactionDatetime is not None:
+            parts = transactionDatetime.split(' ')
+            numParts = len(parts)
+            if numParts > 1:
+                transactionDate = parts[0]
+                transactionTime = parts[1]
+                if len(transactionTime) < 8:
+                    transactionTime = '0' + transactionTime
+                timestamp = self.parse8601(transactionDate + ' ' + transactionTime)
+            else:
+                timestamp = self.safe_integer_product(trade, 'transaction_date', 0.001)
+        if timestamp is not None:
+            timestamp -= 9 * 3600000  # they report UTC + 9 hours, server in Korean timezone
         type = None
         side = self.safe_string(trade, 'type')
         side = 'sell' if (side == 'ask') else 'buy'
@@ -284,10 +316,20 @@ class bithumb(Exchange):
             symbol = market['symbol']
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'units_traded')
-        cost = None
-        if amount is not None:
-            if price is not None:
-                cost = price * amount
+        cost = self.safe_float(trade, 'total')
+        if cost is None:
+            if amount is not None:
+                if price is not None:
+                    cost = price * amount
+        fee = None
+        feeCost = self.safe_float(trade, 'fee')
+        if feeCost is not None:
+            feeCurrencyId = self.safe_string(trade, 'fee_currency')
+            feeCurrencyCode = self.common_currency_code(feeCurrencyId)
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            }
         return {
             'id': id,
             'info': trade,
@@ -301,7 +343,7 @@ class bithumb(Exchange):
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': None,
+            'fee': fee,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -313,7 +355,22 @@ class bithumb(Exchange):
         if limit is None:
             request['count'] = limit  # default 20, max 100
         response = self.publicGetTransactionHistoryCurrency(self.extend(request, params))
-        return self.parse_trades(response['data'], market, since, limit)
+        #
+        #     {
+        #         "status":"0000",
+        #         "data":[
+        #             {
+        #                 "transaction_date":"2020-04-23 22:21:46",
+        #                 "type":"ask",
+        #                 "units_traded":"0.0125",
+        #                 "price":"8667000",
+        #                 "total":"108337"
+        #             },
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        return self.parse_trades(data, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -346,6 +403,182 @@ class bithumb(Exchange):
             'side': side,
             'id': id,
         }
+
+    def fetch_order(self, id, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchOrder requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'order_id': id,
+            'count': 1,
+            'order_currency': market['base'],
+            'payment_currency': market['quote'],
+        }
+        response = self.privatePostInfoOrderDetail(self.extend(request, params))
+        #
+        #     {
+        #         "status": "0000",
+        #         "data": {
+        #             "transaction_date": "1572497603668315",
+        #             "type": "bid",
+        #             "order_status": "Completed",
+        #             "order_currency": "BTC",
+        #             "payment_currency": "KRW",
+        #             "order_price": "8601000",
+        #             "order_qty": "0.007",
+        #             "cancel_date": "",
+        #             "cancel_type": "",
+        #             "contract": [
+        #                 {
+        #                     "transaction_date": "1572497603902030",
+        #                     "price": "8601000",
+        #                     "units": "0.005",
+        #                     "fee_currency": "KRW",
+        #                     "fee": "107.51",
+        #                     "total": "43005"
+        #                 },
+        #             ]
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data')
+        return self.parse_order(self.extend(data, {'order_id': id}, market))
+
+    def parse_order_status(self, status):
+        statuses = {
+            'Pending': 'open',
+            'Completed': 'closed',
+            'Cancel': 'canceled',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_order(self, order, market=None):
+        #
+        # fetchOrder
+        #
+        #     {
+        #         "transaction_date": "1572497603668315",
+        #         "type": "bid",
+        #         "order_status": "Completed",
+        #         "order_currency": "BTC",
+        #         "payment_currency": "KRW",
+        #         "order_price": "8601000",
+        #         "order_qty": "0.007",
+        #         "cancel_date": "",
+        #         "cancel_type": "",
+        #         "contract": [
+        #             {
+        #                 "transaction_date": "1572497603902030",
+        #                 "price": "8601000",
+        #                 "units": "0.005",
+        #                 "fee_currency": "KRW",
+        #                 "fee": "107.51",
+        #                 "total": "43005"
+        #             },
+        #         ]
+        #     }
+        #
+        # fetchOpenOrders
+        #
+        #     {
+        #         "order_currency": "BTC",
+        #         "payment_currency": "KRW",
+        #         "order_id": "C0101000007408440032",
+        #         "order_date": "1571728739360570",
+        #         "type": "bid",
+        #         "units": "5.0",
+        #         "units_remaining": "5.0",
+        #         "price": "501000",
+        #     }
+        #
+        timestamp = self.safe_integer_product(order, 'order_date', 0.001)
+        price = self.safe_float_2(order, 'order_price', 'price')
+        sideProperty = self.safe_value_2(order, 'type', 'side')
+        side = 'buy' if (sideProperty == 'bid') else 'sell'
+        status = self.parse_order_status(self.safe_string(order, 'order_status'))
+        amount = self.safe_float_2(order, 'order_qty', 'units')
+        remaining = self.safe_float(order, 'units_remaining')
+        if remaining is None:
+            if status == 'closed':
+                remaining = 0
+            else:
+                remaining = amount
+        filled = None
+        if (amount is not None) and (remaining is not None):
+            filled = amount - remaining
+        symbol = None
+        baseId = self.safe_string(order, 'order_currency')
+        quoteId = self.safe_string(order, 'payment_currency')
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        if (base is not None) and (quote is not None):
+            symbol = base + '/' + quote
+        if (symbol is None) and (market is not None):
+            symbol = market['symbol']
+        rawTrades = self.safe_value(order, 'contract')
+        trades = None
+        id = self.safe_string(order, 'order_id')
+        if rawTrades is not None:
+            trades = self.parse_trades(rawTrades, market, None, None, {
+                'side': side,
+                'symbol': symbol,
+                'order': id,
+            })
+        return {
+            'info': order,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
+            'symbol': symbol,
+            'type': None,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': None,
+            'average': None,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': None,
+            'trades': trades,
+        }
+
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchOpenOrders requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        if limit is None:
+            limit = 100
+        request = {
+            'count': limit,
+            'order_currency': market['base'],
+            'payment_currency': market['quote'],
+        }
+        if since is not None:
+            request['after'] = since
+        response = self.privatePostInfoOrders(self.extend(request, params))
+        #
+        #     {
+        #         "status": "0000",
+        #         "data": [
+        #             {
+        #                 "order_currency": "BTC",
+        #                 "payment_currency": "KRW",
+        #                 "order_id": "C0101000007408440032",
+        #                 "order_date": "1571728739360570",
+        #                 "type": "bid",
+        #                 "units": "5.0",
+        #                 "units_remaining": "5.0",
+        #                 "price": "501000",
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        return self.parse_orders(data, market, since, limit)
 
     def cancel_order(self, id, symbol=None, params={}):
         side_in_params = ('side' in params)
