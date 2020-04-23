@@ -12,6 +12,7 @@ from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InvalidAddress
+from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import ExchangeNotAvailable
 
 
@@ -316,8 +317,13 @@ class bithumb(Exchange):
             method += 'Market' + self.capitalize(side)
         response = await getattr(self, method)(self.extend(request, params))
         id = self.safe_string(response, 'order_id')
+        if id is None:
+            raise InvalidOrder(self.id + ' createOrder did not return an order id')
         return {
             'info': response,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
             'id': id,
         }
 

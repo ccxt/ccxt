@@ -8,6 +8,7 @@ namespace ccxt;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\InvalidOrder;
 
 class bithumb extends Exchange {
 
@@ -338,8 +339,14 @@ class bithumb extends Exchange {
         }
         $response = $this->$method (array_merge($request, $params));
         $id = $this->safe_string($response, 'order_id');
+        if ($id === null) {
+            throw new InvalidOrder($this->id . ' createOrder did not return an order id');
+        }
         return array(
             'info' => $response,
+            'symbol' => $symbol,
+            'type' => $type,
+            'side' => $side,
             'id' => $id,
         );
     }
