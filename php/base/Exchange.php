@@ -1975,6 +1975,14 @@ class Exchange {
         return $this->fetch_order($id, $symbol, $params);
     }
 
+    public function fetch_unified_order($order, $params = array ()) {
+        return $this->fetch_order($this->safe_value($order, 'id'), $this->safe_value($order, 'symbol'), $params);
+    }
+
+    public function fetchUnifiedOrder($order, $params = array ()) {
+        return $this->fetch_unified_order($order, $params);
+    }
+
     public function fetch_order_trades($id, $symbol = null, $params = array()) {
         throw new NotSupported($this->id . ' fetch_order_trades() not supported yet');
     }
@@ -2183,6 +2191,14 @@ class Exchange {
 
     public function cancelOrder($id, $symbol = null, $params = array()) {
         return $this->cancel_order($id, $symbol, $params);
+    }
+
+    public function cancel_unified_order($order, $params = array ()) {
+        return $this->cancel_order($this->safe_value($order, 'id'), $this->safe_value($order, 'symbol'), $params);
+    }
+
+    public function cancelUnifiedOrder($order, $params = array ()) {
+        return $this->cancel_unified_order($order, $params);
     }
 
     public function editLimitBuyOrder($id, $symbol, $amount, $price, $params = array()) {
