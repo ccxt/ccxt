@@ -739,11 +739,13 @@ module.exports = class probit extends Exchange {
         const market = this.market (symbol);
         const interval = this.timeframes[timeframe];
         limit = (limit === undefined) ? 100 : limit;
+        let requestLimit = this.sum (limit, 1);
+        requestLimit = Math.min (1000, requestLimit); // max 1000
         const request = {
             'market_ids': market['id'],
             'interval': interval,
             'sort': 'asc', // 'asc' will always include the start_time, 'desc' will always include end_time
-            'limit': this.sum (limit, 1), // max 1000
+            'limit': requestLimit, // max 1000
         };
         const now = this.milliseconds ();
         const duration = this.parseTimeframe (timeframe);
