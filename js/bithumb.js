@@ -471,7 +471,7 @@ module.exports = class bithumb extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data');
-        return this.parseOrder (this.extend (data, { 'order_id': id }, market));
+        return this.parseOrder (this.extend (data, { 'order_id': id }), market);
     }
 
     parseOrderStatus (status) {
