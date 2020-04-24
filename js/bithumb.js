@@ -406,6 +406,7 @@ module.exports = class bithumb extends Exchange {
         let method = 'privatePostTradePlace';
         if (type === 'limit') {
             request['price'] = price;
+        } else {
             method = 'privatePostTradeMarket' + this.capitalize (side);
         }
         const response = await this[method] (this.extend (request, params));
