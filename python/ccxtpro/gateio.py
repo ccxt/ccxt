@@ -56,10 +56,12 @@ class gateio(Exchange, ccxt.gateio):
         if (precision < 0) or (precision > 8) or (precision % 1 != 0.0):
             raise ExchangeError(self.id + ' invalid interval')
         parameters = [wsMarketId, limit, interval]
-        orderBookSubscriptions = self.safe_value(self.options, 'watchOrderBookSubscriptions', {})
-        orderBookSubscriptions[symbol] = parameters
-        self.options['watchOrderBookSubscriptions'] = orderBookSubscriptions
-        toSend = list(orderBookSubscriptions.values())
+        options = self.safe_value(self.options, 'watchOrderBook', {})
+        subscriptions = self.safe_value(options, 'subscriptions', {})
+        subscriptions[symbol] = parameters
+        options['subscriptions'] = subscriptions
+        self.options['watchOrderBook'] = options
+        toSend = list(subscriptions.values())
         messageHash = 'depth.update' + ':' + marketId
         subscribeMessage = {
             'id': requestId,
@@ -115,13 +117,15 @@ class gateio(Exchange, ccxt.gateio):
         wsMarketId = marketId.upper()
         requestId = self.nonce()
         url = self.urls['api']['ws']
-        marketIdSubscriptions = self.safe_value(self.options, 'watchTickerSubscriptions', {})
-        marketIdSubscriptions[wsMarketId] = True
-        self.options['watchTickerSubscriptions'] = marketIdSubscriptions
+        options = self.safe_value(self.options, 'watchTicker', {})
+        subscriptions = self.safe_value(options, 'subscriptions', {})
+        subscriptions[wsMarketId] = True
+        options['subscriptions'] = subscriptions
+        self.options['watchTicker'] = options
         subscribeMessage = {
             'id': requestId,
             'method': 'ticker.subscribe',
-            'params': list(marketIdSubscriptions.keys()),
+            'params': list(subscriptions.keys()),
         }
         subscription = {
             'id': requestId,

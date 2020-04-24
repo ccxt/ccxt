@@ -59,10 +59,12 @@ class gateio extends \ccxt\gateio {
             throw new ExchangeError($this->id . ' invalid interval');
         }
         $parameters = array( $wsMarketId, $limit, $interval );
-        $orderBookSubscriptions = $this->safe_value($this->options, 'watchOrderBookSubscriptions', array());
-        $orderBookSubscriptions[$symbol] = $parameters;
-        $this->options['watchOrderBookSubscriptions'] = $orderBookSubscriptions;
-        $toSend = is_array($orderBookSubscriptions) ? array_values($orderBookSubscriptions) : array();
+        $options = $this->safe_value($this->options, 'watchOrderBook', array());
+        $subscriptions = $this->safe_value($options, 'subscriptions', array());
+        $subscriptions[$symbol] = $parameters;
+        $options['subscriptions'] = $subscriptions;
+        $this->options['watchOrderBook'] = $options;
+        $toSend = is_array($subscriptions) ? array_values($subscriptions) : array();
         $messageHash = 'depth.update' . ':' . $marketId;
         $subscribeMessage = array(
             'id' => $requestId,
@@ -126,13 +128,15 @@ class gateio extends \ccxt\gateio {
         $wsMarketId = strtoupper($marketId);
         $requestId = $this->nonce();
         $url = $this->urls['api']['ws'];
-        $marketIdSubscriptions = $this->safe_value($this->options, 'watchTickerSubscriptions', array());
-        $marketIdSubscriptions[$wsMarketId] = true;
-        $this->options['watchTickerSubscriptions'] = $marketIdSubscriptions;
+        $options = $this->safe_value($this->options, 'watchTicker', array());
+        $subscriptions = $this->safe_value($options, 'subscriptions', array());
+        $subscriptions[$wsMarketId] = true;
+        $options['subscriptions'] = $subscriptions;
+        $this->options['watchTicker'] = $options;
         $subscribeMessage = array(
             'id' => $requestId,
             'method' => 'ticker.subscribe',
-            'params' => is_array($marketIdSubscriptions) ? array_keys($marketIdSubscriptions) : array(),
+            'params' => is_array($subscriptions) ? array_keys($subscriptions) : array(),
         );
         $subscription = array(
             'id' => $requestId,
