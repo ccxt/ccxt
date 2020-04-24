@@ -199,6 +199,24 @@ module.exports = class bithumb extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        //
+        // fetchTicker, fetchTickers
+        //
+        //     {
+        //         "opening_price":"227100",
+        //         "closing_price":"228400",
+        //         "min_price":"222300",
+        //         "max_price":"230000",
+        //         "units_traded":"82618.56075337",
+        //         "acc_trade_value":"18767376138.6031",
+        //         "prev_closing_price":"227100",
+        //         "units_traded_24H":"151871.13484676",
+        //         "acc_trade_value_24H":"34247610416.8974",
+        //         "fluctate_24H":"8700",
+        //         "fluctate_rate_24H":"3.96",
+        //         "date":"1587710327264", // fetchTickers inject this
+        //     }
+        //
         const timestamp = this.safeInteger (ticker, 'date');
         let symbol = undefined;
         if (market !== undefined) {
@@ -249,9 +267,31 @@ module.exports = class bithumb extends Exchange {
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.publicGetTickerAll (params);
+        //
+        //     {
+        //         "status":"0000",
+        //         "data":{
+        //             "BTC":{
+        //                 "opening_price":"9045000",
+        //                 "closing_price":"9132000",
+        //                 "min_price":"8938000",
+        //                 "max_price":"9168000",
+        //                 "units_traded":"4619.79967497",
+        //                 "acc_trade_value":"42021363832.5187",
+        //                 "prev_closing_price":"9041000",
+        //                 "units_traded_24H":"8793.5045804",
+        //                 "acc_trade_value_24H":"78933458515.4962",
+        //                 "fluctate_24H":"530000",
+        //                 "fluctate_rate_24H":"6.16"
+        //             },
+        //             "date":"1587710878669"
+        //         }
+        //     }
+        //
         const result = {};
-        const timestamp = this.safeInteger (response['data'], 'date');
-        const tickers = this.omit (response['data'], 'date');
+        const data = this.safeValue (response, 'data', {});
+        const timestamp = this.safeInteger (data, 'date');
+        const tickers = this.omit (data, 'date');
         const ids = Object.keys (tickers);
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
@@ -278,7 +318,27 @@ module.exports = class bithumb extends Exchange {
             'currency': market['base'],
         };
         const response = await this.publicGetTickerCurrency (this.extend (request, params));
-        return this.parseTicker (response['data'], market);
+        //
+        //     {
+        //         "status":"0000",
+        //         "data":{
+        //             "opening_price":"227100",
+        //             "closing_price":"228400",
+        //             "min_price":"222300",
+        //             "max_price":"230000",
+        //             "units_traded":"82618.56075337",
+        //             "acc_trade_value":"18767376138.6031",
+        //             "prev_closing_price":"227100",
+        //             "units_traded_24H":"151871.13484676",
+        //             "acc_trade_value_24H":"34247610416.8974",
+        //             "fluctate_24H":"8700",
+        //             "fluctate_rate_24H":"3.96",
+        //             "date":"1587710327264"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseTicker (data, market);
     }
 
     parseTrade (trade, market = undefined) {
