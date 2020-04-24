@@ -481,9 +481,9 @@ module.exports = class probit extends Exchange {
         let percentage = undefined;
         let open = undefined;
         if (change !== undefined) {
-            percentage = change / 100;
             if (close !== undefined) {
                 open = close - change;
+                percentage = (change / open) * 100;
             }
         }
         const baseVolume = this.safeFloat (ticker, 'base_volume');
