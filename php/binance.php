@@ -629,54 +629,34 @@ class binance extends \ccxt\binance {
         $this->authenticate();
         $defaultType = $this->safe_string_2($this->options, 'watchBalance', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
-        $query = $this->omit($params, 'type');
         $url = $this->urls['api']['ws'][$type] . '/' . $this->options['listenKey'];
-        $requestId = $this->request_id($url);
-        $request = array(
-            'method' => 'SUBSCRIBE',
-            'params' => array(
-            ),
-            'id' => $requestId,
-        );
-        $subscribe = array(
-            'id' => $requestId,
-        );
         $messageHash = 'outboundAccountInfo';
-        return $this->watch($url, $messageHash, array_merge($request, $query), 1, $subscribe);
+        return $this->watch($url, $messageHash);
     }
 
     public function handle_balance($client, $message) {
         // sent upon creating or filling an order
         //
-        // {
-        //   "e" => "outboundAccountInfo",   // Event type
-        //   "E" => 1499405658849,           // Event time
-        //   "m" => 0,                       // Maker commission rate (bips)
-        //   "t" => 0,                       // Taker commission rate (bips)
-        //   "b" => 0,                       // Buyer commission rate (bips)
-        //   "s" => 0,                       // Seller commission rate (bips)
-        //   "T" => true,                    // Can trade?
-        //   "W" => true,                    // Can withdraw?
-        //   "D" => true,                    // Can deposit?
-        //   "u" => 1499405658848,           // Time of last $account update
-        //   "B" => array(                        // Balances array
-        //     array(
-        //       "a" => "LTC",               // Asset
-        //       "f" => "17366.18538083",    // Free amount
-        //       "l" => "0.00000000"         // Locked amount
-        //     ),
-        //     array(
-        //       "a" => "BTC",
-        //       "f" => "10537.85314051",
-        //       "l" => "2.19464093"
-        //     ),
-        //     array(
-        //       "a" => "ETH",
-        //       "f" => "17902.35190619",
-        //       "l" => "0.00000000"
-        //     ),
-        //   )
-        // }
+        //     {
+        //         "e" => "outboundAccountInfo",   // Event type
+        //         "E" => 1499405658849,           // Event time
+        //         "m" => 0,                       // Maker commission rate (bips)
+        //         "t" => 0,                       // Taker commission rate (bips)
+        //         "b" => 0,                       // Buyer commission rate (bips)
+        //         "s" => 0,                       // Seller commission rate (bips)
+        //         "T" => true,                    // Can trade?
+        //         "W" => true,                    // Can withdraw?
+        //         "D" => true,                    // Can deposit?
+        //         "u" => 1499405658848,           // Time of last $account update
+        //         "B" => array(                        // Balances array
+        //             array(
+        //                 "a" => "LTC",               // Asset
+        //                 "f" => "17366.18538083",    // Free amount
+        //                 "l" => "0.00000000"         // Locked amount
+        //             ),
+        //         )
+        //     }
+        //
         $balances = $this->safe_value($message, 'B', array());
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
