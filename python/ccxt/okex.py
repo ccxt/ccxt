@@ -2254,10 +2254,10 @@ class okex(Exchange):
         #     ]
         #
         addresses = self.parse_deposit_addresses(response)
-        numAddresses = len(addresses)
-        if numAddresses < 1:
+        address = self.safe_value(addresses, code)
+        if address is None:
             raise InvalidAddress(self.id + ' fetchDepositAddress cannot return nonexistent addresses, you should create withdrawal addresses with the exchange website first')
-        return addresses[0]
+        return address
 
     def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)

@@ -2327,17 +2327,17 @@ class okex extends Exchange {
         //
         //     array(
         //         {
-        //             address => '0x696abb81974a8793352cbd33aadcf78eda3cfdfa',
+        //             $address => '0x696abb81974a8793352cbd33aadcf78eda3cfdfa',
         //             $currency => 'eth'
         //         }
         //     )
         //
         $addresses = $this->parse_deposit_addresses($response);
-        $numAddresses = is_array($addresses) ? count($addresses) : 0;
-        if ($numAddresses < 1) {
+        $address = $this->safe_value($addresses, $code);
+        if ($address === null) {
             throw new InvalidAddress($this->id . ' fetchDepositAddress cannot return nonexistent $addresses, you should create withdrawal $addresses with the exchange website first');
         }
-        return $addresses[0];
+        return $address;
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
