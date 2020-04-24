@@ -52,6 +52,7 @@ class binance(Exchange):
                 'fetchTransactions': False,
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
+                'cancelAllOrders': False,  # not implemented yet
             },
             'timeframes': {
                 '1m': '1m',
@@ -292,6 +293,7 @@ class binance(Exchange):
                         'order/test',
                     ],
                     'delete': [
+                        'openOrders',  # added on 2020-04-25 for canceling all open orders per symbol
                         'orderList',  # oco
                         'order',
                     ],

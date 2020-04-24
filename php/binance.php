@@ -43,6 +43,7 @@ class binance extends Exchange {
                 'fetchTransactions' => false,
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
+                'cancelAllOrders' => false, // not implemented yet
             ),
             'timeframes' => array(
                 '1m' => '1m',
@@ -283,6 +284,7 @@ class binance extends Exchange {
                         'order/test',
                     ),
                     'delete' => array(
+                        'openOrders', // added on 2020-04-25 for canceling all open orders per symbol
                         'orderList', // oco
                         'order',
                     ),
