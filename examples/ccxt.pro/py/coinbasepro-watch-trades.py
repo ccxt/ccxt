@@ -13,7 +13,7 @@ async def main(loop):
                 trades = await exchange.watch_trades('BTC/USD')
                 num_trades = len(trades)
                 trade = trades[-1]
-                print(exchange.iso8601(exchange.milliseconds()), trade['symbol'], trade['datetime'], trade['price'], trade['amount'], num_trades, 'in cache')
+                print(exchange.iso8601(exchange.milliseconds()), trade['symbol'], trade['datetime'], trade['price'], trade['amount'], 'stored', num_trades, ' trades in cache')
             except Exception as e:
                 print(e)
                 await exchange.close()
