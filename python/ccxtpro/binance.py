@@ -612,20 +612,9 @@ class binance(Exchange, ccxt.binance):
         await self.authenticate()
         defaultType = self.safe_string_2(self.options, 'watchOrders', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
-        query = self.omit(params, 'type')
         url = self.urls['api']['ws'][type] + '/' + self.options['listenKey']
-        requestId = self.request_id(url)
-        request = {
-            'method': 'SUBSCRIBE',
-            'params': [
-            ],
-            'id': requestId,
-        }
-        subscribe = {
-            'id': requestId,
-        }
         messageHash = 'executionReport'
-        return await self.watch(url, messageHash, self.extend(request, query), 1, subscribe)
+        return await self.watch(url, messageHash)
 
     def handle_order(self, client, message):
         # {

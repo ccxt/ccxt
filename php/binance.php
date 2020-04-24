@@ -677,20 +677,9 @@ class binance extends \ccxt\binance {
         $this->authenticate();
         $defaultType = $this->safe_string_2($this->options, 'watchOrders', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
-        $query = $this->omit($params, 'type');
         $url = $this->urls['api']['ws'][$type] . '/' . $this->options['listenKey'];
-        $requestId = $this->request_id($url);
-        $request = array(
-            'method' => 'SUBSCRIBE',
-            'params' => array(
-            ),
-            'id' => $requestId,
-        );
-        $subscribe = array(
-            'id' => $requestId,
-        );
         $messageHash = 'executionReport';
-        return $this->watch($url, $messageHash, array_merge($request, $query), 1, $subscribe);
+        return $this->watch($url, $messageHash);
     }
 
     public function handle_order($client, $message) {
