@@ -599,6 +599,12 @@ class bithumb(Exchange):
         }
         return await self.privatePostTradeCancel(self.extend(request, params))
 
+    def cancel_unified_order(self, order, params={}):
+        request = {
+            'side': order['side'],
+        }
+        return self.cancel_order(order['id'], order['symbol'], self.extend(request, params))
+
     async def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
         await self.load_markets()

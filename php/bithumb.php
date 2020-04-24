@@ -646,6 +646,13 @@ class bithumb extends Exchange {
         return $this->privatePostTradeCancel (array_merge($request, $params));
     }
 
+    public function cancel_unified_order($order, $params = array ()) {
+        $request = array(
+            'side' => $order['side'],
+        );
+        return $this->cancel_order($order['id'], $order['symbol'], array_merge($request, $params));
+    }
+
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
