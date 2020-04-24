@@ -287,11 +287,9 @@ module.exports = class probit extends Exchange {
             const platformsByPriority = this.sortBy (platforms, 'priority');
             const platform = this.safeValue (platformsByPriority, 0, {});
             const precision = this.safeInteger (platform, 'precision');
-            const suspendedReason = this.safeString (platform, 'suspended_reason');
-            let active = true;
-            if (suspendedReason.length > 0) {
-                active = false;
-            }
+            const depositSuspended = this.safeValue (platform, 'deposit_suspended');
+            const withdrawalSuspended = this.safeValue (platform, 'withdrawal_suspended');
+            const active = !(depositSuspended && withdrawalSuspended);
             const withdrawalFees = this.safeValue (platform, 'withdrawal_fee', {});
             const withdrawalFeesByPriority = this.sortBy (withdrawalFees, 'priority');
             const withdrawalFee = this.safeValue (withdrawalFeesByPriority, 0, {});
