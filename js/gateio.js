@@ -54,10 +54,12 @@ module.exports = class gateio extends ccxt.gateio {
             throw new ExchangeError (this.id + ' invalid interval');
         }
         const parameters = [ wsMarketId, limit, interval ];
-        const orderBookSubscriptions = this.safeValue (this.options, 'watchOrderBookSubscriptions', {});
-        orderBookSubscriptions[symbol] = parameters;
-        this.options['watchOrderBookSubscriptions'] = orderBookSubscriptions;
-        const toSend = Object.values (orderBookSubscriptions);
+        const options = this.safeValue (this.options, 'watchOrderBook', {});
+        const subscriptions = this.safeValue (options, 'subscriptions', {});
+        subscriptions[symbol] = parameters;
+        options['subscriptions'] = subscriptions;
+        this.options['watchOrderBook'] = options;
+        const toSend = Object.values (subscriptions);
         const messageHash = 'depth.update' + ':' + marketId;
         const subscribeMessage = {
             'id': requestId,
@@ -121,13 +123,15 @@ module.exports = class gateio extends ccxt.gateio {
         const wsMarketId = marketId.toUpperCase ();
         const requestId = this.nonce ();
         const url = this.urls['api']['ws'];
-        const marketIdSubscriptions = this.safeValue (this.options, 'watchTickerSubscriptions', {});
-        marketIdSubscriptions[wsMarketId] = true;
-        this.options['watchTickerSubscriptions'] = marketIdSubscriptions;
+        const options = this.safeValue (this.options, 'watchTicker', {});
+        const subscriptions = this.safeValue (options, 'subscriptions', {});
+        subscriptions[wsMarketId] = true;
+        options['subscriptions'] = subscriptions;
+        this.options['watchTicker'] = options;
         const subscribeMessage = {
             'id': requestId,
             'method': 'ticker.subscribe',
-            'params': Object.keys (marketIdSubscriptions),
+            'params': Object.keys (subscriptions),
         };
         const subscription = {
             'id': requestId,
