@@ -641,11 +641,10 @@ module.exports = class bithumb extends Exchange {
     }
 
     cancelUnifiedOrder (order, params = {}) {
-        const side_in_params = ('side' in params);
-        if (!side_in_params) {
-            params['side'] = order['side'];
-        }
-        return this.cancelOrder (this.safeValue (order, 'id'), this.safeValue (order, 'symbol'), params);
+        const request = {
+            'side': order['side'],
+        };
+        return this.cancelOrder (order['id'], order['symbol'], this.extend (request, params));
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
