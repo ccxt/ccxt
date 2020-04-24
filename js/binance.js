@@ -152,7 +152,7 @@ module.exports = class binance extends Exchange {
                         'userDataStream',
                         'futures/transfer',
                         // lending
-                        'lending/customizedFixed/purchase'
+                        'lending/customizedFixed/purchase',
                         'lending/daily/purchase',
                         'lending/daily/redeem',
                     ],
