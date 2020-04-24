@@ -203,6 +203,24 @@ class bithumb extends Exchange {
     }
 
     public function parse_ticker($ticker, $market = null) {
+        //
+        // fetchTicker, fetchTickers
+        //
+        //     {
+        //         "opening_price":"227100",
+        //         "closing_price":"228400",
+        //         "min_price":"222300",
+        //         "max_price":"230000",
+        //         "units_traded":"82618.56075337",
+        //         "acc_trade_value":"18767376138.6031",
+        //         "prev_closing_price":"227100",
+        //         "units_traded_24H":"151871.13484676",
+        //         "acc_trade_value_24H":"34247610416.8974",
+        //         "fluctate_24H":"8700",
+        //         "fluctate_rate_24H":"3.96",
+        //         "date":"1587710327264", // fetchTickers inject this
+        //     }
+        //
         $timestamp = $this->safe_integer($ticker, 'date');
         $symbol = null;
         if ($market !== null) {
@@ -253,9 +271,31 @@ class bithumb extends Exchange {
     public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
         $response = $this->publicGetTickerAll ($params);
+        //
+        //     {
+        //         "status":"0000",
+        //         "$data":{
+        //             "BTC":array(
+        //                 "opening_price":"9045000",
+        //                 "closing_price":"9132000",
+        //                 "min_price":"8938000",
+        //                 "max_price":"9168000",
+        //                 "units_traded":"4619.79967497",
+        //                 "acc_trade_value":"42021363832.5187",
+        //                 "prev_closing_price":"9041000",
+        //                 "units_traded_24H":"8793.5045804",
+        //                 "acc_trade_value_24H":"78933458515.4962",
+        //                 "fluctate_24H":"530000",
+        //                 "fluctate_rate_24H":"6.16"
+        //             ),
+        //             "date":"1587710878669"
+        //         }
+        //     }
+        //
         $result = array();
-        $timestamp = $this->safe_integer($response['data'], 'date');
-        $tickers = $this->omit($response['data'], 'date');
+        $data = $this->safe_value($response, 'data', array());
+        $timestamp = $this->safe_integer($data, 'date');
+        $tickers = $this->omit($data, 'date');
         $ids = is_array($tickers) ? array_keys($tickers) : array();
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
@@ -282,7 +322,27 @@ class bithumb extends Exchange {
             'currency' => $market['base'],
         );
         $response = $this->publicGetTickerCurrency (array_merge($request, $params));
-        return $this->parse_ticker($response['data'], $market);
+        //
+        //     {
+        //         "status":"0000",
+        //         "$data":{
+        //             "opening_price":"227100",
+        //             "closing_price":"228400",
+        //             "min_price":"222300",
+        //             "max_price":"230000",
+        //             "units_traded":"82618.56075337",
+        //             "acc_trade_value":"18767376138.6031",
+        //             "prev_closing_price":"227100",
+        //             "units_traded_24H":"151871.13484676",
+        //             "acc_trade_value_24H":"34247610416.8974",
+        //             "fluctate_24H":"8700",
+        //             "fluctate_rate_24H":"3.96",
+        //             "date":"1587710327264"
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_ticker($data, $market);
     }
 
     public function parse_trade($trade, $market = null) {

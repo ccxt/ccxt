@@ -199,6 +199,24 @@ class bithumb(Exchange):
         return self.parse_order_book(data, timestamp, 'bids', 'asks', 'price', 'quantity')
 
     def parse_ticker(self, ticker, market=None):
+        #
+        # fetchTicker, fetchTickers
+        #
+        #     {
+        #         "opening_price":"227100",
+        #         "closing_price":"228400",
+        #         "min_price":"222300",
+        #         "max_price":"230000",
+        #         "units_traded":"82618.56075337",
+        #         "acc_trade_value":"18767376138.6031",
+        #         "prev_closing_price":"227100",
+        #         "units_traded_24H":"151871.13484676",
+        #         "acc_trade_value_24H":"34247610416.8974",
+        #         "fluctate_24H":"8700",
+        #         "fluctate_rate_24H":"3.96",
+        #         "date":"1587710327264",  # fetchTickers inject self
+        #     }
+        #
         timestamp = self.safe_integer(ticker, 'date')
         symbol = None
         if market is not None:
@@ -244,9 +262,31 @@ class bithumb(Exchange):
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
         response = self.publicGetTickerAll(params)
+        #
+        #     {
+        #         "status":"0000",
+        #         "data":{
+        #             "BTC":{
+        #                 "opening_price":"9045000",
+        #                 "closing_price":"9132000",
+        #                 "min_price":"8938000",
+        #                 "max_price":"9168000",
+        #                 "units_traded":"4619.79967497",
+        #                 "acc_trade_value":"42021363832.5187",
+        #                 "prev_closing_price":"9041000",
+        #                 "units_traded_24H":"8793.5045804",
+        #                 "acc_trade_value_24H":"78933458515.4962",
+        #                 "fluctate_24H":"530000",
+        #                 "fluctate_rate_24H":"6.16"
+        #             },
+        #             "date":"1587710878669"
+        #         }
+        #     }
+        #
         result = {}
-        timestamp = self.safe_integer(response['data'], 'date')
-        tickers = self.omit(response['data'], 'date')
+        data = self.safe_value(response, 'data', {})
+        timestamp = self.safe_integer(data, 'date')
+        tickers = self.omit(data, 'date')
         ids = list(tickers.keys())
         for i in range(0, len(ids)):
             id = ids[i]
@@ -269,7 +309,27 @@ class bithumb(Exchange):
             'currency': market['base'],
         }
         response = self.publicGetTickerCurrency(self.extend(request, params))
-        return self.parse_ticker(response['data'], market)
+        #
+        #     {
+        #         "status":"0000",
+        #         "data":{
+        #             "opening_price":"227100",
+        #             "closing_price":"228400",
+        #             "min_price":"222300",
+        #             "max_price":"230000",
+        #             "units_traded":"82618.56075337",
+        #             "acc_trade_value":"18767376138.6031",
+        #             "prev_closing_price":"227100",
+        #             "units_traded_24H":"151871.13484676",
+        #             "acc_trade_value_24H":"34247610416.8974",
+        #             "fluctate_24H":"8700",
+        #             "fluctate_rate_24H":"3.96",
+        #             "date":"1587710327264"
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_ticker(data, market)
 
     def parse_trade(self, trade, market=None):
         #
