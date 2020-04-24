@@ -164,6 +164,26 @@ module.exports = class gateio extends Exchange {
 
     async fetchMarkets (params = {}) {
         const response = await this.publicGetMarketinfo (params);
+        //
+        //     {
+        //         "result":"true",
+        //         "pairs":[
+        //             {
+        //                 "usdt_cnyx":{
+        //                     "decimal_places":3,
+        //                     "amount_decimal_places":3,
+        //                     "min_amount":1,
+        //                     "min_amount_a":1,
+        //                     "min_amount_b":3,
+        //                     "fee":0.02,
+        //                     "trade_disabled":0,
+        //                     "buy_disabled":0,
+        //                     "sell_disabled":0
+        //                 }
+        //             },
+        //         ]
+        //     }
+        //
         const markets = this.safeValue (response, 'pairs');
         if (!markets) {
             throw new ExchangeError (this.id + ' fetchMarkets got an unrecognized response');
@@ -190,14 +210,14 @@ module.exports = class gateio extends Exchange {
             const symbol = base + '/' + quote;
             const precision = {
                 'amount': 8,
-                'price': details['decimal_places'],
+                'price': this.safeInteger (details, 'decimal_places'),
             };
             const amountLimits = {
-                'min': details['min_amount'],
+                'min': this.safeFloat (details, 'min_amount'),
                 'max': undefined,
             };
             const priceLimits = {
-                'min': Math.pow (10, -details['decimal_places']),
+                'min': Math.pow (10, -precision['price']),
                 'max': undefined,
             };
             const defaultCost = amountLimits['min'] * priceLimits['min'];
@@ -211,9 +231,13 @@ module.exports = class gateio extends Exchange {
                 'price': priceLimits,
                 'cost': costLimits,
             };
-            const active = true;
+            const disabled = this.safeValue (details, 'trade_disabled');
+            const active = !disabled;
+            const uppercaseId = id.toUpperCase ();
+            const fee = this.safeFloat (details, 'fee');
             result.push ({
                 'id': id,
+                'uppercaseId': uppercaseId,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
@@ -221,8 +245,8 @@ module.exports = class gateio extends Exchange {
                 'quoteId': quoteId,
                 'info': market,
                 'active': active,
-                'maker': details['fee'] / 100,
-                'taker': details['fee'] / 100,
+                'maker': fee / 100,
+                'taker': fee / 100,
                 'precision': precision,
                 'limits': limits,
             });
