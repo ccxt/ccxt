@@ -149,6 +149,8 @@ class binance(Exchange):
                         'lending/union/purchaseRecord',
                         'lending/union/redemptionRecord',
                         'lending/union/interestHistory',
+                        'lending/project/list',
+                        'lending/project/position/list',
                     ],
                     'post': [
                         'asset/dust',
@@ -165,6 +167,7 @@ class binance(Exchange):
                         'userDataStream',
                         'futures/transfer',
                         # lending
+                        'lending/customizedFixed/purchase',
                         'lending/daily/purchase',
                         'lending/daily/redeem',
                     ],
