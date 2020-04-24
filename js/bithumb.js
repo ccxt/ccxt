@@ -397,25 +397,16 @@ module.exports = class bithumb extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let request = undefined;
-        let method = 'privatePostTrade';
+        const request = {
+                'order_currency': market['id'],
+                'Payment_currency': market['quote'],
+                'units': amount,
+                'type': (side === 'buy') ? 'bid' : 'ask',
+        };
+        let method = 'privatePostTradePlace';
         if (type === 'limit') {
-            request = {
-                'order_currency': market['id'],
-                'Payment_currency': market['quote'],
-                'units': amount,
-                'price': price,
-                'type': (side === 'buy') ? 'bid' : 'ask',
-            };
-            method += 'Place';
-        } else if (type === 'market') {
-            request = {
-                'order_currency': market['id'],
-                'Payment_currency': market['quote'],
-                'units': amount,
-                'type': (side === 'buy') ? 'bid' : 'ask',
-            };
-            method += 'Market' + this.capitalize (side);
+            request['price'] = price;
+            method = 'privatePostTradeMarket' + this.capitalize (side);
         }
         const response = await this[method] (this.extend (request, params));
         const id = this.safeString (response, 'order_id');
