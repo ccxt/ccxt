@@ -127,20 +127,22 @@ module.exports = class Exchange extends ccxt.Exchange {
         // catch any connection-level exceptions from the client
         // (connection established successfully)
         connected.then (() => {
-            if (message && !client.subscriptions[subscribeHash]) {
+            if (!client.subscriptions[subscribeHash]) {
                 client.subscriptions[subscribeHash] = subscription || true
                 const options = this.safeValue (this.options, 'ws');
                 const rateLimit = this.safeValue (options, 'rateLimit', this.rateLimit);
-                if (this.enableRateLimit && client.throttle) {
-                    client.throttle (rateLimit).then (() => {
+                if (message) {
+                    if (this.enableRateLimit && client.throttle) {
+                        client.throttle (rateLimit).then (() => {
+                            // todo: decouple signing from subscriptions
+                            message = this.signMessage (client, messageHash, message)
+                            client.send (message)
+                        }).catch ((e) => { throw e })
+                    } else {
                         // todo: decouple signing from subscriptions
                         message = this.signMessage (client, messageHash, message)
                         client.send (message)
-                    }).catch ((e) => { throw e })
-                } else {
-                    // todo: decouple signing from subscriptions
-                    message = this.signMessage (client, messageHash, message)
-                    client.send (message)
+                    }
                 }
             }
         }).catch ((error) => {

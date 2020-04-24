@@ -126,15 +126,16 @@ class Exchange(BaseExchange):
         try:
             self.open()
             await client.connect(self.session, backoff_delay)
-            if message and (subscribe_hash not in client.subscriptions):
+            if subscribe_hash not in client.subscriptions:
                 client.subscriptions[subscribe_hash] = subscription or True
                 if self.enableRateLimit and client.throttle:
                     options = self.safe_value(self.options, 'ws', {})
                     rateLimit = self.safe_integer(options, 'rateLimit', self.rateLimit)
                     await client.throttle(rateLimit)
                 # todo: decouple signing from subscriptions
-                message = self.sign_message(client, message_hash, message)
-                await client.send(message)
+                if message:
+                    message = self.sign_message(client, message_hash, message)
+                    await client.send(message)
         except Exception as e:
             client.reject(e, message_hash)
             if self.verbose:

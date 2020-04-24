@@ -625,21 +625,9 @@ module.exports = class binance extends ccxt.binance {
         await this.authenticate ();
         const defaultType = this.safeString2 (this.options, 'watchBalance', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
-        const query = this.omit (params, 'type');
         const url = this.urls['api']['ws'][type] + '/' + this.options['listenKey'];
-        const requestId = this.requestId (url);
-        const request = {
-            'method': 'SUBSCRIBE',
-            'params': [
-                this.options['listenKey'],
-            ],
-            'id': requestId,
-        };
-        const subscribe = {
-            'id': requestId,
-        };
         const messageHash = 'outboundAccountInfo';
-        return await this.watch (url, messageHash, this.extend (request, query), 1, subscribe);
+        return await this.watch (url, messageHash);
     }
 
     handleBalance (client, message) {

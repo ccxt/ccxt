@@ -113,12 +113,14 @@ trait ClientTrait {
         $connected = $client->connect($backoff_delay);
         $connected->then(
             function($result) use ($client, $message_hash, $message, $subscribe_hash, $subscription) {
-                if ($message && !isset($client->subscriptions[$subscribe_hash])) {
+                if (!isset($client->subscriptions[$subscribe_hash])) {
                     $client->subscriptions[$subscribe_hash] = isset($subscription) ? $subscription : true;
                     // todo: add PHP async rate-limiting
                     // todo: decouple signing from subscriptions
-                    $message = $this->sign_message($client, $message_hash, $message);
-                    $client->send($message);
+                    if ($message) {
+                        $message = $this->sign_message($client, $message_hash, $message);
+                        $client->send($message);
+                    }
                 }
             },
             function($error) {
