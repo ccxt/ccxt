@@ -134,6 +134,8 @@ module.exports = class binance extends Exchange {
                         'lending/union/purchaseRecord',
                         'lending/union/redemptionRecord',
                         'lending/union/interestHistory',
+                        'lending/project/list',
+                        'lending/project/position/list',
                     ],
                     'post': [
                         'asset/dust',
@@ -150,6 +152,7 @@ module.exports = class binance extends Exchange {
                         'userDataStream',
                         'futures/transfer',
                         // lending
+                        'lending/customizedFixed/purchase'
                         'lending/daily/purchase',
                         'lending/daily/redeem',
                     ],
