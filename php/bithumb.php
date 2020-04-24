@@ -20,6 +20,9 @@ class bithumb extends Exchange {
             'rateLimit' => 500,
             'has' => array(
                 'CORS' => true,
+                'createOrder' => true,
+                'cancelOrder' => true,
+                'createMarketOrder' => true,
                 'fetchTickers' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
@@ -401,23 +404,17 @@ class bithumb extends Exchange {
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
-        $request = null;
-        $method = 'privatePostTrade';
+        $request = array(
+            'order_currency' => $market['id'],
+            'Payment_currency' => $market['quote'],
+            'units' => $amount,
+        );
+        $method = 'privatePostTradePlace';
         if ($type === 'limit') {
-            $request = array(
-                'order_currency' => $market['id'],
-                'Payment_currency' => $market['quote'],
-                'units' => $amount,
-                'price' => $price,
-                'type' => ($side === 'buy') ? 'bid' : 'ask',
-            );
-            $method .= 'Place';
-        } else if ($type === 'market') {
-            $request = array(
-                'currency' => $market['id'],
-                'units' => $amount,
-            );
-            $method .= 'Market' . $this->capitalize($side);
+            $request['price'] = $price;
+            $request['type'] = ($side === 'buy') ? 'bid' : 'ask';
+        } else {
+            $method = 'privatePostTradeMarket' . $this->capitalize($side);
         }
         $response = $this->$method (array_merge($request, $params));
         $id = $this->safe_string($response, 'order_id');
@@ -473,7 +470,7 @@ class bithumb extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data');
-        return $this->parse_order(array_merge($data, array( 'order_id' => $id ), $market));
+        return $this->parse_order(array_merge($data, array( 'order_id' => $id )), $market);
     }
 
     public function parse_order_status($status) {
@@ -491,7 +488,7 @@ class bithumb extends Exchange {
         //
         //     {
         //         "transaction_date" => "1572497603668315",
-        //         "type" => "bid",
+        //         "$type" => "bid",
         //         "order_status" => "Completed",
         //         "order_currency" => "BTC",
         //         "payment_currency" => "KRW",
@@ -518,17 +515,22 @@ class bithumb extends Exchange {
         //         "payment_currency" => "KRW",
         //         "order_id" => "C0101000007408440032",
         //         "order_date" => "1571728739360570",
-        //         "type" => "bid",
+        //         "$type" => "bid",
         //         "units" => "5.0",
         //         "units_remaining" => "5.0",
         //         "$price" => "501000",
         //     }
         //
         $timestamp = $this->safe_integer_product($order, 'order_date', 0.001);
-        $price = $this->safe_float_2($order, 'order_price', 'price');
         $sideProperty = $this->safe_value_2($order, 'type', 'side');
         $side = ($sideProperty === 'bid') ? 'buy' : 'sell';
         $status = $this->parse_order_status($this->safe_string($order, 'order_status'));
+        $price = $this->safe_float_2($order, 'order_price', 'price');
+        $type = 'limit';
+        if ($price === 0) {
+            $price = null;
+            $type = 'market';
+        }
         $amount = $this->safe_float_2($order, 'order_qty', 'units');
         $remaining = $this->safe_float($order, 'units_remaining');
         if ($remaining === null) {
@@ -570,7 +572,7 @@ class bithumb extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
-            'type' => null,
+            'type' => $type,
             'side' => $side,
             'price' => $price,
             'amount' => $amount,

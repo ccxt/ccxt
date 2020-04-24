@@ -26,6 +26,9 @@ class bithumb(Exchange):
             'rateLimit': 500,
             'has': {
                 'CORS': True,
+                'createOrder': True,
+                'cancelOrder': True,
+                'createMarketOrder': True,
                 'fetchTickers': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
@@ -375,23 +378,17 @@ class bithumb(Exchange):
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        request = None
-        method = 'privatePostTrade'
+        request = {
+            'order_currency': market['id'],
+            'Payment_currency': market['quote'],
+            'units': amount,
+        }
+        method = 'privatePostTradePlace'
         if type == 'limit':
-            request = {
-                'order_currency': market['id'],
-                'Payment_currency': market['quote'],
-                'units': amount,
-                'price': price,
-                'type': 'bid' if (side == 'buy') else 'ask',
-            }
-            method += 'Place'
-        elif type == 'market':
-            request = {
-                'currency': market['id'],
-                'units': amount,
-            }
-            method += 'Market' + self.capitalize(side)
+            request['price'] = price
+            request['type'] = 'bid' if (side == 'buy') else 'ask'
+        else:
+            method = 'privatePostTradeMarket' + self.capitalize(side)
         response = getattr(self, method)(self.extend(request, params))
         id = self.safe_string(response, 'order_id')
         if id is None:
@@ -443,7 +440,7 @@ class bithumb(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data')
-        return self.parse_order(self.extend(data, {'order_id': id}, market))
+        return self.parse_order(self.extend(data, {'order_id': id}), market)
 
     def parse_order_status(self, status):
         statuses = {
@@ -493,10 +490,14 @@ class bithumb(Exchange):
         #     }
         #
         timestamp = self.safe_integer_product(order, 'order_date', 0.001)
-        price = self.safe_float_2(order, 'order_price', 'price')
         sideProperty = self.safe_value_2(order, 'type', 'side')
         side = 'buy' if (sideProperty == 'bid') else 'sell'
         status = self.parse_order_status(self.safe_string(order, 'order_status'))
+        price = self.safe_float_2(order, 'order_price', 'price')
+        type = 'limit'
+        if price == 0:
+            price = None
+            type = 'market'
         amount = self.safe_float_2(order, 'order_qty', 'units')
         remaining = self.safe_float(order, 'units_remaining')
         if remaining is None:
@@ -532,7 +533,7 @@ class bithumb(Exchange):
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
             'symbol': symbol,
-            'type': None,
+            'type': type,
             'side': side,
             'price': price,
             'amount': amount,
