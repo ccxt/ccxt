@@ -16,6 +16,9 @@ module.exports = class bithumb extends Exchange {
             'rateLimit': 500,
             'has': {
                 'CORS': true,
+                'createOrder': true,
+                'cancelOrder': true,
+                'createMarketOrder': true,
                 'fetchTickers': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -398,14 +401,14 @@ module.exports = class bithumb extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-                'order_currency': market['id'],
-                'Payment_currency': market['quote'],
-                'units': amount,
-                'type': (side === 'buy') ? 'bid' : 'ask',
+            'order_currency': market['id'],
+            'Payment_currency': market['quote'],
+            'units': amount,
         };
         let method = 'privatePostTradePlace';
         if (type === 'limit') {
             request['price'] = price;
+            request['type'] = (side === 'buy') ? 'bid' : 'ask';
         } else {
             method = 'privatePostTradeMarket' + this.capitalize (side);
         }
