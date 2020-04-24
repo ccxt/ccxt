@@ -642,6 +642,13 @@ module.exports = class bithumb extends Exchange {
         return await this.privatePostTradeCancel (this.extend (request, params));
     }
 
+    cancelUnifiedOrder (order, params = {}) {
+        const request = {
+            'side': order['side'],
+        };
+        return this.cancelOrder (order['id'], order['symbol'], this.extend (request, params));
+    }
+
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();

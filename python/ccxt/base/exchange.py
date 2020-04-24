@@ -1336,6 +1336,9 @@ class Exchange(object):
     def cancel_order(self, id, symbol=None, params={}):
         raise NotSupported('cancel_order() not supported yet')
 
+    def cancel_unified_order(self, order, params={}):
+        return self.cancel_order(self.safe_value(order, 'id'), self.safe_value(order, 'symbol'), params)
+
     def fetch_bids_asks(self, symbols=None, params={}):
         raise NotSupported('API does not allow to fetch all prices at once with a single call to fetch_bids_asks() for now')
 
@@ -1357,6 +1360,9 @@ class Exchange(object):
 
     def fetch_order(self, id, symbol=None, params={}):
         raise NotSupported('fetch_order() is not supported yet')
+
+    def fetch_unified_order(self, order, params={}):
+        return self.fetch_order(self.safe_value(order, 'id'), self.safe_value(order, 'symbol'), params)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         raise NotSupported('fetch_orders() is not supported yet')
