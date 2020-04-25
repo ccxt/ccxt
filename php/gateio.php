@@ -44,11 +44,13 @@ class gateio extends \ccxt\gateio {
         $this->load_markets();
         $market = $this->market($symbol);
         $marketId = $market['id'];
-        $wsMarketId = strtoupper($marketId);
+        $uppercaseId = $market['uppercaseId'];
         $requestId = $this->nonce();
         $url = $this->urls['api']['ws'];
+        $options = $this->safe_value($this->options, 'watchOrderBook', array());
+        $defaultLimit = $this->safe_integer($options, 'limit', 30);
         if (!$limit) {
-            $limit = 30;
+            $limit = $defaultLimit;
         } else if ($limit !== 1 && $limit !== 5 && $limit !== 10 && $limit !== 20 && $limit !== 30) {
             throw new ExchangeError($this->id . ' watchOrderBook $limit argument must be null, 1, 5, 10, 20, or 30');
         }
@@ -58,8 +60,7 @@ class gateio extends \ccxt\gateio {
         if (($precision < 0) || ($precision > 8) || (fmod($precision, 1) !== 0.0)) {
             throw new ExchangeError($this->id . ' invalid interval');
         }
-        $parameters = array( $wsMarketId, $limit, $interval );
-        $options = $this->safe_value($this->options, 'watchOrderBook', array());
+        $parameters = array( $uppercaseId, $limit, $interval );
         $subscriptions = $this->safe_value($options, 'subscriptions', array());
         $subscriptions[$symbol] = $parameters;
         $options['subscriptions'] = $subscriptions;
@@ -96,6 +97,27 @@ class gateio extends \ccxt\gateio {
     }
 
     public function handle_order_book($client, $message) {
+        //
+        //     {
+        //         "$method":"depth.update",
+        //         "$params":[
+        //             true, // snapshot or not
+        //             array(
+        //                 "asks":[
+        //                     ["7449.62","0.3933"],
+        //                     ["7450","3.58662932"],
+        //                     ["7450.44","0.15"],
+        //                 "bids":[
+        //                     ["7448.31","0.69984534"],
+        //                     ["7447.08","0.7506"],
+        //                     ["7445.74","0.4433"],
+        //                 ]
+        //             ),
+        //             "BTC_USDT"
+        //         ],
+        //         "id":null
+        //     }
+        //
         $params = $this->safe_value($message, 'params', array());
         $clean = $this->safe_value($params, 0);
         $book = $this->safe_value($params, 1);
@@ -110,8 +132,13 @@ class gateio extends \ccxt\gateio {
         $method = $this->safe_string($message, 'method');
         $messageHash = $method . ':' . $marketId;
         $orderBook = null;
+        $options = $this->safe_value($this->options, 'watchOrderBook', array());
+        $subscriptions = $this->safe_value($options, 'subscriptions', array());
+        $subscription = $this->safe_value($subscriptions, $symbol, array());
+        $defaultLimit = $this->safe_integer($options, 'limit', 30);
+        $limit = $this->safe_value($subscription, 1, $defaultLimit);
         if ($clean) {
-            $orderBook = $this->order_book(array());
+            $orderBook = $this->order_book(array(), $limit);
             $this->orderbooks[$symbol] = $orderBook;
         } else {
             $orderBook = $this->orderbooks[$symbol];
@@ -125,12 +152,12 @@ class gateio extends \ccxt\gateio {
         $this->load_markets();
         $market = $this->market($symbol);
         $marketId = $market['id'];
-        $wsMarketId = strtoupper($marketId);
+        $uppercaseId = $market['uppercaseId'];
         $requestId = $this->nonce();
         $url = $this->urls['api']['ws'];
         $options = $this->safe_value($this->options, 'watchTicker', array());
         $subscriptions = $this->safe_value($options, 'subscriptions', array());
-        $subscriptions[$wsMarketId] = true;
+        $subscriptions[$uppercaseId] = true;
         $options['subscriptions'] = $subscriptions;
         $this->options['watchTicker'] = $options;
         $subscribeMessage = array(
@@ -183,16 +210,19 @@ class gateio extends \ccxt\gateio {
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
-        $marketId = strtoupper($market['id']);
+        $marketId = $market['id'];
+        $uppercaseId = $market['uppercaseId'];
         $requestId = $this->nonce();
         $url = $this->urls['api']['ws'];
-        $marketIdSubscriptions = $this->safe_value($this->options, 'watchTradesSubscriptions', array());
-        $marketIdSubscriptions[$marketId] = true;
-        $this->options['watchTradesSubscriptions'] = $marketIdSubscriptions;
+        $options = $this->safe_value($this->options, 'watchTrades', array());
+        $subscriptions = $this->safe_value($options, 'subcsriptions', array());
+        $subscriptions[$uppercaseId] = true;
+        $options['subscriptions'] = $subscriptions;
+        $this->options['watchTrades'] = $options;
         $subscribeMessage = array(
             'id' => $requestId,
             'method' => 'trades.subscribe',
-            'params' => is_array($marketIdSubscriptions) ? array_keys($marketIdSubscriptions) : array(),
+            'params' => is_array($subscriptions) ? array_keys($subscriptions) : array(),
         );
         $subscription = array(
             'id' => $requestId,
@@ -225,7 +255,6 @@ class gateio extends \ccxt\gateio {
         //     )
         //
         $params = $this->safe_value($message, 'params', array());
-        $wsMarketId = $this->safe_string($params, 0);
         $marketId = $this->safe_string_lower($params, 0);
         $market = null;
         $symbol = $marketId;
@@ -245,40 +274,22 @@ class gateio extends \ccxt\gateio {
         }
         $this->trades[$symbol] = $stored;
         $methodType = $message['method'];
-        $messageHash = $methodType . ':' . $wsMarketId;
+        $messageHash = $methodType . ':' . $marketId;
         $client->resolve ($stored, $messageHash);
-    }
-
-    public function load_markets($reload = false, $params = array ()) {
-        $markets = parent::load_markets($reload, $params);
-        $marketsByUpperCaseId = $this->safe_value($this->options, 'marketsByUpperCaseId');
-        if (($marketsByUpperCaseId === null) || $reload) {
-            $marketsByUpperCaseId = array();
-            $symbols = is_array($markets) ? array_keys($markets) : array();
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
-                $market = $markets[$symbol];
-                $uppercaseId = $this->safe_string_upper($market, 'id');
-                $market['uppercaseId'] = $uppercaseId;
-                $markets[$symbol] = $market;
-                $marketsByUpperCaseId[$uppercaseId] = $market;
-            }
-            $this->options['marketsByUpperCaseId'] = $marketsByUpperCaseId;
-        }
-        return $markets;
     }
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
-        $marketId = $market['uppercaseId'];
+        $marketId = $market['id'];
+        $uppercaseId = $market['uppercaseId'];
         $requestId = $this->nonce();
         $url = $this->urls['api']['ws'];
         $interval = $this->timeframes[$timeframe];
         $subscribeMessage = array(
             'id' => $requestId,
             'method' => 'kline.subscribe',
-            'params' => array( $marketId, $interval ),
+            'params' => array( $uppercaseId, $interval ),
         );
         $subscription = array(
             'id' => $requestId,
@@ -313,7 +324,6 @@ class gateio extends \ccxt\gateio {
         //
         $params = $this->safe_value($message, 'params', array());
         $ohlcv = $this->safe_value($params, 0, array());
-        $uppercaseId = $this->safe_string($ohlcv, 7);
         $marketId = $this->safe_string_lower($ohlcv, 7);
         $parsed = array(
             $this->safe_timestamp($ohlcv, 0), // t
@@ -353,7 +363,7 @@ class gateio extends \ccxt\gateio {
         // --------------------------------------------------------------------
         $this->ohlcvs[$symbol] = $stored;
         $methodType = $message['method'];
-        $messageHash = $methodType . ':' . $uppercaseId;
+        $messageHash = $methodType . ':' . $marketId;
         $client->resolve ($stored, $messageHash);
     }
 
@@ -466,11 +476,10 @@ class gateio extends \ccxt\gateio {
     public function handle_order($client, $message) {
         $messageHash = $message['method'];
         $order = $message['params'][1];
-        $marketId = $order['market'];
-        $normalMarketId = strtolower($marketId);
+        $marketId = $this->safe_string_lower($order, 'market');
         $market = null;
-        if (is_array($this->markets_by_id) && array_key_exists($normalMarketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$normalMarketId];
+        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+            $market = $this->markets_by_id[$marketId];
         }
         $parsed = $this->parse_order($order, $market);
         $client->resolve ($parsed, $messageHash);
