@@ -15,8 +15,11 @@ async def main(loop):
                 trade = trades[-1]
                 print(exchange.iso8601(exchange.milliseconds()), trade['symbol'], trade['datetime'], trade['price'], trade['amount'], 'stored', num_trades, 'trades in cache')
             except Exception as e:
-                print(e)
+                # stop
                 await exchange.close()
+                raise e
+                # or retry
+                # pass
     else:
         raise Exception(exchange.id + ' ' + method + ' is not supported or not implemented yet')
 
