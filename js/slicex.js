@@ -11,7 +11,7 @@ module.exports = class slicex extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'slicex',
             'name': 'Slicex',
-            'countries': ['NMK'],
+            'countries': ['MK'],
             'rateLimit': 1000,
             'certified': false,
             'has': {
@@ -152,7 +152,7 @@ module.exports = class slicex extends Exchange {
             //     DecimalPlaces: 8,
             //     Currency: 'USDT',
             //     CurrencyLong: 'Tether',
-            //     CoinType: 'ETHERC20' }
+            //     CoinType: 'ETHERC20' },
             const item = items[i];
             const id = this.safeString (item, 'Asset');
             const code = this.safeCurrencyCode (id);
