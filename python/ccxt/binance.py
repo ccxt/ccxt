@@ -52,6 +52,7 @@ class binance(Exchange):
                 'fetchTransactions': False,
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
+                'cancelAllOrders': True,
             },
             'timeframes': {
                 '1m': '1m',
@@ -149,6 +150,8 @@ class binance(Exchange):
                         'lending/union/purchaseRecord',
                         'lending/union/redemptionRecord',
                         'lending/union/interestHistory',
+                        'lending/project/list',
+                        'lending/project/position/list',
                     ],
                     'post': [
                         'asset/dust',
@@ -165,6 +168,7 @@ class binance(Exchange):
                         'userDataStream',
                         'futures/transfer',
                         # lending
+                        'lending/customizedFixed/purchase',
                         'lending/daily/purchase',
                         'lending/daily/redeem',
                     ],
@@ -230,6 +234,8 @@ class binance(Exchange):
                         'income',
                     ],
                     'post': [
+                        'batchOrders',
+                        'positionSide/dual',
                         'positionMargin',
                         'marginType',
                         'order',
@@ -240,6 +246,7 @@ class binance(Exchange):
                         'listenKey',
                     ],
                     'delete': [
+                        'batchOrders',
                         'order',
                         'allOpenOrders',
                         'listenKey',
@@ -286,6 +293,7 @@ class binance(Exchange):
                         'order/test',
                     ],
                     'delete': [
+                        'openOrders',  # added on 2020-04-25 for canceling all open orders per symbol
                         'orderList',  # oco
                         'order',
                     ],
@@ -1123,6 +1131,8 @@ class binance(Exchange):
         elif uppercaseType == 'STOP':
             stopPriceIsRequired = True
             priceIsRequired = True
+        elif uppercaseType == 'STOP_MARKET':
+            stopPriceIsRequired = True
         if priceIsRequired:
             if price is None:
                 raise InvalidOrder(self.id + ' createOrder method requires a price argument for a ' + type + ' order')
@@ -1261,6 +1271,24 @@ class binance(Exchange):
         method = 'privateDeleteOrder' if market['spot'] else 'fapiPrivateDeleteOrder'
         response = getattr(self, method)(self.extend(request, params))
         return self.parse_order(response)
+
+    def cancel_all_orders(self, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' cancelAllOrders requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        defaultType = self.safe_string_2(self.options, 'cancelAllOrders', 'defaultType', 'spot')
+        type = self.safe_string(params, 'type', defaultType)
+        query = self.omit(params, 'type')
+        method = 'privateDeleteOpenOrders' if (type == 'spot') else 'fapiPrivateDeleteAllOpenOrders'
+        response = getattr(self, method)(self.extend(request, query))
+        if isinstance(response, list):
+            return self.parse_orders(response, market)
+        else:
+            return response
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
@@ -1733,6 +1761,11 @@ class binance(Exchange):
             query = None
             if (api == 'sapi') and (path == 'asset/dust'):
                 query = self.urlencode_with_array_repeat(self.extend({
+                    'timestamp': self.nonce(),
+                    'recvWindow': self.options['recvWindow'],
+                }, params))
+            elif path == 'batchOrders':
+                query = self.rawencode(self.extend({
                     'timestamp': self.nonce(),
                     'recvWindow': self.options['recvWindow'],
                 }, params))

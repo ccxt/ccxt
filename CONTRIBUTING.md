@@ -108,7 +108,7 @@ This way you can keep the build tools and processes isolated, not having to work
 If you choose the hard way, here is the list of the dependencies you will need. It may be incomplete and outdated, so you may want to look into the [`Dockerfile`](https://github.com/ccxt/ccxt/blob/master/Dockerfile) and [`.travis.yml`](https://github.com/ccxt/ccxt/blob/master/.travis.yml) scripts for the list of commands we use to install the state-of-the-art dependencies needed to build and test CCXT.
 
 - [Node.js](https://nodejs.org/en/download/) 8+
-- [Python](https://www.python.org/downloads/) 3.5.3+ and Python 2.7+
+- [Python](https://www.python.org/downloads/) 3.5.3+
   - tox (`brew install tox` or `pip install tox`)
   - requests (`pip install requests`)
   - aiohttp (`pip install aiohttp`)

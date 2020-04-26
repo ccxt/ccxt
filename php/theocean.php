@@ -192,6 +192,9 @@ class theocean extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {
+        if ($since === null) {
+            throw new ArgumentsRequired($this->id . ' fetchOHLCV requires a $since argument');
+        }
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -199,9 +202,6 @@ class theocean extends Exchange {
             'quoteTokenAddress' => $market['quoteId'],
             'interval' => $this->timeframes[$timeframe],
         );
-        if ($since === null) {
-            throw new ExchangeError($this->id . ' fetchOHLCV requires a $since argument');
-        }
         $since = intval ($since);
         $request['startTime'] = $since;
         $response = $this->publicGetCandlesticks (array_merge($request, $params));

@@ -206,9 +206,9 @@ class paymium extends Exchange {
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
         $request = array(
-            'UUID' => $id,
+            'uuid' => $id,
         );
-        return $this->privateDeleteUserOrdersUUIDCancel (array_merge($request, $params));
+        return $this->privateDeleteUserOrdersUuidCancel (array_merge($request, $params));
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

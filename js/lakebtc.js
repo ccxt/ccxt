@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, BadSymbol, InvalidOrder, InsufficientFunds } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -14,6 +14,7 @@ module.exports = class lakebtc extends Exchange {
             'name': 'LakeBTC',
             'countries': [ 'US' ],
             'version': 'api_v2',
+            'rateLimit': 1000,
             'has': {
                 'CORS': true,
                 'createMarketOrder': false,
@@ -53,6 +54,14 @@ module.exports = class lakebtc extends Exchange {
                 'trading': {
                     'maker': 0.15 / 100,
                     'taker': 0.2 / 100,
+                },
+            },
+            'exceptions': {
+                'broad': {
+                    'Signature': AuthenticationError,
+                    'invalid symbol': BadSymbol,
+                    'Volume doit': InvalidOrder,
+                    'insufficient_balance': InsufficientFunds,
                 },
             },
         });
@@ -248,40 +257,68 @@ module.exports = class lakebtc extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ();
+            const nonceAsString = nonce.toString ();
+            const requestId = this.seconds ();
             let queryParams = '';
             if ('params' in params) {
                 const paramsList = params['params'];
-                queryParams = paramsList.join (',');
+                const stringParams = [];
+                for (let i = 0; i < paramsList.length; i++) {
+                    let param = paramsList[i];
+                    if (typeof paramsList !== 'string') {
+                        param = param.toString ();
+                    }
+                    stringParams.push (param);
+                }
+                queryParams = stringParams.join (',');
+                body = {
+                    'method': path,
+                    'params': params['params'],
+                    'id': requestId,
+                };
+            } else {
+                body = {
+                    'method': path,
+                    'params': '',
+                    'id': requestId,
+                };
             }
-            const query = this.urlencode ({
-                'tonce': nonce,
-                'accesskey': this.apiKey,
-                'requestmethod': method.toLowerCase (),
-                'id': nonce,
-                'method': path,
-                'params': queryParams,
-            });
-            body = this.json ({
-                'method': path,
-                'params': queryParams,
-                'id': nonce,
-            });
+            body = this.json (body);
+            let query = [
+                'tonce=' + nonceAsString,
+                'accesskey=' + this.apiKey,
+                'requestmethod=' + method.toLowerCase (),
+                'id=' + requestId.toString (),
+                'method=' + path,
+                'params=' + queryParams,
+            ];
+            query = query.join ('&');
             const signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha1');
             const auth = this.encode (this.apiKey + ':' + signature);
+            const signature64 = this.decode (this.stringToBase64 (auth));
             headers = {
-                'Json-Rpc-Tonce': nonce.toString (),
-                'Authorization': 'Basic ' + this.decode (this.stringToBase64 (auth)),
+                'Json-Rpc-Tonce': nonceAsString,
+                'Authorization': 'Basic ' + signature64,
                 'Content-Type': 'application/json',
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('error' in response) {
-            throw new ExchangeError (this.id + ' ' + this.json (response));
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return; // fallback to the default error handler
         }
-        return response;
+        //
+        //     {"error":"Failed to submit order: invalid symbol"}
+        //     {"error":"Failed to submit order: La validation a échoué : Volume doit être supérieur ou égal à 1.0"}
+        //     {"error":"Failed to submit order: insufficient_balance"}
+        //
+        const feedback = this.id + ' ' + body;
+        const error = this.safeString (response, 'error');
+        if (error !== undefined) {
+            this.throwBroadlyMatchedException (this.exceptions['broad'], error, feedback);
+            throw new ExchangeError (feedback); // unknown message
+        }
     }
 };

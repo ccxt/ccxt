@@ -45,6 +45,7 @@ class bitmart(Exchange):
                 'fetchClosedOrders': True,
                 'fetchCanceledOrders': True,
                 'fetchOrder': True,
+                'signIn': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/61835713-a2662f80-ae85-11e9-9d00-6442919701fd.jpg',

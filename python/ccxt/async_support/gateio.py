@@ -174,6 +174,26 @@ class gateio(Exchange):
 
     async def fetch_markets(self, params={}):
         response = await self.publicGetMarketinfo(params)
+        #
+        #     {
+        #         "result":"true",
+        #         "pairs":[
+        #             {
+        #                 "usdt_cnyx":{
+        #                     "decimal_places":3,
+        #                     "amount_decimal_places":3,
+        #                     "min_amount":1,
+        #                     "min_amount_a":1,
+        #                     "min_amount_b":3,
+        #                     "fee":0.02,
+        #                     "trade_disabled":0,
+        #                     "buy_disabled":0,
+        #                     "sell_disabled":0
+        #                 }
+        #             },
+        #         ]
+        #     }
+        #
         markets = self.safe_value(response, 'pairs')
         if not markets:
             raise ExchangeError(self.id + ' fetchMarkets got an unrecognized response')
@@ -198,14 +218,14 @@ class gateio(Exchange):
             symbol = base + '/' + quote
             precision = {
                 'amount': 8,
-                'price': details['decimal_places'],
+                'price': self.safe_integer(details, 'decimal_places'),
             }
             amountLimits = {
-                'min': details['min_amount'],
+                'min': self.safe_float(details, 'min_amount'),
                 'max': None,
             }
             priceLimits = {
-                'min': math.pow(10, -details['decimal_places']),
+                'min': math.pow(10, -precision['price']),
                 'max': None,
             }
             defaultCost = amountLimits['min'] * priceLimits['min']
@@ -219,9 +239,13 @@ class gateio(Exchange):
                 'price': priceLimits,
                 'cost': costLimits,
             }
-            active = True
+            disabled = self.safe_value(details, 'trade_disabled')
+            active = not disabled
+            uppercaseId = id.upper()
+            fee = self.safe_float(details, 'fee')
             result.append({
                 'id': id,
+                'uppercaseId': uppercaseId,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
@@ -229,8 +253,8 @@ class gateio(Exchange):
                 'quoteId': quoteId,
                 'info': market,
                 'active': active,
-                'maker': details['fee'] / 100,
-                'taker': details['fee'] / 100,
+                'maker': fee / 100,
+                'taker': fee / 100,
                 'precision': precision,
                 'limits': limits,
             })
@@ -657,7 +681,7 @@ class gateio(Exchange):
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades requires symbol param')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades requires symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
