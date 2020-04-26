@@ -1367,7 +1367,11 @@ module.exports = class binance extends Exchange {
         const query = this.omit (params, 'type');
         const method = (type === 'spot') ? 'privateDeleteOpenOrders' : 'fapiPrivateDeleteAllOpenOrders';
         const response = await this[method] (this.extend (request, query));
-        return response;
+        if (Array.isArray (response)) {
+            return this.parseOrders (response, market);
+        } else {
+            return response;
+        }
     }
 
 
