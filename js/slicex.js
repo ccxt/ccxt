@@ -11,7 +11,7 @@ module.exports = class slicex extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'slicex',
             'name': 'Slicex',
-            'countries': ['MK'],
+            'countries': ['MK'], // North Macedonia
             'rateLimit': 1000,
             'certified': false,
             'has': {
@@ -34,16 +34,9 @@ module.exports = class slicex extends Exchange {
                 'fetchDepositAddress': true,
             },
             'timeframes': {
-                '15m': '15m',
-                '20m': '20m',
-                '30m': '30m',
                 '1h': '1h',
-                '2h': '2h',
-                '3h': '3h',
                 '4h': '4h',
-                '6h': '6h',
                 '8h': '8h',
-                '12h': '12h',
                 '1d': '1d',
             },
             'hostname': 'x.slicex.cc',
@@ -54,7 +47,9 @@ module.exports = class slicex extends Exchange {
                     'v3Public': 'https://{hostname}/api/v3/public',
                 },
                 'www': ['https://slicex.cc'],
-                'doc': ['https://slicex.cc/api.html'],
+                'doc': [
+                    'https://slicex.cc/api.html',
+                ],
                 'fees': 'https://slicex.cc/fees.html',
             },
             'api': {
@@ -97,7 +92,7 @@ module.exports = class slicex extends Exchange {
                 },
             },
             'commonCurrencies': {
-                'SLC': 'Slicecoin',
+                'BTC': 'Bitcoin',
             },
             'exceptions': {
                 'exact': {
@@ -123,10 +118,10 @@ module.exports = class slicex extends Exchange {
             },
         });
         // undocumented api calls
-        // https://x.slicex.cc/api/v3/public/tradingview/symbols?symbol=SLC_BTC
+        // https://x.slicex.cc/api/v3/public/tradingview/symbols?symbol=ETH_BTC
         // https://x.slicex.cc/api/v3/public/tradingview/config
         // https://x.slicex.cc/api/v3/public/tradingview/time
-        // https://x.slicex.cc/api/v3/private/getcloseorders?market=SLC_BTC
+        // https://x.slicex.cc/api/v3/private/getcloseorders?market=ETH_BTC
         // https://x.slicex.cc/config contains the fees
     }
 
@@ -135,12 +130,12 @@ module.exports = class slicex extends Exchange {
         const items = response['result'];
         const result = {};
         for (let i = 0; i < items.length; i++) {
-            //   { Asset: 'SLC',
-            //     AssetLong: 'Slicecoin',
-            //     MinConfirmation: 10,
-            //     WithdrawTxFee: 0.1,
+            //   { Asset: 'USDT',
+            //     AssetLong: 'Tether',
+            //     MinConfirmation: 4,
+            //     WithdrawTxFee: 1,
             //     WithdrawTxFeePercent: 0,
-            //     SystemProtocol: 'BITCOIN',
+            //     SystemProtocol: 'ETHERC20',
             //     IsActive: true,
             //     InfoMessage: '',
             //     MaintenanceMode: false,
@@ -150,9 +145,9 @@ module.exports = class slicex extends Exchange {
             //     DecimalSeparator: '.',
             //     ThousandSeparator: ',',
             //     DecimalPlaces: 8,
-            //     Currency: 'SLC',
-            //     CurrencyLong: 'Slicecoin',
-            //     CoinType: 'BITCOIN' },
+            //     Currency: 'USDT',
+            //     CurrencyLong: 'Tether',
+            //     CoinType: 'ETHERC20' }
             const item = items[i];
             const id = this.safeString (item, 'Asset');
             const code = this.safeCurrencyCode (id);
@@ -171,23 +166,24 @@ module.exports = class slicex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        // https://github.com/ccxt/ccxt/issues/5668
         const response = await this.v3PublicGetGetmarkets (params);
         const result = [];
         const markets = this.safeValue (response, 'result');
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
-            //   { MarketName: 'SLC_BTC',
-            //     MarketAsset: 'SLC',
-            //     BaseAsset: 'BTC',
-            //     MarketAssetLong: 'Slicecoin',
-            //     BaseAssetLong: 'Bitcoin',
+            //   { MarketName: 'LTC_USDT',
+            //     MarketAsset: 'LTC',
+            //     BaseAsset: 'USDT',
+            //     MarketAssetLong: 'Litecoin',
+            //     BaseAssetLong: 'Tether',
             //     IsActive: true,
             //     MinTradeSize: 0.0001,
             //     InfoMessage: '',
-            //     MarketCurrency: 'SLC',
-            //     BaseCurrency: 'BTC',
-            //     MarketCurrencyLong: 'Slicecoin',
-            //     BaseCurrencyLong: 'Bitcoin' }
+            //     MarketCurrency: 'LTC',
+            //     BaseCurrency: 'USDT',
+            //     MarketCurrencyLong: 'Litecoin',
+            //     BaseCurrencyLong: 'Tether' }
             const id = this.safeString (market, 'MarketName');
             const baseId = this.safeString (market, 'MarketAsset');
             const quoteId = this.safeString (market, 'BaseAsset');
@@ -250,7 +246,7 @@ module.exports = class slicex extends Exchange {
             'market': market['id'],
         };
         const response = await this.v3PublicGetGetmarketsummary (this.extend (request, params));
-        const ticker = response['result'][0];
+        const ticker = response['result'];
         return this.parseTicker (ticker, market);
     }
 
@@ -267,25 +263,25 @@ module.exports = class slicex extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        //   { TimeStamp: '2020-04-26 09:51:56',
-        //     MarketName: 'SLC_BTC',
-        //     MarketAsset: 'SLC',
-        //     BaseAsset: 'BTC',
-        //     MarketAssetName: 'Slicecoin',
-        //     BaseAssetName: 'Bitcoin',
-        //     PrevDay: 0.00000008,
-        //     High: 0.00000027,
-        //     Low: 0.00000008,
-        //     Last: 0.00000027,
-        //     Average: 0.00000026,
-        //     Volume: 21420,
-        //     BaseVolume: 0.0055136,
-        //     Bid: 0.00000008,
-        //     Ask: 0.00000028,
+        //   { TimeStamp: '2020-01-14 14:32:28',
+        //     MarketName: 'LTC_USDT',
+        //     MarketAsset: 'LTC',
+        //     BaseAsset: 'USDT',
+        //     MarketAssetName: 'Litecoin',
+        //     BaseAssetName: 'Tether',
+        //     PrevDay: 49.2867503,
+        //     High: 56.78622664,
+        //     Low: 49.27384025,
+        //     Last: 53.94,
+        //     Average: 51.37509368,
+        //     Volume: 1.51282404,
+        //     BaseVolume: 77.72147677,
+        //     Bid: 53.62070218,
+        //     Ask: 53.94,
         //     IsActive: 'true',
         //     InfoMessage: '',
-        //     MarketCurrency: 'Slicecoin',
-        //     BaseCurrency: 'Bitcoin' }
+        //     MarketCurrency: 'Litecoin',
+        //     BaseCurrency: 'Tether' }
         const timestamp = this.parse8601 (this.safeString (ticker, 'TimeStamp'));
         let symbol = undefined;
         const marketId = this.safeString (ticker, 'MarketName');
@@ -347,7 +343,7 @@ module.exports = class slicex extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '15m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1d', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -470,11 +466,11 @@ module.exports = class slicex extends Exchange {
         //   { success: true,
         //     message: '',
         //     result:
-        //     { Asset: 'SLC',
-        //         AssetName: 'Slicecoin',
-        //         DepositAddress: 'sKjseAa5qTsKgJUmCsFEtfbTutaJjwshNv',
-        //         Currency: 'SLC',
-        //         CurrencyName: 'Slicecoin' } }
+        //     { Asset: 'ETH',
+        //         AssetName: 'Ethereum',
+        //         DepositAddress: '0x748c5c8jhksjdfhd507d3aa9',
+        //         Currency: 'ETH',
+        //         CurrencyName: 'Ethereum' } }
         const item = response['result'];
         const address = this.safeString (item, 'DepositAddress');
         return {
@@ -528,15 +524,15 @@ module.exports = class slicex extends Exchange {
         //
         //     {
         //         ID: 104672316,
-        //         TimeStamp: '2020-04-18 21:20:33.031831',
-        //         Asset: 'SLC',
-        //         AssetName: 'Slicecoin',
+        //         TimeStamp: '2018-05-03 08:18:19.031831',
+        //         Asset: 'DOGE',
+        //         AssetName: 'Dogecoin',
         //         Amount: -61893.87864686,
         //         Type: 'WITHDRAW',
-        //         Description: 'Withdraw: 25661.26612985 to address sLssE1xXLQrDvPwk3mbd93348W3qJKih13; fee 0.10000000',
+        //         Description: 'Withdraw: 61883.87864686 to address DD8tgehNNyYB2iqVazi2W1paaztgcWXtF6; fee 10.00000000',
         //         Comments: '',
-        //         CoinSymbol: 'SLC',
-        //         CoinName: 'Slicecoin'
+        //         CoinSymbol: 'DOGE',
+        //         CoinName: 'Dogecoin'
         //     }
         //
         const code = this.safeCurrencyCode (this.safeString (item, 'CoinSymbol'), currency);
@@ -615,28 +611,28 @@ module.exports = class slicex extends Exchange {
         //
         // fetchClosedOrders
         //
-        //   { OrderID: 770,
-        //     Exchange: 'SLC_BTC',
+        //   { OrderID: 89742658,
+        //     Exchange: 'DOGE_BTC',
         //     Type: 'BUY',
-        //     Quantity: 20000,
+        //     Quantity: 10000,
         //     QuantityRemaining: 0,
         //     QuantityBaseTraded: 0,
-        //     Price: 0.00000007,
+        //     Price: 6.6e-7,
         //     Status: 'OK',
-        //     Created: '2020-04-26 09:45:48',
+        //     Created: '2018-02-16 08:55:36',
         //     Comments: '' }
         //
         //  fetchOpenOrders
         //
-        //   { OrderID: 478,
-        //     Exchange: 'SLC_BTC',
+        //   { OrderID: 161105302,
+        //     Exchange: 'ETH_BTC',
         //     Type: 'SELL',
-        //     Quantity: 120000.00000000,
-        //     QuantityRemaining: 0,
+        //     Quantity: 0.4,
+        //     QuantityRemaining: 0.4,
         //     QuantityBaseTraded: 0,
-        //     Price: 0.00000004,
+        //     Price: 0.04,
         //     Status: 'OPEN',
-        //     Created: '2020-03-21 21:17:22',
+        //     Created: '2020-01-22 09:21:27',
         //     Comments: { String: '', Valid: true }
         const side = this.safeString (order, 'Type').toLowerCase ();
         const status = this.parseOrderStatus (this.safeString (order, 'Status'));
@@ -713,25 +709,25 @@ module.exports = class slicex extends Exchange {
         //
         //  deposit:
         //
-        //   { ID: 17,
-        //     Timestamp: '2020-02-13 01:33:09',
-        //     Asset: 'SLC',
-        //     Amount: 10,
+        //   { ID: 118698752,
+        //     Timestamp: '2020-01-21 11:16:09',
+        //     Asset: 'ETH',
+        //     Amount: 1,
         //     TransactionID: '',
         //     Status: 'CONFIRMED',
-        //     Label: '7dd8ab0e4330f957d37b95d73a76385a9855d334d72369d1d7d5c6eda3509a15',
-        //     Symbol: 'SLC' }
+        //     Label: '0x748c5c8228d0c596f4d07f338blah',
+        //     Symbol: 'ETH' }
         //
         // withdrawal:
         //
-        //   { ID: 6,
-        //     Timestamp: '2020-04-26 13:52:43',
-        //     Asset: 'SLC',
-        //     Amount: -10,
-        //     TransactionID: '2233f0faa4b655ab210e44e919d25027cc4325c68ba79673ed71dee05c37988f',
+        //   { ID: 689281,
+        //     Timestamp: '2019-07-05 13:14:43',
+        //     Asset: 'BTC',
+        //     Amount: -0.108959,
+        //     TransactionID: 'da48d6901fslfjsdjflsdjfls852b87e362cad1',
         //     Status: 'CONFIRMED',
-        //     Label: '10;sQnmYSAL9uckniVBZQeBDq9V8VgdJYQXt6;0.1',
-        //     Symbol: 'SLC' }
+        //     Label: '0.1089590;35wztHPMgrebFvvblah;0.00100000',
+        //     Symbol: 'BTC' }
         //
         const id = this.safeString (transaction, 'ID');
         let amount = this.safeFloat (transaction, 'Amount');
