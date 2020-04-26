@@ -135,12 +135,12 @@ module.exports = class slicex extends Exchange {
         const items = response['result'];
         const result = {};
         for (let i = 0; i < items.length; i++) {
-            //   { Asset: 'USDT',
-            //     AssetLong: 'Tether',
-            //     MinConfirmation: 4,
-            //     WithdrawTxFee: 1,
+            //   { Asset: 'SLC',
+            //     AssetLong: 'Slicecoin',
+            //     MinConfirmation: 10,
+            //     WithdrawTxFee: 0.1,
             //     WithdrawTxFeePercent: 0,
-            //     SystemProtocol: 'ETHERC20',
+            //     SystemProtocol: 'BITCOIN',
             //     IsActive: true,
             //     InfoMessage: '',
             //     MaintenanceMode: false,
@@ -151,8 +151,8 @@ module.exports = class slicex extends Exchange {
             //     ThousandSeparator: ',',
             //     DecimalPlaces: 8,
             //     Currency: 'USDT',
-            //     CurrencyLong: 'Tether',
-            //     CoinType: 'ETHERC20' },
+            //     CurrencyLong: 'Slicecoin',
+            //     CoinType: 'BITCOIN' },
             const item = items[i];
             const id = this.safeString (item, 'Asset');
             const code = this.safeCurrencyCode (id);

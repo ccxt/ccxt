@@ -142,15 +142,15 @@ class slicex(Exchange):
         items = response['result']
         result = {}
         for i in range(0, len(items)):
-            #   {Asset: 'USDT',
-            #     AssetLong: 'Tether',
-            #     MinConfirmation: 4,
-            #     WithdrawTxFee: 1,
+            #   { Asset: 'SLC',
+            #     AssetLong: 'Slicecoin',
+            #     MinConfirmation: 10,
+            #     WithdrawTxFee: 0.1,
             #     WithdrawTxFeePercent: 0,
-            #     SystemProtocol: 'ETHERC20',
-            #     IsActive: True,
+            #     SystemProtocol: 'BITCOIN',
+            #     IsActive: true,
             #     InfoMessage: '',
-            #     MaintenanceMode: False,
+            #     MaintenanceMode: false,
             #     MaintenanceMessage: '',
             #     FormatPrefix: '',
             #     FormatSufix: '',
@@ -158,8 +158,8 @@ class slicex(Exchange):
             #     ThousandSeparator: ',',
             #     DecimalPlaces: 8,
             #     Currency: 'USDT',
-            #     CurrencyLong: 'Tether',
-            #     CoinType: 'ETHERC20'}
+            #     CurrencyLong: 'Slicecoin',
+            #     CoinType: 'BITCOIN' },
             item = items[i]
             id = self.safe_string(item, 'Asset')
             code = self.safe_currency_code(id)
