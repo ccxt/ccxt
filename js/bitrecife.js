@@ -92,7 +92,7 @@ module.exports = class bitrecife extends Exchange {
                 },
             },
             'commonCurrencies': {
-                'EPC': 'Epacoin',
+                'BTC': 'Bitcoin',
             },
             'exceptions': {
                 'exact': {
@@ -108,8 +108,8 @@ module.exports = class bitrecife extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'taker': 0.25 / 100,
-                    'maker': 0.25 / 100,
+                    'taker': 0.4 / 100,
+                    'maker': 0.2 / 100,
                 },
             },
             'options': {
