@@ -280,8 +280,8 @@ module.exports = class nashio extends Exchange {
         query += '          } ';
         query += '          interval ';
         query += '          intervalStartingAt ';
-        query += '      }';
-        query += '  }';
+        query += '      } ';
+        query += '  } ';
         query += '}';
         const request = {
             'query': query,
@@ -295,7 +295,7 @@ module.exports = class nashio extends Exchange {
             request['variables']['before'] = this.iso8601 (since);
         }
         const response = await this.publicPostGql (this.extend (request, params));
-        // console.warn('response', response);
+        // this.print ('response', response);
         const ohlcvs = response['data']['listCandles']['candles'];
         // console.warn ('ohlcvs', ohlcvs);
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
