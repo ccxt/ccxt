@@ -181,18 +181,18 @@ class slicex(Exchange):
         markets = self.safe_value(response, 'result')
         for i in range(0, len(markets)):
             market = markets[i]
-            #   {MarketName: 'BTC_USDT',
-            #     MarketAsset: 'BTC',
-            #     BaseAsset: 'USDT',
-            #     MarketAssetLong: 'Bitcoin',
-            #     BaseAssetLong: 'Tether',
-            #     IsActive: True,
+            #   { MarketName: 'SLC_BTC',
+            #     MarketAsset: 'SLC',
+            #     BaseAsset: 'BTC',
+            #     MarketAssetLong: 'Slicecoin',
+            #     BaseAssetLong: 'Bitcoin',
+            #     IsActive: true,
             #     MinTradeSize: 0.0001,
             #     InfoMessage: '',
-            #     MarketCurrency: 'BTC',
-            #     BaseCurrency: 'USDT',
-            #     MarketCurrencyLong: 'Bitcoin',
-            #     BaseCurrencyLong: 'Tether'}
+            #     MarketCurrency: 'SLC',
+            #     BaseCurrency: 'BTC',
+            #     MarketCurrencyLong: 'Slicecoin',
+            #     BaseCurrencyLong: 'Bitcoin' }
             id = self.safe_string(market, 'MarketName')
             baseId = self.safe_string(market, 'MarketAsset')
             quoteId = self.safe_string(market, 'BaseAsset')
@@ -264,25 +264,25 @@ class slicex(Exchange):
         return self.filter_by_array(tickers, 'symbol', symbols)
 
     def parse_ticker(self, ticker, market=None):
-        #   {TimeStamp: '2020-01-14 14:32:28',
-        #     MarketName: 'BTC_USDT',
-        #     MarketAsset: 'BTC',
-        #     BaseAsset: 'USDT',
-        #     MarketAssetName: 'Bitcoin',
-        #     BaseAssetName: 'Tether',
-        #     PrevDay: 49.2867503,
-        #     High: 56.78622664,
-        #     Low: 49.27384025,
-        #     Last: 53.94,
-        #     Average: 51.37509368,
-        #     Volume: 1.51282404,
-        #     BaseVolume: 77.72147677,
-        #     Bid: 53.62070218,
-        #     Ask: 53.94,
+        #   { TimeStamp: '2020-04-26 09:51:56',
+        #     MarketName: 'SLC_BTC',
+        #     MarketAsset: 'SLC',
+        #     BaseAsset: 'BTC',
+        #     MarketAssetName: 'Slicecoin',
+        #     BaseAssetName: 'Bitcoin',
+        #     PrevDay: 0.00000008,
+        #     High: 0.00000027,
+        #     Low: 0.00000008,
+        #     Last: 0.00000027,
+        #     Average: 0.00000026,
+        #     Volume: 21420,
+        #     BaseVolume: 0.0055136,
+        #     Bid: 0.00000008,
+        #     Ask: 0.00000028,
         #     IsActive: 'true',
         #     InfoMessage: '',
-        #     MarketCurrency: 'Bitcoin',
-        #     BaseCurrency: 'Tether'}
+        #     MarketCurrency: 'Slicecoin',
+        #     BaseCurrency: 'Bitcoin' }
         timestamp = self.parse8601(self.safe_string(ticker, 'TimeStamp'))
         symbol = None
         marketId = self.safe_string(ticker, 'MarketName')
@@ -444,11 +444,11 @@ class slicex(Exchange):
         #   {success: True,
         #     message: '',
         #     result:
-        #     {Asset: 'ETH',
-        #         AssetName: 'Ethereum',
-        #         DepositAddress: '0x748c5c8jhksjdfhd507d3aa9',
-        #         Currency: 'ETH',
-        #         CurrencyName: 'Ethereum'}}
+        #     { Asset: 'USDT',
+        #         AssetName: 'Tether',
+        #         DepositAddress: '0x1f107321f6ff1a4db087635928a89da01e99b441',
+        #         Currency: 'USDT',
+        #         CurrencyName: 'Tether' }}
         item = response['result']
         address = self.safe_string(item, 'DepositAddress')
         return {
