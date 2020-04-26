@@ -615,28 +615,28 @@ module.exports = class slicex extends Exchange {
         //
         // fetchClosedOrders
         //
-        //   { OrderID: 89742658,
-        //     Exchange: 'DOGE_BTC',
+        //   { OrderID: 770,
+        //     Exchange: 'SLC_BTC',
         //     Type: 'BUY',
-        //     Quantity: 10000,
+        //     Quantity: 20000,
         //     QuantityRemaining: 0,
         //     QuantityBaseTraded: 0,
-        //     Price: 6.6e-7,
+        //     Price: 0.00000007,
         //     Status: 'OK',
-        //     Created: '2018-02-16 08:55:36',
+        //     Created: '2020-04-26 09:45:48',
         //     Comments: '' }
         //
         //  fetchOpenOrders
         //
-        //   { OrderID: 161105302,
-        //     Exchange: 'ETH_BTC',
+        //   { OrderID: 478,
+        //     Exchange: 'SLC_BTC',
         //     Type: 'SELL',
-        //     Quantity: 0.4,
-        //     QuantityRemaining: 0.4,
+        //     Quantity: 120000.00000000,
+        //     QuantityRemaining: 0,
         //     QuantityBaseTraded: 0,
-        //     Price: 0.04,
+        //     Price: 0.00000004,
         //     Status: 'OPEN',
-        //     Created: '2020-01-22 09:21:27',
+        //     Created: '2020-03-21 21:17:22',
         //     Comments: { String: '', Valid: true }
         const side = this.safeString (order, 'Type').toLowerCase ();
         const status = this.parseOrderStatus (this.safeString (order, 'Status'));
@@ -713,25 +713,25 @@ module.exports = class slicex extends Exchange {
         //
         //  deposit:
         //
-        //   { ID: 118698752,
-        //     Timestamp: '2020-01-21 11:16:09',
-        //     Asset: 'ETH',
-        //     Amount: 1,
+        //   { ID: 17,
+        //     Timestamp: '2020-02-13 01:33:09',
+        //     Asset: 'SLC',
+        //     Amount: 10,
         //     TransactionID: '',
         //     Status: 'CONFIRMED',
-        //     Label: '0x748c5c8228d0c596f4d07f338blah',
-        //     Symbol: 'ETH' }
+        //     Label: '7dd8ab0e4330f957d37b95d73a76385a9855d334d72369d1d7d5c6eda3509a15',
+        //     Symbol: 'SLC' }
         //
         // withdrawal:
         //
-        //   { ID: 689281,
-        //     Timestamp: '2019-07-05 13:14:43',
-        //     Asset: 'BTC',
-        //     Amount: -0.108959,
-        //     TransactionID: 'da48d6901fslfjsdjflsdjfls852b87e362cad1',
+        //   { ID: 6,
+        //     Timestamp: '2020-04-26 13:52:43',
+        //     Asset: 'SLC',
+        //     Amount: -10,
+        //     TransactionID: '2233f0faa4b655ab210e44e919d25027cc4325c68ba79673ed71dee05c37988f',
         //     Status: 'CONFIRMED',
-        //     Label: '0.1089590;35wztHPMgrebFvvblah;0.00100000',
-        //     Symbol: 'BTC' }
+        //     Label: '10;sQnmYSAL9uckniVBZQeBDq9V8VgdJYQXt6;0.1',
+        //     Symbol: 'SLC' }
         //
         const id = this.safeString (transaction, 'ID');
         let amount = this.safeFloat (transaction, 'Amount');
