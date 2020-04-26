@@ -186,7 +186,7 @@ module.exports = class slicex extends Exchange {
             //     InfoMessage: '',
             //     MarketCurrency: 'BTC',
             //     BaseCurrency: 'USDT',
-            //     MarketCurrencyLong: 'Bitcoincoin',
+            //     MarketCurrencyLong: 'Bitcoin',
             //     BaseCurrencyLong: 'Tether' }
             const id = this.safeString (market, 'MarketName');
             const baseId = this.safeString (market, 'MarketAsset');
