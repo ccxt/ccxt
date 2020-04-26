@@ -48,7 +48,7 @@ module.exports = class slicex extends Exchange {
             },
             'hostname': 'x.slicex.cc',
             'urls': {
-                'logo': 'https://raw.githubusercontent.com/slicecoincore/graphics/4af1ce2a37ffb8f317ee4625edc301f2519c5e25/Slicex%20logo/SVG/logo-dark-1.svg',
+                'logo': 'https://raw.githubusercontent.com/slicecoincore/graphics/master/Slicex%20logo/ccxt/Slicex.jpg',
                 'api': {
                     'v3Private': 'https://{hostname}/api/v3/private',
                     'v3Public': 'https://{hostname}/api/v3/public',
@@ -150,7 +150,7 @@ module.exports = class slicex extends Exchange {
             //     DecimalSeparator: '.',
             //     ThousandSeparator: ',',
             //     DecimalPlaces: 8,
-            //     Currency: 'USDT',
+            //     Currency: 'SLC',
             //     CurrencyLong: 'Slicecoin',
             //     CoinType: 'BITCOIN' },
             const item = items[i];
@@ -470,11 +470,11 @@ module.exports = class slicex extends Exchange {
         //   { success: true,
         //     message: '',
         //     result:
-        //     { Asset: 'USDT',
-        //         AssetName: 'Tether',
-        //         DepositAddress: '0x1f107321f6ff1a4db087635928a89da01e99b441',
-        //         Currency: 'USDT',
-        //         CurrencyName: 'Tether' } }
+        //     { Asset: 'SLC',
+        //         AssetName: 'Slicecoin',
+        //         DepositAddress: 'sKjseAa5qTsKgJUmCsFEtfbTutaJjwshNv',
+        //         Currency: 'SLC',
+        //         CurrencyName: 'Slicecoin' } }
         const item = response['result'];
         const address = this.safeString (item, 'DepositAddress');
         return {
