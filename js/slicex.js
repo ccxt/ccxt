@@ -54,7 +54,7 @@ module.exports = class slicex extends Exchange {
                     'v3Public': 'https://{hostname}/api/v3/public',
                 },
                 'www': ['https://slicex.cc'],
-                'doc': ['https://slicex.cc/api.html',],
+                'doc': ['https://slicex.cc/api.html'],
                 'fees': 'https://slicex.cc/fees.html',
             },
             'api': {
