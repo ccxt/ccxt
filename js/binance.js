@@ -1374,7 +1374,6 @@ module.exports = class binance extends Exchange {
         }
     }
 
-
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
