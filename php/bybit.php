@@ -652,13 +652,25 @@ class bybit extends Exchange {
         //         turnover => '162.32773718999994'
         //     ),
         //
+        //     {
+        //         "id":143536,
+        //         "symbol":"BTCUSDT",
+        //         "period":"15",
+        //         "start_at":1587883500,
+        //         "volume":1.035,
+        //         "open":7540.5,
+        //         "high":7541,
+        //         "low":7540.5,
+        //         "close":7541
+        //     }
+        //
         return array(
-            $this->safe_timestamp($ohlcv, 'open_time', 'start_at'),
+            $this->safe_timestamp_2($ohlcv, 'open_time', 'start_at'),
             $this->safe_float($ohlcv, 'open'),
             $this->safe_float($ohlcv, 'high'),
             $this->safe_float($ohlcv, 'low'),
             $this->safe_float($ohlcv, 'close'),
-            $this->safe_float($ohlcv, 'turnover'),
+            $this->safe_float_2($ohlcv, 'turnover', 'volume'),
         );
     }
 
@@ -688,6 +700,8 @@ class bybit extends Exchange {
         $method = ($marketType === 'linear') ? 'publicLinearGetKline' : 'publicGetKlineList';
         $response = $this->$method (array_merge($request, $params));
         //
+        // inverse perpetual BTC/USD
+        //
         //     {
         //         ret_code => 0,
         //         ret_msg => 'OK',
@@ -707,6 +721,29 @@ class bybit extends Exchange {
         //             ),
         //         ),
         //         time_now => '1583953082.397330'
+        //     }
+        //
+        // linear perpetual BTC/USDT
+        //
+        //     {
+        //         "ret_code":0,
+        //         "ret_msg":"OK",
+        //         "ext_code":"",
+        //         "ext_info":"",
+        //         "$result":array(
+        //             {
+        //                 "id":143536,
+        //                 "$symbol":"BTCUSDT",
+        //                 "period":"15",
+        //                 "start_at":1587883500,
+        //                 "volume":1.035,
+        //                 "open":7540.5,
+        //                 "high":7541,
+        //                 "low":7540.5,
+        //                 "close":7541
+        //             }
+        //         ),
+        //         "time_now":"1587884120.168077"
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
