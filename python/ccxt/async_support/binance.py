@@ -52,7 +52,7 @@ class binance(Exchange):
                 'fetchTransactions': False,
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
-                'cancelAllOrders': False,  # not implemented yet
+                'cancelAllOrders': True,
             },
             'timeframes': {
                 '1m': '1m',
@@ -1271,6 +1271,24 @@ class binance(Exchange):
         method = 'privateDeleteOrder' if market['spot'] else 'fapiPrivateDeleteOrder'
         response = await getattr(self, method)(self.extend(request, params))
         return self.parse_order(response)
+
+    async def cancel_all_orders(self, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' cancelAllOrders requires a symbol argument')
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        defaultType = self.safe_string_2(self.options, 'cancelAllOrders', 'defaultType', 'spot')
+        type = self.safe_string(params, 'type', defaultType)
+        query = self.omit(params, 'type')
+        method = 'privateDeleteOpenOrders' if (type == 'spot') else 'fapiPrivateDeleteAllOpenOrders'
+        response = await getattr(self, method)(self.extend(request, query))
+        if isinstance(response, list):
+            return self.parse_orders(response, market)
+        else:
+            return response
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
