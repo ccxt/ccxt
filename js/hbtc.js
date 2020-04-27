@@ -141,12 +141,37 @@ module.exports = class hbtc extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const brokerInfo = await this.publicGetBrokerInfo ();
-        const symbols = this.safeValue (brokerInfo, 'symbols');
+        const response = await this.publicGetBrokerInfo (params);
+        //
+        //     {
+        //         "timezone":"UTC",
+        //         "serverTime":"1588008947103",
+        //         "brokerFilters":[],
+        //         "symbols":[
+        //             {
+        //                 "filters":[
+        //                     {"minPrice":"0.01","maxPrice":"100000.00000000","tickSize":"0.01","filterType":"PRICE_FILTER"},
+        //                     {"minQty":"0.0005","maxQty":"100000.00000000","stepSize":"0.000001","filterType":"LOT_SIZE"},
+        //                     {"minNotional":"5","filterType":"MIN_NOTIONAL"}
+        //                 ],
+        //                 "exchangeId":"301",
+        //                 "symbol":"BTCUSDT",
+        //                 "symbolName":"BTCUSDT",
+        //                 "status":"TRADING",
+        //                 "baseAsset":"BTC",
+        //                 "baseAssetPrecision":"0.000001",
+        //                 "quoteAsset":"USDT",
+        //                 "quotePrecision":"0.01",
+        //                 "icebergAllowed":false,
+        //             },
+        //         ]
+        //     }
+        //
+        const symbols = this.safeValue (response, 'symbols');
         const result = [];
         for (let i = 0; i < symbols.length; i++) {
             const market = symbols[i];
-            const filters = this.safeValue (market, 'filters');
+            const filters = this.safeValue (market, 'filters', []);
             const id = this.safeString (market, 'symbol');
             const baseId = this.safeString (market, 'baseAsset');
             const quoteId = this.safeString (market, 'quoteAsset');
@@ -175,8 +200,8 @@ module.exports = class hbtc extends Exchange {
                 costMin = amountMin * priceMin;
             }
             const precision = {
-                'price': priceMin === undefined ? undefined : Math.floor (Math.log10 (1 / priceMin)),
-                'amount': Math.floor (Math.log10 (1 / this.safeFloat (market, 'baseAssetPrecision'))),
+                'price': this.safeFloat (market, 'quotePrecision'),
+                'amount': this.safeFloat (market, 'baseAssetPrecision'),
             };
             const limits = {
                 'amount': {
