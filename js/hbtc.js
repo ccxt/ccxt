@@ -14,10 +14,7 @@ module.exports = class hbtc extends Exchange {
             'name': 'HBTC Exchange',
             'countries': [ 'CN' ],
             'rateLimit': 2000,
-            'userAgent': this.userAgents['chrome39'],
             'version': 'v1',
-            'accounts': undefined,
-            'accountsById': undefined,
             'has': {
                 'CORS': false,
                 'fetchTickers': false,
