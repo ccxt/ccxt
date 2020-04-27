@@ -642,13 +642,25 @@ class bybit(Exchange):
         #         turnover: '162.32773718999994'
         #     },
         #
+        #     {
+        #         "id":143536,
+        #         "symbol":"BTCUSDT",
+        #         "period":"15",
+        #         "start_at":1587883500,
+        #         "volume":1.035,
+        #         "open":7540.5,
+        #         "high":7541,
+        #         "low":7540.5,
+        #         "close":7541
+        #     }
+        #
         return [
-            self.safe_timestamp(ohlcv, 'open_time', 'start_at'),
+            self.safe_timestamp_2(ohlcv, 'open_time', 'start_at'),
             self.safe_float(ohlcv, 'open'),
             self.safe_float(ohlcv, 'high'),
             self.safe_float(ohlcv, 'low'),
             self.safe_float(ohlcv, 'close'),
-            self.safe_float(ohlcv, 'turnover'),
+            self.safe_float_2(ohlcv, 'turnover', 'volume'),
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -674,6 +686,8 @@ class bybit(Exchange):
         method = 'publicLinearGetKline' if (marketType == 'linear') else 'publicGetKlineList'
         response = getattr(self, method)(self.extend(request, params))
         #
+        # inverse perpetual BTC/USD
+        #
         #     {
         #         ret_code: 0,
         #         ret_msg: 'OK',
@@ -693,6 +707,29 @@ class bybit(Exchange):
         #             },
         #         ],
         #         time_now: '1583953082.397330'
+        #     }
+        #
+        # linear perpetual BTC/USDT
+        #
+        #     {
+        #         "ret_code":0,
+        #         "ret_msg":"OK",
+        #         "ext_code":"",
+        #         "ext_info":"",
+        #         "result":[
+        #             {
+        #                 "id":143536,
+        #                 "symbol":"BTCUSDT",
+        #                 "period":"15",
+        #                 "start_at":1587883500,
+        #                 "volume":1.035,
+        #                 "open":7540.5,
+        #                 "high":7541,
+        #                 "low":7540.5,
+        #                 "close":7541
+        #             }
+        #         ],
+        #         "time_now":"1587884120.168077"
         #     }
         #
         result = self.safe_value(response, 'result', {})
