@@ -58,13 +58,22 @@ If that does not help, please, follow here: https://github.com/nodejs/node-gyp#o
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
+<<<<<<< HEAD
 * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.27.2/dist/ccxt.browser.js
 * unpkg: https://unpkg.com/ccxt@1.27.2/dist/ccxt.browser.js
+=======
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.27.3/dist/ccxt.browser.js
+* unpkg: https://unpkg.com/ccxt@1.27.3/dist/ccxt.browser.js
+>>>>>>> upstream/master
 
 You can obtain a live-updated version of the bundle by removing the version number from the URL (the `@a.b.c` thing) — however, we do not recommend to do that, as it may break your app eventually. Also, please keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
+<<<<<<< HEAD
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.27.2/dist/ccxt.browser.js"></script>
+=======
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.27.3/dist/ccxt.browser.js"></script>
+>>>>>>> upstream/master
 ```
 
 Creates a global `ccxt` object:

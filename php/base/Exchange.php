@@ -35,7 +35,11 @@ use kornrunner\Solidity;
 use Elliptic\EC;
 use BN\BN;
 
+<<<<<<< HEAD
 $version = '1.27.2';
+=======
+$version = '1.27.3';
+>>>>>>> upstream/master
 
 // rounding mode
 const TRUNCATE = 0;
@@ -54,7 +58,11 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
+<<<<<<< HEAD
     const VERSION = '1.27.2';
+=======
+    const VERSION = '1.27.3';
+>>>>>>> upstream/master
 
     public static $exchanges = array(
         '_1btcxe',
