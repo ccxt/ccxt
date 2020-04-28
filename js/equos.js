@@ -43,7 +43,7 @@ module.exports = class equos extends Exchange {
                 'fetchWithdrawals': true,
                 'fetchTransactions': true,
                 'withdraw': true,
-                'fetchLedger': false,
+                'fetchLedger': true,
             },
             'timeframes': {
                 '1m': 1,
@@ -1028,10 +1028,7 @@ module.exports = class equos extends Exchange {
             'before': before,
             'after': after,
             'status': 'ok',
-            'fee': {
-                'cost': undefined,
-                'currency': undefined,
-            },
+            'fee': undefined,
             'info': entry,
         };
     }
