@@ -52,6 +52,7 @@ module.exports = class hbtc extends Exchange {
             'urls': {
                 'logo': 'https://static.bhfastime.com/bhop/image/LNGLqbeLy3Fii-j6cYHcPP2l4rt5pboW_FF_ER4uExg.png', // 交易所LOGO
                 'api': {
+                    'quote': 'https://api.hbtc.com/openapi/quote',
                     'market': 'https://api.hbtc.com/openapi/quote',  // 市场API数据端点
                     'contract': 'https://api.hbtc.com/openapi/contract', // 合约API数据端点
                     'public': 'https://api.hbtc.com/openapi', // 公共API数据端点
@@ -142,12 +143,94 @@ module.exports = class hbtc extends Exchange {
         });
     }
 
+    parseMarket (market, type = 'spot') {
+        const filters = this.safeValue (market, 'filters', []);
+        const id = this.safeString (market, 'symbol');
+        const baseId = this.safeString (market, 'baseAsset');
+        const quoteId = this.safeString (market, 'quoteAsset');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        let symbol = base + '/' + quote;
+        let spot = true;
+        let future = false;
+        let swap = false;
+        let option = false;
+        if (type === 'future') {
+            symbol = id;
+            spot = false;
+            future = true;
+            swap = true; // ?
+        } else if (type === 'option') {
+            symbol = id;
+            spot = false;
+            option = true;
+        }
+        let amountMin = undefined;
+        let amountMax = undefined;
+        let priceMin = undefined;
+        let priceMax = undefined;
+        let costMin = undefined;
+        for (let j = 0; j < filters.length; j++) {
+            const filter = filters[j];
+            const filterType = this.safeString (filter, 'filterType');
+            if (filterType === 'LOT_SIZE') {
+                amountMin = this.safeFloat (filter, 'minQty');
+                amountMax = this.safeFloat (filter, 'maxQty');
+            }
+            if (filterType === 'PRICE_FILTER') {
+                priceMin = this.safeFloat (filter, 'minPrice');
+                priceMax = this.safeFloat (filter, 'maxPrice');
+            }
+            if (filterType === 'MIN_NOTIONAL') {
+                costMin = this.safeFloat (filter, 'minNotional');
+            }
+        }
+        if ((costMin === undefined) && (amountMin !== undefined) && (priceMin !== undefined)) {
+            costMin = amountMin * priceMin;
+        }
+        const precision = {
+            'price': this.safeFloat2 (market, 'quotePrecision', 'quoteAssetPrecision'),
+            'amount': this.safeFloat (market, 'baseAssetPrecision'),
+        };
+        const limits = {
+            'amount': {
+                'min': amountMin,
+                'max': amountMax,
+            },
+            'price': {
+                'min': priceMin,
+                'max': priceMax,
+            },
+            'cost': {
+                'min': costMin,
+                'max': undefined,
+            },
+        };
+        return {
+            'id': id,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'active': true,
+            'type': type,
+            'spot': spot,
+            'future': future,
+            'swap': swap,
+            'option': option,
+            'precision': precision,
+            'limits': limits,
+            'info': market,
+        };
+    }
+
     async fetchMarkets (params = {}) {
         const response = await this.publicGetBrokerInfo (params);
         //
         //     {
         //         "timezone":"UTC",
-        //         "serverTime":"1588008947103",
+        //         "serverTime":"1588015885118",
         //         "brokerFilters":[],
         //         "symbols":[
         //             {
@@ -164,73 +247,130 @@ module.exports = class hbtc extends Exchange {
         //                 "baseAssetPrecision":"0.000001",
         //                 "quoteAsset":"USDT",
         //                 "quotePrecision":"0.01",
+        //                 "icebergAllowed":false
+        //             },
+        //         ],
+        //         "options":[
+        //             {
+        //                 "filters":[
+        //                     {"minPrice":"0.01","maxPrice":"100000.00000000","tickSize":"0.01","filterType":"PRICE_FILTER"},
+        //                     {"minQty":"0.01","maxQty":"100000.00000000","stepSize":"0.001","filterType":"LOT_SIZE"},
+        //                     {"minNotional":"1","filterType":"MIN_NOTIONAL"}
+        //                 ],
+        //                 "exchangeId":"301",
+        //                 "symbol":"BTC0501CS8500",
+        //                 "symbolName":"BTC0501CS8500",
+        //                 "status":"TRADING",
+        //                 "baseAsset":"BTC0501CS8500",
+        //                 "baseAssetPrecision":"0.001",
+        //                 "quoteAsset":"BUSDT",
+        //                 "quotePrecision":"0.01",
+        //                 "icebergAllowed":false
+        //             },
+        //         ],
+        //         "contracts":[
+        //             {
+        //                 "filters":[
+        //                     {"minPrice":"0.1","maxPrice":"100000.00000000","tickSize":"0.1","filterType":"PRICE_FILTER"},
+        //                     {"minQty":"1","maxQty":"100000.00000000","stepSize":"1","filterType":"LOT_SIZE"},
+        //                     {"minNotional":"0.000001","filterType":"MIN_NOTIONAL"}
+        //                 ],
+        //                 "exchangeId":"301",
+        //                 "symbol":"BTC-PERP-REV",
+        //                 "symbolName":"BTC-PERP-REV",
+        //                 "status":"TRADING",
+        //                 "baseAsset":"BTC-PERP-REV",
+        //                 "baseAssetPrecision":"1",
+        //                 "quoteAsset":"USDT",
+        //                 "quoteAssetPrecision":"0.1",
         //                 "icebergAllowed":false,
+        //                 "inverse":true,
+        //                 "index":"BTCUSDT",
+        //                 "marginToken":"TBTC",
+        //                 "marginPrecision":"0.00000001",
+        //                 "contractMultiplier":"1.0",
+        //                 "underlying":"TBTC",
+        //                 "riskLimits":[
+        //                     {"riskLimitId":"200000001","quantity":"1000000.0","initialMargin":"0.01","maintMargin":"0.005"},
+        //                     {"riskLimitId":"200000002","quantity":"2000000.0","initialMargin":"0.02","maintMargin":"0.01"},
+        //                     {"riskLimitId":"200000003","quantity":"3000000.0","initialMargin":"0.03","maintMargin":"0.015"},
+        //                     {"riskLimitId":"200000004","quantity":"4000000.0","initialMargin":"0.04","maintMargin":"0.02"}
+        //                 ]
+        //             },
+        //             {
+        //                 "filters":[
+        //                     {"minPrice":"0.1","maxPrice":"100000.00000000","tickSize":"0.1","filterType":"PRICE_FILTER"},
+        //                     {"minQty":"1","maxQty":"100000.00000000","stepSize":"1","filterType":"LOT_SIZE"},
+        //                     {"minNotional":"0.000001","filterType":"MIN_NOTIONAL"}
+        //                 ],
+        //                 "exchangeId":"301",
+        //                 "symbol":"BTC-SWAP",
+        //                 "symbolName":"BTC-SWAP",
+        //                 "status":"TRADING",
+        //                 "baseAsset":"BTC-SWAP",
+        //                 "baseAssetPrecision":"1",
+        //                 "quoteAsset":"USDT",
+        //                 "quoteAssetPrecision":"0.1",
+        //                 "icebergAllowed":false,
+        //                 "inverse":true,
+        //                 "index":"BTCUSDT",
+        //                 "marginToken":"BTC",
+        //                 "marginPrecision":"0.00000001",
+        //                 "contractMultiplier":"1.0",
+        //                 "underlying":"BTC",
+        //                 "riskLimits":[
+        //                     {"riskLimitId":"500000001","quantity":"1000000.0","initialMargin":"0.01","maintMargin":"0.005"},
+        //                     {"riskLimitId":"500000002","quantity":"2000000.0","initialMargin":"0.02","maintMargin":"0.01"},
+        //                     {"riskLimitId":"500000003","quantity":"3000000.0","initialMargin":"0.03","maintMargin":"0.015"},
+        //                     {"riskLimitId":"500000004","quantity":"4000000.0","initialMargin":"0.04","maintMargin":"0.02"}
+        //                 ]
+        //             },
+        //             {
+        //                 "filters":[
+        //                     {"minPrice":"0.1","maxPrice":"100000.00000000","tickSize":"0.1","filterType":"PRICE_FILTER"},
+        //                     {"minQty":"1","maxQty":"100000.00000000","stepSize":"1","filterType":"LOT_SIZE"},
+        //                     {"minNotional":"0.000000001","filterType":"MIN_NOTIONAL"}
+        //                 ],
+        //                 "exchangeId":"301",
+        //                 "symbol":"BTC-PERP-BUSDT",
+        //                 "symbolName":"BTC-PERP-BUSDT",
+        //                 "status":"TRADING",
+        //                 "baseAsset":"BTC-PERP-BUSDT",
+        //                 "baseAssetPrecision":"1",
+        //                 "quoteAsset":"BUSDT",
+        //                 "quoteAssetPrecision":"0.1",
+        //                 "icebergAllowed":false,
+        //                 "inverse":false,
+        //                 "index":"BTCUSDT",
+        //                 "marginToken":"BUSDT",
+        //                 "marginPrecision":"0.0001",
+        //                 "contractMultiplier":"0.0001",
+        //                 "underlying":"TBTC",
+        //                 "riskLimits":[
+        //                     {"riskLimitId":"600000132","quantity":"1000000.0","initialMargin":"0.01","maintMargin":"0.005"},
+        //                     {"riskLimitId":"600000133","quantity":"2000000.0","initialMargin":"0.02","maintMargin":"0.01"},
+        //                     {"riskLimitId":"600000134","quantity":"3000000.0","initialMargin":"0.03","maintMargin":"0.015"},
+        //                     {"riskLimitId":"600000135","quantity":"4000000.0","initialMargin":"0.04","maintMargin":"0.02"}
+        //                 ]
         //             },
         //         ]
         //     }
         //
-        const symbols = this.safeValue (response, 'symbols');
         const result = [];
+        const symbols = this.safeValue (response, 'symbols', []);
         for (let i = 0; i < symbols.length; i++) {
-            const market = symbols[i];
-            const filters = this.safeValue (market, 'filters', []);
-            const id = this.safeString (market, 'symbol');
-            const baseId = this.safeString (market, 'baseAsset');
-            const quoteId = this.safeString (market, 'quoteAsset');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
-            // get limits
-            let amountMin = undefined;
-            let amountMax = undefined;
-            let priceMin = undefined;
-            let priceMax = undefined;
-            let costMin = undefined;
-            for (let j = 0; j < filters.length; j++) {
-                const filter = filters[j];
-                const filterType = this.safeString (filter, 'filterType');
-                if (filterType === 'LOT_SIZE') {
-                    amountMin = this.safeFloat (filter, 'minQty');
-                    amountMax = this.safeFloat (filter, 'maxQty');
-                }
-                if (filterType === 'PRICE_FILTER') {
-                    priceMin = this.safeFloat (filter, 'minPrice');
-                    priceMax = this.safeFloat (filter, 'maxPrice');
-                }
-            }
-            if (amountMin !== undefined && priceMin !== undefined) {
-                costMin = amountMin * priceMin;
-            }
-            const precision = {
-                'price': this.safeFloat (market, 'quotePrecision'),
-                'amount': this.safeFloat (market, 'baseAssetPrecision'),
-            };
-            const limits = {
-                'amount': {
-                    'min': amountMin,
-                    'max': amountMax,
-                },
-                'price': {
-                    'min': priceMin,
-                    'max': priceMax,
-                },
-                'cost': {
-                    'min': costMin,
-                    'max': undefined,
-                },
-            };
-            result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'active': true,
-                'precision': precision,
-                'limits': limits,
-                'info': market,
-            });
+            const market = this.parseMarket (symbols[i], 'spot');
+            result.push (market);
+        }
+        const options = this.safeValue (response, 'options', []);
+        for (let i = 0; i < options.length; i++) {
+            const market = this.parseMarket (options[i], 'option');
+            result.push (market);
+        }
+        const contracts = this.safeValue (response, 'contracts', []);
+        for (let i = 0; i < contracts.length; i++) {
+            const market = this.parseMarket (contracts[i], 'future');
+            result.push (market);
         }
         return result;
     }
