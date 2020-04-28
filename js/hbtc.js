@@ -912,19 +912,22 @@ module.exports = class hbtc extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api];
-        url += '/' + this.version + '/' + this.implodeParams (path, params);
+        let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        const timestamp = this.milliseconds ();
-        if (api === 'private' || api === 'contract') {
+        const isPublicContract = (api === 'contract') && ((path === 'insurance') || (path === 'fundingRate'));
+        if ((api === 'public') || (api === 'quote') || isPublicContract) {
+            if (Object.keys (params).length) {
+                url += '?' + this.urlencode (params);
+            }
+        } else {
+            const timestamp = this.milliseconds ();
             this.checkRequiredCredentials ();
             const requestParams = this.extend ({
                 'timestamp': timestamp,
             }, query);
             // 准备待签名数据
-            const signBaseData = this.encode (this.urlencode (requestParams));
-            const signSecret = this.encode (this.secret);
-            const signature = this.hmac (signBaseData, signSecret, 'sha256');
+            const auth = this.urlencode (requestParams);
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');
             const finalRequestParams = this.extend ({
                 'signature': signature,
             }, requestParams);
@@ -939,10 +942,6 @@ module.exports = class hbtc extends Exchange {
                 }, headers);
             } else {
                 url += '?' + this.urlencode (finalRequestParams);
-            }
-        } else {
-            if (Object.keys (params).length) {
-                url += '?' + this.urlencode (params);
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
