@@ -17,6 +17,7 @@ module.exports = class hbtc extends Exchange {
             'version': 'v1',
             'has': {
                 'CORS': false,
+                'fetchTime': true,
                 'fetchTickers': false,
                 'fetchTicker': true,
                 'fetchDepositAddress': false,
@@ -160,6 +161,16 @@ module.exports = class hbtc extends Exchange {
                 },
             },
         });
+    }
+
+    async fetchTime (params = {}) {
+        const response = await this.publicGetTime (params);
+        //
+        //     {
+        //         "serverTime": 1527777538000
+        //     }
+        //
+        return this.safeInteger (response, 'serverTime');
     }
 
     parseMarket (market, type = 'spot') {
