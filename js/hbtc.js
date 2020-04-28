@@ -55,6 +55,7 @@ module.exports = class hbtc extends Exchange {
                 'api': {
                     'quote': 'https://api.hbtc.com/openapi/quote', // 市场API数据端点
                     'contract': 'https://api.hbtc.com/openapi/contract', // 合约API数据端点
+                    'option': 'https://api.hbtc.com/openapi/option', // 合约API数据端点
                     'public': 'https://api.hbtc.com/openapi', // 公共API数据端点
                     'private': 'https://api.hbtc.com/openapi', // 私有API数据端点
                     'zendesk': 'https://hbtc.zendesk.com/hc/en-us',
@@ -76,6 +77,7 @@ module.exports = class hbtc extends Exchange {
                 'quote': {
                     'get': [
                         'depth', // 获取深度
+                        'depth/merged',
                         'trades', // 获取当前最新成交
                         'klines', // 获取K线数据
                         'ticker/24hr', // 获取24小时价格变化数据
@@ -83,30 +85,53 @@ module.exports = class hbtc extends Exchange {
                         'ticker/bookTicker',
                         'contract/index', // 获取合约标的指数价格
                         'contract/depth', // 获取合约深度
+                        'contract/depth/merged',
                         'contract/trades', // 获取合约最近成交,
                         'contract/klines', // 获取合约的K线数据
                         'option/index',
                         'option/depth',
+                        'option/depth/merged',
                         'option/trades',
                         'option/klines',
                     ],
                 },
                 'contract': {
                     'get': [
+                        // public
+                        'insurance',
                         'fundingRate', // 获取资金费率信息
-                        'account', // 查询合约账户信息
-                        'getOrder', // 查询合约订单详情
+                        // private
                         'openOrders', // 查询合约当前委托
                         'historyOrders', // 查询合约历史委托
+                        'getOrder', // 查询合约订单详情
                         'myTrades', // 查询合约历史成交
                         'positions', // 查询合约当前持仓
+                        'account', // 查询合约账户信息
                     ],
                     'post': [
                         'order', // 创建合约订单
                         'modifyMargin', // 修改保证金
                     ],
                     'delete': [
-                        'order', // 取消合约订单
+                        'order/cancel', // 取消合约订单
+                        'order/batchCancel',
+                    ],
+                },
+                'option': {
+                    'get': [
+                        'openOrders',
+                        'positions',
+                        'historyOrders',
+                        'getOrder',
+                        'myTrades',
+                        'settlements',
+                        'account',
+                    ],
+                    'post': [
+                        'order',
+                    ],
+                    'delete': [
+                        'order/cancel',
                     ],
                 },
                 'private': {
