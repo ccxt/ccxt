@@ -435,11 +435,28 @@ module.exports = class hbtc extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-            'limit': limit,
         };
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 40, max 40
+        }
         const response = await this.quoteGetDepth (this.extend (request, params));
-        const result = this.parseOrderBook (response);
-        return result;
+        //
+        //     {
+        //         "time":1588068913453,
+        //         "bids":[
+        //             ["0.025278","0.0202"],
+        //             ["0.025277","16.1132"],
+        //             ["0.025276","7.9056"],
+        //         ]
+        //         "asks":[
+        //             ["0.025302","5.9999"],
+        //             ["0.025303","34.9151"],
+        //             ["0.025304","92.391"],
+        //         ]
+        //     }
+        //
+        const timestamp = this.safeInteger (response, 'time');
+        return this.parseOrderBook (response, timestamp);
     }
 
     async fetchTicker (symbol, params = {}) {
