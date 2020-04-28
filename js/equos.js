@@ -6,12 +6,12 @@ const { ArgumentsRequired, BadRequest, BadSymbol, OrderNotFound } = require ('./
 const { ROUND } = require ('./base/functions/number');
 //  ---------------------------------------------------------------------------
 
-module.exports = class levidge extends Exchange {
+module.exports = class equos extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'levidge',
-            'name': 'Levidge',
-            'countries': ['US'], // Seychelles
+            'id': 'equos',
+            'name': 'Equos',
+            'countries': ['US', 'SG'], // Seychelles
             'rateLimit': 10,
             'certified': false,
             'has': {
@@ -55,14 +55,14 @@ module.exports = class levidge extends Exchange {
                 '7d': 7,
             },
             'urls': {
-                'logo': 'https://levidge.com/assets/LevidgeLogo.png',
+                'logo': 'https://exchange.equos.io/assets/img/logo.svg',
                 'api': {
                     'public': 'https://trading-api.dexp-dev.com/api/',
                     'private': 'https://trading-api.dexp-dev.com/api/',
                 },
-                'www': 'https://levidge.com',
+                'www': 'https://exchange.equos.io/',
                 'doc': [
-                    'https://levidge.com/api-doc/en.html#introduction',
+                    'https://developer.equos.io/#introduction',
                 ],
             },
             'api': {
