@@ -1080,11 +1080,8 @@ module.exports = class hbtc extends Exchange {
         if ('code' in response) {
             const code = this.safeString (response, 'code');
             if (code !== '0') {
-                const feedback = this.id + ' ' + this.json (response);
-                const exceptions = this.exceptions['exact'];
-                if (code in exceptions) {
-                    throw new exceptions[code] (feedback);
-                }
+                const feedback = this.id + ' ' + body;
+                this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
                 throw new ExchangeError (feedback);
             }
         }
