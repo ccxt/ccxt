@@ -52,8 +52,7 @@ module.exports = class hbtc extends Exchange {
             'urls': {
                 'logo': 'https://static.bhfastime.com/bhop/image/LNGLqbeLy3Fii-j6cYHcPP2l4rt5pboW_FF_ER4uExg.png', // 交易所LOGO
                 'api': {
-                    'quote': 'https://api.hbtc.com/openapi/quote',
-                    'market': 'https://api.hbtc.com/openapi/quote',  // 市场API数据端点
+                    'quote': 'https://api.hbtc.com/openapi/quote', // 市场API数据端点
                     'contract': 'https://api.hbtc.com/openapi/contract', // 合约API数据端点
                     'public': 'https://api.hbtc.com/openapi', // 公共API数据端点
                     'private': 'https://api.hbtc.com/openapi', // 私有API数据端点
@@ -67,19 +66,28 @@ module.exports = class hbtc extends Exchange {
             'api': {
                 'public': {
                     'get': [
+                        'ping',
+                        'time',
                         'brokerInfo', // 查询当前broker交易规则和symbol信息
+                        'getOptions',
                     ],
                 },
-                'market': {
+                'quote': {
                     'get': [
                         'depth', // 获取深度
                         'trades', // 获取当前最新成交
                         'klines', // 获取K线数据
                         'ticker/24hr', // 获取24小时价格变化数据
+                        'ticker/price',
+                        'ticker/bookTicker',
                         'contract/index', // 获取合约标的指数价格
                         'contract/depth', // 获取合约深度
                         'contract/trades', // 获取合约最近成交,
                         'contract/klines', // 获取合约的K线数据
+                        'option/index',
+                        'option/depth',
+                        'option/trades',
+                        'option/klines',
                     ],
                 },
                 'contract': {
@@ -152,13 +160,13 @@ module.exports = class hbtc extends Exchange {
         const quote = this.safeCurrencyCode (quoteId);
         let symbol = base + '/' + quote;
         let spot = true;
-        let future = false;
+        let contract = false;
         let swap = false;
         let option = false;
-        if (type === 'future') {
+        if (type === 'contract') {
             symbol = id;
             spot = false;
-            future = true;
+            contract = true;
             swap = true; // ?
         } else if (type === 'option') {
             symbol = id;
@@ -216,7 +224,7 @@ module.exports = class hbtc extends Exchange {
             'active': true,
             'type': type,
             'spot': spot,
-            'future': future,
+            'contract': contract,
             'swap': swap,
             'option': option,
             'precision': precision,
@@ -369,7 +377,7 @@ module.exports = class hbtc extends Exchange {
         }
         const contracts = this.safeValue (response, 'contracts', []);
         for (let i = 0; i < contracts.length; i++) {
-            const market = this.parseMarket (contracts[i], 'future');
+            const market = this.parseMarket (contracts[i], 'contract');
             result.push (market);
         }
         return result;
@@ -382,7 +390,7 @@ module.exports = class hbtc extends Exchange {
             'symbol': market['id'],
             'limit': limit,
         };
-        const response = await this.marketGetDepth (this.extend (request, params));
+        const response = await this.quoteGetDepth (this.extend (request, params));
         const result = this.parseOrderBook (response);
         return result;
     }
@@ -393,7 +401,7 @@ module.exports = class hbtc extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const ticker = await this.marketGetTicker24hr (this.extend (request, params));
+        const ticker = await this.quoteGetTicker24hr (this.extend (request, params));
         return this.parseTicker (ticker, market);
     }
 
@@ -428,7 +436,7 @@ module.exports = class hbtc extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.marketGetTrades (this.extend (request, params));
+        const response = await this.quoteGetTrades (this.extend (request, params));
         let result = [];
         for (let i = 0; i < response.length; i++) {
             const trade = this.parsePublicTrade (response[i], market);
