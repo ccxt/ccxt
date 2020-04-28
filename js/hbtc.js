@@ -614,7 +614,7 @@ module.exports = class hbtc extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         //
-        // fetchTicker
+        // fetchTicker, fetchTickers
         //
         //     {
         //         "time":1588069860794,
@@ -627,6 +627,16 @@ module.exports = class hbtc extends Exchange {
         //         "highPrice":"0.3918",
         //         "lowPrice":"0.2625",
         //         "openPrice":"0.362",
+        //     }
+        //
+        // fetchBidAsk, fetchBidAsks
+        //
+        //     {
+        //         "symbol": "LTCBTC",
+        //         "bidPrice": "4.00000000",
+        //         "bidQty": "431.00000000",
+        //         "askPrice": "4.00000200",
+        //         "askQty": "9.00000000"
         //     }
         //
         let symbol = undefined;
@@ -662,10 +672,10 @@ module.exports = class hbtc extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'high': this.safeFloat (ticker, 'highPrice'),
             'low': this.safeFloat (ticker, 'lowPrice'),
-            'bid': this.safeFloat (ticker, 'bestBidPrice'),
-            'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'bestAskPrice'),
-            'askVolume': undefined,
+            'bid': this.safeFloat2 (ticker, 'bestBidPrice', 'bidPrice'),
+            'bidVolume': this.safeFloat (ticker, 'bidQty'),
+            'ask': this.safeFloat2 (ticker, 'bestAskPrice', 'askPrice'),
+            'askVolume': this.safeFloat (ticker, 'askQty'),
             'vwap': vwap,
             'open': open,
             'close': close,
