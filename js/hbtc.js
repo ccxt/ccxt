@@ -1048,26 +1048,23 @@ module.exports = class hbtc extends Exchange {
         } else {
             const timestamp = this.milliseconds ();
             this.checkRequiredCredentials ();
-            const requestParams = this.extend ({
+            const request = this.extend ({
                 'timestamp': timestamp,
             }, query);
             // 准备待签名数据
-            const auth = this.urlencode (requestParams);
+            const auth = this.urlencode (request);
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');
-            const finalRequestParams = this.extend ({
-                'signature': signature,
-            }, requestParams);
-            // 设置header
+            request['signature'] = signature;
             headers = {
                 'X-BH-APIKEY': this.apiKey,
             };
             if (method === 'POST') {
-                body = this.urlencode (finalRequestParams);
+                body = this.urlencode (request);
                 headers = this.extend ({
                     'Content-Type': 'application/x-www-form-urlencoded',
                 }, headers);
             } else {
-                url += '?' + this.urlencode (finalRequestParams);
+                url += '?' + this.urlencode (request);
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
