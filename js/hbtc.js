@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ExchangeError, OrderNotFound, ArgumentsRequired, BadSymbol, BadRequest, RequestTimeout, RateLimitExceeded, PermissionDenied } = require ('./base/errors');
+const { AuthenticationError, ExchangeError, OrderNotFound, ArgumentsRequired, BadSymbol, BadRequest, NullResponse, InvalidOrder, BadResponse, NotSupported, ExchangeNotAvailable, RequestTimeout, RateLimitExceeded, PermissionDenied, InsufficientFunds } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -178,18 +178,66 @@ module.exports = class hbtc extends Exchange {
             },
             'exceptions': {
                 'exact': {
-                    '-1000': ExchangeError,
-                    '-1001': ExchangeError,
-                    '-1002': AuthenticationError,
-                    '-1003': RateLimitExceeded,
+                    // general server or network errors
+                    '-1000': ExchangeError, // An unknown error occured while processing the request
+                    '-1001': ExchangeError, // Internal error, unable to process your request. Please try again
+                    '-1002': AuthenticationError, // You are not authorized to execute this request. Request need API Key included in. We suggest that API Key be included in any request
+                    '-1003': RateLimitExceeded, // Too many requests, please use the websocket for live updates
                     '-1004': BadRequest,
                     '-1005': PermissionDenied,
-                    '-1007': RequestTimeout,
-                    '-1015': RateLimitExceeded,
-                    '-1016': ExchangeError,
-                    '-1020': PermissionDenied,
-                    '-1121': BadSymbol,
-                    '-2013': OrderNotFound,
+                    '-1006': BadResponse, // An unexpected response was received from the message bus. Execution status unknown. OPEN API server find some exception in execute request.Please report to Customer service
+                    '-1007': RequestTimeout, // Timeout waiting for response from backend server. Send status unknown, execution status unknown
+                    '-1014': InvalidOrder, // Unsupported order combination
+                    '-1015': RateLimitExceeded, // Reach the rate limit.Please slow down your request speed
+                    '-1016': ExchangeNotAvailable, // This service is no longer available
+                    '-1020': NotSupported, // This operation is not supported
+                    '-1021': BadRequest, // Timestamp for this request is outside of the recvWindow
+                    '-1022': AuthenticationError, // Signature for this request is not valid
+                    // request issues
+                    '-1100': BadRequest, // Illegal characters found in a parameter
+                    '-1101': BadRequest, // Too many parameters sent for this endpoint
+                    '-1102': BadRequest, // A mandatory parameter was not sent, was empty/null, or malformed
+                    '-1103': BadRequest, // An unknown parameter was sent
+                    '-1104': BadRequest, // Not all sent parameters were read
+                    '-1105': BadRequest, // A parameter was empty
+                    '-1106': BadRequest, // A parameter was sent when not required
+                    '-1111': BadRequest, // Precision is over the maximum defined for this asset
+                    '-1112': NullResponse, // No orders on book for symbol
+                    '-1114': InvalidOrder, // TimeInForce parameter sent when not required
+                    '-1115': InvalidOrder, // Invalid timeInForce
+                    '-1116': InvalidOrder, // Invalid orderType
+                    '-1117': InvalidOrder, // Invalid side
+                    '-1118': InvalidOrder, // New client order ID was empty
+                    '-1119': InvalidOrder, // Original client order ID was empty
+                    '-1120': BadRequest, // Invalid interval
+                    '-1121': BadSymbol, // Invalid symbol
+                    '-1125': AuthenticationError, // This listenKey does not exist
+                    '-1127': BadRequest, // Lookup interval is too big
+                    '-1128': BadRequest, // Combination of optional parameters invalid
+                    '-1130': BadRequest, // Invalid data sent for a parameter
+                    '-1131': InsufficientFunds,
+                    '-1132': InvalidOrder, // Order price too high
+                    '-1133': InvalidOrder, // Order price lower than the minimum,please check general broker info
+                    '-1134': InvalidOrder, // Order price decimal too long,please check general broker info
+                    '-1135': InvalidOrder, // Order quantity too large
+                    '-1136': InvalidOrder, // Order quantity lower than the minimum
+                    '-1137': InvalidOrder, // Order quantity decimal too long
+                    '-1138': InvalidOrder, // Order price exceeds permissible range
+                    '-1139': InvalidOrder, // Order has been filled
+                    '-1140': InvalidOrder, // Transaction amount lower than the minimum
+                    '-1141': InvalidOrder, // Duplicate clientOrderId
+                    '-1142': InvalidOrder, // Order has been canceled
+                    '-1143': OrderNotFound, // Cannot be found on order book
+                    '-1144': InvalidOrder, // Order has been locked
+                    '-1145': InvalidOrder, // This order type does not support cancellation
+                    '-1146': RequestTimeout, // Order creation timeout
+                    '-1147': RequestTimeout, // Order cancellation timeout
+                    '-2010': InvalidOrder, // NEW_ORDER_REJECTED
+                    '-2011': InvalidOrder, // CANCEL_REJECTED
+                    '-2013': OrderNotFound, // Order does not exist
+                    '-2014': AuthenticationError, // API-key format invalid
+                    '-2015': AuthenticationError, // Invalid API-key, IP, or permissions for action
+                    '-2016': ExchangeError, // No trading window could be found for the symbol. Try ticker/24hrs instead
                 },
             },
             // exchange-specific options
@@ -765,20 +813,25 @@ module.exports = class hbtc extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'symbol': this.marketId (symbol),
+            'symbol': market['id'],
             'side': side.toUpperCase (),
             'quantity': this.amountToPrecision (symbol, amount),
             'type': type.toUpperCase (),
-            'ocoorder': false,
-            'buy_price_oco': 0,
-            'sell_price_oco': 0,
+            // 'timeInForce': 'GTC', // FOK, IOC
         };
         if (type !== 'market') {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const response = await this.privatePostOrder (this.extend (request, params));
-        return this.parseOrder (response);
+        let query = params;
+        const newClientOrderId = this.safeValue2 (params, 'clientOrderId', 'newClientOrderId');
+        if (newClientOrderId !== undefined) {
+            request['newClientOrderId'] = newClientOrderId;
+            query = this.omit (params, [ 'clientOrderId', 'newClientOrderId' ]);
+        }
+        const response = await this.privatePostOrder (this.extend (request, query));
+        return this.parseOrder (response, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
