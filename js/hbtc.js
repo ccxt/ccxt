@@ -695,6 +695,21 @@ module.exports = class hbtc extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        //
+        //     [
+        //         1587906000000, // open time
+        //         "0.1761", // open
+        //         "0.1761", // high
+        //         "0.1761", // low
+        //         "0.1761", // close
+        //         "0", // base volume
+        //         0, // close time
+        //         "0", // quote volume
+        //         0, // number of trades
+        //         "0", // taker buy base asset volume
+        //         "0" // taker buy quote asset volume
+        //     ]
+        //
         return [
             this.safeInteger (ohlcv, 0),
             this.safeFloat (ohlcv, 1),
@@ -716,9 +731,16 @@ module.exports = class hbtc extends Exchange {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // default == max == 500
+            request['limit'] = limit; // default 500, max 500
         }
         const response = await this.quoteGetKlines (this.extend (request, params));
+        //
+        //     [
+        //         [1587906000000,"0.1761","0.1761","0.1761","0.1761","0",0,"0",0,"0","0"],
+        //         [1587906180000,"0.1761","0.1761","0.1761","0.1761","0",0,"0",0,"0","0"],
+        //         [1587906360000,"0.1761","0.1848","0.1761","0.1848","53",0,"9.7944",1,"0","0"],
+        //     ]
+        //
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
@@ -885,28 +907,6 @@ module.exports = class hbtc extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        };
-    }
-
-    parsePublicTrade (trade, market) {
-        const timestamp = this.safeFloat (trade, 'time');
-        const takerOrMaker = this.safeValue (trade, 'isBuyerMaker');
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'qty');
-        return {
-            'info': trade,
-            'id': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'takerOrMaker': takerOrMaker ? 'taker' : 'maker',
-            'price': price,
-            'amount': amount,
-            'side': undefined,
-            'cost': undefined,
-            'type': undefined,
-            'order': undefined,
-            'fee': undefined,
         };
     }
 
