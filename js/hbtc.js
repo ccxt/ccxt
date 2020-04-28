@@ -465,8 +465,22 @@ module.exports = class hbtc extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const ticker = await this.quoteGetTicker24hr (this.extend (request, params));
-        return this.parseTicker (ticker, market);
+        const response = await this.quoteGetTicker24hr (this.extend (request, params));
+        //
+        //     {
+        //         "time":1588069860794,
+        //         "symbol":"BNB0501PS16",
+        //         "bestBidPrice":"0.2129",
+        //         "bestAskPrice":"0.3163",
+        //         "volume":"33547",
+        //         "quoteVolume":"10801.987",
+        //         "lastPrice":"0.2625",
+        //         "highPrice":"0.3918",
+        //         "lowPrice":"0.2625",
+        //         "openPrice":"0.362",
+        //     }
+        //
+        return this.parseTicker (response, market);
     }
 
     async fetchBalance (params = {}) {
