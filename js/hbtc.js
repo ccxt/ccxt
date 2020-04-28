@@ -576,20 +576,95 @@ module.exports = class hbtc extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
+        const options = this.safeValue (this.options, 'fetchBalance', {});
+        const defaultType = this.safeString (options, 'type', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
         const query = this.omit (params, 'type');
-        const response = await this.privateGetAccount (query);
+        let method = 'privateGetAccount';
+        if (type === 'contract') {
+            method = 'contractGetAccount';
+        } else if (type === 'option') {
+            method = 'optionGetAccount';
+        }
+        const response = await this[method] (query);
+        //
+        // spot
+        //
+        //     {
+        //         'balances': [
+        //             {
+        //                 'asset': 'ALGO',
+        //                 'free': '0',
+        //                 'locked': '0'
+        //             },
+        //             {
+        //                 'asset': 'BHT',
+        //                 'free': '0',
+        //                 'locked': '0'
+        //             }
+        //         ]
+        //     }
+        //
+        // contract
+        //
+        //     {
+        //         "BUSDT":{
+        //             "total":"1000",
+        //             "availableMargin":"1000",
+        //             "positionMargin":"0",
+        //             "orderMargin":"0",
+        //             "tokenId":"BUSDT"
+        //         },
+        //         "TBTC":{
+        //             "total":"0.5",
+        //             "availableMargin":"0.5",
+        //             "positionMargin":"0",
+        //             "orderMargin":"0",
+        //             "tokenId":"TBTC"
+        //         }
+        //     }
+        //
+        // option
+        //
+        //     {
+        //         "optionAsset":"",
+        //         "balances":[
+        //             {
+        //                 "tokenName":"USDT",
+        //                 "free":"0.0",
+        //                 "locked":"0.0",
+        //                 "margin":"0.0"
+        //             },
+        //             {
+        //                 "tokenName":"BUSDT",
+        //                 "free":"0.0",
+        //                 "locked":"0.0",
+        //                 "margin":"0.0"
+        //             }
+        //         ]
+        //     }
+        //
         const balances = this.safeValue (response, 'balances');
         const result = { 'info': response };
-        for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
-            const currencyId = this.safeString (balance, 'asset');
-            const code = this.safeCurrencyCode (currencyId);
-            if (!(code in result)) {
+        if (balances !== undefined) {
+            for (let i = 0; i < balances.length; i++) {
+                const balance = balances[i];
+                const currencyId = this.safeString2 (balance, 'asset', 'tokenName');
+                const code = this.safeCurrencyCode (currencyId);
                 const account = this.account ();
-                const free = this.safeFloat (balance, 'free');
-                const locked = this.safeFloat (balance, 'locked');
-                account['free'] = free;
-                account['total'] = free + locked;
+                account['free'] = this.safeFloat (balance, 'free');
+                account['used'] = this.safeFloat (balance, 'locked');
+                result[code] = account;
+            }
+        } else {
+            const currencyIds = Object.keys (response);
+            for (let i = 0; i < currencyIds.length; i++) {
+                const currencyId = currencyIds[i];
+                const code = this.safeCurrencyCode (currencyId);
+                const balance = response[currencyId];
+                const account = this.account ();
+                account['free'] = this.safeFloat (balance, 'availableMargin');
+                account['total'] = this.safeFloat (balance, 'total');
                 result[code] = account;
             }
         }
