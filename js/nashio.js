@@ -23,7 +23,7 @@ module.exports = class nashio extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchOHLCV': true,
-                'fetchTrades': true,
+                'fetchTrades': false,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
             },
@@ -196,8 +196,9 @@ module.exports = class nashio extends Exchange {
         const response = await this.publicPostGql (this.extend (request, params));
         const candles = await this.fetchOHLCV (symbol, '1d', undefined, 1, params);
         const book = await this.fetchOrderBook (symbol, undefined, params);
-        response['data']['getTicker']['candles'] = candles;
-        response['data']['getTicker']['book'] = book;
+        response['data']['getTicker']['info'] = {};
+        response['data']['getTicker']['info']['candles'] = candles;
+        response['data']['getTicker']['info']['book'] = book;
         return this.parseTicker (response['data']['getTicker'], market);
     }
 
@@ -301,61 +302,6 @@ module.exports = class nashio extends Exchange {
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const currencyAmountFields = this.gqlFragments['CurrencyAmountFields'];
-        const currencyPriceFields = this.gqlFragments['CurrencyPriceFields'];
-        let query = '';
-        query += 'query ListTrades($marketName: MarketName' + '!' + ', $limit: Int, $before: DateTime) { ';
-        query += '  listTrades(marketName: $marketName, limit: $limit, before: $before) { ';
-        query += '      trades { ';
-        query += '          id ';
-        query += '          makerOrderId ';
-        query += '          takerOrderId ';
-        query += '          executedAt ';
-        query += '          accountSide ';
-        query += '          limitPrice { ';
-        query += '              ' + currencyPriceFields.join (' ');
-        query += '          } ';
-        query += '          amount { ';
-        query += '              ' + currencyAmountFields.join (' ');
-        query += '          } ';
-        query += '          direction ';
-        query += '          makerGave { ';
-        query += '              ' + currencyAmountFields.join (' ');
-        query += '          } ';
-        query += '          takerGave { ';
-        query += '              ' + currencyAmountFields.join (' ');
-        query += '          } ';
-        query += '          makerReceived { ';
-        query += '              ' + currencyAmountFields.join (' ');
-        query += '          } ';
-        query += '          takerReceived { ';
-        query += '              ' + currencyAmountFields.join (' ');
-        query += '          } ';
-        query += '          makerFee { ';
-        query += '              ' + currencyAmountFields.join (' ');
-        query += '          } ';
-        query += '          takerFee { ';
-        query += '              ' + currencyAmountFields.join (' ');
-        query += '          } ';
-        query += '      } ';
-        query += '      next ';
-        query += '  } ';
-        query += '}';
-        const request = {
-            'query': query,
-            'variables': {
-                'marketName': market['id'],
-            },
-        };
-        const response = await this.publicPostGql (this.extend (request, params));
-        // console.warn ('fetchTrades', response);
-        const trades = response['data']['listTrades']['trades'];
-        return this.parseTrades (trades, market, since, limit);
-    }
-
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -415,18 +361,45 @@ module.exports = class nashio extends Exchange {
         if (market) {
             symbol = market['symbol'];
         }
-        const open = ticker['candles'] ? ticker['candles'][0][1] : undefined;
-        const high = ticker['candles'] ? ticker['candles'][0][2] : undefined;
-        const low = ticker['candles'] ? ticker['candles'][0][3] : undefined;
-        const last = ticker['lastPrice'] ? ticker['lastPrice']['amount'] : undefined;
-        const close = ticker['candles'] && last ? ticker['candles'][0][4] : last;
-        const average = last && open ? this.sum (last, open) / 2 : undefined;
-        const change = last && open ? last - open : undefined;
+        let open = undefined;
+        let high = undefined;
+        let low = undefined;
+        let last = undefined;
+        let close = last;
+        let average = undefined;
+        let change = undefined;
+        let ask = undefined;
+        let askVolume = undefined;
+        let bid = undefined;
+        let bidVolume = undefined;
         const percentage = ticker['priceChange24hPct'];
-        const ask = ticker['book'] ? ticker['book']['asks'][0][0] : undefined;
-        const askVolume = ticker['book'] ? ticker['book']['asks'][0][1] : undefined;
-        const bid = ticker['book'] ? ticker['book']['bids'][0][0] : undefined;
-        const bidVolume = ticker['book'] ? ticker['book']['bids'][0][1] : undefined;
+        const info = this.safeValue (ticker, 'info');
+        if (info !== undefined) {
+            const candles = this.safeValue (info, 'candles');
+            if (candles !== undefined) {
+                this.print (candles);
+                open = this.safeFloat (candles[0], 1);
+                high = this.safeFloat (ticker['info']['candles'][0], 2);
+                low = this.safeFloat (ticker['info']['candles'][0], 3);
+                last = this.safeFloat (ticker['lastPrice'], 'amount');
+                close = this.safeFloat (ticker['info']['candles'][0], 4);
+                average = this.sum (last, open) / 2;
+                change = last - open;
+            }
+            const book = this.safeValue (info, 'book');
+            if (book !== undefined) {
+                const asks = this.safeValue (book, 'asks');
+                const bids = this.safeValue (book, 'bids');
+                if (asks !== undefined) {
+                    ask = this.safeFloat2 (asks, 0, 0);
+                    askVolume = this.safeFloat2 (asks, 0, 1);
+                }
+                if (bids !== undefined) {
+                    bid = this.safeFloat2 (bids, 0, 0);
+                    bidVolume = this.safeFloat2 (bids, 0, 1);
+                }
+            }
+        }
         // console.warn ('parseTicker', last, close);
         return {
             'symbol': symbol,
