@@ -681,16 +681,17 @@ module.exports = class hbtc extends Exchange {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = limit; // default 500, max 1000
         }
         const response = await this.quoteGetTrades (this.extend (request, params));
-        let result = [];
-        for (let i = 0; i < response.length; i++) {
-            const trade = this.parsePublicTrade (response[i], market);
-            result.push (trade);
-        }
-        result = this.sortBy (result, 'timestamp');
-        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
+        //
+        //     [
+        //         {"price":"0.025344","time":1588084082060,"qty":"1","isBuyerMaker":false},
+        //         {"price":"0.02535","time":1588084086021,"qty":"0.553","isBuyerMaker":true},
+        //         {"price":"0.025348","time":1588084097037,"qty":"1","isBuyerMaker":false},
+        //     ]
+        //
+        return this.parseTrades (response, market, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -882,6 +883,18 @@ module.exports = class hbtc extends Exchange {
     }
 
     parseTrade (trade, market) {
+        //
+        // fetchTrades (public)
+        //
+        //     {
+        //         "price":"0.025344",
+        //         "time":1588084082060,
+        //         "qty":"1",
+        //         "isBuyerMaker":false
+        //     }
+        //
+        // fetchMyTrades (private)
+        //
         const id = this.safeString (trade, 'id');
         const timestamp = this.safeFloat (trade, 'time');
         const type = undefined;
@@ -894,15 +907,18 @@ module.exports = class hbtc extends Exchange {
                 cost = price * amount;
             }
         }
-        const isMaker = this.safeValue (trade, 'isMaker');
+        let side = undefined;
         let takerOrMaker = undefined;
-        if (isMaker) {
-            takerOrMaker = 'taker';
+        if ('isBuyerMaker' in trade) {
+            side = trade['isBuyerMaker'] ? 'sell' : 'buy';
         } else {
-            takerOrMaker = 'maker';
+            const isMaker = this.safeValue (trade, 'isMaker');
+            if (isMaker !== undefined) {
+                takerOrMaker = isMaker ? 'maker' : 'taker';
+            }
+            const isBuyer = this.safeValue (trade, 'isBuyer');
+            side = isBuyer ? 'buy' : 'sell';
         }
-        const isBuyer = this.safeValue (trade, 'isBuyer');
-        const side = isBuyer ? 'BUY' : 'SELL';
         let fee = undefined;
         const commission = this.safeFloat (trade, 'commission');
         const commissionAsset = this.safeString (trade, 'commissionAsset');
@@ -912,12 +928,16 @@ module.exports = class hbtc extends Exchange {
                 'currency': commissionAsset,
             };
         }
+        let symbol = undefined;
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
         return {
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': type,
             'order': orderId,
             'side': side,
