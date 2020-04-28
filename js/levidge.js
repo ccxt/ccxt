@@ -573,10 +573,14 @@ module.exports = class levidge extends Exchange {
             currency = this.getCurrencyByCode (code);
             request['instrumentId'] = currency['id'];
         }
+        const _format = {};
+        _format['format'] = 'json';
+        _format['type'] = 'position';
+        request['_format'] = _format;
         // getUserHistory
         const response = await this.privatePostGetUserHistory (this.extend (request, params));
-        return response;
-        // return this.parseLedger (response['data'], undefined, since, limit);
+        const positions = this.safeValue (response, 'postionHistory', []);
+        return this.parseLedger (positions, undefined, since, limit);
     }
 
     nonce () {
@@ -981,6 +985,84 @@ module.exports = class levidge extends Exchange {
         };
     }
 
+    parseLedgerEntry (entry, currency = undefined) {
+        const id = this.safeString (entry, 'reportid');
+        const currencyId = this.safeInteger (entry, 'instrumentId1');
+        const referenceId = this.safeString (entry, 'transactionid');
+        const timestamp = this.safeInteger (entry, 'publishtime');
+        const txnType = this.safeString (entry, 'txnType');
+        const execId = this.safeInteger (entry, 'execId');
+        const orderId = this.safeInteger (entry, 'orderId');
+        const type = this.parseLedgerEntryType (txnType, execId, orderId);
+        let currencyCode = undefined;
+        let direction = undefined;
+        let amount = 0;
+        let before = 0;
+        let after = 0;
+        if (currencyId) {
+            const currency = this.currencies_by_id[currencyId];
+            if (currency) {
+                currencyCode = currency['code'];
+                amount = this.convertFromScale (this.safeInteger (entry, 'change1', 0), currency['precision']);
+                after = this.convertFromScale (this.safeInteger (entry, 'qty1', 0), currency['precision']);
+            }
+            before = after - amount;
+            if (amount < 0) {
+                direction = 'out';
+                amount = -amount;
+            } else {
+                direction = 'in';
+            }
+        }
+        return {
+            'id': id,
+            'direction': direction,
+            'account': undefined,
+            'referenceId': referenceId,
+            'referenceAccount': undefined,
+            'type': type,
+            'currency': currencyCode,
+            'amount': amount,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'before': before,
+            'after': after,
+            'status': 'ok',
+            'fee': {
+                'cost': undefined,
+                'currency': undefined,
+            },
+            'info': entry,
+        };
+    }
+
+    parseLedgerEntryType (type, execId, orderId) {
+        if ((execId > 0 && orderId > 0) || type === '4019') {
+            return 'trade';
+        }
+        const types = {
+            '4011': 'deposit', // TX_DEPOSIT
+            '4012': 'withdraw', // TX_WITHDRAW
+            '4013': 'deposit', // TX_ADMIN_DEPOSIT
+            '4014': 'withdraw', // TX_ADMIN_WITHDRAW
+            '4015': 'fee', // TX_FEE
+            '4016': 'transaction', // TX_ADJUSTMENT
+            '4017': 'transaction', // TX_INVEST_FUND
+            '4018': 'transaction', // TX_DIVEST_FUND
+            '4019': 'transaction', // TX_TRADE_FILL
+            '4020': 'transaction', // TX_FUNDING_RATE
+            '4021': 'transaction', // TX_RESTAT
+            '4022': 'transaction', // TX_COLLATERAL_SWAP
+            '4023': 'transaction', // TX_COLLATRAL_SWAP_ADJ
+            '4024': 'transaction', // TX_ADMIN_WITHDRAW_REJECTED
+            '4025': 'transaction', // TX_FROM_BANKRUPT_REMAINDER
+            '4026': 'transaction', // TX_TO_BANKRUPT_REMAINDER
+            '4027': 'transaction', // TX_BALANCE_ADMIN_INVALID_USER_REJECTED
+            '4028': 'transaction', // TX_EXPIRE_SETTLED
+        };
+        return this.safeString (types, type, type);
+    }
+
     parseTransactionStatus (status) {
         return status;
     }
@@ -1021,9 +1103,9 @@ module.exports = class levidge extends Exchange {
                 query += '?' + this.urlencode (params);
             }
         } else if (method === 'POST') {
-            const format = this.safeString (params, '_format');
+            const format = this.safeValue (params, '_format');
             if (format !== undefined) {
-                query += '?' + this.urlencode ({ '_format': format });
+                query += '?' + this.urlencode (format);
                 params = this.omit (params, '_format');
             }
             headers = {
