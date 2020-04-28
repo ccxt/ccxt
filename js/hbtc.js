@@ -146,6 +146,8 @@ module.exports = class hbtc extends Exchange {
                         'account', // 获取当前账户信息
                         'myTrades', // 查询历史成交
                         'depositOrders',
+                        'withdrawalOrders',
+                        'withdraw/detail',
                     ],
                     'post': [
                         'order', // 创建新订单
@@ -155,6 +157,7 @@ module.exports = class hbtc extends Exchange {
                         'transfer',
                         'balance_flow',
                         'user/transfer',
+                        'withdraw',
                     ],
                     'put': [
                         'userDataStream',
