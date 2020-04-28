@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, BadRequest } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, BadRequest, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -11,14 +11,49 @@ module.exports = class smartvalor extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'smartvalor',
-            'name': 'SmartValor',
-            'countries': [ 'CH' ], // Switzerland
-            'rateLimit': 500,
+            'name': 'Smart Valor',
+            'countries': [ 'CH', 'DE', 'LI' ], // Switzerland, Germany, Liechtenstein
+            'urls': {
+                'api': {
+                    'public': 'https://api.smartvalor.com',
+                    'private': 'https://api.smartvalor.com',
+                },
+                'www': 'https://smartvalor.com',
+                'doc': 'https://api.smartvalor.com/swagger/',
+                'logo': 'https://smartvalor.com/_client-assets_/assets/img/smart_valor_logo.svg',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'exchange/time',
+                        'products',
+                        'instruments',
+                        'instruments/{id}/level1',
+                        'instruments/{id}/level2',
+                        'instruments/{id}/trades',
+                    ],
+                },
+                'private': {
+                    'get': [
+                        'account/balance',
+                        'orders/{id}',
+                        'orders',
+                        'account/fees',
+                        'account/trades',
+                    ],
+                    'post': [
+                        'orders',
+                    ],
+                    'delete': [
+                        'orders/{id}',
+                    ],
+                },
+            },
             'has': {
                 'cancelAllOrders': false,
                 'cancelOrder': true,
                 'cancelOrders': false,
-                'CORS': false,
+                'CORS': true,
                 'createDepositAddress': false,
                 'createLimitOrder': true,
                 'createMarketOrder': true,
@@ -35,10 +70,10 @@ module.exports = class smartvalor extends Exchange {
                 'fetchL2OrderBook': true,
                 'fetchLedger': false,
                 'fetchMarkets': true,
-                'fetchMyTrades': false,
+                'fetchMyTrades': true,
                 'fetchOHLCV': 'emulated',
-                'fetchOpenOrders': false,
-                'fetchOrder': false,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
                 'fetchOrders': false,
@@ -48,8 +83,8 @@ module.exports = class smartvalor extends Exchange {
                 'fetchTickers': false,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchTradingFee': false,
-                'fetchTradingFees': false,
+                'fetchTradingFee': true,
+                'fetchTradingFees': true,
                 'fetchTradingLimits': false,
                 'fetchTransactions': false,
                 'fetchWithdrawals': false,
@@ -57,38 +92,7 @@ module.exports = class smartvalor extends Exchange {
                 'publicAPI': true,
                 'withdraw': false,
             },
-            'urls': {
-                'logo': 'https://smartvalor.com/_client-assets_/assets/img/smart_valor_logo.svg',
-                'api': {
-                    'public': 'http://localhost:3033',
-                    'private': 'http://localhost:3033',
-                },
-                'www': 'https://smartvalor.com',
-                'doc': 'https://api.smartvalor.com/swagger/',
-            },
-            'api': {
-                'public': {
-                    'get': [
-                        'exchange/time',
-                        'products',
-                        'instruments',
-                        'instruments/{id}/level1',
-                        'instruments/{id}/level2',
-                        'instruments/{id}/trades',
-                    ],
-                },
-                'private': {
-                    'get': [
-                        'account/balance',
-                    ],
-                    'post': [
-                        'orders',
-                    ],
-                    'delete': [
-                        'orders/{id}',
-                    ],
-                },
-            },
+            'rateLimit': 2000,
             'requiredCredentials': {
                 'apiKey': true,
                 'secret': true,
@@ -96,12 +100,14 @@ module.exports = class smartvalor extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'maker': 0.18 / 100,
-                    'taker': 0.18 / 100,
+                    'tierBased': false,
+                    'percentage': true,
+                    'maker': 0.29 / 100,
+                    'taker': 0.29 / 100,
                 },
             },
             'exceptions': {
-                '404': BadRequest,
+                '404': OrderNotFound,
                 '401': AuthenticationError,
                 '400': BadRequest,
             },
@@ -118,15 +124,18 @@ module.exports = class smartvalor extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const data = await this.publicGetInstruments (params);
+        const instruments = await this.publicGetInstruments (params);
         const result = [];
-        for (let i = 0; i < data.length; i++) {
+        for (let i = 0; i < instruments.length; i++) {
+            const instrument = this.safeValue (instruments, i);
+            const base = this.safeValue (instrument, 'product1');
+            const quote = this.safeValue (instrument, 'product2');
             result.push ({
-                'id': data[i].id,
-                'symbol': data[i].product1.isoCode + '/' + data[i].product2.isoCode,
-                'base': data[i].product1.isoCode,
-                'quote': data[i].product2.isoCode,
-                'info': data[i].product1.isoCode,
+                'id': instruments[i].id,
+                'symbol': base['isoCode'] + '/' + quote['isoCode'],
+                'base': base['isoCode'],
+                'quote': quote['isoCode'],
+                'info': instrument,
                 'active': true,
                 'precision': {
                     'amount': undefined,
@@ -146,8 +155,8 @@ module.exports = class smartvalor extends Exchange {
                         'max': undefined,
                     },
                 },
-                'baseId': data[i].product1.id,
-                'quoteId': data[i].product2.id,
+                'baseId': base['id'],
+                'quoteId': quote['id'],
             });
         }
         return result;
@@ -157,11 +166,12 @@ module.exports = class smartvalor extends Exchange {
         const currencies = await this.publicGetProducts (params);
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
-            result[currencies[i].isoCode] = {
-                'id': currencies[i].id,
-                'code': currencies[i].isoCode,
-                'info': currencies[i],
-                'name': currencies[i].name,
+            const currency = this.safeValue (currencies, i);
+            result[currency['isoCode']] = {
+                'id': currency['id'],
+                'code': currency['isoCode'],
+                'info': currency,
+                'name': currency['name'],
                 'active': true,
                 'fee': undefined,
                 'precision': undefined,
@@ -206,22 +216,16 @@ module.exports = class smartvalor extends Exchange {
         }
         const open = this.safeFloat (ticker, 'sessionOpen');
         const close = this.safeFloat (ticker, 'sessionClose');
-        let change = undefined;
+        const change = this.safeFloat (ticker, 'currentDayPriceChange');
         let percentage = undefined;
         let average = undefined;
         if ((close !== undefined) && (open !== undefined)) {
-            change = close - open;
             if (open > 0) {
                 percentage = change / open * 100;
             }
             average = this.sum (open, close) / 2;
         }
         const baseVolume = this.safeFloat (ticker, 'rolling24HrVolume');
-        const quoteVolume = this.safeFloat (ticker, 'rolling24HrNumTrades');
-        let vwap = undefined;
-        if (quoteVolume !== undefined && baseVolume !== undefined) {
-            vwap = quoteVolume / baseVolume;
-        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -232,16 +236,16 @@ module.exports = class smartvalor extends Exchange {
             'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'bestOffer'),
             'askVolume': undefined,
-            'vwap': vwap,
+            'vwap': undefined, // volume weighted average price
             'open': open,
             'close': close,
-            'last': close,
+            'last': this.safeFloat (ticker, 'lastTradedPrice'),
             'previousClose': undefined,
             'change': change,
             'percentage': percentage,
             'average': average,
             'baseVolume': baseVolume,
-            'quoteVolume': quoteVolume,
+            'quoteVolume': undefined,
             'info': ticker,
         };
     }
@@ -266,7 +270,9 @@ module.exports = class smartvalor extends Exchange {
                 'identification': this.uid,
                 'nonce': nonce,
             };
-            body = this.json (params);
+            if (method !== 'GET') {
+                body = this.json (params);
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
@@ -276,12 +282,13 @@ module.exports = class smartvalor extends Exchange {
         const balances = await this.privateGetAccountBalance (params);
         const result = { 'info': balances };
         for (let i = 0; i < balances.length; i++) {
-            const currencyBalance = balances[i];
+            const currencyBalance = this.safeValue (balances, i);
+            const product = this.safeValue (currencyBalance, 'product');
             const account = this.account ();
             account['total'] = this.safeFloat (currencyBalance, 'totalBalance');
             account['used'] = this.safeFloat (currencyBalance, 'hold');
             account['free'] = this.safeFloat (currencyBalance, 'availableBalance');
-            result[currencyBalance.product.isoCode] = account;
+            result[product['isoCode']] = account;
         }
         return this.parseBalance (result);
     }
@@ -295,15 +302,17 @@ module.exports = class smartvalor extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit; // max = 50
         }
-        const orderbook = await this.publicGetInstrumentsIdLevel2 (this.extend (request, params));
+        const orderBook = await this.publicGetInstrumentsIdLevel2 (this.extend (request, params));
         const bids = [];
         const asks = [];
-        for (let i = 0; i < orderbook.length; i++) {
-            const h = orderbook[i];
-            if (h.side === 'BUY') {
-                bids.push ([h.price, h.quantity]);
+        for (let i = 0; i < orderBook.length; i++) {
+            const entry = this.safeValue (orderBook, i);
+            const price = this.safeFloat (entry, 'price');
+            const quantity = this.safeFloat (entry, 'quantity');
+            if (entry.side === 'BUY') {
+                bids.push ([price, quantity]);
             } else {
-                asks.push ([h.price, h.quantity]);
+                asks.push ([price, quantity]);
             }
         }
         const timestamp = this.milliseconds ();
@@ -319,9 +328,6 @@ module.exports = class smartvalor extends Exchange {
         const request = {
             'id': market['id'],
         };
-        if (limit === undefined) {
-            request['count'] = limit; // default 50
-        }
         const trades = await this.publicGetInstrumentsIdTrades (this.extend (request, params));
         return this.parseTrades (trades, market, since, limit);
     }
@@ -331,7 +337,11 @@ module.exports = class smartvalor extends Exchange {
         const type = this.safeStringLower (trade, 'type');
         const side = this.safeStringLower (trade, 'side');
         const id = this.safeInteger (trade, 'id');
+        const marketId = this.safeInteger (trade, 'instrumentId');
         let symbol = undefined;
+        if (market === undefined) {
+            market = this.markets_by_id[marketId];
+        }
         if (market !== undefined) {
             symbol = market['symbol'];
         }
@@ -380,6 +390,99 @@ module.exports = class smartvalor extends Exchange {
         return await this.privateDeleteOrdersId (this.extend (request, params));
     }
 
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'id': parseInt (id),
+        };
+        const response = await this.privateGetOrdersId (this.extend (request, params));
+        return this.parseOrder (response);
+    }
+
+    parseOrder (order, market = undefined) {
+        const side = this.safeStringLower (order, 'side');
+        const orderStatus = this.safeString (order, 'status');
+        // [ UNKNOWN, ACCEPTED, WORKING, REJECTED, CANCELED, EXPIRED, FULLYEXECUTED ]
+        let status = undefined;
+        if (orderStatus === 'UNKNOWN' || orderStatus === 'ACCEPTED' || orderStatus === 'WORKING') {
+            status = 'open'; // UNKNOWN, ACCEPTED, WORKING
+        } else if (orderStatus === 'REJECTED' || orderStatus === 'CANCELED' || orderStatus === 'EXPIRED') {
+            status = 'canceled'; // REJECTED, CANCELED, EXPIRED
+        } else {
+            status = 'closed'; // FULLYEXECUTED
+        }
+        let symbol = undefined;
+        if (market === undefined) {
+            const marketId = this.safeInteger (order, 'instrumentId');
+            if (marketId !== undefined) {
+                if (marketId in this.markets_by_id) {
+                    market = this.markets_by_id[marketId];
+                }
+            }
+        }
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        const orderType = this.safeStringLower (order, 'type');
+        const timestamp = this.safeInteger (order, 'receivedTimestamp');
+        return {
+            'info': order,
+            'id': this.safeInteger (order, 'id'),
+            'clientOrderId': this.safeString (order, 'clientOrderId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'symbol': symbol,
+            'type': orderType,
+            'side': side,
+            'price': this.safeFloat (order, 'price'),
+            'average': undefined,
+            'amount': this.safeFloat (order, 'quantity'),
+            'remaining': this.safeFloat (order, 'remaining_amount'),
+            'filled': this.safeFloat (order, 'executedQuantity'),
+            'status': status,
+            'fee': undefined,
+            'cost': undefined,
+            'trades': undefined,
+        };
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (symbol !== undefined) {
+            if (!(symbol in this.markets)) {
+                throw new ExchangeError (this.id + ' has no symbol ' + symbol);
+            }
+        }
+        const response = await this.privateGetOrders (params);
+        let orders = this.parseOrders (response, undefined, since, limit);
+        if (symbol !== undefined) {
+            orders = this.filterBy (orders, 'symbol', symbol);
+        }
+        return orders;
+    }
+
+    async fetchTradingFees (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetAccountFees (params);
+        const fees = this.fees['trading'];
+        return {
+            'info': response,
+            'maker': this.safeFloat (fees, 'maker'),
+            'taker': this.safeFloat (fees, 'taker'),
+        };
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const trades = await this.privateGetAccountTrades (this.extend ({}, params));
+        const result = this.parseTrades (trades, undefined, since, limit);
+        if (symbol === undefined) {
+            return result;
+        }
+        return this.filterBySymbol (result, symbol);
+    }
+
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return; // fallback to default error handler
@@ -397,30 +500,5 @@ module.exports = class smartvalor extends Exchange {
             this.throwExactlyMatchedException (this.exceptions, statusCode, feedback);
             throw new ExchangeError (feedback);
         }
-    }
-
-    async fetchTickers (symbols = undefined, params = {}) {
-        await this.loadMarkets ();
-        const response = await this.publicGetTickerAll (params);
-        const result = {};
-        const timestamp = this.safeInteger (response['data'], 'date');
-        const tickers = this.omit (response['data'], 'date');
-        const ids = Object.keys (tickers);
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            let symbol = id;
-            let market = undefined;
-            if (id in this.markets_by_id) {
-                market = this.markets_by_id[id];
-                symbol = market['symbol'];
-            }
-            const ticker = tickers[id];
-            const isArray = Array.isArray (ticker);
-            if (!isArray) {
-                ticker['date'] = timestamp;
-                result[symbol] = this.parseTicker (ticker, market);
-            }
-        }
-        return result;
     }
 };
