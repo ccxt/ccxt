@@ -613,13 +613,31 @@ module.exports = class hbtc extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        //
+        // fetchTicker
+        //
+        //     {
+        //         "time":1588069860794,
+        //         "symbol":"BNB0501PS16",
+        //         "bestBidPrice":"0.2129",
+        //         "bestAskPrice":"0.3163",
+        //         "volume":"33547",
+        //         "quoteVolume":"10801.987",
+        //         "lastPrice":"0.2625",
+        //         "highPrice":"0.3918",
+        //         "lowPrice":"0.2625",
+        //         "openPrice":"0.362",
+        //     }
+        //
         let symbol = undefined;
+        const marketId = this.safeString (ticker, 'symbol');
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+        }
         if (market !== undefined) {
             symbol = market['symbol'];
         }
         const timestamp = this.safeInteger (ticker, 'time');
-        const bid = this.safeFloat (ticker, 'bestBidPrice');
-        const ask = this.safeFloat (ticker, 'bestAskPrice');
         const open = this.safeFloat (ticker, 'openPrice');
         const close = this.safeFloat (ticker, 'lastPrice');
         let change = undefined;
@@ -644,9 +662,9 @@ module.exports = class hbtc extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'high': this.safeFloat (ticker, 'highPrice'),
             'low': this.safeFloat (ticker, 'lowPrice'),
-            'bid': bid,
+            'bid': this.safeFloat (ticker, 'bestBidPrice'),
             'bidVolume': undefined,
-            'ask': ask,
+            'ask': this.safeFloat (ticker, 'bestAskPrice'),
             'askVolume': undefined,
             'vwap': vwap,
             'open': open,
