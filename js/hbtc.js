@@ -110,17 +110,28 @@ module.exports = class hbtc extends Exchange {
                 },
                 'private': {
                     'get': [
-                        'account', // 获取当前账户信息
                         'order', // 查询订单
                         'openOrders', // 查询当前委托
                         'historyOrders', // 查询历史委托
+                        'account', // 获取当前账户信息
                         'myTrades', // 查询历史成交
+                        'depositOrders',
                     ],
                     'post': [
                         'order', // 创建新订单
+                        'order/test',
+                        'userDataStream',
+                        'subAccount/query',
+                        'transfer',
+                        'balance_flow',
+                        'user/transfer',
+                    ],
+                    'put': [
+                        'userDataStream',
                     ],
                     'delete': [
                         'order', // 取消订单
+                        'userDataStream',
                     ],
                 },
             },
