@@ -18,7 +18,9 @@ module.exports = class hbtc extends Exchange {
             'has': {
                 'CORS': false,
                 'fetchTime': true,
-                'fetchTickers': false,
+                'fetchBidAsk': true,
+                'fetchBidsAsks': true,
+                'fetchTickers': true,
                 'fetchTicker': true,
                 'fetchDepositAddress': false,
                 'fetchOHLCV': false,
@@ -88,11 +90,13 @@ module.exports = class hbtc extends Exchange {
                         'contract/depth/merged',
                         'contract/trades', // 获取合约最近成交,
                         'contract/klines', // 获取合约的K线数据
+                        'contract/ticker/24hr',
                         'option/index',
                         'option/depth',
                         'option/depth/merged',
                         'option/trades',
                         'option/klines',
+                        'option/ticker/24hr',
                     ],
                 },
                 'contract': {
@@ -183,6 +187,12 @@ module.exports = class hbtc extends Exchange {
                     '-1020': PermissionDenied,
                     '-1121': BadSymbol,
                     '-2013': OrderNotFound,
+                },
+            },
+            // exchange-specific options
+            'options': {
+                'fetchTickers': {
+                    'method': 'quoteGetTicker24hr',
                 },
             },
         });
@@ -481,6 +491,87 @@ module.exports = class hbtc extends Exchange {
         //     }
         //
         return this.parseTicker (response, market);
+    }
+
+    parseTickers (rawTickers, symbols = undefined) {
+        const tickers = [];
+        for (let i = 0; i < rawTickers.length; i++) {
+            tickers.push (this.parseTicker (rawTickers[i]));
+        }
+        return this.filterByArray (tickers, 'symbol', symbols);
+    }
+
+    async fetchBidAsk (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.quoteGetTickerBookTicker (this.extend (request, params));
+        //
+        //     {
+        //         "symbol": "LTCBTC",
+        //         "bidPrice": "4.00000000",
+        //         "bidQty": "431.00000000",
+        //         "askPrice": "4.00000200",
+        //         "askQty": "9.00000000"
+        //     }
+        //
+        return this.parseTicker (response, market);
+    }
+
+    async fetchBidsAsks (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.quoteGetTickerBookTicker (params);
+        //
+        //     [
+        //         {
+        //             "symbol": "LTCBTC",
+        //             "bidPrice": "4.00000000",
+        //             "bidQty": "431.00000000",
+        //             "askPrice": "4.00000200",
+        //             "askQty": "9.00000000"
+        //         },
+        //         {
+        //             "symbol": "ETHBTC",
+        //             "bidPrice": "0.07946700",
+        //             "bidQty": "9.00000000",
+        //             "askPrice": "100000.00000000",
+        //             "askQty": "1000.00000000"
+        //         },
+        //     ]
+        //
+        return this.parseTickers (response, symbols);
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const options = this.safeValue (this.options, 'fetchTickers', {});
+        const defaultMethod = this.safeString (options, 'method', 'quoteGetTicker24hr');
+        const defaultType = this.safeString (options, 'type', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
+        const query = this.omit (params, 'type');
+        let method = defaultMethod;
+        if (type === 'contract') {
+            method = 'quoteGetContractTicker24hr';
+        } else if (type === 'option') {
+            method = 'quoteGetOptionTicker24hr';
+        }
+        const response = await this[method] (query);
+        //
+        //     [
+        //         {
+        //             "time": 1538725500422,
+        //             "symbol": "ETHBTC",
+        //             "lastPrice": "4.00000200",
+        //             "openPrice": "99.00000000",
+        //             "highPrice": "100.00000000",
+        //             "lowPrice": "0.10000000",
+        //             "volume": "8913.30000000"
+        //         },
+        //     ]
+        //
+        return this.parseTickers (response, symbols);
     }
 
     async fetchBalance (params = {}) {
