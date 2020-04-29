@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.26.40'
+__version__ = '1.27.6'
 
 # -----------------------------------------------------------------------------
 
@@ -372,7 +372,7 @@ class Exchange(object):
             'delay': 0.001,
             'capacity': 1.0,
             'defaultCost': 1.0,
-        }, getattr(self, 'tokenBucket') if hasattr(self, 'tokenBucket') else {})
+        }, getattr(self, 'tokenBucket', {}))
 
         self.session = self.session if self.session or self.asyncio_loop else Session()
         self.logger = self.logger if self.logger else logging.getLogger(__name__)
@@ -876,8 +876,8 @@ class Exchange(object):
         return _urlencode.unquote(Exchange.urlencode(params))
 
     @staticmethod
-    def encode_uri_component(uri):
-        return _urlencode.quote(uri, safe="~()*!.'")
+    def encode_uri_component(uri, safe="~()*!.'"):
+        return _urlencode.quote(uri, safe=safe)
 
     @staticmethod
     def omit(d, *args):
@@ -1336,6 +1336,9 @@ class Exchange(object):
     def cancel_order(self, id, symbol=None, params={}):
         raise NotSupported('cancel_order() not supported yet')
 
+    def cancel_unified_order(self, order, params={}):
+        return self.cancel_order(self.safe_value(order, 'id'), self.safe_value(order, 'symbol'), params)
+
     def fetch_bids_asks(self, symbols=None, params={}):
         raise NotSupported('API does not allow to fetch all prices at once with a single call to fetch_bids_asks() for now')
 
@@ -1357,6 +1360,9 @@ class Exchange(object):
 
     def fetch_order(self, id, symbol=None, params={}):
         raise NotSupported('fetch_order() is not supported yet')
+
+    def fetch_unified_order(self, order, params={}):
+        return self.fetch_order(self.safe_value(order, 'id'), self.safe_value(order, 'symbol'), params)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         raise NotSupported('fetch_orders() is not supported yet')

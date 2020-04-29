@@ -67,6 +67,9 @@ class okex extends Exchange {
                 'doc' => 'https://www.okex.com/docs/en/',
                 'fees' => 'https://www.okex.com/pages/products/fees.html',
                 'referral' => 'https://www.okex.com/join/1888677',
+                'test' => array(
+                    'rest' => 'https://testnet.okex.com',
+                ),
             ),
             'api' => array(
                 'general' => array(
@@ -799,14 +802,6 @@ class okex extends Exchange {
             'price' => $this->safe_float($market, 'tick_size'),
         );
         $minAmount = $this->safe_float_2($market, 'min_size', 'base_min_size');
-        $minPrice = $this->safe_float($market, 'tick_size');
-        if ($precision['price'] !== null) {
-            $minPrice = pow(10, -$precision['price']);
-        }
-        $minCost = null;
-        if ($minAmount !== null && $minPrice !== null) {
-            $minCost = $minAmount * $minPrice;
-        }
         $active = true;
         $fees = $this->safe_value_2($this->fees, $marketType, 'trading', array());
         return array_merge($fees, array(
@@ -830,11 +825,11 @@ class okex extends Exchange {
                     'max' => null,
                 ),
                 'price' => array(
-                    'min' => $minPrice,
+                    'min' => $precision['price'],
                     'max' => null,
                 ),
                 'cost' => array(
-                    'min' => $minCost,
+                    'min' => $precision['price'],
                     'max' => null,
                 ),
             ),
@@ -2332,17 +2327,17 @@ class okex extends Exchange {
         //
         //     array(
         //         {
-        //             address => '0x696abb81974a8793352cbd33aadcf78eda3cfdfa',
+        //             $address => '0x696abb81974a8793352cbd33aadcf78eda3cfdfa',
         //             $currency => 'eth'
         //         }
         //     )
         //
         $addresses = $this->parse_deposit_addresses($response);
-        $numAddresses = is_array($addresses) ? count($addresses) : 0;
-        if ($numAddresses < 1) {
+        $address = $this->safe_value($addresses, $code);
+        if ($address === null) {
             throw new InvalidAddress($this->id . ' fetchDepositAddress cannot return nonexistent $addresses, you should create withdrawal $addresses with the exchange website first');
         }
-        return $addresses[0];
+        return $address;
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {

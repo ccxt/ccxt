@@ -42,6 +42,7 @@ module.exports = class timex extends Exchange {
                 'api': 'https://plasma-relay-backend.timex.io',
                 'www': 'https://timex.io',
                 'doc': 'https://docs.timex.io',
+                'referral': 'https://timex.io/?refcode=1x27vNkTbP1uwkCck',
             },
             'api': {
                 'custody': {

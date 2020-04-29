@@ -37,6 +37,7 @@ module.exports = class binance extends Exchange {
                 'fetchTransactions': false,
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
+                'cancelAllOrders': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -134,6 +135,8 @@ module.exports = class binance extends Exchange {
                         'lending/union/purchaseRecord',
                         'lending/union/redemptionRecord',
                         'lending/union/interestHistory',
+                        'lending/project/list',
+                        'lending/project/position/list',
                     ],
                     'post': [
                         'asset/dust',
@@ -150,6 +153,7 @@ module.exports = class binance extends Exchange {
                         'userDataStream',
                         'futures/transfer',
                         // lending
+                        'lending/customizedFixed/purchase',
                         'lending/daily/purchase',
                         'lending/daily/redeem',
                     ],
@@ -215,6 +219,8 @@ module.exports = class binance extends Exchange {
                         'income',
                     ],
                     'post': [
+                        'batchOrders',
+                        'positionSide/dual',
                         'positionMargin',
                         'marginType',
                         'order',
@@ -225,6 +231,7 @@ module.exports = class binance extends Exchange {
                         'listenKey',
                     ],
                     'delete': [
+                        'batchOrders',
                         'order',
                         'allOpenOrders',
                         'listenKey',
@@ -271,6 +278,7 @@ module.exports = class binance extends Exchange {
                         'order/test',
                     ],
                     'delete': [
+                        'openOrders', // added on 2020-04-25 for canceling all open orders per symbol
                         'orderList', // oco
                         'order',
                     ],
@@ -293,7 +301,6 @@ module.exports = class binance extends Exchange {
                 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
                 'fetchTickersMethod': 'publicGetTicker24hr',
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
-                'defaultLimitOrderType': 'limit', // or 'limit_maker'
                 'defaultType': 'spot', // 'spot', 'future'
                 'hasAlreadyAuthenticatedSuccessfully': false,
                 'warnOnFetchOpenOrdersWithoutSymbol': true,
@@ -1184,6 +1191,8 @@ module.exports = class binance extends Exchange {
         } else if (uppercaseType === 'STOP') {
             stopPriceIsRequired = true;
             priceIsRequired = true;
+        } else if (uppercaseType === 'STOP_MARKET') {
+            stopPriceIsRequired = true;
         }
         if (priceIsRequired) {
             if (price === undefined) {
@@ -1341,6 +1350,27 @@ module.exports = class binance extends Exchange {
         const method = market['spot'] ? 'privateDeleteOrder' : 'fapiPrivateDeleteOrder';
         const response = await this[method] (this.extend (request, params));
         return this.parseOrder (response);
+    }
+
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const defaultType = this.safeString2 (this.options, 'cancelAllOrders', 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
+        const query = this.omit (params, 'type');
+        const method = (type === 'spot') ? 'privateDeleteOpenOrders' : 'fapiPrivateDeleteAllOpenOrders';
+        const response = await this[method] (this.extend (request, query));
+        if (Array.isArray (response)) {
+            return this.parseOrders (response, market);
+        } else {
+            return response;
+        }
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1855,6 +1885,11 @@ module.exports = class binance extends Exchange {
             let query = undefined;
             if ((api === 'sapi') && (path === 'asset/dust')) {
                 query = this.urlencodeWithArrayRepeat (this.extend ({
+                    'timestamp': this.nonce (),
+                    'recvWindow': this.options['recvWindow'],
+                }, params));
+            } else if (path === 'batchOrders') {
+                query = this.rawencode (this.extend ({
                     'timestamp': this.nonce (),
                     'recvWindow': this.options['recvWindow'],
                 }, params));

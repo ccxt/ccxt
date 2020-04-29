@@ -288,8 +288,9 @@ module.exports = class Exchange {
         const config = deepExtend (this.describe (), userConfig)
 
         // merge to this
-        for (const [property, value] of Object.entries (config))
+        for (const [property, value] of Object.entries (config)) {
             this[property] = deepExtend (this[property], value)
+        }
 
         if (!this.httpAgent) {
             this.httpAgent = defaultFetch.http ? new defaultFetch.http.Agent ({ 'keepAlive': true }) : undefined
@@ -304,13 +305,15 @@ module.exports = class Exchange {
             this['has' + capitalize (k)] = !!this.has[k] // converts 'emulated' to true
         }
 
-        if (this.api)
+        if (this.api) {
             this.defineRestApi (this.api, 'request')
+        }
 
         this.initRestRateLimiter ()
 
-        if (this.markets)
+        if (this.markets) {
             this.setMarkets (this.markets)
+        }
     }
 
     defaults () {
@@ -342,20 +345,23 @@ module.exports = class Exchange {
 
     checkAddress (address) {
 
-        if (address === undefined)
+        if (address === undefined) {
             throw new InvalidAddress (this.id + ' address is undefined')
+        }
 
         // check the address is not the same letter like 'aaaaa' nor too short nor has a space
-        if ((unique (address).length === 1) || address.length < this.minFundingAddressLength || address.includes (' '))
+        if ((unique (address).length === 1) || address.length < this.minFundingAddressLength || address.includes (' ')) {
             throw new InvalidAddress (this.id + ' address is invalid or has less than ' + this.minFundingAddressLength.toString () + ' characters: "' + this.json (address) + '"')
+        }
 
         return address
     }
 
     initRestRateLimiter () {
 
-        if (this.rateLimit === undefined)
+        if (this.rateLimit === undefined) {
             throw new Error (this.id + '.rateLimit property is not configured')
+        }
 
         this.tokenBucket = this.extend ({
             delay:       1,
@@ -386,15 +392,17 @@ module.exports = class Exchange {
             const promise =
                 fetchImplementation (url, this.extend (params, this.fetchOptions))
                     .catch ((e) => {
-                        if (isNode)
+                        if (isNode) {
                             throw new ExchangeNotAvailable ([ this.id, method, url, e.type, e.message ].join (' '))
+                        }
                         throw e // rethrow all unknown errors
                     })
-                    .then (response => this.handleRestResponse (response, url, method, headers, body))
+                    .then ((response) => this.handleRestResponse (response, url, method, headers, body))
 
             return timeout (this.timeout, promise).catch ((e) => {
-                if (e instanceof TimedOut)
+                if (e instanceof TimedOut) {
                     throw new RequestTimeout (this.id + ' ' + method + ' ' + url + ' request timed out (' + this.timeout + ' ms)')
+                }
                 throw e
             })
         }
@@ -442,16 +450,20 @@ module.exports = class Exchange {
                     let underscore = type + '_' + lowercaseMethod + '_' + underscoreSuffix
 
                     if ('suffixes' in options) {
-                        if ('camelcase' in options['suffixes'])
+                        if ('camelcase' in options['suffixes']) {
                             camelcase += options['suffixes']['camelcase']
-                        if ('underscore' in options.suffixes)
+                        }
+                        if ('underscore' in options.suffixes) {
                             underscore += options['suffixes']['underscore']
+                        }
                     }
 
-                    if ('underscore_suffix' in options)
+                    if ('underscore_suffix' in options) {
                         underscore += options.underscoreSuffix;
-                    if ('camelcase_suffix' in options)
+                    }
+                    if ('camelcase_suffix' in options) {
                         camelcase += options.camelcaseSuffix;
+                    }
 
                     let partial = async params => this[methodName] (path, type, uppercaseMethod, params || {})
 
@@ -594,7 +606,7 @@ module.exports = class Exchange {
     getResponseHeaders (response) {
         const result = {}
         response.headers.forEach ((value, key) => {
-            key = key.split ('-').map (word => capitalize (word)).join ('-')
+            key = key.split ('-').map ((word) => capitalize (word)).join ('-')
             result[key] = value
         })
         return result
@@ -632,7 +644,7 @@ module.exports = class Exchange {
     }
 
     setMarkets (markets, currencies = undefined) {
-        const values = Object.values (markets).map (market => deepExtend ({
+        const values = Object.values (markets).map ((market) => deepExtend ({
             'limits': this.limits,
             'precision': this.precision,
         }, this.fees['trading'], market))
@@ -801,6 +813,22 @@ module.exports = class Exchange {
 
     fetchOrder (id, symbol = undefined, params = {}) {
         throw new NotSupported (this.id + ' fetchOrder not supported yet');
+    }
+
+    fetchUnifiedOrder (order, params = {}) {
+        return this.fetchOrder (this.safeValue (order, 'id'), this.safeValue (order, 'symbol'), params);
+    }
+
+    createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        throw new NotSupported (this.id + ' createOrder not supported yet');
+    }
+
+    cancelOrder (id, symbol = undefined, params = {}) {
+        throw new NotSupported (this.id + ' cancelOrder not supported yet');
+    }
+
+    cancelUnifiedOrder (order, params = {}) {
+        return this.cancelOrder (this.safeValue (order, 'id'), this.safeValue (order, 'symbol'), params);
     }
 
     fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
