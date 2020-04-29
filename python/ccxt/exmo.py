@@ -910,9 +910,9 @@ class exmo(Exchange):
         fee = None
         feeCost = self.safe_float(trade, 'commission_amount')
         if feeCost is not None:
-            feeCurrencyId = self.safe_string(trade, 'commision_currency')
+            feeCurrencyId = self.safe_string(trade, 'commission_currency')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
-            feeRate = self.safe_float(trade, 'commision_percent')
+            feeRate = self.safe_float(trade, 'commission_percent')
             if feeRate is not None:
                 feeRate /= 1000
             fee = {
