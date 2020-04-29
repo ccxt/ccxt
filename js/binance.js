@@ -40,6 +40,7 @@ module.exports = class binance extends ccxt.binance {
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
                 'requestId': {},
+                'watchOrderBookLimit': 1000, // default limit
             },
         });
     }
@@ -130,10 +131,11 @@ module.exports = class binance extends ccxt.binance {
     }
 
     async fetchOrderBookSnapshot (client, message, subscription) {
+        const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
         const type = this.safeValue (subscription, 'type');
         const symbol = this.safeString (subscription, 'symbol');
         const messageHash = this.safeString (subscription, 'messageHash');
-        const limit = this.safeInteger (subscription, 'limit');
+        const limit = this.safeInteger (subscription, 'limit', defaultLimit);
         const params = this.safeValue (subscription, 'params');
         // 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
         // todo: this is a synch blocking call in ccxt.php - make it async
@@ -304,8 +306,9 @@ module.exports = class binance extends ccxt.binance {
     }
 
     handleOrderBookSubscription (client, message, subscription) {
+        const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
         const symbol = this.safeString (subscription, 'symbol');
-        const limit = this.safeInteger (subscription, 'limit');
+        const limit = this.safeInteger (subscription, 'limit', defaultLimit);
         if (symbol in this.orderbooks) {
             delete this.orderbooks[symbol];
         }
