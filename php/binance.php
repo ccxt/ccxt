@@ -44,6 +44,7 @@ class binance extends \ccxt\binance {
                 'tradesLimit' => 1000,
                 'OHLCVLimit' => 1000,
                 'requestId' => array(),
+                'watchOrderBookLimit' => 1000, // default limit
             ),
         ));
     }
@@ -134,10 +135,11 @@ class binance extends \ccxt\binance {
     }
 
     public function fetch_order_book_snapshot($client, $message, $subscription) {
+        $defaultLimit = $this->safe_integer($this->options, 'watchOrderBookLimit', 1000);
         $type = $this->safe_value($subscription, 'type');
         $symbol = $this->safe_string($subscription, 'symbol');
         $messageHash = $this->safe_string($subscription, 'messageHash');
-        $limit = $this->safe_integer($subscription, 'limit');
+        $limit = $this->safe_integer($subscription, 'limit', $defaultLimit);
         $params = $this->safe_value($subscription, 'params');
         // 3. Get a depth $snapshot from https://www.binance.com/api/v1/depth?$symbol=BNBBTC&$limit=1000 .
         // todo => this is a synch blocking call in ccxt.php - make it async
@@ -308,8 +310,9 @@ class binance extends \ccxt\binance {
     }
 
     public function handle_order_book_subscription($client, $message, $subscription) {
+        $defaultLimit = $this->safe_integer($this->options, 'watchOrderBookLimit', 1000);
         $symbol = $this->safe_string($subscription, 'symbol');
-        $limit = $this->safe_integer($subscription, 'limit');
+        $limit = $this->safe_integer($subscription, 'limit', $defaultLimit);
         if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
             unset($this->orderbooks[$symbol]);
         }
