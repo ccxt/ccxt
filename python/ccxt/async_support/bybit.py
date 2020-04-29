@@ -354,6 +354,8 @@ class bybit(Exchange):
         #     }
         #
         markets = self.safe_value(response, 'result', [])
+        options = self.safe_value(self.options, 'fetchMarkets', {})
+        linearQuoteCurrencies = self.safe_value(options, 'linear', {'USDT': True})
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
@@ -362,6 +364,8 @@ class bybit(Exchange):
             quoteId = self.safe_string(market, 'quote_currency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            linear = (quote in linearQuoteCurrencies)
+            inverse = not linear
             symbol = base + '/' + quote
             lotSizeFilter = self.safe_value(market, 'lot_size_filter', {})
             priceFilter = self.safe_value(market, 'price_filter', {})
@@ -378,6 +382,12 @@ class bybit(Exchange):
                 'precision': precision,
                 'taker': self.safe_float(market, 'taker_fee'),
                 'maker': self.safe_float(market, 'maker_fee'),
+                'type': 'future',
+                'spot': False,
+                'future': True,
+                'option': False,
+                'linear': linear,
+                'inverse': inverse,
                 'limits': {
                     'amount': {
                         'min': self.safe_float(lotSizeFilter, 'min_trading_qty'),
@@ -392,10 +402,6 @@ class bybit(Exchange):
                         'max': None,
                     },
                 },
-                'type': 'future',
-                'spot': False,
-                'future': True,
-                'option': False,
                 'info': market,
             })
         return result
@@ -945,8 +951,8 @@ class bybit(Exchange):
         #         "last_exec_time": 0,
         #         "last_exec_price": 0,
         #         "leaves_qty": 1,
-        #         "cum_exec_qty": 0,
-        #         "cum_exec_value": 0,
+        #         "cum_exec_qty": 0,  # in contracts, where 1 contract = 1 quote currency unit(USD for inverse contracts)
+        #         "cum_exec_value": 0,  # in contract's underlying currency(BTC for inverse contracts)
         #         "cum_exec_fee": 0,
         #         "reject_reason": "",
         #         "order_link_id": "",
@@ -954,17 +960,65 @@ class bybit(Exchange):
         #         "updated_at": "2019-11-30T11:03:43.455Z"
         #     }
         #
+        # fetchOrder
+        #
+        #     {
+        #         "user_id" : 599946,
+        #         "symbol" : "BTCUSD",
+        #         "side" : "Buy",
+        #         "order_type" : "Limit",
+        #         "price" : "7948",
+        #         "qty" : 10,
+        #         "time_in_force" : "GoodTillCancel",
+        #         "order_status" : "Filled",
+        #         "ext_fields" : {
+        #             "o_req_num" : -1600687220498,
+        #             "xreq_type" : "x_create"
+        #         },
+        #         "last_exec_time" : "1588150113.968422",
+        #         "last_exec_price" : "7948",
+        #         "leaves_qty" : 0,
+        #         "leaves_value" : "0",
+        #         "cum_exec_qty" : 10,
+        #         "cum_exec_value" : "0.00125817",
+        #         "cum_exec_fee" : "-0.00000031",
+        #         "reject_reason" : "",
+        #         "cancel_type" : "",
+        #         "order_link_id" : "",
+        #         "created_at" : "2020-04-29T08:45:24.399146Z",
+        #         "updated_at" : "2020-04-29T08:48:33.968422Z",
+        #         "order_id" : "dd2504b9-0157-406a-99e1-efa522373944"
+        #     }
+        #
+        marketId = self.safe_string(order, 'symbol')
+        symbol = None
+        base = None
+        if marketId in self.markets_by_id:
+            market = self.markets_by_id[marketId]
         timestamp = self.parse8601(self.safe_string(order, 'created_at'))
         id = self.safe_string(order, 'order_id')
         price = self.safe_float(order, 'price')
         average = self.safe_float(order, 'average_price')
-        amount = self.safe_float(order, 'qty')
-        filled = self.safe_float(order, 'cum_exec_qty')
-        remaining = self.safe_float(order, 'leaves_qty')
+        amount = None
+        cost = None
+        filled = None
+        remaining = None
+        if market is not None:
+            symbol = market['symbol']
+            base = market['base']
+            if market['inverse']:
+                cost = self.safe_float(order, 'cum_exec_qty')
+                filled = self.safe_float(order, 'cum_exec_value')
+                remaining = self.safe_float(order, 'leaves_value')
+                amount = self.sum(filled, remaining)
+            else:
+                amount = self.safe_float(order, 'qty')
+                cost = self.safe_float(order, 'cum_exec_value')
+                filled = self.safe_float(order, 'cum_exec_qty')
+                remaining = self.safe_float(order, 'leaves_qty')
         lastTradeTimestamp = self.safe_timestamp(order, 'last_exec_time')
         if lastTradeTimestamp == 0:
             lastTradeTimestamp = None
-        cost = self.safe_float(order, 'cum_exec_value')
         if (filled is None) and (amount is not None) and (remaining is not None):
             filled = amount - remaining
         if filled is not None:
@@ -974,18 +1028,6 @@ class bybit(Exchange):
                 if price is not None:
                     cost = price * filled
         status = self.parse_order_status(self.safe_string(order, 'order_status'))
-        marketId = self.safe_string(order, 'symbol')
-        symbol = None
-        base = None
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
-            base = market['base']
-        if market is not None:
-            if symbol is None:
-                symbol = market['symbol']
-            if base is None:
-                base = market['base']
         side = self.safe_string_lower(order, 'side')
         feeCost = self.safe_float(order, 'cum_exec_fee')
         fee = None
