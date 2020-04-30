@@ -97,7 +97,7 @@ class korbit(Exchange):
 
     def parse_trade(self, trade, market=None):
         #
-        #     fetch_my_trades(public)
+        #     fetch_my_trades(private)
         #     {
         #         "id": "89999",
         #         "currency_pair": "btc_krw",
@@ -139,6 +139,57 @@ class korbit(Exchange):
             'amount': amount,
             'cost': price * amount,
             'fee': fee,
+        }
+
+    def parse_order(self, order, market=None):
+        #
+        #     fetch_order(private)
+        #     {
+        #         "id": "89999",
+        #         "currency_pair": "btc_krw",
+        #         "side": "bid",
+        #         "avg_price": "2900000",
+        #         "price": "3000000",
+        #         "order_amount": "0.81140000",
+        #         "filled_amount": "0.33122200",
+        #         "order_total": "2434200",
+        #         "filled_total": "960543",
+        #         "created_at": "1500033942638",
+        #         "last_filled_at": "1500533946947",
+        #         "status": "partially_filled",
+        #         "fee": "0.00000500"
+        #     },
+        #
+        timestamp = self.safe_string(order, 'created_at')
+        status = 'closed' if self.safe_string(order, 'status') == 'filled' else 'open'
+        symbol = self.safe_string(market, 'symbol', self.safe_string(order, 'currency_pair').upper().replace('_', '/'))
+        base_currency, quote_currency = symbol.split('/')
+        order_type = 'limit' if self.safe_string(order, 'filled_total') is not None else 'market'
+        side = self.safe_string(order, 'side')
+        price = self.safe_float(order, 'price', 0)
+        order_amount = self.safe_float(order, 'order_amount', 0)
+        filled_amount = self.safe_float(order, 'filled_amount', 0)
+        fee = {
+            'cost': self.safe_float(order, 'fee'),
+            'currency': base_currency if side == 'buy' else quote_currency if side == 'ask' else None
+        }
+        return {
+            'id': self.safe_string(order, 'id'),
+            'datetime': self.iso8601(timestamp),
+            'timestamp': timestamp,
+            'lastTradeTimestamp': self.safe_string(order, 'last_filled_at'),
+            'status': status,
+            'symbol': symbol,
+            'type': order_type,
+            'side': side,
+            'price': price,
+            'amount': order_amount,
+            'filled': filled_amount,
+            'remaining': filled_amount - order_amount,
+            'cost': filled_amount * price,
+            'trades': None,
+            'fee': fee,
+            'info': order,
         }
 
     def fetch_markets(self, params={}):
@@ -293,6 +344,7 @@ class korbit(Exchange):
         market = self.market(symbol) if symbol is not None else None
         request = {
             'currency_pair': market['id'] if market is not None else None,
+            'status': 'filled',
             'limit': limit if limit <= 40 else 40
         }
         response = self.privateGetUserOrders(self.extend(request, params))
@@ -317,3 +369,33 @@ class korbit(Exchange):
         #     ]
         #
         return self.parse_trades(response, market, since, limit)
+
+    def fetch_order(self, id, symbol=None, params={}):
+        self.load_markets()
+        market = self.market(symbol) if symbol is not None else None
+        request = {
+            'currency_pair': market['id'] if market is not None else None,
+            'id': id
+        }
+        response = self.privateGetUserOrders(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "id": "89999",
+        #             "currency_pair": "btc_krw",
+        #             "side": "bid",
+        #             "avg_price": "2900000",
+        #             "price": "3000000",
+        #             "order_amount": "0.81140000",
+        #             "filled_amount": "0.33122200",
+        #             "order_total": "2434200",
+        #             "filled_total": "960543",
+        #             "created_at": "1500033942638",
+        #             "last_filled_at": "1500533946947",
+        #             "status": "partially_filled",
+        #             "fee": "0.00000500"
+        #         },
+        #         ...
+        #     ]
+        #
+        return self.parse_order(response[0], market)
