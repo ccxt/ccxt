@@ -26,7 +26,7 @@ class korbit(Exchange):
                 'fetchL2OrderBook': False,
                 'fetchTrades': False,
                 'fetchMarkets': True,
-                'fetchOrderBook': False,  # TODO: 'orderbook'
+                'fetchOrderBook': True,
                 'fetchTicker': False,  # TODO: 'ticker'
                 'fetchBalance': False,  # TODO: 'user/balances'
                 'fetchOrder': False,  # TODO: '/user/orders' with id param
@@ -125,30 +125,18 @@ class korbit(Exchange):
             result.append(entry)
         return result
 
-    def fetch_order_book(self, symbol, limit=None, params={}):
+    def fetch_order_book(self, symbol='BTC/KRW', params={}):
         self.load_markets()
         market = self.market(symbol)
         request = {
-            'market_name': market['id'],
+            'currency_pair': market['id'],
         }
-        if limit is not None:
-            request['depth'] = limit  # max 100, default 20
-        response = self.publicGetMarketsMarketNameOrderbook(self.extend(request, params))
+        response = self.publicGetOrderbook(self.extend(request, params))
         #
         #     {
-        #         "success":true,
-        #         "result":{
-        #             "asks":[
-        #                 [171.95,279.865],
-        #                 [171.98,102.42],
-        #                 [171.99,124.11],
-        #             ],
-        #             "bids":[
-        #                 [171.93,69.749],
-        #                 [171.9,288.325],
-        #                 [171.88,87.47],
-        #             ],
-        #         }
+        #         "timestamp": 1386135077000,
+        #         "bids": [["1100000", "0.0103918", "1"], ["1000000", "0.01000000", "1"], ...],
+        #         "asks": [["569000", "0.50000000", "1"], ["568500", "2.00000000", "1"], ...]
         #     }
         #
         result = self.safe_value(response, 'result', {})
