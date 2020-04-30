@@ -14,6 +14,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
@@ -350,6 +351,12 @@ class binance(Exchange):
                 '-2015': AuthenticationError,  # "Invalid API-key, IP, or permissions for action."
             },
         })
+
+    def set_sandbox_mode(self, enabled):
+        type = self.safe_string(self.options, 'defaultType', 'spot')
+        if type != 'future':
+            raise NotSupported(self.id + ' does not have a sandbox URL for ' + type + " markets, set exchange.options['defaultType'] = 'future' or don't use the sandbox for " + self.id)
+        return super(binance, self).set_sandbox_mode(enabled)
 
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']

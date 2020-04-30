@@ -11,6 +11,7 @@ use \ccxt\AuthenticationError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\InvalidAddress;
 use \ccxt\InvalidOrder;
+use \ccxt\NotSupported;
 use \ccxt\DDoSProtection;
 
 class binance extends Exchange {
@@ -341,6 +342,14 @@ class binance extends Exchange {
                 '-2015' => '\\ccxt\\AuthenticationError', // "Invalid API-key, IP, or permissions for action."
             ),
         ));
+    }
+
+    public function set_sandbox_mode($enabled) {
+        $type = $this->safe_string($this->options, 'defaultType', 'spot');
+        if ($type !== 'future') {
+            throw new NotSupported($this->id . ' does not have a sandbox URL for ' . $type . " markets, set exchange.options['defaultType'] = 'future' or don't use the sandbox for " . $this->id);
+        }
+        return parent::set_sandbox_mode($enabled);
     }
 
     public function nonce() {
