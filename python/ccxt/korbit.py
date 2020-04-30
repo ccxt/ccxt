@@ -24,7 +24,7 @@ class korbit(Exchange):
                 'fetchOrderBook': True,
                 'fetchTicker': True,
                 'fetchBalance': True,
-                'fetchOrder': False,  # TODO: '/user/orders' with id param
+                'fetchOrder': True,
                 'fetchOpenOrders': False,  # TODO: 'user/orders/open'
                 'fetchMyTrades': True,
                 'createOrder': False,  # TODO: 'user/orders/buy'
