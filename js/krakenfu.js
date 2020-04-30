@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { TICK_SIZE } = require ('./base/functions/number');
-const { AuthenticationError, BadRequest, BadSymbol, DDoSProtection, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, NotSupported, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded } = require ('./base/errors');
+const { AuthenticationError, BadRequest, BadSymbol, DDoSProtection, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, NotSupported, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, RateLimitExceeded } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -108,7 +108,7 @@ module.exports = class krakenfu extends Exchange {
             'precisionMode': TICK_SIZE,
             'options': {
                 'symbol': {
-                    'quoteIds': ['USD','XBT'],
+                    'quoteIds': [ 'USD', 'XBT' ],
                     'reversed': false,
                 },
                 'orderTypes': {
@@ -250,27 +250,27 @@ module.exports = class krakenfu extends Exchange {
             'symbol': market['id'],
         };
         const response = await this.publicGetOrderbook (this.extend (request, params));
-        // {  
+        // {
         //    "result":"success",
         //    "serverTime":"2016-02-25T09:45:53.818Z",
-        //    "orderBook":{  
-        //       "bids":[  
-        //          [  
+        //    "orderBook":{
+        //       "bids":[
+        //          [
         //             4213,
         //             2000,
         //          ],
-        //          [  
+        //          [
         //             4210,
         //             4000,
         //          ],
         //          ...,
         //       ],
-        //       "asks":[  
-        //          [  
+        //       "asks":[
+        //          [
         //             4218,
         //             4000,
         //          ],
-        //          [  
+        //          [
         //             4220,
         //             5000,
         //          ],
@@ -298,7 +298,7 @@ module.exports = class krakenfu extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        // {  
+        // {
         //    "tag":"quarter",
         //    "pair":"XRP:USD",
         //    "symbol":"fi_xrpusd_180615",
@@ -383,7 +383,7 @@ module.exports = class krakenfu extends Exchange {
         //
         // fetchTrades (public)
         //
-        // {  
+        // {
         //    "time":"2019-02-14T09:25:33.920Z",
         //    "trade_id":100,
         //    "price":3574,
@@ -392,10 +392,10 @@ module.exports = class krakenfu extends Exchange {
         //    "type":"fill"                                          // fill, liquidation, assignment, termination
         //    "uid":"11c3d82c-9e70-4fe9-8115-f643f1b162d4"
         // }
-        // 
+        //
         // fetchMyTrades (private)
         //
-        // {  
+        // {
         //    "fillTime":"2016-02-25T09:47:01.000Z",
         //    "order_id":"c18f0c17-9971-40e6-8e5b-10df05d422f0",
         //    "fill_id":"522d4e08-96e7-4b44-9694-bfaea8fe215e",
@@ -434,7 +434,7 @@ module.exports = class krakenfu extends Exchange {
         const amount = this.safeFloat2 (trade, 'size', 'amount', 0.0);
         let id = this.safeString2 (trade, 'uid', 'fill_id');
         if (id === undefined) {
-            id = this.safeString(trade, 'executionId');
+            id = this.safeString (trade, 'executionId');
         }
         let order = this.safeString (trade, 'order_id');
         let symbolId = this.safeString (trade, 'symbol');
@@ -471,7 +471,7 @@ module.exports = class krakenfu extends Exchange {
                 cost = price * amount;
             }
         }
-        let fee = undefined;
+        const fee = undefined;
         let takerOrMaker = undefined;
         const fillType = this.safeString (trade, 'fillType');
         if (fillType !== undefined) {
@@ -509,15 +509,15 @@ module.exports = class krakenfu extends Exchange {
         //                            more than 2 decimal places. Note that for stop orders, limitPrice denotes
         //                            the worst price at which the stop or take_profit order can get filled at.
         //                            If no limitPrice is provided the stop or take_profit order will trigger a market order.
-        // triggerSignal   string 	  If placing a stp or take_profit, the signal used for trigger. One of:
+        // triggerSignal   string     If placing a stp or take_profit, the signal used for trigger. One of:
         //                              mark - the mark price
         //                              index - the index price
-        //                              last - the last executed trade  
-        // cliOrdId        UUID 	  The order identity that is specified from the user. It must be globally unique.
-        // reduceOnly      string 	  Set as true if you wish the order to only reduce an existing position.
+        //                              last - the last executed trade
+        // cliOrdId        UUID       The order identity that is specified from the user. It must be globally unique.
+        // reduceOnly      string     Set as true if you wish the order to only reduce an existing position.
         //                            Any order which increases an existing position will be rejected. Default false.
         await this.loadMarkets ();
-        let typeId = this.safeString (this.options['orderTypes'], type, type);
+        const typeId = this.safeString (this.options['orderTypes'], type, type);
         const request = {
             'orderType': typeId,
             'symbol': this.marketId (symbol),
@@ -567,7 +567,7 @@ module.exports = class krakenfu extends Exchange {
         }
         return this.extend ({ 'info': response }, order);
     }
-    
+
     async cancelAllOrders (symbol = undefined, params = {}) {
         const request = {};
         if (symbol !== undefined) {
@@ -577,7 +577,7 @@ module.exports = class krakenfu extends Exchange {
         const cancelStatus = this.safeValue (response, 'cancelStatus', {});
         const cancelledOrders = this.safeValue (cancelStatus, 'cancelledOrders', []);
         for (let i = 0; i < cancelledOrders.length; i++) {
-            const id = this.safeString(cancelledOrders[i], 'order_id');
+            const id = this.safeString (cancelledOrders[i], 'order_id');
             if (id in this.orders) {
                 this.orders[id]['status'] = 'canceled';
                 this.orders[id]['remaining'] = 0.0;
@@ -589,18 +589,18 @@ module.exports = class krakenfu extends Exchange {
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported (this.id + ' fetchOrders not supprted yet');
         // This only works on mainnet
-        await this.loadMarkets ();
-        let market = undefined;
-        let request = {};
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
-        }
-        if (since !== undefined) {
-            request['after'] = since;
-        }
-        const response = await this.privateGetHistoricorders (request);
-        return this.parseOrders (response, market, since, limit);
+        // await this.loadMarkets ();
+        // let market = undefined;
+        // const request = {};
+        // if (symbol !== undefined) {
+        //     market = this.market (symbol);
+        //     request['symbol'] = market['id'];
+        // }
+        // if (since !== undefined) {
+        //     request['after'] = since;
+        // }
+        // const response = await this.privateGetHistoricorders (request);
+        // return this.parseOrders (response, market, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -620,7 +620,7 @@ module.exports = class krakenfu extends Exchange {
             'lmt': 'limit',
             'stp': 'stop',
         };
-        return this.safeString(map, orderType, orderType);
+        return this.safeString (map, orderType, orderType);
     }
 
     verifyOrderActionSuccess (status, action = 'placed/edited/canceled', omit = []) {
@@ -638,7 +638,7 @@ module.exports = class krakenfu extends Exchange {
             'clientOrderIdAlreadyExist': DuplicateOrderId,
             'clientOrderIdTooLong': BadRequest,
             'outsidePriceCollar': InvalidOrder,
-            'postWouldExecute': OrderImmediatelyFillable,  // the unplaced order could actually be parsed (with status = "rejected"), but there is this specific error for this 
+            'postWouldExecute': OrderImmediatelyFillable,  // the unplaced order could actually be parsed (with status = "rejected"), but there is this specific error for this
             'iocWouldNotExecute': OrderNotFillable, // -||-
             'wouldNotReducePosition': ExchangeError,
             'orderForEditNotFound': OrderNotFound,
@@ -749,7 +749,7 @@ module.exports = class krakenfu extends Exchange {
         //         "orderTrigger":{
         //            "uid":"1abfd3c6-af93-4b30-91cc-e4a93797f3f5",
         //            "clientId":null,
-        //            "type":"lmt",                                         // "ioc" if stop market 
+        //            "type":"lmt",                                         // "ioc" if stop market
         //            "symbol":"pi_xbtusd",
         //            "side":"buy",
         //            "quantity":10,
@@ -836,12 +836,12 @@ module.exports = class krakenfu extends Exchange {
         // }
         //
         // "CANCEL ORDER"
-        // { 
+        // {
         //    "status":"cancelled",
-        //    "orderEvents":[  
-        //       {  
+        //    "orderEvents":[
+        //       {
         //          "uid":"85c40002-3f20-4e87-9302-262626c3531b",
-        //          "order":{  
+        //          "order":{
         //             "orderId":"85c40002-3f20-4e87-9302-262626c3531b",
         //             "cliOrdId":null,
         //             "type":"lmt",
@@ -860,7 +860,7 @@ module.exports = class krakenfu extends Exchange {
         // }
         //
         // "FETCH OPEN ORDERS"
-        // {  
+        // {
         //     "order_id":"59302619-41d2-4f0b-941f-7e7914760ad3",
         //     "symbol":"pi_xbtusd",
         //     "side":"sell",
@@ -875,25 +875,25 @@ module.exports = class krakenfu extends Exchange {
         // }
         //
         // "FETCH ORDERS"
-        // timestamp               Unix timestamp 	  The timestamp of the order event
-        // uid                     UUID 	          A structure containing information on the send order request, see below
-        // event_type              string 	          One of ORDER_PLACED ORDER_CANCELLED ORDER_REJECTED EXECUTION
-        // order_uid 	           UUID 	          The unique identifier of the order
-        // order_tradeable 	       string 	          The tradeable (symbol) of the futures contract
-        // order_direction 	       string 	          BUY for buy order and SELL for a sell
-        // order_quantity 	       positive float 	  The order quantity (size)
-        // order_filled            positive float 	  The order filled amount
-        // order_timestamp         Unix timestamp 	  The order timestamp
-        // order_type              string 	          One of: LIMIT IMMEDIATE_OR_CANCEL POST_ONLY LIQUIDATION ASSIGNMENT STOP
-        // order_client_id         string 	          The provided client order id
-        // order_stop_price 	   positive float 	  The stop price of the order.
-        // info 	               string 	          One of: MAKER_ORDER TAKER_ORDER
-        // algo_id 	               string 	          The id of the algorithm that placed the order
-        // execution_timestamp 	   Unix timestamp 	  The execution timestamp
-        // execution_quantity 	   positive integer   The executed quantity
-        // execution_price 	       positive float 	  The price that the orders got executed
-        // execution_mark_price    positive float 	  The market price at the time of the execution
-        // execution_limit_filled  boolean 	          true if the maker order of the execution was filled in its entirety otherwise false
+        // timestamp               Unix timestamp     The timestamp of the order event
+        // uid                     UUID               A structure containing information on the send order request, see below
+        // event_type              string             One of ORDER_PLACED ORDER_CANCELLED ORDER_REJECTED EXECUTION
+        // order_uid               UUID               The unique identifier of the order
+        // order_tradeable         string             The tradeable (symbol) of the futures contract
+        // order_direction         string             BUY for buy order and SELL for a sell
+        // order_quantity          positive float     The order quantity (size)
+        // order_filled            positive float     The order filled amount
+        // order_timestamp         Unix timestamp     The order timestamp
+        // order_type              string             One of: LIMIT IMMEDIATE_OR_CANCEL POST_ONLY LIQUIDATION ASSIGNMENT STOP
+        // order_client_id         string             The provided client order id
+        // order_stop_price        positive float     The stop price of the order.
+        // info                    string             One of: MAKER_ORDER TAKER_ORDER
+        // algo_id                 string             The id of the algorithm that placed the order
+        // execution_timestamp     Unix timestamp     The execution timestamp
+        // execution_quantity      positive integer   The executed quantity
+        // execution_price         positive float     The price that the orders got executed
+        // execution_mark_price    positive float     The market price at the time of the execution
+        // execution_limit_filled  boolean            true if the maker order of the execution was filled in its entirety otherwise false
         //
         const orderEvents = this.safeValue (order, 'orderEvents', []);
         let details = undefined;
@@ -954,7 +954,7 @@ module.exports = class krakenfu extends Exchange {
             price = this.safeFloat (details, 'limitPrice');
         }
         let amount = this.safeFloat (details, 'quantity');
-        let filled = this.safeFloat2 (details, 'filledSize', 'filled',  0.0);
+        let filled = this.safeFloat2 (details, 'filledSize', 'filled', 0.0);
         let remaining = this.safeFloat (details, 'unfilledSize');
         let average = undefined;
         let filled2 = 0.0;
@@ -1026,7 +1026,7 @@ module.exports = class krakenfu extends Exchange {
             'info': order,
         };
     }
-    
+
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
@@ -1040,11 +1040,11 @@ module.exports = class krakenfu extends Exchange {
         }
         request = this.deepExtend (request, params);
         const response = await this.privateGetFills (request);
-        // {  
+        // {
         //    "result":"success",
         //    "serverTime":"2016-02-25T09:45:53.818Z",
-        //    "fills":[  
-        //       {  
+        //    "fills":[
+        //       {
         //          "fillTime":"2016-02-25T09:47:01.000Z",
         //          "order_id":"c18f0c17-9971-40e6-8e5b-10df05d422f0",
         //          "fill_id":"522d4e08-96e7-4b44-9694-bfaea8fe215e",
@@ -1060,10 +1060,9 @@ module.exports = class krakenfu extends Exchange {
         // }
         return this.parseTrades (response['fills'], market, since, limit);
     }
-    
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const request = {};
         const response = await this.privateGetAccounts (params);
         // {
         //    "result":"success",
@@ -1113,13 +1112,13 @@ module.exports = class krakenfu extends Exchange {
         const cashBalances = this.safeValue (cash, 'balances', {});
         // This contains the actually usable margin by each market,
         // but ccxt does not support such format
-        const bySymbol = this.omit (accounts, 'cash');
+        // const bySymbol = this.omit (accounts, 'cash');
         const currencyIds = Object.keys (cashBalances);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['total'] = this.safeFloat(cashBalances, currencyId);
+            account['total'] = this.safeFloat (cashBalances, currencyId);
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -1213,7 +1212,7 @@ module.exports = class krakenfu extends Exchange {
         const url = this.urls['api'][api] + query;
         if (api === 'private') {
             const nonce = ''; // this.nonce ();
-            let auth = postData + nonce + endpoint; // 1
+            const auth = postData + nonce + endpoint; // 1
             const hash = this.hash (this.encode (auth), 'sha256', 'binary'); // 2
             const secret = this.base64ToBinary (this.secret); // 3
             const signature = this.hmac (hash, secret, 'sha512', 'base64'); // 4-5
