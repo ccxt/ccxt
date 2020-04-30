@@ -27,7 +27,7 @@ class korbit(Exchange):
                 'fetchOrder': True,
                 'fetchOpenOrders': True,
                 'fetchMyTrades': True,
-                'createOrder': False,  # TODO: 'user/orders/buy'
+                'createOrder': True,
                 'cancelOrder': False,  # TODO: 'user/orders/cancel' with id param
                 'cancelAllOrders': False,  # TODO: 'user/orders/cancel'
             },
