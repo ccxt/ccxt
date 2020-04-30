@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { AuthenticationError, ExchangeError, OrderNotFound, ArgumentsRequired, BadSymbol, BadRequest, NullResponse, InvalidOrder, BadResponse, NotSupported, ExchangeNotAvailable, RequestTimeout, RateLimitExceeded, PermissionDenied, InsufficientFunds } = require ('./base/errors');
+const { TICK_SIZE, TRUNCATE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -168,6 +169,7 @@ module.exports = class hbtc extends Exchange {
                     ],
                 },
             },
+            'precisionMode': TICK_SIZE,
             'fees': {
                 'trading': {
                     'tierBased': false,
@@ -817,12 +819,28 @@ module.exports = class hbtc extends Exchange {
         const request = {
             'symbol': market['id'],
             'side': side.toUpperCase (),
-            'quantity': this.amountToPrecision (symbol, amount),
             'type': type.toUpperCase (),
             // 'timeInForce': 'GTC', // FOK, IOC
         };
-        if (type !== 'market') {
+        if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
+            request['quantity'] = this.amountToPrecision (symbol, amount);
+        } else if (type === 'market') {
+            // for market buy it requires the amount of quote currency to spend
+            if (side === 'buy') {
+                const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
+                if (createMarketBuyOrderRequiresPrice) {
+                    if (price !== undefined) {
+                        amount = amount * price;
+                    } else {
+                        throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument (the exchange-specific behaviour)");
+                    }
+                }
+                const precision = market['precision']['price'];
+                request['quantity'] = this.decimalToPrecision (amount, TRUNCATE, precision, this.precisionMode);
+            } else {
+                request['quantity'] = this.amountToPrecision (symbol, amount);
+            }
         }
         let query = params;
         const newClientOrderId = this.safeValue2 (params, 'clientOrderId', 'newClientOrderId');
@@ -937,11 +955,16 @@ module.exports = class hbtc extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {
-            'orderId': id,
-            'timestamp': this.milliseconds (),
-        };
-        const response = await this.privateGetOrder (this.extend (request, params));
+        const clientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
+        const request = {};
+        let query = params;
+        if (clientOrderId !== undefined) {
+            request['origClientOrderId'] = clientOrderId;
+            query = this.omit (params, [ 'origClientOrderId', 'clientOrderId' ]);
+        } else {
+            request['orderId'] = id;
+        }
+        const response = await this.privateGetOrder (this.extend (request, query));
         return this.parseOrder (response);
     }
 
@@ -1108,7 +1131,7 @@ module.exports = class hbtc extends Exchange {
         //         "side":"BUY"
         //     }
         //
-        // fetchOpenOrders, fetchClosedOrders
+        // fetchOrder, fetchOpenOrders, fetchClosedOrders
         //
         //     {
         //         "orderId":"616384027202542080",
