@@ -895,28 +895,41 @@ module.exports = class krakenfu extends Exchange {
         // execution_mark_price    positive float 	  The market price at the time of the execution
         // execution_limit_filled  boolean 	          true if the maker order of the execution was filled in its entirety otherwise false
         //
-        let details = order;
         const orderEvents = this.safeValue (order, 'orderEvents', []);
-        let lastItem = undefined;
+        let details = undefined;
+        let isPrior = false;
+        let fixed = false;
         let statusId = undefined;
+        let price = undefined;
         let trades = [];
         if (orderEvents.length > 0) {
             const executions = [];
             for (let i = 0; i < orderEvents.length; i++) {
-                if (this.safeString (orderEvents[i], 'type') === 'EXECUTION') {
-                    executions.push(orderEvents[i]);
+                const item = orderEvents[i];
+                if (this.safeString (item, 'type') === 'EXECUTION') {
+                    executions.push (item);
+                }
+                // Final order (after placement / editing / execution / canceling)
+                if (('new' in item) || ('order' in item) || ('orderTrigger' in item)) {
+                    details = this.safeValue2 (item, 'new', 'order');
+                    if (details === undefined) {
+                        details = item['orderTrigger'];
+                    }
+                    isPrior = false;
+                    fixed = true;
+                } else if ((('orderPriorEdit' in item) || ('orderPriorExecution' in item)) && (!fixed) && (details === undefined)) {
+                    details = this.safeValue2 (item, 'orderPriorExecution', 'orderPriorEdit');
+                    if ('orderPriorExecution' in item) {
+                        price = this.safeFloat (item['orderPriorExecution'], 'limitPrice');
+                    }
+                    isPrior = true;
                 }
             }
             trades = this.parseTrades (executions);
-            lastItem = orderEvents[(orderEvents.length - 1)];
-            details = this.safeValue2 (lastItem, 'order', 'orderTrigger');
-            if (details === undefined) {
-                details = this.safeValue2 (lastItem, 'orderPriorExecution', 'new');
-            }
-            if (details === undefined) {
-                details = this.safeValue (lastItem, 'orderPriorEdit', {});
-            }
             statusId = this.safeString (order, 'status');
+        }
+        if (details === undefined) {
+            details = order;
         }
         if (statusId === undefined) {
             statusId = this.safeString (details, 'status');
@@ -937,31 +950,44 @@ module.exports = class krakenfu extends Exchange {
         }
         const timestamp = this.parse8601 (this.safeString2 (details, 'timestamp', 'receivedTime'));
         const lastTradeTimestamp = undefined;
-        const price = this.safeFloat (details, 'limitPrice');
+        if (price === undefined) {
+            price = this.safeFloat (details, 'limitPrice');
+        }
         let amount = this.safeFloat (details, 'quantity');
-        let filled = 0.0;
+        let filled = this.safeFloat2 (details, 'filledSize', 'filled',  0.0);
+        let remaining = this.safeFloat (details, 'unfilledSize');
         let average = undefined;
+        let filled2 = 0.0;
         if (trades.length > 0) {
             let vwapSum = 0.0;
             for (let i = 0; i < trades.length; i++) {
                 const trade = trades[i];
-                filled += trade['amount'];
+                filled2 += trade['amount'];
                 vwapSum += trade['amount'] * trade['price'];
             }
-            average = vwapSum / filled;
-            if ((amount !== undefined) && (!isClosed) && (filled >= amount)) {
+            average = vwapSum / filled2;
+            if ((amount !== undefined) && (!isClosed) && isPrior && (filled2 >= amount)) {
                 status = 'closed';
                 isClosed = true;
             }
-        } else {
-            filled = this.safeFloat2 (details, 'filled', 'filledSize', 0.0);
-        }
-        let remaining = (!isClosed) ? this.safeFloat(details, 'unfilledSize') : 0.0;
-        if (amount !== undefined) {
-            if ((remaining === undefined) && (!isClosed) && (filled !== undefined)) {
-                remaining = Math.max (amount - filled, 0.0);
+            if (isPrior) {
+                filled = filled + filled2;
+            } else {
+                filled = Math.max (filled, filled2);
             }
-        } else if ((filled !== undefined) && (remaining !== undefined)) {
+        }
+        if (remaining === undefined) {
+            if (isPrior) {
+                if (amount !== undefined) {
+                    // remaining amount before execution minus executed amount
+                    remaining = amount - filled2;
+                }
+            } else {
+                remaining = amount;
+            }
+        }
+        // if fetchOpenOrders are parsed
+        if ((amount === undefined) && (!isPrior) && (remaining !== undefined)) {
             amount = filled + remaining;
         }
         let cost = undefined;
