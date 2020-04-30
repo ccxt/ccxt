@@ -26,7 +26,7 @@ class korbit(Exchange):
                 'fetchBalance': True,
                 'fetchOrder': False,  # TODO: '/user/orders' with id param
                 'fetchOpenOrders': False,  # TODO: 'user/orders/open'
-                'fetchMyTrades': False,  # TODO: '/user/orders'
+                'fetchMyTrades': True,
                 'createOrder': False,  # TODO: 'user/orders/buy'
                 'cancelOrder': False,  # TODO: 'user/orders/cancel' with id param
                 'cancelAllOrders': False,  # TODO: 'user/orders/cancel'
@@ -52,6 +52,94 @@ class korbit(Exchange):
                 },
             },
         })
+
+    def parse_ticker(self, ticker, symbol=None):
+        #
+        #     {
+        #         "timestamp": 1558590089274,
+        #         "last": "9198500",
+        #         "open": "9500000",
+        #         "bid": "9192500",
+        #         "ask": "9198000",
+        #         "low": "9171500",
+        #         "high": "9599000",
+        #         "volume": "1539.18571988",
+        #         "change": "-301500",
+        #         "changePercent": "-3.17"
+        #     }
+        #
+        timestamp = self.safe_integer(ticker, 'timestamp')
+        opening_price = self.safe_float(ticker, 'open')
+        closing_price = self.safe_float(ticker, 'last')
+        average_price = (closing_price + opening_price) / 2
+        return {
+            'symbol': symbol,
+            'info': ticker,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'bid'),
+            'bidVolume': None,
+            'ask': self.safe_float(ticker, 'ask'),
+            'askVolume': None,
+            'vwap': None,
+            'open': opening_price,
+            'close': closing_price,
+            'last': closing_price,
+            'previousClose': None,
+            'change': self.safe_float(ticker, 'change'),
+            'percentage': self.safe_float(ticker, 'changePercent'),
+            'average': average_price,
+            'baseVolume': self.safe_float(ticker, 'volume'),
+            'quoteVolume': self.safe_float(ticker, 'volume'),
+        }
+
+    def parse_trade(self, trade, market=None):
+        #
+        #     fetch_my_trades(public)
+        #     {
+        #         "id": "89999",
+        #         "currency_pair": "btc_krw",
+        #         "side": "bid",
+        #         "avg_price": "2900000",
+        #         "price": "3000000",
+        #         "order_amount": "0.81140000",
+        #         "filled_amount": "0.33122200",
+        #         "order_total": "2434200",
+        #         "filled_total": "960543",
+        #         "created_at": "1500033942638",
+        #         "last_filled_at": "1500533946947",
+        #         "status": "partially_filled",
+        #         "fee": "0.00000500"
+        #     },
+        #
+        timestamp = self.safe_string(trade, 'created_at')
+        symbol = self.safe_string(market, 'symbol', self.safe_string(trade, 'currency_pair').upper().replace('_', '/'))
+        base_currency, quote_currency = symbol.split('/')
+        trade_type = 'limit' if self.safe_string(trade, 'filled_total') is not None else 'market'
+        side = self.safe_string(trade, 'side')
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'order_amount')
+        fee = {
+            'cost': self.safe_float(trade, 'fee'),
+            'currency': base_currency if side == 'buy' else quote_currency if side == 'ask' else None
+        }
+        return {
+            'info': trade,
+            'id': self.safe_string(trade, 'id'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': symbol,
+            'order': None,
+            'type': trade_type,
+            'side': side,
+            'takerOrMaker': None,
+            'price': price,
+            'amount': amount,
+            'cost': price * amount,
+            'fee': fee,
+        }
 
     def fetch_markets(self, params={}):
         response = self.publicGetConstants(params)
@@ -136,48 +224,6 @@ class korbit(Exchange):
         #
         return self.parse_order_book(response)
 
-    def parse_ticker(self, ticker, symbol=None):
-        #
-        #     {
-        #         "timestamp": 1558590089274,
-        #         "last": "9198500",
-        #         "open": "9500000",
-        #         "bid": "9192500",
-        #         "ask": "9198000",
-        #         "low": "9171500",
-        #         "high": "9599000",
-        #         "volume": "1539.18571988",
-        #         "change": "-301500",
-        #         "changePercent": "-3.17"
-        #     }
-        #
-        timestamp = self.safe_integer(ticker, 'timestamp')
-        opening_price = self.safe_float(ticker, 'open')
-        closing_price = self.safe_float(ticker, 'last')
-        average_price = (closing_price + opening_price) / 2
-        return {
-            'symbol': symbol,
-            'info': ticker,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'bid'),
-            'bidVolume': None,
-            'ask': self.safe_float(ticker, 'ask'),
-            'askVolume': None,
-            'vwap': None,
-            'open': opening_price,
-            'close': closing_price,
-            'last': closing_price,
-            'previousClose': None,
-            'change': self.safe_float(ticker, 'change'),
-            'percentage': self.safe_float(ticker, 'changePercent'),
-            'average': average_price,
-            'baseVolume': self.safe_float(ticker, 'volume'),
-            'quoteVolume': self.safe_float(ticker, 'volume'),
-        }
-
     def fetch_ticker(self, symbol='BTC/KRW', params={}):
         self.load_markets()
         market = self.market(symbol)
@@ -202,7 +248,6 @@ class korbit(Exchange):
         return self.parse_ticker(response, symbol)
 
     def fetch_balance(self, params={}):
-        self.load_markets()
         response = self.privateGetUserBalances(params)
         #
         #     {
@@ -242,3 +287,33 @@ class korbit(Exchange):
             account['total'] = total
             result[currency_code] = account
         return self.parse_balance(result)
+
+    def fetch_my_trades(self, symbol=None, since=None, limit=10, params={}):
+        self.load_markets()
+        market = self.market(symbol) if symbol is not None else None
+        request = {
+            'currency_pair': market['id'] if market is not None else None,
+            'limit': limit if limit <= 40 else 40
+        }
+        response = self.privateGetUserOrders(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "id": "89999",
+        #             "currency_pair": "btc_krw",
+        #             "side": "bid",
+        #             "avg_price": "2900000",
+        #             "price": "3000000",
+        #             "order_amount": "0.81140000",
+        #             "filled_amount": "0.33122200",
+        #             "order_total": "2434200",
+        #             "filled_total": "960543",
+        #             "created_at": "1500033942638",
+        #             "last_filled_at": "1500533946947",
+        #             "status": "partially_filled",
+        #             "fee": "0.00000500"
+        #         },
+        #         ...
+        #     ]
+        #
+        return self.parse_trades(response, market, since, limit)
