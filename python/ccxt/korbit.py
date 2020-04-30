@@ -47,6 +47,7 @@ class korbit(Exchange):
                     ],
                     'post': [
                         'user/orders/buy',
+                        'user/orders/sell',
                         'user/orders/cancel'
                     ],
                 },
@@ -428,3 +429,52 @@ class korbit(Exchange):
         #
         return self.parse_orders(response, market, since, limit)
 
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        price = self.price_to_precision(symbol, price) if price is not None else 0
+        amount = self.amount_to_precision(symbol, amount)
+        request = {
+            'currency_pair': market['id'],
+            'type': type,
+        }
+        response = None
+        if side == 'buy':
+            if type == 'market':
+                request['fiat_amount'] = amount
+            else:
+                request['price'] = price
+                request['coin_amount'] = amount
+            response = self.privatePostUserOrdersBuy(self.extend(request, params))
+        else:
+            request['price'] = price
+            request['coin_amount'] = amount
+            response = self.privatePostUserOrdersSell(self.extend(request, params))
+
+        #
+        #     {
+        #         "orderId":"12513",
+        #         "status":"success",
+        #         "currency_pair":"btc_krw"
+        #     }
+        #
+        return {
+            'id': self.safe_string(response, 'orderId'),
+            'clientOrderId': self.safe_string(response, 'orderId'),
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+            'lastTradeTimestamp': None,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': price * amount,
+            'average': None,
+            'filled': None,
+            'remaining': None,
+            'status': None,
+            'fee': None,
+            'trades': None,
+        }
