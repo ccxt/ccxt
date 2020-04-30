@@ -28,8 +28,8 @@ class korbit(Exchange):
                 'fetchOpenOrders': True,
                 'fetchMyTrades': True,
                 'createOrder': True,
-                'cancelOrder': False,  # TODO: 'user/orders/cancel' with id param
-                'cancelAllOrders': False,  # TODO: 'user/orders/cancel'
+                'cancelOrder': True,
+                'cancelAllOrders': True
             },
             'api': {
                 'public': {
@@ -478,3 +478,21 @@ class korbit(Exchange):
             'fee': None,
             'trades': None,
         }
+
+    def cancel_all_orders(self, symbol=None, params={}):
+        request = {}
+        if symbol is not None:
+            self.load_markets()
+            market = self.market(symbol)
+            request['currency_pair'] = market['id']
+        return self.privatePostUserOrdersCancel(self.extend(request, params))
+
+    def cancel_order(self, id, symbol=None, params={}):
+        request = {
+            'id': id
+        }
+        if symbol is not None:
+            self.load_markets()
+            market = self.market(symbol)
+            request['currency_pair'] = market['id']
+        return self.privatePostUserOrdersCancel(self.extend(request, params))
