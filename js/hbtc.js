@@ -859,35 +859,80 @@ module.exports = class hbtc extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        let market = undefined;
+        const request = {};
         if (symbol !== undefined) {
-            if (!(symbol in this.markets)) {
-                throw new ExchangeError (this.id + ' has no symbol ' + symbol);
-            }
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
         }
-        const response = await this.privateGetOpenOrders (params);
-        let orders = this.parseOrders (response, undefined, since, limit);
-        if (symbol !== undefined) {
-            orders = this.filterBy (orders, 'symbol', symbol);
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 500, max 1000
         }
-        return orders;
+        const response = await this.privateGetOpenOrders (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             'orderId': '499902955766523648',
+        //             'clientOrderId': '157432907618453',
+        //             'exchangeId': '301',
+        //             'symbol': 'BHTUSDT',
+        //             'price': '0.01',
+        //             'origQty': '50',
+        //             'executedQty': '0',
+        //             'cummulativeQuoteQty': '0',
+        //             'avgPrice': '0',
+        //             'status': 'NEW',
+        //             'timeInForce': 'GTC',
+        //             'type': 'LIMIT',
+        //             'side': 'BUY',
+        //             'stopPrice': '0.0',
+        //             'icebergQty': '0.0',
+        //             'time': '1574329076202',
+        //             'updateTime': '0',
+        //             'isWorking': true
+        //         }
+        //     ]
+        //
+        return this.parseOrders (response, market, since, limit);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        let market = undefined;
         const request = {};
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
         if (symbol !== undefined) {
-            request['symbol'] = this.marketId (symbol);
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 500, max 1000
         }
         const response = await this.privateGetHistoryOrders (this.extend (request, params));
-        let orders = this.parseOrders (response, undefined, since, limit);
-        if (symbol !== undefined) {
-            orders = this.filterBy (orders, 'symbol', symbol);
-        }
-        orders = this.filterByArray (orders, 'status', [ 'closed', 'canceled' ], false);
-        return orders;
+        //
+        //     [
+        //         {
+        //             "orderId":"616384027202542080",
+        //             "clientOrderId":"158821470194414688",
+        //             "exchangeId":"301",
+        //             "symbol":"TBTCBUSDT",
+        //             "price":"0",
+        //             "origQty":"0.1",
+        //             "executedQty":"0.1",
+        //             "cummulativeQuoteQty":"682.606",
+        //             "avgPrice":"6826.06",
+        //             "status":"FILLED",
+        //             "timeInForce":"GTC",
+        //             "type":"MARKET",
+        //             "side":"SELL",
+        //             "stopPrice":"0.0",
+        //             "icebergQty":"0.0",
+        //             "time":"1588214701974",
+        //             "updateTime":"0",
+        //             "isWorking":true
+        //         }
+        //     ]
+        //
+        return this.parseOrders (response, market, since, limit);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -1063,6 +1108,29 @@ module.exports = class hbtc extends Exchange {
         //         "side":"BUY"
         //     }
         //
+        // fetchOpenOrders, fetchClosedOrders
+        //
+        //     {
+        //         "orderId":"616384027202542080",
+        //         "clientOrderId":"158821470194414688",
+        //         "exchangeId":"301",
+        //         "symbol":"TBTCBUSDT",
+        //         "price":"0",
+        //         "origQty":"0.1",
+        //         "executedQty":"0.1",
+        //         "cummulativeQuoteQty":"682.606",
+        //         "avgPrice":"6826.06",
+        //         "status":"FILLED",
+        //         "timeInForce":"GTC",
+        //         "type":"MARKET",
+        //         "side":"SELL",
+        //         "stopPrice":"0.0",
+        //         "icebergQty":"0.0",
+        //         "time":"1588214701974",
+        //         "updateTime":"0",
+        //         "isWorking":true
+        //     }
+        //
         const id = this.safeString (order, 'orderId');
         const clientOrderId = this.safeString (order, 'clientOrderId');
         let timestamp = this.safeInteger (order, 'time');
@@ -1082,11 +1150,19 @@ module.exports = class hbtc extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const type = this.safeString (order, 'type');
-        const side = this.safeString (order, 'side');
-        const amount = this.safeFloat (order, 'origQty');
+        const type = this.safeStringLower (order, 'type');
+        const side = this.safeStringLower (order, 'side');
+        let amount = this.safeFloat (order, 'origQty');
+        let price = this.safeFloat (order, 'price');
+        if (type === 'market') {
+            price = undefined;
+            if (side === 'buy') {
+                amount = undefined;
+            }
+        }
+        const cost = this.safeFloat (order, 'cummulativeQuoteQty');
         const filled = this.safeFloat (order, 'executedQty');
-        const cost = this.safeFloat (order, 'executedAmount');
+        const average = this.safeFloat (order, 'avgPrice');
         let remaining = undefined;
         if (filled !== undefined) {
             if (amount !== undefined) {
@@ -1104,8 +1180,8 @@ module.exports = class hbtc extends Exchange {
             'symbol': symbol,
             'type': type,
             'side': side,
-            'price': this.safeFloat (order, 'price'),
-            'average': this.safeFloat (order, 'avgPrice'),
+            'price': price,
+            'average': average,
             'cost': cost,
             'amount': amount,
             'filled': filled,
