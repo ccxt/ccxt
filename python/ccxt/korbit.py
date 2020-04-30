@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from ccxt.base.exchange import Exchange
 
 class korbit(Exchange):
