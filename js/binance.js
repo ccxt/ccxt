@@ -337,6 +337,14 @@ module.exports = class binance extends Exchange {
         });
     }
 
+    setSandboxMode (enabled) {
+        const type = this.safeString (this.options, 'defaultType', 'spot');
+        if (type !== 'future') {
+            throw new NotSupported (this.id + ' does not have a sandbox URL for ' + type + " markets, set exchange.options['defaultType'] = 'future' or don't use the sandbox for " + this.id);
+        }
+        return super.setSandboxMode (enabled);
+    }
+
     nonce () {
         return this.milliseconds () - this.options['timeDifference'];
     }
