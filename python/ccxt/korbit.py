@@ -28,7 +28,7 @@ class korbit(Exchange):
                 'fetchMarkets': True,
                 'fetchOrderBook': True,
                 'fetchTicker': True,
-                'fetchBalance': False,  # TODO: 'user/balances'
+                'fetchBalance': True,
                 'fetchOrder': False,  # TODO: '/user/orders' with id param
                 'fetchOpenOrders': False,  # TODO: 'user/orders/open'
                 'fetchMyTrades': False,  # TODO: '/user/orders'
@@ -159,9 +159,7 @@ class korbit(Exchange):
         timestamp = self.safe_integer(ticker, 'timestamp')
         opening_price = self.safe_float(ticker, 'open')
         closing_price = self.safe_float(ticker, 'last')
-        average_price = None
-        if closing_price is not None and opening_price is not None:
-            average_price = (closing_price + opening_price) / 2
+        average_price = (closing_price + opening_price) / 2
         return {
             'symbol': symbol,
             'info': ticker,
@@ -207,3 +205,45 @@ class korbit(Exchange):
         #     }
         #
         return self.parse_ticker(response, symbol)
+
+    def fetch_balance(self, params={}):
+        self.load_markets()
+        response = self.privateGetUserBalances(params)
+        #
+        #     {
+        #         "krw": {
+        #             "available": "123000",
+        #             "trade_in_use": "13000",
+        #             "withdrawal_in_use": "0"
+        #         },
+        #         "btc": {
+        #             "available": "1.50200000",
+        #             "trade_in_use": "0.42000000",
+        #             "withdrawal_in_use": "0.50280000",
+        #             "avg_price": "7115500",
+        #             "avg_price_updated_at": 1528944850000
+        #         },
+        #         ...
+        #     }
+        #
+        result = {
+            'info': response,
+        }
+        balances = list(response.keys())
+        for i in range(0, len(balances)):
+            key = balances[i]
+            balance = balances[key]
+            currency_code = self.safe_currency_code(balances[i].upper())
+
+            free = self.safe_float(balance, 'available')
+            trade_in_use = self.safe_float(balance, 'trade_in_use')
+            withdrawal_in_use = self.safe_float(balance, 'withdrawal_in_use')
+            used = trade_in_use + withdrawal_in_use
+            total = free + used
+
+            account = self.account()
+            account['free'] = free
+            account['used'] = used
+            account['total'] = total
+            result[currency_code] = account
+        return self.parse_balance(result)
