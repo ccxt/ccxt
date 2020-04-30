@@ -831,6 +831,21 @@ module.exports = class hbtc extends Exchange {
             query = this.omit (params, [ 'clientOrderId', 'newClientOrderId' ]);
         }
         const response = await this.privatePostOrder (this.extend (request, query));
+        //
+        //     {
+        //         "symbol":"TBTCBUSDT",
+        //         "orderId":"616376654496877056",
+        //         "clientOrderId":"158821382304516955",
+        //         "transactTime":"1588213823080",
+        //         "price":"0",
+        //         "origQty":"1000",
+        //         "executedQty":"0",
+        //         "status":"NEW",
+        //         "timeInForce":"GTC",
+        //         "type":"MARKET",
+        //         "side":"BUY"
+        //     }
+        //
         return this.parseOrder (response, market);
     }
 
@@ -1031,7 +1046,25 @@ module.exports = class hbtc extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //
+        // createOrder
+        //
+        //     {
+        //         "symbol":"TBTCBUSDT",
+        //         "orderId":"616376654496877056",
+        //         "clientOrderId":"158821382304516955",
+        //         "transactTime":"1588213823080",
+        //         "price":"0",
+        //         "origQty":"1000",
+        //         "executedQty":"0",
+        //         "status":"NEW",
+        //         "timeInForce":"GTC",
+        //         "type":"MARKET",
+        //         "side":"BUY"
+        //     }
+        //
         const id = this.safeString (order, 'orderId');
+        const clientOrderId = this.safeString (order, 'clientOrderId');
         let timestamp = this.safeInteger (order, 'time');
         if (timestamp === undefined) {
             timestamp = this.safeInteger (order, 'transactTime');
@@ -1060,9 +1093,11 @@ module.exports = class hbtc extends Exchange {
                 remaining = amount - filled;
             }
         }
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
         return {
             'info': order,
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -1075,8 +1110,9 @@ module.exports = class hbtc extends Exchange {
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
-            'status': this.parseOrderStatus (this.safeString (order, 'status')),
+            'status': status,
             'fee': undefined,
+            'trades': undefined,
         };
     }
 
