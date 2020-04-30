@@ -25,7 +25,7 @@ class korbit(Exchange):
                 'fetchTicker': True,
                 'fetchBalance': True,
                 'fetchOrder': True,
-                'fetchOpenOrders': False,  # TODO: 'user/orders/open'
+                'fetchOpenOrders': True,
                 'fetchMyTrades': True,
                 'createOrder': False,  # TODO: 'user/orders/buy'
                 'cancelOrder': False,  # TODO: 'user/orders/cancel' with id param
@@ -42,7 +42,6 @@ class korbit(Exchange):
                 'private': {
                     'get': [
                         'user/balances',
-                        'user/orders/open',
                         'user/orders'
                     ],
                     'post': [
@@ -225,10 +224,10 @@ class korbit(Exchange):
             baseId, quoteId = key.split('_')
             base = baseId.upper()
             quote = quoteId.upper()
-            minimumOrderSize = self.safe_float(market, 'order_min_size')
-            maximumOrderSize = self.safe_float(market, 'order_max_size')
-            minimumPrice = self.safe_float(market, 'min_price')
-            maximumPrice = self.safe_float(market, 'max_price')
+            minimumOrderSize = self.safe_float(market, 'order_min_size', 0)
+            maximumOrderSize = self.safe_float(market, 'order_max_size', 0)
+            minimumPrice = self.safe_float(market, 'min_price', 0)
+            maximumPrice = self.safe_float(market, 'max_price', 0)
             minimumCost = minimumOrderSize * minimumPrice
             maximumCost = maximumOrderSize * maximumPrice
 
@@ -326,9 +325,9 @@ class korbit(Exchange):
             balance = balances[key]
             currency_code = self.safe_currency_code(balances[i].upper())
 
-            free = self.safe_float(balance, 'available')
-            trade_in_use = self.safe_float(balance, 'trade_in_use')
-            withdrawal_in_use = self.safe_float(balance, 'withdrawal_in_use')
+            free = self.safe_float(balance, 'available', 0)
+            trade_in_use = self.safe_float(balance, 'trade_in_use', 0)
+            withdrawal_in_use = self.safe_float(balance, 'withdrawal_in_use', 0)
             used = trade_in_use + withdrawal_in_use
             total = free + used
 
@@ -375,7 +374,7 @@ class korbit(Exchange):
         market = self.market(symbol) if symbol is not None else None
         request = {
             'currency_pair': market['id'] if market is not None else None,
-            'id': id
+            'id': id,
         }
         response = self.privateGetUserOrders(self.extend(request, params))
         #
@@ -399,3 +398,35 @@ class korbit(Exchange):
         #     ]
         #
         return self.parse_order(response[0], market)
+
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        market = self.market(symbol) if symbol is not None else None
+        request = {
+            'currency_pair': market['id'] if market is not None else None,
+            'status': 'unfilled&status=partially_filled',
+            'limit': limit if limit <= 40 else 40
+        }
+        response = self.privateGetUserOrders(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "id": "89999",
+        #             "currency_pair": "btc_krw",
+        #             "side": "bid",
+        #             "avg_price": "2900000",
+        #             "price": "3000000",
+        #             "order_amount": "0.81140000",
+        #             "filled_amount": "0.33122200",
+        #             "order_total": "2434200",
+        #             "filled_total": "960543",
+        #             "created_at": "1500033942638",
+        #             "last_filled_at": "1500533946947",
+        #             "status": "partially_filled",
+        #             "fee": "0.00000500"
+        #         },
+        #         ...
+        #     ]
+        #
+        return self.parse_orders(response, market, since, limit)
+
