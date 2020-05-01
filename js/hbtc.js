@@ -951,6 +951,7 @@ module.exports = class hbtc extends Exchange {
             request['symbol'] = market['id'];
             type = market['type'];
         }
+        const query = this.omit (params, 'type');
         if (limit !== undefined) {
             request['limit'] = limit; // default 500, max 1000
         }
@@ -960,7 +961,7 @@ module.exports = class hbtc extends Exchange {
         } else if (type === 'option') {
             method = 'optionGetOpenOrders';
         }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, query));
         //
         // spot
         //
@@ -1027,6 +1028,7 @@ module.exports = class hbtc extends Exchange {
             request['symbol'] = market['id'];
             type = market['type'];
         }
+        const query = this.omit (params, 'type');
         if (limit !== undefined) {
             request['limit'] = limit; // default 500, max 1000
         }
@@ -1036,7 +1038,7 @@ module.exports = class hbtc extends Exchange {
         } else if (type === 'option') {
             method = 'optionGetHistoryOrders';
         }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, query));
         //
         // spot
         //
@@ -1070,14 +1072,24 @@ module.exports = class hbtc extends Exchange {
         await this.loadMarkets ();
         const clientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
         const request = {};
-        let query = params;
+        const defaultType = this.safeString (this.ooptions, 'type', 'spot');
+        const options = this.safeValue (this.options, 'fetchOrder', {});
+        const fetchOrderType = this.safeString (options, 'type', defaultType);
+        const type = this.safeString (params, 'type', fetchOrderType);
+        let query = this.omit (params, 'type');
         if (clientOrderId !== undefined) {
             request['origClientOrderId'] = clientOrderId;
-            query = this.omit (params, [ 'origClientOrderId', 'clientOrderId' ]);
+            query = this.omit (query, [ 'origClientOrderId', 'clientOrderId' ]);
         } else {
             request['orderId'] = id;
         }
-        const response = await this.privateGetOrder (this.extend (request, query));
+        let method = 'privateGetOrder';
+        if (type === 'contract') {
+            method = 'contractGetGetOrder';
+        } else if (type === 'option') {
+            method = 'optionGetGetOrder';
+        }
+        const response = await this[method] (this.extend (request, query));
         return this.parseOrder (response);
     }
 
