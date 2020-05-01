@@ -1,7 +1,7 @@
 from ccxt.base.exchange import Exchange
 
-class korbit(Exchange):
 
+class korbit(Exchange):
     def describe(self):
         return self.deep_extend(super(korbit, self).describe(), {
             'id': 'korbit',
