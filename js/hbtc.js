@@ -795,6 +795,7 @@ module.exports = class hbtc extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a `symbol` argument');
         }
@@ -935,9 +936,9 @@ module.exports = class hbtc extends Exchange {
         const clientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
         const request = {};
         const defaultType = this.safeString (this.options, 'type', 'spot');
-        const options = this.safeValue (this.options, 'fetchOrder', {});
-        const fetchOrderType = this.safeString (options, 'type', defaultType);
-        let type = this.safeString (params, 'type', fetchOrderType);
+        const options = this.safeValue (this.options, 'cancelOrder', {});
+        const cancelOrderType = this.safeString (options, 'type', defaultType);
+        let type = this.safeString (params, 'type', cancelOrderType);
         let query = this.omit (params, 'type');
         if (clientOrderId !== undefined) {
             request['origClientOrderId'] = clientOrderId;
@@ -1078,7 +1079,11 @@ module.exports = class hbtc extends Exchange {
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
-        const request = {};
+        // if orderId is set, it will get orders < that orderId otherwise most recent orders are returned
+        const request = {
+            // 'orderId': '43287482374',
+            // 'endTime': this.milliseconds (), // optional
+        };
         const defaultType = this.safeString (this.options, 'type', 'spot');
         const options = this.safeValue (this.options, 'fetchClosedOrders', {});
         const fetchClosedOrdersType = this.safeString (options, 'type', defaultType);
@@ -1091,6 +1096,9 @@ module.exports = class hbtc extends Exchange {
         const query = this.omit (params, 'type');
         if (limit !== undefined) {
             request['limit'] = limit; // default 500, max 1000
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
         }
         let method = 'privateGetHistoryOrders';
         if (type === 'contract') {
