@@ -816,39 +816,80 @@ module.exports = class hbtc extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const orderSide = side.toUpperCase ();
+        const orderType = type.toUpperCase ();
         const request = {
             'symbol': market['id'],
-            'side': side.toUpperCase (),
-            'type': type.toUpperCase (),
-            // 'timeInForce': 'GTC', // FOK, IOC
+            // BUY or SELL for spot and options
+            'side': orderSide,
+            // GTC, FOK, IOC for spot and options
+            // GTC, FOK, IOC, LIMIT_MAKER for futures
+            // 'timeInForce': 'GTC',
         };
-        if (type === 'limit') {
-            request['price'] = this.priceToPrecision (symbol, price);
-            request['quantity'] = this.amountToPrecision (symbol, amount);
-        } else if (type === 'market') {
-            // for market buy it requires the amount of quote currency to spend
-            if (side === 'buy') {
-                const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
-                if (createMarketBuyOrderRequiresPrice) {
-                    if (price !== undefined) {
-                        amount = amount * price;
-                    } else {
-                        throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument (the exchange-specific behaviour)");
-                    }
-                }
-                const precision = market['precision']['price'];
-                request['quantity'] = this.decimalToPrecision (amount, TRUNCATE, precision, this.precisionMode);
+        let query = params;
+        let method = 'privatePostOrder';
+        if (market['type'] === 'contract') {
+            if ((orderSide !== 'BUY_OPEN') && (orderSide !== 'SELL_OPEN') && (orderSide !== 'BUY_CLOSE') && (orderSide !== 'SELL_CLOSE')) {
+                throw NotSupported (this.id + ' createOrder() does not support order side ' + side + ' for ' + market['type'] + ' markets, only BUY_OPEN, SELL_OPEN, BUY_CLOSE and SELL_CLOSE are supported');
+            }
+            if ((orderType !== 'LIMIT') && (orderType !== 'STOP')) {
+                throw NotSupported (this.id + ' createOrder() does not support order type ' + type + ' for ' + market['type'] + ' markets, only LIMIT and STOP are supported');
+            }
+            const clientOrderId = this.safeValue (params, 'clientOrderId');
+            if (clientOrderId === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a clientOrderId parameter for ' + market['type'] + ' markets, supply clientOrderId in the params argument');
+            }
+            method = 'contractPostOrder';
+            const priceType = this.safeString (params, 'priceType');
+            if (priceType === undefined) {
+                request['price'] = this.priceToPrecision (symbol, price);
             } else {
+                request['priceType'] = priceType;
+                if (priceType === 'INPUT') {
+                    request['price'] = this.priceToPrecision (symbol, price);
+                }
+            }
+            request['orderType'] = type.toUpperCase (); // LIMIT, STOP
+            request['quantity'] = this.amountToPrecision (symbol, amount);
+            request['leverage'] = '1'; // not required for closing orders
+            request['clientOrderId'] = clientOrderId;
+            // optional
+            // request['priceType'] = 'INPUT', // INPUT, OPPONENT, QUEUE, OVER, MARKET
+            // request['triggerPrice'] = 123.45;
+        } else {
+            if (market['type'] === 'option') {
+                method = 'optionPostOrder';
+            }
+            const newClientOrderId = this.safeValue2 (params, 'clientOrderId', 'newClientOrderId');
+            if (newClientOrderId !== undefined) {
+                request['newClientOrderId'] = newClientOrderId;
+            }
+            request['type'] = orderType;
+            if (type === 'limit') {
+                request['price'] = this.priceToPrecision (symbol, price);
                 request['quantity'] = this.amountToPrecision (symbol, amount);
+            } else if (type === 'market') {
+                // for market buy it requires the amount of quote currency to spend
+                if (side === 'buy') {
+                    const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
+                    if (createMarketBuyOrderRequiresPrice) {
+                        if (price !== undefined) {
+                            amount = amount * price;
+                        } else {
+                            throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument (the exchange-specific behaviour)");
+                        }
+                    }
+                    const precision = market['precision']['price'];
+                    request['quantity'] = this.decimalToPrecision (amount, TRUNCATE, precision, this.precisionMode);
+                } else {
+                    request['quantity'] = this.amountToPrecision (symbol, amount);
+                }
             }
         }
-        let query = params;
-        const newClientOrderId = this.safeValue2 (params, 'clientOrderId', 'newClientOrderId');
-        if (newClientOrderId !== undefined) {
-            request['newClientOrderId'] = newClientOrderId;
-            query = this.omit (params, [ 'clientOrderId', 'newClientOrderId' ]);
-        }
-        const response = await this.privatePostOrder (this.extend (request, query));
+        query = this.omit (query, [ 'clientOrderId', 'newClientOrderId' ]);
+        const response = await this[method] (this.extend (request, query));
+        //
+        // spot
         //
         //     {
         //         "symbol":"TBTCBUSDT",
@@ -862,6 +903,28 @@ module.exports = class hbtc extends Exchange {
         //         "timeInForce":"GTC",
         //         "type":"MARKET",
         //         "side":"BUY"
+        //     }
+        //
+        // contract
+        //
+        //     {
+        //         'time': '1570759718825',
+        //         'updateTime': '0',
+        //         'orderId': '469961015902208000',
+        //         'clientOrderId': '6423344174',
+        //         'symbol': 'BTC-PERP-REV',
+        //         'price': '8200',
+        //         'leverage': '12.08',
+        //         'origQty': '5',
+        //         'executedQty': '0',
+        //         'avgPrice': '0',
+        //         'marginLocked': '0.00005047',
+        //         'orderType': 'LIMIT',
+        //         'side': 'BUY_OPEN',
+        //         'fees': [],
+        //         'timeInForce': 'GTC',
+        //         'status': 'NEW',
+        //         'priceType': 'INPUT'
         //     }
         //
         return this.parseOrder (response, market);
@@ -879,14 +942,27 @@ module.exports = class hbtc extends Exchange {
         await this.loadMarkets ();
         let market = undefined;
         const request = {};
+        const defaultType = this.safeString (this.ooptions, 'type', 'spot');
+        const options = this.safeValue (this.options, 'fetchOpenOrders', {});
+        const fetchOpenOrdersType = this.safeString (options, 'type', defaultType);
+        let type = this.safeString (params, 'type', fetchOpenOrdersType);
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
+            type = market['type'];
         }
         if (limit !== undefined) {
             request['limit'] = limit; // default 500, max 1000
         }
-        const response = await this.privateGetOpenOrders (this.extend (request, params));
+        let method = 'privateGetOpenOrders';
+        if (type === 'contract') {
+            method = 'contractGetOpenOrders';
+        } else if (type === 'option') {
+            method = 'optionGetOpenOrders';
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        // spot
         //
         //     [
         //         {
@@ -911,6 +987,30 @@ module.exports = class hbtc extends Exchange {
         //         }
         //     ]
         //
+        // futures
+        //
+        //     [
+        //         {
+        //             "time":"1588353669383",
+        //             "updateTime":"0",
+        //             "orderId":"617549770304599296",
+        //             "clientOrderId":"test-001",
+        //             "symbol":"BTC-PERP-REV",
+        //             "price":"10000",
+        //             "leverage":"1",
+        //             "origQty":"100",
+        //             "executedQty":"0",
+        //             "avgPrice":"0",
+        //             "marginLocked":"0.01",
+        //             "orderType":"LIMIT",
+        //             "side":"SELL_OPEN",
+        //             "fees":[],
+        //             "timeInForce":"GTC",
+        //             "status":"NEW",
+        //             "priceType":"INPUT"
+        //         }
+        //     ]
+        //
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -918,14 +1018,27 @@ module.exports = class hbtc extends Exchange {
         await this.loadMarkets ();
         let market = undefined;
         const request = {};
+        const defaultType = this.safeString (this.ooptions, 'type', 'spot');
+        const options = this.safeValue (this.options, 'fetchClosedOrders', {});
+        const fetchClosedOrdersType = this.safeString (options, 'type', defaultType);
+        let type = this.safeString (params, 'type', fetchClosedOrdersType);
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
+            type = market['type'];
         }
         if (limit !== undefined) {
             request['limit'] = limit; // default 500, max 1000
         }
-        const response = await this.privateGetHistoryOrders (this.extend (request, params));
+        let method = 'privateGetHistoryOrders';
+        if (type === 'contract') {
+            method = 'contractGetHistoryOrders';
+        } else if (type === 'option') {
+            method = 'optionGetHistoryOrders';
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        // spot
         //
         //     [
         //         {
