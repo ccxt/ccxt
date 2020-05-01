@@ -1078,12 +1078,19 @@ class kraken(Exchange):
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
+        clientOrderId = self.safe_value_2(params, 'userref', 'clientOrderId')
         request = {
             'trades': True,  # whether or not to include trades in output(optional, default False)
-            'txid': id,  # do not comma separate a list of ids - use fetchOrdersByIds instead
+            # 'txid': id,  # do not comma separate a list of ids - use fetchOrdersByIds instead
             # 'userref': 'optional',  # restrict results to given user reference id(optional)
         }
-        response = self.privatePostQueryOrders(self.extend(request, params))
+        query = params
+        if clientOrderId is not None:
+            request['userref'] = clientOrderId
+            query = self.omit(params, ['userref', 'clientOrderId'])
+        else:
+            request['txid'] = id
+        response = self.privatePostQueryOrders(self.extend(request, query))
         #
         #     {
         #         "error":[],

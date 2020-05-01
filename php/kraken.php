@@ -1154,12 +1154,20 @@ class kraken extends Exchange {
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
+        $clientOrderId = $this->safe_value_2($params, 'userref', 'clientOrderId');
         $request = array(
             'trades' => true, // whether or not to include trades in output (optional, default false)
-            'txid' => $id, // do not comma separate a list of ids - use fetchOrdersByIds instead
+            // 'txid' => $id, // do not comma separate a list of ids - use fetchOrdersByIds instead
             // 'userref' => 'optional', // restrict results to given user reference $id (optional)
         );
-        $response = $this->privatePostQueryOrders (array_merge($request, $params));
+        $query = $params;
+        if ($clientOrderId !== null) {
+            $request['userref'] = $clientOrderId;
+            $query = $this->omit($params, array( 'userref', 'clientOrderId' ));
+        } else {
+            $request['txid'] = $id;
+        }
+        $response = $this->privatePostQueryOrders (array_merge($request, $query));
         //
         //     {
         //         "error":array(),
