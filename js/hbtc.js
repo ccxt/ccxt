@@ -932,17 +932,77 @@ module.exports = class hbtc extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {
-            'orderId': id,
-        };
-        return await this.privateDeleteOrder (this.extend (request, params));
+        const clientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
+        const request = {};
+        const defaultType = this.safeString (this.options, 'type', 'spot');
+        const options = this.safeValue (this.options, 'fetchOrder', {});
+        const fetchOrderType = this.safeString (options, 'type', defaultType);
+        let type = this.safeString (params, 'type', fetchOrderType);
+        let query = this.omit (params, 'type');
+        if (clientOrderId !== undefined) {
+            request['origClientOrderId'] = clientOrderId;
+            query = this.omit (query, [ 'origClientOrderId', 'clientOrderId' ]);
+        } else {
+            request['orderId'] = id;
+        }
+        let method = 'privateDeleteOrder';
+        const orderType = this.safeString (query, 'orderType');
+        if (orderType !== undefined) {
+            type = 'contract';
+        }
+        if (type === 'contract') {
+            method = 'contractDeleteOrderCancel';
+            if (orderType === undefined) {
+                throw new ArgumentsRequired (this.id + " cancelOrder() requires an orderType parameter, pass the { 'orderType': 'LIMIT' } or { 'orderType': 'STOP' } in params argument");
+            }
+            request['orderType'] = orderType;
+        } else {
+            if (type === 'option') {
+                method = 'optionDeleteOrderCancel';
+            }
+        }
+        const response = await this[method] (this.extend (request, query));
+        //
+        // spot
+        //
+        //     {
+        //         'exchangeId': '301',
+        //         'symbol': 'BHTUSDT',
+        //         'clientOrderId': '0',
+        //         'orderId': '499890200602846976',
+        //         'status': 'CANCELED'
+        //     }
+        //
+        // futures
+        //
+        //     {
+        //         "time":"1588353669383",
+        //         "updateTime":"0",
+        //         "orderId":"617549770304599296",
+        //         "clientOrderId":"test-001",
+        //         "symbol":"BTC-PERP-REV",
+        //         "price":"10000",
+        //         "leverage":"1",
+        //         "origQty":"100",
+        //         "executedQty":"0",
+        //         "avgPrice":"0",
+        //         "marginLocked":"0",
+        //         "orderType":"LIMIT",
+        //         "side":"SELL_OPEN",
+        //         "fees":[],
+        //         "timeInForce":"GTC",
+        //         "status":"CANCELED",
+        //         "priceType":"INPUT",
+        //     }
+        //
+        return this.parseOrder (response);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
         const request = {};
-        const defaultType = this.safeString (this.ooptions, 'type', 'spot');
+        const defaultType = this.safeString (this.options, 'type', 'spot');
         const options = this.safeValue (this.options, 'fetchOpenOrders', {});
         const fetchOpenOrdersType = this.safeString (options, 'type', defaultType);
         let type = this.safeString (params, 'type', fetchOpenOrdersType);
@@ -1019,7 +1079,7 @@ module.exports = class hbtc extends Exchange {
         await this.loadMarkets ();
         let market = undefined;
         const request = {};
-        const defaultType = this.safeString (this.ooptions, 'type', 'spot');
+        const defaultType = this.safeString (this.options, 'type', 'spot');
         const options = this.safeValue (this.options, 'fetchClosedOrders', {});
         const fetchClosedOrdersType = this.safeString (options, 'type', defaultType);
         let type = this.safeString (params, 'type', fetchClosedOrdersType);
@@ -1072,7 +1132,7 @@ module.exports = class hbtc extends Exchange {
         await this.loadMarkets ();
         const clientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
         const request = {};
-        const defaultType = this.safeString (this.ooptions, 'type', 'spot');
+        const defaultType = this.safeString (this.options, 'type', 'spot');
         const options = this.safeValue (this.options, 'fetchOrder', {});
         const fetchOrderType = this.safeString (options, 'type', defaultType);
         const type = this.safeString (params, 'type', fetchOrderType);
