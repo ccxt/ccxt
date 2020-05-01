@@ -1002,7 +1002,10 @@ module.exports = class hbtc extends Exchange {
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
-        const request = {};
+        const request = {
+            // if orderId is set, it will get orders < that orderId otherwise most recent orders are returned
+            // 'orderId': '43287482374',
+        };
         const defaultType = this.safeString (this.options, 'type', 'spot');
         const options = this.safeValue (this.options, 'fetchOpenOrders', {});
         const fetchOpenOrdersType = this.safeString (options, 'type', defaultType);
@@ -1079,8 +1082,8 @@ module.exports = class hbtc extends Exchange {
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
-        // if orderId is set, it will get orders < that orderId otherwise most recent orders are returned
         const request = {
+            // if orderId is set, it will get orders < that orderId otherwise most recent orders are returned
             // 'orderId': '43287482374',
             // 'endTime': this.milliseconds (), // optional
         };
