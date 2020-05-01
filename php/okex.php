@@ -1362,8 +1362,18 @@ class okex extends Exchange {
             'instrument_id' => $market['id'],
             'granularity' => $this->timeframes[$timeframe],
         );
+        $duration = $this->parse_timeframe($timeframe);
         if ($since !== null) {
+            if ($limit !== null) {
+                $request['end'] = $this->iso8601($this->sum($since, $limit * $duration * 1000));
+            }
             $request['start'] = $this->iso8601($since);
+        } else {
+            $now = $this->milliseconds();
+            if ($limit !== null) {
+                $request['start'] = $this->iso8601($now - $limit * $duration * 1000);
+                $request['end'] = $this->iso8601($now);
+            }
         }
         $response = $this->$method (array_merge($request, $params));
         //
