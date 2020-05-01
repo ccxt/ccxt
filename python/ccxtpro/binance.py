@@ -42,6 +42,7 @@ class binance(Exchange, ccxt.binance):
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
                 'requestId': {},
+                'watchOrderBookLimit': 1000,  # default limit
             },
         })
 
@@ -127,10 +128,11 @@ class binance(Exchange, ccxt.binance):
         return await self.after(future, self.limit_order_book, symbol, limit, params)
 
     async def fetch_order_book_snapshot(self, client, message, subscription):
+        defaultLimit = self.safe_integer(self.options, 'watchOrderBookLimit', 1000)
         type = self.safe_value(subscription, 'type')
         symbol = self.safe_string(subscription, 'symbol')
         messageHash = self.safe_string(subscription, 'messageHash')
-        limit = self.safe_integer(subscription, 'limit')
+        limit = self.safe_integer(subscription, 'limit', defaultLimit)
         params = self.safe_value(subscription, 'params')
         # 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
         # todo: self is a synch blocking call in ccxt.php - make it async
@@ -274,8 +276,9 @@ class binance(Exchange, ccxt.binance):
         return message
 
     def handle_order_book_subscription(self, client, message, subscription):
+        defaultLimit = self.safe_integer(self.options, 'watchOrderBookLimit', 1000)
         symbol = self.safe_string(subscription, 'symbol')
-        limit = self.safe_integer(subscription, 'limit')
+        limit = self.safe_integer(subscription, 'limit', defaultLimit)
         if symbol in self.orderbooks:
             del self.orderbooks[symbol]
         self.orderbooks[symbol] = self.order_book({}, limit)
