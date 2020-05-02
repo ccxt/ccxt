@@ -7,6 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import DDoSProtection
 
@@ -319,9 +320,9 @@ class lbank(Exchange):
         await self.load_markets()
         market = self.market(symbol)
         if since is None:
-            raise ExchangeError(self.id + ' fetchOHLCV requires a `since` argument')
+            raise ArgumentsRequired(self.id + ' fetchOHLCV requires a `since` argument')
         if limit is None:
-            raise ExchangeError(self.id + ' fetchOHLCV requires a `limit` argument')
+            raise ArgumentsRequired(self.id + ' fetchOHLCV requires a `limit` argument')
         request = {
             'symbol': market['id'],
             'type': self.timeframes[timeframe],

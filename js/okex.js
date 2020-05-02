@@ -61,6 +61,9 @@ module.exports = class okex extends Exchange {
                 'doc': 'https://www.okex.com/docs/en/',
                 'fees': 'https://www.okex.com/pages/products/fees.html',
                 'referral': 'https://www.okex.com/join/1888677',
+                'test': {
+                    'rest': 'https://testnet.okex.com',
+                },
             },
             'api': {
                 'general': {
@@ -793,14 +796,6 @@ module.exports = class okex extends Exchange {
             'price': this.safeFloat (market, 'tick_size'),
         };
         const minAmount = this.safeFloat2 (market, 'min_size', 'base_min_size');
-        let minPrice = this.safeFloat (market, 'tick_size');
-        if (precision['price'] !== undefined) {
-            minPrice = Math.pow (10, -precision['price']);
-        }
-        let minCost = undefined;
-        if (minAmount !== undefined && minPrice !== undefined) {
-            minCost = minAmount * minPrice;
-        }
         const active = true;
         const fees = this.safeValue2 (this.fees, marketType, 'trading', {});
         return this.extend (fees, {
@@ -824,11 +819,11 @@ module.exports = class okex extends Exchange {
                     'max': undefined,
                 },
                 'price': {
-                    'min': minPrice,
+                    'min': precision['price'],
                     'max': undefined,
                 },
                 'cost': {
-                    'min': minCost,
+                    'min': precision['price'],
                     'max': undefined,
                 },
             },
@@ -1361,8 +1356,18 @@ module.exports = class okex extends Exchange {
             'instrument_id': market['id'],
             'granularity': this.timeframes[timeframe],
         };
+        const duration = this.parseTimeframe (timeframe);
         if (since !== undefined) {
+            if (limit !== undefined) {
+                request['end'] = this.iso8601 (this.sum (since, limit * duration * 1000));
+            }
             request['start'] = this.iso8601 (since);
+        } else {
+            const now = this.milliseconds ();
+            if (limit !== undefined) {
+                request['start'] = this.iso8601 (now - limit * duration * 1000);
+                request['end'] = this.iso8601 (now);
+            }
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -2282,9 +2287,11 @@ module.exports = class okex extends Exchange {
     }
 
     parseDepositAddresses (addresses) {
-        const result = [];
+        const result = {};
         for (let i = 0; i < addresses.length; i++) {
-            result.push (this.parseDepositAddress (addresses[i]));
+            const address = this.parseDepositAddress (addresses[i]);
+            const code = address['currency'];
+            result[code] = address;
         }
         return result;
     }
@@ -2330,11 +2337,11 @@ module.exports = class okex extends Exchange {
         //     ]
         //
         const addresses = this.parseDepositAddresses (response);
-        const numAddresses = addresses.length;
-        if (numAddresses < 1) {
+        const address = this.safeValue (addresses, code);
+        if (address === undefined) {
             throw new InvalidAddress (this.id + ' fetchDepositAddress cannot return nonexistent addresses, you should create withdrawal addresses with the exchange website first');
         }
-        return addresses[0];
+        return address;
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
@@ -2346,7 +2353,7 @@ module.exports = class okex extends Exchange {
         }
         const fee = this.safeString (params, 'fee');
         if (fee === undefined) {
-            throw new ExchangeError (this.id + " withdraw() requires a `fee` string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKEx are fee-free, please set '0'. Withdrawing to external digital asset address requires network transaction fee.");
+            throw new ArgumentsRequired (this.id + " withdraw() requires a `fee` string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKEx are fee-free, please set '0'. Withdrawing to external digital asset address requires network transaction fee.");
         }
         const request = {
             'currency': currency['id'],

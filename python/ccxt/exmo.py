@@ -14,7 +14,9 @@ except NameError:
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -32,7 +34,7 @@ class exmo(Exchange):
             'name': 'EXMO',
             'countries': ['ES', 'RU'],  # Spain, Russia
             'rateLimit': 350,  # once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
-            'version': 'v1',
+            'version': 'v1.1',
             'has': {
                 'CORS': False,
                 'fetchClosedOrders': 'emulated',
@@ -50,6 +52,21 @@ class exmo(Exchange):
                 'fetchFundingFees': True,
                 'fetchCurrencies': True,
                 'fetchTransactions': True,
+                'fetchOHLCV': True,
+            },
+            'timeframes': {
+                '1m': '1',
+                '5m': '5',
+                '15m': '15',
+                '30m': '30',
+                '45m': '45',
+                '1h': '60',
+                '2h': '120',
+                '3h': '180',
+                '4h': '240',
+                '1d': 'D',
+                '1w': 'W',
+                '1M': 'M',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg',
@@ -80,6 +97,7 @@ class exmo(Exchange):
                         'pair_settings',
                         'ticker',
                         'trades',
+                        'candles_history',
                     ],
                 },
                 'private': {
@@ -87,6 +105,8 @@ class exmo(Exchange):
                         'user_info',
                         'order_create',
                         'order_cancel',
+                        'stop_market_order_create',
+                        'stop_market_order_cancel',
                         'user_open_orders',
                         'user_trades',
                         'user_cancelled_orders',
@@ -121,86 +141,90 @@ class exmo(Exchange):
                     'error': '',
                     'data': {
                         'limits': [
-                            {'pair': 'EXM/USDT', 'min_q': '1', 'max_q': '100000000', 'min_p': '0.00000001', 'max_p': '1000', 'min_a': '0.01', 'max_a': '100000'},
-                            {'pair': 'EXM/ETH', 'min_q': '1', 'max_q': '100000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.0001', 'max_a': '5000'},
+                            {'pair': 'ALGO/EXM', 'min_q': '1', 'max_q': '1000000', 'min_p': '0.001', 'max_p': '10000', 'min_a': '1', 'max_a': '50000000'},
+                            {'pair': 'ALGO/BTC', 'min_q': '1', 'max_q': '1000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.000001', 'max_a': '50'},
+                            {'pair': 'ATOM/EXM', 'min_q': '1', 'max_q': '500000', 'min_p': '0.01', 'max_p': '100000', 'min_a': '200', 'max_a': '50000000'},
+                            {'pair': 'ATOM/BTC', 'min_q': '1', 'max_q': '500000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.001', 'max_a': '100'},
                             {'pair': 'BTC/USD', 'min_q': '0.0001', 'max_q': '1000', 'min_p': '1', 'max_p': '30000', 'min_a': '1', 'max_a': '500000'},
-                            {'pair': 'BTC/KZT', 'min_q': '0.0001', 'max_q': '1000', 'min_p': '1000', 'max_p': '12000000', 'min_a': '1000', 'max_a': '100000000'},
-                            {'pair': 'ETH/KZT', 'min_q': '0.001', 'max_q': '5000', 'min_p': '4', 'max_p': '40000000', 'min_a': '3', 'max_a': '500000'},
-                            {'pair': 'USDT/KZT', 'min_q': '1', 'max_q': '500000', 'min_p': '200', 'max_p': '4000', 'min_a': '0.1', 'max_a': '500000'},
-                            {'pair': 'ONT/EXM', 'min_q': '1', 'max_q': '1000000', 'min_p': '0.01', 'max_p': '100000', 'min_a': '200', 'max_a': '15000000'},
-                            {'pair': 'ONT/BTC', 'min_q': '1', 'max_q': '1000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.00001', 'max_a': '10'},
-                            {'pair': 'ONT/RUB', 'min_q': '1', 'max_q': '1000000', 'min_p': '0.01', 'max_p': '100000', 'min_a': '100', 'max_a': '6000000'},
-                            {'pair': 'ONT/UAH', 'min_q': '1', 'max_q': '1000000', 'min_p': '0.01', 'max_p': '100000', 'min_a': '200', 'max_a': '250000'},
-                            {'pair': 'ONG/EXM', 'min_q': '1', 'max_q': '1000000', 'min_p': '0.01', 'max_p': '100000', 'min_a': '100', 'max_a': '15000000'},
-                            {'pair': 'ONG/BTC', 'min_q': '1', 'max_q': '1000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.00001', 'max_a': '10'},
-                            {'pair': 'ONG/RUB', 'min_q': '1', 'max_q': '1000000', 'min_p': '0.01', 'max_p': '100000', 'min_a': '100', 'max_a': '250000'},
-                            {'pair': 'ONG/UAH', 'min_q': '1', 'max_q': '1000000', 'min_p': '0.01', 'max_p': '100000', 'min_a': '50', 'max_a': '6000000'},
-                            {'pair': 'CRON/BTC', 'min_q': '1', 'max_q': '100000', 'min_p': '0.0000001', 'max_p': '1', 'min_a': '0.00001', 'max_a': '100'},
-                            {'pair': 'CRON/ETH', 'min_q': '1', 'max_q': '100000', 'min_p': '0.0000001', 'max_p': '10', 'min_a': '0.00001', 'max_a': '5000'},
-                            {'pair': 'CRON/USDT', 'min_q': '1', 'max_q': '100000', 'min_p': '0.001', 'max_p': '1000', 'min_a': '0.001', 'max_a': '500000'},
-                            {'pair': 'CRON/EXM', 'min_q': '1', 'max_q': '100000000', 'min_p': '0.00000001', 'max_p': '1000', 'min_a': '0.01', 'max_a': '100000'},
                             {'pair': 'BTC/RUB', 'min_q': '0.0001', 'max_q': '1000', 'min_p': '1', 'max_p': '2000000', 'min_a': '10', 'max_a': '50000000'},
                             {'pair': 'BTC/EUR', 'min_q': '0.0001', 'max_q': '1000', 'min_p': '1', 'max_p': '30000', 'min_a': '1', 'max_a': '500000'},
                             {'pair': 'BTC/UAH', 'min_q': '0.0001', 'max_q': '1000', 'min_p': '1', 'max_p': '15000000', 'min_a': '10', 'max_a': '15000000'},
+                            {'pair': 'BTC/GBP', 'min_q': '0.0001', 'max_q': '1000', 'min_p': '1', 'max_p': '30000', 'min_a': '1', 'max_a': '500000'},
+                            {'pair': 'ETH/GBP', 'min_q': '0.001', 'max_q': '5000', 'min_p': '0.01', 'max_p': '100000', 'min_a': '3', 'max_a': '500000'},
+                            {'pair': 'XRP/GBP', 'min_q': '1', 'max_q': '5000000', 'min_p': '0.001', 'max_p': '1000', 'min_a': '0.001', 'max_a': '500000'},
+                            {'pair': 'USDT/GBP', 'min_q': '1', 'max_q': '500000', 'min_p': '0.5', 'max_p': '10', 'min_a': '0.1', 'max_a': '500000'},
                             {'pair': 'BTC/PLN', 'min_q': '0.0001', 'max_q': '1000', 'min_p': '1', 'max_p': '20000000', 'min_a': '50', 'max_a': '2000000'},
                             {'pair': 'BTC/TRY', 'min_q': '0.0001', 'max_q': '1000', 'min_p': '1', 'max_p': '800000', 'min_a': '40', 'max_a': '6000000'},
+                            {'pair': 'BTC/KZT', 'min_q': '0.0001', 'max_q': '1000', 'min_p': '1000', 'max_p': '12000000', 'min_a': '1000', 'max_a': '100000000'},
                             {'pair': 'BTC/USDT', 'min_q': '0.0001', 'max_q': '1000', 'min_p': '0.01', 'max_p': '30000', 'min_a': '3', 'max_a': '500000'},
                             {'pair': 'ETH/BTC', 'min_q': '0.001', 'max_q': '5000', 'min_p': '0.00000001', 'max_p': '10', 'min_a': '0.001', 'max_a': '100'},
                             {'pair': 'ETH/USD', 'min_q': '0.001', 'max_q': '5000', 'min_p': '0.01', 'max_p': '100000', 'min_a': '3', 'max_a': '500000'},
                             {'pair': 'ETH/RUB', 'min_q': '0.001', 'max_q': '5000', 'min_p': '0.01', 'max_p': '100000', 'min_a': '150', 'max_a': '50000000'},
-                            {'pair': 'XRP/BTC', 'min_q': '1', 'max_q': '100000', 'min_p': '0.0000001', 'max_p': '1', 'min_a': '0.00001', 'max_a': '100'},
-                            {'pair': 'XRP/USD', 'min_q': '1', 'max_q': '100000', 'min_p': '0.001', 'max_p': '1000', 'min_a': '0.001', 'max_a': '500000'},
-                            {'pair': 'XRP/RUB', 'min_q': '1', 'max_q': '100000', 'min_p': '0.000001', 'max_p': '1000', 'min_a': '0.01', 'max_a': '50000000'},
+                            {'pair': 'XRP/BTC', 'min_q': '1', 'max_q': '5000000', 'min_p': '0.0000001', 'max_p': '1', 'min_a': '0.00001', 'max_a': '100'},
+                            {'pair': 'XRP/USD', 'min_q': '1', 'max_q': '5000000', 'min_p': '0.001', 'max_p': '1000', 'min_a': '0.001', 'max_a': '500000'},
+                            {'pair': 'XRP/RUB', 'min_q': '1', 'max_q': '5000000', 'min_p': '0.000001', 'max_p': '1000', 'min_a': '0.01', 'max_a': '50000000'},
                             {'pair': 'ADA/BTC', 'min_q': '1', 'max_q': '10000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.001', 'max_a': '100'},
                             {'pair': 'ADA/ETH', 'min_q': '0.01', 'max_q': '10000000', 'min_p': '0.00000001', 'max_p': '10', 'min_a': '0.001', 'max_a': '5000'},
                             {'pair': 'ADA/USD', 'min_q': '0.01', 'max_q': '10000000', 'min_p': '0.0001', 'max_p': '1000', 'min_a': '0.01', 'max_a': '500000'},
-                            {'pair': 'BCH/USD', 'min_q': '0.003', 'max_q': '10000', 'min_p': '0.00000001', 'max_p': '30000', 'min_a': '0.0001', 'max_a': '500000'},
-                            {'pair': 'BCH/RUB', 'min_q': '0.003', 'max_q': '10000', 'min_p': '0.00000001', 'max_p': '2000000', 'min_a': '0.0001', 'max_a': '50000000'},
-                            {'pair': 'BCH/EUR', 'min_q': '0.003', 'max_q': '100000', 'min_p': '0.01', 'max_p': '300000', 'min_a': '3', 'max_a': '500000'},
-                            {'pair': 'BCH/UAH', 'min_q': '0.003', 'max_q': '100000', 'min_p': '0.1', 'max_p': '30000', 'min_a': '10', 'max_a': '15000000'},
-                            {'pair': 'BCH/BTC', 'min_q': '0.003', 'max_q': '10000', 'min_p': '0.00000001', 'max_p': '5', 'min_a': '0.0001', 'max_a': '100'},
-                            {'pair': 'BCH/ETH', 'min_q': '0.003', 'max_q': '10000', 'min_p': '0.0000001', 'max_p': '200', 'min_a': '0.0001', 'max_a': '5000'},
-                            {'pair': 'BCH/USDT', 'min_q': '0.003', 'max_q': '100000', 'min_p': '0.01', 'max_p': '5000', 'min_a': '3', 'max_a': '500000'},
+                            {'pair': 'ALGO/USDT', 'min_q': '1', 'max_q': '1000000', 'min_p': '0.001', 'max_p': '1000', 'min_a': '1', 'max_a': '500000'},
+                            {'pair': 'ALGO/RUB', 'min_q': '1', 'max_q': '1000000', 'min_p': '0.000001', 'max_p': '10000', 'min_a': '1', 'max_a': '50000000'},
+                            {'pair': 'ALGO/EUR', 'min_q': '1', 'max_q': '1000000', 'min_p': '0.001', 'max_p': '1000', 'min_a': '1', 'max_a': '500000'},
+                            {'pair': 'ATOM/USD', 'min_q': '1', 'max_q': '500000', 'min_p': '0.001', 'max_p': '1000', 'min_a': '0.5', 'max_a': '500000'},
+                            {'pair': 'ATOM/EUR', 'min_q': '1', 'max_q': '500000', 'min_p': '0.001', 'max_p': '1000', 'min_a': '0.5', 'max_a': '500000'},
+                            {'pair': 'BCH/USD', 'min_q': '0.003', 'max_q': '5000', 'min_p': '0.00000001', 'max_p': '30000', 'min_a': '0.0001', 'max_a': '500000'},
+                            {'pair': 'BCH/RUB', 'min_q': '0.003', 'max_q': '5000', 'min_p': '0.00000001', 'max_p': '2000000', 'min_a': '0.0001', 'max_a': '50000000'},
+                            {'pair': 'BCH/EUR', 'min_q': '0.003', 'max_q': '5000', 'min_p': '0.01', 'max_p': '300000', 'min_a': '3', 'max_a': '500000'},
+                            {'pair': 'BCH/UAH', 'min_q': '0.003', 'max_q': '5000', 'min_p': '0.1', 'max_p': '30000', 'min_a': '10', 'max_a': '15000000'},
+                            {'pair': 'BCH/BTC', 'min_q': '0.003', 'max_q': '5000', 'min_p': '0.00000001', 'max_p': '5', 'min_a': '0.0001', 'max_a': '100'},
+                            {'pair': 'BCH/ETH', 'min_q': '0.003', 'max_q': '5000', 'min_p': '0.0000001', 'max_p': '200', 'min_a': '0.0001', 'max_a': '5000'},
+                            {'pair': 'BCH/USDT', 'min_q': '0.003', 'max_q': '5000', 'min_p': '0.01', 'max_p': '5000', 'min_a': '3', 'max_a': '500000'},
                             {'pair': 'BTCZ/BTC', 'min_q': '100', 'max_q': '100000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.001', 'max_a': '100'},
-                            {'pair': 'BTG/USD', 'min_q': '0.01', 'max_q': '200000', 'min_p': '0.001', 'max_p': '1000', 'min_a': '3', 'max_a': '500000'},
-                            {'pair': 'BTG/BTC', 'min_q': '0.01', 'max_q': '200000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.001', 'max_a': '100'},
-                            {'pair': 'BTG/ETH', 'min_q': '0.01', 'max_q': '200000', 'min_p': '0.0001', 'max_p': '100', 'min_a': '0.01', 'max_a': '5000'},
-                            {'pair': 'BTT/RUB', 'min_q': '1', 'max_q': '10000000', 'min_p': '0.000001', 'max_p': '1000', 'min_a': '0.000001', 'max_a': '100'},
-                            {'pair': 'BTT/UAH', 'min_q': '1', 'max_q': '10000000', 'min_p': '0.000001', 'max_p': '1000', 'min_a': '0.000001', 'max_a': '100'},
-                            {'pair': 'BTT/BTC', 'min_q': '1', 'max_q': '10000000', 'min_p': '0.00000001', 'max_p': '0.1', 'min_a': '0.00001', 'max_a': '100'},
+                            {'pair': 'BTG/USD', 'min_q': '0.01', 'max_q': '100000', 'min_p': '0.001', 'max_p': '1000', 'min_a': '3', 'max_a': '500000'},
+                            {'pair': 'BTG/BTC', 'min_q': '0.01', 'max_q': '100000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.001', 'max_a': '100'},
+                            {'pair': 'BTG/ETH', 'min_q': '0.01', 'max_q': '100000', 'min_p': '0.0001', 'max_p': '100', 'min_a': '0.01', 'max_a': '5000'},
+                            {'pair': 'BTT/RUB', 'min_q': '1', 'max_q': '500000000', 'min_p': '0.000001', 'max_p': '1000', 'min_a': '0.000001', 'max_a': '100'},
+                            {'pair': 'BTT/UAH', 'min_q': '1', 'max_q': '500000000', 'min_p': '0.000001', 'max_p': '1000', 'min_a': '0.000001', 'max_a': '100'},
+                            {'pair': 'BTT/BTC', 'min_q': '1', 'max_q': '500000000', 'min_p': '0.00000001', 'max_p': '0.1', 'min_a': '0.00001', 'max_a': '100'},
+                            {'pair': 'CRON/BTC', 'min_q': '1', 'max_q': '100000', 'min_p': '0.0000001', 'max_p': '1', 'min_a': '0.00001', 'max_a': '100'},
+                            {'pair': 'CRON/ETH', 'min_q': '1', 'max_q': '100000', 'min_p': '0.0000001', 'max_p': '10', 'min_a': '0.00001', 'max_a': '5000'},
+                            {'pair': 'CRON/USDT', 'min_q': '1', 'max_q': '100000', 'min_p': '0.001', 'max_p': '1000', 'min_a': '0.001', 'max_a': '500000'},
+                            {'pair': 'CRON/EXM', 'min_q': '1', 'max_q': '100000000', 'min_p': '0.00000001', 'max_p': '1000', 'min_a': '0.01', 'max_a': '100000'},
                             {'pair': 'DAI/USD', 'min_q': '1', 'max_q': '500000', 'min_p': '0.001', 'max_p': '1000', 'min_a': '0.1', 'max_a': '500000'},
                             {'pair': 'DAI/RUB', 'min_q': '1', 'max_q': '500000', 'min_p': '0.01', 'max_p': '100000', 'min_a': '0.5', 'max_a': '30000000'},
                             {'pair': 'DAI/BTC', 'min_q': '1', 'max_q': '500000', 'min_p': '0.0000001', 'max_p': '0.1', 'min_a': '0.00001', 'max_a': '100'},
                             {'pair': 'DAI/ETH', 'min_q': '1', 'max_q': '500000', 'min_p': '0.000001', 'max_p': '10', 'min_a': '0.0001', 'max_a': '5000'},
-                            {'pair': 'DASH/USD', 'min_q': '0.01', 'max_q': '200000', 'min_p': '0.01', 'max_p': '10000', 'min_a': '3', 'max_a': '500000'},
-                            {'pair': 'DASH/RUB', 'min_q': '0.01', 'max_q': '200000', 'min_p': '0.01', 'max_p': '100000', 'min_a': '150', 'max_a': '50000000'},
-                            {'pair': 'DASH/UAH', 'min_q': '0.01', 'max_q': '200000', 'min_p': '0.01', 'max_p': '200000', 'min_a': '10', 'max_a': '15000000'},
-                            {'pair': 'DASH/BTC', 'min_q': '0.01', 'max_q': '200000', 'min_p': '0.0001', 'max_p': '1', 'min_a': '0.001', 'max_a': '100'},
-                            {'pair': 'DASH/USDT', 'min_q': '0.01', 'max_q': '100000', 'min_p': '0.01', 'max_p': '5000', 'min_a': '3', 'max_a': '500000'},
+                            {'pair': 'DASH/USD', 'min_q': '0.01', 'max_q': '10000', 'min_p': '0.01', 'max_p': '10000', 'min_a': '3', 'max_a': '500000'},
+                            {'pair': 'DASH/RUB', 'min_q': '0.01', 'max_q': '10000', 'min_p': '0.01', 'max_p': '100000', 'min_a': '150', 'max_a': '50000000'},
+                            {'pair': 'DASH/UAH', 'min_q': '0.01', 'max_q': '10000', 'min_p': '0.01', 'max_p': '200000', 'min_a': '10', 'max_a': '15000000'},
+                            {'pair': 'DASH/BTC', 'min_q': '0.01', 'max_q': '10000', 'min_p': '0.0001', 'max_p': '1', 'min_a': '0.001', 'max_a': '100'},
+                            {'pair': 'DASH/USDT', 'min_q': '0.01', 'max_q': '10000', 'min_p': '0.01', 'max_p': '5000', 'min_a': '3', 'max_a': '500000'},
                             {'pair': 'DCR/RUB', 'min_q': '0.01', 'max_q': '50000', 'min_p': '0.00001', 'max_p': '100000', 'min_a': '0.5', 'max_a': '3000000'},
                             {'pair': 'DCR/UAH', 'min_q': '0.01', 'max_q': '50000', 'min_p': '0.00001', 'max_p': '100000', 'min_a': '0.25', 'max_a': '1000000'},
                             {'pair': 'DCR/BTC', 'min_q': '0.01', 'max_q': '50000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.001', 'max_a': '100'},
-                            {'pair': 'DOGE/USD', 'min_q': '100', 'max_q': '1000000000', 'min_p': '0.0000001', 'max_p': '1000', 'min_a': '0.01', 'max_a': '500000'},
-                            {'pair': 'DOGE/BTC', 'min_q': '100', 'max_q': '100000000', 'min_p': '0.0000001', 'max_p': '1', 'min_a': '0.0001', 'max_a': '100'},
-                            {'pair': 'DXT/USD', 'min_q': '100', 'max_q': '10000000', 'min_p': '0.00001', 'max_p': '1000', 'min_a': '0.1', 'max_a': '500000'},
-                            {'pair': 'DXT/BTC', 'min_q': '100', 'max_q': '10000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.0001', 'max_a': '100'},
-                            {'pair': 'EOS/USD', 'min_q': '0.01', 'max_q': '100000', 'min_p': '0.01', 'max_p': '1000', 'min_a': '0.5', 'max_a': '500000'},
-                            {'pair': 'EOS/EUR', 'min_q': '0.01', 'max_q': '100000', 'min_p': '0.001', 'max_p': '1000', 'min_a': '0.5', 'max_a': '500000'},
-                            {'pair': 'EOS/BTC', 'min_q': '0.01', 'max_q': '100000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.001', 'max_a': '100'},
-                            {'pair': 'ETC/USD', 'min_q': '0.2', 'max_q': '1000', 'min_p': '0.01', 'max_p': '10000', 'min_a': '0.01', 'max_a': '500000'},
-                            {'pair': 'ETC/RUB', 'min_q': '0.2', 'max_q': '1000', 'min_p': '0.01', 'max_p': '10000', 'min_a': '0.01', 'max_a': '50000000'},
-                            {'pair': 'ETC/BTC', 'min_q': '0.2', 'max_q': '1000', 'min_p': '0.0001', 'max_p': '0.5', 'min_a': '0.001', 'max_a': '100'},
+                            {'pair': 'DOGE/USD', 'min_q': '100', 'max_q': '500000000', 'min_p': '0.0000001', 'max_p': '1000', 'min_a': '0.01', 'max_a': '500000'},
+                            {'pair': 'DOGE/BTC', 'min_q': '100', 'max_q': '500000000', 'min_p': '0.0000001', 'max_p': '1', 'min_a': '0.0001', 'max_a': '100'},
+                            {'pair': 'DXT/USD', 'min_q': '100', 'max_q': '50000000', 'min_p': '0.00001', 'max_p': '1000', 'min_a': '0.1', 'max_a': '500000'},
+                            {'pair': 'DXT/BTC', 'min_q': '100', 'max_q': '50000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.0001', 'max_a': '100'},
+                            {'pair': 'EOS/USD', 'min_q': '0.01', 'max_q': '500000', 'min_p': '0.01', 'max_p': '1000', 'min_a': '0.5', 'max_a': '500000'},
+                            {'pair': 'EOS/EUR', 'min_q': '0.01', 'max_q': '500000', 'min_p': '0.001', 'max_p': '1000', 'min_a': '0.5', 'max_a': '500000'},
+                            {'pair': 'EOS/BTC', 'min_q': '0.01', 'max_q': '500000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.001', 'max_a': '100'},
+                            {'pair': 'ETC/USD', 'min_q': '0.2', 'max_q': '100000', 'min_p': '0.01', 'max_p': '10000', 'min_a': '0.01', 'max_a': '500000'},
+                            {'pair': 'ETC/RUB', 'min_q': '0.2', 'max_q': '100000', 'min_p': '0.01', 'max_p': '10000', 'min_a': '0.01', 'max_a': '50000000'},
+                            {'pair': 'ETC/BTC', 'min_q': '0.2', 'max_q': '100000', 'min_p': '0.0001', 'max_p': '0.5', 'min_a': '0.001', 'max_a': '100'},
                             {'pair': 'ETH/EUR', 'min_q': '0.001', 'max_q': '5000', 'min_p': '0.01', 'max_p': '100000', 'min_a': '3', 'max_a': '500000'},
                             {'pair': 'ETH/UAH', 'min_q': '0.001', 'max_q': '5000', 'min_p': '0.01', 'max_p': '1000000', 'min_a': '90', 'max_a': '15000000'},
                             {'pair': 'ETH/PLN', 'min_q': '0.001', 'max_q': '5000', 'min_p': '0.01', 'max_p': '100000', 'min_a': '50', 'max_a': '2000000'},
                             {'pair': 'ETH/TRY', 'min_q': '0.001', 'max_q': '5000', 'min_p': '0.1', 'max_p': '80000', 'min_a': '10', 'max_a': '6000000'},
+                            {'pair': 'ETH/KZT', 'min_q': '0.001', 'max_q': '5000', 'min_p': '4', 'max_p': '40000000', 'min_a': '3', 'max_a': '500000'},
                             {'pair': 'ETH/USDT', 'min_q': '0.001', 'max_q': '5000', 'min_p': '0.01', 'max_p': '100000', 'min_a': '3', 'max_a': '500000'},
                             {'pair': 'ETH/LTC', 'min_q': '0.001', 'max_q': '5000', 'min_p': '0.00000001', 'max_p': '100000', 'min_a': '0.05', 'max_a': '100000'},
-                            {'pair': 'ETZ/BTC', 'min_q': '1', 'max_q': '1000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.0001', 'max_a': '10'},
-                            {'pair': 'ETZ/ETH', 'min_q': '1', 'max_q': '1000000', 'min_p': '0.00000001', 'max_p': '100', 'min_a': '0.001', 'max_a': '100'},
-                            {'pair': 'ETZ/USDT', 'min_q': '1', 'max_q': '1000000', 'min_p': '0.000001', 'max_p': '1000', 'min_a': '0.01', 'max_a': '1000'},
-                            {'pair': 'GAS/USD', 'min_q': '0.01', 'max_q': '10000000', 'min_p': '0.01', 'max_p': '50000', 'min_a': '0.1', 'max_a': '500000'},
-                            {'pair': 'GAS/BTC', 'min_q': '0.01', 'max_q': '10000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.001', 'max_a': '100'},
+                            {'pair': 'ETZ/BTC', 'min_q': '1', 'max_q': '50000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.0001', 'max_a': '10'},
+                            {'pair': 'ETZ/ETH', 'min_q': '1', 'max_q': '50000000', 'min_p': '0.00000001', 'max_p': '100', 'min_a': '0.001', 'max_a': '100'},
+                            {'pair': 'ETZ/USDT', 'min_q': '1', 'max_q': '50000000', 'min_p': '0.000001', 'max_p': '1000', 'min_a': '0.01', 'max_a': '1000'},
+                            {'pair': 'EXM/USDT', 'min_q': '1', 'max_q': '100000000', 'min_p': '0.00000001', 'max_p': '1000', 'min_a': '0.01', 'max_a': '100000'},
+                            {'pair': 'EXM/ETH', 'min_q': '1', 'max_q': '100000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.0001', 'max_a': '5000'},
+                            {'pair': 'GAS/USD', 'min_q': '0.01', 'max_q': '500000', 'min_p': '0.01', 'max_p': '50000', 'min_a': '0.1', 'max_a': '500000'},
+                            {'pair': 'GAS/BTC', 'min_q': '0.01', 'max_q': '500000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.001', 'max_a': '100'},
                             {'pair': 'GNT/BTC', 'min_q': '1', 'max_q': '10000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.001', 'max_a': '100'},
                             {'pair': 'GNT/ETH', 'min_q': '0.01', 'max_q': '10000000', 'min_p': '0.00000001', 'max_p': '10', 'min_a': '0.01', 'max_a': '5000'},
                             {'pair': 'GUSD/USD', 'min_q': '1', 'max_q': '500000', 'min_p': '0.1', 'max_p': '10', 'min_a': '0.1', 'max_a': '500000'},
@@ -215,84 +239,94 @@ class exmo(Exchange):
                             {'pair': 'KICK/USDT', 'min_q': '1', 'max_q': '100000000', 'min_p': '0.00000001', 'max_p': '1000', 'min_a': '0.01', 'max_a': '100000'},
                             {'pair': 'KICK/BTC', 'min_q': '1', 'max_q': '100000000', 'min_p': '0.00000001', 'max_p': '0.1', 'min_a': '0.00001', 'max_a': '100'},
                             {'pair': 'KICK/ETH', 'min_q': '1', 'max_q': '100000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.0001', 'max_a': '5000'},
-                            {'pair': 'LSK/USD', 'min_q': '0.1', 'max_q': '200000', 'min_p': '0.1', 'max_p': '1000', 'min_a': '1', 'max_a': '500000'},
-                            {'pair': 'LSK/RUB', 'min_q': '0.1', 'max_q': '200000', 'min_p': '0.001', 'max_p': '100000', 'min_a': '0.5', 'max_a': '50000000'},
-                            {'pair': 'LSK/BTC', 'min_q': '1', 'max_q': '200000', 'min_p': '0.0000001', 'max_p': '1', 'min_a': '0.0015', 'max_a': '100'},
-                            {'pair': 'LTC/USD', 'min_q': '0.05', 'max_q': '1000000', 'min_p': '0.01', 'max_p': '10000', 'min_a': '3', 'max_a': '500000'},
-                            {'pair': 'LTC/RUB', 'min_q': '0.05', 'max_q': '1000000', 'min_p': '0.01', 'max_p': '100000', 'min_a': '150', 'max_a': '50000000'},
-                            {'pair': 'LTC/EUR', 'min_q': '0.05', 'max_q': '1000000', 'min_p': '0.01', 'max_p': '10000', 'min_a': '3', 'max_a': '500000'},
-                            {'pair': 'LTC/UAH', 'min_q': '0.05', 'max_q': '1000000', 'min_p': '0.01', 'max_p': '300000', 'min_a': '5', 'max_a': '18000000'},
-                            {'pair': 'LTC/BTC', 'min_q': '0.05', 'max_q': '1000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.001', 'max_a': '100'},
+                            {'pair': 'LSK/USD', 'min_q': '0.1', 'max_q': '500000', 'min_p': '0.1', 'max_p': '1000', 'min_a': '1', 'max_a': '500000'},
+                            {'pair': 'LSK/RUB', 'min_q': '0.1', 'max_q': '500000', 'min_p': '0.001', 'max_p': '100000', 'min_a': '0.5', 'max_a': '50000000'},
+                            {'pair': 'LSK/BTC', 'min_q': '1', 'max_q': '500000', 'min_p': '0.0000001', 'max_p': '1', 'min_a': '0.0015', 'max_a': '100'},
+                            {'pair': 'LTC/USD', 'min_q': '0.05', 'max_q': '10000', 'min_p': '0.01', 'max_p': '10000', 'min_a': '3', 'max_a': '500000'},
+                            {'pair': 'LTC/RUB', 'min_q': '0.05', 'max_q': '10000', 'min_p': '0.01', 'max_p': '100000', 'min_a': '150', 'max_a': '50000000'},
+                            {'pair': 'LTC/EUR', 'min_q': '0.05', 'max_q': '10000', 'min_p': '0.01', 'max_p': '10000', 'min_a': '3', 'max_a': '500000'},
+                            {'pair': 'LTC/UAH', 'min_q': '0.05', 'max_q': '10000', 'min_p': '0.01', 'max_p': '300000', 'min_a': '5', 'max_a': '18000000'},
+                            {'pair': 'LTC/BTC', 'min_q': '0.05', 'max_q': '10000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.001', 'max_a': '100'},
                             {'pair': 'MKR/BTC', 'min_q': '0.0001', 'max_q': '1000', 'min_p': '0.0001', 'max_p': '100', 'min_a': '0.000001', 'max_a': '100'},
                             {'pair': 'MKR/DAI', 'min_q': '0.0001', 'max_q': '1000', 'min_p': '0.5', 'max_p': '500000', 'min_a': '0.005', 'max_a': '500000'},
-                            {'pair': 'MNC/USD', 'min_q': '10', 'max_q': '100000000', 'min_p': '0.000001', 'max_p': '10000', 'min_a': '0.01', 'max_a': '100000'},
-                            {'pair': 'MNC/BTC', 'min_q': '10', 'max_q': '100000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.000001', 'max_a': '100'},
-                            {'pair': 'MNC/ETH', 'min_q': '10', 'max_q': '100000000', 'min_p': '0.0000001', 'max_p': '10', 'min_a': '0.00001', 'max_a': '1000'},
+                            {'pair': 'MNC/USD', 'min_q': '10', 'max_q': '500000000', 'min_p': '0.000001', 'max_p': '10000', 'min_a': '0.01', 'max_a': '100000'},
+                            {'pair': 'MNC/BTC', 'min_q': '10', 'max_q': '500000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.000001', 'max_a': '100'},
+                            {'pair': 'MNC/ETH', 'min_q': '10', 'max_q': '500000000', 'min_p': '0.0000001', 'max_p': '10', 'min_a': '0.00001', 'max_a': '1000'},
                             {'pair': 'MNX/USD', 'min_q': '0.01', 'max_q': '10000000', 'min_p': '0.0001', 'max_p': '1000', 'min_a': '0.5', 'max_a': '500000'},
                             {'pair': 'MNX/BTC', 'min_q': '1', 'max_q': '10000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.001', 'max_a': '100'},
                             {'pair': 'MNX/ETH', 'min_q': '0.01', 'max_q': '10000000', 'min_p': '0.00000001', 'max_p': '10', 'min_a': '0.01', 'max_a': '5000'},
-                            {'pair': 'NEO/USD', 'min_q': '0.01', 'max_q': '200000', 'min_p': '0.01', 'max_p': '50000', 'min_a': '0.1', 'max_a': '500000'},
-                            {'pair': 'NEO/RUB', 'min_q': '0.01', 'max_q': '200000', 'min_p': '0.001', 'max_p': '1500000', 'min_a': '50', 'max_a': '50000000'},
-                            {'pair': 'NEO/BTC', 'min_q': '0.1', 'max_q': '200000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.001', 'max_a': '100'},
-                            {'pair': 'OMG/USD', 'min_q': '0.01', 'max_q': '100000', 'min_p': '0.01', 'max_p': '1000', 'min_a': '0.5', 'max_a': '500000'},
-                            {'pair': 'OMG/BTC', 'min_q': '1', 'max_q': '100000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.001', 'max_a': '100'},
-                            {'pair': 'OMG/ETH', 'min_q': '0.01', 'max_q': '100000', 'min_p': '0.00000001', 'max_p': '10', 'min_a': '0.01', 'max_a': '5000'},
-                            {'pair': 'PTI/RUB', 'min_q': '1', 'max_q': '10000000', 'min_p': '0.00000001', 'max_p': '600000', 'min_a': '10', 'max_a': '600000'},
-                            {'pair': 'PTI/BTC', 'min_q': '1', 'max_q': '100000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.000001', 'max_a': '10'},
-                            {'pair': 'PTI/EOS', 'min_q': '1', 'max_q': '10000000', 'min_p': '0.0000001', 'max_p': '5000', 'min_a': '0.01', 'max_a': '20000'},
-                            {'pair': 'PTI/USDT', 'min_q': '1', 'max_q': '10000000', 'min_p': '0.000001', 'max_p': '10000', 'min_a': '0.01', 'max_a': '100000'},
-                            {'pair': 'QTUM/USD', 'min_q': '0.1', 'max_q': '200000', 'min_p': '0.00000001', 'max_p': '10000', 'min_a': '0.1', 'max_a': '500000'},
-                            {'pair': 'QTUM/BTC', 'min_q': '0.1', 'max_q': '200000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.0001', 'max_a': '100'},
-                            {'pair': 'QTUM/ETH', 'min_q': '0.1', 'max_q': '200000', 'min_p': '0.00000001', 'max_p': '100', 'min_a': '0.001', 'max_a': '5000'},
+                            {'pair': 'NEO/USD', 'min_q': '0.01', 'max_q': '100000', 'min_p': '0.01', 'max_p': '50000', 'min_a': '0.1', 'max_a': '500000'},
+                            {'pair': 'NEO/RUB', 'min_q': '0.01', 'max_q': '100000', 'min_p': '0.001', 'max_p': '1500000', 'min_a': '50', 'max_a': '50000000'},
+                            {'pair': 'NEO/BTC', 'min_q': '0.1', 'max_q': '100000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.001', 'max_a': '100'},
+                            {'pair': 'OMG/USD', 'min_q': '0.01', 'max_q': '500000', 'min_p': '0.01', 'max_p': '1000', 'min_a': '0.5', 'max_a': '500000'},
+                            {'pair': 'OMG/BTC', 'min_q': '1', 'max_q': '500000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.001', 'max_a': '100'},
+                            {'pair': 'OMG/ETH', 'min_q': '0.01', 'max_q': '500000', 'min_p': '0.00000001', 'max_p': '10', 'min_a': '0.01', 'max_a': '5000'},
+                            {'pair': 'ONG/EXM', 'min_q': '1', 'max_q': '1000000', 'min_p': '0.01', 'max_p': '100000', 'min_a': '100', 'max_a': '15000000'},
+                            {'pair': 'ONG/BTC', 'min_q': '1', 'max_q': '1000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.00001', 'max_a': '10'},
+                            {'pair': 'ONG/RUB', 'min_q': '1', 'max_q': '1000000', 'min_p': '0.01', 'max_p': '100000', 'min_a': '100', 'max_a': '250000'},
+                            {'pair': 'ONG/UAH', 'min_q': '1', 'max_q': '1000000', 'min_p': '0.01', 'max_p': '100000', 'min_a': '50', 'max_a': '6000000'},
+                            {'pair': 'ONT/EXM', 'min_q': '1', 'max_q': '500000', 'min_p': '0.01', 'max_p': '100000', 'min_a': '200', 'max_a': '15000000'},
+                            {'pair': 'ONT/BTC', 'min_q': '1', 'max_q': '500000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.00001', 'max_a': '10'},
+                            {'pair': 'ONT/RUB', 'min_q': '1', 'max_q': '500000', 'min_p': '0.01', 'max_p': '100000', 'min_a': '100', 'max_a': '6000000'},
+                            {'pair': 'ONT/UAH', 'min_q': '1', 'max_q': '500000', 'min_p': '0.01', 'max_p': '100000', 'min_a': '200', 'max_a': '250000'},
+                            {'pair': 'PTI/RUB', 'min_q': '1', 'max_q': '50000000', 'min_p': '0.00000001', 'max_p': '600000', 'min_a': '10', 'max_a': '600000'},
+                            {'pair': 'PTI/BTC', 'min_q': '1', 'max_q': '50000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.000001', 'max_a': '10'},
+                            {'pair': 'PTI/EOS', 'min_q': '1', 'max_q': '50000000', 'min_p': '0.0000001', 'max_p': '5000', 'min_a': '0.01', 'max_a': '20000'},
+                            {'pair': 'PTI/USDT', 'min_q': '1', 'max_q': '50000000', 'min_p': '0.000001', 'max_p': '10000', 'min_a': '0.01', 'max_a': '100000'},
+                            {'pair': 'QTUM/USD', 'min_q': '0.1', 'max_q': '500000', 'min_p': '0.00000001', 'max_p': '10000', 'min_a': '0.1', 'max_a': '500000'},
+                            {'pair': 'QTUM/BTC', 'min_q': '0.1', 'max_q': '500000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.0001', 'max_a': '100'},
+                            {'pair': 'QTUM/ETH', 'min_q': '0.1', 'max_q': '500000', 'min_p': '0.00000001', 'max_p': '100', 'min_a': '0.001', 'max_a': '5000'},
                             {'pair': 'ROOBEE/BTC', 'min_q': '1', 'max_q': '10000000', 'min_p': '0.00000001', 'max_p': '0.1', 'min_a': '0.00001', 'max_a': '100'},
-                            {'pair': 'SMART/USD', 'min_q': '10', 'max_q': '10000000', 'min_p': '0.000001', 'max_p': '1000', 'min_a': '1', 'max_a': '500000'},
-                            {'pair': 'SMART/RUB', 'min_q': '10', 'max_q': '10000000', 'min_p': '0.0001', 'max_p': '100000', 'min_a': '10', 'max_a': '50000000'},
-                            {'pair': 'SMART/EUR', 'min_q': '10', 'max_q': '10000000', 'min_p': '0.000001', 'max_p': '1000', 'min_a': '1', 'max_a': '500000'},
-                            {'pair': 'SMART/BTC', 'min_q': '10', 'max_q': '10000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.00001', 'max_a': '100'},
-                            {'pair': 'TRX/USD', 'min_q': '1', 'max_q': '10000000', 'min_p': '0.0001', 'max_p': '1000', 'min_a': '0.01', 'max_a': '500000'},
-                            {'pair': 'TRX/RUB', 'min_q': '1', 'max_q': '10000000', 'min_p': '0.000001', 'max_p': '100000', 'min_a': '0.1', 'max_a': '50000000'},
-                            {'pair': 'TRX/UAH', 'min_q': '1', 'max_q': '10000000', 'min_p': '0.000001', 'max_p': '100000', 'min_a': '0.1', 'max_a': '50000000'},
-                            {'pair': 'TRX/BTC', 'min_q': '1', 'max_q': '10000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.001', 'max_a': '100'},
+                            {'pair': 'SMART/USD', 'min_q': '10', 'max_q': '100000000', 'min_p': '0.000001', 'max_p': '1000', 'min_a': '1', 'max_a': '500000'},
+                            {'pair': 'SMART/RUB', 'min_q': '10', 'max_q': '100000000', 'min_p': '0.0001', 'max_p': '100000', 'min_a': '10', 'max_a': '50000000'},
+                            {'pair': 'SMART/EUR', 'min_q': '10', 'max_q': '100000000', 'min_p': '0.000001', 'max_p': '1000', 'min_a': '1', 'max_a': '500000'},
+                            {'pair': 'SMART/BTC', 'min_q': '10', 'max_q': '100000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.00001', 'max_a': '100'},
+                            {'pair': 'TRX/USD', 'min_q': '1', 'max_q': '50000000', 'min_p': '0.0001', 'max_p': '1000', 'min_a': '0.01', 'max_a': '500000'},
+                            {'pair': 'TRX/EUR', 'min_q': '0.01', 'max_q': '50000000', 'min_p': '0.0001', 'max_p': '1000', 'min_a': '0.01', 'max_a': '500000'},
+                            {'pair': 'TRX/RUB', 'min_q': '1', 'max_q': '50000000', 'min_p': '0.000001', 'max_p': '100000', 'min_a': '0.1', 'max_a': '50000000'},
+                            {'pair': 'TRX/UAH', 'min_q': '1', 'max_q': '50000000', 'min_p': '0.000001', 'max_p': '100000', 'min_a': '0.1', 'max_a': '50000000'},
+                            {'pair': 'TRX/BTC', 'min_q': '1', 'max_q': '50000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.001', 'max_a': '100'},
                             {'pair': 'USDC/USD', 'min_q': '1', 'max_q': '500000', 'min_p': '0.0001', 'max_p': '1000', 'min_a': '3', 'max_a': '500000'},
                             {'pair': 'USDC/BTC', 'min_q': '1', 'max_q': '500000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.0001', 'max_a': '100'},
                             {'pair': 'USDC/ETH', 'min_q': '1', 'max_q': '500000', 'min_p': '0.0000001', 'max_p': '100', 'min_a': '0.001', 'max_a': '1000'},
                             {'pair': 'USDC/USDT', 'min_q': '1', 'max_q': '500000', 'min_p': '0.0001', 'max_p': '1000', 'min_a': '3', 'max_a': '500000'},
                             {'pair': 'USDT/USD', 'min_q': '1', 'max_q': '500000', 'min_p': '0.5', 'max_p': '10', 'min_a': '0.1', 'max_a': '500000'},
                             {'pair': 'USDT/RUB', 'min_q': '1', 'max_q': '500000', 'min_p': '0.01', 'max_p': '1000', 'min_a': '10', 'max_a': '50000000'},
-                            {'pair': 'USDT/EUR', 'min_q': '0.01', 'max_q': '100000', 'min_p': '0.1', 'max_p': '10', 'min_a': '0.1', 'max_a': '500000'},
-                            {'pair': 'USDT/UAH', 'min_q': '0.01', 'max_q': '100000', 'min_p': '1', 'max_p': '3000', 'min_a': '2', 'max_a': '15000000'},
+                            {'pair': 'USDT/EUR', 'min_q': '0.01', 'max_q': '500000', 'min_p': '0.1', 'max_p': '10', 'min_a': '0.1', 'max_a': '500000'},
+                            {'pair': 'USDT/UAH', 'min_q': '0.01', 'max_q': '500000', 'min_p': '1', 'max_p': '3000', 'min_a': '2', 'max_a': '15000000'},
+                            {'pair': 'USDT/KZT', 'min_q': '1', 'max_q': '500000', 'min_p': '200', 'max_p': '4000', 'min_a': '0.1', 'max_a': '500000'},
                             {'pair': 'VLX/BTC', 'min_q': '1', 'max_q': '10000000', 'min_p': '0.00000001', 'max_p': '0.1', 'min_a': '0.00001', 'max_a': '100'},
-                            {'pair': 'WAVES/USD', 'min_q': '0.5', 'max_q': '10000', 'min_p': '0.001', 'max_p': '3500', 'min_a': '0.5', 'max_a': '500000'},
-                            {'pair': 'WAVES/RUB', 'min_q': '0.5', 'max_q': '10000', 'min_p': '0.01', 'max_p': '10000', 'min_a': '1', 'max_a': '50000000'},
-                            {'pair': 'WAVES/BTC', 'min_q': '0.5', 'max_q': '10000', 'min_p': '0.000001', 'max_p': '1', 'min_a': '0.0001', 'max_a': '100'},
-                            {'pair': 'WAVES/ETH', 'min_q': '0.5', 'max_q': '10000', 'min_p': '0.00001', 'max_p': '30', 'min_a': '0.0035', 'max_a': '3500'},
-                            {'pair': 'XEM/USD', 'min_q': '10', 'max_q': '5000000', 'min_p': '0.00001', 'max_p': '1000', 'min_a': '0.1', 'max_a': '500000'},
-                            {'pair': 'XEM/EUR', 'min_q': '10', 'max_q': '5000000', 'min_p': '0.00001', 'max_p': '1000', 'min_a': '0.1', 'max_a': '500000'},
-                            {'pair': 'XEM/UAH', 'min_q': '1', 'max_q': '5000000', 'min_p': '0.0001', 'max_p': '30000', 'min_a': '10', 'max_a': '15000000'},
-                            {'pair': 'XEM/BTC', 'min_q': '10', 'max_q': '5000000', 'min_p': '0.0000001', 'max_p': '1', 'min_a': '0.00015', 'max_a': '100'},
-                            {'pair': 'XLM/USD', 'min_q': '0.01', 'max_q': '200000', 'min_p': '0.0001', 'max_p': '1000', 'min_a': '0.01', 'max_a': '500000'},
-                            {'pair': 'XLM/RUB', 'min_q': '0.01', 'max_q': '200000', 'min_p': '0.00001', 'max_p': '100000', 'min_a': '0.1', 'max_a': '50000000'},
-                            {'pair': 'XLM/TRY', 'min_q': '0.01', 'max_q': '200000', 'min_p': '0.00001', 'max_p': '100000', 'min_a': '0.1', 'max_a': '6000000'},
-                            {'pair': 'XLM/BTC', 'min_q': '1', 'max_q': '200000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.001', 'max_a': '100'},
-                            {'pair': 'XMR/USD', 'min_q': '0.01', 'max_q': '1000', 'min_p': '0.001', 'max_p': '1000', 'min_a': '0.1', 'max_a': '500000'},
-                            {'pair': 'XMR/RUB', 'min_q': '0.01', 'max_q': '200000', 'min_p': '0.001', 'max_p': '600000', 'min_a': '10', 'max_a': '16000000'},
-                            {'pair': 'XMR/EUR', 'min_q': '0.01', 'max_q': '1000', 'min_p': '0.001', 'max_p': '1000', 'min_a': '0.1', 'max_a': '500000'},
-                            {'pair': 'XMR/UAH', 'min_q': '0.01', 'max_q': '200000', 'min_p': '0.001', 'max_p': '300000', 'min_a': '5', 'max_a': '16000000'},
-                            {'pair': 'XMR/BTC', 'min_q': '0.01', 'max_q': '1000', 'min_p': '0.0001', 'max_p': '1', 'min_a': '0.001', 'max_a': '100'},
-                            {'pair': 'XMR/ETH', 'min_q': '0.01', 'max_q': '1000', 'min_p': '0.00000001', 'max_p': '100', 'min_a': '0.001', 'max_a': '5000'},
-                            {'pair': 'XRP/EUR', 'min_q': '1', 'max_q': '100000', 'min_p': '0.001', 'max_p': '1000', 'min_a': '0.001', 'max_a': '500000'},
-                            {'pair': 'XRP/TRY', 'min_q': '1', 'max_q': '100000', 'min_p': '0.0001', 'max_p': '1000', 'min_a': '0.01', 'max_a': '6000000'},
-                            {'pair': 'XRP/UAH', 'min_q': '1', 'max_q': '100000', 'min_p': '0.0001', 'max_p': '1000', 'min_a': '0.01', 'max_a': '15000000'},
-                            {'pair': 'XRP/USDT', 'min_q': '1', 'max_q': '100000', 'min_p': '0.001', 'max_p': '1000', 'min_a': '0.001', 'max_a': '500000'},
-                            {'pair': 'XRP/ETH', 'min_q': '1', 'max_q': '100000', 'min_p': '0.00000001', 'max_p': '10', 'min_a': '0.00001', 'max_a': '5000'},
+                            {'pair': 'WAVES/USD', 'min_q': '0.5', 'max_q': '500000', 'min_p': '0.001', 'max_p': '3500', 'min_a': '0.5', 'max_a': '500000'},
+                            {'pair': 'WAVES/RUB', 'min_q': '0.5', 'max_q': '500000', 'min_p': '0.01', 'max_p': '10000', 'min_a': '1', 'max_a': '50000000'},
+                            {'pair': 'WAVES/BTC', 'min_q': '0.5', 'max_q': '500000', 'min_p': '0.000001', 'max_p': '1', 'min_a': '0.0001', 'max_a': '100'},
+                            {'pair': 'WAVES/ETH', 'min_q': '0.5', 'max_q': '500000', 'min_p': '0.00001', 'max_p': '30', 'min_a': '0.0035', 'max_a': '3500'},
+                            {'pair': 'XEM/USD', 'min_q': '10', 'max_q': '10000000', 'min_p': '0.00001', 'max_p': '1000', 'min_a': '0.1', 'max_a': '500000'},
+                            {'pair': 'XEM/EUR', 'min_q': '10', 'max_q': '10000000', 'min_p': '0.00001', 'max_p': '1000', 'min_a': '0.1', 'max_a': '500000'},
+                            {'pair': 'XEM/UAH', 'min_q': '1', 'max_q': '10000000', 'min_p': '0.0001', 'max_p': '30000', 'min_a': '10', 'max_a': '15000000'},
+                            {'pair': 'XEM/BTC', 'min_q': '10', 'max_q': '10000000', 'min_p': '0.0000001', 'max_p': '1', 'min_a': '0.00015', 'max_a': '100'},
+                            {'pair': 'XLM/USD', 'min_q': '0.01', 'max_q': '5000000', 'min_p': '0.0001', 'max_p': '1000', 'min_a': '0.01', 'max_a': '500000'},
+                            {'pair': 'XLM/RUB', 'min_q': '0.01', 'max_q': '5000000', 'min_p': '0.00001', 'max_p': '100000', 'min_a': '0.1', 'max_a': '50000000'},
+                            {'pair': 'XLM/TRY', 'min_q': '0.01', 'max_q': '5000000', 'min_p': '0.00001', 'max_p': '100000', 'min_a': '0.1', 'max_a': '6000000'},
+                            {'pair': 'XLM/BTC', 'min_q': '1', 'max_q': '5000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.001', 'max_a': '100'},
+                            {'pair': 'XMR/USD', 'min_q': '0.01', 'max_q': '10000', 'min_p': '0.001', 'max_p': '1000', 'min_a': '0.1', 'max_a': '500000'},
+                            {'pair': 'XMR/RUB', 'min_q': '0.01', 'max_q': '10000', 'min_p': '0.001', 'max_p': '600000', 'min_a': '10', 'max_a': '16000000'},
+                            {'pair': 'XMR/EUR', 'min_q': '0.01', 'max_q': '10000', 'min_p': '0.001', 'max_p': '1000', 'min_a': '0.1', 'max_a': '500000'},
+                            {'pair': 'XMR/UAH', 'min_q': '0.01', 'max_q': '10000', 'min_p': '0.001', 'max_p': '300000', 'min_a': '5', 'max_a': '16000000'},
+                            {'pair': 'XMR/BTC', 'min_q': '0.01', 'max_q': '10000', 'min_p': '0.0001', 'max_p': '1', 'min_a': '0.001', 'max_a': '100'},
+                            {'pair': 'XMR/ETH', 'min_q': '0.01', 'max_q': '10000', 'min_p': '0.00000001', 'max_p': '100', 'min_a': '0.001', 'max_a': '5000'},
+                            {'pair': 'XRP/EUR', 'min_q': '1', 'max_q': '5000000', 'min_p': '0.001', 'max_p': '1000', 'min_a': '0.001', 'max_a': '500000'},
+                            {'pair': 'XRP/TRY', 'min_q': '1', 'max_q': '5000000', 'min_p': '0.0001', 'max_p': '1000', 'min_a': '0.01', 'max_a': '6000000'},
+                            {'pair': 'XRP/UAH', 'min_q': '1', 'max_q': '5000000', 'min_p': '0.0001', 'max_p': '1000', 'min_a': '0.01', 'max_a': '15000000'},
+                            {'pair': 'XRP/USDT', 'min_q': '1', 'max_q': '5000000', 'min_p': '0.001', 'max_p': '1000', 'min_a': '0.001', 'max_a': '500000'},
+                            {'pair': 'XRP/ETH', 'min_q': '1', 'max_q': '5000000', 'min_p': '0.00000001', 'max_p': '10', 'min_a': '0.00001', 'max_a': '5000'},
                             {'pair': 'XTZ/USD', 'min_q': '0.1', 'max_q': '100000', 'min_p': '0.0001', 'max_p': '1000', 'min_a': '0.1', 'max_a': '100000'},
                             {'pair': 'XTZ/RUB', 'min_q': '0.1', 'max_q': '100000', 'min_p': '0.00001', 'max_p': '100000', 'min_a': '0.5', 'max_a': '500000'},
                             {'pair': 'XTZ/BTC', 'min_q': '0.1', 'max_q': '100000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.00001', 'max_a': '10'},
                             {'pair': 'XTZ/ETH', 'min_q': '0.1', 'max_q': '100000', 'min_p': '0.0000001', 'max_p': '10', 'min_a': '0.0001', 'max_a': '1000'},
-                            {'pair': 'ZEC/USD', 'min_q': '0.01', 'max_q': '1000', 'min_p': '0.001', 'max_p': '5000', 'min_a': '0.1', 'max_a': '500000'},
-                            {'pair': 'ZEC/RUB', 'min_q': '0.01', 'max_q': '1000', 'min_p': '0.001', 'max_p': '100000', 'min_a': '0.1', 'max_a': '50000000'},
-                            {'pair': 'ZEC/EUR', 'min_q': '0.01', 'max_q': '1000', 'min_p': '0.001', 'max_p': '5000', 'min_a': '0.1', 'max_a': '500000'},
-                            {'pair': 'ZEC/BTC', 'min_q': '0.01', 'max_q': '1000', 'min_p': '0.00001', 'max_p': '10', 'min_a': '0.001', 'max_a': '100'},
+                            {'pair': 'ZEC/USD', 'min_q': '0.01', 'max_q': '10000', 'min_p': '0.001', 'max_p': '5000', 'min_a': '0.1', 'max_a': '500000'},
+                            {'pair': 'ZEC/RUB', 'min_q': '0.01', 'max_q': '10000', 'min_p': '0.001', 'max_p': '100000', 'min_a': '0.1', 'max_a': '50000000'},
+                            {'pair': 'ZEC/EUR', 'min_q': '0.01', 'max_q': '10000', 'min_p': '0.001', 'max_p': '5000', 'min_a': '0.1', 'max_a': '500000'},
+                            {'pair': 'ZEC/BTC', 'min_q': '0.01', 'max_q': '10000', 'min_p': '0.00001', 'max_p': '10', 'min_a': '0.001', 'max_a': '100'},
                             {'pair': 'ZRX/USD', 'min_q': '0.01', 'max_q': '10000000', 'min_p': '0.00001', 'max_p': '1000', 'min_a': '0.1', 'max_a': '500000'},
                             {'pair': 'ZRX/BTC', 'min_q': '1', 'max_q': '10000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.001', 'max_a': '100'},
                             {'pair': 'ZRX/ETH', 'min_q': '0.01', 'max_q': '10000000', 'min_p': '0.00000001', 'max_p': '10', 'min_a': '0.01', 'max_a': '5000'},
@@ -355,6 +389,8 @@ class exmo(Exchange):
                                     {'prov': 'CRON', 'dep': '0%', 'wd': '5 CRON'},
                                     {'prov': 'ONT', 'dep': '0%', 'wd': '1 ONT'},
                                     {'prov': 'ONG', 'dep': '0%', 'wd': '5 ONG'},
+                                    {'prov': 'ALGO', 'dep': '0%', 'wd': '0.01 ALGO'},
+                                    {'prov': 'ATOM', 'dep': '0%', 'wd': ''},
                                 ],
                             },
                             {
@@ -363,9 +399,10 @@ class exmo(Exchange):
                                 'items': [
                                     {'prov': 'EX-CODE', 'dep': '', 'wd': '0.2%'},
                                     {'prov': 'Payeer', 'dep': '3.95%', 'wd': '-'},
-                                    {'prov': 'AdvCash', 'dep': '0%', 'wd': '3.99%'},
+                                    {'prov': 'AdvCash', 'dep': '0%', 'wd': '3.49%'},
                                     {'prov': 'Visa/MasterCard(Simplex)', 'dep': '4.5% + 0.5 USD', 'wd': '-'},
                                     {'prov': 'Visa', 'dep': '3.45%', 'wd': '-'},
+                                    {'prov': 'Frick Bank', 'dep': '0 USD', 'wd': '-'},
                                 ],
                             },
                             {
@@ -373,22 +410,24 @@ class exmo(Exchange):
                                 'title': 'EUR',
                                 'items': [
                                     {'prov': 'EX-CODE', 'dep': '', 'wd': '0.2%'},
-                                    {'prov': 'Visa/MasterCard(Simplex)', 'dep': '4.5% + 0.5 EUR', 'wd': '-'},
+                                    {'prov': 'Visa/MasterCard', 'dep': '4.5% + 0.5 EUR', 'wd': '-'},
                                     {'prov': 'Visa', 'dep': '2.95%', 'wd': '-'},
-                                    {'prov': 'SEPA', 'dep': '10 EUR', 'wd': '50 EUR'},
+                                    {'prov': 'Frick Internal Transfer', 'dep': '0 EUR', 'wd': '-'},
+                                    {'prov': 'SEPA Frick Bank', 'dep': '0 EUR', 'wd': '-'},
+                                    {'prov': 'WIRE Frick Bank', 'dep': '0%', 'wd': '-'},
+                                    {'prov': 'SEPA Weg Ag', 'dep': '-', 'wd': '1 EUR'},
                                 ],
                             },
                             {
                                 'group': 'rub',
                                 'title': 'RUB',
                                 'items': [
-                                    {'prov': 'Payeer', 'dep': '2.49%', 'wd': '-'},
+                                    {'prov': 'Payeer', 'dep': '2.49%', 'wd': '3.99%'},
                                     {'prov': 'EX-CODE', 'dep': '', 'wd': '0.2%'},
-                                    {'prov': 'Qiwi', 'dep': '0.99%', 'wd': '2%'},
-                                    {'prov': 'Yandex Money', 'dep': '1.95%', 'wd': '-'},
-                                    {'prov': 'Enfins', 'dep': '0%', 'wd': '1.49%'},
-                                    {'prov': 'AdvCash', 'dep': '0%', 'wd': '2.49%'},
-                                    {'prov': 'Visa/MasterCard', 'dep': '1.99%', 'wd': '4.49% + 60 RUB'},
+                                    {'prov': 'Qiwi', 'dep': '1.49%', 'wd': '2.49%'},
+                                    {'prov': 'Yandex Money', 'dep': '1.49%', 'wd': '-'},
+                                    {'prov': 'AdvCash', 'dep': '0%', 'wd': '3.49%'},
+                                    {'prov': 'Visa/MasterCard', 'dep': '2.99%', 'wd': '3.99% + 60 RUB'},
                                 ],
                             },
                             {
@@ -396,7 +435,6 @@ class exmo(Exchange):
                                 'title': 'PLN',
                                 'items': [
                                     {'prov': 'EX-CODE', 'dep': '', 'wd': '0.2%'},
-                                    {'prov': 'Visa/MasterCard(Simplex)', 'dep': '4.5% + 1 PLN', 'wd': '-'},
                                 ],
                             },
                             {
@@ -406,6 +444,7 @@ class exmo(Exchange):
                                     {'prov': 'EX-CODE', 'dep': '', 'wd': '0.2%'},
                                     {'prov': 'Visa', 'dep': '3.05%', 'wd': '-'},
                                     {'prov': 'Visa/MasterCard(Simplex)', 'dep': '4.5% + 2 TRY', 'wd': '-'},
+                                    {'prov': 'AdvCash', 'dep': '0%', 'wd': '-'},
                                 ],
                             },
                             {
@@ -414,17 +453,18 @@ class exmo(Exchange):
                                 'items': [
                                     {'prov': 'EX-CODE', 'dep': '', 'wd': '0.2%'},
                                     {'prov': 'Terminal', 'dep': '2.6%', 'wd': '-'},
-                                    {'prov': 'Enfins', 'dep': '0%', 'wd': '1.95%'},
-                                    {'prov': 'Visa/MasterCard', 'dep': '1% + 5 UAH', 'wd': '2.99%'},
+                                    {'prov': 'Visa/MasterCard', 'dep': '1% + 5 UAH', 'wd': '-'},
+                                    {'prov': 'Visa/MasterCard EasyTransfer', 'dep': '-', 'wd': '2.99%'},
                                 ],
                             },
                             {
                                 'group': 'kzt',
                                 'title': 'KZT',
                                 'items': [
+                                    {'prov': 'EX-CODE', 'dep': '', 'wd': '0.2%'},
                                     {'prov': 'Visa/MasterCard RoyalPay', 'dep': '-', 'wd': '2.99% + 450 KZT'},
                                     {'prov': 'Visa/MasterCard', 'dep': '3.5%', 'wd': '-'},
-                                    {'prov': 'AdvCash', 'dep': '0%', 'wd': '1.49%'},
+                                    {'prov': 'AdvCash', 'dep': '0%', 'wd': '-'},
                                 ],
                             },
                         ],
@@ -438,6 +478,7 @@ class exmo(Exchange):
                     '40015': ExchangeError,  # API function do not exist
                     '40016': OnMaintenance,  # {"result":false,"error":"Error 40016: Maintenance work in progress"}
                     '40017': AuthenticationError,  # Wrong API Key
+                    '40032': PermissionDenied,  # {"result":false,"error":"Error 40032: Access is denied for self API key"}
                     '40034': RateLimitExceeded,  # {"result":false,"error":"Error 40034: Access is denied, rate limit is exceeded"}
                     '50052': InsufficientFunds,
                     '50054': InsufficientFunds,
@@ -447,6 +488,8 @@ class exmo(Exchange):
                     '50321': InvalidOrder,  # Price by order is more than permissible maximum for self pair
                 },
                 'broad': {
+                    'range period is too long': BadRequest,
+                    'invalid syntax': BadRequest,
                     'API rate limit exceeded': RateLimitExceeded,  # {"result":false,"error":"API rate limit exceeded for 99.33.55.224. Retry after 60 sec.","history":[],"begin":1579392000,"end":1579478400}
                 },
             },
@@ -589,8 +632,21 @@ class exmo(Exchange):
         return result
 
     def fetch_markets(self, params={}):
-        fees = self.fetch_trading_fees()
         response = self.publicGetPairSettings(params)
+        #
+        #     {
+        #         "EXM_ETH": {
+        #         "min_quantity": "1",
+        #         "max_quantity": "1000",
+        #         "min_price": "1",
+        #         "max_price": "1000",
+        #         "max_amount": "1000",
+        #         "min_amount": "1",
+        #         "commission_taker_percent": "0.2",
+        #         "commission_maker_percent": "0.2"
+        #         },
+        #     }
+        #
         keys = list(response.keys())
         result = []
         for i in range(0, len(keys)):
@@ -600,6 +656,8 @@ class exmo(Exchange):
             baseId, quoteId = symbol.split('/')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            taker = self.safe_float(market, 'commission_taker_percent')
+            maker = self.safe_float(market, 'commission_maker_percent')
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -608,8 +666,8 @@ class exmo(Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': True,
-                'taker': fees['taker'],
-                'maker': fees['maker'],
+                'taker': taker / 100,
+                'maker': maker / 100,
                 'limits': {
                     'amount': {
                         'min': self.safe_float(market, 'min_quantity'),
@@ -631,6 +689,67 @@ class exmo(Exchange):
                 'info': market,
             })
         return result
+
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+            'resolution': self.timeframes[timeframe],
+        }
+        options = self.safe_value(self.options, 'fetchOHLCV')
+        maxLimit = self.safe_integer(options, 'maxLimit', 3000)
+        duration = self.parse_timeframe(timeframe)
+        now = self.milliseconds()
+        if since is None:
+            if limit is None:
+                raise ArgumentsRequired(self.id + ' fetchOHLCV requires a since argument or a limit argument')
+            else:
+                if limit > maxLimit:
+                    raise BadRequest(self.id + ' fetchOHLCV will serve ' + str(maxLimit) + ' candles at most')
+                request['from'] = int(now / 1000) - limit * duration - 1
+                request['to'] = int(now / 1000)
+        else:
+            request['from'] = int(since / 1000) - 1
+            if limit is None:
+                request['to'] = int(now / 1000)
+            else:
+                if limit > maxLimit:
+                    raise BadRequest(self.id + ' fetchOHLCV will serve ' + str(maxLimit) + ' candles at most')
+                to = self.sum(since, limit * duration * 1000)
+                request['to'] = int(to / 1000)
+        response = self.publicGetCandlesHistory(self.extend(request, params))
+        #
+        #     {
+        #         "candles":[
+        #             {"t":1584057600000,"o":0.02235144,"c":0.02400233,"h":0.025171,"l":0.02221,"v":5988.34031761},
+        #             {"t":1584144000000,"o":0.0240373,"c":0.02367413,"h":0.024399,"l":0.0235,"v":2027.82522329},
+        #             {"t":1584230400000,"o":0.02363458,"c":0.02319242,"h":0.0237948,"l":0.02223196,"v":1707.96944997},
+        #         ]
+        #     }
+        #
+        candles = self.safe_value(response, 'candles', [])
+        return self.parse_ohlcvs(candles, market, timeframe, since, limit)
+
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='5m', since=None, limit=None):
+        #
+        #     {
+        #         "t":1584057600000,
+        #         "o":0.02235144,
+        #         "c":0.02400233,
+        #         "h":0.025171,
+        #         "l":0.02221,
+        #         "v":5988.34031761
+        #     }
+        #
+        return [
+            self.safe_integer(ohlcv, 't'),
+            self.safe_float(ohlcv, 'o'),
+            self.safe_float(ohlcv, 'h'),
+            self.safe_float(ohlcv, 'l'),
+            self.safe_float(ohlcv, 'c'),
+            self.safe_float(ohlcv, 'v'),
+        ]
 
     def fetch_balance(self, params={}):
         self.load_markets()
@@ -738,8 +857,36 @@ class exmo(Exchange):
         return self.parse_ticker(response[market['id']], market)
 
     def parse_trade(self, trade, market=None):
+        #
+        # fetchTrades(public)
+        #
+        #     {
+        #         "trade_id":165087520,
+        #         "date":1587470005,
+        #         "type":"buy",
+        #         "quantity":"1.004",
+        #         "price":"0.02491461",
+        #         "amount":"0.02501426"
+        #     },
+        #
+        # fetchMyTrades, fetchOrderTrades
+        #
+        #     {
+        #         "trade_id": 3,
+        #         "date": 1435488248,
+        #         "type": "buy",
+        #         "pair": "BTC_USD",
+        #         "order_id": 12345,
+        #         "quantity": 1,
+        #         "price": 100,
+        #         "amount": 100,
+        #         "exec_type": "taker",
+        #         "commission_amount": "0.02",
+        #         "commission_currency": "BTC",
+        #         "commission_percent": "0.2"
+        #     }
+        #
         timestamp = self.safe_timestamp(trade, 'date')
-        fee = None
         symbol = None
         id = self.safe_string(trade, 'trade_id')
         orderId = self.safe_string(trade, 'order_id')
@@ -748,22 +895,31 @@ class exmo(Exchange):
         cost = self.safe_float(trade, 'amount')
         side = self.safe_string(trade, 'type')
         type = None
-        if market is not None:
+        marketId = self.safe_string(trade, 'pair')
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+            else:
+                baseId, quoteId = marketId.split('_')
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
+                symbol = base + '/' + quote
+        if (symbol is None) and (market is not None):
             symbol = market['symbol']
-            if market['taker'] != market['maker']:
-                raise ExchangeError(self.id + ' parseTrade can not deduce proper fee costs, taker and maker fees now differ')
-            if (side == 'buy') and (amount is not None):
-                fee = {
-                    'currency': market['base'],
-                    'cost': amount * market['taker'],
-                    'rate': market['taker'],
-                }
-            elif (side == 'sell') and (cost is not None):
-                fee = {
-                    'currency': market['quote'],
-                    'cost': cost * market['taker'],
-                    'rate': market['taker'],
-                }
+        takerOrMaker = self.safe_string(trade, 'exec_type')
+        fee = None
+        feeCost = self.safe_float(trade, 'commission_amount')
+        if feeCost is not None:
+            feeCurrencyId = self.safe_string(trade, 'commission_currency')
+            feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
+            feeRate = self.safe_float(trade, 'commission_percent')
+            if feeRate is not None:
+                feeRate /= 1000
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+                'rate': feeRate,
+            }
         return {
             'id': id,
             'info': trade,
@@ -773,7 +929,7 @@ class exmo(Exchange):
             'order': orderId,
             'type': type,
             'side': side,
-            'takerOrMaker': None,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -787,6 +943,28 @@ class exmo(Exchange):
             'pair': market['id'],
         }
         response = self.publicGetTrades(self.extend(request, params))
+        #
+        #     {
+        #         "ETH_BTC":[
+        #             {
+        #                 "trade_id":165087520,
+        #                 "date":1587470005,
+        #                 "type":"buy",
+        #                 "quantity":"1.004",
+        #                 "price":"0.02491461",
+        #                 "amount":"0.02501426"
+        #             },
+        #             {
+        #                 "trade_id":165087369,
+        #                 "date":1587469938,
+        #                 "type":"buy",
+        #                 "quantity":"0.94",
+        #                 "price":"0.02492348",
+        #                 "amount":"0.02342807"
+        #             }
+        #         ]
+        #     }
+        #
         data = self.safe_value(response, market['id'], [])
         return self.parse_trades(data, market, since, limit)
 
@@ -927,6 +1105,31 @@ class exmo(Exchange):
             'order_id': str(id),
         }
         response = self.privatePostOrderTrades(self.extend(request, params))
+        #
+        #     {
+        #         "type": "buy",
+        #         "in_currency": "BTC",
+        #         "in_amount": "1",
+        #         "out_currency": "USD",
+        #         "out_amount": "100",
+        #         "trades": [
+        #             {
+        #                 "trade_id": 3,
+        #                 "date": 1435488248,
+        #                 "type": "buy",
+        #                 "pair": "BTC_USD",
+        #                 "order_id": 12345,
+        #                 "quantity": 1,
+        #                 "price": 100,
+        #                 "amount": 100,
+        #                 "exec_type": "taker",
+        #                 "commission_amount": "0.02",
+        #                 "commission_currency": "BTC",
+        #                 "commission_percent": "0.2"
+        #             }
+        #         ]
+        #     }
+        #
         trades = self.safe_value(response, 'trades')
         return self.parse_trades(trades, market, since, limit)
 
@@ -1313,9 +1516,10 @@ class exmo(Exchange):
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return  # fallback to default error handler
-        if 'result' in response:
+        if ('result' in response) or ('errmsg' in response):
             #
             #     {"result":false,"error":"Error 50052: Insufficient funds"}
+            #     {"s":"error","errmsg":"strconv.ParseInt: parsing \"\": invalid syntax"}
             #
             success = self.safe_value(response, 'result', False)
             if isinstance(success, basestring):
@@ -1325,7 +1529,7 @@ class exmo(Exchange):
                     success = False
             if not success:
                 code = None
-                message = self.safe_string(response, 'error')
+                message = self.safe_string_2(response, 'error', 'errmsg')
                 errorParts = message.split(':')
                 numParts = len(errorParts)
                 if numParts > 1:

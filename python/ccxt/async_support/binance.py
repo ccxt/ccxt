@@ -14,6 +14,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
@@ -52,6 +53,7 @@ class binance(Exchange):
                 'fetchTransactions': False,
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
+                'cancelAllOrders': True,
             },
             'timeframes': {
                 '1m': '1m',
@@ -72,6 +74,10 @@ class binance(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg',
+                'test': {
+                    'fapiPublic': 'https://testnet.binancefuture.com/fapi/v1',
+                    'fapiPrivate': 'https://testnet.binancefuture.com/fapi/v1',
+                },
                 'api': {
                     'web': 'https://www.binance.com',
                     'wapi': 'https://api.binance.com/wapi/v3',
@@ -145,6 +151,8 @@ class binance(Exchange):
                         'lending/union/purchaseRecord',
                         'lending/union/redemptionRecord',
                         'lending/union/interestHistory',
+                        'lending/project/list',
+                        'lending/project/position/list',
                     ],
                     'post': [
                         'asset/dust',
@@ -161,6 +169,7 @@ class binance(Exchange):
                         'userDataStream',
                         'futures/transfer',
                         # lending
+                        'lending/customizedFixed/purchase',
                         'lending/daily/purchase',
                         'lending/daily/redeem',
                     ],
@@ -226,6 +235,8 @@ class binance(Exchange):
                         'income',
                     ],
                     'post': [
+                        'batchOrders',
+                        'positionSide/dual',
                         'positionMargin',
                         'marginType',
                         'order',
@@ -236,6 +247,7 @@ class binance(Exchange):
                         'listenKey',
                     ],
                     'delete': [
+                        'batchOrders',
                         'order',
                         'allOpenOrders',
                         'listenKey',
@@ -282,6 +294,7 @@ class binance(Exchange):
                         'order/test',
                     ],
                     'delete': [
+                        'openOrders',  # added on 2020-04-25 for canceling all open orders per symbol
                         'orderList',  # oco
                         'order',
                     ],
@@ -304,7 +317,6 @@ class binance(Exchange):
                 'fetchTradesMethod': 'publicGetAggTrades',  # publicGetTrades, publicGetHistoricalTrades
                 'fetchTickersMethod': 'publicGetTicker24hr',
                 'defaultTimeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
-                'defaultLimitOrderType': 'limit',  # or 'limit_maker'
                 'defaultType': 'spot',  # 'spot', 'future'
                 'hasAlreadyAuthenticatedSuccessfully': False,
                 'warnOnFetchOpenOrdersWithoutSymbol': True,
@@ -339,6 +351,12 @@ class binance(Exchange):
                 '-2015': AuthenticationError,  # "Invalid API-key, IP, or permissions for action."
             },
         })
+
+    def set_sandbox_mode(self, enabled):
+        type = self.safe_string(self.options, 'defaultType', 'spot')
+        if type != 'future':
+            raise NotSupported(self.id + ' does not have a sandbox URL for ' + type + " markets, set exchange.options['defaultType'] = 'future' or don't use the sandbox for " + self.id)
+        return super(binance, self).set_sandbox_mode(enabled)
 
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
@@ -707,7 +725,7 @@ class binance(Exchange):
 
     async def fetch_bids_asks(self, symbols=None, params={}):
         await self.load_markets()
-        defaultType = self.safe_string_2(self.options, 'fetchOpenOrders', 'defaultType', 'spot')
+        defaultType = self.safe_string_2(self.options, 'fetchBidsAsks', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
         query = self.omit(params, 'type')
         method = 'publicGetTickerBookTicker' if (type == 'spot') else 'fapiPublicGetTickerBookTicker'
@@ -722,12 +740,12 @@ class binance(Exchange):
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return [
-            ohlcv[0],
-            float(ohlcv[1]),
-            float(ohlcv[2]),
-            float(ohlcv[3]),
-            float(ohlcv[4]),
-            float(ohlcv[5]),
+            self.safe_integer(ohlcv, 0),
+            self.safe_float(ohlcv, 1),
+            self.safe_float(ohlcv, 2),
+            self.safe_float(ohlcv, 3),
+            self.safe_float(ohlcv, 4),
+            self.safe_float(ohlcv, 5),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -1119,6 +1137,8 @@ class binance(Exchange):
         elif uppercaseType == 'STOP':
             stopPriceIsRequired = True
             priceIsRequired = True
+        elif uppercaseType == 'STOP_MARKET':
+            stopPriceIsRequired = True
         if priceIsRequired:
             if price is None:
                 raise InvalidOrder(self.id + ' createOrder method requires a price argument for a ' + type + ' order')
@@ -1257,6 +1277,24 @@ class binance(Exchange):
         method = 'privateDeleteOrder' if market['spot'] else 'fapiPrivateDeleteOrder'
         response = await getattr(self, method)(self.extend(request, params))
         return self.parse_order(response)
+
+    async def cancel_all_orders(self, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' cancelAllOrders requires a symbol argument')
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        defaultType = self.safe_string_2(self.options, 'cancelAllOrders', 'defaultType', 'spot')
+        type = self.safe_string(params, 'type', defaultType)
+        query = self.omit(params, 'type')
+        method = 'privateDeleteOpenOrders' if (type == 'spot') else 'fapiPrivateDeleteAllOpenOrders'
+        response = await getattr(self, method)(self.extend(request, query))
+        if isinstance(response, list):
+            return self.parse_orders(response, market)
+        else:
+            return response
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
@@ -1472,9 +1510,7 @@ class binance(Exchange):
         return self.parse_transactions(response['withdrawList'], currency, since, limit)
 
     def parse_transaction_status_by_type(self, status, type=None):
-        if type is None:
-            return status
-        statuses = {
+        statusesByType = {
             'deposit': {
                 '0': 'pending',
                 '1': 'ok',
@@ -1489,31 +1525,37 @@ class binance(Exchange):
                 '6': 'ok',  # Completed
             },
         }
-        return statuses[type][status] if (status in statuses[type]) else status
+        statuses = self.safe_value(statusesByType, type, {})
+        return self.safe_string(statuses, status, status)
 
     def parse_transaction(self, transaction, currency=None):
         #
         # fetchDeposits
-        #      {insertTime:  1517425007000,
-        #            amount:  0.3,
-        #           address: "0x0123456789abcdef",
-        #        addressTag: "",
-        #              txId: "0x0123456789abcdef",
-        #             asset: "ETH",
-        #            status:  1                                                                    }
+        #
+        #     {
+        #         insertTime:  1517425007000,
+        #         amount:  0.3,
+        #         address: "0x0123456789abcdef",
+        #         addressTag: "",
+        #         txId: "0x0123456789abcdef",
+        #         asset: "ETH",
+        #         status:  1
+        #     }
         #
         # fetchWithdrawals
         #
-        #       {     amount:  14,
-        #             address: "0x0123456789abcdef...",
+        #     {
+        #         amount:  14,
+        #         address: "0x0123456789abcdef...",
         #         successTime:  1514489710000,
-        #      transactionFee:  0.01,
-        #          addressTag: "",
-        #                txId: "0x0123456789abcdef...",
-        #                  id: "0123456789abcdef...",
-        #               asset: "ETH",
-        #           applyTime:  1514488724000,
-        #              status:  6                       }
+        #         transactionFee:  0.01,
+        #         addressTag: "",
+        #         txId: "0x0123456789abcdef...",
+        #         id: "0123456789abcdef...",
+        #         asset: "ETH",
+        #         applyTime:  1514488724000,
+        #         status:  6
+        #     }
         #
         id = self.safe_string(transaction, 'id')
         address = self.safe_string(transaction, 'address')
@@ -1729,6 +1771,11 @@ class binance(Exchange):
             query = None
             if (api == 'sapi') and (path == 'asset/dust'):
                 query = self.urlencode_with_array_repeat(self.extend({
+                    'timestamp': self.nonce(),
+                    'recvWindow': self.options['recvWindow'],
+                }, params))
+            elif path == 'batchOrders':
+                query = self.rawencode(self.extend({
                     'timestamp': self.nonce(),
                     'recvWindow': self.options['recvWindow'],
                 }, params))

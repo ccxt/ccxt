@@ -168,6 +168,26 @@ class gateio extends Exchange {
 
     public function fetch_markets($params = array ()) {
         $response = $this->publicGetMarketinfo ($params);
+        //
+        //     {
+        //         "$result":"true",
+        //         "pairs":array(
+        //             {
+        //                 "usdt_cnyx":array(
+        //                     "decimal_places":3,
+        //                     "amount_decimal_places":3,
+        //                     "min_amount":1,
+        //                     "min_amount_a":1,
+        //                     "min_amount_b":3,
+        //                     "$fee":0.02,
+        //                     "trade_disabled":0,
+        //                     "buy_disabled":0,
+        //                     "sell_disabled":0
+        //                 }
+        //             ),
+        //         )
+        //     }
+        //
         $markets = $this->safe_value($response, 'pairs');
         if (!$markets) {
             throw new ExchangeError($this->id . ' fetchMarkets got an unrecognized response');
@@ -194,14 +214,14 @@ class gateio extends Exchange {
             $symbol = $base . '/' . $quote;
             $precision = array(
                 'amount' => 8,
-                'price' => $details['decimal_places'],
+                'price' => $this->safe_integer($details, 'decimal_places'),
             );
             $amountLimits = array(
-                'min' => $details['min_amount'],
+                'min' => $this->safe_float($details, 'min_amount'),
                 'max' => null,
             );
             $priceLimits = array(
-                'min' => pow(10, -$details['decimal_places']),
+                'min' => pow(10, -$precision['price']),
                 'max' => null,
             );
             $defaultCost = $amountLimits['min'] * $priceLimits['min'];
@@ -215,9 +235,13 @@ class gateio extends Exchange {
                 'price' => $priceLimits,
                 'cost' => $costLimits,
             );
-            $active = true;
+            $disabled = $this->safe_value($details, 'trade_disabled');
+            $active = !$disabled;
+            $uppercaseId = strtoupper($id);
+            $fee = $this->safe_float($details, 'fee');
             $result[] = array(
                 'id' => $id,
+                'uppercaseId' => $uppercaseId,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
@@ -225,8 +249,8 @@ class gateio extends Exchange {
                 'quoteId' => $quoteId,
                 'info' => $market,
                 'active' => $active,
-                'maker' => $details['fee'] / 100,
-                'taker' => $details['fee'] / 100,
+                'maker' => $fee / 100,
+                'taker' => $fee / 100,
                 'precision' => $precision,
                 'limits' => $limits,
             );
@@ -700,7 +724,7 @@ class gateio extends Exchange {
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades requires $symbol param');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades requires $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);

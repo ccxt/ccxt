@@ -191,9 +191,9 @@ class paymium(Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         request = {
-            'UUID': id,
+            'uuid': id,
         }
-        return await self.privateDeleteUserOrdersUUIDCancel(self.extend(request, params))
+        return await self.privateDeleteUserOrdersUuidCancel(self.extend(request, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)

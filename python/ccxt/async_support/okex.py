@@ -12,7 +12,6 @@ try:
 except NameError:
     basestring = str  # Python 2
 import hashlib
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -89,6 +88,9 @@ class okex(Exchange):
                 'doc': 'https://www.okex.com/docs/en/',
                 'fees': 'https://www.okex.com/pages/products/fees.html',
                 'referral': 'https://www.okex.com/join/1888677',
+                'test': {
+                    'rest': 'https://testnet.okex.com',
+                },
             },
             'api': {
                 'general': {
@@ -812,12 +814,6 @@ class okex(Exchange):
             'price': self.safe_float(market, 'tick_size'),
         }
         minAmount = self.safe_float_2(market, 'min_size', 'base_min_size')
-        minPrice = self.safe_float(market, 'tick_size')
-        if precision['price'] is not None:
-            minPrice = math.pow(10, -precision['price'])
-        minCost = None
-        if minAmount is not None and minPrice is not None:
-            minCost = minAmount * minPrice
         active = True
         fees = self.safe_value_2(self.fees, marketType, 'trading', {})
         return self.extend(fees, {
@@ -841,11 +837,11 @@ class okex(Exchange):
                     'max': None,
                 },
                 'price': {
-                    'min': minPrice,
+                    'min': precision['price'],
                     'max': None,
                 },
                 'cost': {
-                    'min': minCost,
+                    'min': precision['price'],
                     'max': None,
                 },
             },
@@ -1349,8 +1345,16 @@ class okex(Exchange):
             'instrument_id': market['id'],
             'granularity': self.timeframes[timeframe],
         }
+        duration = self.parse_timeframe(timeframe)
         if since is not None:
+            if limit is not None:
+                request['end'] = self.iso8601(self.sum(since, limit * duration * 1000))
             request['start'] = self.iso8601(since)
+        else:
+            now = self.milliseconds()
+            if limit is not None:
+                request['start'] = self.iso8601(now - limit * duration * 1000)
+                request['end'] = self.iso8601(now)
         response = await getattr(self, method)(self.extend(request, params))
         #
         # spot markets
@@ -2211,9 +2215,11 @@ class okex(Exchange):
         return await self.fetch_orders_by_state('7', symbol, since, limit, params)
 
     def parse_deposit_addresses(self, addresses):
-        result = []
+        result = {}
         for i in range(0, len(addresses)):
-            result.append(self.parse_deposit_address(addresses[i]))
+            address = self.parse_deposit_address(addresses[i])
+            code = address['currency']
+            result[code] = address
         return result
 
     def parse_deposit_address(self, depositAddress, currency=None):
@@ -2256,10 +2262,10 @@ class okex(Exchange):
         #     ]
         #
         addresses = self.parse_deposit_addresses(response)
-        numAddresses = len(addresses)
-        if numAddresses < 1:
+        address = self.safe_value(addresses, code)
+        if address is None:
             raise InvalidAddress(self.id + ' fetchDepositAddress cannot return nonexistent addresses, you should create withdrawal addresses with the exchange website first')
-        return addresses[0]
+        return address
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
@@ -2269,7 +2275,7 @@ class okex(Exchange):
             address = address + ':' + tag
         fee = self.safe_string(params, 'fee')
         if fee is None:
-            raise ExchangeError(self.id + " withdraw() requires a `fee` string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKEx are fee-free, please set '0'. Withdrawing to external digital asset address requires network transaction fee.")
+            raise ArgumentsRequired(self.id + " withdraw() requires a `fee` string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKEx are fee-free, please set '0'. Withdrawing to external digital asset address requires network transaction fee.")
         request = {
             'currency': currency['id'],
             'to_address': address,

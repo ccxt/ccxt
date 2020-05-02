@@ -44,7 +44,7 @@ def scrape_ohlcv(exchange, max_retries, symbol, timeframe, since, limit):
         # if we have reached the checkpoint
         if fetch_since < since:
             break
-    return all_ohlcv
+    return exchange.filter_by_since_limit(all_ohlcv, since, None, key=0)
 
 
 def write_to_csv(filename, data):
@@ -72,4 +72,4 @@ def scrape_candles_to_csv(filename, exchange_id, max_retries, symbol, timeframe,
 
 # -----------------------------------------------------------------------------
 
-scrape_candles_to_csv('binance.csv', 'binance', 3, 'NEBL/ETH', '1d', '2016-01-01T00:00:00Z', 100)
+scrape_candles_to_csv('binance.csv', 'binance', 3, 'XRP/USDT', '1d', '2019-01-01T00:00:00Z', 100)

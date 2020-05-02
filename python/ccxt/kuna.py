@@ -20,11 +20,12 @@ class kuna(acx):
             'has': {
                 'CORS': False,
                 'fetchTickers': True,
-                'fetchOHLCV': False,
+                'fetchOHLCV': 'emulated',
                 'fetchOpenOrders': True,
                 'fetchMyTrades': True,
                 'withdraw': False,
             },
+            'timeframes': None,
             'urls': {
                 'referral': 'https://kuna.io?r=kunaid-gvfihe8az7o4',
                 'logo': 'https://user-images.githubusercontent.com/1294454/31697638-912824fa-b3c1-11e7-8c36-cf9606eb94ac.jpg',
@@ -179,3 +180,20 @@ class kuna(acx):
         }
         response = self.privateGetTradesMy(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
+
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limits=None, params={}):
+        self.load_markets()
+        trades = self.fetch_trades(symbol, since, limits, params)
+        ohlcvc = self.build_ohlcvc(trades, timeframe, since, limits)
+        result = []
+        for i in range(0, len(ohlcvc)):
+            ohlcv = ohlcvc[i]
+            result.append([
+                ohlcv[0],
+                ohlcv[1],
+                ohlcv[2],
+                ohlcv[3],
+                ohlcv[4],
+                ohlcv[5],
+            ])
+        return result

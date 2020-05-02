@@ -21,6 +21,7 @@ class btctradeua extends Exchange {
                 'CORS' => false,
                 'createMarketOrder' => false,
                 'fetchOpenOrders' => true,
+                'signIn' => true,
             ),
             'urls' => array(
                 'referral' => 'https://btc-trade.com.ua/registration/22689',

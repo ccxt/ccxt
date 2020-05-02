@@ -143,7 +143,6 @@ class crex24(Exchange):
                 'fetchClosedOrdersMethod': 'tradingGetOrderHistory',  # or 'tradingGetActiveOrders'
                 'fetchTickersMethod': 'publicGetTicker24hr',
                 'defaultTimeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
-                'defaultLimitOrderType': 'limit',  # or 'limit_maker'
                 'hasAlreadyAuthenticatedSuccessfully': False,
                 'warnOnFetchOpenOrdersWithoutSymbol': True,
                 'parseOrderToPrecision': False,  # force amounts and costs in parseOrder to precision
