@@ -56,7 +56,7 @@ module.exports = class hbtc extends Exchange {
                 '1M': '1M',
             },
             'urls': {
-                'logo': 'https://static.bhfastime.com/bhop/image/LNGLqbeLy3Fii-j6cYHcPP2l4rt5pboW_FF_ER4uExg.png', // 交易所LOGO
+                'logo': 'https://user-images.githubusercontent.com/51840849/80134449-70663300-85a7-11ea-8942-e204cdeaab5d.jpg', // 交易所LOGO
                 'api': {
                     'quote': 'https://api.hbtc.com/openapi/quote', // 市场API数据端点
                     'contract': 'https://api.hbtc.com/openapi/contract', // 合约API数据端点
