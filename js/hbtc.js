@@ -35,6 +35,7 @@ module.exports = class hbtc extends Exchange {
                 'fetchCurrencies': false,
                 'fetchDeposits': true,
                 'fetchWithdrawals': true,
+                'fetchAccounts': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -1332,6 +1333,41 @@ module.exports = class hbtc extends Exchange {
             'info': response,
             'id': this.safeString (response, 'orderId'),
         };
+    }
+
+    async fetchAccounts (params = {}) {
+        const response = await this.privatePostSubAccountQuery (params);
+        //
+        //     [
+        //         {
+        //             "accountId": "122216245228131",
+        //             "accountName": "createSubAccountByCurl", // sub-account name
+        //             "accountType": 1, // 1 token trading, 2 options, 3 futures
+        //             "accountIndex": 1, // 0 main account, 1 sub-account
+        //         },
+        //     ]
+        //
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            const account = response[i];
+            const accountId = this.safeString (account, 'accountId');
+            const accountType = this.safeString (account, 'accountType');
+            let type = accountType;
+            if (accountType === '1') {
+                type = 'spot';
+            } else if (accountType === '2') {
+                type = 'option';
+            } else if (accountType === '3') {
+                type = 'future';
+            }
+            result.push ({
+                'id': accountId,
+                'type': type,
+                'currency': undefined,
+                'info': account,
+            });
+        }
+        return result;
     }
 
     parseTransactionStatus (status) {
