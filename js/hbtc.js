@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ExchangeError, OrderNotFound, ArgumentsRequired, BadSymbol, BadRequest, NullResponse, InvalidOrder, BadResponse, NotSupported, ExchangeNotAvailable, RequestTimeout, RateLimitExceeded, PermissionDenied, InsufficientFunds } = require ('./base/errors');
+const { AuthenticationError, ExchangeError, OrderNotFound, ArgumentsRequired, BadSymbol, BadRequest, NullResponse, InvalidOrder, BadResponse, NotSupported, ExchangeNotAvailable, RequestTimeout, RateLimitExceeded, PermissionDenied, InsufficientFunds, InvalidAddress } = require ('./base/errors');
 const { TICK_SIZE, TRUNCATE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -31,7 +31,7 @@ module.exports = class hbtc extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchTradingLimits': true,
                 'fetchMyTrades': true,
-                'withdraw': false,
+                'withdraw': true,
                 'fetchCurrencies': false,
                 'fetchDeposits': true,
                 'fetchWithdrawals': true,
@@ -64,7 +64,7 @@ module.exports = class hbtc extends Exchange {
                     'zendesk': 'https://hbtc.zendesk.com/hc/en-us',
                 },
                 'www': 'https://www.hbtc.com', // 公司主页
-                'referral': 'https://www.hbtc.com/register/HH6PGQ', // 邀请链接
+                'referral': 'https://www.hbtc.com/register/O2S8NS', // 邀请链接
                 'doc': 'https://github.com/bhexopen/BHEX-OpenApi/tree/master/doc', // openapi文档地址
                 'fees': 'https://hbtc.zendesk.com/hc/zh-cn/articles/360009274694', // 费率介绍
             },
@@ -235,6 +235,7 @@ module.exports = class hbtc extends Exchange {
                     '-1146': RequestTimeout, // Order creation timeout
                     '-1147': RequestTimeout, // Order cancellation timeout
                     '-1149': InvalidOrder, // Create order failed
+                    '-1187': InvalidAddress, // Withdrawal address not in whitelist
                     '-2010': InvalidOrder, // NEW_ORDER_REJECTED
                     '-2011': InvalidOrder, // CANCEL_REJECTED
                     '-2013': OrderNotFound, // Order does not exist
@@ -1301,6 +1302,36 @@ module.exports = class hbtc extends Exchange {
         //     ]
         //
         return this.parseTransactions (response, currency, since, limit);
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const clientOrderId = this.safeString (params, 'clientOrderId', this.uuid ());
+        const request = {
+            'clientOrderId': clientOrderId,
+            'tokenId': currency['id'],
+            'address': address, // the withdrawal address must be in current tag list in your PC/APP client
+            'withdrawQuantity': amount,
+            // 'chainType': 'OMNI', // OMNI, ERC20, TRC20
+        };
+        if (tag !== undefined) {
+            request['addressExt'] = tag;
+        }
+        const response = await this.privatePostWithdraw (this.extend (request, params));
+        //
+        //     {
+        //         "status": 0,
+        //         "success": true,
+        //         "needBrokerAudit": false, // Whether this request needs broker auit
+        //         "orderId": "423885103582776064" // Id for successful withdrawal
+        //     }
+        //
+        return {
+            'info': response,
+            'id': this.safeString (response, 'orderId'),
+        };
     }
 
     parseTransactionStatus (status) {
