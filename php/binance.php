@@ -1620,10 +1620,7 @@ class binance extends Exchange {
     }
 
     public function parse_transaction_status_by_type($status, $type = null) {
-        if ($type === null) {
-            return $status;
-        }
-        $statuses = array(
+        $statusesByType = array(
             'deposit' => array(
                 '0' => 'pending',
                 '1' => 'ok',
@@ -1638,32 +1635,38 @@ class binance extends Exchange {
                 '6' => 'ok', // Completed
             ),
         );
-        return (is_array($statuses[$type]) && array_key_exists($status, $statuses[$type])) ? $statuses[$type][$status] : $status;
+        $statuses = $this->safe_value($statusesByType, $type, array());
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function parse_transaction($transaction, $currency = null) {
         //
         // fetchDeposits
-        //      { $insertTime =>  1517425007000,
-        //            $amount =>  0.3,
-        //           $address => "0x0123456789abcdef",
-        //        addressTag => "",
-        //              txId => "0x0123456789abcdef",
-        //             asset => "ETH",
-        //            $status =>  1                                                                    }
+        //
+        //     {
+        //         $insertTime =>  1517425007000,
+        //         $amount =>  0.3,
+        //         $address => "0x0123456789abcdef",
+        //         addressTag => "",
+        //         txId => "0x0123456789abcdef",
+        //         asset => "ETH",
+        //         $status =>  1
+        //     }
         //
         // fetchWithdrawals
         //
-        //       {      $amount =>  14,
-        //             $address => "0x0123456789abcdef...",
+        //     {
+        //         $amount =>  14,
+        //         $address => "0x0123456789abcdef...",
         //         successTime =>  1514489710000,
-        //      transactionFee =>  0.01,
-        //          addressTag => "",
-        //                txId => "0x0123456789abcdef...",
-        //                  $id => "0123456789abcdef...",
-        //               asset => "ETH",
-        //           $applyTime =>  1514488724000,
-        //              $status =>  6                       }
+        //         transactionFee =>  0.01,
+        //         addressTag => "",
+        //         txId => "0x0123456789abcdef...",
+        //         $id => "0123456789abcdef...",
+        //         asset => "ETH",
+        //         $applyTime =>  1514488724000,
+        //         $status =>  6
+        //     }
         //
         $id = $this->safe_string($transaction, 'id');
         $address = $this->safe_string($transaction, 'address');
