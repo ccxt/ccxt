@@ -918,7 +918,7 @@ module.exports = class timex extends Exchange {
         const feeString = this.safeString (currency, 'withdrawalFee');
         const tradeDecimals = this.safeInteger (currency, 'tradeDecimals');
         let fee = undefined;
-        if ((feeString !== undefined) (tradeDecimals !== undefined)) {
+        if ((feeString !== undefined) && (tradeDecimals !== undefined)) {
             const feeStringLen = feeString.length;
             const dotIndex = feeStringLen - tradeDecimals;
             if (dotIndex > 0) {
