@@ -1256,6 +1256,53 @@ module.exports = class hbtc extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let currency = undefined;
+        const request = {
+            // 'fromId': 'string', // if fromId is set, it will get deposits > that fromId, otherwise most recent deposits are returned
+        };
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['token'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 500, max 1000
+        }
+        const response = await this.privateGetWithdrawalOrders (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "time":"1536232111669",
+        //             "orderId":"90161227158286336",
+        //             "accountId":"517256161325920",
+        //             "tokenId":"BHC",
+        //             "tokenName":"BHC",
+        //             "address":"0x815bF1c3cc0f49b8FC66B21A7e48fCb476051209",
+        //             "addressExt":"address tag",
+        //             "quantity":"14", // Withdrawal qty
+        //             "arriveQuantity":"14", // Arrived qty
+        //             "statusCode":"PROCESSING_STATUS",
+        //             "status":3,
+        //             "txid":"",
+        //             "txidUrl":"",
+        //             "walletHandleTime":"1536232111669",
+        //             "feeTokenId":"BHC",
+        //             "feeTokenName":"BHC",
+        //             "fee":"0.1",
+        //             "requiredConfirmNum":0, // Required confirmations
+        //             "confirmNum":0, // Confirmations
+        //             "kernelId":"", // BEAM and GRIN only
+        //             "isInternalTransfer": false // True if this transfer is internal
+        //         }
+        //     ]
+        //
+        return this.parseTransactions (response, currency, since, limit);
+    }
+
     parseTicker (ticker, market = undefined) {
         //
         // fetchTicker, fetchTickers
