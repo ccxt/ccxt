@@ -33,7 +33,7 @@ module.exports = class hbtc extends Exchange {
                 'fetchMyTrades': true,
                 'withdraw': false,
                 'fetchCurrencies': false,
-                'fetchDeposits': false,
+                'fetchDeposits': true,
                 'fetchWithdrawals': false,
             },
             'timeframes': {
@@ -1221,6 +1221,39 @@ module.exports = class hbtc extends Exchange {
         }
         const response = await this[method] (this.extend (request, query));
         return this.parseOrder (response);
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let currency = undefined;
+        const request = {
+            // 'fromId': 'string', // if fromId is set, it will get deposits > that fromId, otherwise most recent deposits are returned
+        };
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetDepositOrders (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             'time': '1565769575929',
+        //             'orderId': '428100569859739648',
+        //             'token': 'USDT',
+        //             'address': '',
+        //             'addressTag': '',
+        //             'fromAddress': '',
+        //             'fromAddressTag': '',
+        //             'quantity': '1100',
+        //         },
+        //     ]
+        //
+        return this.parseTransactions (response, currency, since, limit);
     }
 
     parseTicker (ticker, market = undefined) {
