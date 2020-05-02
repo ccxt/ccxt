@@ -1,4 +1,5 @@
 from ccxt.base.exchange import Exchange
+from ccxt.base.errors import NotSupported
 
 
 class korbit(Exchange):
@@ -53,6 +54,24 @@ class korbit(Exchange):
                 },
             },
         })
+
+    def nonce(self):
+        return self.milliseconds()
+
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        url = self.urls['api'] + '/' + self.version + '/' + path
+        if params:
+            if method == 'GET':
+                url += '?' + self.urlencode(params)
+            if method == 'POST':
+                nonce = str(self.nonce())
+                body = self.urlencode(self.extend({'nonce': nonce}, params))
+        if api == 'private':
+            self.check_required_credentials()
+            headers = {
+                'Authorization': "Bearer " + self.apiKey
+            }
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def parse_ticker(self, ticker, symbol=None):
         #
@@ -114,11 +133,11 @@ class korbit(Exchange):
         #     }
         #
         timestamp = self.safe_string(trade, 'timestamp')
-        details = self.safe_value(trade, 'fillsDetail', {})
-        price_details = self.safe_value(details, 'price', {})
-        amount_details = self.safe_value(details, 'price', {})
-        base_currency = self.safe_string(price_details, 'currency').upper()
-        quote_currency = self.safe_string(amount_details, 'currency').upper()
+        details = self.safe_value(trade, 'fillsDetail')
+        price_details = self.safe_value(details, 'price')
+        amount_details = self.safe_value(details, 'price')
+        base_currency = self.safe_string(market, 'base', self.safe_string(price_details, 'currency').upper())
+        quote_currency = self.safe_string(market, 'quote', self.safe_string(amount_details, 'currency').upper())
         symbol = self.safe_string(market, 'symbol', base_currency + '/' + quote_currency)
         price = self.safe_float(price_details, 'value', 0)
         amount = self.safe_float(amount_details, 'value', 0)
