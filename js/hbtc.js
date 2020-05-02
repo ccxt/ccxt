@@ -34,7 +34,7 @@ module.exports = class hbtc extends Exchange {
                 'withdraw': false,
                 'fetchCurrencies': false,
                 'fetchDeposits': true,
-                'fetchWithdrawals': false,
+                'fetchWithdrawals': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -1301,6 +1301,123 @@ module.exports = class hbtc extends Exchange {
         //     ]
         //
         return this.parseTransactions (response, currency, since, limit);
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            'BROKER_AUDITING_STATUS': 'pending',
+            'BROKER_REJECT_STATUS': 'failed',
+            'AUDITING_STATUS': 'pending',
+            'AUDIT_REJECT_STATUS': 'failed',
+            'PROCESSING_STATUS': 'pending',
+            'WITHDRAWAL_SUCCESS_STATUS': 'ok',
+            'WITHDRAWAL_FAILURE_STATUS': 'failed',
+            'BLOCK_MINING_STATUS': 'ok',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // fetchDeposits
+        //
+        //     {
+        //         'time': '1565769575929',
+        //         'orderId': '428100569859739648',
+        //         'token': 'USDT',
+        //         'address': '',
+        //         'addressTag': '',
+        //         'fromAddress': '',
+        //         'fromAddressTag': '',
+        //         'quantity': '1100',
+        //     }
+        //
+        // fetchWithdrawals
+        //
+        //     {
+        //         "time":"1536232111669",
+        //         "orderId":"90161227158286336",
+        //         "accountId":"517256161325920",
+        //         "tokenId":"BHC",
+        //         "tokenName":"BHC",
+        //         "address":"0x815bF1c3cc0f49b8FC66B21A7e48fCb476051209",
+        //         "addressExt":"address tag",
+        //         "quantity":"14", // Withdrawal qty
+        //         "arriveQuantity":"14", // Arrived qty
+        //         "statusCode":"PROCESSING_STATUS",
+        //         "status":3,
+        //         "txid":"",
+        //         "txidUrl":"",
+        //         "walletHandleTime":"1536232111669",
+        //         "feeTokenId":"BHC",
+        //         "feeTokenName":"BHC",
+        //         "fee":"0.1",
+        //         "requiredConfirmNum":0, // Required confirmations
+        //         "confirmNum":0, // Confirmations
+        //         "kernelId":"", // BEAM and GRIN only
+        //         "isInternalTransfer": false // True if this transfer is internal
+        //     }
+        //
+        const id = this.safeString (transaction, 'orderId');
+        const address = this.safeString (transaction, 'address');
+        let tag = this.safeString2 (transaction, 'addressExt', 'addressTag');
+        if (tag !== undefined) {
+            if (tag.length < 1) {
+                tag = undefined;
+            }
+        }
+        const addressFrom = this.safeString (transaction, 'fromAddress');
+        let tagFrom = this.safeString (transaction, 'fromAddressTag');
+        if (tagFrom !== undefined) {
+            if (tagFrom.length < 1) {
+                tagFrom = undefined;
+            }
+        }
+        const currencyId = this.safeString (transaction, 'tokenId');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const timestamp = this.safeInteger (transaction, 'time');
+        let txid = this.safeString (transaction, 'txid');
+        if (txid === '') {
+            txid = undefined;
+        }
+        let type = undefined;
+        let status = this.parseTransactionStatus (this.safeString (transaction, 'statusCode'));
+        if (status === undefined) {
+            type = 'deposit';
+            status = 'ok';
+        } else {
+            type = 'withdrawal';
+        }
+        const amount = this.safeFloat (transaction, 'quantity');
+        const feeCost = this.safeFloat (transaction, 'fee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            const feeCurrencyId = this.safeString (transaction, 'feeTokenId');
+            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+            fee = {
+                'currency': feeCurrencyCode,
+                'cost': feeCost,
+            };
+        }
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'addressFrom': addressFrom,
+            'address': address,
+            'addressTo': address,
+            'tagFrom': tagFrom,
+            'tag': tag,
+            'tagTo': tag,
+            'type': type,
+            'amount': amount,
+            'currency': code,
+            'status': status,
+            'updated': undefined,
+            'fee': fee,
+        };
     }
 
     parseTicker (ticker, market = undefined) {
