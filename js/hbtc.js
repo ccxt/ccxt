@@ -1360,12 +1360,13 @@ module.exports = class hbtc extends Exchange {
             side = isBuyer ? 'buy' : 'sell';
         }
         let fee = undefined;
-        const commission = this.safeFloat (trade, 'commission');
-        const commissionAsset = this.safeString (trade, 'commissionAsset');
-        if (commission !== undefined && commissionAsset !== undefined) {
+        const feeCost = this.safeFloat (trade, 'commission');
+        if (feeCost !== undefined) {
+            const feeCurrencyId = this.safeString (trade, 'commissionAsset');
+            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
-                'cost': commission,
-                'currency': commissionAsset,
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
             };
         }
         let symbol = undefined;
@@ -1510,7 +1511,7 @@ module.exports = class hbtc extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        return {
+        const result = {
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1527,9 +1528,27 @@ module.exports = class hbtc extends Exchange {
             'filled': filled,
             'remaining': remaining,
             'status': status,
-            'fee': undefined,
             'trades': undefined,
+            'fee': undefined,
+            'fees': undefined,
         };
+        const fees = this.safeValue (order, 'fees', []);
+        const numFees = fees.length;
+        if (numFees > 0) {
+            result['fees'] = [];
+            for (let i = 0; i < fees.length; i++) {
+                const feeCost = this.safeFloat (fees[i], 'fee');
+                if (feeCost !== undefined) {
+                    const feeCurrencyId = this.safeString (fees[i], 'feeToken');
+                    const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+                    result['fees'].push ({
+                        'cost': feeCost,
+                        'currency': feeCurrencyCode,
+                    });
+                }
+            }
+        }
+        return result;
     }
 
     parseOrderStatus (status) {
