@@ -938,9 +938,9 @@ module.exports = class exmo extends Exchange {
         let fee = undefined;
         const feeCost = this.safeFloat (trade, 'commission_amount');
         if (feeCost !== undefined) {
-            const feeCurrencyId = this.safeString (trade, 'commision_currency');
+            const feeCurrencyId = this.safeString (trade, 'commission_currency');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
-            let feeRate = this.safeFloat (trade, 'commision_percent');
+            let feeRate = this.safeFloat (trade, 'commission_percent');
             if (feeRate !== undefined) {
                 feeRate /= 1000;
             }

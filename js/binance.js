@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, InvalidAddress, RateLimitExceeded, PermissionDenied } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, InvalidAddress, RateLimitExceeded, PermissionDenied, NotSupported } = require ('./base/errors');
 const { ROUND, TRUNCATE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -301,7 +301,6 @@ module.exports = class binance extends Exchange {
                 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
                 'fetchTickersMethod': 'publicGetTicker24hr',
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
-                'defaultLimitOrderType': 'limit', // or 'limit_maker'
                 'defaultType': 'spot', // 'spot', 'future'
                 'hasAlreadyAuthenticatedSuccessfully': false,
                 'warnOnFetchOpenOrdersWithoutSymbol': true,
@@ -336,6 +335,14 @@ module.exports = class binance extends Exchange {
                 '-2015': AuthenticationError, // "Invalid API-key, IP, or permissions for action."
             },
         });
+    }
+
+    setSandboxMode (enabled) {
+        const type = this.safeString (this.options, 'defaultType', 'spot');
+        if (type !== 'future') {
+            throw new NotSupported (this.id + ' does not have a sandbox URL for ' + type + " markets, set exchange.options['defaultType'] = 'future' or don't use the sandbox for " + this.id);
+        }
+        return super.setSandboxMode (enabled);
     }
 
     nonce () {
@@ -732,7 +739,7 @@ module.exports = class binance extends Exchange {
 
     async fetchBidsAsks (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', 'spot');
+        const defaultType = this.safeString2 (this.options, 'fetchBidsAsks', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         const query = this.omit (params, 'type');
         const method = (type === 'spot') ? 'publicGetTickerBookTicker' : 'fapiPublicGetTickerBookTicker';
@@ -749,12 +756,12 @@ module.exports = class binance extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         return [
-            ohlcv[0],
-            parseFloat (ohlcv[1]),
-            parseFloat (ohlcv[2]),
-            parseFloat (ohlcv[3]),
-            parseFloat (ohlcv[4]),
-            parseFloat (ohlcv[5]),
+            this.safeInteger (ohlcv, 0),
+            this.safeFloat (ohlcv, 1),
+            this.safeFloat (ohlcv, 2),
+            this.safeFloat (ohlcv, 3),
+            this.safeFloat (ohlcv, 4),
+            this.safeFloat (ohlcv, 5),
         ];
     }
 
@@ -1606,10 +1613,7 @@ module.exports = class binance extends Exchange {
     }
 
     parseTransactionStatusByType (status, type = undefined) {
-        if (type === undefined) {
-            return status;
-        }
-        const statuses = {
+        const statusesByType = {
             'deposit': {
                 '0': 'pending',
                 '1': 'ok',
@@ -1624,32 +1628,38 @@ module.exports = class binance extends Exchange {
                 '6': 'ok', // Completed
             },
         };
-        return (status in statuses[type]) ? statuses[type][status] : status;
+        const statuses = this.safeValue (statusesByType, type, {});
+        return this.safeString (statuses, status, status);
     }
 
     parseTransaction (transaction, currency = undefined) {
         //
         // fetchDeposits
-        //      { insertTime:  1517425007000,
-        //            amount:  0.3,
-        //           address: "0x0123456789abcdef",
-        //        addressTag: "",
-        //              txId: "0x0123456789abcdef",
-        //             asset: "ETH",
-        //            status:  1                                                                    }
+        //
+        //     {
+        //         insertTime:  1517425007000,
+        //         amount:  0.3,
+        //         address: "0x0123456789abcdef",
+        //         addressTag: "",
+        //         txId: "0x0123456789abcdef",
+        //         asset: "ETH",
+        //         status:  1
+        //     }
         //
         // fetchWithdrawals
         //
-        //       {      amount:  14,
-        //             address: "0x0123456789abcdef...",
+        //     {
+        //         amount:  14,
+        //         address: "0x0123456789abcdef...",
         //         successTime:  1514489710000,
-        //      transactionFee:  0.01,
-        //          addressTag: "",
-        //                txId: "0x0123456789abcdef...",
-        //                  id: "0123456789abcdef...",
-        //               asset: "ETH",
-        //           applyTime:  1514488724000,
-        //              status:  6                       }
+        //         transactionFee:  0.01,
+        //         addressTag: "",
+        //         txId: "0x0123456789abcdef...",
+        //         id: "0123456789abcdef...",
+        //         asset: "ETH",
+        //         applyTime:  1514488724000,
+        //         status:  6
+        //     }
         //
         const id = this.safeString (transaction, 'id');
         const address = this.safeString (transaction, 'address');
@@ -1659,7 +1669,7 @@ module.exports = class binance extends Exchange {
                 tag = undefined;
             }
         }
-        const txid = this.safeValue (transaction, 'txId');
+        const txid = this.safeString (transaction, 'txId');
         const currencyId = this.safeString (transaction, 'asset');
         const code = this.safeCurrencyCode (currencyId, currency);
         let timestamp = undefined;

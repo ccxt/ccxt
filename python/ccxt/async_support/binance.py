@@ -14,6 +14,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
@@ -316,7 +317,6 @@ class binance(Exchange):
                 'fetchTradesMethod': 'publicGetAggTrades',  # publicGetTrades, publicGetHistoricalTrades
                 'fetchTickersMethod': 'publicGetTicker24hr',
                 'defaultTimeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
-                'defaultLimitOrderType': 'limit',  # or 'limit_maker'
                 'defaultType': 'spot',  # 'spot', 'future'
                 'hasAlreadyAuthenticatedSuccessfully': False,
                 'warnOnFetchOpenOrdersWithoutSymbol': True,
@@ -351,6 +351,12 @@ class binance(Exchange):
                 '-2015': AuthenticationError,  # "Invalid API-key, IP, or permissions for action."
             },
         })
+
+    def set_sandbox_mode(self, enabled):
+        type = self.safe_string(self.options, 'defaultType', 'spot')
+        if type != 'future':
+            raise NotSupported(self.id + ' does not have a sandbox URL for ' + type + " markets, set exchange.options['defaultType'] = 'future' or don't use the sandbox for " + self.id)
+        return super(binance, self).set_sandbox_mode(enabled)
 
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
@@ -719,7 +725,7 @@ class binance(Exchange):
 
     async def fetch_bids_asks(self, symbols=None, params={}):
         await self.load_markets()
-        defaultType = self.safe_string_2(self.options, 'fetchOpenOrders', 'defaultType', 'spot')
+        defaultType = self.safe_string_2(self.options, 'fetchBidsAsks', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
         query = self.omit(params, 'type')
         method = 'publicGetTickerBookTicker' if (type == 'spot') else 'fapiPublicGetTickerBookTicker'
@@ -734,12 +740,12 @@ class binance(Exchange):
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return [
-            ohlcv[0],
-            float(ohlcv[1]),
-            float(ohlcv[2]),
-            float(ohlcv[3]),
-            float(ohlcv[4]),
-            float(ohlcv[5]),
+            self.safe_integer(ohlcv, 0),
+            self.safe_float(ohlcv, 1),
+            self.safe_float(ohlcv, 2),
+            self.safe_float(ohlcv, 3),
+            self.safe_float(ohlcv, 4),
+            self.safe_float(ohlcv, 5),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -1504,9 +1510,7 @@ class binance(Exchange):
         return self.parse_transactions(response['withdrawList'], currency, since, limit)
 
     def parse_transaction_status_by_type(self, status, type=None):
-        if type is None:
-            return status
-        statuses = {
+        statusesByType = {
             'deposit': {
                 '0': 'pending',
                 '1': 'ok',
@@ -1521,31 +1525,37 @@ class binance(Exchange):
                 '6': 'ok',  # Completed
             },
         }
-        return statuses[type][status] if (status in statuses[type]) else status
+        statuses = self.safe_value(statusesByType, type, {})
+        return self.safe_string(statuses, status, status)
 
     def parse_transaction(self, transaction, currency=None):
         #
         # fetchDeposits
-        #      {insertTime:  1517425007000,
-        #            amount:  0.3,
-        #           address: "0x0123456789abcdef",
-        #        addressTag: "",
-        #              txId: "0x0123456789abcdef",
-        #             asset: "ETH",
-        #            status:  1                                                                    }
+        #
+        #     {
+        #         insertTime:  1517425007000,
+        #         amount:  0.3,
+        #         address: "0x0123456789abcdef",
+        #         addressTag: "",
+        #         txId: "0x0123456789abcdef",
+        #         asset: "ETH",
+        #         status:  1
+        #     }
         #
         # fetchWithdrawals
         #
-        #       {     amount:  14,
-        #             address: "0x0123456789abcdef...",
+        #     {
+        #         amount:  14,
+        #         address: "0x0123456789abcdef...",
         #         successTime:  1514489710000,
-        #      transactionFee:  0.01,
-        #          addressTag: "",
-        #                txId: "0x0123456789abcdef...",
-        #                  id: "0123456789abcdef...",
-        #               asset: "ETH",
-        #           applyTime:  1514488724000,
-        #              status:  6                       }
+        #         transactionFee:  0.01,
+        #         addressTag: "",
+        #         txId: "0x0123456789abcdef...",
+        #         id: "0123456789abcdef...",
+        #         asset: "ETH",
+        #         applyTime:  1514488724000,
+        #         status:  6
+        #     }
         #
         id = self.safe_string(transaction, 'id')
         address = self.safe_string(transaction, 'address')
@@ -1553,7 +1563,7 @@ class binance(Exchange):
         if tag is not None:
             if len(tag) < 1:
                 tag = None
-        txid = self.safe_value(transaction, 'txId')
+        txid = self.safe_string(transaction, 'txId')
         currencyId = self.safe_string(transaction, 'asset')
         code = self.safe_currency_code(currencyId, currency)
         timestamp = None

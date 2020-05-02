@@ -11,6 +11,7 @@ use \ccxt\AuthenticationError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\InvalidAddress;
 use \ccxt\InvalidOrder;
+use \ccxt\NotSupported;
 use \ccxt\DDoSProtection;
 
 class binance extends Exchange {
@@ -307,7 +308,6 @@ class binance extends Exchange {
                 'fetchTradesMethod' => 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
                 'fetchTickersMethod' => 'publicGetTicker24hr',
                 'defaultTimeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
-                'defaultLimitOrderType' => 'limit', // or 'limit_maker'
                 'defaultType' => 'spot', // 'spot', 'future'
                 'hasAlreadyAuthenticatedSuccessfully' => false,
                 'warnOnFetchOpenOrdersWithoutSymbol' => true,
@@ -342,6 +342,14 @@ class binance extends Exchange {
                 '-2015' => '\\ccxt\\AuthenticationError', // "Invalid API-key, IP, or permissions for action."
             ),
         ));
+    }
+
+    public function set_sandbox_mode($enabled) {
+        $type = $this->safe_string($this->options, 'defaultType', 'spot');
+        if ($type !== 'future') {
+            throw new NotSupported($this->id . ' does not have a sandbox URL for ' . $type . " markets, set exchange.options['defaultType'] = 'future' or don't use the sandbox for " . $this->id);
+        }
+        return parent::set_sandbox_mode($enabled);
     }
 
     public function nonce() {
@@ -738,7 +746,7 @@ class binance extends Exchange {
 
     public function fetch_bids_asks($symbols = null, $params = array ()) {
         $this->load_markets();
-        $defaultType = $this->safe_string_2($this->options, 'fetchOpenOrders', 'defaultType', 'spot');
+        $defaultType = $this->safe_string_2($this->options, 'fetchBidsAsks', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
         $query = $this->omit($params, 'type');
         $method = ($type === 'spot') ? 'publicGetTickerBookTicker' : 'fapiPublicGetTickerBookTicker';
@@ -754,14 +762,14 @@ class binance extends Exchange {
     }
 
     public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
-        return [
-            $ohlcv[0],
-            floatval ($ohlcv[1]),
-            floatval ($ohlcv[2]),
-            floatval ($ohlcv[3]),
-            floatval ($ohlcv[4]),
-            floatval ($ohlcv[5]),
-        ];
+        return array(
+            $this->safe_integer($ohlcv, 0),
+            $this->safe_float($ohlcv, 1),
+            $this->safe_float($ohlcv, 2),
+            $this->safe_float($ohlcv, 3),
+            $this->safe_float($ohlcv, 4),
+            $this->safe_float($ohlcv, 5),
+        );
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
@@ -1612,10 +1620,7 @@ class binance extends Exchange {
     }
 
     public function parse_transaction_status_by_type($status, $type = null) {
-        if ($type === null) {
-            return $status;
-        }
-        $statuses = array(
+        $statusesByType = array(
             'deposit' => array(
                 '0' => 'pending',
                 '1' => 'ok',
@@ -1630,32 +1635,38 @@ class binance extends Exchange {
                 '6' => 'ok', // Completed
             ),
         );
-        return (is_array($statuses[$type]) && array_key_exists($status, $statuses[$type])) ? $statuses[$type][$status] : $status;
+        $statuses = $this->safe_value($statusesByType, $type, array());
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function parse_transaction($transaction, $currency = null) {
         //
         // fetchDeposits
-        //      { $insertTime =>  1517425007000,
-        //            $amount =>  0.3,
-        //           $address => "0x0123456789abcdef",
-        //        addressTag => "",
-        //              txId => "0x0123456789abcdef",
-        //             asset => "ETH",
-        //            $status =>  1                                                                    }
+        //
+        //     {
+        //         $insertTime =>  1517425007000,
+        //         $amount =>  0.3,
+        //         $address => "0x0123456789abcdef",
+        //         addressTag => "",
+        //         txId => "0x0123456789abcdef",
+        //         asset => "ETH",
+        //         $status =>  1
+        //     }
         //
         // fetchWithdrawals
         //
-        //       {      $amount =>  14,
-        //             $address => "0x0123456789abcdef...",
+        //     {
+        //         $amount =>  14,
+        //         $address => "0x0123456789abcdef...",
         //         successTime =>  1514489710000,
-        //      transactionFee =>  0.01,
-        //          addressTag => "",
-        //                txId => "0x0123456789abcdef...",
-        //                  $id => "0123456789abcdef...",
-        //               asset => "ETH",
-        //           $applyTime =>  1514488724000,
-        //              $status =>  6                       }
+        //         transactionFee =>  0.01,
+        //         addressTag => "",
+        //         txId => "0x0123456789abcdef...",
+        //         $id => "0123456789abcdef...",
+        //         asset => "ETH",
+        //         $applyTime =>  1514488724000,
+        //         $status =>  6
+        //     }
         //
         $id = $this->safe_string($transaction, 'id');
         $address = $this->safe_string($transaction, 'address');
@@ -1665,7 +1676,7 @@ class binance extends Exchange {
                 $tag = null;
             }
         }
-        $txid = $this->safe_value($transaction, 'txId');
+        $txid = $this->safe_string($transaction, 'txId');
         $currencyId = $this->safe_string($transaction, 'asset');
         $code = $this->safe_currency_code($currencyId, $currency);
         $timestamp = null;

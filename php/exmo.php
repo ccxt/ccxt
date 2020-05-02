@@ -944,9 +944,9 @@ class exmo extends Exchange {
         $fee = null;
         $feeCost = $this->safe_float($trade, 'commission_amount');
         if ($feeCost !== null) {
-            $feeCurrencyId = $this->safe_string($trade, 'commision_currency');
+            $feeCurrencyId = $this->safe_string($trade, 'commission_currency');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
-            $feeRate = $this->safe_float($trade, 'commision_percent');
+            $feeRate = $this->safe_float($trade, 'commission_percent');
             if ($feeRate !== null) {
                 $feeRate /= 1000;
             }

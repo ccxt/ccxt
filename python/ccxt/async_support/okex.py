@@ -1345,8 +1345,16 @@ class okex(Exchange):
             'instrument_id': market['id'],
             'granularity': self.timeframes[timeframe],
         }
+        duration = self.parse_timeframe(timeframe)
         if since is not None:
+            if limit is not None:
+                request['end'] = self.iso8601(self.sum(since, limit * duration * 1000))
             request['start'] = self.iso8601(since)
+        else:
+            now = self.milliseconds()
+            if limit is not None:
+                request['start'] = self.iso8601(now - limit * duration * 1000)
+                request['end'] = self.iso8601(now)
         response = await getattr(self, method)(self.extend(request, params))
         #
         # spot markets

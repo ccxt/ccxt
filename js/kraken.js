@@ -1144,12 +1144,20 @@ module.exports = class kraken extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
+        const clientOrderId = this.safeValue2 (params, 'userref', 'clientOrderId');
         const request = {
             'trades': true, // whether or not to include trades in output (optional, default false)
-            'txid': id, // do not comma separate a list of ids - use fetchOrdersByIds instead
+            // 'txid': id, // do not comma separate a list of ids - use fetchOrdersByIds instead
             // 'userref': 'optional', // restrict results to given user reference id (optional)
         };
-        const response = await this.privatePostQueryOrders (this.extend (request, params));
+        let query = params;
+        if (clientOrderId !== undefined) {
+            request['userref'] = clientOrderId;
+            query = this.omit (params, [ 'userref', 'clientOrderId' ]);
+        } else {
+            request['txid'] = id;
+        }
+        const response = await this.privatePostQueryOrders (this.extend (request, query));
         //
         //     {
         //         "error":[],
