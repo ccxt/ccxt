@@ -925,7 +925,7 @@ class timex extends Exchange {
         $feeString = $this->safe_string($currency, 'withdrawalFee');
         $tradeDecimals = $this->safe_integer($currency, 'tradeDecimals');
         $fee = null;
-        if (($feeString !== null) ($tradeDecimals !== null)) {
+        if (($feeString !== null) && ($tradeDecimals !== null)) {
             $feeStringLen = is_array($feeString) ? count($feeString) : 0;
             $dotIndex = $feeStringLen - $tradeDecimals;
             if ($dotIndex > 0) {

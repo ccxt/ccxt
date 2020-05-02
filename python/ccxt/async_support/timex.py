@@ -893,7 +893,7 @@ class timex(Exchange):
         feeString = self.safe_string(currency, 'withdrawalFee')
         tradeDecimals = self.safe_integer(currency, 'tradeDecimals')
         fee = None
-        if (feeString is not None)(tradeDecimals is not None):
+        if (feeString is not None) and (tradeDecimals is not None):
             feeStringLen = len(feeString)
             dotIndex = feeStringLen - tradeDecimals
             if dotIndex > 0:
