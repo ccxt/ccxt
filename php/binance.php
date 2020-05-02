@@ -1676,7 +1676,7 @@ class binance extends Exchange {
                 $tag = null;
             }
         }
-        $txid = $this->safe_value($transaction, 'txId');
+        $txid = $this->safe_string($transaction, 'txId');
         $currencyId = $this->safe_string($transaction, 'asset');
         $code = $this->safe_currency_code($currencyId, $currency);
         $timestamp = null;

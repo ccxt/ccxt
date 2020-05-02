@@ -1563,7 +1563,7 @@ class binance(Exchange):
         if tag is not None:
             if len(tag) < 1:
                 tag = None
-        txid = self.safe_value(transaction, 'txId')
+        txid = self.safe_string(transaction, 'txId')
         currencyId = self.safe_string(transaction, 'asset')
         code = self.safe_currency_code(currencyId, currency)
         timestamp = None
