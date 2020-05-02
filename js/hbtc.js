@@ -234,6 +234,7 @@ module.exports = class hbtc extends Exchange {
                     '-1145': InvalidOrder, // This order type does not support cancellation
                     '-1146': RequestTimeout, // Order creation timeout
                     '-1147': RequestTimeout, // Order cancellation timeout
+                    '-1149': InvalidOrder, // Create order failed
                     '-2010': InvalidOrder, // NEW_ORDER_REJECTED
                     '-2011': InvalidOrder, // CANCEL_REJECTED
                     '-2013': OrderNotFound, // Order does not exist
@@ -264,20 +265,22 @@ module.exports = class hbtc extends Exchange {
     parseMarket (market, type = 'spot') {
         const filters = this.safeValue (market, 'filters', []);
         const id = this.safeString (market, 'symbol');
-        const baseId = this.safeString (market, 'baseAsset');
+        let baseId = this.safeString (market, 'baseAsset');
         const quoteId = this.safeString (market, 'quoteAsset');
-        const base = this.safeCurrencyCode (baseId);
+        let base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         let symbol = base + '/' + quote;
         let spot = true;
-        let contract = false;
-        let swap = false;
+        let future = false;
         let option = false;
-        if (type === 'contract') {
+        let inverse = false;
+        if (type === 'future') {
             symbol = id;
             spot = false;
-            contract = true;
-            swap = true; // ?
+            future = true;
+            inverse = this.safeValue (market, 'inverse', false);
+            baseId = this.safeString (market, 'underlying');
+            base = this.safeCurrencyCode (baseId);
         } else if (type === 'option') {
             symbol = id;
             spot = false;
@@ -334,9 +337,9 @@ module.exports = class hbtc extends Exchange {
             'active': true,
             'type': type,
             'spot': spot,
-            'contract': contract,
-            'swap': swap,
+            'future': future,
             'option': option,
+            'inverse': inverse,
             'precision': precision,
             'limits': limits,
             'info': market,
@@ -487,7 +490,7 @@ module.exports = class hbtc extends Exchange {
         }
         const contracts = this.safeValue (response, 'contracts', []);
         for (let i = 0; i < contracts.length; i++) {
-            const market = this.parseMarket (contracts[i], 'contract');
+            const market = this.parseMarket (contracts[i], 'future');
             result.push (market);
         }
         return result;
@@ -605,7 +608,7 @@ module.exports = class hbtc extends Exchange {
         const type = this.safeString (params, 'type', defaultType);
         const query = this.omit (params, 'type');
         let method = defaultMethod;
-        if (type === 'contract') {
+        if (type === 'future') {
             method = 'quoteGetContractTicker24hr';
         } else if (type === 'option') {
             method = 'quoteGetOptionTicker24hr';
@@ -634,7 +637,7 @@ module.exports = class hbtc extends Exchange {
         const type = this.safeString (params, 'type', defaultType);
         const query = this.omit (params, 'type');
         let method = 'privateGetAccount';
-        if (type === 'contract') {
+        if (type === 'future') {
             method = 'contractGetAccount';
         } else if (type === 'option') {
             method = 'optionGetAccount';
@@ -795,21 +798,78 @@ module.exports = class hbtc extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a `symbol` argument');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        let market = undefined;
         const request = {
-            'symbol': market['id'],
+            // if only fromId is set，it will get orders < that fromId in descending order
+            // if only toId is set, it will get orders > that toId in ascending order
+            // if fromId is set and toId is set, it will get orders < that fromId and > that toId in descending order
+            // if fromId is not set and toId it not set, most recent order are returned in descending order
+            // 'fromId': '43287482374',
+            // 'toId': '43287482374',
+            // 'endTime': this.milliseconds (), // optional, spot only
         };
+        const defaultType = this.safeString (this.options, 'type', 'spot');
+        const options = this.safeValue (this.options, 'fetchMyTrades', {});
+        const fetchMyTradesType = this.safeString (options, 'type', defaultType);
+        let type = this.safeString (params, 'type', fetchMyTradesType);
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+            type = market['type'];
+        }
+        const query = this.omit (params, 'type');
         if (limit !== undefined) {
+            // spot default 500, max 1000
+            // futures and options default 20, max 1000
             request['limit'] = limit;
         }
-        if (since !== undefined) {
-            request['startTime'] = parseInt (since);
+        let method = 'privateGetMyTrades';
+        if (type === 'future') {
+            method = 'contractGetMyTrades';
+        } else {
+            if (type === 'option') {
+                method = 'optionGetMyTrades';
+            } else {
+                if (symbol === undefined) {
+                    throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a `symbol` argument for ' + type + ' markets');
+                }
+                const market = this.market (symbol);
+                request['symbol'] = market['id'];
+                // spot only?
+                if (since !== undefined) {
+                    request['startTime'] = since;
+                }
+            }
         }
-        const response = await this.privateGetMyTrades (this.extend (request, params));
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        const response = await this[method] (this.extend (request, query));
+        //
+        // spot
+        //
+        //     [
+        //         {
+        //             "id":"616384027512920576",
+        //             "symbol":"TBTCBUSDT",
+        //             "orderId":"616384027202542080",
+        //             "matchOrderId":"605124954767266560",
+        //             "price":"6826.06",
+        //             "qty":"0.1",
+        //             "commission":"0.682606",
+        //             "commissionAsset":"BUSDT",
+        //             "time":"1588214701982",
+        //             "isBuyer":false,
+        //             "isMaker":false,
+        //             "fee":{
+        //                 "feeTokenId":"BUSDT",
+        //                 "feeTokenName":"BUSDT",
+        //                 "fee":"0.682606"
+        //             }
+        //         }
+        //     ]
+        //
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -828,7 +888,7 @@ module.exports = class hbtc extends Exchange {
         };
         let query = params;
         let method = 'privatePostOrder';
-        if (market['type'] === 'contract') {
+        if (market['type'] === 'future') {
             if ((orderSide !== 'BUY_OPEN') && (orderSide !== 'SELL_OPEN') && (orderSide !== 'BUY_CLOSE') && (orderSide !== 'SELL_CLOSE')) {
                 throw NotSupported (this.id + ' createOrder() does not support order side ' + side + ' for ' + market['type'] + ' markets, only BUY_OPEN, SELL_OPEN, BUY_CLOSE and SELL_CLOSE are supported');
             }
@@ -851,7 +911,7 @@ module.exports = class hbtc extends Exchange {
             }
             request['orderType'] = type.toUpperCase (); // LIMIT, STOP
             request['quantity'] = this.amountToPrecision (symbol, amount);
-            request['leverage'] = '1'; // not required for closing orders
+            // request['leverage'] = 1; // not required for closing orders
             request['clientOrderId'] = clientOrderId;
             // optional
             // request['priceType'] = 'INPUT', // INPUT, OPPONENT, QUEUE, OVER, MARKET
@@ -948,9 +1008,9 @@ module.exports = class hbtc extends Exchange {
         let method = 'privateDeleteOrder';
         const orderType = this.safeString (query, 'orderType');
         if (orderType !== undefined) {
-            type = 'contract';
+            type = 'future';
         }
-        if (type === 'contract') {
+        if (type === 'future') {
             method = 'contractDeleteOrderCancel';
             if (orderType === undefined) {
                 throw new ArgumentsRequired (this.id + " cancelOrder() requires an orderType parameter, pass the { 'orderType': 'LIMIT' } or { 'orderType': 'STOP' } in params argument");
@@ -1019,7 +1079,7 @@ module.exports = class hbtc extends Exchange {
             request['limit'] = limit; // default 500, max 1000
         }
         let method = 'privateGetOpenOrders';
-        if (type === 'contract') {
+        if (type === 'future') {
             method = 'contractGetOpenOrders';
         } else if (type === 'option') {
             method = 'optionGetOpenOrders';
@@ -1103,7 +1163,7 @@ module.exports = class hbtc extends Exchange {
             request['startTime'] = since;
         }
         let method = 'privateGetHistoryOrders';
-        if (type === 'contract') {
+        if (type === 'future') {
             method = 'contractGetHistoryOrders';
         } else if (type === 'option') {
             method = 'optionGetHistoryOrders';
@@ -1154,7 +1214,7 @@ module.exports = class hbtc extends Exchange {
             request['orderId'] = id;
         }
         let method = 'privateGetOrder';
-        if (type === 'contract') {
+        if (type === 'future') {
             method = 'contractGetGetOrder';
         } else if (type === 'option') {
             method = 'optionGetGetOrder';
@@ -1254,6 +1314,27 @@ module.exports = class hbtc extends Exchange {
         //
         // fetchMyTrades (private)
         //
+        // spot
+        //
+        //     {
+        //         "id":"616384027512920576",
+        //         "symbol":"TBTCBUSDT",
+        //         "orderId":"616384027202542080",
+        //         "matchOrderId":"605124954767266560",
+        //         "price":"6826.06",
+        //         "qty":"0.1",
+        //         "commission":"0.682606",
+        //         "commissionAsset":"BUSDT",
+        //         "time":"1588214701982",
+        //         "isBuyer":false,
+        //         "isMaker":false,
+        //         "fee":{
+        //             "feeTokenId":"BUSDT",
+        //             "feeTokenName":"BUSDT",
+        //             "fee":"0.682606"
+        //         }
+        //     }
+        //
         const id = this.safeString (trade, 'id');
         const timestamp = this.safeFloat (trade, 'time');
         const type = undefined;
@@ -1328,6 +1409,8 @@ module.exports = class hbtc extends Exchange {
         //
         // fetchOrder, fetchOpenOrders, fetchClosedOrders
         //
+        // spot
+        //
         //     {
         //         "orderId":"616384027202542080",
         //         "clientOrderId":"158821470194414688",
@@ -1349,6 +1432,29 @@ module.exports = class hbtc extends Exchange {
         //         "isWorking":true
         //     }
         //
+        // future
+        //
+        //     {
+        //         time: "1588353669383",
+        //         updateTime: "0",
+        //         orderId: "617549770304599296",
+        //         clientOrderId: "test-001",
+        //         symbol: "BTC-PERP-REV",
+        //         price: "10000",
+        //         leverage: "1",
+        //         origQty: "100",
+        //         executedQty: "0",
+        //         avgPrice: "0",
+        //         marginLocked: "0",
+        //         orderType: "LIMIT",
+        //         side: "SELL_OPEN",
+        //         fees: [],
+        //         timeInForce: "GTC",
+        //         status: "CANCELED",
+        //         priceType: "INPUT"
+        //     }
+        //
+        //
         const id = this.safeString (order, 'orderId');
         const clientOrderId = this.safeString (order, 'clientOrderId');
         let timestamp = this.safeInteger (order, 'time');
@@ -1365,29 +1471,45 @@ module.exports = class hbtc extends Exchange {
                 }
             }
         }
+        let type = this.safeStringLower (order, 'type');
+        const side = this.safeStringLower (order, 'side');
+        let price = this.safeFloat (order, 'price');
+        let average = this.safeFloat (order, 'avgPrice');
+        let amount = undefined;
+        let cost = this.safeFloat (order, 'cummulativeQuoteQty');
+        let filled = undefined;
+        let remaining = undefined;
+        if (type === undefined) {
+            type = this.safeStringLower (order, 'orderType');
+            if ((market !== undefined) && market['inverse']) {
+                cost = this.safeFloat (order, 'executedQty');
+                amount = undefined;
+            }
+            if (cost === 0.0) {
+                filled = 0;
+            }
+        } else {
+            amount = this.safeFloat (order, 'origQty');
+            if (type === 'market') {
+                price = undefined;
+                if (side === 'buy') {
+                    amount = undefined;
+                }
+            }
+            filled = this.safeFloat (order, 'executedQty');
+            if (filled !== undefined) {
+                if (amount !== undefined) {
+                    remaining = amount - filled;
+                }
+            }
+        }
+        if (average === 0.0) {
+            average = undefined;
+        }
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const type = this.safeStringLower (order, 'type');
-        const side = this.safeStringLower (order, 'side');
-        let amount = this.safeFloat (order, 'origQty');
-        let price = this.safeFloat (order, 'price');
-        if (type === 'market') {
-            price = undefined;
-            if (side === 'buy') {
-                amount = undefined;
-            }
-        }
-        const cost = this.safeFloat (order, 'cummulativeQuoteQty');
-        const filled = this.safeFloat (order, 'executedQty');
-        const average = this.safeFloat (order, 'avgPrice');
-        let remaining = undefined;
-        if (filled !== undefined) {
-            if (amount !== undefined) {
-                remaining = amount - filled;
-            }
-        }
-        const status = this.parseOrderStatus (this.safeString (order, 'status'));
         return {
             'info': order,
             'id': id,
