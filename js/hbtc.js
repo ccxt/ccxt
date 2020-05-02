@@ -36,6 +36,7 @@ module.exports = class hbtc extends Exchange {
                 'fetchDeposits': true,
                 'fetchWithdrawals': true,
                 'fetchAccounts': true,
+                'fetchLedger': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -150,6 +151,7 @@ module.exports = class hbtc extends Exchange {
                         'depositOrders',
                         'withdrawalOrders',
                         'withdraw/detail',
+                        'balance_flow',
                     ],
                     'post': [
                         'order', // 创建新订单
@@ -157,7 +159,6 @@ module.exports = class hbtc extends Exchange {
                         'userDataStream',
                         'subAccount/query',
                         'transfer',
-                        'balance_flow',
                         'user/transfer',
                         'withdraw',
                     ],
@@ -1368,6 +1369,144 @@ module.exports = class hbtc extends Exchange {
             });
         }
         return result;
+    }
+
+    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'accountType': 1, // spot 1, options 2, futures 3
+            'accountIndex': 0, // main 0, sub-account 1
+            'fromFlowId': '', // flowId to start from
+            'endFlowId': '', // flowId to end with
+            'endTime': 1588450533040,
+        };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['tokenId'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 500, max 500
+        }
+        const response = await this.privateGetBalanceFlow (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "id": "539870570957903104",
+        //             "accountId": "122216245228131",
+        //             "tokenId": "BTC",
+        //             "tokenName": "BTC",
+        //             "flowTypeValue": 51,
+        //             "flowType": "USER_ACCOUNT_TRANSFER",
+        //             "flowName": "Transfer",
+        //             "change": "-12.5",
+        //             "total": "379.624059937852365", // after change
+        //             "created": "1579093587214"
+        //         },
+        //         {
+        //             "id": "536072393645448960",
+        //             "accountId": "122216245228131",
+        //             "tokenId": "USDT",
+        //             "tokenName": "USDT",
+        //             "flowTypeValue": 7,
+        //             "flowType": "AIRDROP",
+        //             "flowName": "Airdrop",
+        //             "change": "-2000",
+        //             "total": "918662.0917630848",
+        //             "created": "1578640809195"
+        //         }
+        //     ]
+        //
+        return this.parseLedger (response, currency, since, limit);
+    }
+
+    parseLedgerEntry (item, currency = undefined) {
+        //
+        //     {
+        //         "id": "539870570957903104",
+        //         "accountId": "122216245228131",
+        //         "tokenId": "BTC",
+        //         "tokenName": "BTC",
+        //         "flowTypeValue": 51,
+        //         "flowType": "USER_ACCOUNT_TRANSFER",
+        //         "flowName": "Transfer",
+        //         "change": "-12.5",
+        //         "total": "379.624059937852365", // after change
+        //         "created": "1579093587214"
+        //     }
+        //
+        //     {
+        //         "id": "536072393645448960",
+        //         "accountId": "122216245228131",
+        //         "tokenId": "USDT",
+        //         "tokenName": "USDT",
+        //         "flowTypeValue": 7,
+        //         "flowType": "AIRDROP",
+        //         "flowName": "Airdrop",
+        //         "change": "-2000",
+        //         "total": "918662.0917630848",
+        //         "created": "1578640809195"
+        //     }
+        //
+        const currencyId = this.safeString (item, 'tokenId');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const amount = this.safeFloat (item, 'change');
+        const after = this.safeFloat (item, 'total');
+        const direction = (amount < 0) ? 'out' : 'in';
+        let before = undefined;
+        if (after !== undefined && amount !== undefined) {
+            const difference = (direction === 'out') ? amount : -amount;
+            before = this.sum (after, difference);
+        }
+        const timestamp = this.safeInteger (item, 'created');
+        const type = this.parseLedgerEntryType (this.safeString (item, 'flowType'));
+        const id = this.safeString (item, 'id');
+        const account = this.safeString (item, 'accountId');
+        return {
+            'id': id,
+            'currency': code,
+            'account': account,
+            'referenceAccount': undefined,
+            'referenceId': undefined,
+            'status': undefined,
+            'amount': amount,
+            'before': before,
+            'after': after,
+            'fee': undefined,
+            'direction': direction,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'type': type,
+            'info': item,
+        };
+    }
+
+    parseLedgerEntryType (type) {
+        const types = {
+            'TRADE': 'trade',
+            'FEE': 'fee',
+            'TRANSFER': 'transfer',
+            'DEPOSIT': 'transaction',
+            'MAKER_REWARD': 'rebate',
+            'PNL': 'pnl',
+            'SETTLEMENT': 'settlement',
+            'LIQUIDATION': 'liquidation',
+            'FUNDING_SETTLEMENT': 'settlement',
+            'USER_ACCOUNT_TRANSFER': 'transfer',
+            'OTC_BUY_COIN': 'trade',
+            'OTC_SELL_COIN': 'trade',
+            'OTC_FEE': 'fee',
+            'OTC_TRADE': 'trade',
+            'ACTIVITY_AWARD': 'referral',
+            'INVITATION_REFERRAL_BONUS': 'referral',
+            'REGISTER_BONUS': 'referral',
+            'AIRDROP': 'airdrop',
+            'MINE_REWARD': 'reward',
+        };
+        return this.safeString (types, type, type);
     }
 
     parseTransactionStatus (status) {
