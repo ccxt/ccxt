@@ -1613,10 +1613,7 @@ module.exports = class binance extends Exchange {
     }
 
     parseTransactionStatusByType (status, type = undefined) {
-        if (type === undefined) {
-            return status;
-        }
-        const statuses = {
+        const statusesByType = {
             'deposit': {
                 '0': 'pending',
                 '1': 'ok',
@@ -1631,32 +1628,38 @@ module.exports = class binance extends Exchange {
                 '6': 'ok', // Completed
             },
         };
-        return (status in statuses[type]) ? statuses[type][status] : status;
+        const statuses = this.safeValue (statusesByType, type, {});
+        return this.safeString (statuses, status, status);
     }
 
     parseTransaction (transaction, currency = undefined) {
         //
         // fetchDeposits
-        //      { insertTime:  1517425007000,
-        //            amount:  0.3,
-        //           address: "0x0123456789abcdef",
-        //        addressTag: "",
-        //              txId: "0x0123456789abcdef",
-        //             asset: "ETH",
-        //            status:  1                                                                    }
+        //
+        //     {
+        //         insertTime:  1517425007000,
+        //         amount:  0.3,
+        //         address: "0x0123456789abcdef",
+        //         addressTag: "",
+        //         txId: "0x0123456789abcdef",
+        //         asset: "ETH",
+        //         status:  1
+        //     }
         //
         // fetchWithdrawals
         //
-        //       {      amount:  14,
-        //             address: "0x0123456789abcdef...",
+        //     {
+        //         amount:  14,
+        //         address: "0x0123456789abcdef...",
         //         successTime:  1514489710000,
-        //      transactionFee:  0.01,
-        //          addressTag: "",
-        //                txId: "0x0123456789abcdef...",
-        //                  id: "0123456789abcdef...",
-        //               asset: "ETH",
-        //           applyTime:  1514488724000,
-        //              status:  6                       }
+        //         transactionFee:  0.01,
+        //         addressTag: "",
+        //         txId: "0x0123456789abcdef...",
+        //         id: "0123456789abcdef...",
+        //         asset: "ETH",
+        //         applyTime:  1514488724000,
+        //         status:  6
+        //     }
         //
         const id = this.safeString (transaction, 'id');
         const address = this.safeString (transaction, 'address');
