@@ -37,6 +37,7 @@ module.exports = class qtrade extends Exchange {
                 'fetchOHLCV': true,
                 'createOrder': true,
                 'cancelOrder': true,
+                'createMarketOrder': false,
                 'withdraw': true,
             },
             'timeframes': {
@@ -335,7 +336,7 @@ module.exports = class qtrade extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         //
-        // fetchTicker
+        // fetchTicker, fetchTickers
         //
         //     {
         //         "ask":"0.02423119",
@@ -417,8 +418,32 @@ module.exports = class qtrade extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.publicGetTicker (params);
-        const tickers = this.safeValue (response['data'], 'markets', []);
+        const response = await this.publicGetTickers (params);
+        //
+        //     {
+        //         "data":{
+        //             "markets":[
+        //                 {
+        //                     "ask":"0.0000003",
+        //                     "bid":"0.00000029",
+        //                     "day_avg_price":"0.0000002999979728",
+        //                     "day_change":"0.0344827586206897",
+        //                     "day_high":"0.0000003",
+        //                     "day_low":"0.0000003",
+        //                     "day_open":"0.00000029",
+        //                     "day_volume_base":"0.00591958",
+        //                     "day_volume_market":"19732.06666665",
+        //                     "id":36,
+        //                     "id_hr":"DOGE_BTC",
+        //                     "last":"0.0000003",
+        //                     "last_change":1588534202130778
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const tickers = this.safeValue (data, 'markets', []);
         const result = {};
         for (let i = 0; i < tickers.length; i++) {
             const ticker = this.parseTicker (tickers[i]);
