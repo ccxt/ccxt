@@ -130,8 +130,8 @@ class bybit extends Exchange {
                 ),
                 'privateLinear' => array(
                     'get' => array(
-                        'order-list',
-                        'order-search',
+                        'order/list',
+                        'order/search',
                         'stop-order/list',
                         'stop-order/search',
                         'position/list',
