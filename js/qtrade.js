@@ -332,24 +332,46 @@ module.exports = class qtrade extends Exchange {
         const marketId = this.marketId (symbol);
         const request = { 'market_string': marketId };
         const response = await this.publicGetOrderbookMarketString (this.extend (request, params));
-        const orderbook = { 'bids': [], 'asks': [], 'timestamp': undefined, 'datetime': undefined, 'nonce': undefined };
-        const buyKeys = Object.keys (response['data']['buy']);
-        const buyKeysLen = buyKeys.length;
-        for (let i = 0; i < buyKeys.length; i++) {
-            const price = this.safeFloat (buyKeys, this.sum (buyKeysLen, -i, -1));
-            const priceString = this.safeString (buyKeys, this.sum (buyKeysLen, -i, -1));
-            const amount = this.safeFloat (response['data']['buy'], priceString);
-            orderbook['bids'].push ([price, amount]);
+        //
+        //     {
+        //         "data":{
+        //             "buy":{
+        //                 "0.00700015":"4.76196367",
+        //                 "0.00700017":"1.89755391",
+        //                 "0.00700018":"2.13214088",
+        //             },
+        //             "last_change":1588539869958811,
+        //             "sell":{
+        //                 "0.02418662":"0.19513696",
+        //                 "0.02465627":"0.2439212",
+        //                 "0.02530277":"0.663475931274359255",
+        //             }
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const orderbook = {
+            'bids': [],
+            'asks': [],
+        };
+        const sides = { 'buy': 'bids', 'sell': 'asks' };
+        const keys = Object.keys (sides);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const side = sides[key];
+            const bidasks = this.safeValue (data, key, {});
+            const prices = Object.keys (bidasks);
+            const result = [];
+            for (let j = 0; j < prices.length; j++) {
+                const priceAsString = prices[j];
+                const price = this.safeFloat (prices, j);
+                const amount = this.safeFloat (bidasks, priceAsString);
+                result.push ([ price, amount ]);
+            }
+            orderbook[side] = result;
         }
-        const sellKeys = Object.keys (response['data']['sell']);
-        const sellKeysLen = sellKeys.length;
-        for (let i = 0; i < sellKeysLen; i++) {
-            const price = this.safeFloat (sellKeys, i);
-            const priceString = this.safeString (sellKeys, i);
-            const amount = this.safeFloat (response['data']['sell'], priceString);
-            orderbook['asks'].push ([price, amount]);
-        }
-        return orderbook;
+        const timestamp = this.safeIntegerProduct (data, 'last_change', 0.001);
+        return this.parseOrderBook (orderbook, timestamp);
     }
 
     parseTicker (ticker, market = undefined) {
