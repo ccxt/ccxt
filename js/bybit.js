@@ -812,9 +812,12 @@ module.exports = class bybit extends Exchange {
                 symbol = market['symbol'];
                 base = market['base'];
             }
-            if (market['inverse']) {
-                amount = this.safeFloat (trade, 'exec_value');
-                cost = this.safeFloat (trade, 'exec_qty');
+            // if private trade
+            if ('exec_fee' in trade) {
+                if (market['inverse']) {
+                    amount = this.safeFloat (trade, 'exec_value');
+                    cost = this.safeFloat (trade, 'exec_qty');
+                }
             }
         }
         if (cost === undefined) {
