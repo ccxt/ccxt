@@ -253,7 +253,6 @@ module.exports = class qtrade extends Exchange {
                 'info': currency,
                 'type': type,
                 'name': name,
-                'status': status,
                 'fee': this.safeFloat (config, 'withdraw_fee'),
                 'precision': this.safeInteger (currency, 'precision'),
                 'active': active,
