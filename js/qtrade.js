@@ -99,11 +99,6 @@ module.exports = class qtrade extends Exchange {
                     'withdraw': {},
                 },
             },
-            'requiredCredentials': {
-                'apiKey': false,
-                'secret': false,
-                'privateKey': true,
-            },
         });
     }
 
@@ -882,47 +877,44 @@ module.exports = class qtrade extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        path = this.implodeParams (path, params);
-        if (method === 'GET') {
-            if ('queryParams' in params) {
-                path = path + '?' + this.urlencode (params['queryParams']);
+        let url = '/' + this.version + '/';
+        if (api === 'private') {
+            url += 'user/';
+        }
+        url += this.implodeParams (path, params);
+        const query = this.omit (params, this.extractParams (path));
+        if (method === 'POST') {
+            body = this.json (query);
+        } else {
+            if (Object.keys (query).length) {
+                url += '?' + this.urlencode (query);
             }
-            // delete params['queryParams'];
-        } else {
-            body = this.json (params);
         }
-        let endpoint = '';
         if (api === 'private') {
-            endpoint = '/' + this.version + '/user/' + path;
-        } else {
-            endpoint = '/' + this.version + '/' + path;
-        }
-        const url = this.urls['api'] + endpoint;
-        if (api === 'private') {
-            const split = this.privateKey.split (':');
-            const keyID = split[0];
-            const key = split[1];
             const timestamp = this.milliseconds ().toString ();
-            // Create hmac sig
-            let sig_text = method + '\n';
-            sig_text += endpoint + '\n';
-            sig_text += timestamp + '\n';
-            sig_text += (body || '') + '\n';
-            sig_text += key;
-            const hash = this.binaryToBase64 (this.hash (this.encode (sig_text), 'sha256', 'binary'));
-            const auth = 'HMAC-SHA256 ' + keyID + ':' + hash;
-            const content_type = 'application/json; charset=utf-8';
-            const more_headers = {
-                'Content-Type': content_type,
-                'Authorization': auth,
+            const bodyAsString = (method === 'POST') ? body : '';
+            const auth = [
+                method,
+                url,
+                timestamp,
+                bodyAsString,
+                this.secret,
+            ].join ("\n"); // eslint-disable-line quotes
+            const hash = this.hash (this.encode (auth), 'sha256', 'base64');
+            let key = this.apiKey;
+            if (typeof key !== 'string') {
+                key = key.toString ();
+            }
+            const signature = 'HMAC-SHA256 ' + key + ':' + hash;
+            headers = {
+                'Authorization': signature,
                 'HMAC-Timestamp': timestamp,
             };
-            if (headers !== undefined) {
-                headers = this.extend (headers, more_headers);
-            } else {
-                headers = more_headers;
+            if (method === 'POST') {
+                headers['Content-Type'] = 'application/json';
             }
         }
+        url = this.urls['api'] + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 };
