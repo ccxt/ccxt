@@ -193,32 +193,49 @@ module.exports = class qtrade extends Exchange {
 
     async fetchCurrencies (params = {}) {
         const response = await this.publicGetCurrencies (params);
-        const currencies = this.safeValue (response['data'], 'currencies', []);
-        //  CCX: {
-        //      id: 'CCX',
-        //      code: 'CCX',
-        //      info: {
-        //        code: 'CCX',
-        //        long_name: 'ConcealCoin',
-        //        type: 'monero_like',
-        //        status: 'ok',
-        //        precision: 6,
-        //        config: {},           // internal data about the coin
-        //        metadata: {},         // additional info, delisting notices, etc.
-        //        can_withdraw: true
-        //      },
-        //      type: 'monero_like',
-        //      name: 'ConcealCoin',
-        //      status: 'ok',
-        //      fee: 1,
-        //      precision: 6,
-        //      limits: {
-        //        amount: [Object],
-        //        price: [Object],
-        //        cost: [Object],
-        //        withdraw: [Object]
-        //      }
-        //  },
+        //
+        //     {
+        //         "data":{
+        //             "currencies":[
+        //                 {
+        //                     "code":"DGB",
+        //                     "long_name":"Digibyte",
+        //                     "type":"bitcoin_like",
+        //                     "precision":8,
+        //                     "config":{
+        //                         "price":0.0035,
+        //                         "withdraw_fee":"10",
+        //                         "deposit_types":[
+        //                             {
+        //                                 "label":"Address",
+        //                                 "lookup_mode":"address",
+        //                                 "render_type":"address",
+        //                                 "deposit_type":"address",
+        //                                 "lookup_config":{}
+        //                             }
+        //                         ],
+        //                         "default_signer":103,
+        //                         "address_version":30,
+        //                         "satoshi_per_byte":300,
+        //                         "required_confirmations":200,
+        //                         "required_generate_confirmations":300
+        //                     },
+        //                     "metadata":{},
+        //                     "minimum_order":"0.0001",
+        //                     "status":"ok",
+        //                     "can_withdraw":true,
+        //                     "delisted":false,
+        //                     "deposit_disabled":false,
+        //                     "withdraw_disabled":false,
+        //                     "deposit_warn_codes":[],
+        //                     "withdraw_warn_codes":[]
+        //                 },
+        //             ],
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const currencies = this.safeValue (data, 'currencies', []);
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
@@ -226,10 +243,10 @@ module.exports = class qtrade extends Exchange {
             const code = this.safeCurrencyCode (id);
             const name = this.safeString (currency, 'long_name');
             const type = this.safeString (currency, 'type');
-            const precision = this.safeInteger (currency, 'precision');
-            const can_withdraw = this.safeString (currency, 'can_withdraw');
-            const fee = this.safeFloat (currency['config'], 'withdraw_fee');
+            const canWithdraw = this.safeString (currency, 'can_withdraw');
+            const config = this.safeValue (currency, 'config', {});
             const status = this.safeString (currency, 'status');
+            const active = canWithdraw && (status === 'ok');
             result[code] = {
                 'id': id,
                 'code': code,
@@ -237,12 +254,12 @@ module.exports = class qtrade extends Exchange {
                 'type': type,
                 'name': name,
                 'status': status,
-                'fee': fee,
-                'precision': precision,
-                'can_withdraw': can_withdraw,
+                'fee': this.safeFloat (config, 'withdraw_fee'),
+                'precision': this.safeInteger (currency, 'precision'),
+                'active': active,
                 'limits': {
                     'amount': {
-                        'min': undefined,
+                        'min': this.safeFloat (currency, 'minimum_order'),
                         'max': undefined,
                     },
                     'price': {
@@ -254,7 +271,7 @@ module.exports = class qtrade extends Exchange {
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': 3 * fee,
+                        'min': undefined,
                         'max': undefined,
                     },
                 },
