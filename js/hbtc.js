@@ -12,7 +12,7 @@ module.exports = class hbtc extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'hbtc',
-            'name': 'HBTC Exchange',
+            'name': 'HBTC',
             'countries': [ 'CN' ],
             'rateLimit': 2000,
             'version': 'v1',
