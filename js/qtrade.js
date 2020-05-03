@@ -656,19 +656,22 @@ module.exports = class qtrade extends Exchange {
         return this.parseBalance (result);
     }
 
-    async createOrder (symbol, side, type, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         if (type !== 'limit') {
-            throw new ExchangeError (this.id + ' allows limit orders only');
+            throw new ExchangeError (this.id + ' createOrder() allows limit orders only');
         }
         await this.loadMarkets ();
-        const request = { 'queryParams': { 'amount': amount, 'market_id': this.market (symbol)['id'], 'price': price }};
-        let response = {};
-        if (side === 'sell') {
-            response = await this.privatePostSellLimit (this.extend (request, params));
-        } else if (side === 'buy') {
-            response = await this.privatePostBuyLimit (this.extend (request, params));
-        }
-        return this.parseOrder (response['data']['order']);
+        const market = this.market (symbol);
+        const request = {
+            'amount': this.amountToPrecision (symbol, amount),
+            'market_id': market['numericId'],
+            'price': this.priceToPrecision (symbol, price),
+        };
+        const method = (side === 'sell') ? 'privatePostSellLimit' : 'privatePostBuyLimit';
+        const response = await this[method] (this.extend (request, params));
+        const data = this.safeValue (response, 'data', {});
+        const order = this.safeValue (data, 'order', {});
+        return this.parseOrder (order, market);
     }
 
     parseOrder (order) {
@@ -711,7 +714,7 @@ module.exports = class qtrade extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        const request = { 'queryParams': { 'id': parseInt (id) }};
+        const request = { 'id': parseInt (id) };
         // successful cancellation returns 200 with no payload
         this.privatePostCancelOrder (this.extend (request, params));
     }
@@ -888,12 +891,12 @@ module.exports = class qtrade extends Exchange {
             url += 'user/';
         }
         url += this.implodeParams (path, params);
-        const query = this.omit (params, this.extractParams (path));
+        const request = this.omit (params, this.extractParams (path));
         if (method === 'POST') {
-            body = this.json (query);
+            body = this.json (request);
         } else {
-            if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
+            if (Object.keys (request).length) {
+                url += '?' + this.urlencode (request);
             }
         }
         if (api === 'private') {
