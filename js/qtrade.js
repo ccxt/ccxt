@@ -51,9 +51,9 @@ module.exports = class qtrade extends Exchange {
             'api': {
                 'public': {
                     'get': [
-                        'ticker',
+                        'ticker/{market_string}',
                         'tickers',
-                        'currency/{currency_code}',
+                        'currency/{code}',
                         'currencies',
                         'common',
                         'market/{market_string}',
@@ -67,24 +67,23 @@ module.exports = class qtrade extends Exchange {
                     'get': [
                         'me',
                         'balances',
-                        'balances_all',
-                        'market/{market_id}',
+                        'balances_all', // undocumented
+                        'market/{market_string}',
                         'orders',
                         'order/{order_id}',
+                        'trades',
                         'withdraw/{withdraw_id}',
                         'withdraws',
                         'deposit/{deposit_id}',
                         'deposits',
                         'transfers',
-                        'order/{order_id}',
-                        'trades',
                     ],
                     'post': [
+                        'cancel_order',
                         'withdraw',
+                        'deposit_address/{currency}',
                         'sell_limit',
                         'buy_limit',
-                        'cancel_order',
-                        'deposit_address/{currency}',
                     ],
                 },
             },
@@ -108,77 +107,86 @@ module.exports = class qtrade extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.publicGetCommon (params);
-        //  'BTC/BIS': {
-        //      limits: { amount: [Object], price: [Object], cost: [Object] },
-        //      precision: { amount: 8, price: 8 },
-        //      tierBased: true,
-        //      percentage: true,
-        //      taker: 0.0025,
-        //      maker: 0,
-        //      symbol: 'BTC/BIS',
-        //      id: 20,
-        //      baseId: 'BTC',
-        //      quoteId: 'BIS',
-        //      base: 'BTC',
-        //      quote: 'BIS',
-        //      active: false,
-        //      info: {
-        //        id: 20,
-        //        market_currency: 'BIS',
-        //        base_currency: 'BTC',
-        //        maker_fee: '0',
-        //        taker_fee: '0.005',
-        //        metadata: [Object],
-        //        can_trade: true,
-        //        can_cancel: true,
-        //        can_view: true
-        //      }
-        //  }
+        const response = await this.publicGetMarkets (params);
+        //
+        //     {
+        //         "data":{
+        //             "markets":[
+        //                 {
+        //                     "id":5,
+        //                     "market_currency":"BAC",
+        //                     "base_currency":"BTC",
+        //                     "maker_fee":"0.0025",
+        //                     "taker_fee":"0.0025",
+        //                     "metadata":{
+        //                         "delisting_date":"7/15/2018",
+        //                         "market_notices":[
+        //                             {
+        //                                 "message":"Delisting Notice: This market has been delisted due to low volume. Please cancel your orders and withdraw your funds by 7/15/2018.",
+        //                                 "type":"warning"
+        //                             }
+        //                         ]
+        //                     },
+        //                     "can_trade":false,
+        //                     "can_cancel":true,
+        //                     "can_view":false,
+        //                     "market_string":"BAC_BTC",
+        //                     "minimum_sell_amount":"0.0001",
+        //                     "minimum_buy_value":"0.0001",
+        //                     "market_precision":8,
+        //                     "base_precision":8
+        //                 },
+        //             ],
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const markets = this.safeValue (data, 'markets', []);
         const result = [];
-        const markets = this.safeValue (response['data'], 'markets', []);
-        const currencies = this.safeValue (response['data'], 'currencies', []);
-        const currenciesByCode = this.indexBy (currencies, 'code');
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
-            const marketId = market['id'];
-            const base = this.safeCurrencyCode (market['base_currency']);
-            const quote = this.safeCurrencyCode (market['market_currency']);
-            const baseCurrency = this.safeValue (currenciesByCode, base, {});
-            const quoteCurrency = this.safeValue (currenciesByCode, base, {});
+            const marketId = this.safeString (market, 'market_string');
+            const numericId = this.safeInteger (market, 'id');
+            const baseId = this.safeString (market, 'base_currency');
+            const quoteId = this.safeString (market, 'market_currency');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const precision = {
-                'amount': this.safeInteger (baseCurrency, 'precision'),
-                'price': this.safeInteger (quoteCurrency, 'precision'),
+                'amount': this.safeInteger (market, 'base_precision'),
+                'price': this.safeInteger (market, 'market_precision'),
             };
-            const active = this.safeValue (market, 'allow_trading', false);
-            if (market['can_view'] === true) {
-                result.push ({
-                    'symbol': symbol,
-                    'id': marketId,
-                    'baseId': base,
-                    'quoteId': quote,
-                    'base': base,
-                    'quote': quote,
-                    'active': active,
-                    'precision': precision,
-                    'limits': {
-                        'amount': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'price': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'cost': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
+            const canView = this.safeValue (market, 'can_view', false);
+            const canTrade = this.safeValue (market, 'can_trade', false);
+            const active = canTrade && canView;
+            result.push ({
+                'symbol': symbol,
+                'id': marketId,
+                'numericId': numericId,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'base': base,
+                'quote': quote,
+                'active': active,
+                'precision': precision,
+                'taker': this.safeFloat (market, 'taker_fee'),
+                'maker': this.safeFloat (market, 'maker_fee'),
+                'limits': {
+                    'amount': {
+                        'min': this.safeFloat (market, 'minimum_buy_value'),
+                        'max': undefined,
                     },
-                    'info': market,
-                });
-            }
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'info': market,
+            });
         }
         return result;
     }
