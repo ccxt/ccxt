@@ -23,9 +23,9 @@ module.exports = class nashio extends Exchange {
                 'fetchTickers': true,
                 'fetchOHLCV': false,
                 'fetchTrades': false,
-                'fetchOrderBook': false,
-                'fetchOrderBooks': false,
+                'fetchOrderBook': true,
                 'fetchL2OrderBook': false,
+                'fetchOrderBooks': false,
             },
             'marketsByAltname': {},
             'timeframes': {
@@ -252,6 +252,38 @@ module.exports = class nashio extends Exchange {
         }
         // console.warn ('fetchTickers', result);
         return result;
+    }
+
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let query = '';
+        query += 'query GetOrderBook($marketName: MarketName ' + '!' + ') { ';
+        query += '  getOrderBook(marketName: $marketName) { ';
+        query += '      lastUpdateId ';
+        query += '      updateId ';
+        query += '      asks { ';
+        query += '          amount { amount currency } ';
+        query += '          price { amount currencyA currencyB } ';
+        query += '      } ';
+        query += '      bids { ';
+        query += '          amount { amount currency } ';
+        query += '          price { amount currencyA currencyB } ';
+        query += '      } ';
+        query += '  } ';
+        query += '}';
+        const request = {
+            'query': query,
+            'variables': {
+                'marketName': market['id'],
+            },
+        };
+        if (limit !== undefined) {
+            request['count'] = limit; // 100
+        }
+        const response = await this.publicPostGql (this.extend (request, params));
+        const orderbook = response['data']['getOrderBook'];
+        return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 0, 'amount');
     }
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
