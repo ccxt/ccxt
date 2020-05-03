@@ -147,14 +147,14 @@ module.exports = class qtrade extends Exchange {
             const market = markets[i];
             const marketId = this.safeString (market, 'market_string');
             const numericId = this.safeInteger (market, 'id');
-            const baseId = this.safeString (market, 'base_currency');
-            const quoteId = this.safeString (market, 'market_currency');
+            const baseId = this.safeString (market, 'market_currency');
+            const quoteId = this.safeString (market, 'base_currency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const precision = {
-                'amount': this.safeInteger (market, 'base_precision'),
-                'price': this.safeInteger (market, 'market_precision'),
+                'amount': this.safeInteger (market, 'market_precision'),
+                'price': this.safeInteger (market, 'base_precision'),
             };
             const canView = this.safeValue (market, 'can_view', false);
             const canTrade = this.safeValue (market, 'can_trade', false);
@@ -334,49 +334,74 @@ module.exports = class qtrade extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        //
+        // fetchTicker
+        //
+        //     {
+        //         "ask":"0.02423119",
+        //         "bid":"0.0230939",
+        //         "day_avg_price":"0.0247031874349301",
+        //         "day_change":"-0.0237543162270376",
+        //         "day_high":"0.02470552",
+        //         "day_low":"0.02470172",
+        //         "day_open":"0.02530277",
+        //         "day_volume_base":"0.00268074",
+        //         "day_volume_market":"0.10851798",
+        //         "id":41,
+        //         "id_hr":"ETH_BTC",
+        //         "last":"0.02470172",
+        //         "last_change":1588533365354609
+        //     }
+        //
         let symbol = undefined;
         let marketId = this.safeString (ticker, 'id_hr');
         if (marketId !== undefined) {
-            marketId = marketId.replace ('-', '_');
-        }
-        market = this.safeValue (this.markets_by_id, marketId, market);
-        if (market === undefined) {
-            if (marketId !== undefined) {
+            marketId = marketId.replace ('-', '_'); // ?
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            } else {
                 const [ baseId, quoteId ] = marketId.split ('_');
                 const base = this.safeCurrencyCode (baseId);
                 const quote = this.safeCurrencyCode (quoteId);
                 symbol = quote + '/' + base;
             }
         }
-        if (market !== undefined) {
-            symbol = market['id_hr'];
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
         }
+        const timestamp = this.safeIntegerProduct (ticker, 'last_change', 0.001);
         const previous = this.safeFloat (ticker, 'day_open');
         const last = this.safeFloat (ticker, 'last');
         const day_change = this.safeFloat (ticker, 'day_change');
         let percentage = undefined;
         let change = undefined;
-        let average = undefined;
+        let average = this.safeFloat (ticker, 'day_avg_price');
         if (day_change !== undefined) {
             percentage = day_change * 100;
             if (previous !== undefined) {
                 change = day_change * previous;
             }
         }
-        if (last !== undefined && previous !== undefined) {
+        if ((average === undefined) && (last !== undefined) && (previous !== undefined)) {
             average = this.sum (last, previous) / 2;
+        }
+        const baseVolume = this.safeFloat (ticker, 'day_volume_market');
+        const quoteVolume = this.safeFloat (ticker, 'day_volume_base');
+        let vwap = undefined;
+        if ((baseVolume !== undefined) && (quoteVolume !== undefined) && (baseVolume > 0)) {
+            vwap = quoteVolume / baseVolume;
         }
         return {
             'symbol': symbol,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'high': this.safeFloat (ticker, 'day_high'),
             'low': this.safeFloat (ticker, 'day_low'),
             'bid': this.safeFloat (ticker, 'bid'),
             'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'ask'),
             'askVolume': undefined,
-            'vwap': undefined,
+            'vwap': vwap,
             'open': previous,
             'close': last,
             'last': last,
@@ -384,15 +409,15 @@ module.exports = class qtrade extends Exchange {
             'change': change,
             'percentage': percentage,
             'average': average,
-            'baseVolume': this.safeFloat (ticker, 'day_volume_market'),
-            'quoteVolume': this.safeFloat (ticker, 'day_volume_base'),
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         };
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.publicGetTickers (params);
+        const response = await this.publicGetTicker (params);
         const tickers = this.safeValue (response['data'], 'markets', []);
         const result = {};
         for (let i = 0; i < tickers.length; i++) {
@@ -404,8 +429,33 @@ module.exports = class qtrade extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
-        const tickers = await this.fetchTickers ([ symbol ], params);
-        return tickers[symbol];
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market_string': market['id'],
+        };
+        const response = await this.publicGetTickerMarketString (this.extend (request, params));
+        //
+        //     {
+        //         "data":{
+        //             "ask":"0.02423119",
+        //             "bid":"0.0230939",
+        //             "day_avg_price":"0.0247031874349301",
+        //             "day_change":"-0.0237543162270376",
+        //             "day_high":"0.02470552",
+        //             "day_low":"0.02470172",
+        //             "day_open":"0.02530277",
+        //             "day_volume_base":"0.00268074",
+        //             "day_volume_market":"0.10851798",
+        //             "id":41,
+        //             "id_hr":"ETH_BTC",
+        //             "last":"0.02470172",
+        //             "last_change":1588533365354609
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseTicker (data, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
