@@ -350,10 +350,7 @@ module.exports = class qtrade extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const orderbook = {
-            'bids': [],
-            'asks': [],
-        };
+        const orderbook = {};
         const sides = { 'buy': 'bids', 'sell': 'asks' };
         const keys = Object.keys (sides);
         for (let i = 0; i < keys.length; i++) {
