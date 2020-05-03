@@ -281,6 +281,17 @@ module.exports = class qtrade extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '5m', since = undefined, limit = undefined) {
+        //
+        //     {
+        //         "time":"2019-12-07T22:55:00Z",
+        //         "open":"0.00197",
+        //         "high":"0.00197",
+        //         "low":"0.00197",
+        //         "close":"0.00197",
+        //         "volume":"0.00016676",
+        //         "market_volume":"0.08465047"
+        //     }
+        //
         const result = [
             this.parse8601 (this.safeString (ohlcv, 'time')),
             this.safeFloat (ohlcv, 'open'),
@@ -301,12 +312,19 @@ module.exports = class qtrade extends Exchange {
         };
         const response = await this.publicGetMarketMarketStringOhlcvInterval (this.extend (request, params));
         //
-        //  [ 1573862400000, 3e-7, 3.1e-7, 3.1e-7, 3.1e-7, 0.0095045 ],
-        //  [ 1573948800000, 3.1e-7, 3.2e-7, 3e-7, 3e-7, 0.04184538 ],
-        //  [ 1574035200000, 3e-7, 3.2e-7, 3e-7, 3.1e-7, 0.06711341 ]
+        //     {
+        //         "data":{
+        //             "slices":[
+        //                 {"time":"2019-12-07T22:55:00Z","open":"0.00197","high":"0.00197","low":"0.00197","close":"0.00197","volume":"0.00016676","market_volume":"0.08465047"},
+        //                 {"time":"2019-12-07T23:00:00Z","open":"0.00197","high":"0.00197","low":"0.00197","close":"0.00197","volume":"0","market_volume":"0"},
+        //                 {"time":"2019-12-07T23:05:00Z","open":"0.00197","high":"0.00197","low":"0.00197","close":"0.00197","volume":"0","market_volume":"0"},
+        //             ]
+        //         }
+        //     }
         //
-        const result = this.parseOHLCVs (response['data']['slices'], market, timeframe, since, limit);
-        return result;
+        const data = this.safeValue (response, 'data', {});
+        const ohlcvs = this.safeValue (data, 'slices', []);
+        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
