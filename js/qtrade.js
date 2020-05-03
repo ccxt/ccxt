@@ -614,40 +614,46 @@ module.exports = class qtrade extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        await this.loadMarkets ();
         const response = await this.privateGetBalancesAll (params);
-        const free = {};
-        let bs = response['data']['balances'];
-        for (let i = 0; i < bs.length; i++) {
-            free[bs[i]['currency']] = this.safeFloat (bs[i], 'balance');
+        //
+        //     {
+        //         "data":{
+        //             "balances": [
+        //                 { "balance": "100000000", "currency": "BCH" },
+        //                 { "balance": "99992435.78253015", "currency": "LTC" },
+        //                 { "balance": "99927153.76074182", "currency": "BTC" },
+        //             ],
+        //             "order_balances":[],
+        //             "limit_used":0,
+        //             "limit_remaining":4000,
+        //             "limit":4000
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        let balances = this.safeValue (data, 'balances', []);
+        const result = {
+            'info': response,
+        };
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const currencyId = this.safeString (balance, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = (code in result) ? result[code] : this.account ();
+            account['free'] = this.safeFloat (balance, 'balance');
+            result[code] = account;
         }
-        const used = {};
-        bs = response['data']['order_balances'];
-        for (let i = 0; i < bs.length; i++) {
-            used[bs[i]['currency']] = this.safeFloat (bs[i], 'balance');
+        balances = this.safeValue (data, 'order_balances', []);
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const currencyId = this.safeString (balance, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = (code in result) ? result[code] : this.account ();
+            account['used'] = this.safeFloat (balance, 'balance');
+            result[code] = account;
         }
-        const freeKeys = Object.keys (free);
-        const result = { 'free': free, 'used': used, 'total': {}, 'info': response['data'] };
-        for (let i = 0; i < freeKeys.length; i++) {
-            const byCoin = {};
-            const k = Object.keys (free)[i];
-            byCoin['free'] = free[k];
-            result[k] = byCoin;
-        }
-        const usedKeys = Object.keys (used);
-        for (let i = 0; i < usedKeys.length; i++) {
-            const k = Object.keys (used)[i];
-            let byCoin = {};
-            if (k in result) {
-                byCoin = result[k];
-            } else {
-                byCoin['free'] = 0;
-            }
-            byCoin['used'] = used[k];
-            byCoin['total'] = byCoin['used'] + byCoin['free'];
-            result[k] = byCoin;
-            result['total'][k] = byCoin['total'];
-        }
-        return result;
+        return this.parseBalance (result);
     }
 
     async createOrder (symbol, side, type, amount, price = undefined, params = {}) {
