@@ -88,14 +88,6 @@ module.exports = class nashio extends Exchange {
         });
     }
 
-    getGqlMarket () {
-        let gql = '';
-        gql += '{';
-        gql += '    aUnit';
-        gql += '}';
-        return gql;
-    }
-
     async fetchMarkets (params = {}) {
         let query = '';
         query += 'query ListMarkets { ';
