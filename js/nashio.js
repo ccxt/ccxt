@@ -3,7 +3,6 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -19,13 +18,14 @@ module.exports = class nashio extends Exchange {
             'pro': false,
             'has': {
                 'fetchMarkets': true,
-                'fetchCurrencies': false,
+                'fetchCurrencies': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
-                'fetchOHLCV': true,
+                'fetchOHLCV': false,
                 'fetchTrades': false,
-                'fetchOrderBook': true,
+                'fetchOrderBook': false,
                 'fetchOrderBooks': false,
+                'fetchL2OrderBook': false,
             },
             'marketsByAltname': {},
             'timeframes': {
@@ -85,47 +85,22 @@ module.exports = class nashio extends Exchange {
                     ],
                 },
             },
-            'precisionMode': TICK_SIZE,
-            'gqlFragments': {
-                'MarketFields': [
-                    'aUnit',
-                    'aUnitPrecision',
-                    'bUnit',
-                    'bUnitPrecision',
-                    'minTickSize',
-                    'minTradeSize',
-                    'minTradeSizeB',
-                    'minTradeIncrement',
-                    'minTradeIncrementB',
-                    'name',
-                    'status',
-                    'priceGranularity',
-                ],
-                'CurrencyAmountFields': [
-                    'amount',
-                    'currency',
-                ],
-                'CurrencyAmountPartialFields': [
-                    'amount',
-                ],
-                'CurrencyPriceFields': [
-                    'amount',
-                    'currencyA',
-                    'currencyB',
-                ],
-                'CurrencyPricePartialFields': [
-                    'amount',
-                ],
-            },
         });
     }
 
+    getGqlMarket () {
+        let gql = '';
+        gql += '{';
+        gql += '    aUnit';
+        gql += '}';
+        return gql;
+    }
+
     async fetchMarkets (params = {}) {
-        const marketFields = this.gqlFragments['MarketFields'];
         let query = '';
         query += 'query ListMarkets { ';
-        query += '  listMarkets { ';
-        query += '      ' + marketFields.join (' ');
+        query += '  listMarkets {';
+        query += '      aUnit aUnitPrecision bUnit bUnitPrecision minTickSize minTradeSize minTradeSizeB minTradeIncrement minTradeIncrementB name status';
         query += '  }';
         query += '}';
         const request = {
@@ -144,6 +119,20 @@ module.exports = class nashio extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const active = market['status'] === 'RUNNING';
+            const precision = {
+                'amount': market['aUnitPrecision'],
+                'price': market['bUnitPrecision'],
+            };
+            const limits = {
+                'amount': {
+                    'min': market['minTradeSize'],
+                    'max': undefined,
+                },
+                'price': {
+                    'min': market['minTradeSizeB'],
+                    'max': undefined,
+                },
+            };
             const row = {
                 'id': id,
                 'symbol': symbol,
@@ -152,6 +141,8 @@ module.exports = class nashio extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': active,
+                'precision': precision,
+                'limits': limits,
                 'info': market,
             };
             // if (this.verbose) {
@@ -162,29 +153,48 @@ module.exports = class nashio extends Exchange {
         return result;
     }
 
+    async fetchCurrencies (params = {}) {
+        let query = '';
+        query += 'query ListAssets { ';
+        query += '  listAssets { ';
+        query += '      blockchain hash name symbol';
+        query += '  }';
+        query += '}';
+        const request = {
+            'query': query,
+        };
+        const response = await this.publicPostGql (this.extend (request, params));
+        const assets = response['data']['listAssets'];
+        // console.warn ('assets', assets);
+        const result = [];
+        for (let i = 0; i < assets.length; i++) {
+            const asset = assets[i];
+            const row = {
+                'id': this.safeString (asset, 'id'),
+                'code': this.safeString (asset, 'symbol'),
+                'name': this.safeString (asset, 'name'),
+                'info': asset,
+            };
+            result.push (row);
+        }
+        return result;
+    }
+
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        // console.warn ('fetchTicker', symbol, market);
-        const marketFields = this.gqlFragments['MarketFields'];
-        const currencyAmountFields = this.gqlFragments['CurrencyAmountFields'];
-        const currencyPriceFields = this.gqlFragments['CurrencyPriceFields'];
         let query = '';
         query += 'query GetTicker($marketName: MarketName' + '!' + ') { ';
         query += '  getTicker(marketName: $marketName) { ';
-        query += '      market { ';
-        query += '          ' + marketFields.join (' ');
-        query += '      } ';
-        query += '      priceChange24hPct ';
-        query += '      volume24h { ';
-        query += '          ' + currencyAmountFields.join (' ');
-        query += '      } ';
-        query += '      lastPrice { ';
-        query += '          ' + currencyPriceFields.join (' ');
-        query += '      } ';
-        query += '      usdLastPrice { ';
-        query += '          ' + currencyPriceFields.join (' ');
-        query += '      } ';
+        query += '      highPrice24h { amount currencyA currencyB }';
+        query += '      lowPrice24h { amount currencyA currencyB }';
+        query += '      bestBidPrice { amount currencyA currencyB }';
+        query += '      bestBidSize { amount currency }';
+        query += '      bestAskPrice { amount currencyA currencyB }';
+        query += '      bestAskSize { amount currency }';
+        query += '      lastPrice { amount currencyA currencyB }';
+        query += '      priceChange24h { amount currencyA currencyB }';
+        query += '      priceChange24hPct';
         query += '  } ';
         query += '} ';
         const request = {
@@ -194,11 +204,6 @@ module.exports = class nashio extends Exchange {
             },
         };
         const response = await this.publicPostGql (this.extend (request, params));
-        const candles = await this.fetchOHLCV (symbol, '1d', undefined, 1, params);
-        const book = await this.fetchOrderBook (symbol, undefined, params);
-        response['data']['getTicker']['info'] = {};
-        response['data']['getTicker']['info']['candles'] = candles;
-        response['data']['getTicker']['info']['book'] = book;
         return this.parseTicker (response['data']['getTicker'], market);
     }
 
@@ -214,25 +219,21 @@ module.exports = class nashio extends Exchange {
                 marketIds.push (market['id']);
             }
         }
-        const marketFields = this.gqlFragments['MarketFields'];
-        const currencyAmountFields = this.gqlFragments['CurrencyAmountFields'];
-        const currencyPriceFields = this.gqlFragments['CurrencyPriceFields'];
         let query = '';
         query += 'query Tickers { ';
         query += '  listTickers { ';
-        query += '      market { ';
-        query += '          ' + marketFields.join (' ');
-        query += '      } ';
-        query += '      priceChange24hPct ';
-        query += '      volume24h { ';
-        query += '          ' + currencyAmountFields.join (' ');
-        query += '      } ';
-        query += '      lastPrice { ';
-        query += '          ' + currencyPriceFields.join (' ');
-        query += '      } ';
-        query += '      usdLastPrice { ';
-        query += '          ' + currencyPriceFields.join (' ');
-        query += '      } ';
+        query += '      highPrice24h { amount currencyA currencyB }';
+        query += '      lowPrice24h { amount currencyA currencyB }';
+        query += '      bestBidPrice { amount currencyA currencyB }';
+        query += '      bestBidSize { amount currency }';
+        query += '      bestAskPrice { amount currencyA currencyB }';
+        query += '      bestAskSize { amount currency }';
+        query += '      lastPrice { amount currencyA currencyB }';
+        query += '      priceChange24h { amount currencyA currencyB }';
+        query += '      priceChange24hPct';
+        query += '      market {';
+        query += '          name';
+        query += '      }';
         query += '  } ';
         query += '}';
         const request = {
@@ -243,7 +244,6 @@ module.exports = class nashio extends Exchange {
         const result = {};
         for (let i = 0; i < response['data']['listTickers'].length; i++) {
             const ticker = response['data']['listTickers'][i];
-            // console.warn('ticker', ticker);
             const market = this.markets_by_id[ticker['market']['name']];
             const symbol = market['symbol'];
             if (this.inArray (symbol, symbols)) {
@@ -252,97 +252,6 @@ module.exports = class nashio extends Exchange {
         }
         // console.warn ('fetchTickers', result);
         return result;
-    }
-
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        // this.verbose = true;
-        const market = this.market (symbol);
-        const currencyAmountPartialFields = this.gqlFragments['CurrencyAmountPartialFields'];
-        const currencyPricePartialFields = this.gqlFragments['CurrencyPricePartialFields'];
-        let query = '';
-        query += 'query listCandles($before: DateTime, $interval: CandleInterval, $marketName: MarketName' + '!' + ', $limit: Int) { ';
-        query += '  listCandles (before: $before, interval: $interval, marketName: $marketName, limit: $limit) { ';
-        query += '      candles { ';
-        query += '          aVolume { ';
-        query += '               ' + currencyAmountPartialFields.join (' ');
-        query += '          }';
-        query += '          openPrice { ';
-        query += '               ' + currencyPricePartialFields.join (' ');
-        query += '          }';
-        query += '          closePrice { ';
-        query += '               ' + currencyPricePartialFields.join (' ');
-        query += '          }';
-        query += '          highPrice { ';
-        query += '               ' + currencyPricePartialFields.join (' ');
-        query += '          }';
-        query += '          lowPrice { ';
-        query += '               ' + currencyPricePartialFields.join (' ');
-        query += '          } ';
-        query += '          interval ';
-        query += '          intervalStartingAt ';
-        query += '      } ';
-        query += '  } ';
-        query += '}';
-        const request = {
-            'query': query,
-            'variables': {
-                'marketName': market['id'],
-                'interval': this.timeframes[timeframe],
-                'limit': limit,
-            },
-        };
-        if (since !== undefined) {
-            request['variables']['before'] = this.iso8601 (since);
-        }
-        const response = await this.publicPostGql (this.extend (request, params));
-        // this.print ('response', response);
-        const ohlcvs = response['data']['listCandles']['candles'];
-        // console.warn ('ohlcvs', ohlcvs);
-        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
-    }
-
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const currencyAmountFields = this.gqlFragments['CurrencyAmountFields'];
-        const currencyPriceFields = this.gqlFragments['CurrencyPriceFields'];
-        let query = '';
-        query += 'query GetOrderBook($marketName: MarketName ' + '!' + ') { ';
-        query += '  getOrderBook(marketName: $marketName) { ';
-        query += '      lastUpdateId ';
-        query += '      updateId ';
-        query += '      asks { ';
-        query += '          amount { ';
-        query += '              ' + currencyAmountFields.join (' ');
-        query += '          } ';
-        query += '          price { ';
-        query += '              ' + currencyPriceFields.join (' ');
-        query += '          } ';
-        query += '      } ';
-        query += '      bids { ';
-        query += '          amount { ';
-        query += '              ' + currencyAmountFields.join (' ');
-        query += '          } ';
-        query += '          price { ';
-        query += '              ' + currencyPriceFields.join (' ');
-        query += '          } ';
-        query += '      } ';
-        query += '  } ';
-        query += '}';
-        const request = {
-            'query': query,
-            'variables': {
-                'marketName': market['id'],
-            },
-        };
-        if (limit !== undefined) {
-            request['count'] = limit; // 100
-        }
-        const response = await this.publicPostGql (this.extend (request, params));
-        const orderbook = response['data']['getOrderBook'];
-        // console.warn ('orderbook', orderbook);
-        return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 0, 'amount');
     }
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
@@ -361,45 +270,27 @@ module.exports = class nashio extends Exchange {
         if (market) {
             symbol = market['symbol'];
         }
-        let open = undefined;
-        let high = undefined;
-        let low = undefined;
-        let last = undefined;
-        let close = last;
-        let average = undefined;
-        let change = undefined;
-        let ask = undefined;
-        let askVolume = undefined;
-        let bid = undefined;
-        let bidVolume = undefined;
+        const open = undefined;
+        const tickerHighPrice24h = this.safeValue (ticker, 'highPrice24h');
+        const tickerLowPrice24h = this.safeValue (ticker, 'lowPrice24h');
+        const tickerLastPrice = this.safeValue (ticker, 'lastPrice');
+        const tickerPriceChange24h = this.safeValue (ticker, 'priceChange24h');
+        const tickerBestAskPrice = this.safeValue (ticker, 'bestAskPrice');
+        const tickerBestAskSize = this.safeValue (ticker, 'bestAskSize');
+        const tickerBestBidPrice = this.safeValue (ticker, 'bestBidPrice');
+        const tickerBestBidSize = this.safeValue (ticker, 'bestBidSize');
+        const high = this.safeFloat (tickerHighPrice24h, 'amount');
+        const low = this.safeFloat (tickerLowPrice24h, 'amount');
+        const last = this.safeFloat (tickerLastPrice, 'amount');
+        // console.warn ('last', symbol, last);
+        const change = this.safeFloat (tickerPriceChange24h, 'amount');
+        const ask = this.safeFloat (tickerBestAskPrice, 'amount');
+        const askVolume = this.safeFloat (tickerBestAskSize, 'amount');
+        const bid = this.safeFloat (tickerBestBidPrice, 'amount');
+        const bidVolume = this.safeFloat (tickerBestBidSize, 'amount');
         const percentage = ticker['priceChange24hPct'];
-        const info = this.safeValue (ticker, 'info');
-        if (info !== undefined) {
-            const candles = this.safeValue (info, 'candles');
-            if (candles !== undefined) {
-                this.print (candles);
-                open = this.safeFloat (candles[0], 1);
-                high = this.safeFloat (ticker['info']['candles'][0], 2);
-                low = this.safeFloat (ticker['info']['candles'][0], 3);
-                last = this.safeFloat (ticker['lastPrice'], 'amount');
-                close = this.safeFloat (ticker['info']['candles'][0], 4);
-                average = this.sum (last, open) / 2;
-                change = last - open;
-            }
-            const book = this.safeValue (info, 'book');
-            if (book !== undefined) {
-                const asks = this.safeValue (book, 'asks');
-                const bids = this.safeValue (book, 'bids');
-                if (asks !== undefined) {
-                    ask = this.safeFloat2 (asks, 0, 0);
-                    askVolume = this.safeFloat2 (asks, 0, 1);
-                }
-                if (bids !== undefined) {
-                    bid = this.safeFloat2 (bids, 0, 0);
-                    bidVolume = this.safeFloat2 (bids, 0, 1);
-                }
-            }
-        }
+        const average = undefined;
+        const close = last;
         // console.warn ('parseTicker', last, close);
         return {
             'symbol': symbol,
