@@ -127,8 +127,8 @@ module.exports = class bybit extends Exchange {
                 },
                 'privateLinear': {
                     'get': [
-                        'order-list',
-                        'order-search',
+                        'order/list',
+                        'order/search',
                         'stop-order/list',
                         'stop-order/search',
                         'position/list',
