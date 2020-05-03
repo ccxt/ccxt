@@ -911,7 +911,7 @@ module.exports = class qtrade extends Exchange {
             if (typeof key !== 'string') {
                 key = key.toString ();
             }
-            const signature = 'HMAC-SHA256 ' + key + ':' + hash;
+            const signature = 'HMAC-SHA256 ' + key + ':' + this.decode (hash);
             headers = {
                 'Authorization': signature,
                 'HMAC-Timestamp': timestamp,
