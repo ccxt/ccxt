@@ -355,9 +355,8 @@ module.exports = class qtrade extends Exchange {
         //     }
         //
         let symbol = undefined;
-        let marketId = this.safeString (ticker, 'id_hr');
+        const marketId = this.safeString (ticker, 'id_hr');
         if (marketId !== undefined) {
-            marketId = marketId.replace ('-', '_'); // ?
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
             } else {
@@ -486,9 +485,33 @@ module.exports = class qtrade extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = { 'market_string': market['id'] };
+        const request = {
+            'market_string': market['id'],
+            // 'older_than': 123, // returns trades with id < older_than
+            // 'newer_than': 123, // returns trades with id > newer_than
+        };
         const response = await this.publicGetMarketMarketStringTrades (this.extend (request, params));
-        return this.parseTrades (response['data']['trades'], market, since, limit);
+        //
+        //     {
+        //         "data":{
+        //             "trades":[
+        //                 {
+        //                     "id":85507,
+        //                     "amount":"0.09390502",
+        //                     "price":"0.02556325",
+        //                     "base_volume":"0.00240051",
+        //                     "seller_taker":true,
+        //                     "side":"sell",
+        //                     "created_at":"0001-01-01T00:00:00Z",
+        //                     "created_at_ts":1581560391338718
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const trades = this.safeValue (data, 'trades', []);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -499,31 +522,43 @@ module.exports = class qtrade extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        // fetchTrades (public)
+        //
+        //     {
+        //         "id":85507,
+        //         "amount":"0.09390502",
+        //         "price":"0.02556325",
+        //         "base_volume":"0.00240051",
+        //         "seller_taker":true,
+        //         "side":"sell",
+        //         "created_at":"0001-01-01T00:00:00Z",
+        //         "created_at_ts":1581560391338718
+        //     }
+        //
         const id = this.safeString (trade, 'id');
-        const timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
+        const timestamp = this.safeIntegerProduct (trade, 'created_at_ts', 0.001);
         const orderId = this.safeString (trade, 'order_id');
         const side = this.safeString (trade, 'side');
         let symbol = undefined;
         const marketId = this.safeString (trade, 'symbol');
         if (marketId !== undefined) {
-            market = this.safeValue (this.markets_by_id, marketId, market);
-            if (market === undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            } else {
                 const [ baseId, quoteId ] = marketId.split ('_');
                 const base = this.safeCurrencyCode (baseId);
                 const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
+                symbol = quote + '/' + base;
             }
-        } else if (market !== undefined) {
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
-        let cost = undefined;
+        let cost = this.safeFloat (trade, 'base_volume');
         const price = this.safeFloat (trade, 'price');
-        let amount = this.safeFloat (trade, 'amount');
-        if (amount === undefined) {
-            // workaround for private trades, which use market_amount key
-            amount = this.safeFloat (trade, 'market_amount');
-        }
-        if (amount !== undefined) {
+        const amount = this.safeFloat2 (trade, 'market_amount', 'amount');
+        if ((cost === undefined) && (amount !== undefined) && (price !== undefined)) {
             if (price !== undefined) {
                 cost = price * amount;
             }
