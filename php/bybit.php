@@ -802,23 +802,27 @@ class bybit extends Exchange {
         $symbol = null;
         $base = null;
         $marketId = $this->safe_string($trade, 'symbol');
+        $amount = $this->safe_float_2($trade, 'qty', 'exec_qty');
+        $cost = $this->safe_float($trade, 'exec_value');
+        $price = $this->safe_float_2($trade, 'price', 'exec_price');
         if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
             $market = $this->markets_by_id[$marketId];
             $symbol = $market['symbol'];
             $base = $market['base'];
         }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-            $base = $market['base'];
+        if ($market !== null) {
+            if ($symbol === null) {
+                $symbol = $market['symbol'];
+                $base = $market['base'];
+            }
+            // if private $trade
+            if (is_array($trade) && array_key_exists('exec_fee', $trade)) {
+                if ($market['inverse']) {
+                    $amount = $this->safe_float($trade, 'exec_value');
+                    $cost = $this->safe_float($trade, 'exec_qty');
+                }
+            }
         }
-        $timestamp = $this->parse8601($this->safe_string($trade, 'time'));
-        if ($timestamp === null) {
-            $timestamp = $this->safe_integer($trade, 'trade_time_ms');
-        }
-        $side = $this->safe_string_lower($trade, 'side');
-        $price = $this->safe_float_2($trade, 'price', 'exec_price');
-        $amount = $this->safe_float_2($trade, 'qty', 'exec_qty');
-        $cost = $this->safe_float($trade, 'exec_value');
         if ($cost === null) {
             if ($amount !== null) {
                 if ($price !== null) {
@@ -826,6 +830,11 @@ class bybit extends Exchange {
                 }
             }
         }
+        $timestamp = $this->parse8601($this->safe_string($trade, 'time'));
+        if ($timestamp === null) {
+            $timestamp = $this->safe_integer($trade, 'trade_time_ms');
+        }
+        $side = $this->safe_string_lower($trade, 'side');
         $lastLiquidityInd = $this->safe_string($trade, 'last_liquidity_ind');
         $takerOrMaker = ($lastLiquidityInd === 'AddedLiquidity') ? 'maker' : 'taker';
         $feeCost = $this->safe_float($trade, 'exec_fee');
