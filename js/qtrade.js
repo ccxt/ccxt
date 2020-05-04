@@ -742,7 +742,7 @@ module.exports = class qtrade extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
-        // createOrder
+        // createOrder, fetchOrder
         //
         //     {
         //         "created_at": "2018-04-06T20:46:52.899248Z",
@@ -873,9 +873,40 @@ module.exports = class qtrade extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        const request = { 'queryParams': { 'order_id': parseInt (id) }};
+        await this.loadMarkets ();
+        const request = { 'order_id': id };
         const response = await this.privateGetOrderOrderId (this.extend (request, params));
-        return this.parseOrder (response['data']['order']);
+        //
+        //     {
+        //         "data":{
+        //             "order":{
+        //                 "id":13790596,
+        //                 "market_amount":"0.15",
+        //                 "market_amount_remaining":"0.0417463053014",
+        //                 "created_at":"2020-05-04T06:08:18.513413Z",
+        //                 "price":"0.0230939",
+        //                 "order_type":"sell_limit",
+        //                 "market_id":41,
+        //                 "market_string":"ETH_BTC",
+        //                 "open":true,
+        //                 "trades":[
+        //                     {
+        //                         "id":107331,
+        //                         "market_amount":"0.1082536946986",
+        //                         "price":"0.0230939",
+        //                         "base_amount":"0.00249999",
+        //                         "taker":true,
+        //                         "base_fee":"0.00001249",
+        //                         "created_at":"2020-05-04T06:08:18.513413Z"
+        //                     }
+        //                 ]
+        //             }
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const order = this.safeValue (data, 'order', {});
+        return this.parseOrder (order);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -893,22 +924,6 @@ module.exports = class qtrade extends Exchange {
         const request = { 'queryParams': { 'open': false }};
         const response = await this.privateGetOrders (this.extend (request, params));
         return this.parseOrders (response['data']['orders'], symbol, since, limit);
-    }
-
-    parseOrders (orders, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const result = [];
-        if (typeof since === 'string') {
-            since = this.parse8601 (since);
-        }
-        for (let i = 0; i < orders.length; i++) {
-            const order = this.parseOrder (orders[i]);
-            if (symbol === undefined || symbol === order['symbol']) {
-                if (since === undefined || order['timestamp'] >= since) {
-                    result.push (order);
-                }
-            }
-        }
-        return result.slice (0, limit);
     }
 
     parseDepositAddress (depositAddress, currency = undefined) {
