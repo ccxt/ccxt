@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, InvalidOrder, InsufficientFunds, AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -97,6 +97,12 @@ module.exports = class qtrade extends Exchange {
                 },
                 'funding': {
                     'withdraw': {},
+                },
+            },
+            'exceptions': {
+                'exact': {
+                    'invalid_auth': AuthenticationError,
+                    'insuff_funds': InsufficientFunds,
                 },
             },
         });
@@ -658,7 +664,7 @@ module.exports = class qtrade extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         if (type !== 'limit') {
-            throw new ExchangeError (this.id + ' createOrder() allows limit orders only');
+            throw new InvalidOrder (this.id + ' createOrder() allows limit orders only');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -925,5 +931,27 @@ module.exports = class qtrade extends Exchange {
         }
         url = this.urls['api'] + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        //
+        //     {"errors":[{"code":"insuff_funds","title":"Your available balance is too low for that action"}]}
+        //     {"errors":[{"code": "invalid_auth","title": "Invalid HMAC signature"}]}
+        //
+        if (response === undefined) {
+            return;
+        }
+        const errors = this.safeValue (response, 'errors', []);
+        const numErrors = errors.length;
+        if (numErrors < 1) {
+            return;
+        }
+        const feedback = this.id + ' ' + body;
+        for (let i = 0; i < errors.length; i++) {
+            const error = errors[i];
+            const errorCode = this.safeString (error, 'code');
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+        }
+        throw new ExchangeError (feedback); // unknown message
     }
 };
