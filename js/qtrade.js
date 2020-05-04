@@ -589,7 +589,10 @@ module.exports = class qtrade extends Exchange {
         //     }
         //
         const id = this.safeString (trade, 'id');
-        const timestamp = this.safeIntegerProduct (trade, 'created_at_ts', 0.001);
+        let timestamp = this.safeIntegerProduct (trade, 'created_at_ts', 0.001);
+        if (timestamp === undefined) {
+            timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
+        }
         const side = this.safeString (trade, 'side');
         let symbol = undefined;
         const marketId = this.safeString (trade, 'symbol');
@@ -803,15 +806,17 @@ module.exports = class qtrade extends Exchange {
             status = 'closed';
         }
         let symbol = undefined;
-        // const numericId = this.safeString (order, 'market_id');
-        // if (market === undefined) {
-        //     const marketId = this.safeStringUpper (order, 'symbol');
-        //     if (marketId !== undefined) {
-        //         if (marketId in this.markets_by_id) {
-        //             market = this.markets_by_id[marketId];
-        //         }
-        //     }
-        // }
+        const marketId = this.safeString (order, 'market_string');
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('_');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
@@ -830,6 +835,7 @@ module.exports = class qtrade extends Exchange {
                 const trade = parsedTrades[i];
                 feeCost = this.sum (trade['fee']['cost'], feeCost);
                 lastTradeTimestamp = this.safeInteger (trade, 'timestamp');
+                cost = this.sum (trade['cost'], cost);
             }
         }
         let fee = undefined;
@@ -915,9 +921,54 @@ module.exports = class qtrade extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const request = { 'queryParams': { 'open': true }};
+        await this.loadMarkets ();
+        const request = {
+            'open': true,
+            // 'older_than': 123, // returns orders with id < older_than
+            // 'newer_than': 123, // returns orders with id > newer_than
+        };
+        let market = undefined;
+        const numericId = this.safeValue (params, 'market_id');
+        if (numericId !== undefined) {
+            request['market_id'] = numericId; // mutually exclusive with market_string
+        } else if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['market_string'] = market['id'];
+        }
         const response = await this.privateGetOrders (this.extend (request, params));
-        return this.parseOrders (response['data']['orders'], symbol, since, limit);
+        //
+        //     {
+        //         "data":{
+        //             "orders":[
+        //                 {
+        //                     "id":13790596,
+        //                     "market_amount":"0.15",
+        //                     "market_amount_remaining":"0.0417463053014",
+        //                     "created_at":"2020-05-04T06:08:18.513413Z",
+        //                     "price":"0.0230939",
+        //                     "order_type":"sell_limit",
+        //                     "market_id":41,
+        //                     "market_string":"ETH_BTC",
+        //                     "open":true,
+        //                     "trades":[
+        //                         {
+        //                             "id":107331,
+        //                             "market_amount":"0.1082536946986",
+        //                             "price":"0.0230939",
+        //                             "base_amount":"0.00249999",
+        //                             "taker":true,
+        //                             "base_fee":"0.00001249",
+        //                             "created_at":"2020-05-04T06:08:18.513413Z"
+        //                         }
+        //                     ]
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const orders = this.safeValue (data, 'orders', []);
+        return this.parseOrders (orders, market, since, limit);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
