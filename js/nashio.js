@@ -21,7 +21,7 @@ module.exports = class nashio extends Exchange {
                 'fetchCurrencies': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
-                'fetchOHLCV': false,
+                'fetchOHLCV': true,
                 'fetchTrades': false,
                 'fetchOrderBook': true,
                 'fetchL2OrderBook': false,
@@ -246,6 +246,42 @@ module.exports = class nashio extends Exchange {
         return result;
     }
 
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        // this.verbose = true;
+        const market = this.market (symbol);
+        let query = '';
+        query += 'query listCandles($before: DateTime, $interval: CandleInterval, $marketName: MarketName' + '!' + ', $limit: Int) { ';
+        query += '  listCandles (before: $before, interval: $interval, marketName: $marketName, limit: $limit) { ';
+        query += '      candles { ';
+        query += '          aVolume { amount currency }';
+        query += '          openPrice { amount currencyA currencyB }';
+        query += '          closePrice { amount currencyA currencyB }';
+        query += '          highPrice { amount currencyA currencyB }';
+        query += '          lowPrice { amount currencyA currencyB }';
+        query += '          interval ';
+        query += '          intervalStartingAt ';
+        query += '      } ';
+        query += '  } ';
+        query += '}';
+        const request = {
+            'query': query,
+            'variables': {
+                'marketName': market['id'],
+                'interval': this.timeframes[timeframe],
+                'limit': limit,
+            },
+        };
+        if (since !== undefined) {
+            request['variables']['before'] = this.iso8601 (since);
+        }
+        const response = await this.publicPostGql (this.extend (request, params));
+        // this.print ('response', response);
+        const ohlcvs = response['data']['listCandles']['candles'];
+        // console.warn ('ohlcvs', ohlcvs);
+        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
+    }
+
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -341,13 +377,17 @@ module.exports = class nashio extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
-        // console.warn('ohlcv', ohlcv);
         const datetime = this.parse8601 (ohlcv['intervalStartingAt']);
-        const open = ohlcv['openPrice']['amount'];
-        const high = ohlcv['highPrice']['amount'];
-        const low = ohlcv['lowPrice']['amount'];
-        const close = ohlcv['closePrice']['amount'];
-        const volume = ohlcv['aVolume']['amount'];
+        const ohlvOpenPrice = this.safeValue (ohlcv, 'openPrice');
+        const ohlvHighPrice = this.safeValue (ohlcv, 'highPrice');
+        const ohlvLowPrice = this.safeValue (ohlcv, 'lowPrice');
+        const ohlvClosePrice = this.safeValue (ohlcv, 'closePrice');
+        const ohlvVolume = this.safeValue (ohlcv, 'aVolume');
+        const open = this.safeFloat (ohlvOpenPrice, 'amount');
+        const high = this.safeFloat (ohlvHighPrice, 'amount');
+        const low = this.safeFloat (ohlvLowPrice, 'amount');
+        const close = this.safeFloat (ohlvClosePrice, 'amount');
+        const volume = this.safeFloat (ohlvVolume, 'amount');
         const data = [
             datetime,
             open,
