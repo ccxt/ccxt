@@ -2041,7 +2041,7 @@ module.exports = class bybit extends Exchange {
             const timestamp = this.nonce ();
             const query = this.extend (params, {
                 'api_key': this.apiKey,
-                'recvWindow': this.options['recvWindow'],
+                'recv_window': this.options['recvWindow'],
                 'timestamp': timestamp,
             });
             const auth = this.rawencode (this.keysort (query));
