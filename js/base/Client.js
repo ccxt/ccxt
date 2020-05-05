@@ -169,6 +169,10 @@ module.exports = class Client {
                     // https://stackoverflow.com/questions/10585355/sending-websocket-ping-pong-frame-from-browser
                     this.connection.ping ()
                 } else {
+                    // browsers handle ping-pong automatically therefore
+                    // in a browser we update lastPong on every call to
+                    // this function as if pong just came in to prevent the
+                    // client from thinking it's a stalled connection
                     this.lastPong = now;
                 }
             }
