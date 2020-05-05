@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a925a4407059eb704723661d1d51ef8c",
+    "content-hash": "d5391640f245ba955bb370f51cf56a32",
     "packages": [
         {
             "name": "ccxt/ccxt",
-            "version": "1.27.18",
+            "version": "1.27.24",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ccxt/ccxt.git",
-                "reference": "f2f1bf548c558b7671a65af9fd5176ca3d0ff88f"
+                "reference": "8827e50549a46ef0dd34a83b75037654a31f62ec"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/f2f1bf548c558b7671a65af9fd5176ca3d0ff88f",
-                "reference": "f2f1bf548c558b7671a65af9fd5176ca3d0ff88f",
+                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/8827e50549a46ef0dd34a83b75037654a31f62ec",
+                "reference": "8827e50549a46ef0dd34a83b75037654a31f62ec",
                 "shasum": ""
             },
             "require": {
@@ -269,7 +269,7 @@
                 "zec",
                 "zerocoin"
             ],
-            "time": "2020-05-03T04:10:04+00:00"
+            "time": "2020-05-05T02:00:38+00:00"
         },
         {
             "name": "evenement/evenement",
@@ -902,16 +902,16 @@
         },
         {
             "name": "react/stream",
-            "version": "v1.1.0",
+            "version": "v1.1.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/reactphp/stream.git",
-                "reference": "50426855f7a77ddf43b9266c22320df5bf6c6ce6"
+                "reference": "7c02b510ee3f582c810aeccd3a197b9c2f52ff1a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/reactphp/stream/zipball/50426855f7a77ddf43b9266c22320df5bf6c6ce6",
-                "reference": "50426855f7a77ddf43b9266c22320df5bf6c6ce6",
+                "url": "https://api.github.com/repos/reactphp/stream/zipball/7c02b510ee3f582c810aeccd3a197b9c2f52ff1a",
+                "reference": "7c02b510ee3f582c810aeccd3a197b9c2f52ff1a",
                 "shasum": ""
             },
             "require": {
@@ -921,7 +921,7 @@
             },
             "require-dev": {
                 "clue/stream-filter": "~1.2",
-                "phpunit/phpunit": "^6.4 || ^5.7 || ^4.8.35"
+                "phpunit/phpunit": "^7.0 || ^6.4 || ^5.7 || ^4.8.35"
             },
             "type": "library",
             "autoload": {
@@ -944,7 +944,7 @@
                 "stream",
                 "writable"
             ],
-            "time": "2019-01-01T16:15:09+00:00"
+            "time": "2020-05-04T10:17:57+00:00"
         },
         {
             "name": "symfony/polyfill-mbstring",
