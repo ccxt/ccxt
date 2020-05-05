@@ -22,7 +22,7 @@ module.exports = class nashio extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchOHLCV': true,
-                'fetchTrades': false,
+                'fetchTrades': true,
                 'fetchOrderBook': true,
                 'fetchL2OrderBook': false,
                 'fetchOrderBooks': false,
@@ -254,7 +254,7 @@ module.exports = class nashio extends Exchange {
         query += 'query listCandles($before: DateTime, $interval: CandleInterval, $marketName: MarketName' + '!' + ', $limit: Int) { ';
         query += '  listCandles (before: $before, interval: $interval, marketName: $marketName, limit: $limit) { ';
         query += '      candles { ';
-        query += '          aVolume { amount currency }';
+        query += '          aVolume { amount currency } ';
         query += '          openPrice { amount currencyA currencyB }';
         query += '          closePrice { amount currencyA currencyB }';
         query += '          highPrice { amount currencyA currencyB }';
@@ -280,6 +280,44 @@ module.exports = class nashio extends Exchange {
         const ohlcvs = response['data']['listCandles']['candles'];
         // console.warn ('ohlcvs', ohlcvs);
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
+    }
+
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let query = '';
+        query += 'query ListTrades($marketName: MarketName' + '!' + ', $limit: Int, $before: DateTime) { ';
+        query += '  listTrades(marketName: $marketName, limit: $limit, before: $before) { ';
+        query += '      trades { ';
+        query += '          accountSide ';
+        query += '          amount { amount currency} ';
+        query += '          cursor ';
+        query += '          direction ';
+        query += '          executedAt ';
+        query += '          id ';
+        query += '          limitPrice { amount currencyA currencyB } ';
+        query += '          makerFee { amount currency } ';
+        query += '          makerGave { amount currency } ';
+        query += '          makerOrderId ';
+        query += '          makerReceived { amount currency } ';
+        // query += '          market { amount currency } ';
+        query += '          takerFee { amount currency } ';
+        query += '          takerGave { amount currency } ';
+        query += '          takerOrderId ';
+        query += '          takerReceived { amount currency } ';
+        query += '      } ';
+        query += '      next ';
+        query += '  } ';
+        query += '}';
+        const request = {
+            'query': query,
+            'variables': {
+                'marketName': market['id'],
+            },
+        };
+        const response = await this.publicPostGql (this.extend (request, params));
+        const trades = response['data']['listTrades']['trades'];
+        return this.parseTrades (trades, market, since, limit);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -377,63 +415,66 @@ module.exports = class nashio extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
-        const datetime = this.parse8601 (ohlcv['intervalStartingAt']);
+        const intervalStartingAt = this.safeString (ohlcv, 'intervalStartingAt');
         const ohlvOpenPrice = this.safeValue (ohlcv, 'openPrice');
         const ohlvHighPrice = this.safeValue (ohlcv, 'highPrice');
         const ohlvLowPrice = this.safeValue (ohlcv, 'lowPrice');
         const ohlvClosePrice = this.safeValue (ohlcv, 'closePrice');
         const ohlvVolume = this.safeValue (ohlcv, 'aVolume');
-        const open = this.safeFloat (ohlvOpenPrice, 'amount');
-        const high = this.safeFloat (ohlvHighPrice, 'amount');
-        const low = this.safeFloat (ohlvLowPrice, 'amount');
-        const close = this.safeFloat (ohlvClosePrice, 'amount');
-        const volume = this.safeFloat (ohlvVolume, 'amount');
         const data = [
-            datetime,
-            open,
-            high,
-            low,
-            close,
-            volume,
+            this.parse8601 (intervalStartingAt),
+            this.safeFloat (ohlvOpenPrice, 'amount'),
+            this.safeFloat (ohlvHighPrice, 'amount'),
+            this.safeFloat (ohlvLowPrice, 'amount'),
+            this.safeFloat (ohlvClosePrice, 'amount'),
+            this.safeFloat (ohlvVolume, 'amount'),
         ];
         return data;
     }
 
     parseTrade (trade, market = undefined) {
         const timestamp = this.safeTimestamp (trade['executedAt'], 'time');
-        const id = trade['id'];
-        // const order = undefined;
-        // const type = undefined;
-        const side = trade['direction'] === 'SELL' ? 'sell' : 'buy';
-        // let symbol = undefined;
-        const price = this.safeFloat (trade['limitPrice'], 'amount');
-        const amount = this.safeFloat (trade['amount'], 'amount');
-        // let currency = undefined;
-        // if (market) {
-        //     currency = market['quote'];
-        // }
-        // const fee = {
-        //     'cost': this.safeFloat (trade['takerFee'], 'amount'),
-        //     'currency': currency,
-        // };
-        // if (market !== undefined) {
-        //     symbol = market['symbol'];
-        // }
-        // console.warn ('trade', trade);
+        const id = this.safeString (trade, 'id');
+        const order = undefined;
+        const type = undefined;
+        const side = this.safeString (trade, 'direction') === 'SELL' ? 'sell' : 'buy';
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        const tradeLimitPrice = this.safeValue (trade, 'limitPrice');
+        const price = this.safeFloat (tradeLimitPrice, 'amount');
+        const tradeAmount = this.safeValue (trade, 'amount');
+        const amount = this.safeFloat (tradeAmount, 'amount');
+        let takerOrMaker = undefined;
+        const tradeAccountSide = this.safeString (trade, 'accountSide');
+        if (tradeAccountSide === 'MAKER') {
+            takerOrMaker = 'maker';
+        } else if (tradeAccountSide === 'TAKER') {
+            takerOrMaker = 'taker';
+        }
+        const tradeMakerGave = this.safeValue (trade, 'makerGave');
+        const tradeTakerReceived = this.safeValue (trade, 'takerReceived');
+        const tradeTakerFee = this.safeValue (trade, 'takerFee');
+        const fee = {
+            'cost': this.safeFloat (tradeTakerFee, 'amount'),
+            'currency': this.safeString (tradeTakerFee, 'currency'),
+            'rate': this.safeFloat (tradeMakerGave, 'amount') / this.safeFloat (tradeTakerReceived, 'amount'),
+        };
         return {
-            'id': id,
-            // 'order': order,
             'info': trade,
+            'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            // 'symbol': symbol,
-            // 'type': type,
+            'symbol': symbol,
+            'order': order,
+            'type': type,
             'side': side,
-            // 'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': price * amount,
-            // 'fee': fee,
+            'fee': fee,
         };
     }
 
