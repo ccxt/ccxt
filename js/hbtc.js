@@ -902,6 +902,10 @@ module.exports = class hbtc extends Exchange {
             if (clientOrderId === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a clientOrderId parameter for ' + market['type'] + ' markets, supply clientOrderId in the params argument');
             }
+            const leverage = this.safeValue (params, 'leverage');
+            if (leverage === undefined && (orderSide === 'BUY_OPEN' || orderSide === 'SELL_OPEN')) {
+                throw new NotSupported (this.id + ' createOrder() requires a leverage parameter for ' + market['type'] + ' markets if orderSide is BUY_OPEN or SELL_OPEN');
+            }
             method = 'contractPostOrder';
             const priceType = this.safeString (params, 'priceType');
             if (priceType === undefined) {
@@ -915,6 +919,7 @@ module.exports = class hbtc extends Exchange {
             request['orderType'] = type.toUpperCase (); // LIMIT, STOP
             request['quantity'] = this.amountToPrecision (symbol, amount);
             // request['leverage'] = 1; // not required for closing orders
+            request['leverage'] = leverage;
             request['clientOrderId'] = clientOrderId;
             // optional
             // request['priceType'] = 'INPUT', // INPUT, OPPONENT, QUEUE, OVER, MARKET
