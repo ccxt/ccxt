@@ -893,10 +893,10 @@ module.exports = class hbtc extends Exchange {
         let method = 'privatePostOrder';
         if (market['type'] === 'future') {
             if ((orderSide !== 'BUY_OPEN') && (orderSide !== 'SELL_OPEN') && (orderSide !== 'BUY_CLOSE') && (orderSide !== 'SELL_CLOSE')) {
-                throw NotSupported (this.id + ' createOrder() does not support order side ' + side + ' for ' + market['type'] + ' markets, only BUY_OPEN, SELL_OPEN, BUY_CLOSE and SELL_CLOSE are supported');
+                throw new NotSupported (this.id + ' createOrder() does not support order side ' + side + ' for ' + market['type'] + ' markets, only BUY_OPEN, SELL_OPEN, BUY_CLOSE and SELL_CLOSE are supported');
             }
             if ((orderType !== 'LIMIT') && (orderType !== 'STOP')) {
-                throw NotSupported (this.id + ' createOrder() does not support order type ' + type + ' for ' + market['type'] + ' markets, only LIMIT and STOP are supported');
+                throw new NotSupported (this.id + ' createOrder() does not support order type ' + type + ' for ' + market['type'] + ' markets, only LIMIT and STOP are supported');
             }
             const clientOrderId = this.safeValue (params, 'clientOrderId');
             if (clientOrderId === undefined) {
