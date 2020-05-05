@@ -53,7 +53,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 
 # Exchanges
 
-The CCXT library currently supports the following 119 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 120 cryptocurrency exchange markets and trading APIs:
 
 |&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;logo&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                                                                                                     | id                 | name                                                                                 | ver | doc                                                                                          | certified                                                                                                                   | pro                                                                         |
 |---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------|--------------------------------------------------------------------------------------|:---:|:--------------------------------------------------------------------------------------------:|-----------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------|
@@ -157,6 +157,7 @@ The CCXT library currently supports the following 119 cryptocurrency exchange ma
 |[![okex](https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg)](https://www.okex.com/join/1888677)                                            | okex               | [OKEX](https://www.okex.com/join/1888677)                                            | 3   | [API](https://www.okex.com/docs/en/)                                                         |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro)|
 |[![paymium](https://user-images.githubusercontent.com/1294454/27790564-a945a9d4-5ff9-11e7-9d2d-b635763f2f24.jpg)](https://www.paymium.com)                                                   | paymium            | [Paymium](https://www.paymium.com)                                                   | 1   | [API](https://github.com/Paymium/api-documentation)                                          |                                                                                                                             |                                                                             |
 |[![poloniex](https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg)](https://www.poloniex.com/?utm_source=ccxt&utm_medium=web)                 | poloniex           | [Poloniex](https://www.poloniex.com/?utm_source=ccxt&utm_medium=web)                 | *   | [API](https://docs.poloniex.com)                                                             | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro)|
+|[![qtrade](https://user-images.githubusercontent.com/51840849/80491487-74a99c00-896b-11ea-821e-d307e832f13e.jpg)](https://qtrade.io/?ref=BKOQWVFGRH2C)                                       | qtrade             | [qTrade](https://qtrade.io/?ref=BKOQWVFGRH2C)                                        | 1   | [API](https://qtrade-exchange.github.io/qtrade-docs)                                         |                                                                                                                             |                                                                             |
 |[![rightbtc](https://user-images.githubusercontent.com/1294454/42633917-7d20757e-85ea-11e8-9f53-fffe9fbb7695.jpg)](https://www.rightbtc.com)                                                 | rightbtc           | [RightBTC](https://www.rightbtc.com)                                                 | *   | [API](https://docs.rightbtc.com/api/)                                                        |                                                                                                                             |                                                                             |
 |[![southxchange](https://user-images.githubusercontent.com/1294454/27838912-4f94ec8a-60f6-11e7-9e5d-bbf9bd50a559.jpg)](https://www.southxchange.com)                                         | southxchange       | [SouthXchange](https://www.southxchange.com)                                         | *   | [API](https://www.southxchange.com/Home/Api)                                                 |                                                                                                                             |                                                                             |
 |[![stex](https://user-images.githubusercontent.com/1294454/69680782-03fd0b80-10bd-11ea-909e-7f603500e9cc.jpg)](https://app.stex.com?ref=36416021)                                            | stex               | [STEX](https://app.stex.com?ref=36416021)                                            | 3   | [API](https://help.stex.com/en/collections/1593608-api-v3-documentation)                     |                                                                                                                             |                                                                             |
@@ -3591,7 +3592,14 @@ In case you experience any difficulty connecting to a particular exchange, do th
 
 - Make sure that you have the most recent version of ccxt.
 - Check the [Issues](https://github.com/ccxt/ccxt/issues) for recent updates.
-- Turn `verbose = true` to get more detail about it.
+- Turn `verbose = true` to get more detail about it!
+  ```Python
+  import ccxt
+  exchange = ccxt.binance({'enableRateLimit': True})
+  exchange.load_markets()
+  exchange.verbose = True  # enable verbose mode after loading the markets
+  ````
+  Your [code to reproduce the issue + verbose output is required](https://github.com/ccxt/ccxt/wiki/FAQ#what-is-required-to-get-help) in order to get help.
 - Python people can turn on DEBUG logging level with a standard pythonic logger, by adding these two lines to the beginning of their code:
   ```Python
   import logging
@@ -3599,6 +3607,7 @@ In case you experience any difficulty connecting to a particular exchange, do th
   ```
 - Use verbose mode to make sure that the used API credentials correspond to the keys you intend to use. Make sure there's no confusion of keypairs.
 - **Try a fresh new keypair if possible.**
+- Read the answers to Frequently Asked Questions: https://github.com/ccxt/ccxt/wiki/FAQ
 - Check the permissions on the keypair with the exchange website!
 - If it is a Cloudflare protection error, try these examples:
   - https://github.com/ccxt/ccxt/blob/master/examples/js/bypass-cloudflare.js
