@@ -374,14 +374,14 @@ class coinbase(Exchange):
         #         "next_step": null
         #     }
         #
-        amountObject = self.safe_value(transaction, 'amount', {})
+        subtotalObject = self.safe_value(transaction, 'subtotal', {})
         feeObject = self.safe_value(transaction, 'fee', {})
         id = self.safe_string(transaction, 'id')
         timestamp = self.parse8601(self.safe_value(transaction, 'created_at'))
         updated = self.parse8601(self.safe_value(transaction, 'updated_at'))
         type = self.safe_string(transaction, 'resource')
-        amount = self.safe_float(amountObject, 'amount')
-        currencyId = self.safe_string(amountObject, 'currency')
+        amount = self.safe_float(subtotalObject, 'amount')
+        currencyId = self.safe_string(subtotalObject, 'currency')
         currency = self.safe_currency_code(currencyId)
         feeCost = self.safe_float(feeObject, 'amount')
         feeCurrencyId = self.safe_string(feeObject, 'currency')
@@ -496,7 +496,7 @@ class coinbase(Exchange):
         for i in range(0, len(baseIds)):
             baseId = baseIds[i]
             base = self.safe_currency_code(baseId)
-            type = 'fiat' if (baseId in list(dataById.keys())) else 'crypto'
+            type = 'fiat' if (baseId in dataById) else 'crypto'
             # https://github.com/ccxt/ccxt/issues/6066
             if type == 'crypto':
                 for j in range(0, len(data)):
@@ -588,7 +588,7 @@ class coinbase(Exchange):
         result = {}
         for i in range(0, len(keys)):
             key = keys[i]
-            type = 'fiat' if (key in list(dataById.keys())) else 'crypto'
+            type = 'fiat' if (key in dataById) else 'crypto'
             currency = self.safe_value(dataById, key, {})
             id = self.safe_string(currency, 'id', key)
             name = self.safe_string(currency, 'name')
@@ -1101,13 +1101,10 @@ class coinbase(Exchange):
         #      ]
         #    }
         #
-        exceptions = self.exceptions
         errorCode = self.safe_string(response, 'error')
         if errorCode is not None:
-            if errorCode in exceptions:
-                raise exceptions[errorCode](feedback)
-            else:
-                raise ExchangeError(feedback)
+            self.throw_exactly_matched_exception(self.exceptions, errorCode, feedback)
+            raise ExchangeError(feedback)
         errors = self.safe_value(response, 'errors')
         if errors is not None:
             if isinstance(errors, list):
@@ -1115,10 +1112,8 @@ class coinbase(Exchange):
                 if numErrors > 0:
                     errorCode = self.safe_string(errors[0], 'id')
                     if errorCode is not None:
-                        if errorCode in exceptions:
-                            raise exceptions[errorCode](feedback)
-                        else:
-                            raise ExchangeError(feedback)
+                        self.throw_exactly_matched_exception(self.exceptions, errorCode, feedback)
+                        raise ExchangeError(feedback)
         data = self.safe_value(response, 'data')
         if data is None:
             raise ExchangeError(self.id + ' failed due to a malformed response ' + self.json(response))

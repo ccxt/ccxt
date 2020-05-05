@@ -4,10 +4,19 @@
 
 If your question is formulated in a short manner like the above, we won't help. We don't teach programming. If you're unable to read and understand the [Manual](https://github.com/ccxt/ccxt/wiki) or you can't follow precisely the guides from the [CONTRIBUTING](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) doc on how to report an issue, we won't help either. Read the CONTRIBUTING guides on how to report an issue and read the Manual. You should not risk anyone's money and time without reading the entire Manual very carefully. You should not risk anything if you're not used to a lot of reading with tons of details. Also, if you don't have the confidence with the programming language you're using, there are much better places for coding fundamentals and practice. Search for `python tutorials`, `js videos`, play with examples, this is how other people climb up the learning curve. No shortcuts, if you want to learn something.
 
+## What is required to get help?
+
 When asking a question:
+
 - Use the search button for duplicates first!
-- **Post your request and response in `verbose` mode!** It's written and mentioned everywhere, in the [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting) section, in the [README](https://github.com/ccxt/ccxt/blob/master/README.md) and in many answers to similar questions among [previous issues](https://github.com/ccxt/ccxt/issues) and [pull requests](https://github.com/ccxt/ccxt/pulls). No excuses.
-- **Post your code** to reproduce the problem. Make it a complete short runnable program, don't swallow the lines and make it as compact as you can (5-10 lines of code), including the instantation code.
+- **Post your request and response in `verbose` mode!** Add `exchange.verbose = true` right before the line you're having issues with, and copypaste what you see on your screen. It's written and mentioned everywhere, in the [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting) section, in the [README](https://github.com/ccxt/ccxt/blob/master/README.md) and in many answers to similar questions among [previous issues](https://github.com/ccxt/ccxt/issues) and [pull requests](https://github.com/ccxt/ccxt/pulls). No excuses. The verbose output should include both the request and response from the exchange.
+- Include the full error callstack!
+- Write your language **and version**
+- Write ccxt library version
+- Which exchange it is
+- Which method you're trying to call
+
+- **Post your code** to reproduce the problem. Make it a complete short runnable program, don't swallow the lines and make it as compact as you can (5-10 lines of code), including the instantation code. Remove all irrelevant parts from it, leaving just the essence of the code to reproduce the issue.
     - **DON'T POST SCREENSHOTS OF CODE OR ERRORS, POST THE OUTPUT AND CODE IN PLAIN TEXT!**
     - **Surround code and output with triple backticks: &#096;&#096;&#096;GOOD&#096;&#096;&#096;**.
     - Don't confuse the backtick symbol (&#096;) with the quote symbol (\'): '''BAD'''

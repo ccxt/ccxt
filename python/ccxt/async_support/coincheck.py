@@ -117,7 +117,7 @@ class coincheck(Exchange):
         codes = list(self.currencies.keys())
         for i in range(0, len(codes)):
             code = codes[i]
-            currencyId = self.currencyId(code)
+            currencyId = self.currency_id(code)
             if currencyId in balances:
                 account = self.account()
                 reserved = currencyId + '_reserved'
@@ -182,6 +182,7 @@ class coincheck(Exchange):
                 symbol = base + '/' + quote
         return {
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -196,6 +197,8 @@ class coincheck(Exchange):
             'cost': cost,
             'fee': None,
             'info': order,
+            'average': None,
+            'trades': None,
         }
 
     async def fetch_order_book(self, symbol, limit=None, params={}):

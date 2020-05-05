@@ -61,6 +61,7 @@ module.exports = class southxchange extends Exchange {
             'commonCurrencies': {
                 'SMT': 'SmartNode',
                 'MTC': 'Marinecoin',
+                'BHD': 'Bithold',
             },
         });
     }
@@ -85,6 +86,8 @@ module.exports = class southxchange extends Exchange {
                 'quoteId': quoteId,
                 'active': undefined,
                 'info': market,
+                'precision': this.precision,
+                'limits': this.limits,
             });
         }
         return result;
@@ -245,6 +248,7 @@ module.exports = class southxchange extends Exchange {
         const result = {
             'info': order,
             'id': id,
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -258,6 +262,8 @@ module.exports = class southxchange extends Exchange {
             'remaining': remaining,
             'status': status,
             'fee': undefined,
+            'average': undefined,
+            'trades': undefined,
         };
         return result;
     }

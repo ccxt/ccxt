@@ -8,9 +8,11 @@ import base64
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadRequest
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
-from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import OnMaintenance
 
 
 class coinone(Exchange):
@@ -121,8 +123,10 @@ class coinone(Exchange):
                 },
             },
             'exceptions': {
-                '405': ExchangeNotAvailable,
+                '405': OnMaintenance,  # {"errorCode":"405","status":"maintenance","result":"error"}
                 '104': OrderNotFound,
+                '108': BadSymbol,  # {"errorCode":"108","errorMsg":"Unknown CryptoCurrency","result":"error"}
+                '107': BadRequest,  # {"errorCode":"107","errorMsg":"Parameter error","result":"error"}
             },
         })
 
@@ -293,6 +297,8 @@ class coinone(Exchange):
             'remaining': amount,
             'status': 'open',
             'fee': None,
+            'clientOrderId': None,
+            'trades': None,
         }
         self.orders[id] = order
         return order
@@ -336,6 +342,17 @@ class coinone(Exchange):
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
+        #
+        #     {
+        #         "index": "0",
+        #         "orderId": "68665943-1eb5-4e4b-9d76-845fc54f5489",
+        #         "timestamp": "1449037367",
+        #         "price": "444000.0",
+        #         "qty": "0.3456",
+        #         "type": "ask",
+        #         "feeRate": "-0.0015"
+        #     }
+        #
         info = self.safe_value(order, 'info')
         id = self.safe_string_upper(info, 'orderId')
         timestamp = self.safe_timestamp(info, 'timestamp')
@@ -371,6 +388,7 @@ class coinone(Exchange):
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -384,6 +402,8 @@ class coinone(Exchange):
             'remaining': remaining,
             'status': status,
             'fee': fee,
+            'average': None,
+            'trades': None,
         }
 
     def cancel_order(self, id, symbol=None, params={}):
@@ -459,12 +479,9 @@ class coinone(Exchange):
                 #
                 #    { "errorCode": "405",  "status": "maintenance",  "result": "error"}
                 #
-                code = self.safe_string(response, 'errorCode')
-                feedback = self.id + ' ' + self.json(response)
-                exceptions = self.exceptions
-                if code in exceptions:
-                    raise exceptions[code](feedback)
-                else:
-                    raise ExchangeError(feedback)
+                errorCode = self.safe_string(response, 'errorCode')
+                feedback = self.id + ' ' + body
+                self.throw_exactly_matched_exception(self.exceptions, errorCode, feedback)
+                raise ExchangeError(feedback)
         else:
             raise ExchangeError(self.id + ' ' + body)

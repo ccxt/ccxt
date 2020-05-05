@@ -35,6 +35,7 @@ module.exports = class bitmart extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchCanceledOrders': true,
                 'fetchOrder': true,
+                'signIn': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/61835713-a2662f80-ae85-11e9-9d00-6442919701fd.jpg',
@@ -42,6 +43,7 @@ module.exports = class bitmart extends Exchange {
                 'www': 'https://www.bitmart.com/',
                 'doc': 'https://github.com/bitmartexchange/bitmart-official-api-docs',
                 'referral': 'http://www.bitmart.com/?r=rQCFLh',
+                'fees': 'https://www.bitmart.com/fee/en',
             },
             'requiredCredentials': {
                 'apiKey': true,
@@ -137,6 +139,7 @@ module.exports = class bitmart extends Exchange {
                     'Unknown symbol': BadSymbol, // {"message":"Unknown symbol"}
                 },
                 'broad': {
+                    'Invalid limit. limit must be in the range': InvalidOrder,
                     'Maximum price is': InvalidOrder, // {"message":"Maximum price is 0.112695"}
                     // {"message":"Required Integer parameter 'status' is not present"}
                     // {"message":"Required String parameter 'symbol' is not present"}
@@ -146,6 +149,10 @@ module.exports = class bitmart extends Exchange {
                     // {"message":"Required Long parameter 'to' is not present"}
                     'is not present': BadRequest,
                 },
+            },
+            'commonCurrencies': {
+                'ONE': 'Menlo One',
+                'PLA': 'Plair',
             },
         });
     }
@@ -244,6 +251,7 @@ module.exports = class bitmart extends Exchange {
                 'precision': precision,
                 'limits': limits,
                 'info': market,
+                'active': undefined,
             });
         }
         return result;
@@ -392,20 +400,24 @@ module.exports = class bitmart extends Exchange {
         // fetchMyTrades (private)
         //
         //     {
-        //         "symbol": "BMX_ETH",
-        //         "amount": "1.0",
-        //         "fees": "0.0005000000",
-        //         "trade_id": 2734956,
-        //         "price": "0.00013737",
-        //         "active": true,
-        //         "entrust_id": 5576623,
-        //         "timestamp": 1545292334000
-        //     }
+        //         active: true,
+        //             amount: '0.2000',
+        //             entrustType: 1,
+        //             entrust_id: 979648824,
+        //             fees: '0.0000085532',
+        //             price: '0.021383',
+        //             symbol: 'ETH_BTC',
+        //             timestamp: 1574343514000,
+        //             trade_id: 329418828
+        //     },
         //
         const id = this.safeString (trade, 'trade_id');
         const timestamp = this.safeInteger2 (trade, 'timestamp', 'order_time');
         const type = undefined;
-        const side = this.safeStringLower (trade, 'type');
+        let side = this.safeStringLower (trade, 'type');
+        if ((side === undefined) && ('entrustType' in trade)) {
+            side = trade['entrustType'] ? 'sell' : 'buy';
+        }
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
         let cost = undefined;
@@ -436,8 +448,10 @@ module.exports = class bitmart extends Exchange {
         const feeCost = this.safeFloat (trade, 'fees');
         let fee = undefined;
         if (feeCost !== undefined) {
-            // is it always quote, always base, or base-quote depending on the side?
-            const feeCurrencyCode = undefined;
+            let feeCurrencyCode = undefined;
+            if (market !== undefined) {
+                feeCurrencyCode = (side === 'buy') ? market['base'] : market['quote'];
+            }
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
@@ -487,13 +501,14 @@ module.exports = class bitmart extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        // limit is required, must be in the range (0, 50)
+        const maxLimit = 50;
+        limit = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
         const request = {
             'symbol': market['id'],
-            // 'offset': 0, // current page, starts from 0
+            'offset': 0, // current page, starts from 0
+            'limit': limit, // required
         };
-        if (limit !== undefined) {
-            request['limit'] = limit; // default 500, max 1000
-        }
         const response = await this.privateGetTrades (this.extend (request, params));
         //
         //     {
@@ -629,7 +644,21 @@ module.exports = class bitmart extends Exchange {
         const id = this.safeString (order, 'entrust_id');
         const timestamp = this.milliseconds ();
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const symbol = this.findSymbol (this.safeString (order, 'symbol'), market);
+        let symbol = undefined;
+        const marketId = this.safeString (order, 'symbol');
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('_');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
         const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'original_amount');
         let cost = undefined;
@@ -656,6 +685,7 @@ module.exports = class bitmart extends Exchange {
         const type = undefined;
         return {
             'id': id,
+            'clientOrderId': undefined,
             'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -697,8 +727,8 @@ module.exports = class bitmart extends Exchange {
         const request = {
             'symbol': market['id'],
             'side': side.toLowerCase (),
-            'amount': parseFloat (this.amountToPrecision (symbol, amount)),
-            'price': parseFloat (this.priceToPrecision (symbol, price)),
+            'amount': this.amountToPrecision (symbol, amount),
+            'price': this.priceToPrecision (symbol, price),
         };
         const response = await this.privatePostOrders (this.extend (request, params));
         //
@@ -890,15 +920,8 @@ module.exports = class bitmart extends Exchange {
         const feedback = this.id + ' ' + body;
         const message = this.safeString2 (response, 'message', 'msg');
         if (message !== undefined) {
-            const exact = this.exceptions['exact'];
-            if (message in exact) {
-                throw new exact[message] (feedback);
-            }
-            const broad = this.exceptions['broad'];
-            const broadKey = this.findBroadlyMatchedKey (broad, message);
-            if (broadKey !== undefined) {
-                throw new broad[broadKey] (feedback);
-            }
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
     }

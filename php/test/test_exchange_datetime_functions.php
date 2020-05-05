@@ -7,7 +7,7 @@ include_once (__DIR__.'/../../ccxt.php');
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 // -----------------------------------------------------------------------------
-$exchange = new \ccxt\Exchange (array (
+$exchange = new \ccxt\Exchange (array(
     'id' => 'regirock',
 ));
 
@@ -31,6 +31,9 @@ assert ($exchange->iso8601 (array()) === null);
 assert ($exchange->parse8601 ('1986-04-26T01:23:47.000Z') === 514862627000);
 assert ($exchange->parse8601 ('1986-04-26T01:23:47.559Z') === 514862627559);
 assert ($exchange->parse8601 ('1986-04-26T01:23:47.062Z') === 514862627062);
+
+assert ($exchange->parse8601 ('1986-04-26T01:23:47.06Z') === 514862627060);
+assert ($exchange->parse8601 ('1986-04-26T01:23:47.6Z') === 514862627600);
 
 assert ($exchange->parse8601 ('1977-13-13T00:00:00.000Z') === null);
 assert ($exchange->parse8601 ('1986-04-26T25:71:47.000Z') === null);

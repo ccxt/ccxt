@@ -47,6 +47,8 @@ php -f path/to/example.php # substitute for actual filename here
 
 ## See Also
 
+[CCXT Pro](https://ccxt.pro) – a professional addon to CCXT with support for WebSocket streams.
+
 [The GDAX Trading Toolkit (GTT)](https://github.com/coinbase/gdax-tt) – a trading toolkit developed by the GDAX team that integrates the CCXT library!
 
 [Enigma Catalyst](https://blog.enigma.co/enigma-announces-catalyst-0-4-our-biggest-release-yet-fa31a5ffa4b1) – The major effort towards decentralized exchanges integrates ccxt!
@@ -56,6 +58,8 @@ php -f path/to/example.php # substitute for actual filename here
 [Playing with CCXT in Google Colab](https://medium.com/@ccxt/playing-with-ccxt-in-google-colab-23522ac8a6cb) – An article on how useful Colab can be for quick prototyping and testing your trading ideas with CCXT.
 
 [The Evolution of CCXT](https://www.youtube.com/watch?v=O5HrvSLeo90) – An awesome Gource visualization video on YouTube! )
+
+[What is the Best Crypto Trading Bot in 2020?](https://www.hodlbot.io/blog/ultimate-guide-on-crypto-trading-bots) – Ultimate guide on crypto trading bots in 2020 by HodlBlog.
 
 [CC Power Analytics Part 1: How to get the data of the exchanges](https://www.linkedin.com/pulse/part-1-cc-power-analytics-how-get-data-exchanges-steve-rein/) – The first part of a series of articles on cryptocurrency analytics.
 
@@ -98,6 +102,8 @@ php -f path/to/example.php # substitute for actual filename here
 [Building some node js tools to setup machine learning trading](https://medium.com/@kid.bytes/building-some-node-js-tools-to-setup-machine-learning-trading-pt-2-13f44e1b1df7) – An article in a series on setting up some tools to get started with machine learning for crypto trading.
 
 [Trade and Invest Smarter — The Reinforcement Learning Way](https://towardsdatascience.com/trade-smarter-w-reinforcement-learning-a5e91163f315) – A deep dive into  trading and investing using deep reinforcement learning with Python.
+
+[Cryptocurrencies and APIs](https://jonc.dev/cryptocurrency) – A presentation given to kick off the Bloomberg cryptocurrency hackathon and as a Recurse Center talk.
 
 [CCXTが便利な理由！CCXTライブラリをインストールしよう](https://ryota-trade.com/?p=476) – An article in Japanese on getting CCXT up and runining.
 
