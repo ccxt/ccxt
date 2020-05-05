@@ -168,6 +168,8 @@ module.exports = class Client {
                     // can't do this inside browser
                     // https://stackoverflow.com/questions/10585355/sending-websocket-ping-pong-frame-from-browser
                     this.connection.ping ()
+                } else {
+                    this.lastPong = now;
                 }
             }
         }
