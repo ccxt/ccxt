@@ -334,8 +334,7 @@ class binance extends Exchange {
                 '-1022' => '\\ccxt\\AuthenticationError', // array("code":-1022,"msg":"Signature for this request is not valid.")
                 '-1100' => '\\ccxt\\InvalidOrder', // createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
                 '-1104' => '\\ccxt\\ExchangeError', // Not all sent parameters were read, read 8 parameters but was sent 9
-                '-1116' => '\\ccxt\\InvalidOrder', // array("code":-1116,"msg":"Invalid orderType.")
-                '-1128' => '\\ccxt\\BadRequest', // array("code":-1128,"msg":"Combination of optional parameters invalid.")
+                '-1128' => '\\ccxt\\ExchangeError', // array("code":-1128,"msg":"Combination of optional parameters invalid.")
                 '-2010' => '\\ccxt\\ExchangeError', // generic error code for createOrder -> 'Account has insufficient balance for requested action.', array("code":-2010,"msg":"Rest API trading is not enabled."), etc...
                 '-2011' => '\\ccxt\\OrderNotFound', // cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
                 '-2013' => '\\ccxt\\OrderNotFound', // fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'
@@ -346,11 +345,29 @@ class binance extends Exchange {
     }
 
     public function set_sandbox_mode($enabled) {
-        $type = $this->safe_string($this->options, 'defaultType', 'spot');
-        if ($type !== 'future') {
-            throw new NotSupported($this->id . ' does not have a sandbox URL for ' . $type . " markets, set exchange.options['defaultType'] = 'future' or don't use the sandbox for " . $this->id);
+        if ($enabled) { // eslint-disable-line no-extra-boolean-cast
+            if (is_array($this->urls) && array_key_exists('test', $this->urls)) {
+                $type = $this->safe_string($this->options, 'defaultType', 'spot');
+                if ($type !== 'future') {
+                    throw new NotSupported($this->id . ' does not have a sandbox URL for ' . $type . " markets, set exchange.options['defaultType'] = 'future' or don't use the sandbox for " . $this->id);
+                }
+                if (gettype($this->urls['api']) === 'string') {
+                    $this->urls['api_backup'] = $this->urls['api'];
+                    $this->urls['api'] = $this->urls['test'];
+                } else {
+                    $this->urls['api_backup'] = array_merge(array(), $this->urls['api']);
+                    $this->urls['api'] = array_merge(array(), $this->urls['test']);
+                }
+            } else {
+                throw new NotSupported($this->id . ' does not have a sandbox URL');
+            }
+        } else if (is_array($this->urls) && array_key_exists('api_backup', $this->urls)) {
+            if (gettype($this->urls['api']) === 'string') {
+                $this->urls['api'] = $this->urls['api_backup'];
+            } else {
+                $this->urls['api'] = array_merge(array(), $this->urls['api_backup']);
+            }
         }
-        return parent::set_sandbox_mode($enabled);
     }
 
     public function nonce() {
@@ -1171,17 +1188,13 @@ class binance extends Exchange {
             'side' => strtoupper($side),
         );
         if ($uppercaseType === 'MARKET') {
+            $quoteOrderQty = $this->safe_float($params, 'quoteOrderQty');
             $precision = $market['precision']['price'];
-            if ($market['spot']) {
-                $quoteOrderQty = $this->safe_float($params, 'quoteOrderQty');
-                if ($quoteOrderQty !== null) {
-                    $request['quoteOrderQty'] = $this->decimal_to_precision($quoteOrderQty, TRUNCATE, $precision, $this->precisionMode);
-                    $params = $this->omit($params, 'quoteOrderQty');
-                } else if ($price !== null) {
-                    $request['quoteOrderQty'] = $this->decimal_to_precision($amount * $price, TRUNCATE, $precision, $this->precisionMode);
-                } else {
-                    $request['quantity'] = $this->amount_to_precision($symbol, $amount);
-                }
+            if ($quoteOrderQty !== null) {
+                $request['quoteOrderQty'] = $this->decimal_to_precision($quoteOrderQty, TRUNCATE, $precision, $this->precisionMode);
+                $params = $this->omit($params, 'quoteOrderQty');
+            } else if ($price !== null) {
+                $request['quoteOrderQty'] = $this->decimal_to_precision($amount * $price, TRUNCATE, $precision, $this->precisionMode);
             } else {
                 $request['quantity'] = $this->amount_to_precision($symbol, $amount);
             }

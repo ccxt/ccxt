@@ -4,13 +4,19 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
-from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
@@ -344,8 +350,7 @@ class binance(Exchange):
                 '-1022': AuthenticationError,  # {"code":-1022,"msg":"Signature for self request is not valid."}
                 '-1100': InvalidOrder,  # createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
                 '-1104': ExchangeError,  # Not all sent parameters were read, read 8 parameters but was sent 9
-                '-1116': InvalidOrder,  # {"code":-1116,"msg":"Invalid orderType."}
-                '-1128': BadRequest,  # {"code":-1128,"msg":"Combination of optional parameters invalid."}
+                '-1128': ExchangeError,  # {"code":-1128,"msg":"Combination of optional parameters invalid."}
                 '-2010': ExchangeError,  # generic error code for createOrder -> 'Account has insufficient balance for requested action.', {"code":-2010,"msg":"Rest API trading is not enabled."}, etc...
                 '-2011': OrderNotFound,  # cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
                 '-2013': OrderNotFound,  # fetchOrder(1, 'BTC/USDT') -> 'Order does not exist'
@@ -355,10 +360,24 @@ class binance(Exchange):
         })
 
     def set_sandbox_mode(self, enabled):
-        type = self.safe_string(self.options, 'defaultType', 'spot')
-        if type != 'future':
-            raise NotSupported(self.id + ' does not have a sandbox URL for ' + type + " markets, set exchange.options['defaultType'] = 'future' or don't use the sandbox for " + self.id)
-        return super(binance, self).set_sandbox_mode(enabled)
+        if enabled:  # eslint-disable-line no-extra-boolean-cast
+            if 'test' in self.urls:
+                type = self.safe_string(self.options, 'defaultType', 'spot')
+                if type != 'future':
+                    raise NotSupported(self.id + ' does not have a sandbox URL for ' + type + " markets, set exchange.options['defaultType'] = 'future' or don't use the sandbox for " + self.id)
+                if isinstance(self.urls['api'], basestring):
+                    self.urls['api_backup'] = self.urls['api']
+                    self.urls['api'] = self.urls['test']
+                else:
+                    self.urls['api_backup'] = self.extend({}, self.urls['api'])
+                    self.urls['api'] = self.extend({}, self.urls['test'])
+            else:
+                raise NotSupported(self.id + ' does not have a sandbox URL')
+        elif 'api_backup' in self.urls:
+            if isinstance(self.urls['api'], basestring):
+                self.urls['api'] = self.urls['api_backup']
+            else:
+                self.urls['api'] = self.extend({}, self.urls['api_backup'])
 
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
@@ -1107,16 +1126,13 @@ class binance(Exchange):
             'side': side.upper(),
         }
         if uppercaseType == 'MARKET':
+            quoteOrderQty = self.safe_float(params, 'quoteOrderQty')
             precision = market['precision']['price']
-            if market['spot']:
-                quoteOrderQty = self.safe_float(params, 'quoteOrderQty')
-                if quoteOrderQty is not None:
-                    request['quoteOrderQty'] = self.decimal_to_precision(quoteOrderQty, TRUNCATE, precision, self.precisionMode)
-                    params = self.omit(params, 'quoteOrderQty')
-                elif price is not None:
-                    request['quoteOrderQty'] = self.decimal_to_precision(amount * price, TRUNCATE, precision, self.precisionMode)
-                else:
-                    request['quantity'] = self.amount_to_precision(symbol, amount)
+            if quoteOrderQty is not None:
+                request['quoteOrderQty'] = self.decimal_to_precision(quoteOrderQty, TRUNCATE, precision, self.precisionMode)
+                params = self.omit(params, 'quoteOrderQty')
+            elif price is not None:
+                request['quoteOrderQty'] = self.decimal_to_precision(amount * price, TRUNCATE, precision, self.precisionMode)
             else:
                 request['quantity'] = self.amount_to_precision(symbol, amount)
         else:
