@@ -916,14 +916,9 @@ module.exports = class qtrade extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const response = await this.privateGetOrders (params);
-        return this.parseOrders (response['data']['orders'], symbol, since, limit);
-    }
-
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
-            'open': true,
+            // 'open': true,
             // 'older_than': 123, // returns orders with id < older_than
             // 'newer_than': 123, // returns orders with id > newer_than
         };
@@ -971,10 +966,14 @@ module.exports = class qtrade extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const request = { 'open': true };
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
+    }
+
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const request = { 'queryParams': { 'open': false }};
-        const response = await this.privateGetOrders (this.extend (request, params));
-        return this.parseOrders (response['data']['orders'], symbol, since, limit);
+        const request = { 'open': false };
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
     parseDepositAddress (depositAddress, currency = undefined) {
