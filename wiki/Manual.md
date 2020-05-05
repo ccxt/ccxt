@@ -3598,7 +3598,7 @@ In case you experience any difficulty connecting to a particular exchange, do th
   exchange = ccxt.binance({'enableRateLimit': True})
   exchange.load_markets()
   exchange.verbose = True  # enable verbose mode after loading the markets
-  ````
+  ```
   Your [code to reproduce the issue + verbose output is required](https://github.com/ccxt/ccxt/wiki/FAQ#what-is-required-to-get-help) in order to get help.
 - Python people can turn on DEBUG logging level with a standard pythonic logger, by adding these two lines to the beginning of their code:
   ```Python
