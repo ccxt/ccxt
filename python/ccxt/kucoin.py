@@ -358,20 +358,27 @@ class kucoin(Exchange):
     def fetch_accounts(self, params={}):
         response = self.privateGetAccounts(params)
         #
-        #     {code:   "200000",
-        #       data: [{  balance: "0.00009788",
+        #     {
+        #         code: "200000",
+        #         data: [
+        #             {
+        #                 balance: "0.00009788",
         #                 available: "0.00009788",
-        #                     holds: "0",
-        #                  currency: "BTC",
-        #                        id: "5c6a4fd399a1d81c4f9cc4d0",
-        #                      type: "trade"                     },
-        #               ...,
-        #               {  balance: "0.00000001",
+        #                 holds: "0",
+        #                 currency: "BTC",
+        #                 id: "5c6a4fd399a1d81c4f9cc4d0",
+        #                 type: "trade"
+        #             },
+        #             {
+        #                 balance: "0.00000001",
         #                 available: "0.00000001",
-        #                     holds: "0",
-        #                  currency: "ETH",
-        #                        id: "5c6a49ec99a1d819392e8e9f",
-        #                      type: "trade"                     }  ]}
+        #                 holds: "0",
+        #                 currency: "ETH",
+        #                 id: "5c6a49ec99a1d819392e8e9f",
+        #                 type: "trade"
+        #             }
+        #         ]
+        #     }
         #
         data = self.safe_value(response, 'data')
         result = []

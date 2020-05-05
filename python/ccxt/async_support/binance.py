@@ -4,6 +4,13 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 import math
 import json
 from ccxt.base.errors import ExchangeError
@@ -353,10 +360,24 @@ class binance(Exchange):
         })
 
     def set_sandbox_mode(self, enabled):
-        type = self.safe_string(self.options, 'defaultType', 'spot')
-        if type != 'future':
-            raise NotSupported(self.id + ' does not have a sandbox URL for ' + type + " markets, set exchange.options['defaultType'] = 'future' or don't use the sandbox for " + self.id)
-        return super(binance, self).set_sandbox_mode(enabled)
+        if enabled:  # eslint-disable-line no-extra-boolean-cast
+            if 'test' in self.urls:
+                type = self.safe_string(self.options, 'defaultType', 'spot')
+                if type != 'future':
+                    raise NotSupported(self.id + ' does not have a sandbox URL for ' + type + " markets, set exchange.options['defaultType'] = 'future' or don't use the sandbox for " + self.id)
+                if isinstance(self.urls['api'], basestring):
+                    self.urls['api_backup'] = self.urls['api']
+                    self.urls['api'] = self.urls['test']
+                else:
+                    self.urls['api_backup'] = self.extend({}, self.urls['api'])
+                    self.urls['api'] = self.extend({}, self.urls['test'])
+            else:
+                raise NotSupported(self.id + ' does not have a sandbox URL')
+        elif 'api_backup' in self.urls:
+            if isinstance(self.urls['api'], basestring):
+                self.urls['api'] = self.urls['api_backup']
+            else:
+                self.urls['api'] = self.extend({}, self.urls['api_backup'])
 
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
@@ -1563,7 +1584,7 @@ class binance(Exchange):
         if tag is not None:
             if len(tag) < 1:
                 tag = None
-        txid = self.safe_value(transaction, 'txId')
+        txid = self.safe_string(transaction, 'txId')
         currencyId = self.safe_string(transaction, 'asset')
         code = self.safe_currency_code(currencyId, currency)
         timestamp = None

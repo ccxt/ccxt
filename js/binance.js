@@ -338,11 +338,29 @@ module.exports = class binance extends Exchange {
     }
 
     setSandboxMode (enabled) {
-        const type = this.safeString (this.options, 'defaultType', 'spot');
-        if (type !== 'future') {
-            throw new NotSupported (this.id + ' does not have a sandbox URL for ' + type + " markets, set exchange.options['defaultType'] = 'future' or don't use the sandbox for " + this.id);
+        if (enabled) { // eslint-disable-line no-extra-boolean-cast
+            if ('test' in this.urls) {
+                const type = this.safeString (this.options, 'defaultType', 'spot');
+                if (type !== 'future') {
+                    throw new NotSupported (this.id + ' does not have a sandbox URL for ' + type + " markets, set exchange.options['defaultType'] = 'future' or don't use the sandbox for " + this.id);
+                }
+                if (typeof this.urls['api'] === 'string') {
+                    this.urls['api_backup'] = this.urls['api'];
+                    this.urls['api'] = this.urls['test'];
+                } else {
+                    this.urls['api_backup'] = this.extend ({}, this.urls['api']);
+                    this.urls['api'] = this.extend ({}, this.urls['test']);
+                }
+            } else {
+                throw new NotSupported (this.id + ' does not have a sandbox URL');
+            }
+        } else if ('api_backup' in this.urls) {
+            if (typeof this.urls['api'] === 'string') {
+                this.urls['api'] = this.urls['api_backup'];
+            } else {
+                this.urls['api'] = this.extend ({}, this.urls['api_backup']);
+            }
         }
-        return super.setSandboxMode (enabled);
     }
 
     nonce () {

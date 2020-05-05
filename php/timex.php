@@ -1129,7 +1129,7 @@ class timex extends Exchange {
             $this->safe_float($ohlcv, 'high'),
             $this->safe_float($ohlcv, 'low'),
             $this->safe_float($ohlcv, 'close'),
-            $this->safe_float($ohlcv, 'volumeQuote'),
+            $this->safe_float($ohlcv, 'volume'),
         );
     }
 

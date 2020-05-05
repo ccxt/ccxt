@@ -345,11 +345,29 @@ class binance extends Exchange {
     }
 
     public function set_sandbox_mode($enabled) {
-        $type = $this->safe_string($this->options, 'defaultType', 'spot');
-        if ($type !== 'future') {
-            throw new NotSupported($this->id . ' does not have a sandbox URL for ' . $type . " markets, set exchange.options['defaultType'] = 'future' or don't use the sandbox for " . $this->id);
+        if ($enabled) { // eslint-disable-line no-extra-boolean-cast
+            if (is_array($this->urls) && array_key_exists('test', $this->urls)) {
+                $type = $this->safe_string($this->options, 'defaultType', 'spot');
+                if ($type !== 'future') {
+                    throw new NotSupported($this->id . ' does not have a sandbox URL for ' . $type . " markets, set exchange.options['defaultType'] = 'future' or don't use the sandbox for " . $this->id);
+                }
+                if (gettype($this->urls['api']) === 'string') {
+                    $this->urls['api_backup'] = $this->urls['api'];
+                    $this->urls['api'] = $this->urls['test'];
+                } else {
+                    $this->urls['api_backup'] = array_merge(array(), $this->urls['api']);
+                    $this->urls['api'] = array_merge(array(), $this->urls['test']);
+                }
+            } else {
+                throw new NotSupported($this->id . ' does not have a sandbox URL');
+            }
+        } else if (is_array($this->urls) && array_key_exists('api_backup', $this->urls)) {
+            if (gettype($this->urls['api']) === 'string') {
+                $this->urls['api'] = $this->urls['api_backup'];
+            } else {
+                $this->urls['api'] = array_merge(array(), $this->urls['api_backup']);
+            }
         }
-        return parent::set_sandbox_mode($enabled);
     }
 
     public function nonce() {
@@ -1676,7 +1694,7 @@ class binance extends Exchange {
                 $tag = null;
             }
         }
-        $txid = $this->safe_value($transaction, 'txId');
+        $txid = $this->safe_string($transaction, 'txId');
         $currencyId = $this->safe_string($transaction, 'asset');
         $code = $this->safe_currency_code($currencyId, $currency);
         $timestamp = null;

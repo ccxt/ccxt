@@ -3591,7 +3591,14 @@ In case you experience any difficulty connecting to a particular exchange, do th
 
 - Make sure that you have the most recent version of ccxt.
 - Check the [Issues](https://github.com/ccxt/ccxt/issues) for recent updates.
-- Turn `verbose = true` to get more detail about it.
+- Turn `verbose = true` to get more detail about it!
+  ```Python
+  import ccxt
+  exchange = ccxt.binance({'enableRateLimit': True})
+  exchange.load_markets()
+  exchange.verbose = True  # enable verbose mode after loading the markets
+  ```
+  Your [code to reproduce the issue + verbose output is required](https://github.com/ccxt/ccxt/wiki/FAQ#what-is-required-to-get-help) in order to get help.
 - Python people can turn on DEBUG logging level with a standard pythonic logger, by adding these two lines to the beginning of their code:
   ```Python
   import logging
@@ -3599,6 +3606,7 @@ In case you experience any difficulty connecting to a particular exchange, do th
   ```
 - Use verbose mode to make sure that the used API credentials correspond to the keys you intend to use. Make sure there's no confusion of keypairs.
 - **Try a fresh new keypair if possible.**
+- Read the answers to Frequently Asked Questions: https://github.com/ccxt/ccxt/wiki/FAQ
 - Check the permissions on the keypair with the exchange website!
 - If it is a Cloudflare protection error, try these examples:
   - https://github.com/ccxt/ccxt/blob/master/examples/js/bypass-cloudflare.js
