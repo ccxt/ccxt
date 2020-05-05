@@ -2044,7 +2044,7 @@ class bybit extends Exchange {
             $timestamp = $this->nonce();
             $query = array_merge($params, array(
                 'api_key' => $this->apiKey,
-                'recvWindow' => $this->options['recvWindow'],
+                'recv_window' => $this->options['recvWindow'],
                 'timestamp' => $timestamp,
             ));
             $auth = $this->rawencode($this->keysort($query));

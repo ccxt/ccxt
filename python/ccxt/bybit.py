@@ -1939,7 +1939,7 @@ class bybit(Exchange):
             timestamp = self.nonce()
             query = self.extend(params, {
                 'api_key': self.apiKey,
-                'recvWindow': self.options['recvWindow'],
+                'recv_window': self.options['recvWindow'],
                 'timestamp': timestamp,
             })
             auth = self.rawencode(self.keysort(query))
