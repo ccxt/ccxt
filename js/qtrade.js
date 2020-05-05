@@ -23,6 +23,7 @@ module.exports = class qtrade extends Exchange {
                 'referral': 'https://qtrade.io/?ref=BKOQWVFGRH2C',
             },
             'has': {
+                'CORS': false,
                 'fetchTrades': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -41,6 +42,9 @@ module.exports = class qtrade extends Exchange {
                 'createMarketOrder': false,
                 'withdraw': true,
                 'fetchDepositAddress': true,
+                'fetchTransactions': false,
+                'fetchDeposits': true,
+                'fetchWithdrawals': true,
             },
             'timeframes': {
                 '5m': 'fivemin',
@@ -556,9 +560,43 @@ module.exports = class qtrade extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const response = await this.privateGetTrades ();
-        return this.parseTrades (response['data']['trades'], market, since, limit);
+        const request = {
+            // 'older_than': 123, // returns trades with id < older_than
+            // 'newer_than': 123, // returns trades with id > newer_than
+        };
+        let market = undefined;
+        const numericId = this.safeValue (params, 'market_id');
+        if (numericId !== undefined) {
+            request['market_id'] = numericId; // mutually exclusive with market_string
+        } else if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['market_string'] = market['id'];
+        }
+        const response = await this.privateGetTrades (this.extend (request, params));
+        //
+        //     {
+        //         "data":{
+        //             "trades":[
+        //                 {
+        //                     "id":107331,
+        //                     "market_amount":"0.1082536946986",
+        //                     "price":"0.0230939",
+        //                     "base_amount":"0.00249999",
+        //                     "order_id":13790596,
+        //                     "market_id":41,
+        //                     "market_string":"ETH_BTC",
+        //                     "taker":true,
+        //                     "base_fee":"0.00001249",
+        //                     "side":"sell",
+        //                     "created_at":"2020-05-04T06:08:18.513413Z"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const trades = this.safeValue (data, 'trades', []);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
@@ -576,7 +614,23 @@ module.exports = class qtrade extends Exchange {
         //         "created_at_ts":1581560391338718
         //     }
         //
-        // createOrder
+        // fetchMyTrades (private)
+        //
+        //     {
+        //         "id":107331,
+        //         "market_amount":"0.1082536946986",
+        //         "price":"0.0230939",
+        //         "base_amount":"0.00249999",
+        //         "order_id":13790596,
+        //         "market_id":41,
+        //         "market_string":"ETH_BTC",
+        //         "taker":true,
+        //         "base_fee":"0.00001249",
+        //         "side":"sell",
+        //         "created_at":"2020-05-04T06:08:18.513413Z"
+        //     }
+        //
+        // createOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders
         //
         //     {
         //         "base_amount": "9.58970687",
@@ -595,7 +649,7 @@ module.exports = class qtrade extends Exchange {
         }
         const side = this.safeString (trade, 'side');
         let symbol = undefined;
-        const marketId = this.safeString (trade, 'symbol');
+        const marketId = this.safeString (trade, 'market_string');
         if (marketId !== undefined) {
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
@@ -628,13 +682,14 @@ module.exports = class qtrade extends Exchange {
         }
         const taker = this.safeValue (trade, 'taker', true);
         const takerOrMaker = taker ? 'taker' : 'maker';
+        const orderId = this.safeString (trade, 'order_id');
         const result = {
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'order': undefined,
+            'order': orderId,
             'type': undefined,
             'side': side,
             'takerOrMaker': takerOrMaker,
@@ -790,11 +845,8 @@ module.exports = class qtrade extends Exchange {
         }
         const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'market_amount');
-        const remaining = this.safeFloat (order, 'market_amount_remaining');
+        let remaining = this.safeFloat (order, 'market_amount_remaining');
         let filled = undefined;
-        if ((amount !== undefined) && (remaining !== undefined)) {
-            filled = Math.max (0, amount - remaining);
-        }
         const open = this.safeValue (order, 'is_live');
         const canceled = this.safeValue (order, 'is_cancelled');
         let status = undefined;
@@ -823,6 +875,8 @@ module.exports = class qtrade extends Exchange {
         const rawTrades = this.safeValue (order, 'trades', []);
         const parsedTrades = this.parseTrades (rawTrades, market, undefined, undefined, {
             'order': id,
+            'side': side,
+            'type': orderType,
         });
         const numTrades = parsedTrades.length;
         let lastTradeTimestamp = undefined;
@@ -831,11 +885,15 @@ module.exports = class qtrade extends Exchange {
         if (numTrades > 0) {
             feeCost = 0;
             cost = 0;
+            filled = 0;
+            remaining = amount;
             for (let i = 0; i < parsedTrades.length; i++) {
                 const trade = parsedTrades[i];
                 feeCost = this.sum (trade['fee']['cost'], feeCost);
                 lastTradeTimestamp = this.safeInteger (trade, 'timestamp');
                 cost = this.sum (trade['cost'], cost);
+                filled = this.sum (trade['amount'], filled);
+                remaining = Math.max (0, remaining - trade['amount']);
             }
         }
         let fee = undefined;
@@ -846,9 +904,17 @@ module.exports = class qtrade extends Exchange {
                 'cost': feeCost,
             };
         }
-        const average = undefined;
-        if ((cost === undefined) && (filled !== undefined) && (price !== undefined)) {
-            cost = filled * price;
+        if ((amount !== undefined) && (remaining !== undefined)) {
+            filled = Math.max (0, amount - remaining);
+        }
+        let average = undefined;
+        if (filled !== undefined) {
+            if ((price !== undefined) && (cost === undefined)) {
+                cost = filled * price;
+            }
+            if ((cost !== undefined) && (filled > 0)) {
+                average = cost / filled;
+            }
         }
         return {
             'info': order,
@@ -873,9 +939,9 @@ module.exports = class qtrade extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        const request = { 'id': parseInt (id) };
+        const request = { 'id': id };
         // successful cancellation returns 200 with no payload
-        this.privatePostCancelOrder (this.extend (request, params));
+        return await this.privatePostCancelOrder (this.extend (request, params));
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -1115,19 +1181,6 @@ module.exports = class qtrade extends Exchange {
             withdraw['fee'] = undefined;
             withdraw['info'] = ws[i];
             result.push (withdraw);
-        }
-        return result;
-    }
-
-    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
-        const deposits = await this.fetchDeposits (code, since, limit);
-        const withdraws = await this.fetchWithdrawals (code, since, limit);
-        const result = [];
-        for (let i = 0; i < deposits.length; i++) {
-            result.push (deposits[i]);
-        }
-        for (let i = 0; i < withdraws.length; i++) {
-            result.push (withdraws[i]);
         }
         return result;
     }
