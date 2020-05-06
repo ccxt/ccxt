@@ -1,10 +1,11 @@
 'use strict';
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, InvalidOrder } = require ('./base/errors');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 module.exports = class eterbase extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -13,6 +14,7 @@ module.exports = class eterbase extends Exchange {
             'countries': [ 'SK' ],
             'rateLimit': 500,
             'certified': false,
+            'version': 'v1',
             'has': {
                 'CORS': false,
                 'publicAPI': true,
@@ -51,26 +53,36 @@ module.exports = class eterbase extends Exchange {
             'urls': {
                 'logo': 'https://www.eterbase.com/wp-content/uploads/2019/09/Eterbase-Logo-Horizontal-1024x208.png',
                 'base': 'https://api.eterbase.exchange',
-                'api': 'https://api.eterbase.exchange/api',
+                'api': 'https://api.eterbase.exchange',
                 'www': 'https://www.eterbase.com',
                 'doc': 'https://developers.eterbase.exchange',
                 'fees': 'https://www.eterbase.com/exchange/fees',
             },
             'api': {
+                'markets': {
+                    'get': [
+                        'id/order-book',
+                    ],
+                },
                 'public': {
                     'get': [
                         'ping',
                         'assets',
                         'markets',
                         'tickers',
+                        'tickers/{id}/ticker',
                         'markets/{id}/trades',
+                        'markets/{id}/ohlcv',
+                        'wstoken',
                     ],
                 },
                 'private': {
                     'get': [
                         'accounts/{id}/balances',
+                        'accounts/{id}/withdrawals',
                         'accounts/{id}/orders',
                         'accounts/{id}/fills',
+                        'orders/{id}/fills',
                         'orders/{id}',
                     ],
                     'post': [
@@ -78,6 +90,11 @@ module.exports = class eterbase extends Exchange {
                     ],
                     'delete': [
                         'orders/{id}',
+                    ],
+                },
+                'feed': {
+                    'get': [
+                        'feed',
                     ],
                 },
             },
@@ -95,94 +112,98 @@ module.exports = class eterbase extends Exchange {
         });
     }
 
+    async fetchMarkets (params = {}) {
+        const response = await this.publicGetMarkets (params);
+        //
+        //     [
+        //         {
+        //             "id":33,
+        //             "symbol":"ETHUSDT",
+        //             "base":"ETH",
+        //             "quote":"USDT",
+        //             "priceSigDigs":5,
+        //             "qtySigDigs":8,
+        //             "costSigDigs":8,
+        //             "verificationLevelUser":1,
+        //             "verificationLevelCorporate":11,
+        //             "group":"USD",
+        //             "tradingRules":[
+        //                 {"attribute":"Qty","condition":"Min","value":0.006},
+        //                 {"attribute":"Qty","condition":"Max","value":1000},
+        //                 {"attribute":"Cost","condition":"Min","value":1},
+        //                 {"attribute":"Cost","condition":"Max","value":210000}
+        //             ],
+        //             "allowedOrderTypes":[1,2,3,4],
+        //             "state":"Trading"
+        //         }
+        //     ]
+        //
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            const market = this.parseMarket (response[i]);
+            result.push (market);
+        }
+        return result;
+    }
+
     findMarket (id) {
         // need to pass identifier as string
         const idString = id.toString ();
         return super.findMarket (idString);
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, httpHeaders = undefined, body = undefined) {
-        let request = '/' + this.implodeParams (path, params);
-        const query = this.omit (params, this.extractParams (path));
-        if (method === 'GET') {
-            if (Object.keys (query).length) {
-                request += '?' + this.urlencode (query);
-            }
-        }
-        const url = this.urls['api'] + request;
-        if (api === 'private') {
-            this.checkRequiredCredentials ();
-            let payload = '';
-            if (method !== 'GET') {
-                if (Object.keys (query).length) {
-                    body = this.json (query);
-                    payload = body;
-                }
-            }
-            // construct signature
-            const hasBody = (method === 'POST') || (method === 'PUT') || (method === 'PATCH');
-            // const date = 'Mon, 30 Sep 2019 13:57:23 GMT';
-            const date = this.rfc2616 (this.milliseconds ());
-            const urlBaselength = this.urls['base'].length - 0;
-            const urlPath = url.slice (urlBaselength);
-            let headersCSV = 'date' + ' ' + 'request-line';
-            // eslint-disable-next-line quotes
-            let message = 'date' + ':' + ' ' + date + "\n" + method + ' ' + urlPath + ' HTTP/1.1';
-            let digest = '';
-            if (hasBody) {
-                digest = 'SHA-256=' + this.hash (payload, 'sha256', 'base64');
-                // eslint-disable-next-line quotes
-                message = message + "\ndigest" + ':' + ' ' + digest;
-                headersCSV = headersCSV + ' ' + 'digest';
-            }
-            const sig = this.hmac (message, this.secret, 'sha256', 'base64');
-            // eslint-disable-next-line quotes
-            const authorizationHeader = "hmac username=\"" + this.apiKey + "\",algorithm=\"hmac-sha256\",headers=\"" + headersCSV + "\",signature=\"" + sig + "\"";
-            httpHeaders = {
-                'Date': date,
-                'Authorization': authorizationHeader,
-                'Content-Type': 'application/json',
-            };
-            if (hasBody) {
-                httpHeaders = this.extend (httpHeaders, { 'Digest': digest });
-            }
-        }
-        return { 'url': url, 'method': method, 'body': body, 'headers': httpHeaders };
-    }
-
-    parseMarket (raw) {
-        const baseId = this.safeString (raw, 'base');
-        const quoteId = this.safeString (raw, 'quote');
+    parseMarket (market) {
+        //
+        //     {
+        //         "id":33,
+        //         "symbol":"ETHUSDT",
+        //         "base":"ETH",
+        //         "quote":"USDT",
+        //         "priceSigDigs":5,
+        //         "qtySigDigs":8,
+        //         "costSigDigs":8,
+        //         "verificationLevelUser":1,
+        //         "verificationLevelCorporate":11,
+        //         "group":"USD",
+        //         "tradingRules":[
+        //             {"attribute":"Qty","condition":"Min","value":0.006},
+        //             {"attribute":"Qty","condition":"Max","value":1000},
+        //             {"attribute":"Cost","condition":"Min","value":1},
+        //             {"attribute":"Cost","condition":"Max","value":210000}
+        //         ],
+        //         "allowedOrderTypes":[1,2,3,4],
+        //         "state":"Trading"
+        //     }
+        //
+        const baseId = this.safeString (market, 'base');
+        const quoteId = this.safeString (market, 'quote');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         const symbol = base + '/' + quote;
-        const state = this.safeString (raw, 'state');
-        const active = state.toUpperCase () === 'TRADING';
-        const rules = this.safeValue (raw, 'tradingRules');
+        const state = this.safeStringUpper (market, 'state');
+        const active = (state === 'TRADING');
+        const rules = this.safeValue (market, 'tradingRules', []);
         let qtyMin = undefined;
         let qtyMax = undefined;
         let costMin = undefined;
         let costMax = undefined;
-        let rule = undefined;
-        if (rules) {
-            for (let i = 0; i < rules.length; i++) {
-                rule = rules[i];
-                const attribute = this.safeValue (rule, 'attribute');
-                const condition = this.safeValue (rule, 'condition');
-                const value = this.safeValue (rule, 'value');
-                if ((attribute === 'Qty') && (condition === 'Min')) {
-                    qtyMin = value;
-                } else if ((attribute === 'Qty') && (condition === 'Max')) {
-                    qtyMax = value;
-                } else if ((attribute === 'Cost') && (condition === 'Min')) {
-                    costMin = value;
-                } else if ((attribute === 'Cost') && (condition === 'Max')) {
-                    costMax = value;
-                }
+        for (let i = 0; i < rules.length; i++) {
+            const rule = rules[i];
+            const attribute = this.safeValue (rule, 'attribute');
+            const condition = this.safeValue (rule, 'condition');
+            const value = this.safeValue (rule, 'value');
+            if ((attribute === 'Qty') && (condition === 'Min')) {
+                qtyMin = value;
+            } else if ((attribute === 'Qty') && (condition === 'Max')) {
+                qtyMax = value;
+            } else if ((attribute === 'Cost') && (condition === 'Min')) {
+                costMin = value;
+            } else if ((attribute === 'Cost') && (condition === 'Max')) {
+                costMax = value;
             }
         }
         const result = {
-            'id': this.safeString (raw, 'id'),
+            'id': this.safeString (market, 'id'),
             'baseId': baseId,
             'quoteId': quoteId,
             'base': base,
@@ -208,20 +229,8 @@ module.exports = class eterbase extends Exchange {
                 'amount': 8,
                 'cost': 8,
             },
-            'info': raw,
+            'info': market,
         };
-        return result;
-    }
-
-    async fetchMarkets (params = {}) {
-        const markets = await this.publicGetMarkets (params);
-        const result = [];
-        if (markets) {
-            for (let i = 0; i < markets.length; i++) {
-                const market = this.parseMarket (markets[i]);
-                result.push (market);
-            }
-        }
         return result;
     }
 
@@ -551,5 +560,62 @@ module.exports = class eterbase extends Exchange {
         await this.loadMarkets ();
         const response = [];
         return this.parseOrderBook (response, this.safeInteger (response, 'timestamp'));
+    }
+
+    sign (path, api = 'public', method = 'GET', params = {}, httpHeaders = undefined, body = undefined) {
+        const query = this.omit (params, this.extractParams (path));
+        let request = '/';
+        if (api === 'public') {
+            request += 'api/' + this.version;
+        } else if (api === 'private') {
+            request += 'api/' + this.version;
+        } else if (api === 'markets') {
+            request += api;
+        }
+        request += '/' + this.implodeParams (path, params);
+        if (method === 'GET') {
+            if (Object.keys (query).length) {
+                request += '?' + this.urlencode (query);
+            }
+        }
+        const url = this.urls['api'] + request;
+        if (api === 'private') {
+            this.checkRequiredCredentials ();
+            let payload = '';
+            if (method !== 'GET') {
+                if (Object.keys (query).length) {
+                    body = this.json (query);
+                    payload = body;
+                }
+            }
+            // construct signature
+            const hasBody = (method === 'POST') || (method === 'PUT') || (method === 'PATCH');
+            // const date = 'Mon, 30 Sep 2019 13:57:23 GMT';
+            const date = this.rfc2616 (this.milliseconds ());
+            const urlBaselength = this.urls['base'].length - 0;
+            const urlPath = url.slice (urlBaselength);
+            let headersCSV = 'date' + ' ' + 'request-line';
+            // eslint-disable-next-line quotes
+            let message = 'date' + ':' + ' ' + date + "\n" + method + ' ' + urlPath + ' HTTP/1.1';
+            let digest = '';
+            if (hasBody) {
+                digest = 'SHA-256=' + this.hash (payload, 'sha256', 'base64');
+                // eslint-disable-next-line quotes
+                message = message + "\ndigest" + ':' + ' ' + digest;
+                headersCSV = headersCSV + ' ' + 'digest';
+            }
+            const sig = this.hmac (message, this.secret, 'sha256', 'base64');
+            // eslint-disable-next-line quotes
+            const authorizationHeader = "hmac username=\"" + this.apiKey + "\",algorithm=\"hmac-sha256\",headers=\"" + headersCSV + "\",signature=\"" + sig + "\"";
+            httpHeaders = {
+                'Date': date,
+                'Authorization': authorizationHeader,
+                'Content-Type': 'application/json',
+            };
+            if (hasBody) {
+                httpHeaders = this.extend (httpHeaders, { 'Digest': digest });
+            }
+        }
+        return { 'url': url, 'method': method, 'body': body, 'headers': httpHeaders };
     }
 };
