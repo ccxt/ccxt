@@ -45,6 +45,8 @@ module.exports = class qtrade extends Exchange {
                 'fetchTransactions': false,
                 'fetchDeposits': true,
                 'fetchWithdrawals': true,
+                'fetchDeposit': true,
+                'fetchWithdrawal': true,
             },
             'timeframes': {
                 '5m': 'fivemin',
@@ -1123,6 +1125,56 @@ module.exports = class qtrade extends Exchange {
         return this.parseDepositAddress (data, currency);
     }
 
+    async fetchDeposit (id, code = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'deposit_id': id,
+        };
+        const response = await this.privateGetDepositDepositId (this.extend (request, params));
+        //
+        //     {
+        //         "data":{
+        //             "deposit":{
+        //                 "id":"0xaa6e65ed274c4786e5dec3671de96f81021cacdbc453b1a133ab84356f3620a0",
+        //                 "amount":"0.13",
+        //                 "currency":"ETH",
+        //                 "address":"0xe0cd26f9A60118555247aE6769A5d241D91f07f2",
+        //                 "status":"credited",
+        //                 "relay_status":"",
+        //                 "network_data":{
+        //                     "confirms":87,
+        //                     "sweep_txid":"0xa16e65ed274d4686e5dec3671de96f81021cacdbc453b1a133ab85356f3630a0",
+        //                     "sweep_balance":"0.150000000000000000",
+        //                     "confirms_required":80,
+        //                     "unsigned_sweep_tx":{
+        //                         "chainId":1,
+        //                         "from":"0xe0cd26f9A60118555247aE6769A5d241D91f07f2",
+        //                         "gas":"0x5208",
+        //                         "gasPrice":"0x19b45a500",
+        //                         "nonce":"0x0",
+        //                         "to":"0x76Cd80202a2C31e9D8F595a31ed071CE7F75BB93",
+        //                         "value":"0x214646b6347d800"
+        //                     },
+        //                     "txid":"0xaa6e65ed274c4786e5dec3671de96f81021cacdbc453b1a133ab84356f3620a0",
+        //                     "tx_index":"0x6f",
+        //                     "tx_value":"0.130000000000000000",
+        //                     "key_index":311,
+        //                     "blockheight":9877869,
+        //                     "signed_sweep_tx":{
+        //                         "hash":"0xa16e65ed274d4686e5dec3671de96f81021cacdbc453b1a133ab85356f3630a0",
+        //                         "rawTransaction":"0xd86c8085019b45a1008252099476cb80202b2c31e9d7f595a31fd071ce7f75bb93880214646b6347d8008046a08c6e3bfe8b25bff2b6851c87ea17c63d7b23591210ab0779a568eaa43dc40435a030e964bb2b667072ea7cbc8ab554403e3f3ead9b554743f2fdc2b1e06e998df9"
+        //                     },
+        //                     "estimated_sweep_tx_fee":144900000000000
+        //                 },
+        //                 "created_at":"2020-05-04T05:38:42.145162Z"
+        //             }
+        //         }
+        //     }
+        const data = this.safeValue (response, 'data', {});
+        const deposit = this.safeValue (data, 'deposit', {});
+        return this.parseTransaction (deposit);
+    }
+
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let currency = undefined;
@@ -1177,6 +1229,53 @@ module.exports = class qtrade extends Exchange {
         return this.parseTransactions (deposits, currency, since, limit);
     }
 
+    async fetchWithdrawal (id, code = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'withdraw_id': id,
+        };
+        const response = await this.privateGetWithdrawWithdrawId (this.extend (request, params));
+        //
+        //     {
+        //         data: {
+        //             withdraw: {
+        //                 "id":25524,
+        //                 "amount":"0.0417463053014",
+        //                 "user_id":0,
+        //                 "currency":"ETH",
+        //                 "network_data":{
+        //                     "unsigned_tx":{
+        //                         "chainId":1,
+        //                         "from":"0x76Cd80202a2C31e9D8F595a31ed071CE7F75BB93",
+        //                         "gas":"0x5208",
+        //                         "gasPrice":"0x20c8558e9",
+        //                         "nonce":"0xf3",
+        //                         "to":"0xe0cd26f9A60118555247aE6769A5d241D91f07f2",
+        //                         "value":"0x71712bcd113308"
+        //                     },
+        //                     "estimated_tx_fee":184800004893000,
+        //                     "confirms_required":80,
+        //                     "txid":"0x79439b62473d61d99ce1dc6c3b8a417da36d45323a394bb0d4af870608fef38d",
+        //                     "confirms":83,
+        //                     "signed_tx":{
+        //                         "hash":"0x79439b62473d61d99ce1dc6c3b8a417da36d45323a394bb0d4af870608fef38d",
+        //                         "rawTransaction":"0xf86c81f385021c8558e98252089401b0a9b7b4cde774af0f3e87cb4f1c2ccdba08068771712acd1133078025a0088157d119d924d47413c81b91b9f18ff148623a2ef13dab1895ca3ba546b771a046a021b1e1f64d1a60bb66c19231f641b352326188a9ed3b931b698a939f78d0"
+        //                     }
+        //                 },
+        //                 "address":"0xe0cd26f9A60118555247aE6769A5d241D91f07f2",
+        //                 "status":"confirmed",
+        //                 "relay_status":"",
+        //                 "created_at":"2020-05-05T06:32:19.907061Z",
+        //                 "cancel_requested":false
+        //             }
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const withdrawal = this.safeValue (data, 'withdraw', {});
+        return this.parseTransaction (withdrawal);
+    }
+
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let currency = undefined;
@@ -1228,7 +1327,7 @@ module.exports = class qtrade extends Exchange {
 
     parseTransaction (transaction, currency = undefined) {
         //
-        // fetchDeposits
+        // fetchDeposits, fetchDeposit
         //
         //     {
         //         "id":"0xaa6e65ed274c4786e5dec3671de96f81021cacdbc453b1a133ab84356f3620a0",
@@ -1265,7 +1364,7 @@ module.exports = class qtrade extends Exchange {
         //         "created_at":"2020-05-04T05:38:42.145162Z"
         //     }
         //
-        // fetchWithdrawals
+        // fetchWithdrawals, fetchWithdrawal
         //
         //     {
         //         "id":25524,
@@ -1364,6 +1463,7 @@ module.exports = class qtrade extends Exchange {
             'initiated': 'pending',
             'needs_create': 'pending',
             'credited': 'ok',
+            'confirmed': 'ok',
         };
         return this.safeString (statuses, status, status);
     }
