@@ -7,9 +7,9 @@
 
         document.addEventListener ("DOMContentLoaded", function () {
 
-            alert ('ccxt version ' + ccxt.version + ' supporting '+ ccxt.exchanges.length.toString () + ' exchanges');
+            alert ('CCXT' + (ccxt.isBrowser ? ' browser' : '') + ' version ' + ccxt.version + ' supporting '+ ccxt.exchanges.length.toString () + ' exchanges');
 
-            const exchange = new ccxt.gdax ({ enableRateLimit: true })
+            const exchange = new ccxt.coinbasepro ({ enableRateLimit: true })
             const symbol = 'ETH/BTC'
 
             exchange.fetchTicker (symbol).then (ticker => {

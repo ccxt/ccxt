@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 
 
-class flowbtc (Exchange):
+class flowbtc(Exchange):
 
     def describe(self):
         return self.deep_extend(super(flowbtc, self).describe(), {
@@ -17,7 +17,7 @@ class flowbtc (Exchange):
             'version': 'v1',
             'rateLimit': 1000,
             'has': {
-                'CORS': True,
+                'CORS': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28162465-cd815d4c-67cf-11e7-8e57-438bea0523a2.jpg',
@@ -108,6 +108,7 @@ class flowbtc (Exchange):
                     },
                 },
                 'info': market,
+                'active': None,
             }
         return result
 
@@ -189,6 +190,8 @@ class flowbtc (Exchange):
             'price': price,
             'amount': amount,
             'cost': cost,
+            'takerOrMaker': None,
+            'fee': None,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):

@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, ArgumentsRequired } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -74,8 +74,8 @@ module.exports = class ice3x extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'maker': 0.01,
-                    'taker': 0.01,
+                    'maker': 0.005,
+                    'taker': 0.005,
                 },
             },
             'precision': {
@@ -116,6 +116,7 @@ module.exports = class ice3x extends Exchange {
                     },
                 },
                 'info': currency,
+                'fee': undefined,
             };
         }
         return result;
@@ -148,6 +149,8 @@ module.exports = class ice3x extends Exchange {
                 'quoteId': quoteId,
                 'active': undefined,
                 'info': market,
+                'precision': this.precision,
+                'limits': this.limits,
             });
         }
         return result;
@@ -218,7 +221,7 @@ module.exports = class ice3x extends Exchange {
             const type = this.safeString (params, 'type');
             if ((type !== 'ask') && (type !== 'bid')) {
                 // eslint-disable-next-line quotes
-                throw new ExchangeError (this.id + " fetchOrderBook requires an exchange-specific extra 'type' param ('bid' or 'ask') when used with a limit");
+                throw new ArgumentsRequired (this.id + " fetchOrderBook requires an exchange-specific extra 'type' param ('bid' or 'ask') when used with a limit");
             } else {
                 request['items_per_page'] = limit;
             }
@@ -330,6 +333,7 @@ module.exports = class ice3x extends Exchange {
         }
         return {
             'id': this.safeString (order, 'order_id'),
+            'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
@@ -345,6 +349,7 @@ module.exports = class ice3x extends Exchange {
             'trades': undefined,
             'fee': fee,
             'info': order,
+            'average': undefined,
         };
     }
 

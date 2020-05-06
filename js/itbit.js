@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, ArgumentsRequired } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -18,6 +18,7 @@ module.exports = class itbit extends Exchange {
             'has': {
                 'CORS': true,
                 'createMarketOrder': false,
+                'fetchMyTrades': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27822159-66153620-60ad-11e7-89e7-005f6d7f3de0.jpg',
@@ -60,12 +61,12 @@ module.exports = class itbit extends Exchange {
                 },
             },
             'markets': {
-                'BTC/USD': { 'id': 'XBTUSD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD' },
-                'BTC/SGD': { 'id': 'XBTSGD', 'symbol': 'BTC/SGD', 'base': 'BTC', 'quote': 'SGD' },
-                'BTC/EUR': { 'id': 'XBTEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
-                'ETH/USD': { 'id': 'ETHUSD', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD' },
-                'ETH/EUR': { 'id': 'ETHEUR', 'symbol': 'ETH/EUR', 'base': 'ETH', 'quote': 'EUR' },
-                'ETH/SGD': { 'id': 'ETHSGD', 'symbol': 'ETH/SGD', 'base': 'ETH', 'quote': 'SGD' },
+                'BTC/USD': { 'id': 'XBTUSD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'baseId': 'XBT', 'quoteId': 'USD' },
+                'BTC/SGD': { 'id': 'XBTSGD', 'symbol': 'BTC/SGD', 'base': 'BTC', 'quote': 'SGD', 'baseId': 'XBT', 'quoteId': 'SGD' },
+                'BTC/EUR': { 'id': 'XBTEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'XBT', 'quoteId': 'EUR' },
+                'ETH/USD': { 'id': 'ETHUSD', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD', 'baseId': 'ETH', 'quoteId': 'USD' },
+                'ETH/EUR': { 'id': 'ETHEUR', 'symbol': 'ETH/EUR', 'base': 'ETH', 'quote': 'EUR', 'baseId': 'ETH', 'quoteId': 'EUR' },
+                'ETH/SGD': { 'id': 'ETHSGD', 'symbol': 'ETH/SGD', 'base': 'ETH', 'quote': 'SGD', 'baseId': 'ETH', 'quoteId': 'SGD' },
             },
             'fees': {
                 'trading': {
@@ -212,6 +213,7 @@ module.exports = class itbit extends Exchange {
             'price': price,
             'amount': amount,
             'cost': cost,
+            'fee': undefined,
         };
         if (feeCost !== undefined) {
             if (rebatesApplied !== undefined) {
@@ -252,7 +254,7 @@ module.exports = class itbit extends Exchange {
         await this.loadMarkets ();
         const walletId = this.safeString (params, 'walletId');
         if (walletId === undefined) {
-            throw new ExchangeError (this.id + ' fetchMyTrades requires a walletId parameter');
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a walletId parameter');
         }
         const request = {
             'walletId': walletId,
@@ -409,6 +411,7 @@ module.exports = class itbit extends Exchange {
     }
 
     async fetchWallets (params = {}) {
+        await this.loadMarkets ();
         if (!this.uid) {
             throw new AuthenticationError (this.id + ' fetchWallets requires uid API credential');
         }
@@ -419,6 +422,7 @@ module.exports = class itbit extends Exchange {
     }
 
     async fetchWallet (walletId, params = {}) {
+        await this.loadMarkets ();
         const request = {
             'walletId': walletId,
         };
@@ -440,6 +444,11 @@ module.exports = class itbit extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const walletIdInParams = ('walletId' in params);
         if (!walletIdInParams) {
             throw new ExchangeError (this.id + ' fetchOrders requires a walletId parameter');
@@ -449,29 +458,71 @@ module.exports = class itbit extends Exchange {
             'walletId': walletId,
         };
         const response = await this.privateGetWalletsWalletIdOrders (this.extend (request, params));
-        const orders = this.parseOrders (response, undefined, since, limit);
-        return orders;
+        return this.parseOrders (response, market, since, limit);
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            'submitted': 'open', // order pending book entry
+            'open': 'open',
+            'filled': 'closed',
+            'cancelled': 'canceled',
+            'rejected': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order, market = undefined) {
-        const side = order['side'];
-        const type = order['type'];
+        //
+        //     {
+        //         "id": "13d6af57-8b0b-41e5-af30-becf0bcc574d",
+        //         "walletId": "7e037345-1288-4c39-12fe-d0f99a475a98",
+        //         "side": "buy",
+        //         "instrument": "XBTUSD",
+        //         "type": "limit",
+        //         "currency": "XBT",
+        //         "amount": "2.50000000",
+        //         "displayAmount": "2.50000000",
+        //         "price": "650.00000000",
+        //         "volumeWeightedAveragePrice": "0.00000000",
+        //         "amountFilled": "0.00000000",
+        //         "createdTime": "2014-02-11T17:05:15Z",
+        //         "status": "submitted",
+        //         "funds": null,
+        //         "metadata": {},
+        //         "clientOrderIdentifier": null,
+        //         "postOnly": "False"
+        //     }
+        //
+        const side = this.safeString (order, 'side');
+        const type = this.safeString (order, 'type');
         const symbol = this.markets_by_id[order['instrument']]['symbol'];
         const timestamp = this.parse8601 (order['createdTime']);
         const amount = this.safeFloat (order, 'amount');
         const filled = this.safeFloat (order, 'amountFilled');
-        const remaining = amount - filled;
+        let remaining = undefined;
+        let cost = undefined;
         const fee = undefined;
         const price = this.safeFloat (order, 'price');
         const average = this.safeFloat (order, 'volumeWeightedAveragePrice');
-        const cost = filled * average;
+        if (filled !== undefined) {
+            if (amount !== undefined) {
+                remaining = amount - filled;
+            }
+            if (average !== undefined) {
+                cost = filled * average;
+            }
+        }
+        const clientOrderId = this.safeString (order, 'clientOrderIdentifier');
+        const id = this.safeString (order, 'id');
         return {
-            'id': order['id'],
+            'id': id,
+            'clientOrderId': clientOrderId,
             'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'status': order['status'],
+            'status': this.parseOrderStatus (this.safeString (order, 'status')),
             'symbol': symbol,
             'type': type,
             'side': side,
@@ -483,6 +534,7 @@ module.exports = class itbit extends Exchange {
             'remaining': remaining,
             'fee': fee,
             // 'trades': this.parseTrades (order['trades'], market),
+            'trades': undefined,
         };
     }
 
@@ -491,6 +543,7 @@ module.exports = class itbit extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
         if (type === 'market') {
             throw new ExchangeError (this.id + ' allows limit orders only');
         }
@@ -518,6 +571,7 @@ module.exports = class itbit extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
         const walletIdInParams = ('walletId' in params);
         if (!walletIdInParams) {
             throw new ExchangeError (this.id + ' fetchOrder requires a walletId parameter');

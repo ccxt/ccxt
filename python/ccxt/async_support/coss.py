@@ -8,7 +8,7 @@ import math
 from ccxt.base.errors import ArgumentsRequired
 
 
-class coss (Exchange):
+class coss(Exchange):
 
     def describe(self):
         return self.deep_extend(super(coss, self).describe(), {
@@ -17,7 +17,7 @@ class coss (Exchange):
             'countries': ['SG', 'NL'],
             'rateLimit': 1000,
             'version': 'v1',
-            'certified': True,
+            'certified': False,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/50328158-22e53c00-0503-11e9-825c-c5cfd79bfa74.jpg',
                 'api': {
@@ -120,6 +120,10 @@ class coss (Exchange):
                     'withdraw': {},
                     'deposit': {},
                 },
+            },
+            'commonCurrencies': {
+                'COS': 'COSS',
+                'COSS': 'COSS.io',
             },
         })
 
@@ -779,6 +783,7 @@ class coss (Exchange):
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -869,6 +874,7 @@ class coss (Exchange):
             headers = {
                 'Signature': self.hmac(self.encode(request), self.encode(self.secret)),
                 'Authorization': self.apiKey,
+                'X-Requested-With': 'XMLHttpRequest',
             }
         else:
             if params:

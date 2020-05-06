@@ -10,11 +10,12 @@ import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import AddressPending
 from ccxt.base.errors import NotSupported
 
 
-class buda (Exchange):
+class buda(Exchange):
 
     def describe(self):
         return self.deep_extend(super(buda, self).describe(), {
@@ -528,6 +529,7 @@ class buda (Exchange):
         }
         return {
             'id': id,
+            'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
@@ -543,6 +545,7 @@ class buda (Exchange):
             'trades': None,
             'fee': fee,
             'info': order,
+            'average': None,
         }
 
     def is_fiat(self, code):
@@ -603,7 +606,7 @@ class buda (Exchange):
         statuses = {
             'rejected': 'failed',
             'confirmed': 'ok',
-            'anulled': 'canceled',
+            'aNoneed': 'canceled',
             'retained': 'canceled',
             'pending_confirmation': 'pending',
         }
@@ -618,7 +621,7 @@ class buda (Exchange):
         fee = float(transaction['fee'][0])
         feeCurrency = transaction['fee'][1]
         status = self.parse_transaction_status(self.safe_string(transaction, 'state'))
-        type = 'deposit' if ('deposit_data' in list(transaction.keys())) else 'withdrawal'
+        type = 'deposit' if ('deposit_data' in transaction) else 'withdrawal'
         data = self.safe_value(transaction, type + '_data', {})
         address = self.safe_value(data, 'target_address')
         txid = self.safe_string(data, 'tx_hash')
@@ -644,7 +647,7 @@ class buda (Exchange):
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
         if code is None:
-            raise ExchangeError(self.id + ': fetchDeposits() requires a currency code argument')
+            raise ArgumentsRequired(self.id + ': fetchDeposits() requires a currency code argument')
         currency = self.currency(code)
         request = {
             'currency': currency['id'],
@@ -652,12 +655,12 @@ class buda (Exchange):
         }
         response = await self.privateGetCurrenciesCurrencyDeposits(self.extend(request, params))
         deposits = self.safe_value(response, 'deposits')
-        return self.parseTransactions(deposits, currency, since, limit)
+        return self.parse_transactions(deposits, currency, since, limit)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
         if code is None:
-            raise ExchangeError(self.id + ': fetchDeposits() requires a currency code argument')
+            raise ArgumentsRequired(self.id + ': fetchDeposits() requires a currency code argument')
         currency = self.currency(code)
         request = {
             'currency': currency['id'],
@@ -665,7 +668,7 @@ class buda (Exchange):
         }
         response = await self.privateGetCurrenciesCurrencyWithdrawals(self.extend(request, params))
         withdrawals = self.safe_value(response, 'withdrawals')
-        return self.parseTransactions(withdrawals, currency, since, limit)
+        return self.parse_transactions(withdrawals, currency, since, limit)
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
@@ -719,9 +722,6 @@ class buda (Exchange):
             errorCode = self.safe_string(response, 'code')
             message = self.safe_string(response, 'message', body)
             feedback = self.id + ' ' + message
-            exceptions = self.exceptions
             if errorCode is not None:
-                if errorCode in exceptions:
-                    raise exceptions[errorCode](feedback)
-                else:
-                    raise ExchangeError(feedback)
+                self.throw_exactly_matched_exception(self.exceptions, errorCode, feedback)
+                raise ExchangeError(feedback)

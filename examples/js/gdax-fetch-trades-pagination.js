@@ -4,7 +4,7 @@
 const ccxt = require ('../../ccxt.js')
     , log  = require ('ololog').noLocate
 
-const exchange = new ccxt.gdax ({
+const exchange = new ccxt.coinbasepro ({
     'enableRateLimit': true,  // required by the Manual
 })
 

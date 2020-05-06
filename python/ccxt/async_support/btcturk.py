@@ -10,7 +10,7 @@ import math
 from ccxt.base.errors import ExchangeError
 
 
-class btcturk (Exchange):
+class btcturk(Exchange):
 
     def describe(self):
         return self.deep_extend(super(btcturk, self).describe(), {
@@ -56,7 +56,7 @@ class btcturk (Exchange):
             'fees': {
                 'trading': {
                     'maker': 0.002 * 1.18,
-                    'taker': 0.0035 * 1.18,
+                    'taker': 0.003 * 1.18,
                 },
             },
         })
@@ -251,7 +251,7 @@ class btcturk (Exchange):
             'OrderMethod': 1 if (type == 'market') else 0,
         }
         if type == 'market':
-            if not('Total' in list(params.keys())):
+            if not ('Total' in params):
                 raise ExchangeError(self.id + ' createOrder requires the "Total" extra parameter for market orders(amount and price are both ignored)')
         else:
             request['Price'] = price

@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, AuthenticationError, InsufficientFunds, OrderNotFound, ExchangeNotAvailable, DDoSProtection, InvalidOrder } = require ('./base/errors');
+const { BadRequest, ExchangeError, ArgumentsRequired, AuthenticationError, InsufficientFunds, OrderNotFound, ExchangeNotAvailable, DDoSProtection, InvalidOrder } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -61,7 +61,7 @@ module.exports = class zb extends Exchange {
                 '3002': InvalidOrder, // 'Invalid price',
                 '3003': InvalidOrder, // 'Invalid amount',
                 '3004': AuthenticationError, // 'User does not exist',
-                '3005': ExchangeError, // 'Invalid parameter',
+                '3005': BadRequest, // 'Invalid parameter',
                 '3006': AuthenticationError, // 'Invalid IP or inconsistent with the bound IP',
                 '3007': AuthenticationError, // 'The request time has expired',
                 '3008': OrderNotFound, // 'Transaction records not found',
@@ -268,6 +268,9 @@ module.exports = class zb extends Exchange {
         const marketFieldName = this.getMarketFieldName ();
         const request = {};
         request[marketFieldName] = market['id'];
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
         const response = await this.publicGetDepth (this.extend (request, params));
         return this.parseOrderBook (response);
     }
@@ -450,7 +453,7 @@ module.exports = class zb extends Exchange {
 
     async fetchOrders (symbol = undefined, since = undefined, limit = 50, params = {}) {
         if (symbol === undefined) {
-            throw new ExchangeError (this.id + 'fetchOrders requires a symbol parameter');
+            throw new ArgumentsRequired (this.id + 'fetchOrders requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -478,7 +481,7 @@ module.exports = class zb extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = 10, params = {}) {
         if (symbol === undefined) {
-            throw new ExchangeError (this.id + 'fetchOpenOrders requires a symbol parameter');
+            throw new ArgumentsRequired (this.id + 'fetchOpenOrders requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -556,6 +559,7 @@ module.exports = class zb extends Exchange {
         return {
             'info': order,
             'id': id,
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -570,6 +574,7 @@ module.exports = class zb extends Exchange {
             'remaining': remaining,
             'status': status,
             'fee': undefined,
+            'trades': undefined,
         };
     }
 
@@ -622,10 +627,8 @@ module.exports = class zb extends Exchange {
             const feedback = this.id + ' ' + body;
             if ('code' in response) {
                 const code = this.safeString (response, 'code');
-                if (code in this.exceptions) {
-                    const ExceptionClass = this.exceptions[code];
-                    throw new ExceptionClass (feedback);
-                } else if (code !== '1000') {
+                this.throwExactlyMatchedException (this.exceptions, code, feedback);
+                if (code !== '1000') {
                     throw new ExchangeError (feedback);
                 }
             }

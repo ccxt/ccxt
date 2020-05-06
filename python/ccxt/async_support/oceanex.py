@@ -14,7 +14,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 
 
-class oceanex (Exchange):
+class oceanex(Exchange):
 
     def describe(self):
         return self.deep_extend(super(oceanex, self).describe(), {
@@ -102,6 +102,9 @@ class oceanex (Exchange):
                     'taker': 0.1 / 100,
                 },
             },
+            'commonCurrencies': {
+                'PLA': 'Plair',
+            },
             'exceptions': {
                 'codes': {
                     '-1': BadRequest,
@@ -158,7 +161,7 @@ class oceanex (Exchange):
                 },
                 'limits': {
                     'amount': {
-                        'min': self.safe_value(market, 'minimum_trading_amount'),
+                        'min': None,
                         'max': None,
                     },
                     'price': {
@@ -166,7 +169,7 @@ class oceanex (Exchange):
                         'max': None,
                     },
                     'cost': {
-                        'min': None,
+                        'min': self.safe_value(market, 'minimum_trading_amount'),
                         'max': None,
                     },
                 },
@@ -517,6 +520,23 @@ class oceanex (Exchange):
         return result
 
     def parse_order(self, order, market=None):
+        #
+        #     {
+        #         "created_at": "2019-01-18T00:38:18Z",
+        #         "trades_count": 0,
+        #         "remaining_volume": "0.2",
+        #         "price": "1001.0",
+        #         "created_on": "1547771898",
+        #         "side": "buy",
+        #         "volume": "0.2",
+        #         "state": "wait",
+        #         "ord_type": "limit",
+        #         "avg_price": "0.0",
+        #         "executed_volume": "0.0",
+        #         "id": 473797,
+        #         "market": "veteth"
+        #     }
+        #
         status = self.parse_order_status(self.safe_value(order, 'state'))
         marketId = self.safe_value_2(order, 'market', 'market_id')
         symbol = None
@@ -535,6 +555,7 @@ class oceanex (Exchange):
         return {
             'info': order,
             'id': self.safe_string(order, 'id'),
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -629,10 +650,6 @@ class oceanex (Exchange):
         message = self.safe_string(response, 'message')
         if (errorCode is not None) and (errorCode != '0'):
             feedback = self.id + ' ' + body
-            codes = self.exceptions['codes']
-            exact = self.exceptions['exact']
-            if errorCode in codes:
-                raise codes[errorCode](feedback)
-            if message in exact:
-                raise exact[message](feedback)
+            self.throw_exactly_matched_exception(self.exceptions['codes'], errorCode, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             raise ExchangeError(response)

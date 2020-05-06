@@ -17,7 +17,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import ExchangeNotAvailable
 
 
-class anxpro (Exchange):
+class anxpro(Exchange):
 
     def describe(self):
         return self.deep_extend(super(anxpro, self).describe(), {
@@ -138,6 +138,7 @@ class anxpro (Exchange):
                     'Order Engine is offline': ExchangeNotAvailable,
                     'No executed order with that identifer found': OrderNotFound,
                     'Unknown server error, please contact support.': ExchangeError,
+                    'Not available': ExchangeNotAvailable,  # {"status": "Not available"}
                 },
             },
             'fees': {
@@ -216,7 +217,7 @@ class anxpro (Exchange):
         transactions = self.safe_value(response, 'transactions', [])
         grouped = self.group_by(transactions, 'transactionType', [])
         depositsAndWithdrawals = self.array_concat(self.safe_value(grouped, 'DEPOSIT', []), self.safe_value(grouped, 'WITHDRAWAL', []))
-        return self.parseTransactions(depositsAndWithdrawals, currency, since, limit)
+        return self.parse_transactions(depositsAndWithdrawals, currency, since, limit)
 
     def parse_transaction(self, transaction, currency=None):
         #
@@ -443,12 +444,18 @@ class anxpro (Exchange):
         amount = self.safe_float(trade, 'tradedCurrencyFillAmount')
         cost = self.safe_float(trade, 'settlementCurrencyFillAmount')
         side = self.safe_string_lower(trade, 'side')
+        symbol = None
+        marketId = self.safe_string(trade, 'ccyPair')
+        if marketId in self.markets_by_id:
+            market = self.markets_by_id[marketId]
+        if (symbol is None) and (market is not None):
+            symbol = market['symbol']
         return {
             'id': id,
             'order': orderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': self.find_symbol(self.safe_string(trade, 'ccyPair')),
+            'symbol': symbol,
             'type': None,
             'side': side,
             'price': price,
@@ -456,6 +463,7 @@ class anxpro (Exchange):
             'cost': cost,
             'fee': None,
             'info': trade,
+            'takerOrMaker': None,
         }
 
     def fetch_currencies(self, params={}):
@@ -868,6 +876,8 @@ class anxpro (Exchange):
             'ACTIVE': 'open',
             'FULL_FILL': 'closed',
             'CANCEL': 'canceled',
+            'USER_CANCEL_PARTIAL': 'canceled',
+            'PARTIAL_FILL': 'canceled',
         }
         return self.safe_string(statuses, status, status)
 
@@ -911,13 +921,12 @@ class anxpro (Exchange):
         #         ]
         #     }
         #
-        tradedCurrency = self.safe_string(order, 'tradedCurrency')
-        orderStatus = self.safe_string(order, 'orderStatus')
-        status = self.parse_order_status(orderStatus)
-        settlementCurrency = self.safe_string(order, 'settlementCurrency')
-        symbol = self.find_symbol(tradedCurrency + '/' + settlementCurrency)
+        status = self.parse_order_status(self.safe_string(order, 'orderStatus'))
+        base = self.safe_currency_code(self.safe_string(order, 'tradedCurrency'))
+        quote = self.safe_currency_code(self.safe_string(order, 'settlementCurrency'))
+        symbol = base + '/' + quote
         buyTradedCurrency = self.safe_string(order, 'buyTradedCurrency')
-        side = buyTradedCurrency == 'buy' if 'true' else 'sell'
+        side = 'buy' if (buyTradedCurrency == 'true') else 'sell'
         timestamp = self.safe_integer(order, 'timestamp')
         lastTradeTimestamp = None
         trades = []
@@ -933,7 +942,7 @@ class anxpro (Exchange):
             filled = self.sum(filled, parsedTrade['amount'])
         price = self.safe_float(order, 'limitPriceInSettlementCurrency')
         executedAverageRate = self.safe_float(order, 'executedAverageRate')
-        remaining = type == 0 if 'market' else self.safe_float(order, 'tradedCurrencyAmountOutstanding')
+        remaining = 0 if (type == 'market') else self.safe_float(order, 'tradedCurrencyAmountOutstanding')
         amount = self.safe_float(order, 'tradedCurrencyAmount')
         if not amount:
             settlementCurrencyAmount = self.safe_float(order, 'settlementCurrencyAmount')
@@ -941,6 +950,7 @@ class anxpro (Exchange):
         cost = executedAverageRate * filled
         return {
             'id': self.safe_string(order, 'orderId'),
+            'clientOrderId': None,
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -956,6 +966,7 @@ class anxpro (Exchange):
             'fee': None,
             'trades': trades,
             'info': order,
+            'average': None,
         }
 
     def parse_order_v2(self, order, market=None):
@@ -1028,6 +1039,7 @@ class anxpro (Exchange):
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -1042,6 +1054,7 @@ class anxpro (Exchange):
             'status': status,
             'fee': fee,
             'trades': trades,
+            'average': None,
         }
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -1107,6 +1120,7 @@ class anxpro (Exchange):
         return {
             'currency': code,
             'address': address,
+            'tag': None,
             'info': response,
         }
 
@@ -1149,16 +1163,12 @@ class anxpro (Exchange):
             return
         result = self.safe_string(response, 'result')
         code = self.safe_string(response, 'resultCode')
-        if ((result is not None) and (result != 'success')) or ((code is not None) and (code != 'OK')):
+        status = self.safe_string(response, 'status')
+        if ((result is not None) and (result != 'success')) or ((code is not None) and (code != 'OK')) or (status is not None):
             message = self.safe_string(response, 'error')
             feedback = self.id + ' ' + body
-            exact = self.exceptions['exact']
-            if code in exact:
-                raise exact[code](feedback)
-            elif message in exact:
-                raise exact[message](feedback)
-            broad = self.safe_value(self.exceptions, 'broad', {})
-            broadKey = self.findBroadlyMatchedKey(broad, message)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], status, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message

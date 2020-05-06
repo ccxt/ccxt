@@ -132,7 +132,7 @@ it ('sortBy works', () => {
 
     const arr = [{ x: 5 }, { x: 2 }, { x: 4 }, { x: 0 },{ x: 1 },{ x: 3 }]
     sortBy (arr, 'x')
-    
+
     deepEqual (arr
         [ { x: 0 },
         { x: 1 },

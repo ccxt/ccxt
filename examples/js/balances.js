@@ -11,14 +11,14 @@ let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms))
 ;(async () => {
 
     // instantiate the exchange
-    let gdax = new ccxt.gdax  ({ // ... or new ccxt.gdax ()
+    let coinbasepro = new ccxt.coinbasepro  ({ // ... or new ccxt.coinbasepro ()
         'apiKey': '92560ffae9b8a01d012726c698bcb2f1', // standard
         'secret': '9aHjPmW+EtRRKN/OiZGjXh8OxyThnDL4mMDre4Ghvn8wjMniAr5jdEZJLN/knW6FHeQyiz3dPIL5ytnF0Y6Xwg==',
-        'password': '6kszf4aci8r', // GDAX requires a password!
+        'password': '6kszf4aci8r', // Coinbase Pro requires a password!
     })
 
-    // use the testnet for GDAX
-    gdax.urls['api'] = 'https://api-public.sandbox.gdax.com'
+    // use the testnet for Coinbase Pro
+    coinbasepro.urls['api'] = coinbasepro.urls['test']
 
     let hitbtc = new ccxt.hitbtc ({
         'apiKey': '18339694544745d9357f9e7c0f7c41bb',
@@ -28,10 +28,10 @@ let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms))
     try {
 
         // fetch account balance from the exchange
-        let gdaxBalance = await gdax.fetchBalance ()
+        let coinbaseproBalance = await coinbasepro.fetchBalance ()
 
         // output the result
-        log (gdax.name.green, 'balance', gdaxBalance)
+        log (coinbasepro.name.green, 'balance', coinbaseproBalance)
 
         // fetch another
         let hitbtcBalance = await hitbtc.fetchBalance ()

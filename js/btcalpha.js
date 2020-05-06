@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, DDoSProtection, InvalidOrder } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, DDoSProtection, InvalidOrder, InsufficientFunds } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -102,6 +102,15 @@ module.exports = class btcalpha extends Exchange {
                     },
                 },
             },
+            'commonCurrencies': {
+                'CBC': 'Cashbery',
+            },
+            'exceptions': {
+                'exact': {},
+                'broad': {
+                    'Out of balance': InsufficientFunds, // {"date":1570599531.4814300537,"error":"Out of balance -9.99243661 BTC"}
+                },
+            },
         });
     }
 
@@ -142,6 +151,8 @@ module.exports = class btcalpha extends Exchange {
                     },
                 },
                 'info': market,
+                'baseId': undefined,
+                'quoteId': undefined,
             });
         }
         return result;
@@ -156,8 +167,19 @@ module.exports = class btcalpha extends Exchange {
             request['limit_sell'] = limit;
             request['limit_buy'] = limit;
         }
-        const reponse = await this.publicGetOrderbookPairName (this.extend (request, params));
-        return this.parseOrderBook (reponse, undefined, 'buy', 'sell', 'price', 'amount');
+        const response = await this.publicGetOrderbookPairName (this.extend (request, params));
+        return this.parseOrderBook (response, undefined, 'buy', 'sell', 'price', 'amount');
+    }
+
+    parseBidsAsks (bidasks, priceKey = 0, amountKey = 1) {
+        const result = [];
+        for (let i = 0; i < bidasks.length; i++) {
+            const bidask = bidasks[i];
+            if (bidask) {
+                result.push (this.parseBidAsk (bidask, priceKey, amountKey));
+            }
+        }
+        return result;
     }
 
     parseTrade (trade, market = undefined) {
@@ -295,6 +317,7 @@ module.exports = class btcalpha extends Exchange {
         }
         return {
             'id': id,
+            'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'status': status,
@@ -309,6 +332,8 @@ module.exports = class btcalpha extends Exchange {
             'trades': trades,
             'fee': undefined,
             'info': order,
+            'lastTradeTimestamp': undefined,
+            'average': undefined,
         };
     }
 
@@ -429,15 +454,23 @@ module.exports = class btcalpha extends Exchange {
         if (response === undefined) {
             return; // fallback to default error handler
         }
-        if (code < 400) {
-            return; // fallback to default error handler
+        //
+        //     {"date":1570599531.4814300537,"error":"Out of balance -9.99243661 BTC"}
+        //
+        const error = this.safeString (response, 'error');
+        const feedback = this.id + ' ' + body;
+        if (error !== undefined) {
+            this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], error, feedback);
         }
-        const message = this.id + ' ' + this.safeValue (response, 'detail', body);
         if (code === 401 || code === 403) {
-            throw new AuthenticationError (message);
+            throw new AuthenticationError (feedback);
         } else if (code === 429) {
-            throw new DDoSProtection (message);
+            throw new DDoSProtection (feedback);
         }
-        throw new ExchangeError (message);
+        if (code < 400) {
+            return;
+        }
+        throw new ExchangeError (feedback);
     }
 };

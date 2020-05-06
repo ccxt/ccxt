@@ -8,7 +8,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 
 
-class btctradeua (Exchange):
+class btctradeua(Exchange):
 
     def describe(self):
         return self.deep_extend(super(btctradeua, self).describe(), {
@@ -17,9 +17,10 @@ class btctradeua (Exchange):
             'countries': ['UA'],  # Ukraine,
             'rateLimit': 3000,
             'has': {
-                'CORS': True,
+                'CORS': False,
                 'createMarketOrder': False,
                 'fetchOpenOrders': True,
+                'signIn': True,
             },
             'urls': {
                 'referral': 'https://btc-trade.com.ua/registration/22689',
@@ -289,6 +290,7 @@ class btctradeua (Exchange):
             symbol = market['symbol']
         return {
             'id': self.safe_string(order, 'id'),
+            'clientOrderId': None,
             'timestamp': timestamp,  # until they fix their timestamp
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -302,6 +304,9 @@ class btctradeua (Exchange):
             'remaining': self.safe_float(order, 'amnt_trade'),
             'trades': None,
             'info': order,
+            'cost': None,
+            'average': None,
+            'fee': None,
         }
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
