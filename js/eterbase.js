@@ -175,63 +175,66 @@ module.exports = class eterbase extends Exchange {
         //         "state":"Trading"
         //     }
         //
+        const id = this.safeString (market, 'symbol');
+        const numericId = this.safeString (market, 'id');
         const baseId = this.safeString (market, 'base');
         const quoteId = this.safeString (market, 'quote');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         const symbol = base + '/' + quote;
-        const state = this.safeStringUpper (market, 'state');
-        const active = (state === 'TRADING');
+        const state = this.safeString (market, 'state');
+        const active = (state === 'Trading');
+        const precision = {
+            'price': this.safeInteger (market, 'priceSigDigs'),
+            'amount': this.safeInteger (market, 'qtySigDigs'),
+            'cost': this.safeInteger (market, 'costSigDigs'),
+        };
         const rules = this.safeValue (market, 'tradingRules', []);
-        let qtyMin = undefined;
-        let qtyMax = undefined;
-        let costMin = undefined;
-        let costMax = undefined;
+        let minAmount = undefined;
+        let maxAmount = undefined;
+        let minCost = undefined;
+        let maxCost = undefined;
         for (let i = 0; i < rules.length; i++) {
             const rule = rules[i];
-            const attribute = this.safeValue (rule, 'attribute');
-            const condition = this.safeValue (rule, 'condition');
-            const value = this.safeValue (rule, 'value');
+            const attribute = this.safeString (rule, 'attribute');
+            const condition = this.safeString (rule, 'condition');
+            const value = this.safeFloat (rule, 'value');
             if ((attribute === 'Qty') && (condition === 'Min')) {
-                qtyMin = value;
+                minAmount = value;
             } else if ((attribute === 'Qty') && (condition === 'Max')) {
-                qtyMax = value;
+                maxAmount = value;
             } else if ((attribute === 'Cost') && (condition === 'Min')) {
-                costMin = value;
+                minCost = value;
             } else if ((attribute === 'Cost') && (condition === 'Max')) {
-                costMax = value;
+                maxCost = value;
             }
         }
-        const result = {
-            'id': this.safeString (market, 'id'),
-            'baseId': baseId,
-            'quoteId': quoteId,
+        return {
+            'id': id,
+            'numericId': numericId,
+            'symbol': symbol,
             'base': base,
             'quote': quote,
-            'symbol': symbol,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'info': market,
             'active': active,
+            'precision': precision,
             'limits': {
                 'amount': {
-                    'min': qtyMin,
-                    'max': qtyMax,
+                    'min': minAmount,
+                    'max': maxAmount,
                 },
                 'price': {
                     'min': undefined,
                     'max': undefined,
                 },
                 'cost': {
-                    'min': costMin,
-                    'max': costMax,
+                    'min': minCost,
+                    'max': maxCost,
                 },
             },
-            'precision': {
-                'price': 8,
-                'amount': 8,
-                'cost': 8,
-            },
-            'info': market,
         };
-        return result;
     }
 
     parseTicker (raw) {
