@@ -264,7 +264,7 @@ class kraken(Exchange):
         parts = html.split('<td class="wysiwyg-text-align-right">')
         numParts = len(parts)
         if numParts < 3:
-            raise NotSupported(self.id + ' fetchMinOrderAmounts HTML page markup has changed: https://support.kraken.com/hc/en-us/articles/205893708-What-is-the-minimum-order-size-')
+            raise NotSupported(self.id + ' fetchMinOrderAmounts HTML page markup has changed: https://kraken.zendesk.com/api/v2/help_center/en-us/articles/205893708')
         result = {}
         # skip the part before the header and the header itself
         for i in range(2, len(parts)):

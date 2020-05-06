@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.27.29'
+__version__ = '1.27.30'
 
 # ----------------------------------------------------------------------------
 
@@ -70,7 +70,6 @@ from ccxt.base.errors import error_hierarchy                # noqa: F401
 
 from ccxt._1btcxe import _1btcxe                            # noqa: F401
 from ccxt.acx import acx                                    # noqa: F401
-from ccxt.adara import adara                                # noqa: F401
 from ccxt.anxpro import anxpro                              # noqa: F401
 from ccxt.aofex import aofex                                # noqa: F401
 from ccxt.bcex import bcex                                  # noqa: F401
@@ -191,7 +190,6 @@ from ccxt.zb import zb                                      # noqa: F401
 exchanges = [
     '_1btcxe',
     'acx',
-    'adara',
     'anxpro',
     'aofex',
     'bcex',

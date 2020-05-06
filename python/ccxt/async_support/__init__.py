@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.27.29'
+__version__ = '1.27.30'
 
 # -----------------------------------------------------------------------------
 
@@ -52,7 +52,6 @@ from ccxt.base.errors import error_hierarchy                # noqa: F401
 
 from ccxt.async_support._1btcxe import _1btcxe                            # noqa: F401
 from ccxt.async_support.acx import acx                                    # noqa: F401
-from ccxt.async_support.adara import adara                                # noqa: F401
 from ccxt.async_support.anxpro import anxpro                              # noqa: F401
 from ccxt.async_support.aofex import aofex                                # noqa: F401
 from ccxt.async_support.bcex import bcex                                  # noqa: F401
@@ -173,7 +172,6 @@ from ccxt.async_support.zb import zb                                      # noqa
 exchanges = [
     '_1btcxe',
     'acx',
-    'adara',
     'anxpro',
     'aofex',
     'bcex',

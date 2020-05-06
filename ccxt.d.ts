@@ -430,7 +430,6 @@ declare module 'ccxt' {
 
     export class _1btcxe extends Exchange {}
     export class acx extends Exchange {}
-    export class adara extends Exchange {}
     export class anxpro extends Exchange {}
     export class aofex extends Exchange {}
     export class bcex extends Exchange {}
