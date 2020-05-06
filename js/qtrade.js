@@ -1177,6 +1177,55 @@ module.exports = class qtrade extends Exchange {
         return this.parseTransactions (deposits, currency, since, limit);
     }
 
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        const response = await this.privateGetWithdraws (params);
+        //     {
+        //         "data":{
+        //             "withdraws":[
+        //                 {
+        //                     "id":25524,
+        //                     "amount":"0.0417463053014",
+        //                     "user_id":0,
+        //                     "currency":"ETH",
+        //                     "network_data":{
+        //                         "unsigned_tx":{
+        //                             "chainId":1,
+        //                             "from":"0x76Cd80202a2C31e9D8F595a31ed071CE7F75BB93",
+        //                             "gas":"0x5208",
+        //                             "gasPrice":"0x20c8558e9",
+        //                             "nonce":"0xf3",
+        //                             "to":"0xe0cd26f9A60118555247aE6769A5d241D91f07f2",
+        //                             "value":"0x71712bcd113308"
+        //                         },
+        //                         "estimated_tx_fee":184800004893000,
+        //                         "confirms_required":80,
+        //                         "txid":"0x79439b62473d61d99ce1dc6c3b8a417da36d45323a394bb0d4af870608fef38d",
+        //                         "confirms":83,
+        //                         "signed_tx":{
+        //                             "hash":"0x79439b62473d61d99ce1dc6c3b8a417da36d45323a394bb0d4af870608fef38d",
+        //                             "rawTransaction":"0xf86c81f385021c8558e98252089401b0a9b7b4cde774af0f3e87cb4f1c2ccdba08068771712acd1133078025a0088157d119d924d47413c81b91b9f18ff148623a2ef13dab1895ca3ba546b771a046a021b1e1f64d1a60bb66c19231f641b352326188a9ed3b931b698a939f78d0"
+        //                         }
+        //                     },
+        //                     "address":"0xe0cd26f9A60118555247aE6769A5d241D91f07f2",
+        //                     "status":"confirmed",
+        //                     "relay_status":"",
+        //                     "created_at":"2020-05-05T06:32:19.907061Z",
+        //                     "cancel_requested":false
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const withdrawals = this.safeValue (data, 'withdraws', []);
+        return this.parseTransactions (withdrawals, currency, since, limit);
+    }
+
     parseTransaction (transaction, currency = undefined) {
         //
         // fetchDeposits
@@ -1219,21 +1268,49 @@ module.exports = class qtrade extends Exchange {
         // fetchWithdrawals
         //
         //     {
-        //         "address": "mw67t7AE88SBSRWYw1is3JaFbtXVygwpmB",
-        //         "amount": "1",
-        //         "cancel_requested": false,
-        //         "created_at": "2019-02-01T06:06:16.218062Z",
-        //         "currency": "LTC",
-        //         "id": 2,
-        //         "network_data": {},
-        //         "relay_status": "",
-        //         "status": "needs_create",
-        //         "user_id": 0
+        //         "id":25524,
+        //         "amount":"0.0417463053014",
+        //         "user_id":0,
+        //         "currency":"ETH",
+        //         "network_data":{
+        //             "unsigned_tx":{
+        //                 "chainId":1,
+        //                 "from":"0x76Cd80202a2C31e9D8F595a31ed071CE7F75BB93",
+        //                 "gas":"0x5208",
+        //                 "gasPrice":"0x20c8558e9",
+        //                 "nonce":"0xf3",
+        //                 "to":"0xe0cd26f9A60118555247aE6769A5d241D91f07f2",
+        //                 "value":"0x71712bcd113308"
+        //             },
+        //             "estimated_tx_fee":184800004893000,
+        //             "confirms_required":80,
+        //             "txid":"0x79439b62473d61d99ce1dc6c3b8a417da36d45323a394bb0d4af870608fef38d",
+        //             "confirms":83,
+        //             "signed_tx":{
+        //                 "hash":"0x79439b62473d61d99ce1dc6c3b8a417da36d45323a394bb0d4af870608fef38d",
+        //                 "rawTransaction":"0xf86c81f385021c8558e98252089401b0a9b7b4cde774af0f3e87cb4f1c2ccdba08068771712acd1133078025a0088157d119d924d47413c81b91b9f18ff148623a2ef13dab1895ca3ba546b771a046a021b1e1f64d1a60bb66c19231f641b352326188a9ed3b931b698a939f78d0"
+        //             }
+        //         },
+        //         "address":"0xe0cd26f9A60118555247aE6769A5d241D91f07f2",
+        //         "status":"confirmed",
+        //         "relay_status":"",
+        //         "created_at":"2020-05-05T06:32:19.907061Z",
+        //         "cancel_requested":false
+        //     }
+        //
+        // withdraw
+        //
+        //     {
+        //         "code": "initiated",
+        //         "id": 3,
+        //         "result": "Withdraw initiated. Please allow 3-5 minutes for our system to process."
         //     }
         //
         const timestamp = this.parse8601 (this.safeString (transaction, 'created_at'));
         const id = this.safeString (transaction, 'id');
         const networkData = this.safeValue (transaction, 'network_data', {});
+        const unsignedTx = this.safeValue (networkData, 'unsigned_tx', {});
+        const addressFrom = this.safeString (unsignedTx, 'from');
         const txid = this.safeString (networkData, 'txid');
         let address = this.safeString (transaction, 'address');
         let tag = undefined;
@@ -1245,18 +1322,20 @@ module.exports = class qtrade extends Exchange {
                 tag = this.safeString (parts, 1);
             }
         }
-        const addressFrom = undefined;
         const addressTo = address;
         const tagFrom = undefined;
         const tagTo = tag;
-        const type = 'deposit';
+        const cancelRequested = this.safeValue (transaction, 'cancel_requested');
+        const type = (cancelRequested === undefined) ? 'deposit' : 'withdrawal';
         const amount = this.safeFloat (transaction, 'amount');
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId);
         let status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
-        const cancelRequested = this.safeValue (transaction, 'cancel_requested', false);
+        const statusCode = this.safeString (transaction, 'code');
         if (cancelRequested) {
             status = 'canceled';
+        } else if (status === undefined) {
+            status = this.parseTransactionStatus (statusCode);
         }
         const fee = undefined;
         return {
@@ -1282,83 +1361,44 @@ module.exports = class qtrade extends Exchange {
 
     parseTransactionStatus (status) {
         const statuses = {
+            'initiated': 'pending',
             'needs_create': 'pending',
             'credited': 'ok',
         };
         return this.safeString (statuses, status, status);
     }
 
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
-        const response = await this.privateGetWithdraws (params);
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'address': address,
+            'amount': amount,
+            'currency': currency['id'],
+        };
+        if (tag !== undefined) {
+            request['address'] += ':' + tag;
+        }
+        const response = await this.privatePostWithdraw (this.extend (request, params));
         //
         //     {
         //         "data": {
-        //             "withdraws": [
-        //                 {
-        //                     "address": "mw67t7AE88SBSRWYw1is3JaFbtXVygwpmB",
-        //                     "amount": "1",
-        //                     "cancel_requested": false,
-        //                     "created_at": "2019-02-01T06:06:16.218062Z",
-        //                     "currency": "LTC",
-        //                     "id": 2,
-        //                     "network_data": {},
-        //                     "relay_status": "",
-        //                     "status": "needs_create",
-        //                     "user_id": 0
-        //                 }
-        //             ]
+        //             "code": "initiated",
+        //             "id": 3,
+        //             "result": "Withdraw initiated. Please allow 3-5 minutes for our system to process."
         //         }
         //     }
         //
-        const result = [];
-        if (since === undefined) {
-            since = 0;
-        } else if (typeof since === 'string') {
-            since = this.parse8601 (since);
-        }
-        const ws = response['data']['withdraws'];
-        for (let i = 0; i < ws.length; i++) {
-            const withdraw = {};
-            withdraw['timestamp'] = this.parse8601 (this.safeString (ws[i], 'created_at'));
-            if (withdraw['timestamp'] < since) {
-                break;
-            }
-            withdraw['id'] = this.safeString (ws[i], 'id');
-            withdraw['txid'] = this.safeString (ws[i]['network_data'], 'txid');
-            withdraw['datetime'] = this.safeString (ws[i], 'created_at');
-            let address = undefined;
-            let tag = undefined;
-            if (this.safeString (ws[i], 'address').indexOf (':') !== -1) {
-                address = this.safeString (ws[i], 'address').split (':')[0];
-                tag = this.safeString (ws[i], 'address').split (':')[1];
-            } else {
-                address = this.safeString (ws[i], 'address');
-            }
-            withdraw['addressFrom'] = undefined;
-            withdraw['address'] = address;
-            withdraw['addressTo'] = address;
-            withdraw['tagFrom'] = undefined;
-            withdraw['tag'] = tag;
-            withdraw['tagTo'] = tag;
-            withdraw['type'] = 'withdrawal';
-            withdraw['amount'] = this.safeFloat (ws[i], 'amount');
-            withdraw['currency'] = this.safeString (ws[i], 'currency');
-            withdraw['status'] = this.safeString (ws[i], 'status');
-            withdraw['updated'] = undefined;
-            withdraw['comment'] = undefined;
-            withdraw['fee'] = undefined;
-            withdraw['info'] = ws[i];
-            result.push (withdraw);
-        }
-        return result;
-    }
-
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
-        const request = { 'address': address, 'amount': amount, 'currency': code };
-        if (tag !== undefined) {
-            request['address'] = address + ':' + tag;
-        }
-        return await this.privatePostWithdraw (this.extend (request, params));
+        const data = this.safeValue (response, 'data', {});
+        const result = this.parseTransaction (data);
+        return this.extend (result, {
+            'currency': code,
+            'address': address,
+            'addressTo': address,
+            'tag': tag,
+            'tagTo': tag,
+            'amount': amount,
+        });
     }
 
     nonce () {
