@@ -26,6 +26,7 @@ class bitmex(Exchange):
             'version': 'v1',
             'userAgent': None,
             'rateLimit': 2000,
+            'pro': True,
             'has': {
                 'CORS': False,
                 'fetchOHLCV': True,
@@ -46,16 +47,22 @@ class bitmex(Exchange):
                 '1d': '1d',
             },
             'urls': {
-                'test': 'https://testnet.bitmex.com',
+                'test': {
+                    'public': 'https://testnet.bitmex.com',
+                    'private': 'https://testnet.bitmex.com',
+                },
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg',
-                'api': 'https://www.bitmex.com',
+                'api': {
+                    'public': 'https://www.bitmex.com',
+                    'private': 'https://www.bitmex.com',
+                },
                 'www': 'https://www.bitmex.com',
                 'doc': [
                     'https://www.bitmex.com/app/apiOverview',
                     'https://github.com/BitMEX/api-connectors/tree/master/official-http',
                 ],
                 'fees': 'https://www.bitmex.com/app/fees',
-                'referral': 'https://www.bitmex.com/register/rm3C16',
+                'referral': 'https://www.bitmex.com/register/upZpOX',
             },
             'api': {
                 'public': {
@@ -157,6 +164,7 @@ class bitmex(Exchange):
                     'Signature not valid': AuthenticationError,
                     'overloaded': ExchangeNotAvailable,
                     'Account has insufficient Available Balance': InsufficientFunds,
+                    'Service unavailable': ExchangeNotAvailable,  # {"error":{"message":"Service unavailable","name":"HTTPError"}}
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -1036,9 +1044,11 @@ class bitmex(Exchange):
         id = self.safe_string(order, 'orderID')
         type = self.safe_string_lower(order, 'ordType')
         side = self.safe_string_lower(order, 'side')
+        clientOrderId = self.safe_string(order, 'clOrdID')
         return {
             'info': order,
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -1053,6 +1063,7 @@ class bitmex(Exchange):
             'remaining': remaining,
             'status': status,
             'fee': None,
+            'trades': None,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -1128,7 +1139,14 @@ class bitmex(Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
-        response = self.privateDeleteOrder(self.extend({'orderID': id}, params))
+        # https://github.com/ccxt/ccxt/issues/6507
+        clOrdID = self.safe_value(params, 'clOrdID')
+        request = {}
+        if clOrdID is None:
+            request['orderID'] = id
+        else:
+            request['clOrdID'] = clOrdID
+        response = self.privateDeleteOrder(self.extend(request, params))
         order = response[0]
         error = self.safe_string(order, 'error')
         if error is not None:
@@ -1173,13 +1191,8 @@ class bitmex(Exchange):
             error = self.safe_value(response, 'error', {})
             message = self.safe_string(error, 'message')
             feedback = self.id + ' ' + body
-            exact = self.exceptions['exact']
-            if message in exact:
-                raise exact[message](feedback)
-            broad = self.exceptions['broad']
-            broadKey = self.findBroadlyMatchedKey(broad, message)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             if code == 400:
                 raise BadRequest(feedback)
             raise ExchangeError(feedback)  # unknown message
@@ -1197,7 +1210,7 @@ class bitmex(Exchange):
             if format is not None:
                 query += '?' + self.urlencode({'_format': format})
                 params = self.omit(params, '_format')
-        url = self.urls['api'] + query
+        url = self.urls['api'][api] + query
         if self.apiKey and self.secret:
             auth = method + query
             expires = self.safe_integer(self.options, 'api-expires')

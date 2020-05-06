@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 
 
 class itbit(Exchange):
@@ -64,12 +65,12 @@ class itbit(Exchange):
                 },
             },
             'markets': {
-                'BTC/USD': {'id': 'XBTUSD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD'},
-                'BTC/SGD': {'id': 'XBTSGD', 'symbol': 'BTC/SGD', 'base': 'BTC', 'quote': 'SGD'},
-                'BTC/EUR': {'id': 'XBTEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR'},
-                'ETH/USD': {'id': 'ETHUSD', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD'},
-                'ETH/EUR': {'id': 'ETHEUR', 'symbol': 'ETH/EUR', 'base': 'ETH', 'quote': 'EUR'},
-                'ETH/SGD': {'id': 'ETHSGD', 'symbol': 'ETH/SGD', 'base': 'ETH', 'quote': 'SGD'},
+                'BTC/USD': {'id': 'XBTUSD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'baseId': 'XBT', 'quoteId': 'USD'},
+                'BTC/SGD': {'id': 'XBTSGD', 'symbol': 'BTC/SGD', 'base': 'BTC', 'quote': 'SGD', 'baseId': 'XBT', 'quoteId': 'SGD'},
+                'BTC/EUR': {'id': 'XBTEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'XBT', 'quoteId': 'EUR'},
+                'ETH/USD': {'id': 'ETHUSD', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD', 'baseId': 'ETH', 'quoteId': 'USD'},
+                'ETH/EUR': {'id': 'ETHEUR', 'symbol': 'ETH/EUR', 'base': 'ETH', 'quote': 'EUR', 'baseId': 'ETH', 'quoteId': 'EUR'},
+                'ETH/SGD': {'id': 'ETHSGD', 'symbol': 'ETH/SGD', 'base': 'ETH', 'quote': 'SGD', 'baseId': 'ETH', 'quoteId': 'SGD'},
             },
             'fees': {
                 'trading': {
@@ -204,6 +205,7 @@ class itbit(Exchange):
             'price': price,
             'amount': amount,
             'cost': cost,
+            'fee': None,
         }
         if feeCost is not None:
             if rebatesApplied is not None:
@@ -229,8 +231,8 @@ class itbit(Exchange):
                     'cost': feeCost,
                     'currency': feeCurrency,
                 }
-        if not ('fee' in list(result.keys())):
-            if not ('fees' in list(result.keys())):
+        if not ('fee' in result):
+            if not ('fees' in result):
                 result['fee'] = None
         return result
 
@@ -238,7 +240,7 @@ class itbit(Exchange):
         self.load_markets()
         walletId = self.safe_string(params, 'walletId')
         if walletId is None:
-            raise ExchangeError(self.id + ' fetchMyTrades requires a walletId parameter')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a walletId parameter')
         request = {
             'walletId': walletId,
         }
@@ -414,7 +416,7 @@ class itbit(Exchange):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        walletIdInParams = ('walletId' in list(params.keys()))
+        walletIdInParams = ('walletId' in params)
         if not walletIdInParams:
             raise ExchangeError(self.id + ' fetchOrders requires a walletId parameter')
         walletId = params['walletId']
@@ -435,19 +437,48 @@ class itbit(Exchange):
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
-        side = order['side']
-        type = order['type']
+        #
+        #     {
+        #         "id": "13d6af57-8b0b-41e5-af30-becf0bcc574d",
+        #         "walletId": "7e037345-1288-4c39-12fe-d0f99a475a98",
+        #         "side": "buy",
+        #         "instrument": "XBTUSD",
+        #         "type": "limit",
+        #         "currency": "XBT",
+        #         "amount": "2.50000000",
+        #         "displayAmount": "2.50000000",
+        #         "price": "650.00000000",
+        #         "volumeWeightedAveragePrice": "0.00000000",
+        #         "amountFilled": "0.00000000",
+        #         "createdTime": "2014-02-11T17:05:15Z",
+        #         "status": "submitted",
+        #         "funds": null,
+        #         "metadata": {},
+        #         "clientOrderIdentifier": null,
+        #         "postOnly": "False"
+        #     }
+        #
+        side = self.safe_string(order, 'side')
+        type = self.safe_string(order, 'type')
         symbol = self.markets_by_id[order['instrument']]['symbol']
         timestamp = self.parse8601(order['createdTime'])
         amount = self.safe_float(order, 'amount')
         filled = self.safe_float(order, 'amountFilled')
-        remaining = amount - filled
+        remaining = None
+        cost = None
         fee = None
         price = self.safe_float(order, 'price')
         average = self.safe_float(order, 'volumeWeightedAveragePrice')
-        cost = filled * average
+        if filled is not None:
+            if amount is not None:
+                remaining = amount - filled
+            if average is not None:
+                cost = filled * average
+        clientOrderId = self.safe_string(order, 'clientOrderIdentifier')
+        id = self.safe_string(order, 'id')
         return {
-            'id': order['id'],
+            'id': id,
+            'clientOrderId': clientOrderId,
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -464,6 +495,7 @@ class itbit(Exchange):
             'remaining': remaining,
             'fee': fee,
             # 'trades': self.parse_trades(order['trades'], market),
+            'trades': None,
         }
 
     def nonce(self):
@@ -473,7 +505,7 @@ class itbit(Exchange):
         self.load_markets()
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
-        walletIdInParams = ('walletId' in list(params.keys()))
+        walletIdInParams = ('walletId' in params)
         if not walletIdInParams:
             raise ExchangeError(self.id + ' createOrder requires a walletId parameter')
         amount = str(amount)
@@ -496,7 +528,7 @@ class itbit(Exchange):
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
-        walletIdInParams = ('walletId' in list(params.keys()))
+        walletIdInParams = ('walletId' in params)
         if not walletIdInParams:
             raise ExchangeError(self.id + ' fetchOrder requires a walletId parameter')
         request = {
@@ -506,7 +538,7 @@ class itbit(Exchange):
         return self.parse_order(response)
 
     def cancel_order(self, id, symbol=None, params={}):
-        walletIdInParams = ('walletId' in list(params.keys()))
+        walletIdInParams = ('walletId' in params)
         if not walletIdInParams:
             raise ExchangeError(self.id + ' cancelOrder requires a walletId parameter')
         request = {

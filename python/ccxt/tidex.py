@@ -183,11 +183,11 @@ class tidex(Exchange):
                         'max': None,
                     },
                     'withdraw': {
-                        'min': currency['withdrawMinAmout'],
+                        'min': self.safe_float(currency, 'withdrawMinAmount'),
                         'max': None,
                     },
                     'deposit': {
-                        'min': currency['depositMinAmount'],
+                        'min': self.safe_float(currency, 'depositMinAmount'),
                         'max': None,
                     },
                 },
@@ -283,13 +283,13 @@ class tidex(Exchange):
         if limit is not None:
             request['limit'] = limit  # default = 150, max = 2000
         response = self.publicGetDepthPair(self.extend(request, params))
-        market_id_in_reponse = (market['id'] in list(response.keys()))
+        market_id_in_reponse = (market['id'] in response)
         if not market_id_in_reponse:
             raise ExchangeError(self.id + ' ' + market['symbol'] + ' order book is empty or not available')
         orderbook = response[market['id']]
         return self.parse_order_book(orderbook)
 
-    def fetch_order_books(self, symbols=None, params={}):
+    def fetch_order_books(self, symbols=None, limit=None, params={}):
         self.load_markets()
         ids = None
         if symbols is None:
@@ -304,6 +304,8 @@ class tidex(Exchange):
         request = {
             'pair': ids,
         }
+        if limit is not None:
+            request['limit'] = limit  # default = 150, max = 2000
         response = self.publicGetDepthPair(self.extend(request, params))
         result = {}
         ids = list(response.keys())
@@ -331,6 +333,8 @@ class tidex(Exchange):
         symbol = None
         if market is not None:
             symbol = market['symbol']
+            if not market['active']:
+                timestamp = None
         last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
@@ -500,9 +504,13 @@ class tidex(Exchange):
             'filled': filled,
             'fee': None,
             # 'trades': self.parse_trades(order['trades'], market),
+            'info': response,
+            'clientOrderId': None,
+            'average': None,
+            'trades': None,
         }
         self.orders[id] = order
-        return self.extend({'info': response}, order)
+        return order
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
@@ -567,6 +575,9 @@ class tidex(Exchange):
             'filled': filled,
             'status': status,
             'fee': fee,
+            'clientOrderId': None,
+            'average': None,
+            'trades': None,
         }
 
     def parse_orders(self, orders, market=None, since=None, limit=None, params={}):
@@ -589,7 +600,7 @@ class tidex(Exchange):
         response = self.privatePostOrderInfo(self.extend(request, params))
         id = str(id)
         newOrder = self.parse_order(self.extend({'id': id}, response['return'][id]))
-        oldOrder = self.orders[id] if (id in list(self.orders.keys())) else {}
+        oldOrder = self.orders[id] if (id in self.orders) else {}
         self.orders[id] = self.extend(oldOrder, newOrder)
         return self.orders[id]
 
@@ -608,7 +619,7 @@ class tidex(Exchange):
             # - symbol mismatch(e.g. cached BTC/USDT, fetched ETH/USDT) -> skip
             cachedOrderId = cachedOrderIds[k]
             cachedOrder = self.orders[cachedOrderId]
-            if not (cachedOrderId in list(openOrdersIndexedById.keys())):
+            if not (cachedOrderId in openOrdersIndexedById):
                 # cached order is not in open orders array
                 # if we fetched orders by symbol and it doesn't match the cached order -> won't update the cached order
                 if symbol is not None and symbol != cachedOrder['symbol']:
@@ -769,14 +780,8 @@ class tidex(Exchange):
             if not success:
                 code = self.safe_string(response, 'code')
                 message = self.safe_string(response, 'error')
-                feedback = self.id + ' ' + self.json(response)
-                exact = self.exceptions['exact']
-                if code in exact:
-                    raise exact[code](feedback)
-                elif message in exact:
-                    raise exact[message](feedback)
-                broad = self.exceptions['broad']
-                broadKey = self.findBroadlyMatchedKey(broad, message)
-                if broadKey is not None:
-                    raise broad[broadKey](feedback)
+                feedback = self.id + ' ' + body
+                self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+                self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+                self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
                 raise ExchangeError(feedback)  # unknown message

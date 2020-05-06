@@ -39,12 +39,26 @@ class bitforex(Exchange):
                 'fetchOrders': False,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
+                'fetchOHLCV': True,
+            },
+            'timeframes': {
+                '1m': '1min',
+                '5m': '5min',
+                '15m': '15min',
+                '30m': '30min',
+                '1h': '1hour',
+                '2h': '2hour',
+                '4h': '4hour',
+                '12h': '12hour',
+                '1d': '1day',
+                '1w': '1week',
+                '1M': '1month',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/44310033-69e9e600-a3d8-11e8-873d-54d74d1bc4e4.jpg',
                 'api': 'https://api.bitforex.com',
                 'www': 'https://www.bitforex.com',
-                'doc': 'https://github.com/bitforexapi/API_Docs/wiki',
+                'doc': 'https://github.com/githubdev2020/API_Doc_en/wiki',
                 'fees': 'https://help.bitforex.com/en_us/?cat=13',
                 'referral': 'https://www.bitforex.com/en/invitationRegister?inviterId=1867438',
             },
@@ -218,6 +232,9 @@ class bitforex(Exchange):
                     },
                 },
             },
+            'commonCurrencies': {
+                'UOS': 'UOS Network',
+            },
             'exceptions': {
                 '4004': OrderNotFound,
                 '1013': AuthenticationError,
@@ -301,6 +318,7 @@ class bitforex(Exchange):
             'cost': cost,
             'order': orderId,
             'fee': None,
+            'takerOrMaker': None,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -362,6 +380,29 @@ class bitforex(Exchange):
             'info': response,
         }
 
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+        return [
+            self.safe_integer(ohlcv, 'time'),
+            self.safe_float(ohlcv, 'open'),
+            self.safe_float(ohlcv, 'high'),
+            self.safe_float(ohlcv, 'low'),
+            self.safe_float(ohlcv, 'close'),
+            self.safe_float(ohlcv, 'vol'),
+        ]
+
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+            'ktype': self.timeframes[timeframe],
+        }
+        if limit is not None:
+            request['size'] = limit  # default 1, max 600
+        response = self.publicGetApiV1MarketKline(self.extend(request, params))
+        ohlcvs = self.safe_value(response, 'data', [])
+        return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
+
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         marketId = self.market_id(symbol)
@@ -383,7 +424,7 @@ class bitforex(Exchange):
             '3': 'canceled',
             '4': 'canceled',
         }
-        return statuses[status] if (status in list(statuses.keys())) else status
+        return statuses[status] if (status in statuses) else status
 
     def parse_side(self, sideId):
         if sideId == 1:
@@ -417,6 +458,7 @@ class bitforex(Exchange):
         result = {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -431,6 +473,7 @@ class bitforex(Exchange):
             'remaining': remaining,
             'status': status,
             'fee': fee,
+            'trades': None,
         }
         return result
 
@@ -527,7 +570,5 @@ class bitforex(Exchange):
             if success is not None:
                 if not success:
                     code = self.safe_string(response, 'code')
-                    if code in self.exceptions:
-                        raise self.exceptions[code](feedback)
-                    else:
-                        raise ExchangeError(feedback)
+                    self.throw_exactly_matched_exception(self.exceptions, code, feedback)
+                    raise ExchangeError(feedback)

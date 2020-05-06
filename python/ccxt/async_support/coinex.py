@@ -446,6 +446,7 @@ class coinex(Exchange):
         side = self.safe_string(order, 'type')
         return {
             'id': self.safe_string(order, 'id'),
+            'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
@@ -681,8 +682,8 @@ class coinex(Exchange):
         currencyId = self.safe_string(transaction, 'coin_type')
         code = self.safe_currency_code(currencyId, currency)
         timestamp = self.safe_timestamp(transaction, 'create_time')
-        type = 'withdraw' if ('coin_withdraw_id' in list(transaction.keys())) else 'deposit'
-        status = self.parse_transaction_status(self.safe_string(transaction, 'status'), type)
+        type = 'withdraw' if ('coin_withdraw_id' in transaction) else 'deposit'
+        status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         amount = self.safe_float(transaction, 'amount')
         feeCost = self.safe_float(transaction, 'tx_fee')
         if type == 'deposit':

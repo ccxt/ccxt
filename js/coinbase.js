@@ -385,14 +385,14 @@ module.exports = class coinbase extends Exchange {
         //         "next_step": null
         //     }
         //
-        const amountObject = this.safeValue (transaction, 'amount', {});
+        const subtotalObject = this.safeValue (transaction, 'subtotal', {});
         const feeObject = this.safeValue (transaction, 'fee', {});
         const id = this.safeString (transaction, 'id');
         const timestamp = this.parse8601 (this.safeValue (transaction, 'created_at'));
         const updated = this.parse8601 (this.safeValue (transaction, 'updated_at'));
         const type = this.safeString (transaction, 'resource');
-        const amount = this.safeFloat (amountObject, 'amount');
-        const currencyId = this.safeString (amountObject, 'currency');
+        const amount = this.safeFloat (subtotalObject, 'amount');
+        const currencyId = this.safeString (subtotalObject, 'currency');
         const currency = this.safeCurrencyCode (currencyId);
         const feeCost = this.safeFloat (feeObject, 'amount');
         const feeCurrencyId = this.safeString (feeObject, 'currency');
@@ -1158,14 +1158,10 @@ module.exports = class coinbase extends Exchange {
         //      ]
         //    }
         //
-        const exceptions = this.exceptions;
         let errorCode = this.safeString (response, 'error');
         if (errorCode !== undefined) {
-            if (errorCode in exceptions) {
-                throw new exceptions[errorCode] (feedback);
-            } else {
-                throw new ExchangeError (feedback);
-            }
+            this.throwExactlyMatchedException (this.exceptions, errorCode, feedback);
+            throw new ExchangeError (feedback);
         }
         const errors = this.safeValue (response, 'errors');
         if (errors !== undefined) {
@@ -1174,11 +1170,8 @@ module.exports = class coinbase extends Exchange {
                 if (numErrors > 0) {
                     errorCode = this.safeString (errors[0], 'id');
                     if (errorCode !== undefined) {
-                        if (errorCode in exceptions) {
-                            throw new exceptions[errorCode] (feedback);
-                        } else {
-                            throw new ExchangeError (feedback);
-                        }
+                        this.throwExactlyMatchedException (this.exceptions, errorCode, feedback);
+                        throw new ExchangeError (feedback);
                     }
                 }
             }

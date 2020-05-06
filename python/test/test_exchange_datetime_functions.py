@@ -41,6 +41,9 @@ assert(exchange.parse8601('1986-04-26T01:23:47.000Z') == 514862627000)
 assert(exchange.parse8601('1986-04-26T01:23:47.559Z') == 514862627559)
 assert(exchange.parse8601('1986-04-26T01:23:47.062Z') == 514862627062)
 
+assert(exchange.parse8601('1986-04-26T01:23:47.06Z') == 514862627060)
+assert(exchange.parse8601('1986-04-26T01:23:47.6Z') == 514862627600)
+
 assert(exchange.parse8601('1977-13-13T00:00:00.000Z') is None)
 assert(exchange.parse8601('1986-04-26T25:71:47.000Z') is None)
 
