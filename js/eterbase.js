@@ -77,7 +77,6 @@ module.exports = class eterbase extends Exchange {
                 'private': {
                     'get': [
                         'accounts/{id}/balances',
-                        'accounts/{id}/withdrawals',
                         'accounts/{id}/orders',
                         'accounts/{id}/fills',
                         'orders/{id}/fills',
@@ -85,6 +84,7 @@ module.exports = class eterbase extends Exchange {
                     ],
                     'post': [
                         'orders',
+                        'accounts/{id}/withdrawals',
                     ],
                     'delete': [
                         'orders/{id}',
@@ -708,72 +708,106 @@ module.exports = class eterbase extends Exchange {
         };
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
+    async fetchOrdersByState (state, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (since === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrdersByState requires a since argument');
         }
-        if (this.safeString (params, 'state') === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders requires a state argument');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const yesterdayTimestamp = this.now () - 86400;
         const request = {
             'id': this.uid,
-            'marketId': market['id'],
-            'state': 'ACTIVE',
-            'from': yesterdayTimestamp,
-            'limit': 10,
-            'offset': 0,
+            'state': state,
+            'from': since,
+            // 'side': Integer, // 1 = buy, 2 = sell
+            // 'offset': 0, // the number of records to skip
+            // 'end': this.milliseconds (),
         };
-        if (since !== undefined) {
-            request['from'] = since;
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['marketId'] = market['id'];
         }
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = limit; // default 50
         }
         const response = await this.privateGetAccountsIdOrders (this.extend (request, params));
-        return this.parseOrders (response, market, since, limit);
+        //
+        //     {
+        //         "count": 123,
+        //         "result": [
+        //             {
+        //                 "id": "30a2b5d0-be2e-4d0a-93ed-a7c45fed1792",
+        //                 "accountId": "30a2b5d0-be2e-4d0a-93ed-a7c45fed1792",
+        //                 "marketId": 123,
+        //                 "type": 1,
+        //                 "side": 1,
+        //                 "qty": "1.23456",
+        //                 "cost": "1.23456",
+        //                 "remainingQty": "1.23456",
+        //                 "remainingCost": "1.23456",
+        //                 "limitPrice": "1.23456",
+        //                 "stopPrice": "1.23456",
+        //                 "postOnly": false,
+        //                 "timeInForce": "GTC",
+        //                 "state": 1,
+        //                 "closeReason": "FILLED",
+        //                 "placedAt": 1556355722341,
+        //                 "closedAt": 1556355722341
+        //             }
+        //         ]
+        //     }
+        //
+        const result = this.safeValue (response, 'result', []);
+        return this.parseOrders (result, market, since, limit);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchClosedOrders requires a symbol argument');
-        }
-        const orders = await this.fetchOrders (symbol, since, limit, this.extend ({ 'state': 'INACTIVE' }, params));
-        return orders;
+        return await this.fetchOrdersByState ('INACTIVE', symbol, since, limit, params);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a symbol argument');
-        }
-        const orders = await this.fetchOrders (symbol, since, limit, this.extend ({ 'state': 'ACTIVE' }, params));
-        return orders;
+        return await this.fetchOrdersByState ('ACTIVE', symbol, since, limit, params);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const yesterdayTimestamp = this.now () - 86400;
+        // if (since === undefined) {
+        //     throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a since argument');
+        // }
         const request = {
             'id': this.uid,
-            'marketId': market['id'],
-            'from': yesterdayTimestamp,
-            'limit': 10,
-            'offset': 0,
+            // 'from': since,
+            // 'side': Integer, // 1 = buy, 2 = sell
+            // 'offset': 0, // the number of records to skip
+            // 'end': this.milliseconds (),
         };
-        if (since !== undefined) {
-            request['from'] = since;
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['marketId'] = market['id'];
         }
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = limit; // default 50, max 200
         }
         const response = await this.privateGetAccountsIdFills (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
+        // await this.loadMarkets ();
+        // const market = this.market (symbol);
+        // const yesterdayTimestamp = this.now () - 86400;
+        // const request = {
+        //     'id': this.uid,
+        //     'marketId': market['id'],
+        //     'from': yesterdayTimestamp,
+        //     'limit': 10,
+        //     'offset': 0,
+        // };
+        // if (since !== undefined) {
+        //     request['from'] = since;
+        // }
+        // if (limit !== undefined) {
+        //     request['limit'] = limit;
+        // }
+        // const response = await this.privateGetAccountsIdFills (this.extend (request, params));
+        // return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
