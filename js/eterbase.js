@@ -585,7 +585,7 @@ module.exports = class eterbase extends Exchange {
             } else {
                 request['end'] = this.sum (since, duration * limit * 1000);
             }
-        } if (limit !== undefined) {
+        } else if (limit !== undefined) {
             request['start'] = now - duration * limit * 1000;
             request['end'] = now;
         } else {
