@@ -389,9 +389,26 @@ module.exports = class eterbase extends Exchange {
         const market = this.market (symbol);
         const request = {
             'id': market['id'],
+            // 'offset': 0 // the number of records to skip
         };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
         const response = await this.publicGetMarketsIdTrades (this.extend (request, params));
-        return this.parseTrades (response, market);
+        //
+        //     [
+        //         {
+        //             "id":251199246,
+        //             "side":2,
+        //             "price":0.022044,
+        //             "executedAt":1588830682664,
+        //             "qty":0.13545846,
+        //             "makerId":"67ed6ef3-33d8-4389-ba70-5c68d9db9f6c",
+        //             "takerId":"229ef0d6-fe67-4b5d-9733-824142fab8f3"
+        //         }
+        //     ]
+        //
+        return this.parseTrades (response, market, since, limit);
     }
 
     async fetchBalance (params = {}) {
