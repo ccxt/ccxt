@@ -769,12 +769,12 @@ module.exports = class eterbase extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        // if (since === undefined) {
-        //     throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a since argument');
-        // }
+        if (since === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a since argument');
+        }
         const request = {
             'id': this.uid,
-            // 'from': since,
+            'from': since,
             // 'side': Integer, // 1 = buy, 2 = sell
             // 'offset': 0, // the number of records to skip
             // 'end': this.milliseconds (),
@@ -789,25 +789,29 @@ module.exports = class eterbase extends Exchange {
             request['limit'] = limit; // default 50, max 200
         }
         const response = await this.privateGetAccountsIdFills (this.extend (request, params));
-        return this.parseTrades (response, market, since, limit);
-        // await this.loadMarkets ();
-        // const market = this.market (symbol);
-        // const yesterdayTimestamp = this.now () - 86400;
-        // const request = {
-        //     'id': this.uid,
-        //     'marketId': market['id'],
-        //     'from': yesterdayTimestamp,
-        //     'limit': 10,
-        //     'offset': 0,
-        // };
-        // if (since !== undefined) {
-        //     request['from'] = since;
-        // }
-        // if (limit !== undefined) {
-        //     request['limit'] = limit;
-        // }
-        // const response = await this.privateGetAccountsIdFills (this.extend (request, params));
-        // return this.parseTrades (response, market, since, limit);
+        //
+        //     {
+        //         "count": 123,
+        //         "result": [
+        //             {
+        //                 "id": 123,
+        //                 "marketId": 123,
+        //                 "side": 1,
+        //                 "qty": "1.23456",
+        //                 "price": "1.23456",
+        //                 "cost": "1.23456",
+        //                 "fee": "1.23456",
+        //                 "feeAsset": "XBASE",
+        //                 "liquidity": 1,
+        //                 "orderId": "30a2b5d0-be2e-4d0a-93ed-a7c45fed1792",
+        //                 "tradeId": 123,
+        //                 "filledAt": 1556355722341
+        //             }
+        //         ]
+        //     }
+        //
+        const result = this.safeValue (response, 'result', []);
+        return this.parseTrades (result, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
