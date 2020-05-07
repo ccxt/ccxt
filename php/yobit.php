@@ -845,10 +845,6 @@ class yobit extends Exchange {
         );
     }
 
-    public function nonce() {
-        return $this->milliseconds();
-    }
-
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api];
         $query = $this->omit($params, $this->extract_params($path));
