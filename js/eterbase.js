@@ -20,12 +20,11 @@ module.exports = class eterbase extends Exchange {
                 'publicAPI': true,
                 'privateAPI': true,
                 'cancelOrder': true,
-                'createDepositAddress': false,
                 'createOrder': true,
                 'deposit': false,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
-                'fetchCurrencies': false,
+                'fetchCurrencies': true,
                 'fetchDepositAddress': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -34,10 +33,8 @@ module.exports = class eterbase extends Exchange {
                 'fetchOrder': false,
                 'fetchOrderBook': false,
                 'fetchOrders': false,
-                'fetchStatus': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
-                'fetchBidsAsks': false,
                 'fetchTrades': true,
                 'withdraw': false,
             },
@@ -234,6 +231,83 @@ module.exports = class eterbase extends Exchange {
                 },
             },
         };
+    }
+
+    async fetchCurrencies (params = {}) {
+        const response = await this.publicGetAssets (params);
+        //
+        //     [
+        //         {
+        //             "id":"LINK",
+        //             "name":"ChainLink Token",
+        //             "precisionDisplay":8,
+        //             "precisionMax":18,
+        //             "precisionBasis":1000000000000000000,
+        //             "precisionStep":1,
+        //             "verificationLevelMin":"null",
+        //             "cmcId":"LINK",
+        //             "txnUrl":"https://etherscan.io/tx/{txnId}",
+        //             "state":"Active",
+        //             "type":"Crypto",
+        //             "isReference":false,
+        //             "withdrawalMin":"0",
+        //             "withdrawalMax":"50587",
+        //             "withdrawalFee":"0.55",
+        //             "depositEnabled":true,
+        //             "withdrawalEnabled":true,
+        //             "description":"",
+        //             "coingeckoUrl":"https://www.coingecko.com/en/coins/chainlink",
+        //             "coinmarketcapUrl":"https://coinmarketcap.com/currencies/chainlink",
+        //             "eterbaseUrl":"https://www.eterbase.com/system-status/LINK",
+        //             "explorerUrl":"https://etherscan.io/token/0x514910771af9ca656af840dff83e8264ecf986ca",
+        //             "withdrawalMemoAllowed":false,
+        //             "countries":[],
+        //             "networks":[]
+        //         }
+        //     ]
+        //
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const currency = response[i];
+            const id = this.safeString (currency, 'id');
+            const precision = this.safeInteger (currency, 'precisionDisplay');
+            const code = this.safeCurrencyCode (id);
+            const depositEnabled = this.safeValue (currency, 'depositEnabled');
+            const withdrawalEnabled = this.safeValue (currency, 'withdrawalEnabled');
+            const state = this.safeString (currency, 'state');
+            const active = depositEnabled && withdrawalEnabled && (state === 'Active');
+            const type = this.safeStringLower (currency, 'type');
+            const name = this.safeString (currency, 'name');
+            result[code] = {
+                'id': id,
+                'info': currency,
+                'code': code,
+                'type': type,
+                'name': name,
+                'active': active,
+                'fee': this.safeFloat (currency, 'withdrawalFee'),
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': Math.pow (10, -precision),
+                        'max': Math.pow (10, precision),
+                    },
+                    'price': {
+                        'min': Math.pow (10, -precision),
+                        'max': Math.pow (10, precision),
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': this.safeFloat (currency, 'withdrawalMin'),
+                        'max': this.safeFloat (currency, 'withdrawalMax'),
+                    },
+                },
+            };
+        }
+        return result;
     }
 
     parseTicker (ticker, market = undefined) {
