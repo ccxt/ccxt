@@ -170,6 +170,7 @@ class yobit extends Exchange {
                     'api key dont have trade permission' => '\\ccxt\\AuthenticationError',
                     'invalid parameter' => '\\ccxt\\InvalidOrder',
                     'invalid order' => '\\ccxt\\InvalidOrder',
+                    'The given order has already been cancelled' => '\\ccxt\\InvalidOrder',
                     'Requests too often' => '\\ccxt\\DDoSProtection',
                     'not available' => '\\ccxt\\ExchangeNotAvailable',
                     'data unavailable' => '\\ccxt\\ExchangeNotAvailable',
@@ -842,6 +843,10 @@ class yobit extends Exchange {
             'rate' => $rate,
             'cost' => $cost,
         );
+    }
+
+    public function nonce() {
+        return $this->milliseconds();
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
