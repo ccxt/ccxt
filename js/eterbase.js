@@ -264,7 +264,7 @@ module.exports = class eterbase extends Exchange {
         const baseVolume = this.safeFloat (ticker, 'volumeBase');
         const quoteVolume = this.safeFloat (ticker, 'volume');
         let vwap = undefined;
-        if (quoteVolume !== undefined && baseVolume !== undefined) {
+        if ((quoteVolume !== undefined) && (baseVolume !== undefined) && (baseVolume > 0)) {
             vwap = quoteVolume / baseVolume;
         }
         const percentage = this.safeFloat (ticker, 'change');
@@ -315,16 +315,35 @@ module.exports = class eterbase extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
-        await this.loadMarkets ();
-        const rawTickers = await this.publicGetTickers (params);
+    parseTickers (tickers, symbols = undefined) {
         const result = [];
-        if (rawTickers) {
-            for (let i = 0; i < rawTickers.length; i++) {
-                result.push (this.parseTicker (rawTickers[i]));
-            }
+        for (let i = 0; i < tickers.length; i++) {
+            result.push (this.parseTicker (tickers[i]));
         }
         return this.filterByArray (result, 'symbol', symbols);
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            // 'quote': 'USDT', // identifier of a quote asset to filter the markets
+        };
+        const response = await this.publicGetTickers (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "time":1588831771698,
+        //             "marketId":33,
+        //             "price":204.54,
+        //             "change":-1.03,
+        //             "volumeBase":544.9801776699998,
+        //             "volume":111550.433735,
+        //             "low":200.33,
+        //             "high":209.51
+        //         },
+        //     ]
+        //
+        return this.parseTickers (response, symbols);
     }
 
     parseTrade (raw, market) {
