@@ -31,7 +31,7 @@ module.exports = class eterbase extends Exchange {
                 'fetchOHLCV': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': false,
-                'fetchOrderBook': false,
+                'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -59,7 +59,7 @@ module.exports = class eterbase extends Exchange {
             'api': {
                 'markets': {
                     'get': [
-                        'id/order-book',
+                        '{id}/order-book',
                     ],
                 },
                 'public': {
@@ -523,8 +523,29 @@ module.exports = class eterbase extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = [];
-        return this.parseOrderBook (response, this.safeInteger (response, 'timestamp'));
+        const request = {
+            'id': this.marketId (symbol),
+        };
+        const response = this.marketsGetIdOrderBook (this.extend (request, params));
+        //
+        //     {
+        //         "type":"ob_snapshot",
+        //         "marketId":3,
+        //         "timestamp":1588836429847,
+        //         "bids":[
+        //             [0.021694,8.8793688,1], // price, amount, count
+        //             [0.01937,7.1340473,1],
+        //             [0.020774,3.314881,1],
+        //         ],
+        //         "asks":[
+        //             [0.02305,8.8793688,1],
+        //             [0.028022,3.314881,1],
+        //             [0.022598,3.314881,1],
+        //         ]
+        //     }
+        //
+        const timestamp = this.safeInteger (response, 'timestamp');
+        return this.parseOrderBook (response, timestamp);
     }
 
     async fetchBalance (params = {}) {
@@ -747,7 +768,7 @@ module.exports = class eterbase extends Exchange {
         } else if (api === 'private') {
             request += 'api/' + this.version;
         } else if (api === 'markets') {
-            request += api;
+            request += 'api/' + api;
         }
         request += '/' + this.implodeParams (path, params);
         if (method === 'GET') {
