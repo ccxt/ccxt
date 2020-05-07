@@ -842,10 +842,6 @@ module.exports = class yobit extends Exchange {
         };
     }
 
-    nonce () {
-        return this.milliseconds ();
-    }
-
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
         const query = this.omit (params, this.extractParams (path));
