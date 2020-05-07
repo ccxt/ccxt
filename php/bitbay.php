@@ -162,6 +162,7 @@ class bitbay extends Exchange {
                 'OFFER_NOT_FOUND' => '\\ccxt\\OrderNotFound',
                 'OFFER_WOULD_HAVE_BEEN_PARTIALLY_FILLED' => '\\ccxt\\OrderImmediatelyFillable',
                 'ACTION_LIMIT_EXCEEDED' => '\\ccxt\\RateLimitExceeded',
+                'UNDER_MAINTENANCE' => '\\ccxt\\OnMaintenance',
             ),
         ));
     }
