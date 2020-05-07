@@ -254,18 +254,20 @@ module.exports = class kucoin extends Exchange {
     async fetchMarkets (params = {}) {
         const response = await this.publicGetSymbols (params);
         //
-        // { quoteCurrency: 'BTC',
-        //   symbol: 'KCS-BTC',
-        //   quoteMaxSize: '9999999',
-        //   quoteIncrement: '0.000001',
-        //   baseMinSize: '0.01',
-        //   quoteMinSize: '0.00001',
-        //   enableTrading: true,
-        //   priceIncrement: '0.00000001',
-        //   name: 'KCS-BTC',
-        //   baseIncrement: '0.01',
-        //   baseMaxSize: '9999999',
-        //   baseCurrency: 'KCS' }
+        //     {
+        //         quoteCurrency: 'BTC',
+        //         symbol: 'KCS-BTC',
+        //         quoteMaxSize: '9999999',
+        //         quoteIncrement: '0.000001',
+        //         baseMinSize: '0.01',
+        //         quoteMinSize: '0.00001',
+        //         enableTrading: true,
+        //         priceIncrement: '0.00000001',
+        //         name: 'KCS-BTC',
+        //         baseIncrement: '0.01',
+        //         baseMaxSize: '9999999',
+        //         baseCurrency: 'KCS'
+        //     }
         //
         const data = response['data'];
         const result = [];

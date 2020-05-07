@@ -907,6 +907,10 @@ module.exports = class binance extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
+        let cost = undefined;
+        if ((price !== undefined) && (amount !== undefined)) {
+            cost = price * amount;
+        }
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -915,11 +919,11 @@ module.exports = class binance extends Exchange {
             'id': id,
             'order': orderId,
             'type': undefined,
-            'takerOrMaker': takerOrMaker,
             'side': side,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
-            'cost': price * amount,
+            'cost': cost,
             'fee': fee,
         };
     }
