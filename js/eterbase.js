@@ -28,7 +28,7 @@ module.exports = class eterbase extends Exchange {
                 'fetchDepositAddress': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
-                'fetchOHLCV': false,
+                'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': false,
                 'fetchOrderBook': true,
@@ -546,6 +546,63 @@ module.exports = class eterbase extends Exchange {
         //
         const timestamp = this.safeInteger (response, 'timestamp');
         return this.parseOrderBook (response, timestamp);
+    }
+
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        //
+        //     {
+        //         "time":1588807500000,
+        //         "open":0.022077,
+        //         "high":0.022077,
+        //         "low":0.022051,
+        //         "close":0.022051,
+        //         "volume":10.532025119999997
+        //     }
+        //
+        return [
+            this.safeInteger (ohlcv, 'time'),
+            this.safeFloat (ohlcv, 'open'),
+            this.safeFloat (ohlcv, 'high'),
+            this.safeFloat (ohlcv, 'low'),
+            this.safeFloat (ohlcv, 'close'),
+            this.safeFloat (ohlcv, 'volume'),
+        ];
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        const request = {
+            // 'id': market['id'],
+            'interval': this.timeframes[timeframe],
+            // 'start': 1588830682664, // milliseconds
+            // 'end': 1588830682664, // milliseconds
+        };
+        const duration = this.parseTimeframe (timeframe);
+        const now = this.milliseconds ();
+        if (since !== undefined) {
+            request['start'] = since;
+            if (limit === undefined) {
+                request['end'] = now;
+            } else {
+                request['end'] = this.sum (since, duration * limit * 1000);
+            }
+        } if (limit !== undefined) {
+            request['start'] = now - duration * limit * 1000;
+            request['end'] = now;
+        } else {
+            throw new ArgumentsRequired (this.id + ' fetchOHLCV requires a since argument, or a limit argument, or both');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        request['id'] = market['id'];
+        const response = await this.publicGetMarketsIdOhlcv (this.extend (request, params));
+        //
+        //     [
+        //         {"time":1588807500000,"open":0.022077,"high":0.022077,"low":0.022051,"close":0.022051,"volume":10.532025119999997},
+        //         {"time":1588807800000,"open":0.022051,"high":0.022051,"low":0.022044,"close":0.022044,"volume":0.655987},
+        //         {"time":1588808400000,"open":0.022044,"high":0.022044,"low":0.022044,"close":0.022044,"volume":3.9615545499999993},
+        //     ]
+        //
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     async fetchBalance (params = {}) {
