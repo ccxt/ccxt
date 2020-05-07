@@ -883,6 +883,9 @@ class binance(Exchange):
             market = self.safe_value(self.markets_by_id, marketId)
         if market is not None:
             symbol = market['symbol']
+        cost = None
+        if (price is not None) and (amount is not None):
+            cost = price * amount
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -891,11 +894,11 @@ class binance(Exchange):
             'id': id,
             'order': orderId,
             'type': None,
-            'takerOrMaker': takerOrMaker,
             'side': side,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
-            'cost': price * amount,
+            'cost': cost,
             'fee': fee,
         }
 

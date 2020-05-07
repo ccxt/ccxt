@@ -265,18 +265,20 @@ class kucoin(Exchange):
     async def fetch_markets(self, params={}):
         response = await self.publicGetSymbols(params)
         #
-        # {quoteCurrency: 'BTC',
-        #   symbol: 'KCS-BTC',
-        #   quoteMaxSize: '9999999',
-        #   quoteIncrement: '0.000001',
-        #   baseMinSize: '0.01',
-        #   quoteMinSize: '0.00001',
-        #   enableTrading: True,
-        #   priceIncrement: '0.00000001',
-        #   name: 'KCS-BTC',
-        #   baseIncrement: '0.01',
-        #   baseMaxSize: '9999999',
-        #   baseCurrency: 'KCS'}
+        #     {
+        #         quoteCurrency: 'BTC',
+        #         symbol: 'KCS-BTC',
+        #         quoteMaxSize: '9999999',
+        #         quoteIncrement: '0.000001',
+        #         baseMinSize: '0.01',
+        #         quoteMinSize: '0.00001',
+        #         enableTrading: True,
+        #         priceIncrement: '0.00000001',
+        #         name: 'KCS-BTC',
+        #         baseIncrement: '0.01',
+        #         baseMaxSize: '9999999',
+        #         baseCurrency: 'KCS'
+        #     }
         #
         data = response['data']
         result = []
