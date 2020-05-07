@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, ExchangeError, OrderNotFound, AccountSuspended, BadSymbol, OrderImmediatelyFillable, RateLimitExceeded } = require ('./base/errors');
+const { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, ExchangeError, OrderNotFound, AccountSuspended, BadSymbol, OrderImmediatelyFillable, RateLimitExceeded, OnMaintenance } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -160,6 +160,7 @@ module.exports = class bitbay extends Exchange {
                 'OFFER_NOT_FOUND': OrderNotFound,
                 'OFFER_WOULD_HAVE_BEEN_PARTIALLY_FILLED': OrderImmediatelyFillable,
                 'ACTION_LIMIT_EXCEEDED': RateLimitExceeded,
+                'UNDER_MAINTENANCE': OnMaintenance,
             },
         });
     }
