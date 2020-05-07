@@ -763,18 +763,15 @@ module.exports = class eterbase extends Exchange {
             const urlBaselength = this.urls['base'].length - 0;
             const urlPath = url.slice (urlBaselength);
             let headersCSV = 'date' + ' ' + 'request-line';
-            // eslint-disable-next-line quotes
-            let message = 'date' + ':' + ' ' + date + "\n" + method + ' ' + urlPath + ' HTTP/1.1';
+            let message = 'date' + ':' + ' ' + date + "\n" + method + ' ' + urlPath + ' HTTP/1.1'; // eslint-disable-line quotes
             let digest = '';
             if (hasBody) {
                 digest = 'SHA-256=' + this.hash (payload, 'sha256', 'base64');
-                // eslint-disable-next-line quotes
-                message = message + "\ndigest" + ':' + ' ' + digest;
+                message = message + "\ndigest" + ':' + ' ' + digest;  // eslint-disable-line quotes
                 headersCSV = headersCSV + ' ' + 'digest';
             }
             const sig = this.hmac (message, this.secret, 'sha256', 'base64');
-            // eslint-disable-next-line quotes
-            const authorizationHeader = "hmac username=\"" + this.apiKey + "\",algorithm=\"hmac-sha256\",headers=\"" + headersCSV + "\",signature=\"" + sig + "\"";
+            const authorizationHeader = 'hmac username="' + this.apiKey + '",algorithm="hmac-sha256",headers="' + headersCSV + '",signature="' + sig + '"';
             httpHeaders = {
                 'Date': date,
                 'Authorization': authorizationHeader,
