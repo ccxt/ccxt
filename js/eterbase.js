@@ -175,8 +175,8 @@ module.exports = class eterbase extends Exchange {
         //         "state":"Trading"
         //     }
         //
-        const id = this.safeString (market, 'symbol');
-        const numericId = this.safeString (market, 'id');
+        const id = this.safeString (market, 'id');
+        // const numericId = this.safeString (market, 'id');
         const baseId = this.safeString (market, 'base');
         const quoteId = this.safeString (market, 'quote');
         const base = this.safeCurrencyCode (baseId);
@@ -211,7 +211,6 @@ module.exports = class eterbase extends Exchange {
         }
         return {
             'id': id,
-            'numericId': numericId,
             'symbol': symbol,
             'base': base,
             'quote': quote,
@@ -237,54 +236,83 @@ module.exports = class eterbase extends Exchange {
         };
     }
 
-    parseTicker (raw) {
-        const id = this.safeInteger (raw, 'marketId');
-        const market = this.findMarket (id);
-        const timestamp = this.safeInteger (raw, 'time');
-        const price = this.safeFloat (raw, 'price');
+    parseTicker (ticker, market = undefined) {
+        //
+        // fetchTicker
+        //
+        //     {
+        //         "time":1588778516608,
+        //         "marketId":250,
+        //         "price":0.0,
+        //         "change":0.0,
+        //         "volumeBase":0.0,
+        //         "volume":0.0,
+        //         "low":0.0,
+        //         "high":0.0,
+        //     }
+        //
+        const marketId = this.safeInteger (ticker, 'marketId');
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+        }
+        let symbol = undefined;
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
+        const timestamp = this.safeInteger (ticker, 'time');
+        const last = this.safeFloat (ticker, 'price');
+        const baseVolume = this.safeFloat (ticker, 'volumeBase');
+        const quoteVolume = this.safeFloat (ticker, 'volume');
+        let vwap = undefined;
+        if (quoteVolume !== undefined && baseVolume !== undefined) {
+            vwap = quoteVolume / baseVolume;
+        }
+        const percentage = this.safeFloat (ticker, 'change');
         const result = {
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'last': price,
-            'high': this.safeFloat (raw, 'high'),
-            'low': this.safeFloat (raw, 'low'),
-            'change': this.safeFloat (raw, 'change'),
-            'baseVolume': this.safeFloat (raw, 'volumeBase'),
-            'quoteVolume': this.safeFloat (raw, 'volume'),
-            'ask': undefined,
-            'askVolume': undefined,
-            'average': undefined,
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
             'bid': undefined,
             'bidVolume': undefined,
-            'close': price,
+            'ask': undefined,
+            'askVolume': undefined,
+            'vwap': vwap,
             'open': undefined,
-            'percentage': undefined,
-            'previousClose': undefined,
-            'vwap': undefined,
-            'info': raw,
+            'close': last,
+            'last': last,
+            'previousClose': undefined, // previous day close
+            'change': undefined,
+            'percentage': percentage,
+            'average': undefined,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
+            'info': ticker,
         };
         return result;
     }
 
     async fetchTicker (symbol, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchTicker requires a symbol argument');
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const rawTickers = await this.publicGetTickers (params);
-        let raw = undefined;
-        if (rawTickers) {
-            for (let i = 0; i < rawTickers.length; i++) {
-                if (this.safeString (rawTickers[i], 'marketId') === market['id']) {
-                    raw = rawTickers[i];
-                    break;
-                }
-            }
-        }
-        const result = this.parseTicker (raw);
-        return result;
+        const request = {
+            'id': market['id'],
+        };
+        const response = await this.publicGetTickersIdTicker (this.extend (request, params));
+        //
+        //     {
+        //         "time":1588778516608,
+        //         "marketId":250,
+        //         "price":0.0,
+        //         "change":0.0,
+        //         "volumeBase":0.0,
+        //         "volume":0.0,
+        //         "low":0.0,
+        //         "high":0.0,
+        //     }
+        //
+        return this.parseTicker (response, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
