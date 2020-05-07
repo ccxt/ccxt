@@ -35,6 +35,7 @@ module.exports = class eterbase extends Exchange {
                 'fetchOrders': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTime': true,
                 'fetchTrades': true,
                 'withdraw': false,
             },
@@ -107,6 +108,14 @@ module.exports = class eterbase extends Exchange {
                 'createMarketBuyOrderRequiresPrice': true,
             },
         });
+    }
+
+    async fetchTime (params = {}) {
+        const response = await this.publicGetPing (params);
+        //
+        //     { "pong": 1556354416582 }
+        //
+        return this.safeInteger (response, 'pong');
     }
 
     async fetchMarkets (params = {}) {
