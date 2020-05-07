@@ -346,41 +346,68 @@ module.exports = class eterbase extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    parseTrade (raw, market) {
-        const price = this.safeFloat (raw, 'price');
-        const qty = this.safeFloat (raw, 'qty');
-        const fee = this.safeFloat (raw, 'fee');
-        const feeAsset = this.safeString (raw, 'feeAsset');
-        let cost = this.safeFloat (raw, 'qty');
-        if (!cost) {
-            cost = Math.round (price * qty, market.precision.cost);
+    parseTrade (trade, market) {
+        //
+        // fetchTrades (public)
+        //
+        //     {
+        //         "id":251199246,
+        //         "side":2,
+        //         "price":0.022044,
+        //         "executedAt":1588830682664,
+        //         "qty":0.13545846,
+        //         "makerId":"67ed6ef3-33d8-4389-ba70-5c68d9db9f6c",
+        //         "takerId":"229ef0d6-fe67-4b5d-9733-824142fab8f3"
+        //     }
+        //
+        // fetchTrades (private)
+        //
+        //     ...
+        //
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'qty');
+        let fee = undefined;
+        const feeCost = this.safeFloat (trade, 'fee');
+        if (feeCost !== undefined) {
+            const feeCurrencyId = this.safeString (trade, 'feeAsset');
+            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            };
         }
-        let timestamp = this.safeInteger (raw, 'executedAt');
-        if (!timestamp) {
-            timestamp = this.safeInteger (raw, 'filledAt');
+        let cost = this.safeFloat (trade, 'qty');
+        if ((cost === undefined) && (price !== undefined) && (amount !== undefined)) {
+            cost = price * amount;
         }
-        const rawSide = this.safeString (raw, 'side');
-        const side = rawSide === '1' ? 'buy' : 'sell';
-        const rawLiquidity = this.safeString (raw, 'liquidity');
-        const liquidity = rawLiquidity === '1' ? 'maker' : 'taker';
-        const orderId = this.safeString (raw, 'orderId');
+        const timestamp = this.safeInteger2 (trade, 'executedAt', 'filledAt');
+        const tradeSide = this.safeString (trade, 'side');
+        const side = (tradeSide === '1') ? 'buy' : 'sell';
+        const liquidity = this.safeString (trade, 'liquidity');
+        let takerOrMaker = undefined;
+        if (liquidity !== undefined) {
+            takerOrMaker = (liquidity === '1') ? 'maker' : 'taker';
+        }
+        const orderId = this.safeString (trade, 'orderId');
+        const id = this.safeString (trade, 'id');
+        let symbol = undefined;
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
         return {
-            'symbol': market['symbol'],
-            'id': this.safeString (raw, 'id'),
-            'side': side,
-            'price': price,
-            'amount': qty,
-            'cost': cost,
+            'info': trade,
+            'id': id,
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'takerOrMaker': liquidity,
             'order': orderId,
             'type': undefined,
-            'fee': {
-                'cost': fee,
-                'currency': this.safeCurrencyCode (feeAsset),
-            },
-            'info': raw,
+            'side': side,
+            'takerOrMaker': takerOrMaker,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
         };
     }
 
@@ -409,6 +436,12 @@ module.exports = class eterbase extends Exchange {
         //     ]
         //
         return this.parseTrades (response, market, since, limit);
+    }
+
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = [];
+        return this.parseOrderBook (response, this.safeInteger (response, 'timestamp'));
     }
 
     async fetchBalance (params = {}) {
@@ -621,12 +654,6 @@ module.exports = class eterbase extends Exchange {
             'id': id,
         };
         await this.privateDeleteOrdersId (this.extend (request, params));
-    }
-
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const response = [];
-        return this.parseOrderBook (response, this.safeInteger (response, 'timestamp'));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, httpHeaders = undefined, body = undefined) {
