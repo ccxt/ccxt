@@ -104,6 +104,11 @@ module.exports = class eterbase extends Exchange {
                     'maker': 0.09,
                 },
             },
+            'requiredCredentials': {
+                'apiKey': true,
+                'secret': true,
+                'uid': true,
+            },
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
             },
@@ -610,20 +615,28 @@ module.exports = class eterbase extends Exchange {
         const request = {
             'id': this.uid,
         };
-        const rawBalances = await this.privateGetAccountsIdBalances (this.extend (request, params));
-        const result = { 'info': rawBalances };
-        if (rawBalances) {
-            for (let i = 0; i < rawBalances.length; i++) {
-                const rawBalance = rawBalances[i];
-                const assetId = this.safeString (rawBalance, 'assetId');
-                const assetCode = this.safeCurrencyCode (assetId);
-                const account = {
-                    'free': this.safeFloat (rawBalance, 'available'),
-                    'used': this.safeFloat (rawBalance, 'reserved'),
-                    'total': this.safeFloat (rawBalance, 'balance'),
-                };
-                result[assetCode] = account;
-            }
+        const response = await this.privateGetAccountsIdBalances (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "assetId": "BTC",
+        //             "balance": "1.23456",
+        //             "available": "1.23456",
+        //             "reserved": "1.23456"
+        //         }
+        //     ]
+        //
+        const result = { 'info': response };
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
+            const assetId = this.safeString (balance, 'assetId');
+            const assetCode = this.safeCurrencyCode (assetId);
+            const account = {
+                'free': this.safeFloat (balance, 'available'),
+                'used': this.safeFloat (balance, 'reserved'),
+                'total': this.safeFloat (balance, 'balance'),
+            };
+            result[assetCode] = account;
         }
         return this.parseBalance (result);
     }
