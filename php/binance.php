@@ -520,7 +520,7 @@ class binance extends Exchange {
                         'max' => null,
                     ),
                     'cost' => array(
-                        'min' => -1 * log10 ($precision['amount']),
+                        'min' => null,
                         'max' => null,
                     ),
                 ),
