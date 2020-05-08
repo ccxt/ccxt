@@ -284,7 +284,7 @@ def test_exchange(exchange):
     # ..........................................................................
     # private API
 
-    if (not hasattr(exchange, 'apiKey') or not exchange.apiKey):
+    if (not hasattr(exchange, 'apiKey') or (len(exchange.apiKey) < 1)):
         return
 
     # move to testnet/sandbox if possible before accessing the balance if possible
