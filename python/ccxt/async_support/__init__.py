@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.27.35'
+__version__ = '1.27.36'
 
 # -----------------------------------------------------------------------------
 
@@ -122,6 +122,7 @@ from ccxt.async_support.ftx import ftx                                    # noqa
 from ccxt.async_support.fybse import fybse                                # noqa: F401
 from ccxt.async_support.gateio import gateio                              # noqa: F401
 from ccxt.async_support.gemini import gemini                              # noqa: F401
+from ccxt.async_support.hbtc import hbtc                                  # noqa: F401
 from ccxt.async_support.hitbtc import hitbtc                              # noqa: F401
 from ccxt.async_support.hollaex import hollaex                            # noqa: F401
 from ccxt.async_support.huobipro import huobipro                          # noqa: F401
@@ -242,6 +243,7 @@ exchanges = [
     'fybse',
     'gateio',
     'gemini',
+    'hbtc',
     'hitbtc',
     'hollaex',
     'huobipro',

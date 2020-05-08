@@ -500,6 +500,7 @@ declare module 'ccxt' {
     export class fybse extends Exchange {}
     export class gateio extends Exchange {}
     export class gemini extends Exchange {}
+    export class hbtc extends Exchange {}
     export class hitbtc extends Exchange {}
     export class hollaex extends Exchange {}
     export class huobipro extends Exchange {}

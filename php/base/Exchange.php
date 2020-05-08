@@ -35,7 +35,7 @@ use kornrunner\Solidity;
 use Elliptic\EC;
 use BN\BN;
 
-$version = '1.27.35';
+$version = '1.27.36';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -54,7 +54,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.27.35';
+    const VERSION = '1.27.36';
 
     public static $exchanges = array(
         '_1btcxe',
@@ -129,6 +129,7 @@ class Exchange {
         'fybse',
         'gateio',
         'gemini',
+        'hbtc',
         'hitbtc',
         'hollaex',
         'huobipro',
