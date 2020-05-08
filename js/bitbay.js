@@ -121,6 +121,10 @@ module.exports = class bitbay extends Exchange {
                     'maker': 0.30 / 100,
                     'taker': 0.43 / 100,
                 },
+                'cryptoOnly': {
+                    'maker': 0.0,
+                    'taker': 0.1 / 100,
+                },
                 'funding': {
                     'withdraw': {
                         'BTC': 0.0009,
@@ -135,6 +139,9 @@ module.exports = class bitbay extends Exchange {
                         'EUR': 1.5,
                     },
                 },
+            },
+            'options': {
+                'fiatCurrencies': [ 'EUR', 'USD', 'GBP', 'PLN' ],
             },
             'exceptions': {
                 '400': ExchangeError, // At least one parameter wasn't set
@@ -167,6 +174,7 @@ module.exports = class bitbay extends Exchange {
 
     async fetchMarkets (params = {}) {
         const response = await this.v1_01PublicGetTradingTicker (params);
+        const fiatCurrencies = this.safeValue (this.options, 'fiatCurrencies', []);
         //
         //     {
         //         status: 'Ok',
@@ -205,6 +213,10 @@ module.exports = class bitbay extends Exchange {
                 'amount': this.safeInteger (first, 'scale'),
                 'price': this.safeInteger (second, 'scale'),
             };
+            let fees = this.safeValue (this.fees, 'cryptoOnly', {});
+            if (this.inArray (base, fiatCurrencies) || this.inArray (quote, fiatCurrencies)) {
+                fees = this.safeValue (this.fees, 'trading', {});
+            }
             // todo: check that the limits have ben interpreted correctly
             // todo: parse the fees page
             result.push ({
@@ -216,7 +228,8 @@ module.exports = class bitbay extends Exchange {
                 'quoteId': quoteId,
                 'precision': precision,
                 'active': undefined,
-                'fee': undefined,
+                'maker': fees['maker'],
+                'taker': fees['taker'],
                 'limits': {
                     'amount': {
                         'min': this.safeFloat (first, 'minOffer'),
