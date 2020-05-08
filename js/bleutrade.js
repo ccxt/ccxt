@@ -27,6 +27,7 @@ module.exports = class bleutrade extends Exchange {
                 'fetchTicker': true,
                 'fetchOrders': false,
                 'fetchClosedOrders': true,
+                'fetchOpenOrders': true,
                 'fetchWithdrawals': true,
                 'fetchOrderTrades': false,
                 'fetchLedger': true,
@@ -72,6 +73,9 @@ module.exports = class bleutrade extends Exchange {
                     ],
                 },
                 'v3Private': {
+                    'get': [
+                        'statement',
+                    ],
                     'post': [
                         'getbalance',
                         'getbalances',
@@ -188,8 +192,8 @@ module.exports = class bleutrade extends Exchange {
             //     MarketCurrencyLong: 'Litecoin',
             //     BaseCurrencyLong: 'Tether' }
             const id = this.safeString (market, 'MarketName');
-            const baseId = this.safeString (market, 'MarketCurrency');
-            const quoteId = this.safeString (market, 'BaseCurrency');
+            const baseId = this.safeString (market, 'MarketAsset');
+            const quoteId = this.safeString (market, 'BaseAsset');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;

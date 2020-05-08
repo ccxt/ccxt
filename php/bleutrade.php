@@ -31,6 +31,7 @@ class bleutrade extends Exchange {
                 'fetchTicker' => true,
                 'fetchOrders' => false,
                 'fetchClosedOrders' => true,
+                'fetchOpenOrders' => true,
                 'fetchWithdrawals' => true,
                 'fetchOrderTrades' => false,
                 'fetchLedger' => true,
@@ -76,6 +77,9 @@ class bleutrade extends Exchange {
                     ),
                 ),
                 'v3Private' => array(
+                    'get' => array(
+                        'statement',
+                    ),
                     'post' => array(
                         'getbalance',
                         'getbalances',
@@ -192,8 +196,8 @@ class bleutrade extends Exchange {
             //     MarketCurrencyLong => 'Litecoin',
             //     BaseCurrencyLong => 'Tether' }
             $id = $this->safe_string($market, 'MarketName');
-            $baseId = $this->safe_string($market, 'MarketCurrency');
-            $quoteId = $this->safe_string($market, 'BaseCurrency');
+            $baseId = $this->safe_string($market, 'MarketAsset');
+            $quoteId = $this->safe_string($market, 'BaseAsset');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;

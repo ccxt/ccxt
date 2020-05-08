@@ -180,6 +180,9 @@ module.exports = class theocean extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
+        if (since === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOHLCV requires a since argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -187,9 +190,6 @@ module.exports = class theocean extends Exchange {
             'quoteTokenAddress': market['quoteId'],
             'interval': this.timeframes[timeframe],
         };
-        if (since === undefined) {
-            throw new ExchangeError (this.id + ' fetchOHLCV requires a since argument');
-        }
         since = parseInt (since);
         request['startTime'] = since;
         const response = await this.publicGetCandlesticks (this.extend (request, params));

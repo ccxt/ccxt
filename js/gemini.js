@@ -180,8 +180,7 @@ module.exports = class gemini extends Exchange {
         if (numTables < 2) {
             throw new NotSupported (error);
         }
-        // tables[1] = tables[1].replace ("\n", ''); // eslint-disable-line quotes
-        const rows = tables[1].split ("<tr>\n"); // eslint-disable-line quotes
+        const rows = tables[1].split ("\n<tr>\n"); // eslint-disable-line quotes
         const numRows = rows.length;
         if (numRows < 2) {
             throw new NotSupported (error);
@@ -192,66 +191,73 @@ module.exports = class gemini extends Exchange {
             const row = rows[i];
             const cells = row.split ("</td>\n"); // eslint-disable-line quotes
             const numCells = cells.length;
-            if (numCells < 7) {
+            if (numCells < 9) {
                 throw new NotSupported (error);
             }
-            //
             //     [
-            //         '<td><code class="prettyprint">btcusd</code>',
-            //         '<td>USD', // quote
-            //         '<td>BTC', // base
-            //         '<td>0.00001 BTC (1e-5)', // min amount
-            //         '<td>0.00000001 BTC (1e-8)', // amount min tick size
-            //         '<td>0.01 USD', // price min tick size
-            //         '</tr>\n'
+            //         '<td>BTC', // currency
+            //         '<td>0.00001 BTC (1e-5)', // min order size
+            //         '<td>0.00000001 BTC (1e-8)', // tick size
+            //         '<td>0.01 USD', // usd price increment
+            //         '<td>N/A', // btc price increment
+            //         '<td>0.0001 ETH (1e-4)', // eth price increment
+            //         '<td>0.0001 BCH (1e-4)', // bch price increment
+            //         '<td>0.001 LTC (1e-3)', // ltc price increment
+            //         '</tr>'
             //     ]
             //
-            let id = cells[0].replace ('<td>', '');
-            id = id.replace ('<code class="prettyprint">', '');
-            id = id.replace ('</code>', '');
-            let baseId = cells[2].replace ('<td>', '');
-            let quoteId = cells[1].replace ('<td>', '');
-            const minAmountAsString = cells[3].replace ('<td>', '');
-            const amountTickSizeAsString = cells[4].replace ('<td>', '');
-            const priceTickSizeAsString = cells[5].replace ('<td>', '');
-            const minAmount = minAmountAsString.split (' ');
-            const amountPrecision = amountTickSizeAsString.split (' ');
-            const pricePrecision = priceTickSizeAsString.split (' ');
-            baseId = baseId.toLowerCase ();
-            quoteId = quoteId.toLowerCase ();
+            const uppercaseBaseId = cells[0].replace ('<td>', '');
+            const baseId = uppercaseBaseId.toLowerCase ();
             const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
-            const precision = {
-                'amount': this.precisionFromString (amountPrecision[0]),
-                'price': this.precisionFromString (pricePrecision[0]),
-            };
-            const active = undefined;
-            result.push ({
-                'id': id,
-                'info': row,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'active': active,
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': parseFloat (minAmount[0]),
-                        'max': undefined,
+            const quoteIds = [ 'usd', 'btc', 'eth', 'bch', 'ltc' ];
+            const minAmountString = cells[1].replace ('<td>', '');
+            const minAmountParts = minAmountString.split (' ');
+            const minAmount = this.safeFloat (minAmountParts, 0);
+            const amountPrecisionString = cells[2].replace ('<td>', '');
+            const amountPrecisionParts = amountPrecisionString.split (' ');
+            const amountPrecision = this.precisionFromString (amountPrecisionParts[0]);
+            for (let j = 0; j < quoteIds.length; j++) {
+                const quoteId = quoteIds[j];
+                const quote = this.safeCurrencyCode (quoteId);
+                const pricePrecisionIndex = this.sum (3, j);
+                const pricePrecisionString = cells[pricePrecisionIndex].replace ('<td>', '');
+                if (pricePrecisionString === 'N/A') {
+                    continue;
+                }
+                const pricePrecisionParts = pricePrecisionString.split (' ');
+                const pricePrecision = this.precisionFromString (pricePrecisionParts[0]);
+                const symbol = base + '/' + quote;
+                const id = baseId + quoteId;
+                const active = undefined;
+                result.push ({
+                    'id': id,
+                    'info': row,
+                    'symbol': symbol,
+                    'base': base,
+                    'quote': quote,
+                    'baseId': baseId,
+                    'quoteId': quoteId,
+                    'active': active,
+                    'precision': {
+                        'amount': amountPrecision,
+                        'price': pricePrecision,
                     },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
+                    'limits': {
+                        'amount': {
+                            'min': minAmount,
+                            'max': undefined,
+                        },
+                        'price': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'cost': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-            });
+                });
+            }
         }
         return result;
     }

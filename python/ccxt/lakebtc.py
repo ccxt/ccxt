@@ -4,9 +4,20 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 import base64
 import hashlib
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import BadSymbol
+from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidOrder
 
 
 class lakebtc(Exchange):
@@ -17,6 +28,7 @@ class lakebtc(Exchange):
             'name': 'LakeBTC',
             'countries': ['US'],
             'version': 'api_v2',
+            'rateLimit': 1000,
             'has': {
                 'CORS': True,
                 'createMarketOrder': False,
@@ -56,6 +68,14 @@ class lakebtc(Exchange):
                 'trading': {
                     'maker': 0.15 / 100,
                     'taker': 0.2 / 100,
+                },
+            },
+            'exceptions': {
+                'broad': {
+                    'Signature': AuthenticationError,
+                    'invalid symbol': BadSymbol,
+                    'Volume doit': InvalidOrder,
+                    'insufficient_balance': InsufficientFunds,
                 },
             },
         })
@@ -229,34 +249,59 @@ class lakebtc(Exchange):
         else:
             self.check_required_credentials()
             nonce = self.nonce()
+            nonceAsString = str(nonce)
+            requestId = self.seconds()
             queryParams = ''
             if 'params' in params:
                 paramsList = params['params']
-                queryParams = ','.join(paramsList)
-            query = self.urlencode({
-                'tonce': nonce,
-                'accesskey': self.apiKey,
-                'requestmethod': method.lower(),
-                'id': nonce,
-                'method': path,
-                'params': queryParams,
-            })
-            body = self.json({
-                'method': path,
-                'params': queryParams,
-                'id': nonce,
-            })
+                stringParams = []
+                for i in range(0, len(paramsList)):
+                    param = paramsList[i]
+                    if not isinstance(paramsList, basestring):
+                        param = str(param)
+                    stringParams.append(param)
+                queryParams = ','.join(stringParams)
+                body = {
+                    'method': path,
+                    'params': params['params'],
+                    'id': requestId,
+                }
+            else:
+                body = {
+                    'method': path,
+                    'params': '',
+                    'id': requestId,
+                }
+            body = self.json(body)
+            query = [
+                'tonce=' + nonceAsString,
+                'accesskey=' + self.apiKey,
+                'requestmethod=' + method.lower(),
+                'id=' + str(requestId),
+                'method=' + path,
+                'params=' + queryParams,
+            ]
+            query = '&'.join(query)
             signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha1)
             auth = self.encode(self.apiKey + ':' + signature)
+            signature64 = self.decode(base64.b64encode(auth))
             headers = {
-                'Json-Rpc-Tonce': str(nonce),
-                'Authorization': 'Basic ' + self.decode(base64.b64encode(auth)),
+                'Json-Rpc-Tonce': nonceAsString,
+                'Authorization': 'Basic ' + signature64,
                 'Content-Type': 'application/json',
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = self.fetch2(path, api, method, params, headers, body)
-        if 'error' in response:
-            raise ExchangeError(self.id + ' ' + self.json(response))
-        return response
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        if response is None:
+            return  # fallback to the default error handler
+        #
+        #     {"error":"Failed to submit order: invalid symbol"}
+        #     {"error":"Failed to submit order: La validation a échoué : Volume doit être supérieur ou égal à 1.0"}
+        #     {"error":"Failed to submit order: insufficient_balance"}
+        #
+        feedback = self.id + ' ' + body
+        error = self.safe_string(response, 'error')
+        if error is not None:
+            self.throw_broadly_matched_exception(self.exceptions['broad'], error, feedback)
+            raise ExchangeError(feedback)  # unknown message

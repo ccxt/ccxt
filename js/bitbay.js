@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, ExchangeError, OrderNotFound, AccountSuspended, BadSymbol, OrderImmediatelyFillable, RateLimitExceeded } = require ('./base/errors');
+const { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, ExchangeError, OrderNotFound, AccountSuspended, BadSymbol, OrderImmediatelyFillable, RateLimitExceeded, OnMaintenance } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -53,6 +53,7 @@ module.exports = class bitbay extends Exchange {
                     'https://github.com/BitBayNet/API',
                     'https://docs.bitbay.net/v1.0.1-en/reference',
                 ],
+                'support': 'https://support.bitbay.net',
                 'fees': 'https://bitbay.net/en/fees',
             },
             'api': {
@@ -117,8 +118,60 @@ module.exports = class bitbay extends Exchange {
             },
             'fees': {
                 'trading': {
+                    'maker': 0.0,
+                    'taker': 0.1 / 100,
+                    'percentage': true,
+                    'tierBased': false,
+                },
+                'fiat': {
                     'maker': 0.30 / 100,
                     'taker': 0.43 / 100,
+                    'percentage': true,
+                    'tierBased': true,
+                    'tiers': {
+                        'taker': [
+                            [ 0.0043, 0 ],
+                            [ 0.0042, 1250 ],
+                            [ 0.0041, 3750 ],
+                            [ 0.0040, 7500 ],
+                            [ 0.0039, 10000 ],
+                            [ 0.0038, 15000 ],
+                            [ 0.0037, 20000 ],
+                            [ 0.0036, 25000 ],
+                            [ 0.0035, 37500 ],
+                            [ 0.0034, 50000 ],
+                            [ 0.0033, 75000 ],
+                            [ 0.0032, 100000 ],
+                            [ 0.0031, 150000 ],
+                            [ 0.0030, 200000 ],
+                            [ 0.0029, 250000 ],
+                            [ 0.0028, 375000 ],
+                            [ 0.0027, 500000 ],
+                            [ 0.0026, 625000 ],
+                            [ 0.0025, 875000 ],
+                        ],
+                        'maker': [
+                            [ 0.0030, 0 ],
+                            [ 0.0029, 1250 ],
+                            [ 0.0028, 3750 ],
+                            [ 0.0028, 7500 ],
+                            [ 0.0027, 10000 ],
+                            [ 0.0026, 15000 ],
+                            [ 0.0025, 20000 ],
+                            [ 0.0025, 25000 ],
+                            [ 0.0024, 37500 ],
+                            [ 0.0023, 50000 ],
+                            [ 0.0023, 75000 ],
+                            [ 0.0022, 100000 ],
+                            [ 0.0021, 150000 ],
+                            [ 0.0021, 200000 ],
+                            [ 0.0020, 250000 ],
+                            [ 0.0019, 375000 ],
+                            [ 0.0018, 500000 ],
+                            [ 0.0018, 625000 ],
+                            [ 0.0017, 875000 ],
+                        ],
+                    },
                 },
                 'funding': {
                     'withdraw': {
@@ -134,6 +187,9 @@ module.exports = class bitbay extends Exchange {
                         'EUR': 1.5,
                     },
                 },
+            },
+            'options': {
+                'fiatCurrencies': [ 'EUR', 'USD', 'GBP', 'PLN' ],
             },
             'exceptions': {
                 '400': ExchangeError, // At least one parameter wasn't set
@@ -159,12 +215,14 @@ module.exports = class bitbay extends Exchange {
                 'OFFER_NOT_FOUND': OrderNotFound,
                 'OFFER_WOULD_HAVE_BEEN_PARTIALLY_FILLED': OrderImmediatelyFillable,
                 'ACTION_LIMIT_EXCEEDED': RateLimitExceeded,
+                'UNDER_MAINTENANCE': OnMaintenance,
             },
         });
     }
 
     async fetchMarkets (params = {}) {
         const response = await this.v1_01PublicGetTradingTicker (params);
+        const fiatCurrencies = this.safeValue (this.options, 'fiatCurrencies', []);
         //
         //     {
         //         status: 'Ok',
@@ -203,6 +261,12 @@ module.exports = class bitbay extends Exchange {
                 'amount': this.safeInteger (first, 'scale'),
                 'price': this.safeInteger (second, 'scale'),
             };
+            let fees = this.safeValue (this.fees, 'trading', {});
+            if (this.inArray (base, fiatCurrencies) || this.inArray (quote, fiatCurrencies)) {
+                fees = this.safeValue (this.fees, 'fiat', {});
+            }
+            const maker = this.safeFloat (fees, 'maker');
+            const taker = this.safeFloat (fees, 'taker');
             // todo: check that the limits have ben interpreted correctly
             // todo: parse the fees page
             result.push ({
@@ -214,7 +278,8 @@ module.exports = class bitbay extends Exchange {
                 'quoteId': quoteId,
                 'precision': precision,
                 'active': undefined,
-                'fee': undefined,
+                'maker': maker,
+                'taker': taker,
                 'limits': {
                     'amount': {
                         'min': this.safeFloat (first, 'minOffer'),

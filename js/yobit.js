@@ -167,11 +167,12 @@ module.exports = class yobit extends Exchange {
                     'api key dont have trade permission': AuthenticationError,
                     'invalid parameter': InvalidOrder,
                     'invalid order': InvalidOrder,
+                    'The given order has already been cancelled': InvalidOrder,
                     'Requests too often': DDoSProtection,
                     'not available': ExchangeNotAvailable,
                     'data unavailable': ExchangeNotAvailable,
                     'external service unavailable': ExchangeNotAvailable,
-                    'Total transaction amount': ExchangeError, // { "success": 0, "error": "Total transaction amount is less than minimal total: 0.00010000"}
+                    'Total transaction amount': InvalidOrder, // { "success": 0, "error": "Total transaction amount is less than minimal total: 0.00010000"}
                     'Insufficient funds': InsufficientFunds,
                     'invalid key': AuthenticationError,
                     'invalid nonce': InvalidNonce, // {"success":0,"error":"invalid nonce (has already been used)"}'

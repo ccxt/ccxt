@@ -35,6 +35,7 @@ class bleutrade(Exchange):
                 'fetchTicker': True,
                 'fetchOrders': False,
                 'fetchClosedOrders': True,
+                'fetchOpenOrders': True,
                 'fetchWithdrawals': True,
                 'fetchOrderTrades': False,
                 'fetchLedger': True,
@@ -80,6 +81,9 @@ class bleutrade(Exchange):
                     ],
                 },
                 'v3Private': {
+                    'get': [
+                        'statement',
+                    ],
                     'post': [
                         'getbalance',
                         'getbalances',
@@ -193,8 +197,8 @@ class bleutrade(Exchange):
             #     MarketCurrencyLong: 'Litecoin',
             #     BaseCurrencyLong: 'Tether'}
             id = self.safe_string(market, 'MarketName')
-            baseId = self.safe_string(market, 'MarketCurrency')
-            quoteId = self.safe_string(market, 'BaseCurrency')
+            baseId = self.safe_string(market, 'MarketAsset')
+            quoteId = self.safe_string(market, 'BaseAsset')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote

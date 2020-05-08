@@ -22,6 +22,7 @@ class ftx(Exchange):
             'countries': ['HK'],
             'rateLimit': 100,
             'certified': True,
+            'pro': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/67149189-df896480-f2b0-11e9-8816-41593e17f9ec.jpg',
                 'www': 'https://ftx.com',
@@ -566,6 +567,7 @@ class ftx(Exchange):
         #     {
         #         "fee": 20.1374935,
         #         "feeRate": 0.0005,
+        #         "feeCurrency": "USD",
         #         "future": "EOS-0329",
         #         "id": 11215,
         #         "liquidity": "taker",
@@ -607,8 +609,11 @@ class ftx(Exchange):
         fee = None
         feeCost = self.safe_float(trade, 'fee')
         if feeCost is not None:
+            feeCurrencyId = self.safe_string(trade, 'feeCurrency')
+            feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
                 'cost': feeCost,
+                'currency': feeCurrencyCode,
                 'rate': self.safe_float(trade, 'feeRate'),
             }
         orderId = self.safe_string(trade, 'orderId')

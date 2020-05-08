@@ -15,6 +15,7 @@ module.exports = class hitbtc extends Exchange {
             'countries': [ 'HK' ],
             'rateLimit': 1500,
             'version': '2',
+            'pro': true,
             'has': {
                 'createDepositAddress': true,
                 'fetchDepositAddress': true,
@@ -729,14 +730,13 @@ module.exports = class hitbtc extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1d', since = undefined, limit = undefined) {
-        const timestamp = this.parse8601 (ohlcv['timestamp']);
         return [
-            timestamp,
-            parseFloat (ohlcv['open']),
-            parseFloat (ohlcv['max']),
-            parseFloat (ohlcv['min']),
-            parseFloat (ohlcv['close']),
-            parseFloat (ohlcv['volume']),
+            this.parse8601 (this.safeString (ohlcv, 'timestamp')),
+            this.safeFloat (ohlcv, 'open'),
+            this.safeFloat (ohlcv, 'max'),
+            this.safeFloat (ohlcv, 'min'),
+            this.safeFloat (ohlcv, 'close'),
+            this.safeFloat (ohlcv, 'volume'),
         ];
     }
 

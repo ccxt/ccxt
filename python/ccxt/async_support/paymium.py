@@ -28,6 +28,7 @@ class paymium(Exchange):
                     'https://github.com/Paymium/api-documentation',
                     'https://www.paymium.com/page/developers',
                 ],
+                'referral': 'https://www.paymium.com/page/sign-up?referral=eDAzPoRQFMvaAB8sf-qj',
             },
             'api': {
                 'public': {
@@ -42,12 +43,12 @@ class paymium(Exchange):
                 },
                 'private': {
                     'get': [
-                        'merchant/get_payment/{UUID}',
+                        'merchant/get_payment/{uuid}',
                         'user',
                         'user/addresses',
                         'user/addresses/{btc_address}',
                         'user/orders',
-                        'user/orders/{UUID}',
+                        'user/orders/{uuid}',
                         'user/price_alerts',
                     ],
                     'post': [
@@ -58,7 +59,7 @@ class paymium(Exchange):
                         'merchant/create_payment',
                     ],
                     'delete': [
-                        'user/orders/{UUID}/cancel',
+                        'user/orders/{uuid}/cancel',
                         'user/price_alerts/{id}',
                     ],
                 },
@@ -191,9 +192,9 @@ class paymium(Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         request = {
-            'UUID': id,
+            'uuid': id,
         }
-        return await self.privateDeleteUserOrdersUUIDCancel(self.extend(request, params))
+        return await self.privateDeleteUserOrdersUuidCancel(self.extend(request, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
@@ -205,16 +206,21 @@ class paymium(Exchange):
             self.check_required_credentials()
             nonce = str(self.nonce())
             auth = nonce + url
+            headers = {
+                'Api-Key': self.apiKey,
+                'Api-Nonce': nonce,
+            }
             if method == 'POST':
                 if query:
                     body = self.json(query)
                     auth += body
-            headers = {
-                'Api-Key': self.apiKey,
-                'Api-Signature': self.hmac(self.encode(auth), self.encode(self.secret)),
-                'Api-Nonce': nonce,
-                'Content-Type': 'application/json',
-            }
+                    headers['Content-Type'] = 'application/json'
+            else:
+                if query:
+                    queryString = self.urlencode(query)
+                    auth += queryString
+                    url += '?' + queryString
+            headers['Api-Signature'] = self.hmac(self.encode(auth), self.encode(self.secret))
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
