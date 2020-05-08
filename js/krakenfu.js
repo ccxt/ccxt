@@ -33,7 +33,7 @@ module.exports = class krakenfu extends Exchange {
                     'private': 'https://demo-futures.kraken.com/derivatives',
                     'www': 'https://demo-futures.kraken.com',
                 },
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766599-22709304-5ede-11e7-9de1-9f33732e1509.jpg',
+                'logo': 'https://user-images.githubusercontent.com/24300605/81436764-b22fd580-9172-11ea-9703-742783e6376d.jpg',
                 'api': {
                     'public': 'https://futures.kraken.com/derivatives',
                     'private': 'https://futures.kraken.com/derivatives',
