@@ -280,7 +280,7 @@ module.exports = class bitkub extends Exchange {
             const account = this.account ();
             account['free'] = this.safeFloat (balance, 'available');
             account['used'] = this.safeFloat (balance, 'reserved');
-            account['total'] = account['free'] + account['used'];
+            account['total'] = this.sum(account['free'], account['used']);
             result[code] = account;
         }
         return await this.parseBalance (result);
