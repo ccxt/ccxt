@@ -18,8 +18,8 @@ const keys = {
 
     '--js': false,      // run JavaScript tests only
     '--php': false,     // run PHP tests only
-    '--python': false,  // run Python tests only
-    '--python3': false,  // run Python tests only
+    '--python': false,  // run Python 3 tests only
+    '--python-async': false, // run Python 3 async tests only
 }
 
 let exchanges = []
@@ -132,10 +132,10 @@ const testExchange = async (exchange) => {
 
     const args = [exchange, ... (symbol === 'all') ? [] : [ symbol ]]
         , allTests = [
-            { language: 'JavaScript', key: '--js',      exec: ['node',      'js/test/test.js',     ...args] },
-            { language: 'Python',     key: '--python',  exec: ['python',    'python/test/test.py', ...args] },
-            { language: 'Python',     key: '--python3', exec: ['python3',   'python/test/test.py', ...args] },
-            { language: 'PHP',        key: '--php',     exec: ['php', '-f', 'php/test/test.php',   ...args] }
+            { language: 'JavaScript',     key: '--js',           exec: ['node',      'js/test/test.js',           ...args] },
+            { language: 'Python 3',       key: '--python',       exec: ['python3',   'python/test/test.py',       ...args] },
+            { language: 'Python 3 Async', key: '--python-async', exec: ['python3',   'python/test/test.py',       ...args] },
+            { language: 'PHP',            key: '--php',          exec: ['php', '-f', 'php/test/test.php',         ...args] }
         ]
         , selectedTests  = allTests.filter (t => keys[t.key])
         , scheduledTests = selectedTests.length ? selectedTests : allTests
