@@ -1,0 +1,15 @@
+{{if (codeLang 0)}}package models
+{{end}}
+// GlobalNotification Account Notifications
+{{if (codeLang 1)}}export default {{end}}{{typeInit "GlobalNotification"}}
+    {{typeMethod "body" "string"}}
+	{{typeMethod "closable" "bool"}}
+	{{typeMethod "date" "time.Time"}}
+	{{typeMethod "id" "int32"}}
+	{{typeMethod "persist" "bool"}}
+	{{typeMethod "sound" "string"}}
+	{{typeMethod "title" "string"}}
+	{{typeMethod "ttl" "int32"}}
+	{{typeMethod "type" "string"}}
+	{{typeMethod "waitForVisibility" "bool"}}
+}

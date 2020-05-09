@@ -1,0 +1,14 @@
+{{if (codeLang 0)}}package models
+{{end}}
+// Settlement Historical Settlement Data
+{{if (codeLang 1)}}export default {{end}}{{typeInit "Settlement"}}
+	{{typeMethod "bankrupt" "int64"}}
+	{{typeMethod "optionStrikePrice" "float64"}}
+	{{typeMethod "optionUnderlyingPrice" "float64"}}
+	{{typeMethod "settledPrice" "float64"}}
+	{{typeMethod "settlementType" "string"}}
+	{{typeMethod "symbol" "string"}}
+	{{typeMethod "taxBase" "int64"}}
+	{{typeMethod "taxRate" "float64"}}
+	{{typeMethod "timestamp" "time.Time"}}
+}

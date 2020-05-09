@@ -1,0 +1,145 @@
+package {{.Info.ID}}
+
+// AUTOMATICALLY GENERATED, BUT NEEDS TO BE MODIFIED:
+import (
+	"bytes"
+    "encoding/json"
+	"io/ioutil"
+	"net/url"
+	"reflect"
+	"testing"
+
+	"github.com/ccxt/ccxt/go/internal/app/bitmex/models"
+    "github.com/ccxt/ccxt/go/pkg/ccxt"
+)
+
+var c *Exchange
+
+func init() {
+    keys, err := ioutil.ReadFile("../../../keys.json")
+	if err != nil {
+		panic(err)
+	}
+	var configKeys map[string]ccxt.ExchangeConfig
+	err = json.Unmarshal(keys, &configKeys)
+	if err != nil {
+		panic(err)
+	}
+	config := configKeys["{{.Info.ID}}"]
+	c, err = Init(config)
+    if err != nil {
+	    panic(err)
+    }
+}
+{{range $api, $dataModel := .Info.API.Public.Get}}
+func TestPublicGet{{apiToFuncName $api}}(t *testing.T) {
+    params := url.Values{}
+    data, err := c.PublicGet{{apiToFuncName $api}}(&params)
+    t.Logf("%+v", data)
+    if err != nil {
+        t.Fatal(err)
+    }
+    if {{apiResultTest $dataModel}} {
+        t.Fatal("Did not return data")
+    }
+}
+{{end}}
+{{range $api, $dataModel := .Info.API.Public.Post}}
+func TestPublicPost{{apiToFuncName $api}}(t *testing.T) {
+    // TODO: Fill POST body
+    params := url.Values{}
+    body := bytes.Buffer{}
+    data, err := c.PublicPost{{apiToFuncName $api}}(&params, body)
+    t.Logf("%+v", data)
+    if err != nil {
+        t.Fatal(err)
+    }
+    if {{apiResultTest $dataModel}} {
+        t.Fatal("Did not return data")
+    }
+}
+{{end}}
+{{range $api, $dataModel := .Info.API.Public.Put}}
+func TestPublicPut{{apiToFuncName $api}}(t *testing.T) {
+    // TODO: Fill PUT body
+    params := url.Values{}
+    body := bytes.Buffer{}
+    data, err := c.PublicPut{{apiToFuncName $api}}(&params, body)
+    t.Logf("%+v", data)
+    if err != nil {
+        t.Fatal(err)
+    }
+    if {{apiResultTest $dataModel}} {
+        t.Fatal("Did not return data")
+    }
+}
+{{end}}
+{{range $api, $dataModel := .Info.API.Public.Delete}}
+func TestPublicDelete{{apiToFuncName $api}}(t *testing.T) {
+    params := url.Values{}
+    data, err := c.PublicDelete{{apiToFuncName $api}}(&params)
+    t.Logf("%+v", data)
+    if err != nil {
+        t.Fatal(err)
+    }
+    if {{apiResultTest $dataModel}} {
+        t.Fatal("Did not return data")
+    }
+}
+{{end}}
+{{range $api, $dataModel := .Info.API.Private.Get}}
+func TestPrivateGet{{apiToFuncName $api}}(t *testing.T) {
+    params := url.Values{}
+    data, err := c.PrivateGet{{apiToFuncName $api}}(&params)
+    t.Logf("%+v", data)
+    if err != nil {
+        t.Fatal(err)
+    }
+    if {{apiResultTest $dataModel}} {
+        t.Fatal("Did not return data")
+    }
+}
+{{end}}
+{{range $api, $dataModel := .Info.API.Private.Post}}
+func TestPrivatePost{{apiToFuncName $api}}(t *testing.T) {
+    // TODO: Fill POST body
+    params := url.Values{}
+    body := bytes.Buffer{}
+    data, err := c.PrivatePost{{apiToFuncName $api}}(&params, body)
+    t.Logf("%+v", data)
+    if err != nil {
+        t.Fatal(err)
+    }
+    if {{apiResultTest $dataModel}} {
+        t.Fatal("Did not return data")
+    }
+}
+{{end}}
+{{range $api, $dataModel := .Info.API.Private.Put}}
+func TestPrivatePut{{apiToFuncName $api}}(t *testing.T) {
+    // TODO: Fill PUT body
+    params := url.Values{}
+    body := bytes.Buffer{}
+    data, err := c.PrivatePut{{apiToFuncName $api}}(&params, body)
+    t.Logf("%+v", data)
+    if err != nil {
+        t.Fatal(err)
+    }
+    if {{apiResultTest $dataModel}} {
+        t.Fatal("Did not return data")
+    }
+}
+{{end}}
+{{range $api, $dataModel := .Info.API.Private.Delete}}
+func TestPrivateDelete{{apiToFuncName $api}}(t *testing.T) {
+    params := url.Values{}
+    data, err := c.PrivateDelete{{apiToFuncName $api}}(&params)
+    t.Logf("%+v", data)
+    if err != nil {
+        t.Fatal(err)
+    }
+    if {{apiResultTest $dataModel}} {
+        t.Fatal("Did not return data")
+    }
+}
+{{end}}

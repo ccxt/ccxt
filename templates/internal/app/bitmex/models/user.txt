@@ -1,0 +1,26 @@
+{{if (codeLang 0)}}package models
+{{else if (codeLang 1)}}
+import UserPreferences from './user_preferences';
+{{end}}
+// User Account Operations
+{{if (codeLang 1)}}export default {{end}}{{typeInit "User"}}
+	{{typeMethod "TFAEnabled" "string"}}
+	{{typeMethod "affiliateID" "string"}}
+	{{typeMethod "country" "string"}}
+	{{typeMethod "created" "time.Time"}}
+	{{typeMethod "email" "string"}}
+	{{typeMethod "firstname" "string"}}
+	{{typeMethod "geoipCountry" "string"}}
+	{{typeMethod "geoipRegion" "string"}}
+	{{typeMethod "id" "int32"}}
+	{{typeMethod "lastUpdated" "time.Time"}}
+	{{typeMethod "lastname" "string"}}
+	{{typeMethod "ownerId" "int32"}}
+	{{typeMethod "pgpPubKey" "string"}}
+	{{typeMethod "phone" "string" }}
+	{{typeMethod "restrictedEngineFields" "interface{}"}}
+	{{typeMethod "typ" "string"}}
+	{{typeMethod "username" "string"}}
+	{{if (codeLang 0)}}Preferences UserPreferences `json:"preferences,omitempty"`{{end}}
+	{{if (codeLang 1)}}preferences: UserPreferences;{{end}}
+}

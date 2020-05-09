@@ -1,0 +1,11 @@
+{{if (codeLang 0)}}package models
+{{end}}
+// Stats Exchange Statistics
+{{if (codeLang 1)}}export default {{end}}{{typeInit "Stats"}}
+	{{typeMethod "currency" "string"}}
+	{{typeMethod "openInterest" "int64"}}
+	{{typeMethod "openValue" "int64"}}
+	{{typeMethod "rootSymbol" "string"}}
+	{{typeMethod "turnover24h" "int64"}}
+	{{typeMethod "volume24h" "int64"}}
+}

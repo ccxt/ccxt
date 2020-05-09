@@ -1,0 +1,8 @@
+{{if (codeLang 0)}}package models
+{{end}}
+// Insurance Insurance Fund Data
+{{if (codeLang 1)}}export default {{end}}{{typeInit "Insurance"}}
+    {{typeMethod "currency" "string"}}
+	{{typeMethod "timestamp" "time.Time"}}
+	{{typeMethod "walletBalance" "int64"}}
+}

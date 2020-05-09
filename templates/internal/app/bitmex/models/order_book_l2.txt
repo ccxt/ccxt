@@ -1,0 +1,10 @@
+{{if (codeLang 0)}}package models
+{{end}}
+// OrderBookL2 order book l2
+{{if (codeLang 1)}}export default {{end}}{{typeInit "OrderBookL2"}}
+	{{typeMethod "id" "int64"}}
+	{{typeMethod "price" "float64"}}
+	{{typeMethod "side" "string"}}
+	{{typeMethod "size" "int64"}}
+	{{typeMethod "symbol" "string"}}
+}

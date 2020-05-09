@@ -1,0 +1,4742 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "BitMEX API",
+    "description": "## REST API for the BitMEX Trading Platform\n\n[View Changelog](/app/apiChangelog)\n\n----\n\n#### Getting Started\n\nBase URI: [https://www.bitmex.com/api/v1](/api/v1)\n\n##### Fetching Data\n\nAll REST endpoints are documented below. You can try out any query right from this interface.\n\nMost table queries accept `count`, `start`, and `reverse` params. Set `reverse=true` to get rows newest-first.\n\nAdditional documentation regarding filters, timestamps, and authentication\nis available in [the main API documentation](/app/restAPI).\n\n*All* table data is available via the [Websocket](/app/wsAPI). We highly recommend using the socket if you want\nto have the quickest possible data without being subject to ratelimits.\n\n##### Return Types\n\nBy default, all data is returned as JSON. Send `?_format=csv` to get CSV data or `?_format=xml` to get XML data.\n\n##### Trade Data Queries\n\n*This is only a small subset of what is available, to get you started.*\n\nFill in the parameters and click the `Try it out!` button to try any of these queries.\n\n* [Pricing Data](#!/Quote/Quote_get)\n\n* [Trade Data](#!/Trade/Trade_get)\n\n* [OrderBook Data](#!/OrderBook/OrderBook_getL2)\n\n* [Settlement Data](#!/Settlement/Settlement_get)\n\n* [Exchange Statistics](#!/Stats/Stats_history)\n\nEvery function of the BitMEX.com platform is exposed here and documented. Many more functions are available.\n\n##### Swagger Specification\n\n[⇩ Download Swagger JSON](swagger.json)\n\n----\n\n## All API Endpoints\n\nClick to expand a section.\n",
+    "termsOfService": "https://www.bitmex.com/app/terms",
+    "contact": { "email": "support@bitmex.com" },
+    "version": "1.2.0"
+  },
+  "basePath": "/api/v1",
+  "paths": {
+    "/announcement": {
+      "get": {
+        "tags": ["Announcement"],
+        "summary": "Get site announcements.",
+        "operationId": "Announcement.get",
+        "parameters": [
+          {
+            "name": "columns",
+            "in": "query",
+            "description": "Array of column names to fetch. If omitted, will return all columns.",
+            "required": false,
+            "type": "string",
+            "format": "JSON"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/Announcement" }
+            }
+          },
+          "400": {
+            "description": "Parameter Error",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "403": {
+            "description": "Access Denied",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": { "$ref": "#/definitions/Error" }
+          }
+        },
+        "deprecated": false,
+        "security": []
+      }
+    },
+    "/announcement/urgent": {
+      "get": {
+        "tags": ["Announcement"],
+        "summary": "Get urgent (banner) announcements.",
+        "operationId": "Announcement.getUrgent",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/Announcement" }
+            }
+          },
+          "400": {
+            "description": "Parameter Error",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "403": {
+            "description": "Access Denied",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": { "$ref": "#/definitions/Error" }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/apiKey": {
+      "post": {
+        "tags": ["APIKey"],
+        "summary": "Create a new API Key.",
+        "description": "API Keys can only be created via the frontend.",
+        "operationId": "APIKey.new",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "formData",
+            "description": "Key name. This name is for reference only.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "cidr",
+            "in": "formData",
+            "description": "CIDR block to restrict this key to. To restrict to a single address, append \"/32\", e.g. 207.39.29.22/32. Leave blank or set to 0.0.0.0/0 to allow all IPs. Only one block may be set. <a href=\"http://software77.net/cidr-101.html\">More on CIDR blocks</a>",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "permissions",
+            "in": "formData",
+            "description": "Key Permissions. All keys can read margin and position data. Additional permissions must be added. Available: [\"order\", \"orderCancel\", \"withdraw\"].",
+            "required": false,
+            "type": "string",
+            "format": "JSON"
+          },
+          {
+            "name": "enabled",
+            "in": "formData",
+            "description": "Set to true to enable this key on creation. Otherwise, it must be explicitly enabled via /apiKey/enable.",
+            "required": false,
+            "default": false,
+            "type": "boolean"
+          },
+          {
+            "name": "token",
+            "in": "formData",
+            "description": "OTP Token (YubiKey, Google Authenticator)",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": { "$ref": "#/definitions/APIKey" }
+          },
+          "400": {
+            "description": "Parameter Error",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "403": {
+            "description": "Access Denied",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": { "$ref": "#/definitions/Error" }
+          }
+        },
+        "deprecated": false
+      },
+      "get": {
+        "tags": ["APIKey"],
+        "summary": "Get your API Keys.",
+        "operationId": "APIKey.get",
+        "parameters": [
+          {
+            "name": "reverse",
+            "in": "query",
+            "description": "If true, will sort results newest first.",
+            "required": false,
+            "default": false,
+            "type": "boolean"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/APIKey" }
+            }
+          },
+          "400": {
+            "description": "Parameter Error",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "403": {
+            "description": "Access Denied",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": { "$ref": "#/definitions/Error" }
+          }
+        },
+        "deprecated": false
+      },
+      "delete": {
+        "tags": ["APIKey"],
+        "summary": "Remove an API Key.",
+        "operationId": "APIKey.remove",
+        "parameters": [
+          {
+            "name": "apiKeyID",
+            "in": "formData",
+            "description": "API Key ID (public component).",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": {
+              "type": "object",
+              "properties": { "success": { "type": "boolean" } }
+            }
+          },
+          "400": {
+            "description": "Parameter Error",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "403": {
+            "description": "Access Denied",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": { "$ref": "#/definitions/Error" }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/apiKey/disable": {
+      "post": {
+        "tags": ["APIKey"],
+        "summary": "Disable an API Key.",
+        "operationId": "APIKey.disable",
+        "parameters": [
+          {
+            "name": "apiKeyID",
+            "in": "formData",
+            "description": "API Key ID (public component).",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": { "$ref": "#/definitions/APIKey" }
+          },
+          "400": {
+            "description": "Parameter Error",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "403": {
+            "description": "Access Denied",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": { "$ref": "#/definitions/Error" }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/apiKey/enable": {
+      "post": {
+        "tags": ["APIKey"],
+        "summary": "Enable an API Key.",
+        "operationId": "APIKey.enable",
+        "parameters": [
+          {
+            "name": "apiKeyID",
+            "in": "formData",
+            "description": "API Key ID (public component).",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": { "$ref": "#/definitions/APIKey" }
+          },
+          "400": {
+            "description": "Parameter Error",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "403": {
+            "description": "Access Denied",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": { "$ref": "#/definitions/Error" }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/chat": {
+      "get": {
+        "tags": ["Chat"],
+        "summary": "Get chat messages.",
+        "operationId": "Chat.get",
+        "parameters": [
+          {
+            "name": "count",
+            "in": "query",
+            "description": "Number of results to fetch.",
+            "required": false,
+            "format": "int32",
+            "default": 100,
+            "type": "number"
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "Starting ID for results.",
+            "required": false,
+            "format": "int32",
+            "default": 0,
+            "type": "number"
+          },
+          {
+            "name": "reverse",
+            "in": "query",
+            "description": "If true, will sort results newest first.",
+            "required": false,
+            "default": true,
+            "type": "boolean"
+          },
+          {
+            "name": "channelID",
+            "in": "query",
+            "description": "Channel id. GET /chat/channels for ids. Leave blank for all.",
+            "required": false,
+            "type": "number",
+            "format": "double"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/Chat" }
+            }
+          },
+          "400": {
+            "description": "Parameter Error",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "403": {
+            "description": "Access Denied",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": { "$ref": "#/definitions/Error" }
+          }
+        },
+        "deprecated": false,
+        "security": []
+      },
+      "post": {
+        "tags": ["Chat"],
+        "summary": "Send a chat message.",
+        "operationId": "Chat.new",
+        "parameters": [
+          {
+            "name": "message",
+            "in": "formData",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "channelID",
+            "in": "formData",
+            "description": "Channel to post to. Default 1 (English).",
+            "required": false,
+            "default": 1,
+            "type": "number",
+            "format": "double"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": { "$ref": "#/definitions/Chat" }
+          },
+          "400": {
+            "description": "Parameter Error",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "403": {
+            "description": "Access Denied",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": { "$ref": "#/definitions/Error" }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/chat/channels": {
+      "get": {
+        "tags": ["Chat"],
+        "summary": "Get available channels.",
+        "operationId": "Chat.getChannels",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/ChatChannel" }
+            }
+          },
+          "400": {
+            "description": "Parameter Error",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "403": {
+            "description": "Access Denied",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": { "$ref": "#/definitions/Error" }
+          }
+        },
+        "deprecated": false,
+        "security": []
+      }
+    },
+    "/chat/connected": {
+      "get": {
+        "tags": ["Chat"],
+        "summary": "Get connected users.",
+        "description": "Returns an array with browser users in the first position and API users (bots) in the second position.",
+        "operationId": "Chat.getConnected",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": { "$ref": "#/definitions/ConnectedUsers" }
+          },
+          "400": {
+            "description": "Parameter Error",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "403": {
+            "description": "Access Denied",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": { "$ref": "#/definitions/Error" }
+          }
+        },
+        "deprecated": false,
+        "security": []
+      }
+    },
+    "/execution": {
+      "get": {
+        "tags": ["Execution"],
+        "summary": "Get all raw executions for your account.",
+        "description": "This returns all raw transactions, which includes order opening and cancelation, and order status\nchanges. It can be quite noisy. More focused information is available at `/execution/tradeHistory`.\n\nYou may also use the `filter` param to target your query. Specify an array as a filter value, such as\n`{\"execType\": [\"Settlement\", \"Trade\"]}` to filter on multiple values.\n\nSee [the FIX Spec](http://www.onixs.biz/fix-dictionary/5.0.SP2/msgType_8_8.html) for explanations of these fields.\n",
+        "operationId": "Execution.get",
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "query",
+            "description": "Instrument symbol. Send a bare series (e.g. XBU) to get data for the nearest expiring contract in that series.\n\nYou can also send a timeframe, e.g. `XBU:monthly`. Timeframes are `daily`, `weekly`, `monthly`, `quarterly`, and `biquarterly`.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "filter",
+            "in": "query",
+            "description": "Generic table filter. Send JSON key/value pairs, such as `{\"key\": \"value\"}`. You can key on individual fields, and do more advanced querying on timestamps. See the [Timestamp Docs](https://www.bitmex.com/app/restAPI#Timestamp-Filters) for more details.",
+            "required": false,
+            "type": "string",
+            "format": "JSON"
+          },
+          {
+            "name": "columns",
+            "in": "query",
+            "description": "Array of column names to fetch. If omitted, will return all columns.\n\nNote that this method will always return item keys, even when not specified, so you may receive more columns that you expect.",
+            "required": false,
+            "type": "string",
+            "format": "JSON"
+          },
+          {
+            "name": "count",
+            "in": "query",
+            "description": "Number of results to fetch.",
+            "required": false,
+            "format": "int32",
+            "default": 100,
+            "type": "number"
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "Starting point for results.",
+            "required": false,
+            "format": "int32",
+            "default": 0,
+            "type": "number"
+          },
+          {
+            "name": "reverse",
+            "in": "query",
+            "description": "If true, will sort results newest first.",
+            "required": false,
+            "default": false,
+            "type": "boolean"
+          },
+          {
+            "name": "startTime",
+            "in": "query",
+            "description": "Starting date filter for results.",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "endTime",
+            "in": "query",
+            "description": "Ending date filter for results.",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/Execution" }
+            }
+          },
+          "400": {
+            "description": "Parameter Error",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "403": {
+            "description": "Access Denied",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": { "$ref": "#/definitions/Error" }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/execution/tradeHistory": {
+      "get": {
+        "tags": ["Execution"],
+        "summary": "Get all balance-affecting executions. This includes each trade, insurance charge, and settlement.",
+        "operationId": "Execution.getTradeHistory",
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "query",
+            "description": "Instrument symbol. Send a bare series (e.g. XBU) to get data for the nearest expiring contract in that series.\n\nYou can also send a timeframe, e.g. `XBU:monthly`. Timeframes are `daily`, `weekly`, `monthly`, `quarterly`, and `biquarterly`.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "filter",
+            "in": "query",
+            "description": "Generic table filter. Send JSON key/value pairs, such as `{\"key\": \"value\"}`. You can key on individual fields, and do more advanced querying on timestamps. See the [Timestamp Docs](https://www.bitmex.com/app/restAPI#Timestamp-Filters) for more details.",
+            "required": false,
+            "type": "string",
+            "format": "JSON"
+          },
+          {
+            "name": "columns",
+            "in": "query",
+            "description": "Array of column names to fetch. If omitted, will return all columns.\n\nNote that this method will always return item keys, even when not specified, so you may receive more columns that you expect.",
+            "required": false,
+            "type": "string",
+            "format": "JSON"
+          },
+          {
+            "name": "count",
+            "in": "query",
+            "description": "Number of results to fetch.",
+            "required": false,
+            "format": "int32",
+            "default": 100,
+            "type": "number"
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "Starting point for results.",
+            "required": false,
+            "format": "int32",
+            "default": 0,
+            "type": "number"
+          },
+          {
+            "name": "reverse",
+            "in": "query",
+            "description": "If true, will sort results newest first.",
+            "required": false,
+            "default": false,
+            "type": "boolean"
+          },
+          {
+            "name": "startTime",
+            "in": "query",
+            "description": "Starting date filter for results.",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "endTime",
+            "in": "query",
+            "description": "Ending date filter for results.",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/Execution" }
+            }
+          },
+          "400": {
+            "description": "Parameter Error",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "403": {
+            "description": "Access Denied",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": { "$ref": "#/definitions/Error" }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/funding": {
+      "get": {
+        "tags": ["Funding"],
+        "summary": "Get funding history.",
+        "operationId": "Funding.get",
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "query",
+            "description": "Instrument symbol. Send a bare series (e.g. XBU) to get data for the nearest expiring contract in that series.\n\nYou can also send a timeframe, e.g. `XBU:monthly`. Timeframes are `daily`, `weekly`, `monthly`, `quarterly`, and `biquarterly`.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "filter",
+            "in": "query",
+            "description": "Generic table filter. Send JSON key/value pairs, such as `{\"key\": \"value\"}`. You can key on individual fields, and do more advanced querying on timestamps. See the [Timestamp Docs](https://www.bitmex.com/app/restAPI#Timestamp-Filters) for more details.",
+            "required": false,
+            "type": "string",
+            "format": "JSON"
+          },
+          {
+            "name": "columns",
+            "in": "query",
+            "description": "Array of column names to fetch. If omitted, will return all columns.\n\nNote that this method will always return item keys, even when not specified, so you may receive more columns that you expect.",
+            "required": false,
+            "type": "string",
+            "format": "JSON"
+          },
+          {
+            "name": "count",
+            "in": "query",
+            "description": "Number of results to fetch.",
+            "required": false,
+            "format": "int32",
+            "default": 100,
+            "type": "number"
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "Starting point for results.",
+            "required": false,
+            "format": "int32",
+            "default": 0,
+            "type": "number"
+          },
+          {
+            "name": "reverse",
+            "in": "query",
+            "description": "If true, will sort results newest first.",
+            "required": false,
+            "default": false,
+            "type": "boolean"
+          },
+          {
+            "name": "startTime",
+            "in": "query",
+            "description": "Starting date filter for results.",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "endTime",
+            "in": "query",
+            "description": "Ending date filter for results.",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/Funding" }
+            }
+          },
+          "400": {
+            "description": "Parameter Error",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "403": {
+            "description": "Access Denied",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": { "$ref": "#/definitions/Error" }
+          }
+        },
+        "deprecated": false,
+        "security": []
+      }
+    },
+    "/instrument": {
+      "get": {
+        "tags": ["Instrument"],
+        "summary": "Get instruments.",
+        "description": "This returns all instruments and indices, including those that have settled or are unlisted. Use this endpoint if you want to query for individual instruments or use a complex filter. Use `/instrument/active` to return active instruments, or use a filter like `{\"state\": \"Open\"}`.",
+        "operationId": "Instrument.get",
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "query",
+            "description": "Instrument symbol. Send a bare series (e.g. XBU) to get data for the nearest expiring contract in that series.\n\nYou can also send a timeframe, e.g. `XBU:monthly`. Timeframes are `daily`, `weekly`, `monthly`, `quarterly`, and `biquarterly`.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "filter",
+            "in": "query",
+            "description": "Generic table filter. Send JSON key/value pairs, such as `{\"key\": \"value\"}`. You can key on individual fields, and do more advanced querying on timestamps. See the [Timestamp Docs](https://www.bitmex.com/app/restAPI#Timestamp-Filters) for more details.",
+            "required": false,
+            "type": "string",
+            "format": "JSON"
+          },
+          {
+            "name": "columns",
+            "in": "query",
+            "description": "Array of column names to fetch. If omitted, will return all columns.\n\nNote that this method will always return item keys, even when not specified, so you may receive more columns that you expect.",
+            "required": false,
+            "type": "string",
+            "format": "JSON"
+          },
+          {
+            "name": "count",
+            "in": "query",
+            "description": "Number of results to fetch.",
+            "required": false,
+            "format": "int32",
+            "default": 100,
+            "type": "number"
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "Starting point for results.",
+            "required": false,
+            "format": "int32",
+            "default": 0,
+            "type": "number"
+          },
+          {
+            "name": "reverse",
+            "in": "query",
+            "description": "If true, will sort results newest first.",
+            "required": false,
+            "default": false,
+            "type": "boolean"
+          },
+          {
+            "name": "startTime",
+            "in": "query",
+            "description": "Starting date filter for results.",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "endTime",
+            "in": "query",
+            "description": "Ending date filter for results.",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/Instrument" }
+            }
+          },
+          "400": {
+            "description": "Parameter Error",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "403": {
+            "description": "Access Denied",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": { "$ref": "#/definitions/Error" }
+          }
+        },
+        "deprecated": false,
+        "security": []
+      }
+    },
+    "/instrument/active": {
+      "get": {
+        "tags": ["Instrument"],
+        "summary": "Get all active instruments and instruments that have expired in <24hrs.",
+        "operationId": "Instrument.getActive",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/Instrument" }
+            }
+          },
+          "400": {
+            "description": "Parameter Error",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "403": {
+            "description": "Access Denied",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": { "$ref": "#/definitions/Error" }
+          }
+        },
+        "deprecated": false,
+        "security": []
+      }
+    },
+    "/instrument/indices": {
+      "get": {
+        "tags": ["Instrument"],
+        "summary": "Get all price indices.",
+        "operationId": "Instrument.getIndices",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/Instrument" }
+            }
+          },
+          "400": {
+            "description": "Parameter Error",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "403": {
+            "description": "Access Denied",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": { "$ref": "#/definitions/Error" }
+          }
+        },
+        "deprecated": false,
+        "security": []
+      }
+    },
+    "/instrument/activeAndIndices": {
+      "get": {
+        "tags": ["Instrument"],
+        "summary": "Helper method. Gets all active instruments and all indices. This is a join of the result of /indices and /active.",
+        "operationId": "Instrument.getActiveAndIndices",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/Instrument" }
+            }
+          },
+          "400": {
+            "description": "Parameter Error",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "403": {
+            "description": "Access Denied",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": { "$ref": "#/definitions/Error" }
+          }
+        },
+        "deprecated": false,
+        "security": []
+      }
+    },
+    "/instrument/activeIntervals": {
+      "get": {
+        "tags": ["Instrument"],
+        "summary": "Return all active contract series and interval pairs.",
+        "description": "This endpoint is useful for determining which pairs are live. It returns two arrays of   strings. The first is intervals, such as `[\"XBT:perpetual\", \"XBT:monthly\", \"XBT:quarterly\", \"ETH:monthly\", ...]`. These identifiers are usable in any query's `symbol` param. The second array is the current resolution of these intervals. Results are mapped at the same index.",
+        "operationId": "Instrument.getActiveIntervals",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": { "$ref": "#/definitions/InstrumentInterval" }
+          },
+          "400": {
+            "description": "Parameter Error",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "403": {
+            "description": "Access Denied",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": { "$ref": "#/definitions/Error" }
+          }
+        },
+        "deprecated": false,
+        "security": []
+      }
+    },
+    "/instrument/compositeIndex": {
+      "get": {
+        "tags": ["Instrument"],
+        "summary": "Show constituent parts of an index.",
+        "description": "Composite indices are built from multiple external price sources.\n\nUse this endpoint to get the underlying prices of an index. For example, send a `symbol` of `.XBT` to\nget the ticks and weights of the constituent exchanges that build the \".XBT\" index.\n\nA tick with reference `\"BMI\"` and weight `null` is the composite index tick.\n",
+        "operationId": "Instrument.getCompositeIndex",
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "query",
+            "description": "The composite index symbol.",
+            "required": false,
+            "default": ".XBT",
+            "type": "string"
+          },
+          {
+            "name": "filter",
+            "in": "query",
+            "description": "Generic table filter. Send JSON key/value pairs, such as `{\"key\": \"value\"}`. You can key on individual fields, and do more advanced querying on timestamps. See the [Timestamp Docs](https://www.bitmex.com/app/restAPI#Timestamp-Filters) for more details.",
+            "required": false,
+            "type": "string",
+            "format": "JSON"
+          },
+          {
+            "name": "columns",
+            "in": "query",
+            "description": "Array of column names to fetch. If omitted, will return all columns.\n\nNote that this method will always return item keys, even when not specified, so you may receive more columns that you expect.",
+            "required": false,
+            "type": "string",
+            "format": "JSON"
+          },
+          {
+            "name": "count",
+            "in": "query",
+            "description": "Number of results to fetch.",
+            "required": false,
+            "format": "int32",
+            "default": 100,
+            "type": "number"
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "Starting point for results.",
+            "required": false,
+            "format": "int32",
+            "default": 0,
+            "type": "number"
+          },
+          {
+            "name": "reverse",
+            "in": "query",
+            "description": "If true, will sort results newest first.",
+            "required": false,
+            "default": false,
+            "type": "boolean"
+          },
+          {
+            "name": "startTime",
+            "in": "query",
+            "description": "Starting date filter for results.",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "endTime",
+            "in": "query",
+            "description": "Ending date filter for results.",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/IndexComposite" }
+            }
+          },
+          "400": {
+            "description": "Parameter Error",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "403": {
+            "description": "Access Denied",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": { "$ref": "#/definitions/Error" }
+          }
+        },
+        "deprecated": false,
+        "security": []
+      }
+    },
+    "/insurance": {
+      "get": {
+        "tags": ["Insurance"],
+        "summary": "Get insurance fund history.",
+        "operationId": "Insurance.get",
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "query",
+            "description": "Instrument symbol. Send a bare series (e.g. XBU) to get data for the nearest expiring contract in that series.\n\nYou can also send a timeframe, e.g. `XBU:monthly`. Timeframes are `daily`, `weekly`, `monthly`, `quarterly`, and `biquarterly`.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "filter",
+            "in": "query",
+            "description": "Generic table filter. Send JSON key/value pairs, such as `{\"key\": \"value\"}`. You can key on individual fields, and do more advanced querying on timestamps. See the [Timestamp Docs](https://www.bitmex.com/app/restAPI#Timestamp-Filters) for more details.",
+            "required": false,
+            "type": "string",
+            "format": "JSON"
+          },
+          {
+            "name": "columns",
+            "in": "query",
+            "description": "Array of column names to fetch. If omitted, will return all columns.\n\nNote that this method will always return item keys, even when not specified, so you may receive more columns that you expect.",
+            "required": false,
+            "type": "string",
+            "format": "JSON"
+          },
+          {
+            "name": "count",
+            "in": "query",
+            "description": "Number of results to fetch.",
+            "required": false,
+            "format": "int32",
+            "default": 100,
+            "type": "number"
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "Starting point for results.",
+            "required": false,
+            "format": "int32",
+            "default": 0,
+            "type": "number"
+          },
+          {
+            "name": "reverse",
+            "in": "query",
+            "description": "If true, will sort results newest first.",
+            "required": false,
+            "default": false,
+            "type": "boolean"
+          },
+          {
+            "name": "startTime",
+            "in": "query",
+            "description": "Starting date filter for results.",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "endTime",
+            "in": "query",
+            "description": "Ending date filter for results.",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/Insurance" }
+            }
+          },
+          "400": {
+            "description": "Parameter Error",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "403": {
+            "description": "Access Denied",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": { "$ref": "#/definitions/Error" }
+          }
+        },
+        "deprecated": false,
+        "security": []
+      }
+    },
+    "/leaderboard": {
+      "get": {
+        "tags": ["Leaderboard"],
+        "summary": "Get current leaderboard.",
+        "operationId": "Leaderboard.get",
+        "parameters": [
+          {
+            "name": "method",
+            "in": "query",
+            "description": "Ranking type. Options: \"notional\", \"ROE\"",
+            "required": false,
+            "default": "notional",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/Leaderboard" }
+            }
+          },
+          "400": {
+            "description": "Parameter Error",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "403": {
+            "description": "Access Denied",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": { "$ref": "#/definitions/Error" }
+          }
+        },
+        "deprecated": false,
+        "security": []
+      }
+    },
+    "/leaderboard/name": {
+      "get": {
+        "tags": ["Leaderboard"],
+        "summary": "Get your alias on the leaderboard.",
+        "operationId": "Leaderboard.getName",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": {
+              "type": "object",
+              "properties": { "name": { "type": "string" } }
+            }
+          },
+          "400": {
+            "description": "Parameter Error",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "403": {
+            "description": "Access Denied",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": { "$ref": "#/definitions/Error" }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/liquidation": {
+      "get": {
+        "tags": ["Liquidation"],
+        "summary": "Get liquidation orders.",
+        "operationId": "Liquidation.get",
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "query",
+            "description": "Instrument symbol. Send a bare series (e.g. XBU) to get data for the nearest expiring contract in that series.\n\nYou can also send a timeframe, e.g. `XBU:monthly`. Timeframes are `daily`, `weekly`, `monthly`, `quarterly`, and `biquarterly`.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "filter",
+            "in": "query",
+            "description": "Generic table filter. Send JSON key/value pairs, such as `{\"key\": \"value\"}`. You can key on individual fields, and do more advanced querying on timestamps. See the [Timestamp Docs](https://www.bitmex.com/app/restAPI#Timestamp-Filters) for more details.",
+            "required": false,
+            "type": "string",
+            "format": "JSON"
+          },
+          {
+            "name": "columns",
+            "in": "query",
+            "description": "Array of column names to fetch. If omitted, will return all columns.\n\nNote that this method will always return item keys, even when not specified, so you may receive more columns that you expect.",
+            "required": false,
+            "type": "string",
+            "format": "JSON"
+          },
+          {
+            "name": "count",
+            "in": "query",
+            "description": "Number of results to fetch.",
+            "required": false,
+            "format": "int32",
+            "default": 100,
+            "type": "number"
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "Starting point for results.",
+            "required": false,
+            "format": "int32",
+            "default": 0,
+            "type": "number"
+          },
+          {
+            "name": "reverse",
+            "in": "query",
+            "description": "If true, will sort results newest first.",
+            "required": false,
+            "default": false,
+            "type": "boolean"
+          },
+          {
+            "name": "startTime",
+            "in": "query",
+            "description": "Starting date filter for results.",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "endTime",
+            "in": "query",
+            "description": "Ending date filter for results.",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/Liquidation" }
+            }
+          },
+          "400": {
+            "description": "Parameter Error",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "403": {
+            "description": "Access Denied",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": { "$ref": "#/definitions/Error" }
+          }
+        },
+        "deprecated": false,
+        "security": []
+      }
+    },
+    "/globalNotification": {
+      "get": {
+        "tags": ["GlobalNotification"],
+        "summary": "Get your current GlobalNotifications.",
+        "description": "This is an upcoming feature and currently does not return data.",
+        "operationId": "GlobalNotification.get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/GlobalNotification" }
+            }
+          },
+          "400": {
+            "description": "Parameter Error",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "403": {
+            "description": "Access Denied",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": { "$ref": "#/definitions/Error" }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/order": {
+      "get": {
+        "tags": ["Order"],
+        "summary": "Get your orders.",
+        "description": "To get open orders only, send {\"open\": true} in the filter param.\n\nSee <a href=\"http://www.onixs.biz/fix-dictionary/5.0.SP2/msgType_D_68.html\">the FIX Spec</a> for explanations of these fields.",
+        "operationId": "Order.getOrders",
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "query",
+            "description": "Instrument symbol. Send a bare series (e.g. XBU) to get data for the nearest expiring contract in that series.\n\nYou can also send a timeframe, e.g. `XBU:monthly`. Timeframes are `daily`, `weekly`, `monthly`, `quarterly`, and `biquarterly`.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "filter",
+            "in": "query",
+            "description": "Generic table filter. Send JSON key/value pairs, such as `{\"key\": \"value\"}`. You can key on individual fields, and do more advanced querying on timestamps. See the [Timestamp Docs](https://www.bitmex.com/app/restAPI#Timestamp-Filters) for more details.",
+            "required": false,
+            "type": "string",
+            "format": "JSON"
+          },
+          {
+            "name": "columns",
+            "in": "query",
+            "description": "Array of column names to fetch. If omitted, will return all columns.\n\nNote that this method will always return item keys, even when not specified, so you may receive more columns that you expect.",
+            "required": false,
+            "type": "string",
+            "format": "JSON"
+          },
+          {
+            "name": "count",
+            "in": "query",
+            "description": "Number of results to fetch.",
+            "required": false,
+            "format": "int32",
+            "default": 100,
+            "type": "number"
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "Starting point for results.",
+            "required": false,
+            "format": "int32",
+            "default": 0,
+            "type": "number"
+          },
+          {
+            "name": "reverse",
+            "in": "query",
+            "description": "If true, will sort results newest first.",
+            "required": false,
+            "default": false,
+            "type": "boolean"
+          },
+          {
+            "name": "startTime",
+            "in": "query",
+            "description": "Starting date filter for results.",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "endTime",
+            "in": "query",
+            "description": "Ending date filter for results.",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/Order" }
+            }
+          },
+          "400": {
+            "description": "Parameter Error",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "403": {
+            "description": "Access Denied",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": { "$ref": "#/definitions/Error" }
+          }
+        },
+        "deprecated": false
+      },
+      "post": {
+        "tags": ["Order"],
+        "summary": "Create a new order.",
+        "description": "## Placing Orders\n\nThis endpoint is used for placing orders. See individual fields below for more details on their use.\n\n#### Order Types\n\nAll orders require a `symbol`. All other fields are optional except when otherwise specified.\n\nThese are the valid `ordType`s:\n\n* **Limit**: The default order type. Specify an `orderQty` and `price`.\n* **Market**: A traditional Market order. A Market order will execute until filled or your bankruptcy price is reached, at\n  which point it will cancel.\n* **Stop**: A Stop Market order. Specify an `orderQty` and `stopPx`. When the `stopPx` is reached, the order will be entered\n  into the book.\n  * On sell orders, the order will trigger if the triggering price is lower than the `stopPx`. On buys, higher.\n  * Note: Stop orders do not consume margin until triggered. Be sure that the required margin is available in your\n    account so that it may trigger fully.\n  * `Close` Stops don't require an `orderQty`. See Execution Instructions below.\n* **StopLimit**: Like a Stop Market, but enters a Limit order instead of a Market order. Specify an `orderQty`, `stopPx`,\n  and `price`.\n* **MarketIfTouched**: Similar to a Stop, but triggers are done in the opposite direction. Useful for Take Profit orders.\n* **LimitIfTouched**: As above; use for Take Profit Limit orders.\n\n#### Execution Instructions\n\nThe following `execInst`s are supported. If using multiple, separate with a comma (e.g. `LastPrice,Close`).\n\n* **ParticipateDoNotInitiate**: Also known as a Post-Only order. If this order would have executed on placement,\n  it will cancel instead.\n* **MarkPrice, LastPrice, IndexPrice**: Used by stop and if-touched orders to determine the triggering price.\n  Use only one. By default, `'MarkPrice'` is used. Also used for Pegged orders to define the value of `'LastPeg'`.\n* **ReduceOnly**: A `'ReduceOnly'` order can only reduce your position, not increase it. If you have a `'ReduceOnly'`\n  limit order that rests in the order book while the position is reduced by other orders, then its order quantity will\n  be amended down or canceled. If there are multiple `'ReduceOnly'` orders the least aggressive will be amended first.\n* **Close**: `'Close'` implies `'ReduceOnly'`. A `'Close'` order will cancel other active limit orders with the same side\n  and symbol if the open quantity exceeds the current position. This is useful for stops: by canceling these orders, a\n  `'Close'` Stop is ensured to have the margin required to execute, and can only execute up to the full size of your\n  position. If `orderQty` is not specified, a `'Close'` order has an `orderQty` equal to your current position's size.\n  * Note that a `Close` order without an `orderQty` requires a `side`, so that BitMEX knows if it should trigger\n  above or below the `stopPx`.\n\n#### Linked Orders\n\n[Linked Orders are deprecated as of 2018/11/10](https://blog.bitmex.com/api_announcement/deprecation-of-contingent-orders/)\n\n#### Trailing Stops\n\nYou may use `pegPriceType` of `'TrailingStopPeg'` to create Trailing Stops. The pegged `stopPx` will move as the market\nmoves away from the peg, and freeze as the market moves toward it.\n\nTo use, combine with `pegOffsetValue` to set the `stopPx` of your order. The peg is set to the triggering price\nspecified in the `execInst` (default `'MarkPrice'`). Use a negative offset for stop-sell and buy-if-touched orders.\n\nRequires `ordType`: `'Stop', 'StopLimit', 'MarketIfTouched', 'LimitIfTouched'`.\n\n#### Simple Quantities\n\n[Simple Quantities are deprecated as of 2018/10/26](https://blog.bitmex.com/api_announcement/deprecation-of-simpleorderqty-functionality/)\n\n#### Rate Limits\n\nSee the [Bulk Order Documentation](#!/Order/Order_newBulk) if you need to place multiple orders at the same time.\nBulk orders require fewer risk checks in the trading engine and thus are ratelimited at **1/10** the normal rate.\n\nYou can also improve your reactivity to market movements while staying under your ratelimit by using the\n[Amend](#!/Order/Order_amend) and [Amend Bulk](#!/Order/Order_amendBulk) endpoints. This allows you to stay\nin the market and avoids the cancel/replace cycle.\n\n#### Tracking Your Orders\n\nIf you want to keep track of order IDs yourself, set a unique `clOrdID` per order.\nThis `clOrdID` will come back as a property on the order and any related executions (including on the WebSocket),\nand can be used to get or cancel the order. Max length is 36 characters.\n\nYou can also change the `clOrdID` by amending an order, supplying an `origClOrdID`, and your desired new\nID as the `clOrdID` param, like so:\n\n```\n# Amends an order's leavesQty, and updates its clOrdID to \"def-456\"\nPUT /api/v1/order {\"origClOrdID\": \"abc-123\", \"clOrdID\": \"def-456\", \"leavesQty\": 1000}\n```\n",
+        "operationId": "Order.new",
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "formData",
+            "description": "Instrument symbol. e.g. 'XBTUSD'.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "side",
+            "in": "formData",
+            "description": "Order side. Valid options: Buy, Sell. Defaults to 'Buy' unless `orderQty` is negative.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "simpleOrderQty",
+            "in": "formData",
+            "description": "Deprecated: simple orders are not supported after 2018/10/26",
+            "required": false,
+            "type": "number",
+            "format": "double"
+          },
+          {
+            "name": "orderQty",
+            "in": "formData",
+            "description": "Order quantity in units of the instrument (i.e. contracts).",
+            "required": false,
+            "format": "int32",
+            "type": "number"
+          },
+          {
+            "name": "price",
+            "in": "formData",
+            "description": "Optional limit price for 'Limit', 'StopLimit', and 'LimitIfTouched' orders.",
+            "required": false,
+            "type": "number",
+            "format": "double"
+          },
+          {
+            "name": "displayQty",
+            "in": "formData",
+            "description": "Optional quantity to display in the book. Use 0 for a fully hidden order.",
+            "required": false,
+            "format": "int32",
+            "type": "number"
+          },
+          {
+            "name": "stopPx",
+            "in": "formData",
+            "description": "Optional trigger price for 'Stop', 'StopLimit', 'MarketIfTouched', and 'LimitIfTouched' orders. Use a price below the current price for stop-sell orders and buy-if-touched orders. Use `execInst` of 'MarkPrice' or 'LastPrice' to define the current price used for triggering.",
+            "required": false,
+            "type": "number",
+            "format": "double"
+          },
+          {
+            "name": "clOrdID",
+            "in": "formData",
+            "description": "Optional Client Order ID. This clOrdID will come back on the order and any related executions.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "clOrdLinkID",
+            "in": "formData",
+            "description": "Deprecated: linked orders are not supported after 2018/11/10.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "pegOffsetValue",
+            "in": "formData",
+            "description": "Optional trailing offset from the current price for 'Stop', 'StopLimit', 'MarketIfTouched', and 'LimitIfTouched' orders; use a negative offset for stop-sell orders and buy-if-touched orders. Optional offset from the peg price for 'Pegged' orders.",
+            "required": false,
+            "type": "number",
+            "format": "double"
+          },
+          {
+            "name": "pegPriceType",
+            "in": "formData",
+            "description": "Optional peg price type. Valid options: LastPeg, MidPricePeg, MarketPeg, PrimaryPeg, TrailingStopPeg.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "ordType",
+            "in": "formData",
+            "description": "Order type. Valid options: Market, Limit, Stop, StopLimit, MarketIfTouched, LimitIfTouched, Pegged. Defaults to 'Limit' when `price` is specified. Defaults to 'Stop' when `stopPx` is specified. Defaults to 'StopLimit' when `price` and `stopPx` are specified.",
+            "required": false,
+            "default": "Limit",
+            "type": "string"
+          },
+          {
+            "name": "timeInForce",
+            "in": "formData",
+            "description": "Time in force. Valid options: Day, GoodTillCancel, ImmediateOrCancel, FillOrKill. Defaults to 'GoodTillCancel' for 'Limit', 'StopLimit', and 'LimitIfTouched' orders.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "execInst",
+            "in": "formData",
+            "description": "Optional execution instructions. Valid options: ParticipateDoNotInitiate, AllOrNone, MarkPrice, IndexPrice, LastPrice, Close, ReduceOnly, Fixed. 'AllOrNone' instruction requires `displayQty` to be 0. 'MarkPrice', 'IndexPrice' or 'LastPrice' instruction valid for 'Stop', 'StopLimit', 'MarketIfTouched', and 'LimitIfTouched' orders.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "contingencyType",
+            "in": "formData",
+            "description": "Deprecated: linked orders are not supported after 2018/11/10.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "text",
+            "in": "formData",
+            "description": "Optional order annotation. e.g. 'Take profit'.",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": { "$ref": "#/definitions/Order" }
+          },
+          "400": {
+            "description": "Parameter Error",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "403": {
+            "description": "Access Denied",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": { "$ref": "#/definitions/Error" }
+          }
+        },
+        "deprecated": false
+      },
+      "put": {
+        "tags": ["Order"],
+        "summary": "Amend the quantity or price of an open order.",
+        "description": "Send an `orderID` or `origClOrdID` to identify the order you wish to amend.\n\nBoth order quantity and price can be amended. Only one `qty` field can be used to amend.\n\nUse the `leavesQty` field to specify how much of the order you wish to remain open. This can be useful\nif you want to adjust your position's delta by a certain amount, regardless of how much of the order has\nalready filled.\n\n> A `leavesQty` can be used to make a \"Filled\" order live again, if it is received within 60 seconds of the fill.\n\nLike order placement, amending can be done in bulk. Simply send a request to `PUT /api/v1/order/bulk` with\na JSON body of the shape: `{\"orders\": [{...}, {...}]}`, each object containing the fields used in this endpoint.\n",
+        "operationId": "Order.amend",
+        "parameters": [
+          {
+            "name": "orderID",
+            "in": "formData",
+            "description": "Order ID",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "origClOrdID",
+            "in": "formData",
+            "description": "Client Order ID. See POST /order.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "clOrdID",
+            "in": "formData",
+            "description": "Optional new Client Order ID, requires `origClOrdID`.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "simpleOrderQty",
+            "in": "formData",
+            "description": "Deprecated: simple orders are not supported after 2018/10/26",
+            "required": false,
+            "type": "number",
+            "format": "double"
+          },
+          {
+            "name": "orderQty",
+            "in": "formData",
+            "description": "Optional order quantity in units of the instrument (i.e. contracts).",
+            "required": false,
+            "format": "int32",
+            "type": "number"
+          },
+          {
+            "name": "simpleLeavesQty",
+            "in": "formData",
+            "description": "Deprecated: simple orders are not supported after 2018/10/26",
+            "required": false,
+            "type": "number",
+            "format": "double"
+          },
+          {
+            "name": "leavesQty",
+            "in": "formData",
+            "description": "Optional leaves quantity in units of the instrument (i.e. contracts). Useful for amending partially filled orders.",
+            "required": false,
+            "format": "int32",
+            "type": "number"
+          },
+          {
+            "name": "price",
+            "in": "formData",
+            "description": "Optional limit price for 'Limit', 'StopLimit', and 'LimitIfTouched' orders.",
+            "required": false,
+            "type": "number",
+            "format": "double"
+          },
+          {
+            "name": "stopPx",
+            "in": "formData",
+            "description": "Optional trigger price for 'Stop', 'StopLimit', 'MarketIfTouched', and 'LimitIfTouched' orders. Use a price below the current price for stop-sell orders and buy-if-touched orders.",
+            "required": false,
+            "type": "number",
+            "format": "double"
+          },
+          {
+            "name": "pegOffsetValue",
+            "in": "formData",
+            "description": "Optional trailing offset from the current price for 'Stop', 'StopLimit', 'MarketIfTouched', and 'LimitIfTouched' orders; use a negative offset for stop-sell orders and buy-if-touched orders. Optional offset from the peg price for 'Pegged' orders.",
+            "required": false,
+            "type": "number",
+            "format": "double"
+          },
+          {
+            "name": "text",
+            "in": "formData",
+            "description": "Optional amend annotation. e.g. 'Adjust skew'.",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": { "$ref": "#/definitions/Order" }
+          },
+          "400": {
+            "description": "Parameter Error",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "403": {
+            "description": "Access Denied",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": { "$ref": "#/definitions/Error" }
+          }
+        },
+        "deprecated": false
+      },
+      "delete": {
+        "tags": ["Order"],
+        "summary": "Cancel order(s). Send multiple order IDs to cancel in bulk.",
+        "description": "Either an orderID or a clOrdID must be provided.",
+        "operationId": "Order.cancel",
+        "parameters": [
+          {
+            "name": "orderID",
+            "in": "formData",
+            "description": "Order ID(s).",
+            "required": false,
+            "type": "string",
+            "format": "JSON"
+          },
+          {
+            "name": "clOrdID",
+            "in": "formData",
+            "description": "Client Order ID(s). See POST /order.",
+            "required": false,
+            "type": "string",
+            "format": "JSON"
+          },
+          {
+            "name": "text",
+            "in": "formData",
+            "description": "Optional cancellation annotation. e.g. 'Spread Exceeded'.",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/Order" }
+            }
+          },
+          "400": {
+            "description": "Parameter Error",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "403": {
+            "description": "Access Denied",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": { "$ref": "#/definitions/Error" }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/order/bulk": {
+      "post": {
+        "tags": ["Order"],
+        "summary": "Create multiple new orders for the same symbol.",
+        "description": "This endpoint is used for placing bulk orders. Valid order types are Market, Limit, Stop, StopLimit, MarketIfTouched, LimitIfTouched, and Pegged.\n\nEach individual order object in the array should have the same properties as an individual POST /order call.\n\nThis endpoint is much faster for getting many orders into the book at once. Because it reduces load on BitMEX\nsystems, this endpoint is ratelimited at `ceil(0.1 * orders)`. Submitting 10 orders via a bulk order call\nwill only count as 1 request, 15 as 2, 32 as 4, and so on.\n\nFor now, only `application/json` is supported on this endpoint.\n",
+        "operationId": "Order.newBulk",
+        "parameters": [
+          {
+            "name": "orders",
+            "in": "formData",
+            "description": "An array of orders.",
+            "required": false,
+            "type": "string",
+            "format": "JSON"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/Order" }
+            }
+          },
+          "400": {
+            "description": "Parameter Error",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "403": {
+            "description": "Access Denied",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": { "$ref": "#/definitions/Error" }
+          }
+        },
+        "deprecated": false
+      },
+      "put": {
+        "tags": ["Order"],
+        "summary": "Amend multiple orders for the same symbol.",
+        "description": "Similar to POST /amend, but with multiple orders. `application/json` only. Ratelimited at 10%.",
+        "operationId": "Order.amendBulk",
+        "parameters": [
+          {
+            "name": "orders",
+            "in": "formData",
+            "description": "An array of orders.",
+            "required": false,
+            "type": "string",
+            "format": "JSON"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/Order" }
+            }
+          },
+          "400": {
+            "description": "Parameter Error",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "403": {
+            "description": "Access Denied",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": { "$ref": "#/definitions/Error" }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/order/closePosition": {
+      "post": {
+        "tags": ["Order"],
+        "summary": "Close a position. [Deprecated, use POST /order with execInst: 'Close']",
+        "description": "If no `price` is specified, a market order will be submitted to close the whole of your position. This will also close all other open orders in this symbol.",
+        "operationId": "Order.closePosition",
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "formData",
+            "description": "Symbol of position to close.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "price",
+            "in": "formData",
+            "description": "Optional limit price.",
+            "required": false,
+            "type": "number",
+            "format": "double"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": {
+              "description": "Resulting close order.",
+              "$ref": "#/definitions/Order"
+            }
+          },
+          "400": {
+            "description": "Parameter Error",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "403": {
+            "description": "Access Denied",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": { "$ref": "#/definitions/Error" }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/order/all": {
+      "delete": {
+        "tags": ["Order"],
+        "summary": "Cancels all of your orders.",
+        "operationId": "Order.cancelAll",
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "formData",
+            "description": "Optional symbol. If provided, only cancels orders for that symbol.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "filter",
+            "in": "formData",
+            "description": "Optional filter for cancellation. Use to only cancel some orders, e.g. `{\"side\": \"Buy\"}`.",
+            "required": false,
+            "type": "string",
+            "format": "JSON"
+          },
+          {
+            "name": "text",
+            "in": "formData",
+            "description": "Optional cancellation annotation. e.g. 'Spread Exceeded'",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/Order" }
+            }
+          },
+          "400": {
+            "description": "Parameter Error",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "403": {
+            "description": "Access Denied",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": { "$ref": "#/definitions/Error" }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/order/cancelAllAfter": {
+      "post": {
+        "tags": ["Order"],
+        "summary": "Automatically cancel all your orders after a specified timeout.",
+        "description": "Useful as a dead-man's switch to ensure your orders are canceled in case of an outage.\nIf called repeatedly, the existing offset will be canceled and a new one will be inserted in its place.\n\nExample usage: call this route at 15s intervals with an offset of 60000 (60s).\nIf this route is not called within 60 seconds, all your orders will be automatically canceled.\n\nThis is also available via [WebSocket](https://www.bitmex.com/app/wsAPI#Dead-Mans-Switch-Auto-Cancel).\n",
+        "operationId": "Order.cancelAllAfter",
+        "parameters": [
+          {
+            "name": "timeout",
+            "in": "formData",
+            "description": "Timeout in ms. Set to 0 to cancel this timer. ",
+            "required": true,
+            "type": "number",
+            "format": "double"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": { "type": "object" }
+          },
+          "400": {
+            "description": "Parameter Error",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "403": {
+            "description": "Access Denied",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": { "$ref": "#/definitions/Error" }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/orderBook/L2": {
+      "get": {
+        "tags": ["OrderBook"],
+        "summary": "Get current orderbook in vertical format.",
+        "operationId": "OrderBook.getL2",
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "query",
+            "description": "Instrument symbol. Send a series (e.g. XBT) to get data for the nearest contract in that series.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "depth",
+            "in": "query",
+            "description": "Orderbook depth per side. Send 0 for full depth.",
+            "required": false,
+            "minimum": 0,
+            "format": "int32",
+            "default": 25,
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/OrderBookL2" }
+            }
+          },
+          "400": {
+            "description": "Parameter Error",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "403": {
+            "description": "Access Denied",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": { "$ref": "#/definitions/Error" }
+          }
+        },
+        "deprecated": false,
+        "security": []
+      }
+    },
+    "/position": {
+      "get": {
+        "tags": ["Position"],
+        "summary": "Get your positions.",
+        "description": "This endpoint is used for retrieving position information. The fields largely follow the [FIX spec](http://www.onixs.biz/fix-dictionary/5.0.SP2/msgType_AP_6580.html) definitions. Some selected fields are explained in more detail below.\n\nThe fields _account_, _symbol_, _currency_ are unique to each position and form its key.\n\n* **account**: Your unique account ID.\n* **symbol**: The contract for this position.\n* **currency**: The margin currency for this position.\n* **underlying**: Meta data of the _symbol_.\n* **quoteCurrency**: Meta data of the _symbol_,  All prices are in the _quoteCurrency_\n* **commission**: The maximum of the maker, taker, and settlement fee.\n* **initMarginReq**: The initial margin requirement.  This will be at least the symbol's default initial maintenance margin, but can be higher if you choose lower leverage.\n* **maintMarginReq**: The maintenance margin requirement.  This will be at least the symbol's default maintenance maintenance margin, but can be higher if you choose a higher risk limit.\n* **riskLimit**: This is a function of your _maintMarginReq_.\n* **leverage**: 1 / initMarginReq.\n* **crossMargin**: True/false depending on whether you set cross margin on this position.\n* **deleveragePercentile**: Indicates where your position is in the ADL queue.\n* **rebalancedPnl**: The value of realised PNL that has transferred to your wallet for this position.\n* **prevRealisedPnl**: The value of realised PNL that has transferred to your wallet for this position since the position was closed.\n* **currentQty**: The current position amount in contracts.\n* **currentCost**: The current cost of the position in the settlement currency of the symbol (_currency_).\n* **currentComm**: The current commission of the position in the settlement currency of the symbol (_currency_).\n* **realisedCost**: The realised cost of this position calculated with regard to average cost accounting.\n* **unrealisedCost**: _currentCost_ - _realisedCost_.\n* **grossOpenCost**: The absolute value of your open orders for this symbol.\n* **grossOpenPremium**: The amount your bidding above the mark price in the settlement currency of the symbol (_currency_).\n* **markPrice**: The mark price of the symbol in _quoteCurrency_.\n* **markValue**: The _currentQty_ at the mark price in the settlement currency of the symbol (_currency_).\n* **homeNotional**: Value of position in units of _underlying_.\n* **foreignNotional**: Value of position in units of _quoteCurrency_.\n* **realisedPnl**: The negative of _realisedCost_.\n* **unrealisedGrossPnl**: _markValue_ - _unrealisedCost_.\n* **unrealisedPnl**: _unrealisedGrossPnl_.\n* **liquidationPrice**: Once markPrice reaches this price, this position will be liquidated.\n* **bankruptPrice**: Once markPrice reaches this price, this position will have no equity.\n",
+        "operationId": "Position.get",
+        "parameters": [
+          {
+            "name": "filter",
+            "in": "query",
+            "description": "Table filter. For example, send {\"symbol\": \"XBTUSD\"}.",
+            "required": false,
+            "type": "string",
+            "format": "JSON"
+          },
+          {
+            "name": "columns",
+            "in": "query",
+            "description": "Which columns to fetch. For example, send [\"columnName\"].",
+            "required": false,
+            "type": "string",
+            "format": "JSON"
+          },
+          {
+            "name": "count",
+            "in": "query",
+            "description": "Number of rows to fetch.",
+            "required": false,
+            "format": "int32",
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/Position" }
+            }
+          },
+          "400": {
+            "description": "Parameter Error",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "403": {
+            "description": "Access Denied",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": { "$ref": "#/definitions/Error" }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/position/isolate": {
+      "post": {
+        "tags": ["Position"],
+        "summary": "Enable isolated margin or cross margin per-position.",
+        "operationId": "Position.isolateMargin",
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "formData",
+            "description": "Position symbol to isolate.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "enabled",
+            "in": "formData",
+            "description": "True for isolated margin, false for cross margin.",
+            "required": false,
+            "default": true,
+            "type": "boolean"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": {
+              "description": "Affected position.",
+              "$ref": "#/definitions/Position"
+            }
+          },
+          "400": {
+            "description": "Parameter Error",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "403": {
+            "description": "Access Denied",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": { "$ref": "#/definitions/Error" }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/position/riskLimit": {
+      "post": {
+        "tags": ["Position"],
+        "summary": "Update your risk limit.",
+        "operationId": "Position.updateRiskLimit",
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "formData",
+            "description": "Symbol of position to update risk limit on.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "riskLimit",
+            "in": "formData",
+            "description": "New Risk Limit, in Satoshis.",
+            "required": true,
+            "format": "int64",
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": {
+              "description": "Affected position.",
+              "$ref": "#/definitions/Position"
+            }
+          },
+          "400": {
+            "description": "Parameter Error",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "403": {
+            "description": "Access Denied",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": { "$ref": "#/definitions/Error" }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/position/transferMargin": {
+      "post": {
+        "tags": ["Position"],
+        "summary": "Transfer equity in or out of a position.",
+        "operationId": "Position.transferIsolatedMargin",
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "formData",
+            "description": "Symbol of position to isolate.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "amount",
+            "in": "formData",
+            "description": "Amount to transfer, in Satoshis. May be negative.",
+            "required": true,
+            "format": "int64",
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": {
+              "description": "Affected position.",
+              "$ref": "#/definitions/Position"
+            }
+          },
+          "400": {
+            "description": "Parameter Error",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "403": {
+            "description": "Access Denied",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": { "$ref": "#/definitions/Error" }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/position/leverage": {
+      "post": {
+        "tags": ["Position"],
+        "summary": "Choose leverage for a position.",
+        "operationId": "Position.updateLeverage",
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "formData",
+            "description": "Symbol of position to adjust.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "leverage",
+            "in": "formData",
+            "description": "Leverage value. Send a number between 0.01 and 100 to enable isolated margin with a fixed leverage. Send 0 to enable cross margin.",
+            "required": true,
+            "type": "number",
+            "format": "double"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": {
+              "description": "Affected position.",
+              "$ref": "#/definitions/Position"
+            }
+          },
+          "400": {
+            "description": "Parameter Error",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "403": {
+            "description": "Access Denied",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": { "$ref": "#/definitions/Error" }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/quote": {
+      "get": {
+        "tags": ["Quote"],
+        "summary": "Get Quotes.",
+        "operationId": "Quote.get",
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "query",
+            "description": "Instrument symbol. Send a bare series (e.g. XBU) to get data for the nearest expiring contract in that series.\n\nYou can also send a timeframe, e.g. `XBU:monthly`. Timeframes are `daily`, `weekly`, `monthly`, `quarterly`, and `biquarterly`.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "filter",
+            "in": "query",
+            "description": "Generic table filter. Send JSON key/value pairs, such as `{\"key\": \"value\"}`. You can key on individual fields, and do more advanced querying on timestamps. See the [Timestamp Docs](https://www.bitmex.com/app/restAPI#Timestamp-Filters) for more details.",
+            "required": false,
+            "type": "string",
+            "format": "JSON"
+          },
+          {
+            "name": "columns",
+            "in": "query",
+            "description": "Array of column names to fetch. If omitted, will return all columns.\n\nNote that this method will always return item keys, even when not specified, so you may receive more columns that you expect.",
+            "required": false,
+            "type": "string",
+            "format": "JSON"
+          },
+          {
+            "name": "count",
+            "in": "query",
+            "description": "Number of results to fetch.",
+            "required": false,
+            "format": "int32",
+            "default": 100,
+            "type": "number"
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "Starting point for results.",
+            "required": false,
+            "format": "int32",
+            "default": 0,
+            "type": "number"
+          },
+          {
+            "name": "reverse",
+            "in": "query",
+            "description": "If true, will sort results newest first.",
+            "required": false,
+            "default": false,
+            "type": "boolean"
+          },
+          {
+            "name": "startTime",
+            "in": "query",
+            "description": "Starting date filter for results.",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "endTime",
+            "in": "query",
+            "description": "Ending date filter for results.",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/Quote" }
+            }
+          },
+          "400": {
+            "description": "Parameter Error",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "403": {
+            "description": "Access Denied",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": { "$ref": "#/definitions/Error" }
+          }
+        },
+        "deprecated": false,
+        "security": []
+      }
+    },
+    "/quote/bucketed": {
+      "get": {
+        "tags": ["Quote"],
+        "summary": "Get previous quotes in time buckets.",
+        "description": "Timestamps returned by our bucketed endpoints are the **end** of the period, indicating when the bucket was written to disk. Some other common systems use the timestamp as the beginning of the period. Please be aware of this when using this endpoint.",
+        "operationId": "Quote.getBucketed",
+        "parameters": [
+          {
+            "name": "binSize",
+            "in": "query",
+            "description": "Time interval to bucket by. Available options: [1m,5m,1h,1d].",
+            "required": false,
+            "default": "1m",
+            "type": "string"
+          },
+          {
+            "name": "partial",
+            "in": "query",
+            "description": "If true, will send in-progress (incomplete) bins for the current time period.",
+            "required": false,
+            "default": false,
+            "type": "boolean"
+          },
+          {
+            "name": "symbol",
+            "in": "query",
+            "description": "Instrument symbol. Send a bare series (e.g. XBU) to get data for the nearest expiring contract in that series.\n\nYou can also send a timeframe, e.g. `XBU:monthly`. Timeframes are `daily`, `weekly`, `monthly`, `quarterly`, and `biquarterly`.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "filter",
+            "in": "query",
+            "description": "Generic table filter. Send JSON key/value pairs, such as `{\"key\": \"value\"}`. You can key on individual fields, and do more advanced querying on timestamps. See the [Timestamp Docs](https://www.bitmex.com/app/restAPI#Timestamp-Filters) for more details.",
+            "required": false,
+            "type": "string",
+            "format": "JSON"
+          },
+          {
+            "name": "columns",
+            "in": "query",
+            "description": "Array of column names to fetch. If omitted, will return all columns.\n\nNote that this method will always return item keys, even when not specified, so you may receive more columns that you expect.",
+            "required": false,
+            "type": "string",
+            "format": "JSON"
+          },
+          {
+            "name": "count",
+            "in": "query",
+            "description": "Number of results to fetch.",
+            "required": false,
+            "format": "int32",
+            "default": 100,
+            "type": "number"
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "Starting point for results.",
+            "required": false,
+            "format": "int32",
+            "default": 0,
+            "type": "number"
+          },
+          {
+            "name": "reverse",
+            "in": "query",
+            "description": "If true, will sort results newest first.",
+            "required": false,
+            "default": false,
+            "type": "boolean"
+          },
+          {
+            "name": "startTime",
+            "in": "query",
+            "description": "Starting date filter for results.",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "endTime",
+            "in": "query",
+            "description": "Ending date filter for results.",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/Quote" }
+            }
+          },
+          "400": {
+            "description": "Parameter Error",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "403": {
+            "description": "Access Denied",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": { "$ref": "#/definitions/Error" }
+          }
+        },
+        "deprecated": false,
+        "security": []
+      }
+    },
+    "/schema": {
+      "get": {
+        "tags": ["Schema"],
+        "summary": "Get model schemata for data objects returned by this API.",
+        "operationId": "Schema.get",
+        "parameters": [
+          {
+            "name": "model",
+            "in": "query",
+            "description": "Optional model filter. If omitted, will return all models.",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": { "type": "object" }
+          },
+          "400": {
+            "description": "Parameter Error",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "403": {
+            "description": "Access Denied",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": { "$ref": "#/definitions/Error" }
+          }
+        },
+        "deprecated": false,
+        "security": []
+      }
+    },
+    "/schema/websocketHelp": {
+      "get": {
+        "tags": ["Schema"],
+        "summary": "Returns help text & subject list for websocket usage.",
+        "operationId": "Schema.websocketHelp",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": { "type": "object" }
+          },
+          "400": {
+            "description": "Parameter Error",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "403": {
+            "description": "Access Denied",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": { "$ref": "#/definitions/Error" }
+          }
+        },
+        "deprecated": false,
+        "security": []
+      }
+    },
+    "/settlement": {
+      "get": {
+        "tags": ["Settlement"],
+        "summary": "Get settlement history.",
+        "operationId": "Settlement.get",
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "query",
+            "description": "Instrument symbol. Send a bare series (e.g. XBU) to get data for the nearest expiring contract in that series.\n\nYou can also send a timeframe, e.g. `XBU:monthly`. Timeframes are `daily`, `weekly`, `monthly`, `quarterly`, and `biquarterly`.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "filter",
+            "in": "query",
+            "description": "Generic table filter. Send JSON key/value pairs, such as `{\"key\": \"value\"}`. You can key on individual fields, and do more advanced querying on timestamps. See the [Timestamp Docs](https://www.bitmex.com/app/restAPI#Timestamp-Filters) for more details.",
+            "required": false,
+            "type": "string",
+            "format": "JSON"
+          },
+          {
+            "name": "columns",
+            "in": "query",
+            "description": "Array of column names to fetch. If omitted, will return all columns.\n\nNote that this method will always return item keys, even when not specified, so you may receive more columns that you expect.",
+            "required": false,
+            "type": "string",
+            "format": "JSON"
+          },
+          {
+            "name": "count",
+            "in": "query",
+            "description": "Number of results to fetch.",
+            "required": false,
+            "format": "int32",
+            "default": 100,
+            "type": "number"
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "Starting point for results.",
+            "required": false,
+            "format": "int32",
+            "default": 0,
+            "type": "number"
+          },
+          {
+            "name": "reverse",
+            "in": "query",
+            "description": "If true, will sort results newest first.",
+            "required": false,
+            "default": false,
+            "type": "boolean"
+          },
+          {
+            "name": "startTime",
+            "in": "query",
+            "description": "Starting date filter for results.",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "endTime",
+            "in": "query",
+            "description": "Ending date filter for results.",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/Settlement" }
+            }
+          },
+          "400": {
+            "description": "Parameter Error",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "403": {
+            "description": "Access Denied",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": { "$ref": "#/definitions/Error" }
+          }
+        },
+        "deprecated": false,
+        "security": []
+      }
+    },
+    "/stats": {
+      "get": {
+        "tags": ["Stats"],
+        "summary": "Get exchange-wide and per-series turnover and volume statistics.",
+        "operationId": "Stats.get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/Stats" }
+            }
+          },
+          "400": {
+            "description": "Parameter Error",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "403": {
+            "description": "Access Denied",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": { "$ref": "#/definitions/Error" }
+          }
+        },
+        "deprecated": false,
+        "security": []
+      }
+    },
+    "/stats/history": {
+      "get": {
+        "tags": ["Stats"],
+        "summary": "Get historical exchange-wide and per-series turnover and volume statistics.",
+        "operationId": "Stats.history",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/StatsHistory" }
+            }
+          },
+          "400": {
+            "description": "Parameter Error",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "403": {
+            "description": "Access Denied",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": { "$ref": "#/definitions/Error" }
+          }
+        },
+        "deprecated": false,
+        "security": []
+      }
+    },
+    "/stats/historyUSD": {
+      "get": {
+        "tags": ["Stats"],
+        "summary": "Get a summary of exchange statistics in USD.",
+        "operationId": "Stats.historyUSD",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/StatsUSD" }
+            }
+          },
+          "400": {
+            "description": "Parameter Error",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "403": {
+            "description": "Access Denied",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": { "$ref": "#/definitions/Error" }
+          }
+        },
+        "deprecated": false,
+        "security": []
+      }
+    },
+    "/trade": {
+      "get": {
+        "tags": ["Trade"],
+        "summary": "Get Trades.",
+        "description": "Please note that indices (symbols starting with `.`) post trades at intervals to the trade feed. These have a `size` of 0 and are used only to indicate a changing price.\n\nSee [the FIX Spec](http://www.onixs.biz/fix-dictionary/5.0.SP2/msgType_AE_6569.html) for explanations of these fields.",
+        "operationId": "Trade.get",
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "query",
+            "description": "Instrument symbol. Send a bare series (e.g. XBU) to get data for the nearest expiring contract in that series.\n\nYou can also send a timeframe, e.g. `XBU:monthly`. Timeframes are `daily`, `weekly`, `monthly`, `quarterly`, and `biquarterly`.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "filter",
+            "in": "query",
+            "description": "Generic table filter. Send JSON key/value pairs, such as `{\"key\": \"value\"}`. You can key on individual fields, and do more advanced querying on timestamps. See the [Timestamp Docs](https://www.bitmex.com/app/restAPI#Timestamp-Filters) for more details.",
+            "required": false,
+            "type": "string",
+            "format": "JSON"
+          },
+          {
+            "name": "columns",
+            "in": "query",
+            "description": "Array of column names to fetch. If omitted, will return all columns.\n\nNote that this method will always return item keys, even when not specified, so you may receive more columns that you expect.",
+            "required": false,
+            "type": "string",
+            "format": "JSON"
+          },
+          {
+            "name": "count",
+            "in": "query",
+            "description": "Number of results to fetch.",
+            "required": false,
+            "format": "int32",
+            "default": 100,
+            "type": "number"
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "Starting point for results.",
+            "required": false,
+            "format": "int32",
+            "default": 0,
+            "type": "number"
+          },
+          {
+            "name": "reverse",
+            "in": "query",
+            "description": "If true, will sort results newest first.",
+            "required": false,
+            "default": false,
+            "type": "boolean"
+          },
+          {
+            "name": "startTime",
+            "in": "query",
+            "description": "Starting date filter for results.",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "endTime",
+            "in": "query",
+            "description": "Ending date filter for results.",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/Trade" }
+            }
+          },
+          "400": {
+            "description": "Parameter Error",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "403": {
+            "description": "Access Denied",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": { "$ref": "#/definitions/Error" }
+          }
+        },
+        "deprecated": false,
+        "security": []
+      }
+    },
+    "/trade/bucketed": {
+      "get": {
+        "tags": ["Trade"],
+        "summary": "Get previous trades in time buckets.",
+        "description": "Timestamps returned by our bucketed endpoints are the **end** of the period, indicating when the bucket was written to disk. Some other common systems use the timestamp as the beginning of the period. Please be aware of this when using this endpoint.\n\nAlso note the `open` price is equal to the `close` price of the previous timeframe bucket.",
+        "operationId": "Trade.getBucketed",
+        "parameters": [
+          {
+            "name": "binSize",
+            "in": "query",
+            "description": "Time interval to bucket by. Available options: [1m,5m,1h,1d].",
+            "required": false,
+            "default": "1m",
+            "type": "string"
+          },
+          {
+            "name": "partial",
+            "in": "query",
+            "description": "If true, will send in-progress (incomplete) bins for the current time period.",
+            "required": false,
+            "default": false,
+            "type": "boolean"
+          },
+          {
+            "name": "symbol",
+            "in": "query",
+            "description": "Instrument symbol. Send a bare series (e.g. XBU) to get data for the nearest expiring contract in that series.\n\nYou can also send a timeframe, e.g. `XBU:monthly`. Timeframes are `daily`, `weekly`, `monthly`, `quarterly`, and `biquarterly`.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "filter",
+            "in": "query",
+            "description": "Generic table filter. Send JSON key/value pairs, such as `{\"key\": \"value\"}`. You can key on individual fields, and do more advanced querying on timestamps. See the [Timestamp Docs](https://www.bitmex.com/app/restAPI#Timestamp-Filters) for more details.",
+            "required": false,
+            "type": "string",
+            "format": "JSON"
+          },
+          {
+            "name": "columns",
+            "in": "query",
+            "description": "Array of column names to fetch. If omitted, will return all columns.\n\nNote that this method will always return item keys, even when not specified, so you may receive more columns that you expect.",
+            "required": false,
+            "type": "string",
+            "format": "JSON"
+          },
+          {
+            "name": "count",
+            "in": "query",
+            "description": "Number of results to fetch.",
+            "required": false,
+            "format": "int32",
+            "default": 100,
+            "type": "number"
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "Starting point for results.",
+            "required": false,
+            "format": "int32",
+            "default": 0,
+            "type": "number"
+          },
+          {
+            "name": "reverse",
+            "in": "query",
+            "description": "If true, will sort results newest first.",
+            "required": false,
+            "default": false,
+            "type": "boolean"
+          },
+          {
+            "name": "startTime",
+            "in": "query",
+            "description": "Starting date filter for results.",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "endTime",
+            "in": "query",
+            "description": "Ending date filter for results.",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/TradeBin" }
+            }
+          },
+          "400": {
+            "description": "Parameter Error",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "403": {
+            "description": "Access Denied",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": { "$ref": "#/definitions/Error" }
+          }
+        },
+        "deprecated": false,
+        "security": []
+      }
+    },
+    "/user/depositAddress": {
+      "get": {
+        "tags": ["User"],
+        "summary": "Get a deposit address.",
+        "operationId": "User.getDepositAddress",
+        "parameters": [
+          {
+            "name": "currency",
+            "in": "query",
+            "required": false,
+            "default": "XBt",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": { "type": "string" }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/user/wallet": {
+      "get": {
+        "tags": ["User"],
+        "summary": "Get your current wallet information.",
+        "operationId": "User.getWallet",
+        "parameters": [
+          {
+            "name": "currency",
+            "in": "query",
+            "required": false,
+            "default": "XBt",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": { "$ref": "#/definitions/Wallet" }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/user/walletHistory": {
+      "get": {
+        "tags": ["User"],
+        "summary": "Get a history of all of your wallet transactions (deposits, withdrawals, PNL).",
+        "operationId": "User.getWalletHistory",
+        "parameters": [
+          {
+            "name": "currency",
+            "in": "query",
+            "required": false,
+            "default": "XBt",
+            "type": "string"
+          },
+          {
+            "name": "count",
+            "in": "query",
+            "description": "Number of results to fetch.",
+            "required": false,
+            "default": 100,
+            "type": "number",
+            "format": "double"
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "Starting point for results.",
+            "required": false,
+            "default": 0,
+            "type": "number",
+            "format": "double"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/Transaction" }
+            }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/user/walletSummary": {
+      "get": {
+        "tags": ["User"],
+        "summary": "Get a summary of all of your wallet transactions (deposits, withdrawals, PNL).",
+        "operationId": "User.getWalletSummary",
+        "parameters": [
+          {
+            "name": "currency",
+            "in": "query",
+            "required": false,
+            "default": "XBt",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/Transaction" }
+            }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/user/executionHistory": {
+      "get": {
+        "tags": ["User"],
+        "summary": "Get the execution history by day.",
+        "operationId": "User.getExecutionHistory",
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "query",
+            "required": true,
+            "default": "XBTUSD",
+            "type": "string"
+          },
+          {
+            "name": "timestamp",
+            "in": "query",
+            "required": true,
+            "default": "2017-02-13T12:00:00.000Z",
+            "type": "string",
+            "format": "date-time"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": { "type": "object" }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/user/minWithdrawalFee": {
+      "get": {
+        "tags": ["User"],
+        "summary": "Get the minimum withdrawal fee for a currency.",
+        "description": "This is changed based on network conditions to ensure timely withdrawals. During network congestion, this may be high. The fee is returned in the same currency.",
+        "operationId": "User.minWithdrawalFee",
+        "parameters": [
+          {
+            "name": "currency",
+            "in": "query",
+            "required": false,
+            "default": "XBt",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": { "type": "object" }
+          }
+        },
+        "deprecated": false,
+        "security": []
+      }
+    },
+    "/user/requestWithdrawal": {
+      "post": {
+        "tags": ["User"],
+        "summary": "Request a withdrawal to an external wallet.",
+        "description": "This will send a confirmation email to the email address on record, unless requested via an API Key with the `withdraw` permission and two-factor authentication is enabled on the account",
+        "operationId": "User.requestWithdrawal",
+        "parameters": [
+          {
+            "name": "otpToken",
+            "in": "formData",
+            "description": "2FA token. Required if 2FA is enabled on your account.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "currency",
+            "in": "formData",
+            "description": "Currency you're withdrawing. Options: `XBt`",
+            "required": true,
+            "default": "XBt",
+            "type": "string"
+          },
+          {
+            "name": "amount",
+            "in": "formData",
+            "description": "Amount of withdrawal currency.",
+            "required": true,
+            "format": "int64",
+            "type": "number"
+          },
+          {
+            "name": "address",
+            "in": "formData",
+            "description": "Destination Address.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "fee",
+            "in": "formData",
+            "description": "Network fee for Bitcoin withdrawals. If not specified, a default value will be calculated based on Bitcoin network conditions. You will have a chance to confirm this via email.",
+            "required": false,
+            "type": "number",
+            "format": "double"
+          },
+          {
+            "name": "text",
+            "in": "formData",
+            "description": "Optional annotation, e.g. 'Transfer to home wallet'.",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": { "$ref": "#/definitions/Transaction" }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/user/cancelWithdrawal": {
+      "post": {
+        "tags": ["User"],
+        "summary": "Cancel a withdrawal.",
+        "operationId": "User.cancelWithdrawal",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "formData",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": { "$ref": "#/definitions/Transaction" }
+          }
+        },
+        "deprecated": false,
+        "security": []
+      }
+    },
+    "/user/confirmWithdrawal": {
+      "post": {
+        "tags": ["User"],
+        "summary": "Confirm a withdrawal.",
+        "operationId": "User.confirmWithdrawal",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "formData",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": { "$ref": "#/definitions/Transaction" }
+          }
+        },
+        "deprecated": false,
+        "security": []
+      }
+    },
+    "/user/confirmEmail": {
+      "post": {
+        "tags": ["User"],
+        "summary": "Confirm your email address with a token.",
+        "operationId": "User.confirm",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "formData",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": { "$ref": "#/definitions/AccessToken" }
+          }
+        },
+        "deprecated": false,
+        "security": []
+      }
+    },
+    "/user/affiliateStatus": {
+      "get": {
+        "tags": ["User"],
+        "summary": "Get your current affiliate/referral status.",
+        "operationId": "User.getAffiliateStatus",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": { "$ref": "#/definitions/Affiliate" }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/user/checkReferralCode": {
+      "get": {
+        "tags": ["User"],
+        "summary": "Check if a referral code is valid.",
+        "description": "If the code is valid, responds with the referral code's discount (e.g. `0.1` for 10%). Otherwise, will return a 404 or 451 if invalid.",
+        "operationId": "User.checkReferralCode",
+        "parameters": [
+          {
+            "name": "referralCode",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": { "type": "number", "format": "double" }
+          }
+        },
+        "deprecated": false,
+        "security": []
+      }
+    },
+    "/user/logout": {
+      "post": {
+        "tags": ["User"],
+        "summary": "Log out of BitMEX.",
+        "operationId": "User.logout",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": { "type": "null" }
+          }
+        },
+        "deprecated": false,
+        "security": []
+      }
+    },
+    "/user/preferences": {
+      "post": {
+        "tags": ["User"],
+        "summary": "Save user preferences.",
+        "operationId": "User.savePreferences",
+        "parameters": [
+          {
+            "name": "prefs",
+            "in": "formData",
+            "required": true,
+            "type": "string",
+            "format": "JSON"
+          },
+          {
+            "name": "overwrite",
+            "in": "formData",
+            "description": "If true, will overwrite all existing preferences.",
+            "required": false,
+            "default": false,
+            "type": "boolean"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": { "$ref": "#/definitions/User" }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/user": {
+      "get": {
+        "tags": ["User"],
+        "summary": "Get your user model.",
+        "operationId": "User.get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": { "$ref": "#/definitions/User" }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/user/commission": {
+      "get": {
+        "tags": ["User"],
+        "summary": "Get your account's commission status.",
+        "operationId": "User.getCommission",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": { "$ref": "#/definitions/UserCommissionsBySymbol" }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/user/margin": {
+      "get": {
+        "tags": ["User"],
+        "summary": "Get your account's margin status. Send a currency of \"all\" to receive an array of all supported currencies.",
+        "operationId": "User.getMargin",
+        "parameters": [
+          {
+            "name": "currency",
+            "in": "query",
+            "required": false,
+            "default": "XBt",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": { "$ref": "#/definitions/Margin" }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/user/communicationToken": {
+      "post": {
+        "tags": ["User"],
+        "summary": "Register your communication token for mobile clients",
+        "operationId": "User.communicationToken",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "formData",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "platformAgent",
+            "in": "formData",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/CommunicationToken" }
+            }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/userEvent": {
+      "get": {
+        "tags": ["UserEvent"],
+        "summary": "Get your user events",
+        "operationId": "UserEvent.get",
+        "parameters": [
+          {
+            "name": "count",
+            "in": "query",
+            "description": "Number of results to fetch.",
+            "required": false,
+            "default": 150,
+            "type": "number",
+            "format": "double"
+          },
+          {
+            "name": "startId",
+            "in": "query",
+            "description": "Cursor for pagination.",
+            "required": false,
+            "type": "number",
+            "format": "double"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request was successful",
+            "schema": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/UserEvent" }
+            }
+          },
+          "400": {
+            "description": "Parameter Error",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "403": {
+            "description": "Access Denied",
+            "schema": { "$ref": "#/definitions/Error" }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": { "$ref": "#/definitions/Error" }
+          }
+        },
+        "deprecated": false
+      }
+    }
+  },
+  "tags": [
+    { "name": "Announcement", "description": "Public Announcements" },
+    { "name": "APIKey", "description": "Persistent API Keys for Developers" },
+    { "name": "Chat", "description": "Trollbox Data" },
+    { "name": "Execution", "description": "Raw Order and Balance Data" },
+    { "name": "Funding", "description": "Swap Funding History" },
+    {
+      "name": "Instrument",
+      "description": "Tradeable Contracts, Indices, and History"
+    },
+    { "name": "Insurance", "description": "Insurance Fund Data" },
+    { "name": "Leaderboard", "description": "Information on Top Users" },
+    { "name": "Liquidation", "description": "Active Liquidations" },
+    { "name": "GlobalNotification", "description": "Account Notifications" },
+    {
+      "name": "Order",
+      "description": "Placement, Cancellation, Amending, and History"
+    },
+    { "name": "OrderBook", "description": "Level 2 Book Data" },
+    {
+      "name": "Position",
+      "description": "Summary of Open and Closed Positions"
+    },
+    {
+      "name": "Quote",
+      "description": "Best Bid/Offer Snapshots & Historical Bins"
+    },
+    { "name": "Schema", "description": "Dynamic Schemata for Developers" },
+    { "name": "Settlement", "description": "Historical Settlement Data" },
+    { "name": "Stats", "description": "Exchange Statistics" },
+    { "name": "Trade", "description": "Individual & Bucketed Trades" },
+    { "name": "User", "description": "Account Operations" },
+    { "name": "UserEvent", "description": "User Events for auditing" }
+  ],
+  "consumes": ["application/json", "application/x-www-form-urlencoded"],
+  "produces": [
+    "application/json",
+    "application/xml",
+    "text/xml",
+    "application/javascript",
+    "text/javascript"
+  ],
+  "definitions": {
+    "Announcement": {
+      "description": "Public Announcements",
+      "properties": {
+        "id": { "format": "int32", "type": "number" },
+        "link": { "type": "string" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id"],
+      "type": "object"
+    },
+    "Error": {
+      "properties": {
+        "error": {
+          "type": "object",
+          "properties": {
+            "message": { "type": "string" },
+            "name": { "type": "string" }
+          }
+        }
+      },
+      "required": ["error"],
+      "type": "object"
+    },
+    "x-any": { "properties": {}, "type": "object" },
+    "APIKey": {
+      "description": "Persistent API Keys for Developers",
+      "properties": {
+        "id": { "maxLength": 24, "type": "string" },
+        "secret": { "maxLength": 48, "type": "string" },
+        "name": { "maxLength": 64, "type": "string" },
+        "nonce": { "format": "int64", "default": 0, "type": "number" },
+        "cidr": { "maxLength": 18, "type": "string" },
+        "permissions": {
+          "default": [],
+          "type": "array",
+          "items": { "$ref": "#/definitions/x-any" }
+        },
+        "enabled": { "default": false, "type": "boolean" },
+        "userId": { "format": "int32", "type": "number" },
+        "created": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "secret", "name", "nonce", "userId"],
+      "type": "object"
+    },
+    "Chat": {
+      "description": "Trollbox Data",
+      "properties": {
+        "id": { "format": "int32", "type": "number" },
+        "date": { "type": "string", "format": "date-time" },
+        "user": { "type": "string" },
+        "message": { "type": "string" },
+        "html": { "type": "string" },
+        "fromBot": { "default": false, "type": "boolean" },
+        "channelID": { "type": "number", "format": "double" }
+      },
+      "required": ["date", "user", "message", "html"],
+      "type": "object"
+    },
+    "ChatChannel": {
+      "properties": {
+        "id": { "format": "int32", "type": "number" },
+        "name": { "type": "string" }
+      },
+      "required": ["name"],
+      "type": "object"
+    },
+    "ConnectedUsers": {
+      "properties": {
+        "users": { "format": "int32", "type": "number" },
+        "bots": { "format": "int32", "type": "number" }
+      },
+      "type": "object"
+    },
+    "Execution": {
+      "description": "Raw Order and Balance Data",
+      "properties": {
+        "execID": { "format": "guid", "type": "string" },
+        "orderID": { "format": "guid", "type": "string" },
+        "clOrdID": { "type": "string" },
+        "clOrdLinkID": { "type": "string" },
+        "account": { "format": "int64", "type": "number" },
+        "symbol": { "type": "string" },
+        "side": { "type": "string" },
+        "lastQty": { "format": "int64", "type": "number" },
+        "lastPx": { "format": "double", "type": "number" },
+        "underlyingLastPx": { "format": "double", "type": "number" },
+        "lastMkt": { "type": "string" },
+        "lastLiquidityInd": { "type": "string" },
+        "simpleOrderQty": { "format": "double", "type": "number" },
+        "orderQty": { "format": "int64", "type": "number" },
+        "price": { "format": "double", "type": "number" },
+        "displayQty": { "format": "int64", "type": "number" },
+        "stopPx": { "format": "double", "type": "number" },
+        "pegOffsetValue": { "format": "double", "type": "number" },
+        "pegPriceType": { "type": "string" },
+        "currency": { "type": "string" },
+        "settlCurrency": { "type": "string" },
+        "execType": { "type": "string" },
+        "ordType": { "type": "string" },
+        "timeInForce": { "type": "string" },
+        "execInst": { "type": "string" },
+        "contingencyType": { "type": "string" },
+        "exDestination": { "type": "string" },
+        "ordStatus": { "type": "string" },
+        "triggered": { "type": "string" },
+        "workingIndicator": { "type": "boolean" },
+        "ordRejReason": { "type": "string" },
+        "simpleLeavesQty": { "format": "double", "type": "number" },
+        "leavesQty": { "format": "int64", "type": "number" },
+        "simpleCumQty": { "format": "double", "type": "number" },
+        "cumQty": { "format": "int64", "type": "number" },
+        "avgPx": { "format": "double", "type": "number" },
+        "commission": { "format": "double", "type": "number" },
+        "tradePublishIndicator": { "type": "string" },
+        "multiLegReportingType": { "type": "string" },
+        "text": { "type": "string" },
+        "trdMatchID": { "format": "guid", "type": "string" },
+        "execCost": { "format": "int64", "type": "number" },
+        "execComm": { "format": "int64", "type": "number" },
+        "homeNotional": { "format": "double", "type": "number" },
+        "foreignNotional": { "format": "double", "type": "number" },
+        "transactTime": { "format": "date-time", "type": "string" },
+        "timestamp": { "format": "date-time", "type": "string" }
+      },
+      "required": ["execID"],
+      "type": "object"
+    },
+    "Funding": {
+      "description": "Swap Funding History",
+      "properties": {
+        "timestamp": { "format": "date-time", "type": "string" },
+        "symbol": { "type": "string" },
+        "fundingInterval": { "format": "date-time", "type": "string" },
+        "fundingRate": { "format": "double", "type": "number" },
+        "fundingRateDaily": { "format": "double", "type": "number" }
+      },
+      "required": ["timestamp", "symbol"],
+      "type": "object"
+    },
+    "Instrument": {
+      "description": "Tradeable Contracts, Indices, and History",
+      "properties": {
+        "symbol": { "type": "string" },
+        "rootSymbol": { "type": "string" },
+        "state": { "type": "string" },
+        "typ": { "type": "string" },
+        "listing": { "format": "date-time", "type": "string" },
+        "front": { "format": "date-time", "type": "string" },
+        "expiry": { "format": "date-time", "type": "string" },
+        "settle": { "format": "date-time", "type": "string" },
+        "relistInterval": { "format": "date-time", "type": "string" },
+        "inverseLeg": { "type": "string" },
+        "sellLeg": { "type": "string" },
+        "buyLeg": { "type": "string" },
+        "optionStrikePcnt": { "format": "double", "type": "number" },
+        "optionStrikeRound": { "format": "double", "type": "number" },
+        "optionStrikePrice": { "format": "double", "type": "number" },
+        "optionMultiplier": { "format": "double", "type": "number" },
+        "positionCurrency": { "type": "string" },
+        "underlying": { "type": "string" },
+        "quoteCurrency": { "type": "string" },
+        "underlyingSymbol": { "type": "string" },
+        "reference": { "type": "string" },
+        "referenceSymbol": { "type": "string" },
+        "calcInterval": { "format": "date-time", "type": "string" },
+        "publishInterval": { "format": "date-time", "type": "string" },
+        "publishTime": { "format": "date-time", "type": "string" },
+        "maxOrderQty": { "format": "int64", "type": "number" },
+        "maxPrice": { "format": "double", "type": "number" },
+        "lotSize": { "format": "int64", "type": "number" },
+        "tickSize": { "format": "double", "type": "number" },
+        "multiplier": { "format": "int64", "type": "number" },
+        "settlCurrency": { "type": "string" },
+        "underlyingToPositionMultiplier": {
+          "format": "int64",
+          "type": "number"
+        },
+        "underlyingToSettleMultiplier": { "format": "int64", "type": "number" },
+        "quoteToSettleMultiplier": { "format": "int64", "type": "number" },
+        "isQuanto": { "type": "boolean" },
+        "isInverse": { "type": "boolean" },
+        "initMargin": { "format": "double", "type": "number" },
+        "maintMargin": { "format": "double", "type": "number" },
+        "riskLimit": { "format": "int64", "type": "number" },
+        "riskStep": { "format": "int64", "type": "number" },
+        "limit": { "format": "double", "type": "number" },
+        "capped": { "type": "boolean" },
+        "taxed": { "type": "boolean" },
+        "deleverage": { "type": "boolean" },
+        "makerFee": { "format": "double", "type": "number" },
+        "takerFee": { "format": "double", "type": "number" },
+        "settlementFee": { "format": "double", "type": "number" },
+        "insuranceFee": { "format": "double", "type": "number" },
+        "fundingBaseSymbol": { "type": "string" },
+        "fundingQuoteSymbol": { "type": "string" },
+        "fundingPremiumSymbol": { "type": "string" },
+        "fundingTimestamp": { "format": "date-time", "type": "string" },
+        "fundingInterval": { "format": "date-time", "type": "string" },
+        "fundingRate": { "format": "double", "type": "number" },
+        "indicativeFundingRate": { "format": "double", "type": "number" },
+        "rebalanceTimestamp": { "format": "date-time", "type": "string" },
+        "rebalanceInterval": { "format": "date-time", "type": "string" },
+        "openingTimestamp": { "format": "date-time", "type": "string" },
+        "closingTimestamp": { "format": "date-time", "type": "string" },
+        "sessionInterval": { "format": "date-time", "type": "string" },
+        "prevClosePrice": { "format": "double", "type": "number" },
+        "limitDownPrice": { "format": "double", "type": "number" },
+        "limitUpPrice": { "format": "double", "type": "number" },
+        "bankruptLimitDownPrice": { "format": "double", "type": "number" },
+        "bankruptLimitUpPrice": { "format": "double", "type": "number" },
+        "prevTotalVolume": { "format": "int64", "type": "number" },
+        "totalVolume": { "format": "int64", "type": "number" },
+        "volume": { "format": "int64", "type": "number" },
+        "volume24h": { "format": "int64", "type": "number" },
+        "prevTotalTurnover": { "format": "int64", "type": "number" },
+        "totalTurnover": { "format": "int64", "type": "number" },
+        "turnover": { "format": "int64", "type": "number" },
+        "turnover24h": { "format": "int64", "type": "number" },
+        "homeNotional24h": { "format": "double", "type": "number" },
+        "foreignNotional24h": { "format": "double", "type": "number" },
+        "prevPrice24h": { "format": "double", "type": "number" },
+        "vwap": { "format": "double", "type": "number" },
+        "highPrice": { "format": "double", "type": "number" },
+        "lowPrice": { "format": "double", "type": "number" },
+        "lastPrice": { "format": "double", "type": "number" },
+        "lastPriceProtected": { "format": "double", "type": "number" },
+        "lastTickDirection": { "type": "string" },
+        "lastChangePcnt": { "format": "double", "type": "number" },
+        "bidPrice": { "format": "double", "type": "number" },
+        "midPrice": { "format": "double", "type": "number" },
+        "askPrice": { "format": "double", "type": "number" },
+        "impactBidPrice": { "format": "double", "type": "number" },
+        "impactMidPrice": { "format": "double", "type": "number" },
+        "impactAskPrice": { "format": "double", "type": "number" },
+        "hasLiquidity": { "type": "boolean" },
+        "openInterest": { "format": "int64", "type": "number" },
+        "openValue": { "format": "int64", "type": "number" },
+        "fairMethod": { "type": "string" },
+        "fairBasisRate": { "format": "double", "type": "number" },
+        "fairBasis": { "format": "double", "type": "number" },
+        "fairPrice": { "format": "double", "type": "number" },
+        "markMethod": { "type": "string" },
+        "markPrice": { "format": "double", "type": "number" },
+        "indicativeTaxRate": { "format": "double", "type": "number" },
+        "indicativeSettlePrice": { "format": "double", "type": "number" },
+        "optionUnderlyingPrice": { "format": "double", "type": "number" },
+        "settledPrice": { "format": "double", "type": "number" },
+        "timestamp": { "format": "date-time", "type": "string" }
+      },
+      "required": ["symbol"],
+      "type": "object"
+    },
+    "InstrumentInterval": {
+      "properties": {
+        "intervals": { "type": "array", "items": { "type": "string" } },
+        "symbols": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["intervals", "symbols"],
+      "type": "object"
+    },
+    "IndexComposite": {
+      "properties": {
+        "timestamp": { "type": "string", "format": "date-time" },
+        "symbol": { "type": "string" },
+        "indexSymbol": { "type": "string" },
+        "reference": { "type": "string" },
+        "lastPrice": { "type": "number", "format": "double" },
+        "weight": { "type": "number", "format": "double" },
+        "logged": { "type": "string", "format": "date-time" }
+      },
+      "required": ["timestamp"],
+      "type": "object"
+    },
+    "Insurance": {
+      "description": "Insurance Fund Data",
+      "properties": {
+        "currency": { "type": "string" },
+        "timestamp": { "format": "date-time", "type": "string" },
+        "walletBalance": { "format": "int64", "type": "number" }
+      },
+      "required": ["currency", "timestamp"],
+      "type": "object"
+    },
+    "Leaderboard": {
+      "description": "Information on Top Users",
+      "properties": {
+        "name": { "type": "string" },
+        "isRealName": { "type": "boolean" },
+        "profit": { "type": "number", "format": "double" }
+      },
+      "required": ["name"],
+      "type": "object"
+    },
+    "Liquidation": {
+      "description": "Active Liquidations",
+      "properties": {
+        "orderID": { "format": "guid", "type": "string" },
+        "symbol": { "type": "string" },
+        "side": { "type": "string" },
+        "price": { "format": "double", "type": "number" },
+        "leavesQty": { "format": "int64", "type": "number" }
+      },
+      "required": ["orderID"],
+      "type": "object"
+    },
+    "GlobalNotification": {
+      "description": "Account Notifications",
+      "properties": {
+        "id": { "format": "int32", "type": "number" },
+        "date": { "type": "string", "format": "date-time" },
+        "title": { "type": "string" },
+        "body": { "type": "string" },
+        "ttl": { "format": "int32", "type": "number" },
+        "type": { "enum": ["success", "error", "info"], "type": "string" },
+        "closable": { "default": true, "type": "boolean" },
+        "persist": { "default": true, "type": "boolean" },
+        "waitForVisibility": { "default": true, "type": "boolean" },
+        "sound": { "type": "string" }
+      },
+      "required": ["date", "title", "body", "ttl"],
+      "type": "object"
+    },
+    "Order": {
+      "description": "Placement, Cancellation, Amending, and History",
+      "properties": {
+        "orderID": { "format": "guid", "type": "string" },
+        "clOrdID": { "type": "string" },
+        "clOrdLinkID": { "type": "string" },
+        "account": { "format": "int64", "type": "number" },
+        "symbol": { "type": "string" },
+        "side": { "type": "string" },
+        "simpleOrderQty": { "format": "double", "type": "number" },
+        "orderQty": { "format": "int64", "type": "number" },
+        "price": { "format": "double", "type": "number" },
+        "displayQty": { "format": "int64", "type": "number" },
+        "stopPx": { "format": "double", "type": "number" },
+        "pegOffsetValue": { "format": "double", "type": "number" },
+        "pegPriceType": { "type": "string" },
+        "currency": { "type": "string" },
+        "settlCurrency": { "type": "string" },
+        "ordType": { "type": "string" },
+        "timeInForce": { "type": "string" },
+        "execInst": { "type": "string" },
+        "contingencyType": { "type": "string" },
+        "exDestination": { "type": "string" },
+        "ordStatus": { "type": "string" },
+        "triggered": { "type": "string" },
+        "workingIndicator": { "type": "boolean" },
+        "ordRejReason": { "type": "string" },
+        "simpleLeavesQty": { "format": "double", "type": "number" },
+        "leavesQty": { "format": "int64", "type": "number" },
+        "simpleCumQty": { "format": "double", "type": "number" },
+        "cumQty": { "format": "int64", "type": "number" },
+        "avgPx": { "format": "double", "type": "number" },
+        "multiLegReportingType": { "type": "string" },
+        "text": { "type": "string" },
+        "transactTime": { "format": "date-time", "type": "string" },
+        "timestamp": { "format": "date-time", "type": "string" }
+      },
+      "required": ["orderID"],
+      "type": "object"
+    },
+    "OrderBookL2": {
+      "properties": {
+        "symbol": { "type": "string" },
+        "id": { "format": "int64", "type": "number" },
+        "side": { "type": "string" },
+        "size": { "format": "int64", "type": "number" },
+        "price": { "format": "double", "type": "number" }
+      },
+      "required": ["symbol", "id", "side"],
+      "type": "object"
+    },
+    "Position": {
+      "description": "Summary of Open and Closed Positions",
+      "properties": {
+        "account": { "format": "int64", "default": 0, "type": "number" },
+        "symbol": { "type": "string" },
+        "currency": { "type": "string" },
+        "underlying": { "type": "string" },
+        "quoteCurrency": { "type": "string" },
+        "commission": { "format": "double", "default": 0, "type": "number" },
+        "initMarginReq": { "format": "double", "default": 0, "type": "number" },
+        "maintMarginReq": {
+          "format": "double",
+          "default": 0,
+          "type": "number"
+        },
+        "riskLimit": { "format": "int64", "default": 0, "type": "number" },
+        "leverage": { "format": "double", "default": 0, "type": "number" },
+        "crossMargin": { "type": "boolean" },
+        "deleveragePercentile": {
+          "format": "double",
+          "default": 0,
+          "type": "number"
+        },
+        "rebalancedPnl": { "format": "int64", "default": 0, "type": "number" },
+        "prevRealisedPnl": {
+          "format": "int64",
+          "default": 0,
+          "type": "number"
+        },
+        "prevUnrealisedPnl": {
+          "format": "int64",
+          "default": 0,
+          "type": "number"
+        },
+        "prevClosePrice": {
+          "format": "double",
+          "default": 0,
+          "type": "number"
+        },
+        "openingTimestamp": { "format": "date-time", "type": "string" },
+        "openingQty": { "format": "int64", "default": 0, "type": "number" },
+        "openingCost": { "format": "int64", "default": 0, "type": "number" },
+        "openingComm": { "format": "int64", "default": 0, "type": "number" },
+        "openOrderBuyQty": {
+          "format": "int64",
+          "default": 0,
+          "type": "number"
+        },
+        "openOrderBuyCost": {
+          "format": "int64",
+          "default": 0,
+          "type": "number"
+        },
+        "openOrderBuyPremium": {
+          "format": "int64",
+          "default": 0,
+          "type": "number"
+        },
+        "openOrderSellQty": {
+          "format": "int64",
+          "default": 0,
+          "type": "number"
+        },
+        "openOrderSellCost": {
+          "format": "int64",
+          "default": 0,
+          "type": "number"
+        },
+        "openOrderSellPremium": {
+          "format": "int64",
+          "default": 0,
+          "type": "number"
+        },
+        "execBuyQty": { "format": "int64", "default": 0, "type": "number" },
+        "execBuyCost": { "format": "int64", "default": 0, "type": "number" },
+        "execSellQty": { "format": "int64", "default": 0, "type": "number" },
+        "execSellCost": { "format": "int64", "default": 0, "type": "number" },
+        "execQty": { "format": "int64", "default": 0, "type": "number" },
+        "execCost": { "format": "int64", "default": 0, "type": "number" },
+        "execComm": { "format": "int64", "default": 0, "type": "number" },
+        "currentTimestamp": { "format": "date-time", "type": "string" },
+        "currentQty": { "format": "int64", "default": 0, "type": "number" },
+        "currentCost": { "format": "int64", "default": 0, "type": "number" },
+        "currentComm": { "format": "int64", "default": 0, "type": "number" },
+        "realisedCost": { "format": "int64", "default": 0, "type": "number" },
+        "unrealisedCost": { "format": "int64", "default": 0, "type": "number" },
+        "grossOpenCost": { "format": "int64", "default": 0, "type": "number" },
+        "grossOpenPremium": {
+          "format": "int64",
+          "default": 0,
+          "type": "number"
+        },
+        "grossExecCost": { "format": "int64", "default": 0, "type": "number" },
+        "isOpen": { "type": "boolean" },
+        "markPrice": { "format": "double", "default": 0, "type": "number" },
+        "markValue": { "format": "int64", "default": 0, "type": "number" },
+        "riskValue": { "format": "int64", "default": 0, "type": "number" },
+        "homeNotional": { "format": "double", "default": 0, "type": "number" },
+        "foreignNotional": {
+          "format": "double",
+          "default": 0,
+          "type": "number"
+        },
+        "posState": { "type": "string" },
+        "posCost": { "format": "int64", "default": 0, "type": "number" },
+        "posCost2": { "format": "int64", "default": 0, "type": "number" },
+        "posCross": { "format": "int64", "default": 0, "type": "number" },
+        "posInit": { "format": "int64", "default": 0, "type": "number" },
+        "posComm": { "format": "int64", "default": 0, "type": "number" },
+        "posLoss": { "format": "int64", "default": 0, "type": "number" },
+        "posMargin": { "format": "int64", "default": 0, "type": "number" },
+        "posMaint": { "format": "int64", "default": 0, "type": "number" },
+        "posAllowance": { "format": "int64", "default": 0, "type": "number" },
+        "taxableMargin": { "format": "int64", "default": 0, "type": "number" },
+        "initMargin": { "format": "int64", "default": 0, "type": "number" },
+        "maintMargin": { "format": "int64", "default": 0, "type": "number" },
+        "sessionMargin": { "format": "int64", "default": 0, "type": "number" },
+        "targetExcessMargin": {
+          "format": "int64",
+          "default": 0,
+          "type": "number"
+        },
+        "varMargin": { "format": "int64", "default": 0, "type": "number" },
+        "realisedGrossPnl": {
+          "format": "int64",
+          "default": 0,
+          "type": "number"
+        },
+        "realisedTax": { "format": "int64", "default": 0, "type": "number" },
+        "realisedPnl": { "format": "int64", "default": 0, "type": "number" },
+        "unrealisedGrossPnl": {
+          "format": "int64",
+          "default": 0,
+          "type": "number"
+        },
+        "longBankrupt": { "format": "int64", "default": 0, "type": "number" },
+        "shortBankrupt": { "format": "int64", "default": 0, "type": "number" },
+        "taxBase": { "format": "int64", "default": 0, "type": "number" },
+        "indicativeTaxRate": {
+          "format": "double",
+          "default": 0,
+          "type": "number"
+        },
+        "indicativeTax": { "format": "int64", "default": 0, "type": "number" },
+        "unrealisedTax": { "format": "int64", "default": 0, "type": "number" },
+        "unrealisedPnl": { "format": "int64", "default": 0, "type": "number" },
+        "unrealisedPnlPcnt": {
+          "format": "double",
+          "default": 0,
+          "type": "number"
+        },
+        "unrealisedRoePcnt": {
+          "format": "double",
+          "default": 0,
+          "type": "number"
+        },
+        "simpleQty": { "format": "double", "default": 0, "type": "number" },
+        "simpleCost": { "format": "double", "default": 0, "type": "number" },
+        "simpleValue": { "format": "double", "default": 0, "type": "number" },
+        "simplePnl": { "format": "double", "default": 0, "type": "number" },
+        "simplePnlPcnt": { "format": "double", "default": 0, "type": "number" },
+        "avgCostPrice": { "format": "double", "default": 0, "type": "number" },
+        "avgEntryPrice": { "format": "double", "default": 0, "type": "number" },
+        "breakEvenPrice": {
+          "format": "double",
+          "default": 0,
+          "type": "number"
+        },
+        "marginCallPrice": {
+          "format": "double",
+          "default": 0,
+          "type": "number"
+        },
+        "liquidationPrice": {
+          "format": "double",
+          "default": 0,
+          "type": "number"
+        },
+        "bankruptPrice": { "format": "double", "default": 0, "type": "number" },
+        "timestamp": { "format": "date-time", "type": "string" },
+        "lastPrice": { "format": "double", "default": 0, "type": "number" },
+        "lastValue": { "format": "int64", "default": 0, "type": "number" }
+      },
+      "required": ["account", "symbol", "currency"],
+      "type": "object"
+    },
+    "Quote": {
+      "description": "Best Bid/Offer Snapshots & Historical Bins",
+      "properties": {
+        "timestamp": { "format": "date-time", "type": "string" },
+        "symbol": { "type": "string" },
+        "bidSize": { "format": "int64", "type": "number" },
+        "bidPrice": { "format": "double", "type": "number" },
+        "askPrice": { "format": "double", "type": "number" },
+        "askSize": { "format": "int64", "type": "number" }
+      },
+      "required": ["timestamp", "symbol"],
+      "type": "object"
+    },
+    "Settlement": {
+      "description": "Historical Settlement Data",
+      "properties": {
+        "timestamp": { "format": "date-time", "type": "string" },
+        "symbol": { "type": "string" },
+        "settlementType": { "type": "string" },
+        "settledPrice": { "format": "double", "type": "number" },
+        "optionStrikePrice": { "format": "double", "type": "number" },
+        "optionUnderlyingPrice": { "format": "double", "type": "number" },
+        "bankrupt": { "format": "int64", "type": "number" },
+        "taxBase": { "format": "int64", "type": "number" },
+        "taxRate": { "format": "double", "type": "number" }
+      },
+      "required": ["timestamp", "symbol"],
+      "type": "object"
+    },
+    "Stats": {
+      "description": "Exchange Statistics",
+      "properties": {
+        "rootSymbol": { "type": "string" },
+        "currency": { "type": "string" },
+        "volume24h": { "format": "int64", "type": "number" },
+        "turnover24h": { "format": "int64", "type": "number" },
+        "openInterest": { "format": "int64", "type": "number" },
+        "openValue": { "format": "int64", "type": "number" }
+      },
+      "required": ["rootSymbol"],
+      "type": "object"
+    },
+    "StatsHistory": {
+      "properties": {
+        "date": { "type": "string", "format": "date-time" },
+        "rootSymbol": { "type": "string" },
+        "currency": { "type": "string" },
+        "volume": { "format": "int64", "type": "number" },
+        "turnover": { "format": "int64", "type": "number" }
+      },
+      "required": ["date", "rootSymbol"],
+      "type": "object"
+    },
+    "StatsUSD": {
+      "properties": {
+        "rootSymbol": { "type": "string" },
+        "currency": { "type": "string" },
+        "turnover24h": { "format": "int64", "type": "number" },
+        "turnover30d": { "format": "int64", "type": "number" },
+        "turnover365d": { "format": "int64", "type": "number" },
+        "turnover": { "format": "int64", "type": "number" }
+      },
+      "required": ["rootSymbol"],
+      "type": "object"
+    },
+    "Trade": {
+      "description": "Individual & Bucketed Trades",
+      "properties": {
+        "timestamp": { "format": "date-time", "type": "string" },
+        "symbol": { "type": "string" },
+        "side": { "type": "string" },
+        "size": { "format": "int64", "type": "number" },
+        "price": { "format": "double", "type": "number" },
+        "tickDirection": { "type": "string" },
+        "trdMatchID": { "format": "guid", "type": "string" },
+        "grossValue": { "format": "int64", "type": "number" },
+        "homeNotional": { "format": "double", "type": "number" },
+        "foreignNotional": { "format": "double", "type": "number" }
+      },
+      "required": ["timestamp", "symbol"],
+      "type": "object"
+    },
+    "TradeBin": {
+      "properties": {
+        "timestamp": { "format": "date-time", "type": "string" },
+        "symbol": { "type": "string" },
+        "open": { "format": "double", "type": "number" },
+        "high": { "format": "double", "type": "number" },
+        "low": { "format": "double", "type": "number" },
+        "close": { "format": "double", "type": "number" },
+        "trades": { "format": "int64", "type": "number" },
+        "volume": { "format": "int64", "type": "number" },
+        "vwap": { "format": "double", "type": "number" },
+        "lastSize": { "format": "int64", "type": "number" },
+        "turnover": { "format": "int64", "type": "number" },
+        "homeNotional": { "format": "double", "type": "number" },
+        "foreignNotional": { "format": "double", "type": "number" }
+      },
+      "required": ["timestamp", "symbol"],
+      "type": "object"
+    },
+    "Wallet": {
+      "properties": {
+        "account": { "format": "int64", "type": "number" },
+        "currency": { "type": "string" },
+        "prevDeposited": { "format": "int64", "type": "number" },
+        "prevWithdrawn": { "format": "int64", "type": "number" },
+        "prevTransferIn": { "format": "int64", "type": "number" },
+        "prevTransferOut": { "format": "int64", "type": "number" },
+        "prevAmount": { "format": "int64", "type": "number" },
+        "prevTimestamp": { "format": "date-time", "type": "string" },
+        "deltaDeposited": { "format": "int64", "type": "number" },
+        "deltaWithdrawn": { "format": "int64", "type": "number" },
+        "deltaTransferIn": { "format": "int64", "type": "number" },
+        "deltaTransferOut": { "format": "int64", "type": "number" },
+        "deltaAmount": { "format": "int64", "type": "number" },
+        "deposited": { "format": "int64", "type": "number" },
+        "withdrawn": { "format": "int64", "type": "number" },
+        "transferIn": { "format": "int64", "type": "number" },
+        "transferOut": { "format": "int64", "type": "number" },
+        "amount": { "format": "int64", "type": "number" },
+        "pendingCredit": { "format": "int64", "type": "number" },
+        "pendingDebit": { "format": "int64", "type": "number" },
+        "confirmedDebit": { "format": "int64", "type": "number" },
+        "timestamp": { "format": "date-time", "type": "string" },
+        "addr": { "type": "string" },
+        "script": { "type": "string" },
+        "withdrawalLock": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["account", "currency"],
+      "type": "object"
+    },
+    "Transaction": {
+      "properties": {
+        "transactID": { "format": "guid", "type": "string" },
+        "account": { "format": "int64", "type": "number" },
+        "currency": { "type": "string" },
+        "transactType": { "type": "string" },
+        "amount": { "format": "int64", "type": "number" },
+        "fee": { "format": "int64", "type": "number" },
+        "transactStatus": { "type": "string" },
+        "address": { "type": "string" },
+        "tx": { "type": "string" },
+        "text": { "type": "string" },
+        "transactTime": { "format": "date-time", "type": "string" },
+        "timestamp": { "format": "date-time", "type": "string" }
+      },
+      "required": ["transactID"],
+      "type": "object"
+    },
+    "AccessToken": {
+      "properties": {
+        "id": { "type": "string" },
+        "ttl": {
+          "default": 1209600,
+          "description": "time to live in seconds (2 weeks by default)",
+          "type": "number",
+          "format": "double"
+        },
+        "created": { "type": "string", "format": "date-time" },
+        "userId": { "type": "number", "format": "double" }
+      },
+      "required": ["id"],
+      "type": "object"
+    },
+    "Affiliate": {
+      "properties": {
+        "account": { "format": "int64", "type": "number" },
+        "currency": { "type": "string" },
+        "prevPayout": { "format": "int64", "type": "number" },
+        "prevTurnover": { "format": "int64", "type": "number" },
+        "prevComm": { "format": "int64", "type": "number" },
+        "prevTimestamp": { "format": "date-time", "type": "string" },
+        "execTurnover": { "format": "int64", "type": "number" },
+        "execComm": { "format": "int64", "type": "number" },
+        "totalReferrals": { "format": "int64", "type": "number" },
+        "totalTurnover": { "format": "int64", "type": "number" },
+        "totalComm": { "format": "int64", "type": "number" },
+        "payoutPcnt": { "format": "double", "type": "number" },
+        "pendingPayout": { "format": "int64", "type": "number" },
+        "timestamp": { "format": "date-time", "type": "string" },
+        "referrerAccount": { "type": "number", "format": "double" },
+        "referralDiscount": { "type": "number", "format": "double" },
+        "affiliatePayout": { "type": "number", "format": "double" }
+      },
+      "required": ["account", "currency"],
+      "type": "object"
+    },
+    "User": {
+      "description": "Account Operations",
+      "properties": {
+        "id": { "format": "int32", "type": "number" },
+        "ownerId": { "format": "int32", "type": "number" },
+        "firstname": { "type": "string" },
+        "lastname": { "type": "string" },
+        "username": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "created": { "type": "string", "format": "date-time" },
+        "lastUpdated": { "type": "string", "format": "date-time" },
+        "preferences": {
+          "default": null,
+          "$ref": "#/definitions/UserPreferences"
+        },
+        "restrictedEngineFields": { "default": {}, "type": "object" },
+        "TFAEnabled": { "type": "string" },
+        "affiliateID": { "maxLength": 6, "type": "string" },
+        "pgpPubKey": { "maxLength": 16384, "type": "string" },
+        "country": { "maxLength": 3, "type": "string" },
+        "geoipCountry": { "maxLength": 2, "type": "string" },
+        "geoipRegion": { "maxLength": 2, "type": "string" },
+        "typ": { "type": "string" }
+      },
+      "required": ["username", "email"],
+      "type": "object"
+    },
+    "UserCommissionsBySymbol": {
+      "properties": {
+        "__symbol__": { "$ref": "#/definitions/UserCommission" }
+      },
+      "type": "object",
+      "additionalProperties": { "$ref": "#/definitions/UserCommission" }
+    },
+    "Margin": {
+      "properties": {
+        "account": { "format": "int64", "default": 0, "type": "number" },
+        "currency": { "type": "string" },
+        "riskLimit": { "format": "int64", "default": 0, "type": "number" },
+        "prevState": { "type": "string" },
+        "state": { "type": "string" },
+        "action": { "type": "string" },
+        "amount": { "format": "int64", "default": 0, "type": "number" },
+        "pendingCredit": { "format": "int64", "default": 0, "type": "number" },
+        "pendingDebit": { "format": "int64", "default": 0, "type": "number" },
+        "confirmedDebit": { "format": "int64", "default": 0, "type": "number" },
+        "prevRealisedPnl": {
+          "format": "int64",
+          "default": 0,
+          "type": "number"
+        },
+        "prevUnrealisedPnl": {
+          "format": "int64",
+          "default": 0,
+          "type": "number"
+        },
+        "grossComm": { "format": "int64", "default": 0, "type": "number" },
+        "grossOpenCost": { "format": "int64", "default": 0, "type": "number" },
+        "grossOpenPremium": {
+          "format": "int64",
+          "default": 0,
+          "type": "number"
+        },
+        "grossExecCost": { "format": "int64", "default": 0, "type": "number" },
+        "grossMarkValue": { "format": "int64", "default": 0, "type": "number" },
+        "riskValue": { "format": "int64", "default": 0, "type": "number" },
+        "taxableMargin": { "format": "int64", "default": 0, "type": "number" },
+        "initMargin": { "format": "int64", "default": 0, "type": "number" },
+        "maintMargin": { "format": "int64", "default": 0, "type": "number" },
+        "sessionMargin": { "format": "int64", "default": 0, "type": "number" },
+        "targetExcessMargin": {
+          "format": "int64",
+          "default": 0,
+          "type": "number"
+        },
+        "varMargin": { "format": "int64", "default": 0, "type": "number" },
+        "realisedPnl": { "format": "int64", "default": 0, "type": "number" },
+        "unrealisedPnl": { "format": "int64", "default": 0, "type": "number" },
+        "indicativeTax": { "format": "int64", "default": 0, "type": "number" },
+        "unrealisedProfit": {
+          "format": "int64",
+          "default": 0,
+          "type": "number"
+        },
+        "syntheticMargin": {
+          "format": "int64",
+          "default": 0,
+          "type": "number"
+        },
+        "walletBalance": { "format": "int64", "default": 0, "type": "number" },
+        "marginBalance": { "format": "int64", "default": 0, "type": "number" },
+        "marginBalancePcnt": {
+          "format": "double",
+          "default": 0,
+          "type": "number"
+        },
+        "marginLeverage": {
+          "format": "double",
+          "default": 0,
+          "type": "number"
+        },
+        "marginUsedPcnt": {
+          "format": "double",
+          "default": 0,
+          "type": "number"
+        },
+        "excessMargin": { "format": "int64", "default": 0, "type": "number" },
+        "excessMarginPcnt": {
+          "format": "double",
+          "default": 0,
+          "type": "number"
+        },
+        "availableMargin": {
+          "format": "int64",
+          "default": 0,
+          "type": "number"
+        },
+        "withdrawableMargin": {
+          "format": "int64",
+          "default": 0,
+          "type": "number"
+        },
+        "timestamp": { "format": "date-time", "type": "string" },
+        "grossLastValue": { "format": "int64", "default": 0, "type": "number" },
+        "commission": { "format": "double", "default": 0, "type": "number" }
+      },
+      "required": ["account", "currency"],
+      "type": "object"
+    },
+    "CommunicationToken": {
+      "description": "User communication SNS token",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "format": "int32", "type": "number" },
+        "deviceToken": { "type": "string" },
+        "channel": { "type": "string" }
+      },
+      "required": ["id", "userId", "deviceToken", "channel"],
+      "type": "object"
+    },
+    "UserEvent": {
+      "description": "User Events for auditing",
+      "properties": {
+        "id": { "type": "number", "format": "double" },
+        "type": {
+          "enum": [
+            "apiKeyCreated",
+            "deleverageExecution",
+            "depositConfirmed",
+            "depositPending",
+            "banZeroVolumeApiUser",
+            "liquidationOrderPlaced",
+            "login",
+            "pgpMaskedEmail",
+            "pgpTestEmail",
+            "passwordChanged",
+            "positionStateLiquidated",
+            "positionStateWarning",
+            "resetPasswordConfirmed",
+            "resetPasswordRequest",
+            "transferCanceled",
+            "transferCompleted",
+            "transferReceived",
+            "transferRequested",
+            "twoFactorDisabled",
+            "twoFactorEnabled",
+            "withdrawalCanceled",
+            "withdrawalCompleted",
+            "withdrawalConfirmed",
+            "withdrawalRequested",
+            "verify"
+          ],
+          "type": "string"
+        },
+        "eventType": {
+          "enum": [
+            "apiKeyCreated",
+            "deleverageExecution",
+            "depositConfirmed",
+            "depositPending",
+            "banZeroVolumeApiUser",
+            "liquidationOrderPlaced",
+            "login",
+            "pgpMaskedEmail",
+            "pgpTestEmail",
+            "passwordChanged",
+            "positionStateLiquidated",
+            "positionStateWarning",
+            "resetPasswordConfirmed",
+            "resetPasswordRequest",
+            "transferCanceled",
+            "transferCompleted",
+            "transferReceived",
+            "transferRequested",
+            "twoFactorDisabled",
+            "twoFactorEnabled",
+            "withdrawalCanceled",
+            "withdrawalCompleted",
+            "withdrawalConfirmed",
+            "withdrawalRequested",
+            "verify"
+          ],
+          "type": "string"
+        },
+        "status": { "enum": ["success", "failure"], "type": "string" },
+        "eventStatus": { "enum": ["success", "failure"], "type": "string" },
+        "userId": { "type": "number", "format": "double" },
+        "createdById": { "type": "number", "format": "double" },
+        "ip": { "type": "string" },
+        "geoipCountry": { "maxLength": 2, "type": "string" },
+        "geoipRegion": { "maxLength": 3, "type": "string" },
+        "geoipSubRegion": { "maxLength": 3, "type": "string" },
+        "eventMeta": { "type": "object" },
+        "created": { "type": "string", "format": "date-time" }
+      },
+      "required": ["type", "status", "userId", "createdById", "created"],
+      "type": "object"
+    },
+    "UserPreferences": {
+      "properties": {
+        "alertOnLiquidations": { "type": "boolean" },
+        "animationsEnabled": { "type": "boolean" },
+        "announcementsLastSeen": { "type": "string", "format": "date-time" },
+        "chatChannelID": { "type": "number", "format": "double" },
+        "colorTheme": { "type": "string" },
+        "currency": { "type": "string" },
+        "debug": { "type": "boolean" },
+        "disableEmails": { "type": "array", "items": { "type": "string" } },
+        "disablePush": { "type": "array", "items": { "type": "string" } },
+        "hideConfirmDialogs": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "hideConnectionModal": { "type": "boolean" },
+        "hideFromLeaderboard": { "default": false, "type": "boolean" },
+        "hideNameFromLeaderboard": { "default": true, "type": "boolean" },
+        "hideNotifications": { "type": "array", "items": { "type": "string" } },
+        "locale": { "default": "en-US", "type": "string" },
+        "msgsSeen": { "type": "array", "items": { "type": "string" } },
+        "orderBookBinning": { "type": "object" },
+        "orderBookType": { "type": "string" },
+        "orderClearImmediate": { "default": false, "type": "boolean" },
+        "orderControlsPlusMinus": { "type": "boolean" },
+        "showLocaleNumbers": { "default": true, "type": "boolean" },
+        "sounds": { "type": "array", "items": { "type": "string" } },
+        "strictIPCheck": { "default": false, "type": "boolean" },
+        "strictTimeout": { "default": true, "type": "boolean" },
+        "tickerGroup": { "type": "string" },
+        "tickerPinned": { "type": "boolean" },
+        "tradeLayout": { "type": "string" }
+      },
+      "type": "object"
+    },
+    "UserCommission": {
+      "properties": {
+        "makerFee": { "type": "number", "format": "double" },
+        "takerFee": { "type": "number", "format": "double" },
+        "settlementFee": { "type": "number", "format": "double" },
+        "maxFee": { "type": "number", "format": "double" }
+      },
+      "type": "object"
+    }
+  },
+  "securityDefinitions": {
+    "apiKey": { "type": "apiKey", "in": "header", "name": "api-key" },
+    "apiSignature": {
+      "type": "apiKey",
+      "in": "header",
+      "name": "api-signature"
+    },
+    "apiExpires": { "type": "apiKey", "in": "header", "name": "api-expires" }
+  },
+  "security": [{ "apiKey": [], "apiSignature": [], "apiExpires": [] }]
+}

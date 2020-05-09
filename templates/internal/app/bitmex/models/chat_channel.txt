@@ -1,0 +1,7 @@
+{{if (codeLang 0)}}package models
+{{end}}
+// ChatChannel chat channel
+{{if (codeLang 1)}}export default {{end}}{{typeInit "ChatChannel"}}
+    {{typeMethod "id" "int32"}}
+    {{typeMethod "name" "string"}}
+}

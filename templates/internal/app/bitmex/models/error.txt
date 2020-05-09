@@ -1,0 +1,9 @@
+{{if (codeLang 0)}}package models
+{{else if (codeLang 1)}}
+import ErrorError from './errorerror';
+{{end}}
+// Error error
+{{if (codeLang 1)}}export default {{end}}{{typeInit "Error"}}
+    {{if (codeLang 0)}}Error ErrorError `json:"error"`
+	{{else if (codeLang 1)}}error: ErrorError;{{end}}
+}

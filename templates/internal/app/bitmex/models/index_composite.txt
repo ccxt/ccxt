@@ -1,0 +1,12 @@
+{{if (codeLang 0)}}package models
+{{end}}
+// IndexComposite index composite
+{{if (codeLang 1)}}export default {{end}}{{typeInit "IndexComposite"}}
+    {{typeMethod "indexSymbol" "string"}}
+	{{typeMethod "lastPrice" "float64"}}
+	{{typeMethod "logged" "time.Time"}}
+	{{typeMethod "reference" "string"}}
+	{{typeMethod "symbol" "string"}}
+	{{typeMethod "timestamp" "time.Time"}}
+	{{typeMethod "weight" "float64"}}
+}

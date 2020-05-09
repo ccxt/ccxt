@@ -1,0 +1,7 @@
+{{if (codeLang 0)}}package models
+{{end}}
+// ConnectedUsers connected users
+{{if (codeLang 1)}}export default {{end}}{{typeInit "ConnectedUsers"}}
+    {{typeMethod "bots" "int32"}}
+	{{typeMethod "users" "int32"}}
+}

@@ -1,0 +1,30 @@
+{{if (codeLang 0)}}package models
+{{end}}
+// Wallet wallet
+{{if (codeLang 1)}}export default {{end}}{{typeInit "Wallet"}}
+	{{typeMethod "account" "int64"}}
+	{{typeMethod "addr" "string"}}
+	{{typeMethod "amount" "int64"}}
+	{{typeMethod "confirmedDebit" "int64"}}
+	{{typeMethod "currency" "string"}}
+	{{typeMethod "deltaAmount" "int64"}}
+	{{typeMethod "deltaDeposited" "int64"}}
+	{{typeMethod "deltaTransferIn" "int64"}}
+	{{typeMethod "deltaTransferOut" "int64"}}
+	{{typeMethod "deltaWithdrawn" "int64"}}
+	{{typeMethod "deposited" "int64"}}
+	{{typeMethod "pendingCredit" "int64"}}
+	{{typeMethod "pendingDebit" "int64"}}
+	{{typeMethod "prevAmount" "int64"}}
+	{{typeMethod "prevDeposited" "int64"}}
+	{{typeMethod "prevTimestamp" "time.Time"}}
+	{{typeMethod "prevTransferIn" "int64"}}
+	{{typeMethod "prevTransferOut" "int64"}}
+	{{typeMethod "prevWithdrawn" "int64"}}
+	{{typeMethod "script" "string"}}
+	{{typeMethod "timestamp" "time.Time"}}
+	{{typeMethod "transferIn" "int64"}}
+	{{typeMethod "transferOut" "int64"}}
+	{{typeMethod "withdrawalLock" "[]string"}}
+	{{typeMethod "withdrawn" "int64"}}
+}

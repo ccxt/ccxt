@@ -1,0 +1,17 @@
+{{if (codeLang 0)}}package models
+{{end}}
+// Transaction transaction
+{{if (codeLang 1)}}export default {{end}}{{typeInit "Transaction"}}
+	{{typeMethod "account" "int64"}}
+	{{typeMethod "address" "string"}}
+	{{typeMethod "amount" "int64"}}
+	{{typeMethod "currency" "string"}}
+	{{typeMethod "fee" "int64"}}
+	{{typeMethod "text" "string"}}
+	{{typeMethod "timestamp" "time.Time"}}
+	{{typeMethod "transactID" "string"}}
+	{{typeMethod "transactStatus" "string"}}
+	{{typeMethod "transactTime" "time.Time"}}
+	{{typeMethod "transactType" "string"}}
+	{{typeMethod "tx" "string"}}
+}

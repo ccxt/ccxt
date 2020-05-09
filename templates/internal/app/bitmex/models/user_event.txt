@@ -1,0 +1,17 @@
+{{if (codeLang 0)}}package models
+{{end}}
+// UserEvent User Events for auditing
+{{if (codeLang 1)}}export default {{end}}{{typeInit "UserEvent"}}
+	{{typeMethod "created" "time.Time"}}
+	{{typeMethod "createdById" "float64"}}
+	{{typeMethod "eventMeta" "interface{}"}}
+	{{typeMethod "eventStatus" "string"}}
+	{{typeMethod "eventType" "string"}}
+	{{typeMethod "geoipCountry" "string"}}
+	{{typeMethod "geoipSubRegion" "string"}}
+	{{typeMethod "id" "float64"}}
+	{{typeMethod "ip" "string"}}
+	{{typeMethod "status" "string"}}
+	{{typeMethod "type" "string"}}
+	{{typeMethod "userId" "float64"}}
+}
