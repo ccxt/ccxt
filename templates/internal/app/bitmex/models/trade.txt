@@ -1,0 +1,15 @@
+{{if (condLang 0)}}package models
+{{end}}
+// Trade Individual & Bucketed Trades
+{{if (condLang 1)}}export default {{end}}{{typeInit "Trade"}}
+	{{typeMethod "foreignNotional" "float64"}}
+	{{typeMethod "grossValue" "int64"}}
+	{{typeMethod "homeNotional" "float64"}}
+	{{typeMethod "price" "float64"}}
+	{{typeMethod "side" "string"}}
+	{{typeMethod "size" "int64"}}
+	{{typeMethod "symbol" "string"}}
+	{{typeMethod "tickDirection" "string"}}
+	{{typeMethod "timestamp" "time.Time"}}
+	{{typeMethod "trdMatchID" "string"}}
+}

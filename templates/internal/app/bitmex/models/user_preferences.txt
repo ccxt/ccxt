@@ -1,0 +1,32 @@
+{{if (condLang 0)}}package models
+{{end}}
+// UserPreferences user preferences
+{{if (condLang 1)}}export default {{end}}{{typeInit "UserPreferences"}}
+	{{typeMethod "alertOnLiquidations" "bool"}}
+	{{typeMethod "animationsEnabled" "bool"}}
+	{{typeMethod "announcementsLastSeen" "time.Time"}}
+	{{typeMethod "chatChannelID" "float64"}}
+	{{typeMethod "colorTheme" "string"}}
+	{{typeMethod "currency" "string"}}
+	{{typeMethod "debug" "bool"}}
+	{{typeMethod "disableEmails" "[]string"}}
+	{{typeMethod "disablePush" "[]string"}}
+	{{typeMethod "hideConfirmDialogs" "[]string"}}
+	{{typeMethod "hideConnectionModal" "bool"}}
+	{{typeMethod "hideFromLeaderboard" "bool"}}
+	{{typeMethod "hideNameFromLeaderboard" "bool"}}
+	{{typeMethod "hideNotifications" "[]string"}}
+	{{typeMethod "locale" "string"}}
+	{{typeMethod "msgsSeen" "[]string"}}
+	{{typeMethod "orderBookBinning" "interface{}"}}
+	{{typeMethod "orderBookType" "string"}}
+	{{typeMethod "orderClearImmediate" "bool"}}
+	{{typeMethod "orderControlsPlusMinus" "bool"}}
+	{{typeMethod "showLocaleNumbers" "bool"}}
+	{{typeMethod "sounds" "[]string"}}
+	{{typeMethod "strictIPCheck" "bool"}}
+	{{typeMethod "strictTimeout" "bool"}}
+	{{typeMethod "tickerGroup" "string"}}
+	{{typeMethod "tickerPinned" "bool"}}
+	{{typeMethod "tradeLayout" "string"}}
+}

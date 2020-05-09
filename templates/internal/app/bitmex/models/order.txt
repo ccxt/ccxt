@@ -1,0 +1,38 @@
+{{if (condLang 0)}}package models
+{{end}}
+// Order Placement, Cancellation, Amending, and History
+{{if (condLang 1)}}export default {{end}}{{typeInit "Order"}}
+	{{typeMethod "account" "int64"}}
+	{{typeMethod "avgPx" "float64"}}
+	{{typeMethod "clOrdID" "string"}}
+	{{typeMethod "clOrdLinkID" "string"}}
+	{{typeMethod "contingencyType" "string"}}
+	{{typeMethod "cumQty" "int64"}}
+	{{typeMethod "currency" "string"}}
+	{{typeMethod "displayQty" "int64"}}
+	{{typeMethod "exDestination" "string"}}
+	{{typeMethod "execInst" "string"}}
+	{{typeMethod "leavesQty" "int64"}}
+	{{typeMethod "multiLegReportingType" "string"}}
+	{{typeMethod "ordRejReason" "string"}}
+	{{typeMethod "ordStatus" "string"}}
+	{{typeMethod "ordType" "string"}}
+	{{typeMethod "orderID" "string"}}
+	{{typeMethod "orderQty" "int64"}}
+	{{typeMethod "pegOffsetValue" "float64"}}
+	{{typeMethod "pegPriceType" "string"}}
+	{{typeMethod "price" "float64"}}
+	{{typeMethod "sellCurrency" "string"}}
+	{{typeMethod "side" "string"}}
+	{{typeMethod "simpleCumQty" "float64"}}
+	{{typeMethod "simpleLeavesQty" "float64"}}
+	{{typeMethod "simpleOrderQty" "float64"}}
+	{{typeMethod "stopPx" "float64"}}
+	{{typeMethod "symbol" "string"}}
+	{{typeMethod "text" "string"}}
+	{{typeMethod "timeInForce" "string"}}
+	{{typeMethod "timestamp" "time.Time"}}
+	{{typeMethod "transactTime" "time.Time"}}
+	{{typeMethod "triggered" "string"}}
+	{{typeMethod "workingIndicator" "bool"}}
+}

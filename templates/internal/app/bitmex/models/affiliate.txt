@@ -1,0 +1,22 @@
+{{if (condLang 0)}}package models
+{{end}}
+// Affiliate affiliate
+{{if (condLang 1)}}export default {{end}}{{typeInit "Affiliate"}}
+	{{typeMethod "account" "int64"}}
+	{{typeMethod "affiliatePayout" "float64"}}
+	{{typeMethod "currency" "string"}}
+	{{typeMethod "execComm" "int64"}}
+	{{typeMethod "execTurnover" "int64"}}
+	{{typeMethod "payoutPcnt" "float64"}}
+	{{typeMethod "pendingPayout" "int64"}}
+	{{typeMethod "prevComm" "int64"}}
+	{{typeMethod "prevPayout" "int64"}}
+	{{typeMethod "prevTimestamp" "time.Time"}}
+	{{typeMethod "prevTurnover" "int64"}}
+	{{typeMethod "referralDiscount" "float64"}}
+	{{typeMethod "referrerAccount" "float64"}}
+	{{typeMethod "timestamp" "time.Time"}}
+	{{typeMethod "totalComm" "int64"}}
+	{{typeMethod "totalReferrals" "int64"}}
+	{{typeMethod "totalTurnover" "int64"}}
+}

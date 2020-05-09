@@ -1,0 +1,133 @@
+{
+  "id": "bitmex",
+  "name": "BitMEX",
+  "countries": ["SC"],
+  "version": "v1",
+  "rateLimit": 2000,
+  "has": {
+    "CORS": false,
+    "fetchOHLCV": true,
+    "withdraw": true,
+    "editOrder": true,
+    "fetchOrder": true,
+    "fetchOrders": true,
+    "fetchOpenOrders": true,
+    "fetchClosedOrders": true,
+    "fetchMyTrades": true
+  },
+  "timeframes": {
+    "1m": "1m",
+    "5m": "5m",
+    "1h": "1h",
+    "1d": "1d"
+  },
+  "urls": {
+    "test": "https://testnet.bitmex.com",
+    "logo": "https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg",
+    "api": "/api/v1/",
+    "www": "https://www.bitmex.com",
+    "doc": [
+      "https://www.bitmex.com/app/apiOverview",
+      "https://github.com/BitMEX/api-connectors/tree/master/official-http"
+    ],
+    "fees": "https://www.bitmex.com/app/fees",
+    "referral": "https://www.bitmex.com/register/rm3C16"
+  },
+  "api": {
+    "public": {
+      "get": {
+        "announcement": "[]Announcement",
+        "announcement/urgent": "[]Announcement",
+        "funding": "[]Funding",
+        "instrument": "[]Instrument",
+        "instrument/active": "[]Instrument",
+        "instrument/activeAndIndices": "[]Instrument",
+        "instrument/activeIntervals": "InstrumentInterval",
+        "instrument/compositeIndex": "[]Instrument",
+        "instrument/indices": "[]Instrument",
+        "insurance": "[]Insurance",
+        "leaderboard": "[]Leaderboard",
+        "leaderboard/name": "Leaderboard",
+        "liquidation": "[]Liquidation",
+        "orderBook/L2": "[]OrderBookL2",
+        "quote": "[]Quote",
+        "quote/bucketed": "[]Quote",
+        "schema": "interface{}",
+        "schema/websocketHelp": "interface{}",
+        "settlement": "[]Settlement",
+        "stats": "[]Stats",
+        "stats/history": "[]StatsHistory",
+        "trade": "[]Trade",
+        "trade/bucketed": "[]TradeBin"
+      }
+    },
+    "private": {
+      "get": {
+        "apiKey": "[]APIKey",
+        "chat": "[]Chat",
+        "chat/channels": "[]ChatChannel",
+        "chat/connected": "ConnectedUsers",
+        "execution": "[]Execution",
+        "execution/tradeHistory": "[]Execution",
+        "globalNotification": "[]GlobalNotification",
+        "order": "[]Order",
+        "position": "[]Position",
+        "user": "User",
+        "user/affiliateStatus": "Affiliate",
+        "user/checkReferralCode": "float64",
+        "user/commission": "UserCommissionsBySymbol",
+        "user/depositAddress": "string",
+        "user/executionHistory": "[]Execution",
+        "user/margin": "[]Margin",
+        "user/minWithdrawalFee": "interface{}",
+        "user/wallet": "Wallet",
+        "user/walletHistory": "[]Transaction",
+        "user/walletSummary": "[]Transaction"
+      },
+      "post": {
+        "apiKey": "APIKey",
+        "apiKey/disable": "APIKey",
+        "apiKey/enable": "APIKey",
+        "chat": "Chat",
+        "order": "Order",
+        "order/bulk": "[]Order",
+        "order/cancelAllAfter": "interface{}",
+        "position/isolate": "Position",
+        "position/leverage": "Position",
+        "position/riskLimit": "Position",
+        "position/transferMargin": "Position",
+        "user/cancelWithdrawal": "Transaction",
+        "user/communicationToken": "[]CommunicationToken",
+        "user/confirmEmail": "AccessToken",
+        "user/confirmWithdrawal": "Transaction",
+        "user/logout": "interface{}",
+        "user/preferences": "UserPreferences",
+        "user/requestWithdrawal": "Transaction"
+      },
+      "put": {
+        "order": "Order",
+        "order/bulk": "[]Order"
+      },
+      "delete": {
+        "apiKey": "interface{}",
+        "order": "[]Order",
+        "order/all": "[]Order"
+      }
+    }
+  },
+  "exceptions": {
+    "exact": {
+      "Invalid API Key.": "AuthenticationError",
+      "Access Denied": "PermissionDenied",
+      "Duplicate clOrdID": "InvalidOrder",
+      "Signature not valid": "AuthenticationError"
+    },
+    "broad": {
+      "overloaded": "ExchangeNotAvailable",
+      "Account has insufficient Available Balance": "InsufficientFunds"
+    }
+  },
+  "options": {
+    "api-expires": 5
+  }
+}

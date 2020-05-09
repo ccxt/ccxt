@@ -1,0 +1,7 @@
+{{if (condLang 0)}}package models
+{{end}}
+// ErrorError error error
+{{if (condLang 1)}}export default {{end}}{{typeInit "AccessToken"}}
+    {{typeMethod "message" "string"}}
+    {{typeMethod "name" "string"}}
+}

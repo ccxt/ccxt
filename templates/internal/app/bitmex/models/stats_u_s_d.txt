@@ -1,0 +1,11 @@
+{{if (condLang 0)}}package models
+{{end}}
+// StatsUSD stats u s d
+{{if (condLang 1)}}export default {{end}}{{typeInit "StatsUSD"}}
+	{{typeMethod "currency" "string"}}
+	{{typeMethod "rootSymbol" "string"}}
+	{{typeMethod "turnover" "int64"}}
+	{{typeMethod "turnover24h" "int64"}}
+	{{typeMethod "turnover30d" "int64"}}
+	{{typeMethod "turnover365d" "int64"}}
+}

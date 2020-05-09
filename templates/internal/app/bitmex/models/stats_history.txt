@@ -1,0 +1,10 @@
+{{if (condLang 0)}}package models
+{{end}}
+// StatsHistory stats history
+{{if (condLang 1)}}export default {{end}}{{typeInit "StatsHistory"}}
+	{{typeMethod "currency" "string"}}
+	{{typeMethod "date" "time.Time"}}
+	{{typeMethod "rootSymbol" "string"}}
+	{{typeMethod "turnover" "int64"}}
+	{{typeMethod "volume" "int64"}}
+}
