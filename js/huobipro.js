@@ -343,9 +343,11 @@ module.exports = class huobipro extends Exchange {
         //         "count": 265846,
         //         "low": 8988.0,
         //         "version": 209988544334,
-        //         "ask": [ 9146.87, 0.156134 ],
         //         "vol": 2.3822168242201668E8,
-        //         "bid": [ 9146.86, 0.080758 ],
+        //         "bid": 9146.86,
+        //         "bidSize": 0.080758,
+        //         "ask": 9146.87,
+        //         "askSize": 0.156134
         //     }
         //
         let symbol = undefined;
@@ -358,16 +360,10 @@ module.exports = class huobipro extends Exchange {
         let bidVolume = undefined;
         let askVolume = undefined;
         if ('bid' in ticker) {
-            if (Array.isArray (ticker['bid'])) {
-                bid = this.safeFloat (ticker['bid'], 0);
-                bidVolume = this.safeFloat (ticker['bid'], 1);
-            }
+            bid = this.safeFloat (ticker, 'bid');
         }
         if ('ask' in ticker) {
-            if (Array.isArray (ticker['ask'])) {
-                ask = this.safeFloat (ticker['ask'], 0);
-                askVolume = this.safeFloat (ticker['ask'], 1);
-            }
+            ask = this.safeFloat (ticker, 'ask');
         }
         const open = this.safeFloat (ticker, 'open');
         const close = this.safeFloat (ticker, 'close');
