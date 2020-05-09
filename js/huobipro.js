@@ -334,6 +334,8 @@ module.exports = class huobipro extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         //
+        // fetchTicker
+        //
         //     {
         //         "amount": 26228.672978342216,
         //         "open": 9078.95,
@@ -343,11 +345,25 @@ module.exports = class huobipro extends Exchange {
         //         "count": 265846,
         //         "low": 8988.0,
         //         "version": 209988544334,
+        //         "ask": [ 9146.87, 0.156134 ],
         //         "vol": 2.3822168242201668E8,
-        //         "bid": 9146.86,
-        //         "bidSize": 0.080758,
-        //         "ask": 9146.87,
-        //         "askSize": 0.156134
+        //         "bid": [ 9146.86, 0.080758 ],
+        //     }
+        //
+        // fetchTickers
+        //     {
+        //         symbol: "bhdht",
+        //         open:  2.3938,
+        //         high:  2.4151,
+        //         low:  2.3323,
+        //         close:  2.3909,
+        //         amount:  628.992,
+        //         vol:  1493.71841095,
+        //         count:  2088,
+        //         bid:  2.3643,
+        //         bidSize:  0.7136,
+        //         ask:  2.4061,
+        //         askSize:  0.4156
         //     }
         //
         let symbol = undefined;
@@ -355,15 +371,17 @@ module.exports = class huobipro extends Exchange {
             symbol = market['symbol'];
         }
         const timestamp = this.safeInteger (ticker, 'ts');
-        let bid = undefined;
-        let ask = undefined;
-        let bidVolume = undefined;
-        let askVolume = undefined;
-        if ('bid' in ticker) {
-            bid = this.safeFloat (ticker, 'bid');
+        let bid = this.safeValue (ticker, 'bid');
+        let bidVolume = this.safeValue (ticker, 'bidSize');
+        let ask = this.safeValue (ticker, 'ask');
+        let askVolume = this.safeValue (ticker, 'askSize');
+        if (Array.isArray (bid)) {
+            bid = this.safeFloat (bid, 0);
+            bidVolume = this.safeFloat (bid, 1);
         }
-        if ('ask' in ticker) {
-            ask = this.safeFloat (ticker, 'ask');
+        if (Array.isArray (ask)) {
+            ask = this.safeFloat (ask, 0);
+            askVolume = this.safeFloat (ask, 1);
         }
         const open = this.safeFloat (ticker, 'open');
         const close = this.safeFloat (ticker, 'close');
