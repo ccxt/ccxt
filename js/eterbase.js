@@ -30,7 +30,7 @@ module.exports = class eterbase extends Exchange {
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
-                'fetchOrder': false,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchTicker': true,
@@ -639,6 +639,36 @@ module.exports = class eterbase extends Exchange {
             result[code] = account;
         }
         return this.parseBalance (result);
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'id': id,
+        };
+        const response = await this.privateGetOrdersId (this.extend (request, params));
+        //
+        //     {
+        //         "id": "30a2b5d0-be2e-4d0a-93ed-a7c45fed1792",
+        //         "accountId": "30a2b5d0-be2e-4d0a-93ed-a7c45fed1792",
+        //         "marketId": 123,
+        //         "type": 1,
+        //         "side": 1,
+        //         "qty": "1.23456",
+        //         "cost": "1.23456",
+        //         "remainingQty": "1.23456",
+        //         "remainingCost": "1.23456",
+        //         "limitPrice": "1.23456",
+        //         "stopPrice": "1.23456",
+        //         "postOnly": false,
+        //         "timeInForce": "GTC",
+        //         "state": 1,
+        //         "closeReason": "FILLED",
+        //         "placedAt": 1556355722341,
+        //         "closedAt": 1556355722341
+        //     }
+        //
+        return this.parseOrder (response);
     }
 
     parseOrder (raw, market = undefined) {
