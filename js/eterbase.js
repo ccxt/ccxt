@@ -629,14 +629,14 @@ module.exports = class eterbase extends Exchange {
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
-            const assetId = this.safeString (balance, 'assetId');
-            const assetCode = this.safeCurrencyCode (assetId);
+            const currencyId = this.safeString (balance, 'assetId');
+            const code = this.safeCurrencyCode (currencyId);
             const account = {
                 'free': this.safeFloat (balance, 'available'),
                 'used': this.safeFloat (balance, 'reserved'),
                 'total': this.safeFloat (balance, 'balance'),
             };
-            result[assetCode] = account;
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
