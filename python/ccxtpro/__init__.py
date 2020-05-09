@@ -8,7 +8,7 @@ import ccxt.async_support as ccxt
 
 # -----------------------------------------------------------------------------
 
-__version__ = '0.1.94'
+__version__ = '0.1.95'
 
 # -----------------------------------------------------------------------------
 
@@ -118,6 +118,7 @@ from ccxt.async_support.flowbtc import flowbtc                            # noqa
 from ccxt.async_support.foxbit import foxbit                              # noqa: F401
 from ccxt.async_support.fybse import fybse                                # noqa: F401
 from ccxt.async_support.gemini import gemini                              # noqa: F401
+from ccxt.async_support.hbtc import hbtc                                  # noqa: F401
 from ccxt.async_support.hollaex import hollaex                            # noqa: F401
 from ccxt.async_support.ice3x import ice3x                                # noqa: F401
 from ccxt.async_support.idex import idex                                  # noqa: F401
