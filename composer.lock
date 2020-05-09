@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "0cda1f67189ee812e34cc8b6c055d45f",
+    "content-hash": "9276168f69a17e865636375aa657eb26",
     "packages": [
         {
             "name": "ccxt/ccxt",
-            "version": "1.27.30",
+            "version": "1.27.42",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ccxt/ccxt.git",
-                "reference": "8d8b7e9be1798d87903d9c6a2f5f62d4104b3f31"
+                "reference": "001684432047f69af2e26330950944f265a78771"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/8d8b7e9be1798d87903d9c6a2f5f62d4104b3f31",
-                "reference": "8d8b7e9be1798d87903d9c6a2f5f62d4104b3f31",
+                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/001684432047f69af2e26330950944f265a78771",
+                "reference": "001684432047f69af2e26330950944f265a78771",
                 "shasum": ""
             },
             "require": {
@@ -269,7 +269,7 @@
                 "zec",
                 "zerocoin"
             ],
-            "time": "2020-05-06T11:06:38+00:00"
+            "time": "2020-05-09T08:58:09+00:00"
         },
         {
             "name": "evenement/evenement",
@@ -948,16 +948,16 @@
         },
         {
             "name": "symfony/polyfill-mbstring",
-            "version": "v1.15.0",
+            "version": "v1.16.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/polyfill-mbstring.git",
-                "reference": "81ffd3a9c6d707be22e3012b827de1c9775fc5ac"
+                "reference": "a54881ec0ab3b2005c406aed0023c062879031e7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/polyfill-mbstring/zipball/81ffd3a9c6d707be22e3012b827de1c9775fc5ac",
-                "reference": "81ffd3a9c6d707be22e3012b827de1c9775fc5ac",
+                "url": "https://api.github.com/repos/symfony/polyfill-mbstring/zipball/a54881ec0ab3b2005c406aed0023c062879031e7",
+                "reference": "a54881ec0ab3b2005c406aed0023c062879031e7",
                 "shasum": ""
             },
             "require": {
@@ -969,7 +969,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "1.15-dev"
+                    "dev-master": "1.16-dev"
                 }
             },
             "autoload": {
@@ -1003,7 +1003,7 @@
                 "portable",
                 "shim"
             ],
-            "time": "2020-03-09T19:04:49+00:00"
+            "time": "2020-05-08T16:50:20+00:00"
         }
     ],
     "packages-dev": [],
