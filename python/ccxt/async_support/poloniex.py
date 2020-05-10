@@ -961,6 +961,7 @@ class poloniex(Exchange):
                 'id': newid,
                 'price': price,
                 'status': 'open',
+                'trades': [],
             })
             if amount is not None:
                 self.orders[newid]['amount'] = amount

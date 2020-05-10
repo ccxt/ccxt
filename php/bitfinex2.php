@@ -700,18 +700,21 @@ class bitfinex2 extends bitfinex {
     }
 
     public function parse_order_status($status) {
+        if ($status === null) {
+            return $status;
+        }
+        $parts = explode(' ', $status);
+        $state = $this->safe_string($parts, 0);
         $statuses = array(
             'ACTIVE' => 'open',
-            'PARTIALLY FILLED' => 'open',
+            'PARTIALLY' => 'open',
             'EXECUTED' => 'closed',
             'CANCELED' => 'canceled',
-            'CANCELED was => PARTIALLY FILLED' => 'canceled',
-            'INSUFFICIENT MARGIN' => 'canceled',
-            'INSUFFICIENT BALANCE (G1) was => PARTIALLY FILLED' => 'canceled',
+            'INSUFFICIENT' => 'canceled',
             'RSN_DUST' => 'rejected',
             'RSN_PAUSE' => 'rejected',
         );
-        return $this->safe_string($statuses, $status, $status);
+        return $this->safe_string($statuses, $state, $status);
     }
 
     public function parse_order($order, $market = null) {
