@@ -7,6 +7,11 @@ const log       = require ('ololog')
     , chai      = require ('chai')
     , expect    = chai.expect
     , assert    = chai.assert
+    , skippedExchanges = [
+        "_1btcxe", "acx", "bitfinex2", "bitmax", "bitmart",
+        "bitstamp", "crex24", "digifinex", "hollaex",
+        "hbtc", "idex", "independentreserve", "lykke",
+    ]
 
 /*  ------------------------------------------------------------------------ */
 
@@ -55,5 +60,15 @@ module.exports = (exchange, market, method) => {
     // expect (market['limits']['cost']['min']).to.not.be.undefined
 
     // log (market)
+
+    if (skippedExchanges.includes (exchange.id)) return
+    if (exchange.has['fetchFees'] || exchange.has['fetchTradingFees']) return
+
+    const formatFees = {
+        'maker':  0.0,        // float, maker fee in pct or relative value
+        'taker':  0.0,        // float, maker fee in pct or relative value
+    }
+
+    expect (market).to.deep.include.all.keys (formatFees)
 
 }
