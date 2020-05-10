@@ -777,16 +777,16 @@ Currency Structure
 .. code:: javascript
 
    {
-       'id':       'btc',     // string literal for referencing within an exchange
-       'code':     'BTC',     // uppercase unified string literal code the currency
-       'name':     'Bitcoin', // string, human-readable name, if specified
-       'active':    true,     // boolean, currency status (tradeable and withdrawable)
-       'fee':       0.123
-       'precision': 8,       // number of decimal digits "after the dot" (depends on exchange.precisionMode)
-       'limits': {           // value limits when placing orders on this market
+       'id':       'btc',       // string literal for referencing within an exchange
+       'code':     'BTC',       // uppercase unified string literal code the currency
+       'name':     'Bitcoin',   // string, human-readable name, if specified
+       'active':    true,       // boolean, currency status (tradeable and withdrawable)
+       'fee':       0.123,      // withdrawal fee, flat
+       'precision': 8,          // number of decimal digits "after the dot" (depends on exchange.precisionMode)
+       'limits': {              // value limits when placing orders on this market
            'amount': {
-               'min': 0.01,  // order amount should be > min
-               'max': 1000,  // order amount should be < max
+               'min': 0.01,     // order amount should be > min
+               'max': 1000,     // order amount should be < max
            },
            'price':    { ... }, // same min/max limits for the price of the order
            'cost':     { ... }, // same limits for order cost = price * amount
@@ -800,6 +800,7 @@ Each currency is an associative array (aka dictionary) with the following keys:
 -  ``id``. The string or numeric ID of the currency within the exchange. Currency ids are used inside exchanges internally to identify coins during the request/response process.
 -  ``code``. An uppercase string code representation of a particular currency. Currency codes are used to reference currencies within the ccxt library (explained below).
 -  ``name``. Self-explaining.
+-  ``fee``. The withdrawal fee value as specified by the exchange. In most cases it means a flat fixed amount paid in the same currency. If the exchnange does not specify it via public endpoints, the ``fee`` can be ``undefined/None/null`` or missing.
 -  ``active``. A boolean indicating whether or not trading and funding (depositing and withdrawing) this currency is currently possible. Often, when a currency is inactive, all corresponding tickers, orderbooks and other related endpoints return empty responses, all zeroes, no data or outdated data for that currency. The user should check if the currency is active and `reload markets periodically, as explained below <#market-cache-force-reload>`__.
 -  ``info``. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
 -  ``precision``. Precision accepted in values by exchanges upon referencing this currency. The value inside this property depend on the ``exchange.precisionMode``.
