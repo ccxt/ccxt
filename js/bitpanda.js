@@ -332,7 +332,7 @@ module.exports = class bitpanda extends Exchange {
             'instrument': this.marketId (symbol),
             'level': 2,
         };
-        return this.parseBook (request, params);
+        return await this.parseBook (request, params);
     }
 
     async fetchMarkets (params = {}) {
@@ -451,7 +451,7 @@ module.exports = class bitpanda extends Exchange {
         const request = {
             'instrument': this.marketId (symbol),
         };
-        return this.parseBook (request, params);
+        return await this.parseBook (request, params);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
