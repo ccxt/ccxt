@@ -398,6 +398,8 @@ class binance(Exchange):
         defaultType = self.safe_string_2(self.options, 'fetchMarkets', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
         query = self.omit(params, 'type')
+        if (type != 'spot') and (type != 'future'):
+            raise ExchangeError(self.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to 'spot' or 'future'")  # eslint-disable-line quotes
         method = 'publicGetExchangeInfo' if (type == 'spot') else 'fapiPublicGetExchangeInfo'
         response = await getattr(self, method)(query)
         #
@@ -487,17 +489,17 @@ class binance(Exchange):
             marketType = 'spot' if spot else 'future'
             id = self.safe_string(market, 'symbol')
             lowercaseId = self.safe_string_lower(market, 'symbol')
-            baseId = market['baseAsset']
-            quoteId = market['quoteAsset']
+            baseId = self.safe_string(market, 'baseAsset')
+            quoteId = self.safe_string(market, 'quoteAsset')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             filters = self.index_by(market['filters'], 'filterType')
             precision = {
-                'base': market['baseAssetPrecision'],
-                'quote': market['quotePrecision'],
-                'amount': market['baseAssetPrecision'],
-                'price': market['quotePrecision'],
+                'base': self.safe_integer(market, 'baseAssetPrecision'),
+                'quote': self.safe_integer(market, 'quotePrecision'),
+                'amount': self.safe_integer(market, 'baseAssetPrecision'),
+                'price': self.safe_integer(market, 'quotePrecision'),
             }
             status = self.safe_string(market, 'status')
             active = (status == 'TRADING')

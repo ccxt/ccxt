@@ -392,6 +392,9 @@ class binance extends Exchange {
         $defaultType = $this->safe_string_2($this->options, 'fetchMarkets', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
         $query = $this->omit($params, 'type');
+        if (($type !== 'spot') && ($type !== 'future')) {
+            throw new ExchangeError($this->id . " does not support '" . $type . "' $type, set exchange.options['defaultType'] to 'spot' or 'future'"); // eslint-disable-line quotes
+        }
         $method = ($type === 'spot') ? 'publicGetExchangeInfo' : 'fapiPublicGetExchangeInfo';
         $response = $this->$method ($query);
         //
@@ -482,17 +485,17 @@ class binance extends Exchange {
             $marketType = $spot ? 'spot' : 'future';
             $id = $this->safe_string($market, 'symbol');
             $lowercaseId = $this->safe_string_lower($market, 'symbol');
-            $baseId = $market['baseAsset'];
-            $quoteId = $market['quoteAsset'];
+            $baseId = $this->safe_string($market, 'baseAsset');
+            $quoteId = $this->safe_string($market, 'quoteAsset');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $filters = $this->index_by($market['filters'], 'filterType');
             $precision = array(
-                'base' => $market['baseAssetPrecision'],
-                'quote' => $market['quotePrecision'],
-                'amount' => $market['baseAssetPrecision'],
-                'price' => $market['quotePrecision'],
+                'base' => $this->safe_integer($market, 'baseAssetPrecision'),
+                'quote' => $this->safe_integer($market, 'quotePrecision'),
+                'amount' => $this->safe_integer($market, 'baseAssetPrecision'),
+                'price' => $this->safe_integer($market, 'quotePrecision'),
             );
             $status = $this->safe_string($market, 'status');
             $active = ($status === 'TRADING');

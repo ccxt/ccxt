@@ -228,6 +228,7 @@ class bitbay(Exchange):
                 'OFFER_WOULD_HAVE_BEEN_PARTIALLY_FILLED': OrderImmediatelyFillable,
                 'ACTION_LIMIT_EXCEEDED': RateLimitExceeded,
                 'UNDER_MAINTENANCE': OnMaintenance,
+                'REQUEST_TIMESTAMP_TOO_OLD': InvalidNonce,
             },
         })
 
