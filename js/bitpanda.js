@@ -423,7 +423,7 @@ module.exports = class bitpanda extends Exchange {
             request['from'] = this.iso8601 (since);
         }
         if (params['to'] === undefined) {
-            request['to'] = this.iso8601 (this.microseconds ());
+            request['to'] = this.iso8601 (this.milliseconds ());
         } else {
             params['to'] = this.iso8601 (params['to']);
         }
