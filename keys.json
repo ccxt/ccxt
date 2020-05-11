@@ -71,7 +71,7 @@
     "liquid":        { "skip": true },
     "livecoin":      { "skip": true },
     "luno":          { "skip": true },
-    "mandala":       { "skip": true },
+    "mercadobitcoin": { "skip": true },
     "mixcoins":      { "skip": true },
     "nova":          { "skip": true },
     "oceanex":       { "skip": true },
