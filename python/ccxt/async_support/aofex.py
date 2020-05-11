@@ -704,7 +704,9 @@ class aofex(Exchange):
             symbol = market['symbol']
             base = market['base']
             quote = market['quote']
-        timestamp = self.parse8601(self.safe_string(order, 'ctime')) - 28800000  # 8 hours, adjust to UTC
+        timestamp = self.parse8601(self.safe_string(order, 'ctime'))
+        if timestamp is not None:
+            timestamp -= 28800000  # 8 hours, adjust to UTC
         orderType = self.safe_string(order, 'type')
         type = 'limit' if (orderType == '2') else 'market'
         side = self.safe_string(order, 'side')
