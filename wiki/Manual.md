@@ -1652,11 +1652,26 @@ var_dump ($exchange->id, 'market price', $result);
 A price ticker contains statistics for a particular market/symbol for some period of time in recent past, usually last 24 hours. The methods for fetching tickers are:
 
 ```JavaScript
-fetchTicker (symbol, params = {})   // for one ticker
-fetchTickers (symbol, params = {})  // for all tickers at once
+// one ticker
+fetchTicker (symbol, params = {})
+
+// example
+fetchTicker ('ETH/BTC')
+fetchTicker ('BTC/USDT')
+```
+
+```JavaScript
+// multiple tickers
+fetchTickers (symbols = undefined, params = {})  // for all tickers at once
+
+// for example
+fetchTickers () // all symbols
+fetchTickers ([ 'ETH/BTC', 'BTC/USDT' ]) // an array of specific symbols
 ```
 
 Check the `exchange.has['fetchTicker']` and `exchange.has['fetchTickers']` properties of the exchange instance to determine if the exchange in question does support these methods.
+
+**Please, note, that calling `fetchTickers ()` without a symbol is usually strictly rate-limited, an exchange may ban you if you poll that endpoint too frequently.**
 
 ### Ticker structure
 
