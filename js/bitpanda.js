@@ -695,6 +695,6 @@ module.exports = class bitpanda extends Exchange {
         if (exception !== undefined) {
             throw new this.exceptions[error] (error);
         }
-        throw new ExchangeError (this.id + this.json (response));
+        throw new ExchangeError (this.id + ' ' + this.json (response));
     }
 };
