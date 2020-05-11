@@ -160,6 +160,14 @@ class binance(Exchange):
                         'lending/union/interestHistory',
                         'lending/project/list',
                         'lending/project/position/list',
+                        # mining endpoints
+                        'mining/pub/algoList',
+                        'mining/pub/coinList',
+                        'mining/worker/detail',
+                        'mining/worker/list',
+                        'mining/payment/list',
+                        'mining/statistics/user/status',
+                        'mining/statistics/user/list',
                     ],
                     'post': [
                         'asset/dust',
