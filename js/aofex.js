@@ -726,7 +726,10 @@ module.exports = class aofex extends Exchange {
             base = market['base'];
             quote = market['quote'];
         }
-        const timestamp = this.parse8601 (this.safeString (order, 'ctime')) - 28800000; // 8 hours, adjust to UTC
+        let timestamp = this.parse8601 (this.safeString (order, 'ctime'));
+        if (timestamp !== undefined) {
+            timestamp -= 28800000; // 8 hours, adjust to UTC
+        }
         const orderType = this.safeString (order, 'type');
         const type = (orderType === '2') ? 'limit' : 'market';
         const side = this.safeString (order, 'side');
