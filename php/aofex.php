@@ -730,7 +730,10 @@ class aofex extends Exchange {
             $base = $market['base'];
             $quote = $market['quote'];
         }
-        $timestamp = $this->parse8601($this->safe_string($order, 'ctime')) - 28800000; // 8 hours, adjust to UTC
+        $timestamp = $this->parse8601($this->safe_string($order, 'ctime'));
+        if ($timestamp !== null) {
+            $timestamp -= 28800000; // 8 hours, adjust to UTC
+        }
         $orderType = $this->safe_string($order, 'type');
         $type = ($orderType === '2') ? 'limit' : 'market';
         $side = $this->safe_string($order, 'side');
