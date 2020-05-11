@@ -475,16 +475,16 @@ module.exports = class binance extends Exchange {
             const marketType = spot ? 'spot' : 'future';
             const id = this.safeString (market, 'symbol');
             const lowercaseId = this.safeStringLower (market, 'symbol');
-            const baseId = market['baseAsset'];
-            const quoteId = market['quoteAsset'];
+            const baseId = this.safeString (market, 'baseAsset');
+            const quoteId = this.safeString (market, 'quoteAsset');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const filters = this.indexBy (market['filters'], 'filterType');
             const precision = {
-                'base': market['baseAssetPrecision'],
-                'quote': market['quotePrecision'],
-                'amount': market['baseAssetPrecision'],
+                'base': this.safeInteger (market, 'baseAssetPrecision'),
+                'quote': this.safeInteger (market, 'quotePrecision'),
+                'amount': this.safeIntegr (market, 'baseAssetPrecision'),
                 'price': market['quotePrecision'],
             };
             const status = this.safeString (market, 'status');
