@@ -1649,7 +1649,9 @@ var_dump ($exchange->id, 'market price', $result);
 
 ## Price Tickers
 
-A price ticker contains statistics for a particular market/symbol for some period of time in recent past, usually last 24 hours. The methods for fetching tickers are:
+A price ticker contains statistics for a particular market/symbol for some period of time in recent past, usually last 24 hours. The methods for fetching tickers are described below.
+
+### A Single Ticker For One Symbol
 
 ```JavaScript
 // one ticker
@@ -1659,6 +1661,8 @@ fetchTicker (symbol, params = {})
 fetchTicker ('ETH/BTC')
 fetchTicker ('BTC/USDT')
 ```
+
+### Multiple Tickers For All Or Many Symmbols
 
 ```JavaScript
 // multiple tickers
