@@ -251,11 +251,11 @@ module.exports = class bitpanda extends Exchange {
             'type': type.toUpperCase (),
             'amount': this.amountToPrecision (symbol, amount),
         };
-        if (type === 'limit' || params['type'] === 'stoplimit') {
+        if (type === 'limit' || this.safeString (params, 'type') === 'stoplimit') {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        if (params['type'] === 'stoplimit') {
-            request['trigger_price'] = this.priceToPrecision (symbol, params['stopPrice']);
+        if (this.safeString (params, 'type') === 'stoplimit') {
+            request['trigger_price'] = this.priceToPrecision (symbol, this.safeFloat (params, 'stopPrice'));
         }
         const response = await this.privatePostAccountOrders (this.extend (request, params));
         return this.parseOrder (response);
@@ -422,10 +422,11 @@ module.exports = class bitpanda extends Exchange {
         } else {
             request['from'] = this.iso8601 (since);
         }
-        if (params['to'] === undefined) {
+        const to = this.safeInteger (params, 'to');
+        if (to === undefined) {
             request['to'] = this.iso8601 (this.milliseconds ());
         } else {
-            params['to'] = this.iso8601 (params['to']);
+            request['to'] = this.iso8601 (to);
         }
         const response = await this.publicGetCandlesticksInstrument (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
@@ -529,7 +530,7 @@ module.exports = class bitpanda extends Exchange {
 
     async parseBook (request, params) {
         const response = await this.publicGetOrderBookInstrument (this.extend (request, params));
-        const time = this.safeString (response, 'time');
+        const time = this.safeInteger (response, 'time');
         return this.parseOrderBook (response, this.parse8601 (time), 'bids', 'asks', 'price', 'amount');
     }
 
@@ -694,6 +695,6 @@ module.exports = class bitpanda extends Exchange {
         if (exception !== undefined) {
             throw new this.exceptions[error] (error);
         }
-        throw new ExchangeError (this.id + ' ' + this.json (response));
+        throw new ExchangeError (this.id + this.json (response));
     }
 };
