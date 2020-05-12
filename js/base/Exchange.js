@@ -273,6 +273,7 @@ module.exports = class Exchange {
         this.last_http_response    = undefined
         this.last_json_response    = undefined
         this.last_response_headers = undefined
+        this.last_response_status  = undefined
 
         const unCamelCaseProperties = (obj = this) => {
             if (obj !== null) {
@@ -599,7 +600,12 @@ module.exports = class Exchange {
             ].join (', ') + ')'
         }
         if (ErrorClass !== undefined) {
-            throw new ErrorClass ([ this.id, method, url, code, reason, details ].join (' '))
+            const error = new ErrorClass ([ this.id, method, url, code, reason, details ].join (' '))
+            error.id = this.id;
+            error.code = code;
+            error.reason = reason;
+            error.details = details;
+            throw error;
         }
     }
 
@@ -619,6 +625,8 @@ module.exports = class Exchange {
             const json = this.parseJson (responseBody)
 
             const responseHeaders = this.getResponseHeaders (response)
+
+            this.last_http_response_status = response.status;
 
             if (this.enableLastResponseHeaders) {
                 this.last_response_headers = responseHeaders
