@@ -518,7 +518,7 @@ module.exports = class coinbasepro extends Exchange {
 
     async fetchTime (params = {}) {
         const response = await this.publicGetTime (params);
-        return this.parse8601 (this.safeString (response, 'iso'));
+        return 1000 * this.safeFloat (response, 'epoch');
     }
 
     parseOrderStatus (status) {
