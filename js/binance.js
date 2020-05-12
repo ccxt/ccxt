@@ -1882,7 +1882,7 @@ module.exports = class binance extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         if (!(api in this.urls['api'])) {
-            throw new NotSupported (this.id + ' does not have a testnet/sandbox URL for ' + api + " endpoints");
+            throw new NotSupported (this.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints');
         }
         let url = this.urls['api'][api];
         url += '/' + path;
