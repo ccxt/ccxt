@@ -25,6 +25,7 @@ class binance(Exchange, ccxt.binance):
             'urls': {
                 'test': {
                     'ws': {
+                        'spot': 'wss://testnet.binance.vision/ws',
                         'future': 'wss://stream.binancefuture.com/ws',
                     },
                 },

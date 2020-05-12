@@ -27,6 +27,7 @@ class binance extends \ccxt\binance {
             'urls' => array(
                 'test' => array(
                     'ws' => array(
+                        'spot' => 'wss://testnet.binance.vision/ws',
                         'future' => 'wss://stream.binancefuture.com/ws',
                     ),
                 ),
