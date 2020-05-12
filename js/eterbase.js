@@ -619,10 +619,12 @@ module.exports = class eterbase extends Exchange {
         //
         //     [
         //         {
-        //             "assetId": "BTC",
-        //             "balance": "1.23456",
-        //             "available": "1.23456",
-        //             "reserved": "1.23456"
+        //             "assetId":"USDT",
+        //             "available":"25",
+        //             "balance":"25",
+        //             "reserved":"0",
+        //             "balanceBtc":"0.0",
+        //             "balanceRef":"0.0",
         //         }
         //     ]
         //
@@ -671,36 +673,82 @@ module.exports = class eterbase extends Exchange {
         return this.parseOrder (response);
     }
 
-    parseOrder (raw, market = undefined) {
-        if (market === undefined) {
-            const marketId = this.safeInteger (raw, 'marketId');
-            market = this.findMarket (marketId);
+    parseOrderStatus (status) {
+        const statuses = {
+            '1': 'open', // pending
+            '2': 'open', // open
+            '3': 'open', // partially filled
+            '4': 'closed', // closed
+            'FILLED': 'closed',
+            'USER_REQUESTED_CANCEL': 'canceled',
+            'ADMINISTRATIVE_CANCEL': 'canceled',
+            'NOT_ENOUGH_LIQUIDITY': 'canceled',
+            'EXPIRED': 'expired',
+            'ONE_CANCELS_OTHER': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrder (order, market = undefined) {
+        //
+        // fetchOrder, fetchOpenOrders, fetchClosedOrders
+        //
+        //     {
+        //         "id": "30a2b5d0-be2e-4d0a-93ed-a7c45fed1792",
+        //         "accountId": "30a2b5d0-be2e-4d0a-93ed-a7c45fed1792",
+        //         "marketId": 123,
+        //         "type": 1,
+        //         "side": 1,
+        //         "qty": "1.23456",
+        //         "cost": "1.23456",
+        //         "remainingQty": "1.23456",
+        //         "remainingCost": "1.23456",
+        //         "limitPrice": "1.23456",
+        //         "stopPrice": "1.23456",
+        //         "postOnly": false,
+        //         "timeInForce": "GTC",
+        //         "state": 1,
+        //         "closeReason": "FILLED",
+        //         "placedAt": 1556355722341,
+        //         "closedAt": 1556355722341
+        //     }
+        //
+        const id = this.safeString (order, 'id');
+        const timestamp = this.safeInteger (order, 'placedAt');
+        const marketId = this.safeInteger (order, 'marketId');
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
         }
-        const id = this.safeString (raw, 'id');
-        const timestamp = this.safeInteger (raw, 'placedAt');
-        const rawSide = this.safeString (raw, 'side');
-        const side = rawSide === '1' ? 'buy' : 'sell';
-        const rawType = this.safeString (raw, 'type');
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        let status = this.parseOrderStatus (this.safeString (order, 'state'));
+        if (status === 'closed') {
+            status = this.parseOrderStatus (this.safeString (order, 'closeReason'));
+        }
+        const orderSide = this.safeString (order, 'side');
+        const side = (orderSide === '1') ? 'buy' : 'sell';
+        const orderType = this.safeString (order, 'type');
         let type = undefined;
-        if (rawType === '1') {
+        if (orderType === '1') {
             type = 'market';
-        } else if (rawType === '2') {
+        } else if (orderType === '2') {
             type = 'limit';
-        } else if (rawType === '3') {
-            type = 'market';
+        } else if (orderType === '3') {
+            type = 'stopmarket';
         } else {
-            type = 'limit';
+            type = 'stoplimit';
         }
-        let price = this.safeFloat (raw, 'limitPrice');
-        const amount = this.safeFloat (raw, 'qty');
-        const remaining = this.safeFloat (raw, 'remainingQty');
-        let filled = amount - remaining;
-        if (filled > 0) {
-            filled = Math.round (filled, market.precision.qty);
+        let price = this.safeFloat (order, 'limitPrice');
+        const amount = this.safeFloat (order, 'qty');
+        const remaining = this.safeFloat (order, 'remainingQty');
+        let filled = undefined;
+        if ((amount !== undefined) && (remaining !== undefined)) {
+            filled = Math.max (0, amount - remaining);
         }
-        const cost = Math.round (price * filled, market.precision.cost);
-        const rawState = this.safeString (raw, 'state');
-        const state = rawState.toUpperCase () === '4' ? 'closed' : 'open';
+        const cost = this.safeFloat (order, 'cost');
+        // Math.round (price * filled, market.precision.cost);
         if (type === 'market') {
             if (price === 0.0) {
                 if ((cost !== undefined) && (filled !== undefined)) {
@@ -710,7 +758,6 @@ module.exports = class eterbase extends Exchange {
                 }
             }
         }
-        const fee = undefined;
         let average = undefined;
         if (cost !== undefined) {
             if (filled) {
@@ -718,12 +765,12 @@ module.exports = class eterbase extends Exchange {
             }
         }
         return {
-            'info': raw,
+            'info': order,
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'symbol': market.symbol,
+            'symbol': symbol,
             'type': type,
             'side': side,
             'price': price,
@@ -732,8 +779,8 @@ module.exports = class eterbase extends Exchange {
             'average': average,
             'filled': filled,
             'remaining': remaining,
-            'status': state,
-            'fee': fee,
+            'status': status,
+            'fee': undefined,
             'trades': undefined,
         };
     }
@@ -848,14 +895,13 @@ module.exports = class eterbase extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const uppercaseType = type.toUpperCase ();
-        type = undefined;
         if (uppercaseType === 'MARKET') {
             type = 1;
         } else if (uppercaseType === 'LIMIT') {
             type = 2;
         } else if (uppercaseType === 'STOPMARKET') {
             type = 3;
-        } else {
+        } else if (uppercaseType === 'STOPLIMIT') {
             type = 4;
         }
         const uppercaseSide = side.toUpperCase ();
@@ -938,8 +984,9 @@ module.exports = class eterbase extends Exchange {
                 message = message + "\ndigest" + ':' + ' ' + digest;  // eslint-disable-line quotes
                 headersCSV = headersCSV + ' ' + 'digest';
             }
-            const sig = this.hmac (message, this.secret, 'sha256', 'base64');
-            const authorizationHeader = 'hmac username="' + this.apiKey + '",algorithm="hmac-sha256",headers="' + headersCSV + '",signature="' + sig + '"';
+            const signature64 = this.hmac (this.encode (message), this.encode (this.secret), 'sha256', 'base64');
+            const signature = this.decode (signature64);
+            const authorizationHeader = 'hmac username="' + this.apiKey + '",algorithm="hmac-sha256",headers="' + headersCSV + '",signature="' + signature + '"';
             httpHeaders = {
                 'Date': date,
                 'Authorization': authorizationHeader,
