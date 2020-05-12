@@ -530,7 +530,7 @@ module.exports = class bitpanda extends Exchange {
 
     async parseBook (request, params) {
         const response = await this.publicGetOrderBookInstrument (this.extend (request, params));
-        const time = this.safeInteger (response, 'time');
+        const time = this.safeString (response, 'time');
         return this.parseOrderBook (response, this.parse8601 (time), 'bids', 'asks', 'price', 'amount');
     }
 
