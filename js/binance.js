@@ -23,6 +23,7 @@ module.exports = class binance extends ccxt.binance {
             'urls': {
                 'test': {
                     'ws': {
+                        'spot': 'wss://testnet.binance.vision/ws',
                         'future': 'wss://stream.binancefuture.com/ws',
                     },
                 },
