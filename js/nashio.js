@@ -26,6 +26,8 @@ module.exports = class nashio extends Exchange {
                 'fetchOrderBook': true,
                 'fetchL2OrderBook': false,
                 'fetchOrderBooks': false,
+                'fetchBalance': true,
+                'fetchMyTrades': true,
             },
             'marketsByAltname': {},
             'timeframes': {
@@ -47,6 +49,7 @@ module.exports = class nashio extends Exchange {
                 },
                 'www': 'https://www.nash.io',
                 'docs': 'https://api-ts-docs.nash.io/',
+                'explorer': 'https://app.nash.io/api/graphql/explore',
                 'test': {
                     'public': 'https://app.sandbox.nash.io/api/graphql',
                     'private': 'https://app.sandbox.nash.io/api/graphql',
@@ -84,6 +87,10 @@ module.exports = class nashio extends Exchange {
                         'gql',
                     ],
                 },
+            },
+            'requiredCredentials': {
+                'apiKey': true,
+                'secret': true,
             },
         });
     }
@@ -352,6 +359,183 @@ module.exports = class nashio extends Exchange {
         return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 0, 'amount');
     }
 
+    async fetchBalance (params = {}) {
+        let query = '';
+        query += 'query ListAccountBalances($payload: ListAccountBalancesParams' + '!' + ', $signature: Signature' + '!' + ') {';
+        query += '  listAccountBalances(payload: $payload, signature: $signature) { ';
+        query += '      asset { name symbol hash } ';
+        query += '      available { amount currency } ';
+        query += '      depositAddress ';
+        query += '      inOrders { amount currency } ';
+        query += '      pending { amount currency } ';
+        query += '      personal { amount currency } ';
+        query += '  }';
+        query += '}';
+        // const signature = 'TODO SIGN IT';
+        const listAccountBalancesParams = {
+            'ignoreLowBalance': false,
+        };
+        const signedPayload = await this.signPayloadMpc (2, 'list_account_balances', listAccountBalancesParams);
+        const request = {
+            'query': query,
+            'variables': {
+                'payload': signedPayload.payload,
+                'signature': {
+                    'publicKey': signedPayload.signature.publicKey,
+                    'signedDigest': signedPayload.signature.signedDigest,
+                },
+            },
+        };
+        const response = await this.privatePostGql (this.extend (request, params));
+        // console.warn ('response', response);
+        const listData = response['data']['listAccountBalances'];
+        // console.warn ('response', response['data']['listAccountBalances']);
+        const result = {
+            'info': listData,
+            'free': {},
+            'used': {},
+            'total': {},
+        };
+        // console.warn (listData);
+        for (let i = 0; i < listData.length; i++) {
+            const listItem = listData[i];
+            const listSymbol = listItem['asset']['symbol'];
+            const code = this.safeCurrencyCode (listSymbol);
+            // console.warn (listSymbol, code);
+            const free = listData[i]['available']['amount'];
+            const used = this.sum (listData[i]['inOrders']['amount'], listData[i]['pending']['amount']);
+            const total = this.sum (free, used);
+            result['free'][code] = free;
+            result['used'][code] = used;
+            result['total'][code] = total;
+            result[code] = {
+                'free': free,
+                'used': used,
+                'total': total,
+            };
+        }
+        return result;
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let query = '';
+        query += 'query ListAccountTrades($payload: ListAccountTradesParams' + '!, $signature: Signature' + '!' + ') { ';
+        query += '  listAccountTrades(payload: $payload, signature: $signature) { ';
+        query += '      trades { ';
+        query += '          accountSide ';
+        query += '          amount { amount currency } ';
+        query += '          cursor ';
+        query += '          direction ';
+        query += '          executedAt ';
+        query += '          id ';
+        query += '          limitPrice { amount currencyA currencyB } ';
+        query += '          makerFee { amount currency } ';
+        query += '          makerGave { amount currency } ';
+        query += '          makerOrderId ';
+        query += '          makerReceived { amount currency } ';
+        // query += '          market { } ';
+        query += '          takerFee { amount currency } ';
+        query += '          takerGave { amount currency } ';
+        query += '          takerOrderId ';
+        query += '          takerReceived { amount currency } ';
+        query += '          usdARate { amount currencyA currencyB } ';
+        query += '          usdBRate { amount currencyA currencyB } ';
+        query += '      } ';
+        query += '      next ';
+        query += '  } ';
+        query += '}';
+        const listAccountTradesParams = {
+            'before': null,
+            'limit': limit,
+            'marketName': market['id'],
+            'rangeStart': this.iso8601 (since),
+            'rangeStop': null,
+        };
+        const signedPayload = await this.signPayloadMpc (30, 'list_account_trades', listAccountTradesParams);
+        const request = {
+            'query': query,
+            'variables': {
+                'payload': signedPayload.payload,
+                'signature': {
+                    'publicKey': signedPayload.signature.publicKey,
+                    'signedDigest': signedPayload.signature.signedDigest,
+                },
+            },
+        };
+        const response = await this.privatePostGql (this.extend (request, params));
+        // console.warn ('response', response);
+        const trades = this.safeValue2 (response, 'data', 'listAccountTrades');
+        return this.parseTrades (trades, market, since, limit);
+        // structure
+        // {
+        //     'info':         { ... },                    // the original decoded JSON as is
+        //     'id':           '12345-67890:09876/54321',  // string trade id
+        //     'timestamp':    1502962946216,              // Unix timestamp in milliseconds
+        //     'datetime':     '2017-08-17 12:42:48.000',  // ISO8601 datetime with milliseconds
+        //     'symbol':       'ETH/BTC',                  // symbol
+        //     'order':        '12345-67890:09876/54321',  // string order id or undefined/None/null
+        //     'type':         'limit',                    // order type, 'market', 'limit' or undefined/None/null
+        //     'side':         'buy',                      // direction of the trade, 'buy' or 'sell'
+        //     'takerOrMaker': 'taker',                    // string, 'taker' or 'maker'
+        //     'price':        0.06917684,                 // float price in quote currency
+        //     'amount':       1.5,                        // amount of base currency
+        //     'cost':         0.10376526,                 // total cost (including fees), `price * amount`
+        //     'fee':          {                           // provided by exchange or calculated by ccxt
+        //         'cost':  0.0015,                        // float
+        //         'currency': 'ETH',                      // usually base currency for buys, quote currency for sells
+        //         'rate': 0.002,                          // the fee rate (if available)
+        //     },
+        // }
+    }
+
+    // async cancelAllOrders (symbol = undefined, params = {}) {
+    //     await this.loadMarkets ();
+    // }
+
+    // kind: https://gitlab.com/nash-io-public/nash-protocol/-/blob/master/src/payload/signingPayloadID.ts
+    async signPayloadMpc (kindId, kindName, params) {
+        const payload = params;
+        payload['timestamp'] = this.milliseconds ();
+        const payloadAndKind = {
+            'kind': kindId,
+            'payload': payload,
+        };
+        const apiKey = JSON.parse (Buffer.from (this.secret, 'base64').toString ('utf-8'));
+        const signedPayload = await this.preSignPayload (apiKey, payloadAndKind, kindName);
+        return {
+            'payload': signedPayload.payload,
+            'signature': {
+                'publicKey': apiKey.payload_public_key,
+                'signedDigest': signedPayload.signature,
+            },
+            // 'blockchain_data': signedPayload.blockchainMovement,
+            // 'blockchain_raw': signedPayload.blockchainRaw,
+            // 'signedPayload': signedPayload.payload,
+        };
+    }
+
+    async preSignPayload (apiKey, payloadAndKind, kindName) {
+        const message = kindName;
+        const messageHash = this.hash (message, 'sha256', 'hex');
+        const der = this.ecSingMessage (messageHash, apiKey.payload_signing_key, 'secp256k1');
+        const buffer = this.bufferize (der);
+        const signature = this.stringify (buffer);
+        return {
+            'payload': payloadAndKind.payload,
+            'signature': signature,
+        };
+    }
+
+    bufferize (str) {
+        return Buffer.from (str, 'hex');
+    }
+
+    stringify (buffer) {
+        return buffer.toString ('hex');
+    }
+
     parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
         // if (this.verbose) {
         //     this.print ('bidask', bidask, priceKey, amountKey, market);
@@ -490,6 +674,12 @@ module.exports = class nashio extends Exchange {
         // if (this.verbose) {
         //     this.print ('sign', { 'url': url, 'method': method, 'body': body, 'headers': headers });
         // }
+        if (api === 'private') {
+            // console.warn ('private');
+            this.checkRequiredCredentials ();
+            headers['Authorization'] = 'Token ' + this.apiKey;
+        }
+        // console.warn (url, method, body, headers);
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 };
