@@ -782,7 +782,8 @@ module.exports = class binance extends ccxt.binance {
         let result = [];
         const values = Object.values (this.orders);
         for (let i = 0; i < values.length; i++) {
-            result = this.arrayConcat (result, Object.values (values[i]));
+            const orders = Object.values (values[i]);
+            result = this.arrayConcat (result, orders);
         }
         // delete older orders from our structure to prevent memory leaks
         const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
