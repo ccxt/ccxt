@@ -158,6 +158,17 @@ module.exports = class gemini extends Exchange {
             },
             'options': {
                 'fetchMarketsMethod': 'fetch_markets_from_web',
+                'webBadSymbols': [
+                    'BTC/ETH',
+                    'BTC/BCH',
+                    'BTC/LTC',
+                    'ETH/BCH',
+                    'ETH/LTC',
+                    'BCH/LTC',
+                    'LINK/USD',
+                    'LINK/BTC',
+                    'LINK/ETH',
+                ]
             },
         });
     }
@@ -185,6 +196,7 @@ module.exports = class gemini extends Exchange {
         if (numRows < 2) {
             throw new NotSupported (error);
         }
+        const badSymbols = this.safeValue (this.options, 'webBadSymbols', []);
         const result = [];
         // skip the first element (empty string)
         for (let i = 1; i < numRows; i++) {
@@ -227,6 +239,9 @@ module.exports = class gemini extends Exchange {
                 const pricePrecisionParts = pricePrecisionString.split (' ');
                 const pricePrecision = this.precisionFromString (pricePrecisionParts[0]);
                 const symbol = base + '/' + quote;
+                if (badSymbols.indexOf (symbol) > -1) {
+                    continue;
+                }
                 const id = baseId + quoteId;
                 const active = undefined;
                 result.push ({
