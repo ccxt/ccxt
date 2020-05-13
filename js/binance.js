@@ -23,6 +23,7 @@ module.exports = class binance extends ccxt.binance {
             'urls': {
                 'test': {
                     'ws': {
+                        'spot': 'wss://testnet.binance.vision/ws',
                         'future': 'wss://stream.binancefuture.com/ws',
                     },
                 },
@@ -41,6 +42,7 @@ module.exports = class binance extends ccxt.binance {
                 'ordersLimit': 1000,
                 'OHLCVLimit': 1000,
                 'requestId': {},
+                'watchOrderBookLimit': 1000, // default limit
             },
         });
     }
@@ -131,10 +133,11 @@ module.exports = class binance extends ccxt.binance {
     }
 
     async fetchOrderBookSnapshot (client, message, subscription) {
+        const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
         const type = this.safeValue (subscription, 'type');
         const symbol = this.safeString (subscription, 'symbol');
         const messageHash = this.safeString (subscription, 'messageHash');
-        const limit = this.safeInteger (subscription, 'limit');
+        const limit = this.safeInteger (subscription, 'limit', defaultLimit);
         const params = this.safeValue (subscription, 'params');
         // 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
         // todo: this is a synch blocking call in ccxt.php - make it async
@@ -305,8 +308,9 @@ module.exports = class binance extends ccxt.binance {
     }
 
     handleOrderBookSubscription (client, message, subscription) {
+        const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
         const symbol = this.safeString (subscription, 'symbol');
-        const limit = this.safeInteger (subscription, 'limit');
+        const limit = this.safeInteger (subscription, 'limit', defaultLimit);
         if (symbol in this.orderbooks) {
             delete this.orderbooks[symbol];
         }
@@ -626,54 +630,34 @@ module.exports = class binance extends ccxt.binance {
         await this.authenticate ();
         const defaultType = this.safeString2 (this.options, 'watchBalance', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
-        const query = this.omit (params, 'type');
         const url = this.urls['api']['ws'][type] + '/' + this.options['listenKey'];
-        const requestId = this.requestId (url);
-        const request = {
-            'method': 'SUBSCRIBE',
-            'params': [
-            ],
-            'id': requestId,
-        };
-        const subscribe = {
-            'id': requestId,
-        };
         const messageHash = 'outboundAccountInfo';
-        return await this.watch (url, messageHash, this.extend (request, query), 1, subscribe);
+        return await this.watch (url, messageHash);
     }
 
     handleBalance (client, message) {
         // sent upon creating or filling an order
         //
-        // {
-        //   "e": "outboundAccountInfo",   // Event type
-        //   "E": 1499405658849,           // Event time
-        //   "m": 0,                       // Maker commission rate (bips)
-        //   "t": 0,                       // Taker commission rate (bips)
-        //   "b": 0,                       // Buyer commission rate (bips)
-        //   "s": 0,                       // Seller commission rate (bips)
-        //   "T": true,                    // Can trade?
-        //   "W": true,                    // Can withdraw?
-        //   "D": true,                    // Can deposit?
-        //   "u": 1499405658848,           // Time of last account update
-        //   "B": [                        // Balances array
         //     {
-        //       "a": "LTC",               // Asset
-        //       "f": "17366.18538083",    // Free amount
-        //       "l": "0.00000000"         // Locked amount
-        //     },
-        //     {
-        //       "a": "BTC",
-        //       "f": "10537.85314051",
-        //       "l": "2.19464093"
-        //     },
-        //     {
-        //       "a": "ETH",
-        //       "f": "17902.35190619",
-        //       "l": "0.00000000"
-        //     },
-        //   ]
-        // }
+        //         "e": "outboundAccountInfo",   // Event type
+        //         "E": 1499405658849,           // Event time
+        //         "m": 0,                       // Maker commission rate (bips)
+        //         "t": 0,                       // Taker commission rate (bips)
+        //         "b": 0,                       // Buyer commission rate (bips)
+        //         "s": 0,                       // Seller commission rate (bips)
+        //         "T": true,                    // Can trade?
+        //         "W": true,                    // Can withdraw?
+        //         "D": true,                    // Can deposit?
+        //         "u": 1499405658848,           // Time of last account update
+        //         "B": [                        // Balances array
+        //             {
+        //                 "a": "LTC",               // Asset
+        //                 "f": "17366.18538083",    // Free amount
+        //                 "l": "0.00000000"         // Locked amount
+        //             },
+        //         ]
+        //     }
+        //
         const balances = this.safeValue (message, 'B', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
@@ -694,22 +678,9 @@ module.exports = class binance extends ccxt.binance {
         await this.authenticate ();
         const defaultType = this.safeString2 (this.options, 'watchOrders', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
-        const query = this.omit (params, 'type');
         const url = this.urls['api']['ws'][type] + '/' + this.options['listenKey'];
-        const requestId = this.requestId (url);
-        const request = {
-            'method': 'SUBSCRIBE',
-            'params': [
-                '.',
-            ],
-            'id': requestId,
-        };
-        const subscribe = {
-            'id': requestId,
-        };
         const messageHash = 'executionReport';
-        const future = this.watch (url, messageHash, this.extend (request, query), 1, subscribe);
-        return await this.after (future, this.filterBySymbolSinceLimit, symbol, since, limit);
+        return await this.watch (url, messageHash);
     }
 
     handleOrder (client, message) {

@@ -33,6 +33,9 @@ class gateio(Exchange, ccxt.gateio):
             'options': {
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
+                'watchTradesSubscriptions': {},
+                'watchTickerSubscriptions': {},
+                'watchOrderBookSubscriptions': {},
             },
         })
 
@@ -40,11 +43,13 @@ class gateio(Exchange, ccxt.gateio):
         await self.load_markets()
         market = self.market(symbol)
         marketId = market['id']
-        wsMarketId = marketId.upper()
+        uppercaseId = market['uppercaseId']
         requestId = self.nonce()
         url = self.urls['api']['ws']
+        options = self.safe_value(self.options, 'watchOrderBook', {})
+        defaultLimit = self.safe_integer(options, 'limit', 30)
         if not limit:
-            limit = 30
+            limit = defaultLimit
         elif limit != 1 and limit != 5 and limit != 10 and limit != 20 and limit != 30:
             raise ExchangeError(self.id + ' watchOrderBook limit argument must be None, 1, 5, 10, 20, or 30')
         interval = self.safe_string(params, 'interval', '0.00000001')
@@ -52,11 +57,17 @@ class gateio(Exchange, ccxt.gateio):
         precision = -1 * math.log10(floatInterval)
         if (precision < 0) or (precision > 8) or (precision % 1 != 0.0):
             raise ExchangeError(self.id + ' invalid interval')
+        parameters = [uppercaseId, limit, interval]
+        subscriptions = self.safe_value(options, 'subscriptions', {})
+        subscriptions[symbol] = parameters
+        options['subscriptions'] = subscriptions
+        self.options['watchOrderBook'] = options
+        toSend = list(subscriptions.values())
         messageHash = 'depth.update' + ':' + marketId
         subscribeMessage = {
             'id': requestId,
             'method': 'depth.subscribe',
-            'params': [wsMarketId, limit, interval],
+            'params': toSend,
         }
         subscription = {
             'id': requestId,
@@ -78,6 +89,27 @@ class gateio(Exchange, ccxt.gateio):
             self.handle_delta(bookside, deltas[i])
 
     def handle_order_book(self, client, message):
+        #
+        #     {
+        #         "method":"depth.update",
+        #         "params":[
+        #             True,  # snapshot or not
+        #             {
+        #                 "asks":[
+        #                     ["7449.62","0.3933"],
+        #                     ["7450","3.58662932"],
+        #                     ["7450.44","0.15"],
+        #                 "bids":[
+        #                     ["7448.31","0.69984534"],
+        #                     ["7447.08","0.7506"],
+        #                     ["7445.74","0.4433"],
+        #                 ]
+        #             },
+        #             "BTC_USDT"
+        #         ],
+        #         "id":null
+        #     }
+        #
         params = self.safe_value(message, 'params', [])
         clean = self.safe_value(params, 0)
         book = self.safe_value(params, 1)
@@ -91,8 +123,13 @@ class gateio(Exchange, ccxt.gateio):
         method = self.safe_string(message, 'method')
         messageHash = method + ':' + marketId
         orderBook = None
+        options = self.safe_value(self.options, 'watchOrderBook', {})
+        subscriptions = self.safe_value(options, 'subscriptions', {})
+        subscription = self.safe_value(subscriptions, symbol, [])
+        defaultLimit = self.safe_integer(options, 'limit', 30)
+        limit = self.safe_value(subscription, 1, defaultLimit)
         if clean:
-            orderBook = self.order_book({})
+            orderBook = self.order_book({}, limit)
             self.orderbooks[symbol] = orderBook
         else:
             orderBook = self.orderbooks[symbol]
@@ -104,13 +141,18 @@ class gateio(Exchange, ccxt.gateio):
         await self.load_markets()
         market = self.market(symbol)
         marketId = market['id']
-        wsMarketId = marketId.upper()
+        uppercaseId = market['uppercaseId']
         requestId = self.nonce()
         url = self.urls['api']['ws']
+        options = self.safe_value(self.options, 'watchTicker', {})
+        subscriptions = self.safe_value(options, 'subscriptions', {})
+        subscriptions[uppercaseId] = True
+        options['subscriptions'] = subscriptions
+        self.options['watchTicker'] = options
         subscribeMessage = {
             'id': requestId,
             'method': 'ticker.subscribe',
-            'params': [wsMarketId],
+            'params': list(subscriptions.keys()),
         }
         subscription = {
             'id': requestId,
@@ -154,13 +196,19 @@ class gateio(Exchange, ccxt.gateio):
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        marketId = market['id'].upper()
+        marketId = market['id']
+        uppercaseId = market['uppercaseId']
         requestId = self.nonce()
         url = self.urls['api']['ws']
+        options = self.safe_value(self.options, 'watchTrades', {})
+        subscriptions = self.safe_value(options, 'subcsriptions', {})
+        subscriptions[uppercaseId] = True
+        options['subscriptions'] = subscriptions
+        self.options['watchTrades'] = options
         subscribeMessage = {
             'id': requestId,
             'method': 'trades.subscribe',
-            'params': [marketId],
+            'params': list(subscriptions.keys()),
         }
         subscription = {
             'id': requestId,
@@ -192,7 +240,6 @@ class gateio(Exchange, ccxt.gateio):
         #     ]
         #
         params = self.safe_value(message, 'params', [])
-        wsMarketId = self.safe_string(params, 0)
         marketId = self.safe_string_lower(params, 0)
         market = None
         symbol = marketId
@@ -209,36 +256,21 @@ class gateio(Exchange, ccxt.gateio):
                 stored.pop(0)
         self.trades[symbol] = stored
         methodType = message['method']
-        messageHash = methodType + ':' + wsMarketId
+        messageHash = methodType + ':' + marketId
         client.resolve(stored, messageHash)
-
-    async def load_markets(self, reload=False, params={}):
-        markets = await super(gateio, self).load_markets(reload, params)
-        marketsByUpperCaseId = self.safe_value(self.options, 'marketsByUpperCaseId')
-        if (marketsByUpperCaseId is None) or reload:
-            marketsByUpperCaseId = {}
-            symbols = list(markets.keys())
-            for i in range(0, len(symbols)):
-                symbol = symbols[i]
-                market = markets[symbol]
-                uppercaseId = self.safe_string_upper(market, 'id')
-                market['uppercaseId'] = uppercaseId
-                markets[symbol] = market
-                marketsByUpperCaseId[uppercaseId] = market
-            self.options['marketsByUpperCaseId'] = marketsByUpperCaseId
-        return markets
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        marketId = market['uppercaseId']
+        marketId = market['id']
+        uppercaseId = market['uppercaseId']
         requestId = self.nonce()
         url = self.urls['api']['ws']
         interval = self.timeframes[timeframe]
         subscribeMessage = {
             'id': requestId,
             'method': 'kline.subscribe',
-            'params': [marketId, interval],
+            'params': [uppercaseId, interval],
         }
         subscription = {
             'id': requestId,
@@ -272,7 +304,6 @@ class gateio(Exchange, ccxt.gateio):
         #
         params = self.safe_value(message, 'params', [])
         ohlcv = self.safe_value(params, 0, [])
-        uppercaseId = self.safe_string(ohlcv, 7)
         marketId = self.safe_string_lower(ohlcv, 7)
         parsed = [
             self.safe_timestamp(ohlcv, 0),  # t
@@ -309,7 +340,7 @@ class gateio(Exchange, ccxt.gateio):
         # --------------------------------------------------------------------
         self.ohlcvs[symbol] = stored
         methodType = message['method']
-        messageHash = methodType + ':' + uppercaseId
+        messageHash = methodType + ':' + marketId
         client.resolve(stored, messageHash)
 
     async def authenticate(self):
@@ -411,11 +442,10 @@ class gateio(Exchange, ccxt.gateio):
     def handle_order(self, client, message):
         messageHash = message['method']
         order = message['params'][1]
-        marketId = order['market']
-        normalMarketId = marketId.lower()
+        marketId = self.safe_string_lower(order, 'market')
         market = None
-        if normalMarketId in self.markets_by_id:
-            market = self.markets_by_id[normalMarketId]
+        if marketId in self.markets_by_id:
+            market = self.markets_by_id[marketId]
         parsed = self.parse_order(order, market)
         client.resolve(parsed, messageHash)
 

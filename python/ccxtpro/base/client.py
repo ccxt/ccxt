@@ -27,6 +27,7 @@ class Client(object):
     verbose = False  # verbose output
     gunzip = False
     inflate = False
+    throttle = None
 
     def __init__(self, url, on_message_callback, on_error_callback, on_close_callback, config={}):
         defaults = {

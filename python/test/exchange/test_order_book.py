@@ -12,39 +12,38 @@ def test_order_book(exchange, orderbook, method, symbol):
         orderbook['nonce'] if orderbook['nonce'] else orderbook['datetime'],
         len(orderbook['bids']), 'bids', str(orderbook['bids'][0] if len(orderbook['bids']) else 'N/A'),
         len(orderbook['asks']), 'asks', str(orderbook['asks'][0] if len(orderbook['asks']) else 'N/A'))
-    # const format = {
-    #     'bids': [],
-    #     'asks': [],
-    #     'timestamp': 1234567890,
-    #     'datetime': '2017-09-01T00:00:00',
-    #     'nonce': 134234234,
-    #     // 'info': {},
-    # }
-    # expect (orderbook).to.have.all.keys (format)
-    # const bids = orderbook.bids
-    # const asks = orderbook.asks
-    # for (let i = 0; i < bids.length; i++) {
-    #     if (bids.length > (i + 1)) {
-    #         assert (bids[i][0] >= bids[i + 1][0])
-    #     }
-    #     assert (typeof bids[i][0] === 'number')
-    #     assert (typeof bids[i][1] === 'number')
-    # }
-    # for (let i = 0; i < asks.length; i++) {
-    #     if (asks.length > (i + 1)) {
-    #         assert (asks[i][0] <= asks[i + 1][0])
-    #     }
-    #     assert (typeof asks[i][0] === 'number')
-    #     assert (typeof asks[i][1] === 'number')
-    # }
-    # if (![
-    #     'coinmarketcap',
-    #     'xbtce',
-    #     'coinsecure',
-    #     'upbit', // an orderbook might have a 0-price ask occasionally
-    # ].includes (exchange.id)) {
-    #     if (bids.length && asks.length)
-    #         assert (bids[0][0] <= asks[0][0],
-    #             `bids[0][0]: ${bids[0][0]} (of ${bids.length}); asks[0][0]:${asks[0][0]} (of ${asks.length})`)
-    # }
-    # printOrderBookOneLiner (orderbook, method, symbol)
+
+    keys = [
+        'bids',
+        'asks',
+        'timestamp',
+        'datetime',
+        'nonce',
+    ]
+
+    for key in keys:
+        assert key in orderbook
+
+    if orderbook['timestamp'] is not None:
+        assert orderbook['timestamp'] > 1230940800000  # 03 Jan 2009 - first block
+        assert orderbook['timestamp'] < 2147483648000  # 19 Jan 2038 - int32 overflows
+
+    asks = orderbook['asks']
+    bids = orderbook['bids']
+
+    for i in range(0, len(asks)):
+        ask = asks[i]
+        assert isinstance(ask[0], (int, float)), 'ask[0] is expected to be a float or int, ' + type(ask[0]) + ' given'
+        assert isinstance(ask[1], (int, float)), 'ask[1] is expected to be a float or int, ' + type(ask[1]) + ' given'
+        if len(asks) > (i + 1):
+            assert asks[i][0] <= asks[i + 1][0]
+
+    for i in range(0, len(bids)):
+        bid = bids[i]
+        assert isinstance(bid[0], (int, float)), 'bid[0] is expected to be a float or int, ' + type(bid[0]) + ' given'
+        assert isinstance(bid[1], (int, float)), 'bid[0] is expected to be a float or int, ' + type(bid[1]) + ' given'
+        if len(bids) > (i + 1):
+            assert bids[i][0] >= bids[i + 1][0]
+
+    if len(bids) and len(asks):
+        assert bids[0][0] < asks[0][0], 'bids[0] {} >= asks[0] {}'.format(bids[0], asks[0])

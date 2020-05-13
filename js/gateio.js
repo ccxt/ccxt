@@ -28,6 +28,9 @@ module.exports = class gateio extends ccxt.gateio {
             'options': {
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
+                'watchTradesSubscriptions': {},
+                'watchTickerSubscriptions': {},
+                'watchOrderBookSubscriptions': {},
             },
         });
     }
@@ -36,11 +39,13 @@ module.exports = class gateio extends ccxt.gateio {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketId = market['id'];
-        const wsMarketId = marketId.toUpperCase ();
+        const uppercaseId = market['uppercaseId'];
         const requestId = this.nonce ();
         const url = this.urls['api']['ws'];
+        const options = this.safeValue (this.options, 'watchOrderBook', {});
+        const defaultLimit = this.safeInteger (options, 'limit', 30);
         if (!limit) {
-            limit = 30;
+            limit = defaultLimit;
         } else if (limit !== 1 && limit !== 5 && limit !== 10 && limit !== 20 && limit !== 30) {
             throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined, 1, 5, 10, 20, or 30');
         }
@@ -50,11 +55,17 @@ module.exports = class gateio extends ccxt.gateio {
         if ((precision < 0) || (precision > 8) || (precision % 1 !== 0.0)) {
             throw new ExchangeError (this.id + ' invalid interval');
         }
+        const parameters = [ uppercaseId, limit, interval ];
+        const subscriptions = this.safeValue (options, 'subscriptions', {});
+        subscriptions[symbol] = parameters;
+        options['subscriptions'] = subscriptions;
+        this.options['watchOrderBook'] = options;
+        const toSend = Object.values (subscriptions);
         const messageHash = 'depth.update' + ':' + marketId;
         const subscribeMessage = {
             'id': requestId,
             'method': 'depth.subscribe',
-            'params': [ wsMarketId, limit, interval ],
+            'params': toSend,
         };
         const subscription = {
             'id': requestId,
@@ -81,6 +92,27 @@ module.exports = class gateio extends ccxt.gateio {
     }
 
     handleOrderBook (client, message) {
+        //
+        //     {
+        //         "method":"depth.update",
+        //         "params":[
+        //             true, // snapshot or not
+        //             {
+        //                 "asks":[
+        //                     ["7449.62","0.3933"],
+        //                     ["7450","3.58662932"],
+        //                     ["7450.44","0.15"],
+        //                 "bids":[
+        //                     ["7448.31","0.69984534"],
+        //                     ["7447.08","0.7506"],
+        //                     ["7445.74","0.4433"],
+        //                 ]
+        //             },
+        //             "BTC_USDT"
+        //         ],
+        //         "id":null
+        //     }
+        //
         const params = this.safeValue (message, 'params', []);
         const clean = this.safeValue (params, 0);
         const book = this.safeValue (params, 1);
@@ -95,8 +127,13 @@ module.exports = class gateio extends ccxt.gateio {
         const method = this.safeString (message, 'method');
         const messageHash = method + ':' + marketId;
         let orderBook = undefined;
+        const options = this.safeValue (this.options, 'watchOrderBook', {});
+        const subscriptions = this.safeValue (options, 'subscriptions', {});
+        const subscription = this.safeValue (subscriptions, symbol, []);
+        const defaultLimit = this.safeInteger (options, 'limit', 30);
+        const limit = this.safeValue (subscription, 1, defaultLimit);
         if (clean) {
-            orderBook = this.orderBook ({});
+            orderBook = this.orderBook ({}, limit);
             this.orderbooks[symbol] = orderBook;
         } else {
             orderBook = this.orderbooks[symbol];
@@ -110,13 +147,18 @@ module.exports = class gateio extends ccxt.gateio {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketId = market['id'];
-        const wsMarketId = marketId.toUpperCase ();
+        const uppercaseId = market['uppercaseId'];
         const requestId = this.nonce ();
         const url = this.urls['api']['ws'];
+        const options = this.safeValue (this.options, 'watchTicker', {});
+        const subscriptions = this.safeValue (options, 'subscriptions', {});
+        subscriptions[uppercaseId] = true;
+        options['subscriptions'] = subscriptions;
+        this.options['watchTicker'] = options;
         const subscribeMessage = {
             'id': requestId,
             'method': 'ticker.subscribe',
-            'params': [ wsMarketId ],
+            'params': Object.keys (subscriptions),
         };
         const subscription = {
             'id': requestId,
@@ -163,13 +205,19 @@ module.exports = class gateio extends ccxt.gateio {
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const marketId = market['id'].toUpperCase ();
+        const marketId = market['id'];
+        const uppercaseId = market['uppercaseId'];
         const requestId = this.nonce ();
         const url = this.urls['api']['ws'];
+        const options = this.safeValue (this.options, 'watchTrades', {});
+        const subscriptions = this.safeValue (options, 'subcsriptions', {});
+        subscriptions[uppercaseId] = true;
+        options['subscriptions'] = subscriptions;
+        this.options['watchTrades'] = options;
         const subscribeMessage = {
             'id': requestId,
             'method': 'trades.subscribe',
-            'params': [ marketId ],
+            'params': Object.keys (subscriptions),
         };
         const subscription = {
             'id': requestId,
@@ -202,7 +250,6 @@ module.exports = class gateio extends ccxt.gateio {
         //     ]
         //
         const params = this.safeValue (message, 'params', []);
-        const wsMarketId = this.safeString (params, 0);
         const marketId = this.safeStringLower (params, 0);
         let market = undefined;
         let symbol = marketId;
@@ -222,40 +269,22 @@ module.exports = class gateio extends ccxt.gateio {
         }
         this.trades[symbol] = stored;
         const methodType = message['method'];
-        const messageHash = methodType + ':' + wsMarketId;
+        const messageHash = methodType + ':' + marketId;
         client.resolve (stored, messageHash);
-    }
-
-    async loadMarkets (reload = false, params = {}) {
-        const markets = await super.loadMarkets (reload, params);
-        let marketsByUpperCaseId = this.safeValue (this.options, 'marketsByUpperCaseId');
-        if ((marketsByUpperCaseId === undefined) || reload) {
-            marketsByUpperCaseId = {};
-            const symbols = Object.keys (markets);
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
-                const market = markets[symbol];
-                const uppercaseId = this.safeStringUpper (market, 'id');
-                market['uppercaseId'] = uppercaseId;
-                markets[symbol] = market;
-                marketsByUpperCaseId[uppercaseId] = market;
-            }
-            this.options['marketsByUpperCaseId'] = marketsByUpperCaseId;
-        }
-        return markets;
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const marketId = market['uppercaseId'];
+        const marketId = market['id'];
+        const uppercaseId = market['uppercaseId'];
         const requestId = this.nonce ();
         const url = this.urls['api']['ws'];
         const interval = this.timeframes[timeframe];
         const subscribeMessage = {
             'id': requestId,
             'method': 'kline.subscribe',
-            'params': [ marketId, interval ],
+            'params': [ uppercaseId, interval ],
         };
         const subscription = {
             'id': requestId,
@@ -290,7 +319,6 @@ module.exports = class gateio extends ccxt.gateio {
         //
         const params = this.safeValue (message, 'params', []);
         const ohlcv = this.safeValue (params, 0, []);
-        const uppercaseId = this.safeString (ohlcv, 7);
         const marketId = this.safeStringLower (ohlcv, 7);
         const parsed = [
             this.safeTimestamp (ohlcv, 0), // t
@@ -330,7 +358,7 @@ module.exports = class gateio extends ccxt.gateio {
         // --------------------------------------------------------------------
         this.ohlcvs[symbol] = stored;
         const methodType = message['method'];
-        const messageHash = methodType + ':' + uppercaseId;
+        const messageHash = methodType + ':' + marketId;
         client.resolve (stored, messageHash);
     }
 
@@ -443,11 +471,10 @@ module.exports = class gateio extends ccxt.gateio {
     handleOrder (client, message) {
         const messageHash = message['method'];
         const order = message['params'][1];
-        const marketId = order['market'];
-        const normalMarketId = marketId.toLowerCase ();
+        const marketId = this.safeStringLower (order, 'market');
         let market = undefined;
-        if (normalMarketId in this.markets_by_id) {
-            market = this.markets_by_id[normalMarketId];
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
         }
         const parsed = this.parseOrder (order, market);
         client.resolve (parsed, messageHash);

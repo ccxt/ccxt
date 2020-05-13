@@ -27,6 +27,7 @@ class binance extends \ccxt\binance {
             'urls' => array(
                 'test' => array(
                     'ws' => array(
+                        'spot' => 'wss://testnet.binance.vision/ws',
                         'future' => 'wss://stream.binancefuture.com/ws',
                     ),
                 ),
@@ -44,6 +45,7 @@ class binance extends \ccxt\binance {
                 'tradesLimit' => 1000,
                 'OHLCVLimit' => 1000,
                 'requestId' => array(),
+                'watchOrderBookLimit' => 1000, // default limit
             ),
         ));
     }
@@ -134,10 +136,11 @@ class binance extends \ccxt\binance {
     }
 
     public function fetch_order_book_snapshot($client, $message, $subscription) {
+        $defaultLimit = $this->safe_integer($this->options, 'watchOrderBookLimit', 1000);
         $type = $this->safe_value($subscription, 'type');
         $symbol = $this->safe_string($subscription, 'symbol');
         $messageHash = $this->safe_string($subscription, 'messageHash');
-        $limit = $this->safe_integer($subscription, 'limit');
+        $limit = $this->safe_integer($subscription, 'limit', $defaultLimit);
         $params = $this->safe_value($subscription, 'params');
         // 3. Get a depth $snapshot from https://www.binance.com/api/v1/depth?$symbol=BNBBTC&$limit=1000 .
         // todo => this is a synch blocking call in ccxt.php - make it async
@@ -308,8 +311,9 @@ class binance extends \ccxt\binance {
     }
 
     public function handle_order_book_subscription($client, $message, $subscription) {
+        $defaultLimit = $this->safe_integer($this->options, 'watchOrderBookLimit', 1000);
         $symbol = $this->safe_string($subscription, 'symbol');
-        $limit = $this->safe_integer($subscription, 'limit');
+        $limit = $this->safe_integer($subscription, 'limit', $defaultLimit);
         if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
             unset($this->orderbooks[$symbol]);
         }
@@ -629,54 +633,34 @@ class binance extends \ccxt\binance {
         $this->authenticate();
         $defaultType = $this->safe_string_2($this->options, 'watchBalance', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
-        $query = $this->omit($params, 'type');
         $url = $this->urls['api']['ws'][$type] . '/' . $this->options['listenKey'];
-        $requestId = $this->request_id($url);
-        $request = array(
-            'method' => 'SUBSCRIBE',
-            'params' => array(
-            ),
-            'id' => $requestId,
-        );
-        $subscribe = array(
-            'id' => $requestId,
-        );
         $messageHash = 'outboundAccountInfo';
-        return $this->watch($url, $messageHash, array_merge($request, $query), 1, $subscribe);
+        return $this->watch($url, $messageHash);
     }
 
     public function handle_balance($client, $message) {
         // sent upon creating or filling an order
         //
-        // {
-        //   "e" => "outboundAccountInfo",   // Event type
-        //   "E" => 1499405658849,           // Event time
-        //   "m" => 0,                       // Maker commission rate (bips)
-        //   "t" => 0,                       // Taker commission rate (bips)
-        //   "b" => 0,                       // Buyer commission rate (bips)
-        //   "s" => 0,                       // Seller commission rate (bips)
-        //   "T" => true,                    // Can trade?
-        //   "W" => true,                    // Can withdraw?
-        //   "D" => true,                    // Can deposit?
-        //   "u" => 1499405658848,           // Time of last $account update
-        //   "B" => array(                        // Balances array
-        //     array(
-        //       "a" => "LTC",               // Asset
-        //       "f" => "17366.18538083",    // Free amount
-        //       "l" => "0.00000000"         // Locked amount
-        //     ),
-        //     array(
-        //       "a" => "BTC",
-        //       "f" => "10537.85314051",
-        //       "l" => "2.19464093"
-        //     ),
-        //     array(
-        //       "a" => "ETH",
-        //       "f" => "17902.35190619",
-        //       "l" => "0.00000000"
-        //     ),
-        //   )
-        // }
+        //     {
+        //         "e" => "outboundAccountInfo",   // Event type
+        //         "E" => 1499405658849,           // Event time
+        //         "m" => 0,                       // Maker commission rate (bips)
+        //         "t" => 0,                       // Taker commission rate (bips)
+        //         "b" => 0,                       // Buyer commission rate (bips)
+        //         "s" => 0,                       // Seller commission rate (bips)
+        //         "T" => true,                    // Can trade?
+        //         "W" => true,                    // Can withdraw?
+        //         "D" => true,                    // Can deposit?
+        //         "u" => 1499405658848,           // Time of last $account update
+        //         "B" => array(                        // Balances array
+        //             array(
+        //                 "a" => "LTC",               // Asset
+        //                 "f" => "17366.18538083",    // Free amount
+        //                 "l" => "0.00000000"         // Locked amount
+        //             ),
+        //         )
+        //     }
+        //
         $balances = $this->safe_value($message, 'B', array());
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
@@ -697,20 +681,9 @@ class binance extends \ccxt\binance {
         $this->authenticate();
         $defaultType = $this->safe_string_2($this->options, 'watchOrders', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
-        $query = $this->omit($params, 'type');
         $url = $this->urls['api']['ws'][$type] . '/' . $this->options['listenKey'];
-        $requestId = $this->request_id($url);
-        $request = array(
-            'method' => 'SUBSCRIBE',
-            'params' => array(
-            ),
-            'id' => $requestId,
-        );
-        $subscribe = array(
-            'id' => $requestId,
-        );
         $messageHash = 'executionReport';
-        return $this->watch($url, $messageHash, array_merge($request, $query), 1, $subscribe);
+        return $this->watch($url, $messageHash);
     }
 
     public function handle_order($client, $message) {

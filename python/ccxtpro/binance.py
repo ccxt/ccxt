@@ -25,6 +25,7 @@ class binance(Exchange, ccxt.binance):
             'urls': {
                 'test': {
                     'ws': {
+                        'spot': 'wss://testnet.binance.vision/ws',
                         'future': 'wss://stream.binancefuture.com/ws',
                     },
                 },
@@ -42,6 +43,7 @@ class binance(Exchange, ccxt.binance):
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
                 'requestId': {},
+                'watchOrderBookLimit': 1000,  # default limit
             },
         })
 
@@ -127,10 +129,11 @@ class binance(Exchange, ccxt.binance):
         return await self.after(future, self.limit_order_book, symbol, limit, params)
 
     async def fetch_order_book_snapshot(self, client, message, subscription):
+        defaultLimit = self.safe_integer(self.options, 'watchOrderBookLimit', 1000)
         type = self.safe_value(subscription, 'type')
         symbol = self.safe_string(subscription, 'symbol')
         messageHash = self.safe_string(subscription, 'messageHash')
-        limit = self.safe_integer(subscription, 'limit')
+        limit = self.safe_integer(subscription, 'limit', defaultLimit)
         params = self.safe_value(subscription, 'params')
         # 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
         # todo: self is a synch blocking call in ccxt.php - make it async
@@ -274,8 +277,9 @@ class binance(Exchange, ccxt.binance):
         return message
 
     def handle_order_book_subscription(self, client, message, subscription):
+        defaultLimit = self.safe_integer(self.options, 'watchOrderBookLimit', 1000)
         symbol = self.safe_string(subscription, 'symbol')
-        limit = self.safe_integer(subscription, 'limit')
+        limit = self.safe_integer(subscription, 'limit', defaultLimit)
         if symbol in self.orderbooks:
             del self.orderbooks[symbol]
         self.orderbooks[symbol] = self.order_book({}, limit)
@@ -567,53 +571,33 @@ class binance(Exchange, ccxt.binance):
         await self.authenticate()
         defaultType = self.safe_string_2(self.options, 'watchBalance', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
-        query = self.omit(params, 'type')
         url = self.urls['api']['ws'][type] + '/' + self.options['listenKey']
-        requestId = self.request_id(url)
-        request = {
-            'method': 'SUBSCRIBE',
-            'params': [
-            ],
-            'id': requestId,
-        }
-        subscribe = {
-            'id': requestId,
-        }
         messageHash = 'outboundAccountInfo'
-        return await self.watch(url, messageHash, self.extend(request, query), 1, subscribe)
+        return await self.watch(url, messageHash)
 
     def handle_balance(self, client, message):
         # sent upon creating or filling an order
         #
-        # {
-        #   "e": "outboundAccountInfo",   # Event type
-        #   "E": 1499405658849,           # Event time
-        #   "m": 0,                       # Maker commission rate(bips)
-        #   "t": 0,                       # Taker commission rate(bips)
-        #   "b": 0,                       # Buyer commission rate(bips)
-        #   "s": 0,                       # Seller commission rate(bips)
-        #   "T": True,                    # Can trade?
-        #   "W": True,                    # Can withdraw?
-        #   "D": True,                    # Can deposit?
-        #   "u": 1499405658848,           # Time of last account update
-        #   "B": [                       # Balances array
         #     {
-        #       "a": "LTC",               # Asset
-        #       "f": "17366.18538083",    # Free amount
-        #       "l": "0.00000000"         # Locked amount
-        #     },
-        #     {
-        #       "a": "BTC",
-        #       "f": "10537.85314051",
-        #       "l": "2.19464093"
-        #     },
-        #     {
-        #       "a": "ETH",
-        #       "f": "17902.35190619",
-        #       "l": "0.00000000"
-        #     },
-        #   ]
-        # }
+        #         "e": "outboundAccountInfo",   # Event type
+        #         "E": 1499405658849,           # Event time
+        #         "m": 0,                       # Maker commission rate(bips)
+        #         "t": 0,                       # Taker commission rate(bips)
+        #         "b": 0,                       # Buyer commission rate(bips)
+        #         "s": 0,                       # Seller commission rate(bips)
+        #         "T": True,                    # Can trade?
+        #         "W": True,                    # Can withdraw?
+        #         "D": True,                    # Can deposit?
+        #         "u": 1499405658848,           # Time of last account update
+        #         "B": [                       # Balances array
+        #             {
+        #                 "a": "LTC",               # Asset
+        #                 "f": "17366.18538083",    # Free amount
+        #                 "l": "0.00000000"         # Locked amount
+        #             },
+        #         ]
+        #     }
+        #
         balances = self.safe_value(message, 'B', [])
         for i in range(0, len(balances)):
             balance = balances[i]
@@ -632,20 +616,9 @@ class binance(Exchange, ccxt.binance):
         await self.authenticate()
         defaultType = self.safe_string_2(self.options, 'watchOrders', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
-        query = self.omit(params, 'type')
         url = self.urls['api']['ws'][type] + '/' + self.options['listenKey']
-        requestId = self.request_id(url)
-        request = {
-            'method': 'SUBSCRIBE',
-            'params': [
-            ],
-            'id': requestId,
-        }
-        subscribe = {
-            'id': requestId,
-        }
         messageHash = 'executionReport'
-        return await self.watch(url, messageHash, self.extend(request, query), 1, subscribe)
+        return await self.watch(url, messageHash)
 
     def handle_order(self, client, message):
         # {

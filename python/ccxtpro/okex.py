@@ -27,6 +27,9 @@ class okex(Exchange, ccxt.okex):
                 'api': {
                     'ws': 'wss://real.okex.com:8443/ws/v3',
                 },
+                'test': {
+                    'ws': 'wss://real.okex.com:8443/ws/v3?BrokerId=181',
+                },
             },
             'options': {
                 'watchOrderBook': {

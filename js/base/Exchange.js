@@ -47,6 +47,7 @@ module.exports = class Exchange extends ccxt.Exchange {
                 'print': this.print ? this.print.bind (this) : this.print,
                 'ping': this.ping ? this.ping.bind (this) : this.ping,
                 'verbose': this.verbose,
+                'throttle': ccxt.throttle (this.tokenBucket),
             }, wsOptions)
             this.clients[url] = new WsClient (url, onMessage, onError, onClose, options)
         }
@@ -75,6 +76,12 @@ module.exports = class Exchange extends ccxt.Exchange {
         (method.apply (this, args)).catch ((e) => {
             // todo: handle spawned errors
         })
+    }
+
+    delay (timeout, method, ... args) {
+        setTimeout (() => {
+            this.spawn (method, ... args)
+        }, timeout)
     }
 
     watch (url, messageHash, message = undefined, subscribeHash = undefined, subscription = undefined) {
@@ -120,20 +127,22 @@ module.exports = class Exchange extends ccxt.Exchange {
         // catch any connection-level exceptions from the client
         // (connection established successfully)
         connected.then (() => {
-            if (message && !client.subscriptions[subscribeHash]) {
+            if (!client.subscriptions[subscribeHash]) {
                 client.subscriptions[subscribeHash] = subscription || true
                 const options = this.safeValue (this.options, 'ws');
                 const rateLimit = this.safeValue (options, 'rateLimit', this.rateLimit);
-                if (this.enableRateLimit) {
-                    this.throttle (rateLimit).then (() => {
+                if (message) {
+                    if (this.enableRateLimit && client.throttle) {
+                        client.throttle (rateLimit).then (() => {
+                            // todo: decouple signing from subscriptions
+                            message = this.signMessage (client, messageHash, message)
+                            client.send (message)
+                        }).catch ((e) => { throw e })
+                    } else {
                         // todo: decouple signing from subscriptions
                         message = this.signMessage (client, messageHash, message)
                         client.send (message)
-                    }).catch ((e) => { throw e })
-                } else {
-                    // todo: decouple signing from subscriptions
-                    message = this.signMessage (client, messageHash, message)
-                    client.send (message)
+                    }
                 }
             }
         }).catch ((error) => {
