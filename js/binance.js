@@ -680,7 +680,8 @@ module.exports = class binance extends ccxt.binance {
         const type = this.safeString (params, 'type', defaultType);
         const url = this.urls['api']['ws'][type] + '/' + this.options['listenKey'];
         const messageHash = 'executionReport';
-        return await this.watch (url, messageHash);
+        const future = this.watch (url, messageHash);
+        return await this.after (future, this.filterBySymbolSinceLimit, symbol, since, limit);
     }
 
     handleOrder (client, message) {
