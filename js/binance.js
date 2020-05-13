@@ -709,7 +709,7 @@ module.exports = class binance extends ccxt.binance {
         };
         const messageHash = 'executionReport';
         const future = this.watch (url, messageHash, this.extend (request, query), 1, subscribe);
-        return this.after (future, this.filterBySymbolSinceLimit, symbol, since, limit);
+        return await this.after (future, this.filterBySymbolSinceLimit, symbol, since, limit);
     }
 
     handleOrder (client, message) {
