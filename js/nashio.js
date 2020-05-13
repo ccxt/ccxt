@@ -3,6 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
+const { base64ToString } = require ('./base/functions/encode');
 
 //  ---------------------------------------------------------------------------
 
@@ -502,7 +503,8 @@ module.exports = class nashio extends Exchange {
             'kind': kindId,
             'payload': payload,
         };
-        const apiKey = JSON.parse (Buffer.from (this.secret, 'base64').toString ('utf-8'));
+        const json = base64ToString (this.secret);
+        const apiKey = this.unjson (json);
         const signedPayload = await this.preSignPayload (apiKey, payloadAndKind, kindName);
         return {
             'payload': signedPayload.payload,
