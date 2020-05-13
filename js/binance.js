@@ -61,6 +61,10 @@ module.exports = class binance extends Exchange {
                 'test': {
                     'fapiPublic': 'https://testnet.binancefuture.com/fapi/v1',
                     'fapiPrivate': 'https://testnet.binancefuture.com/fapi/v1',
+                    'public': 'https://testnet.binance.vision/api/v3',
+                    'private': 'https://testnet.binance.vision/api/v3',
+                    'v3': 'https://testnet.binance.vision/api/v3',
+                    'v1': 'https://testnet.binance.vision/api/v1',
                 },
                 'api': {
                     'web': 'https://www.binance.com',
@@ -137,6 +141,14 @@ module.exports = class binance extends Exchange {
                         'lending/union/interestHistory',
                         'lending/project/list',
                         'lending/project/position/list',
+                        // mining endpoints
+                        'mining/pub/algoList',
+                        'mining/pub/coinList',
+                        'mining/worker/detail',
+                        'mining/worker/list',
+                        'mining/payment/list',
+                        'mining/statistics/user/status',
+                        'mining/statistics/user/list',
                     ],
                     'post': [
                         'asset/dust',
@@ -337,14 +349,6 @@ module.exports = class binance extends Exchange {
         });
     }
 
-    setSandboxMode (enabled) {
-        const type = this.safeString (this.options, 'defaultType', 'spot');
-        if (type !== 'future') {
-            throw new NotSupported (this.id + ' does not have a sandbox URL for ' + type + " markets, set exchange.options['defaultType'] = 'future' or don't use the sandbox for " + this.id);
-        }
-        return super.setSandboxMode (enabled);
-    }
-
     nonce () {
         return this.milliseconds () - this.options['timeDifference'];
     }
@@ -367,6 +371,9 @@ module.exports = class binance extends Exchange {
         const defaultType = this.safeString2 (this.options, 'fetchMarkets', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         const query = this.omit (params, 'type');
+        if ((type !== 'spot') && (type !== 'future')) {
+            throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to 'spot' or 'future'"); // eslint-disable-line quotes
+        }
         const method = (type === 'spot') ? 'publicGetExchangeInfo' : 'fapiPublicGetExchangeInfo';
         const response = await this[method] (query);
         //
@@ -457,17 +464,17 @@ module.exports = class binance extends Exchange {
             const marketType = spot ? 'spot' : 'future';
             const id = this.safeString (market, 'symbol');
             const lowercaseId = this.safeStringLower (market, 'symbol');
-            const baseId = market['baseAsset'];
-            const quoteId = market['quoteAsset'];
+            const baseId = this.safeString (market, 'baseAsset');
+            const quoteId = this.safeString (market, 'quoteAsset');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const filters = this.indexBy (market['filters'], 'filterType');
             const precision = {
-                'base': market['baseAssetPrecision'],
-                'quote': market['quotePrecision'],
-                'amount': market['baseAssetPrecision'],
-                'price': market['quotePrecision'],
+                'base': this.safeInteger (market, 'baseAssetPrecision'),
+                'quote': this.safeInteger (market, 'quotePrecision'),
+                'amount': this.safeInteger (market, 'baseAssetPrecision'),
+                'price': this.safeInteger (market, 'quotePrecision'),
             };
             const status = this.safeString (market, 'status');
             const active = (status === 'TRADING');
@@ -495,7 +502,7 @@ module.exports = class binance extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': -1 * Math.log10 (precision['amount']),
+                        'min': undefined,
                         'max': undefined,
                     },
                 },
@@ -565,7 +572,12 @@ module.exports = class binance extends Exchange {
         await this.loadMarkets ();
         const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
-        const method = (type === 'spot') ? 'privateGetAccount' : 'fapiPrivateGetAccount';
+        let method = 'privateGetAccount';
+        if (type === 'future') {
+            method = 'fapiPrivateGetAccount';
+        } else if (type === 'margin') {
+            method = 'sapiGetMarginAccount';
+        }
         const query = this.omit (params, 'type');
         const response = await this[method] (query);
         //
@@ -889,6 +901,10 @@ module.exports = class binance extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
+        let cost = undefined;
+        if ((price !== undefined) && (amount !== undefined)) {
+            cost = price * amount;
+        }
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -897,11 +913,11 @@ module.exports = class binance extends Exchange {
             'id': id,
             'order': orderId,
             'type': undefined,
-            'takerOrMaker': takerOrMaker,
             'side': side,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
-            'cost': price * amount,
+            'cost': cost,
             'fee': fee,
         };
     }
@@ -1865,6 +1881,9 @@ module.exports = class binance extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        if (!(api in this.urls['api'])) {
+            throw new NotSupported (this.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints');
+        }
         let url = this.urls['api'][api];
         url += '/' + path;
         if (api === 'wapi') {

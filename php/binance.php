@@ -68,6 +68,10 @@ class binance extends Exchange {
                 'test' => array(
                     'fapiPublic' => 'https://testnet.binancefuture.com/fapi/v1',
                     'fapiPrivate' => 'https://testnet.binancefuture.com/fapi/v1',
+                    'public' => 'https://testnet.binance.vision/api/v3',
+                    'private' => 'https://testnet.binance.vision/api/v3',
+                    'v3' => 'https://testnet.binance.vision/api/v3',
+                    'v1' => 'https://testnet.binance.vision/api/v1',
                 ),
                 'api' => array(
                     'web' => 'https://www.binance.com',
@@ -144,6 +148,14 @@ class binance extends Exchange {
                         'lending/union/interestHistory',
                         'lending/project/list',
                         'lending/project/position/list',
+                        // mining endpoints
+                        'mining/pub/algoList',
+                        'mining/pub/coinList',
+                        'mining/worker/detail',
+                        'mining/worker/list',
+                        'mining/payment/list',
+                        'mining/statistics/user/status',
+                        'mining/statistics/user/list',
                     ),
                     'post' => array(
                         'asset/dust',
@@ -344,14 +356,6 @@ class binance extends Exchange {
         ));
     }
 
-    public function set_sandbox_mode($enabled) {
-        $type = $this->safe_string($this->options, 'defaultType', 'spot');
-        if ($type !== 'future') {
-            throw new NotSupported($this->id . ' does not have a sandbox URL for ' . $type . " markets, set exchange.options['defaultType'] = 'future' or don't use the sandbox for " . $this->id);
-        }
-        return parent::set_sandbox_mode($enabled);
-    }
-
     public function nonce() {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
@@ -374,6 +378,9 @@ class binance extends Exchange {
         $defaultType = $this->safe_string_2($this->options, 'fetchMarkets', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
         $query = $this->omit($params, 'type');
+        if (($type !== 'spot') && ($type !== 'future')) {
+            throw new ExchangeError($this->id . " does not support '" . $type . "' $type, set exchange.options['defaultType'] to 'spot' or 'future'"); // eslint-disable-line quotes
+        }
         $method = ($type === 'spot') ? 'publicGetExchangeInfo' : 'fapiPublicGetExchangeInfo';
         $response = $this->$method ($query);
         //
@@ -464,17 +471,17 @@ class binance extends Exchange {
             $marketType = $spot ? 'spot' : 'future';
             $id = $this->safe_string($market, 'symbol');
             $lowercaseId = $this->safe_string_lower($market, 'symbol');
-            $baseId = $market['baseAsset'];
-            $quoteId = $market['quoteAsset'];
+            $baseId = $this->safe_string($market, 'baseAsset');
+            $quoteId = $this->safe_string($market, 'quoteAsset');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $filters = $this->index_by($market['filters'], 'filterType');
             $precision = array(
-                'base' => $market['baseAssetPrecision'],
-                'quote' => $market['quotePrecision'],
-                'amount' => $market['baseAssetPrecision'],
-                'price' => $market['quotePrecision'],
+                'base' => $this->safe_integer($market, 'baseAssetPrecision'),
+                'quote' => $this->safe_integer($market, 'quotePrecision'),
+                'amount' => $this->safe_integer($market, 'baseAssetPrecision'),
+                'price' => $this->safe_integer($market, 'quotePrecision'),
             );
             $status = $this->safe_string($market, 'status');
             $active = ($status === 'TRADING');
@@ -502,7 +509,7 @@ class binance extends Exchange {
                         'max' => null,
                     ),
                     'cost' => array(
-                        'min' => -1 * log10 ($precision['amount']),
+                        'min' => null,
                         'max' => null,
                     ),
                 ),
@@ -572,7 +579,12 @@ class binance extends Exchange {
         $this->load_markets();
         $defaultType = $this->safe_string_2($this->options, 'fetchBalance', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
-        $method = ($type === 'spot') ? 'privateGetAccount' : 'fapiPrivateGetAccount';
+        $method = 'privateGetAccount';
+        if ($type === 'future') {
+            $method = 'fapiPrivateGetAccount';
+        } else if ($type === 'margin') {
+            $method = 'sapiGetMarginAccount';
+        }
         $query = $this->omit($params, 'type');
         $response = $this->$method ($query);
         //
@@ -896,6 +908,10 @@ class binance extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
+        $cost = null;
+        if (($price !== null) && ($amount !== null)) {
+            $cost = $price * $amount;
+        }
         return array(
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -904,11 +920,11 @@ class binance extends Exchange {
             'id' => $id,
             'order' => $orderId,
             'type' => null,
-            'takerOrMaker' => $takerOrMaker,
             'side' => $side,
+            'takerOrMaker' => $takerOrMaker,
             'price' => $price,
             'amount' => $amount,
-            'cost' => $price * $amount,
+            'cost' => $cost,
             'fee' => $fee,
         );
     }
@@ -1872,6 +1888,9 @@ class binance extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        if (!(is_array($this->urls['api']) && array_key_exists($api, $this->urls['api']))) {
+            throw new NotSupported($this->id . ' does not have a testnet/sandbox URL for ' . $api . ' endpoints');
+        }
         $url = $this->urls['api'][$api];
         $url .= '/' . $path;
         if ($api === 'wapi') {

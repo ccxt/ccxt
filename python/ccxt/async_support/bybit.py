@@ -59,7 +59,7 @@ class bybit(Exchange):
                 '30m': '30',
                 '1h': '60',
                 '2h': '120',
-                '3h': '180',
+                '4h': '240',
                 '6h': '360',
                 '12h': '720',
                 '1d': 'D',
@@ -138,8 +138,8 @@ class bybit(Exchange):
                 },
                 'privateLinear': {
                     'get': [
-                        'order-list',
-                        'order-search',
+                        'order/list',
+                        'order/search',
                         'stop-order/list',
                         'stop-order/search',
                         'position/list',
@@ -787,24 +787,30 @@ class bybit(Exchange):
         symbol = None
         base = None
         marketId = self.safe_string(trade, 'symbol')
+        amount = self.safe_float_2(trade, 'qty', 'exec_qty')
+        cost = self.safe_float(trade, 'exec_value')
+        price = self.safe_float_2(trade, 'price', 'exec_price')
         if marketId in self.markets_by_id:
             market = self.markets_by_id[marketId]
             symbol = market['symbol']
             base = market['base']
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
-            base = market['base']
-        timestamp = self.parse8601(self.safe_string(trade, 'time'))
-        if timestamp is None:
-            timestamp = self.safe_integer(trade, 'trade_time_ms')
-        side = self.safe_string_lower(trade, 'side')
-        price = self.safe_float_2(trade, 'price', 'exec_price')
-        amount = self.safe_float_2(trade, 'qty', 'exec_qty')
-        cost = self.safe_float(trade, 'exec_value')
+        if market is not None:
+            if symbol is None:
+                symbol = market['symbol']
+                base = market['base']
+            # if private trade
+            if 'exec_fee' in trade:
+                if market['inverse']:
+                    amount = self.safe_float(trade, 'exec_value')
+                    cost = self.safe_float(trade, 'exec_qty')
         if cost is None:
             if amount is not None:
                 if price is not None:
                     cost = amount * price
+        timestamp = self.parse8601(self.safe_string(trade, 'time'))
+        if timestamp is None:
+            timestamp = self.safe_integer(trade, 'trade_time_ms')
+        side = self.safe_string_lower(trade, 'side')
         lastLiquidityInd = self.safe_string(trade, 'last_liquidity_ind')
         takerOrMaker = 'maker' if (lastLiquidityInd == 'AddedLiquidity') else 'taker'
         feeCost = self.safe_float(trade, 'exec_fee')
@@ -1933,7 +1939,7 @@ class bybit(Exchange):
             timestamp = self.nonce()
             query = self.extend(params, {
                 'api_key': self.apiKey,
-                'recvWindow': self.options['recvWindow'],
+                'recv_window': self.options['recvWindow'],
                 'timestamp': timestamp,
             })
             auth = self.rawencode(self.keysort(query))

@@ -69,7 +69,9 @@ module.exports = class kucoin extends Exchange {
                 'public': {
                     'get': [
                         'timestamp',
+                        'status',
                         'symbols',
+                        'markets',
                         'market/allTickers',
                         'market/orderbook/level{level}',
                         'market/orderbook/level2',
@@ -82,6 +84,8 @@ module.exports = class kucoin extends Exchange {
                         'currencies',
                         'currencies/{currency}',
                         'prices',
+                        'mark-price/{symbol}/current',
+                        'margin/config',
                     ],
                     'post': [
                         'bullet-public',
@@ -94,6 +98,7 @@ module.exports = class kucoin extends Exchange {
                         'accounts/{accountId}/ledgers',
                         'accounts/{accountId}/holds',
                         'accounts/transferable',
+                        'sub/user',
                         'sub-accounts',
                         'sub-accounts/{subUserId}',
                         'deposit-addresses',
@@ -108,6 +113,17 @@ module.exports = class kucoin extends Exchange {
                         'limit/orders',
                         'fills',
                         'limit/fills',
+                        'margin/account',
+                        'margin/borrow',
+                        'margin/borrow/outstanding',
+                        'margin/borrow/borrow/repaid',
+                        'margin/lend/active',
+                        'margin/lend/done',
+                        'margin/lend/trade/unsettled',
+                        'margin/lend/trade/settled',
+                        'margin/lend/assets',
+                        'margin/market',
+                        'margin/margin/trade/last',
                     ],
                     'post': [
                         'accounts',
@@ -117,12 +133,18 @@ module.exports = class kucoin extends Exchange {
                         'withdrawals',
                         'orders',
                         'orders/multi',
+                        'margin/borrow',
+                        'margin/repay/all',
+                        'margin/repay/single',
+                        'margin/lend',
+                        'margin/toggle-auto-lend',
                         'bullet-private',
                     ],
                     'delete': [
                         'withdrawals/{withdrawalId}',
                         'orders',
                         'orders/{orderId}',
+                        'margin/lend/{orderId}',
                     ],
                 },
             },
@@ -254,18 +276,20 @@ module.exports = class kucoin extends Exchange {
     async fetchMarkets (params = {}) {
         const response = await this.publicGetSymbols (params);
         //
-        // { quoteCurrency: 'BTC',
-        //   symbol: 'KCS-BTC',
-        //   quoteMaxSize: '9999999',
-        //   quoteIncrement: '0.000001',
-        //   baseMinSize: '0.01',
-        //   quoteMinSize: '0.00001',
-        //   enableTrading: true,
-        //   priceIncrement: '0.00000001',
-        //   name: 'KCS-BTC',
-        //   baseIncrement: '0.01',
-        //   baseMaxSize: '9999999',
-        //   baseCurrency: 'KCS' }
+        //     {
+        //         quoteCurrency: 'BTC',
+        //         symbol: 'KCS-BTC',
+        //         quoteMaxSize: '9999999',
+        //         quoteIncrement: '0.000001',
+        //         baseMinSize: '0.01',
+        //         quoteMinSize: '0.00001',
+        //         enableTrading: true,
+        //         priceIncrement: '0.00000001',
+        //         name: 'KCS-BTC',
+        //         baseIncrement: '0.01',
+        //         baseMaxSize: '9999999',
+        //         baseCurrency: 'KCS'
+        //     }
         //
         const data = response['data'];
         const result = [];
@@ -351,20 +375,27 @@ module.exports = class kucoin extends Exchange {
     async fetchAccounts (params = {}) {
         const response = await this.privateGetAccounts (params);
         //
-        //     { code:   "200000",
-        //       data: [ {   balance: "0.00009788",
+        //     {
+        //         code: "200000",
+        //         data: [
+        //             {
+        //                 balance: "0.00009788",
         //                 available: "0.00009788",
-        //                     holds: "0",
-        //                  currency: "BTC",
-        //                        id: "5c6a4fd399a1d81c4f9cc4d0",
-        //                      type: "trade"                     },
-        //               ...,
-        //               {   balance: "0.00000001",
+        //                 holds: "0",
+        //                 currency: "BTC",
+        //                 id: "5c6a4fd399a1d81c4f9cc4d0",
+        //                 type: "trade"
+        //             },
+        //             {
+        //                 balance: "0.00000001",
         //                 available: "0.00000001",
-        //                     holds: "0",
-        //                  currency: "ETH",
-        //                        id: "5c6a49ec99a1d819392e8e9f",
-        //                      type: "trade"                     }  ] }
+        //                 holds: "0",
+        //                 currency: "ETH",
+        //                 id: "5c6a49ec99a1d819392e8e9f",
+        //                 type: "trade"
+        //             }
+        //         ]
+        //     }
         //
         const data = this.safeValue (response, 'data');
         const result = [];

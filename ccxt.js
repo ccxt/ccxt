@@ -35,7 +35,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.27.16'
+const version = '1.27.56'
 
 Exchange.ccxtVersion = version
 
@@ -44,7 +44,6 @@ Exchange.ccxtVersion = version
 const exchanges = {
     '_1btcxe':                 require ('./js/_1btcxe.js'),
     'acx':                     require ('./js/acx.js'),
-    'adara':                   require ('./js/adara.js'),
     'anxpro':                  require ('./js/anxpro.js'),
     'aofex':                   require ('./js/aofex.js'),
     'bcex':                    require ('./js/bcex.js'),
@@ -115,6 +114,7 @@ const exchanges = {
     'fybse':                   require ('./js/fybse.js'),
     'gateio':                  require ('./js/gateio.js'),
     'gemini':                  require ('./js/gemini.js'),
+    'hbtc':                    require ('./js/hbtc.js'),
     'hitbtc':                  require ('./js/hitbtc.js'),
     'hollaex':                 require ('./js/hollaex.js'),
     'huobipro':                require ('./js/huobipro.js'),
@@ -142,6 +142,7 @@ const exchanges = {
     'okex':                    require ('./js/okex.js'),
     'paymium':                 require ('./js/paymium.js'),
     'poloniex':                require ('./js/poloniex.js'),
+    'probit':                  require ('./js/probit.js'),
     'rightbtc':                require ('./js/rightbtc.js'),
     'southxchange':            require ('./js/southxchange.js'),
     'stex':                    require ('./js/stex.js'),

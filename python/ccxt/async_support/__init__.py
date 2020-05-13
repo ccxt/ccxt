@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.27.16'
+__version__ = '1.27.56'
 
 # -----------------------------------------------------------------------------
 
@@ -52,7 +52,6 @@ from ccxt.base.errors import error_hierarchy                # noqa: F401
 
 from ccxt.async_support._1btcxe import _1btcxe                            # noqa: F401
 from ccxt.async_support.acx import acx                                    # noqa: F401
-from ccxt.async_support.adara import adara                                # noqa: F401
 from ccxt.async_support.anxpro import anxpro                              # noqa: F401
 from ccxt.async_support.aofex import aofex                                # noqa: F401
 from ccxt.async_support.bcex import bcex                                  # noqa: F401
@@ -123,6 +122,7 @@ from ccxt.async_support.ftx import ftx                                    # noqa
 from ccxt.async_support.fybse import fybse                                # noqa: F401
 from ccxt.async_support.gateio import gateio                              # noqa: F401
 from ccxt.async_support.gemini import gemini                              # noqa: F401
+from ccxt.async_support.hbtc import hbtc                                  # noqa: F401
 from ccxt.async_support.hitbtc import hitbtc                              # noqa: F401
 from ccxt.async_support.hollaex import hollaex                            # noqa: F401
 from ccxt.async_support.huobipro import huobipro                          # noqa: F401
@@ -150,6 +150,7 @@ from ccxt.async_support.okcoin import okcoin                              # noqa
 from ccxt.async_support.okex import okex                                  # noqa: F401
 from ccxt.async_support.paymium import paymium                            # noqa: F401
 from ccxt.async_support.poloniex import poloniex                          # noqa: F401
+from ccxt.async_support.probit import probit                              # noqa: F401
 from ccxt.async_support.rightbtc import rightbtc                          # noqa: F401
 from ccxt.async_support.southxchange import southxchange                  # noqa: F401
 from ccxt.async_support.stex import stex                                  # noqa: F401
@@ -173,7 +174,6 @@ from ccxt.async_support.zb import zb                                      # noqa
 exchanges = [
     '_1btcxe',
     'acx',
-    'adara',
     'anxpro',
     'aofex',
     'bcex',
@@ -244,6 +244,7 @@ exchanges = [
     'fybse',
     'gateio',
     'gemini',
+    'hbtc',
     'hitbtc',
     'hollaex',
     'huobipro',
@@ -271,6 +272,7 @@ exchanges = [
     'okex',
     'paymium',
     'poloniex',
+    'probit',
     'rightbtc',
     'southxchange',
     'stex',

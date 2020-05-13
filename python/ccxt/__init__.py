@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.27.16'
+__version__ = '1.27.56'
 
 # ----------------------------------------------------------------------------
 
@@ -70,7 +70,6 @@ from ccxt.base.errors import error_hierarchy                # noqa: F401
 
 from ccxt._1btcxe import _1btcxe                            # noqa: F401
 from ccxt.acx import acx                                    # noqa: F401
-from ccxt.adara import adara                                # noqa: F401
 from ccxt.anxpro import anxpro                              # noqa: F401
 from ccxt.aofex import aofex                                # noqa: F401
 from ccxt.bcex import bcex                                  # noqa: F401
@@ -141,6 +140,7 @@ from ccxt.ftx import ftx                                    # noqa: F401
 from ccxt.fybse import fybse                                # noqa: F401
 from ccxt.gateio import gateio                              # noqa: F401
 from ccxt.gemini import gemini                              # noqa: F401
+from ccxt.hbtc import hbtc                                  # noqa: F401
 from ccxt.hitbtc import hitbtc                              # noqa: F401
 from ccxt.hollaex import hollaex                            # noqa: F401
 from ccxt.huobipro import huobipro                          # noqa: F401
@@ -168,6 +168,7 @@ from ccxt.okcoin import okcoin                              # noqa: F401
 from ccxt.okex import okex                                  # noqa: F401
 from ccxt.paymium import paymium                            # noqa: F401
 from ccxt.poloniex import poloniex                          # noqa: F401
+from ccxt.probit import probit                              # noqa: F401
 from ccxt.rightbtc import rightbtc                          # noqa: F401
 from ccxt.southxchange import southxchange                  # noqa: F401
 from ccxt.stex import stex                                  # noqa: F401
@@ -191,7 +192,6 @@ from ccxt.zb import zb                                      # noqa: F401
 exchanges = [
     '_1btcxe',
     'acx',
-    'adara',
     'anxpro',
     'aofex',
     'bcex',
@@ -262,6 +262,7 @@ exchanges = [
     'fybse',
     'gateio',
     'gemini',
+    'hbtc',
     'hitbtc',
     'hollaex',
     'huobipro',
@@ -289,6 +290,7 @@ exchanges = [
     'okex',
     'paymium',
     'poloniex',
+    'probit',
     'rightbtc',
     'southxchange',
     'stex',

@@ -84,7 +84,9 @@ class kucoin(Exchange):
                 'public': {
                     'get': [
                         'timestamp',
+                        'status',
                         'symbols',
+                        'markets',
                         'market/allTickers',
                         'market/orderbook/level{level}',
                         'market/orderbook/level2',
@@ -97,6 +99,8 @@ class kucoin(Exchange):
                         'currencies',
                         'currencies/{currency}',
                         'prices',
+                        'mark-price/{symbol}/current',
+                        'margin/config',
                     ],
                     'post': [
                         'bullet-public',
@@ -109,6 +113,7 @@ class kucoin(Exchange):
                         'accounts/{accountId}/ledgers',
                         'accounts/{accountId}/holds',
                         'accounts/transferable',
+                        'sub/user',
                         'sub-accounts',
                         'sub-accounts/{subUserId}',
                         'deposit-addresses',
@@ -123,6 +128,17 @@ class kucoin(Exchange):
                         'limit/orders',
                         'fills',
                         'limit/fills',
+                        'margin/account',
+                        'margin/borrow',
+                        'margin/borrow/outstanding',
+                        'margin/borrow/borrow/repaid',
+                        'margin/lend/active',
+                        'margin/lend/done',
+                        'margin/lend/trade/unsettled',
+                        'margin/lend/trade/settled',
+                        'margin/lend/assets',
+                        'margin/market',
+                        'margin/margin/trade/last',
                     ],
                     'post': [
                         'accounts',
@@ -132,12 +148,18 @@ class kucoin(Exchange):
                         'withdrawals',
                         'orders',
                         'orders/multi',
+                        'margin/borrow',
+                        'margin/repay/all',
+                        'margin/repay/single',
+                        'margin/lend',
+                        'margin/toggle-auto-lend',
                         'bullet-private',
                     ],
                     'delete': [
                         'withdrawals/{withdrawalId}',
                         'orders',
                         'orders/{orderId}',
+                        'margin/lend/{orderId}',
                     ],
                 },
             },
@@ -265,18 +287,20 @@ class kucoin(Exchange):
     async def fetch_markets(self, params={}):
         response = await self.publicGetSymbols(params)
         #
-        # {quoteCurrency: 'BTC',
-        #   symbol: 'KCS-BTC',
-        #   quoteMaxSize: '9999999',
-        #   quoteIncrement: '0.000001',
-        #   baseMinSize: '0.01',
-        #   quoteMinSize: '0.00001',
-        #   enableTrading: True,
-        #   priceIncrement: '0.00000001',
-        #   name: 'KCS-BTC',
-        #   baseIncrement: '0.01',
-        #   baseMaxSize: '9999999',
-        #   baseCurrency: 'KCS'}
+        #     {
+        #         quoteCurrency: 'BTC',
+        #         symbol: 'KCS-BTC',
+        #         quoteMaxSize: '9999999',
+        #         quoteIncrement: '0.000001',
+        #         baseMinSize: '0.01',
+        #         quoteMinSize: '0.00001',
+        #         enableTrading: True,
+        #         priceIncrement: '0.00000001',
+        #         name: 'KCS-BTC',
+        #         baseIncrement: '0.01',
+        #         baseMaxSize: '9999999',
+        #         baseCurrency: 'KCS'
+        #     }
         #
         data = response['data']
         result = []
@@ -358,20 +382,27 @@ class kucoin(Exchange):
     async def fetch_accounts(self, params={}):
         response = await self.privateGetAccounts(params)
         #
-        #     {code:   "200000",
-        #       data: [{  balance: "0.00009788",
+        #     {
+        #         code: "200000",
+        #         data: [
+        #             {
+        #                 balance: "0.00009788",
         #                 available: "0.00009788",
-        #                     holds: "0",
-        #                  currency: "BTC",
-        #                        id: "5c6a4fd399a1d81c4f9cc4d0",
-        #                      type: "trade"                     },
-        #               ...,
-        #               {  balance: "0.00000001",
+        #                 holds: "0",
+        #                 currency: "BTC",
+        #                 id: "5c6a4fd399a1d81c4f9cc4d0",
+        #                 type: "trade"
+        #             },
+        #             {
+        #                 balance: "0.00000001",
         #                 available: "0.00000001",
-        #                     holds: "0",
-        #                  currency: "ETH",
-        #                        id: "5c6a49ec99a1d819392e8e9f",
-        #                      type: "trade"                     }  ]}
+        #                 holds: "0",
+        #                 currency: "ETH",
+        #                 id: "5c6a49ec99a1d819392e8e9f",
+        #                 type: "trade"
+        #             }
+        #         ]
+        #     }
         #
         data = self.safe_value(response, 'data')
         result = []

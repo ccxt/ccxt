@@ -1035,6 +1035,7 @@ module.exports = class poloniex extends Exchange {
                 'id': newid,
                 'price': price,
                 'status': 'open',
+                'trades': [],
             });
             if (amount !== undefined) {
                 this.orders[newid]['amount'] = amount;

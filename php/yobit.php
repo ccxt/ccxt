@@ -170,11 +170,12 @@ class yobit extends Exchange {
                     'api key dont have trade permission' => '\\ccxt\\AuthenticationError',
                     'invalid parameter' => '\\ccxt\\InvalidOrder',
                     'invalid order' => '\\ccxt\\InvalidOrder',
+                    'The given order has already been cancelled' => '\\ccxt\\InvalidOrder',
                     'Requests too often' => '\\ccxt\\DDoSProtection',
                     'not available' => '\\ccxt\\ExchangeNotAvailable',
                     'data unavailable' => '\\ccxt\\ExchangeNotAvailable',
                     'external service unavailable' => '\\ccxt\\ExchangeNotAvailable',
-                    'Total transaction amount' => '\\ccxt\\ExchangeError', // array( "success" => 0, "error" => "Total transaction amount is less than minimal total => 0.00010000")
+                    'Total transaction amount' => '\\ccxt\\InvalidOrder', // array( "success" => 0, "error" => "Total transaction amount is less than minimal total => 0.00010000")
                     'Insufficient funds' => '\\ccxt\\InsufficientFunds',
                     'invalid key' => '\\ccxt\\AuthenticationError',
                     'invalid nonce' => '\\ccxt\\InvalidNonce', // array("success":0,"error":"invalid nonce (has already been used)")'

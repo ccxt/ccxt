@@ -77,6 +77,10 @@ class binance(Exchange):
                 'test': {
                     'fapiPublic': 'https://testnet.binancefuture.com/fapi/v1',
                     'fapiPrivate': 'https://testnet.binancefuture.com/fapi/v1',
+                    'public': 'https://testnet.binance.vision/api/v3',
+                    'private': 'https://testnet.binance.vision/api/v3',
+                    'v3': 'https://testnet.binance.vision/api/v3',
+                    'v1': 'https://testnet.binance.vision/api/v1',
                 },
                 'api': {
                     'web': 'https://www.binance.com',
@@ -153,6 +157,14 @@ class binance(Exchange):
                         'lending/union/interestHistory',
                         'lending/project/list',
                         'lending/project/position/list',
+                        # mining endpoints
+                        'mining/pub/algoList',
+                        'mining/pub/coinList',
+                        'mining/worker/detail',
+                        'mining/worker/list',
+                        'mining/payment/list',
+                        'mining/statistics/user/status',
+                        'mining/statistics/user/list',
                     ],
                     'post': [
                         'asset/dust',
@@ -352,12 +364,6 @@ class binance(Exchange):
             },
         })
 
-    def set_sandbox_mode(self, enabled):
-        type = self.safe_string(self.options, 'defaultType', 'spot')
-        if type != 'future':
-            raise NotSupported(self.id + ' does not have a sandbox URL for ' + type + " markets, set exchange.options['defaultType'] = 'future' or don't use the sandbox for " + self.id)
-        return super(binance, self).set_sandbox_mode(enabled)
-
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
@@ -377,6 +383,8 @@ class binance(Exchange):
         defaultType = self.safe_string_2(self.options, 'fetchMarkets', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
         query = self.omit(params, 'type')
+        if (type != 'spot') and (type != 'future'):
+            raise ExchangeError(self.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to 'spot' or 'future'")  # eslint-disable-line quotes
         method = 'publicGetExchangeInfo' if (type == 'spot') else 'fapiPublicGetExchangeInfo'
         response = await getattr(self, method)(query)
         #
@@ -466,17 +474,17 @@ class binance(Exchange):
             marketType = 'spot' if spot else 'future'
             id = self.safe_string(market, 'symbol')
             lowercaseId = self.safe_string_lower(market, 'symbol')
-            baseId = market['baseAsset']
-            quoteId = market['quoteAsset']
+            baseId = self.safe_string(market, 'baseAsset')
+            quoteId = self.safe_string(market, 'quoteAsset')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             filters = self.index_by(market['filters'], 'filterType')
             precision = {
-                'base': market['baseAssetPrecision'],
-                'quote': market['quotePrecision'],
-                'amount': market['baseAssetPrecision'],
-                'price': market['quotePrecision'],
+                'base': self.safe_integer(market, 'baseAssetPrecision'),
+                'quote': self.safe_integer(market, 'quotePrecision'),
+                'amount': self.safe_integer(market, 'baseAssetPrecision'),
+                'price': self.safe_integer(market, 'quotePrecision'),
             }
             status = self.safe_string(market, 'status')
             active = (status == 'TRADING')
@@ -504,7 +512,7 @@ class binance(Exchange):
                         'max': None,
                     },
                     'cost': {
-                        'min': -1 * math.log10(precision['amount']),
+                        'min': None,
                         'max': None,
                     },
                 },
@@ -565,7 +573,11 @@ class binance(Exchange):
         await self.load_markets()
         defaultType = self.safe_string_2(self.options, 'fetchBalance', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
-        method = 'privateGetAccount' if (type == 'spot') else 'fapiPrivateGetAccount'
+        method = 'privateGetAccount'
+        if type == 'future':
+            method = 'fapiPrivateGetAccount'
+        elif type == 'margin':
+            method = 'sapiGetMarginAccount'
         query = self.omit(params, 'type')
         response = await getattr(self, method)(query)
         #
@@ -862,6 +874,9 @@ class binance(Exchange):
             market = self.safe_value(self.markets_by_id, marketId)
         if market is not None:
             symbol = market['symbol']
+        cost = None
+        if (price is not None) and (amount is not None):
+            cost = price * amount
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -870,11 +885,11 @@ class binance(Exchange):
             'id': id,
             'order': orderId,
             'type': None,
-            'takerOrMaker': takerOrMaker,
             'side': side,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
-            'cost': price * amount,
+            'cost': cost,
             'fee': fee,
         }
 
@@ -1744,6 +1759,8 @@ class binance(Exchange):
         return result
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        if not (api in self.urls['api']):
+            raise NotSupported(self.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints')
         url = self.urls['api'][api]
         url += '/' + path
         if api == 'wapi':
