@@ -809,17 +809,12 @@ module.exports = class binance extends ccxt.binance {
         defaultKey[orderId] = parsed;
         this.orders[symbol] = defaultKey;
         let result = [];
-        const keys = Object.keys (this.orders);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const nested = this.orders[key];
-            const nestedKeys = Object.keys (nested);
-            for (let j = 0; j < nestedKeys.length; j++) {
-                result.push (nested[nestedKeys[j]]);
-            }
+        const values = Object.values (this.orders);
+        for (let i = 0; i < values.length; i++) {
+            result = this.arrayConcat (result, Object.values (values[i]));
         }
-        const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
         // delete older orders from our structure to prevent memory leaks
+        const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
         result = this.sortBy (result, 'timestamp');
         const resultLength = result.length;
         if (resultLength > limit) {
