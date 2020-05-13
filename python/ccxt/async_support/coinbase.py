@@ -159,8 +159,16 @@ class coinbase(Exchange):
 
     async def fetch_time(self, params={}):
         response = await self.publicGetTime(params)
+        #
+        #     {
+        #         "data": {
+        #             "epoch": 1589295679,
+        #             "iso": "2020-05-12T15:01:19Z"
+        #         }
+        #     }
+        #
         data = self.safe_value(response, 'data', {})
-        return self.parse8601(self.safe_string(data, 'iso'))
+        return self.safe_timestamp(data, 'epoch')
 
     async def fetch_accounts(self, params={}):
         response = await self.privateGetAccounts(params)
