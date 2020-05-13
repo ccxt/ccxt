@@ -3479,36 +3479,10 @@ Accessing trading fee rates should be done via the ``.markets`` property, like s
 
 .. code:: javascript
 
+   exchange.markets['ETH/BTC']['taker'] // taker fee rate for ETH/BTC
    exchange.markets['BTC/USD']['maker'] // maker fee rate for BTC/USD
 
-The ``.markets`` property may contain additional fee related information:
-
-.. code:: javascript
-
-    {
-        'taker': 0.0026, // taker fee rate
-        'maker': 0.0016, // maker fee rate
-        'percentage': true, // indicates whether fees are calculated as percentage of volume
-        'tierBased': true, // indicates whether the exchange has a flexible fee structure based on trade volume
-        'tiers': { 
-            'taker': [
-                [0, 0.0026], // tupple (trade volume in USD, taker fee) ordered by increasing volume
-                [50000, 0.0024],
-                ...
-            ],
-            'maker': [
-                [0, 0.0016], // tupple (trade volume in USD, maker fee) ordered by increasing volume
-                [50000, 0.0014],
-                ...
-            ],
-        },
-    }
-
-**WARNING! fee related information is experimental, unstable and may only be partial available or not at all**
-
 Maker fees are paid when you provide liquidity to the exchange i.e. you *market-make* an order and someone else fills it. Maker fees are usually lower than taker fees. Similarly, taker fees are paid when you *take* liquidity from the exchange and fill someone else’s order.
-
-Fees can be negative, this is very common amongst derivative exchanges. Also exchanges might not specify fees as percentage of volume, check the ``percentage`` attribute of the ``.markets`` property to be sure.
 
 Funding Fees
 ~~~~~~~~~~~~
