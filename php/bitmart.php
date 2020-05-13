@@ -263,13 +263,54 @@ class bitmart extends Exchange {
     }
 
     public function parse_ticker($ticker, $market = null) {
-        $timestamp = $this->milliseconds();
-        $marketId = $this->safe_string($ticker, 'symbol_id');
+        //
+        // fetchTicker
+        //
+        //     {
+        //         "volume":"6139.8058",
+        //         "ask_1":"0.021856",
+        //         "base_volume":"131.5157",
+        //         "lowest_price":"0.021090",
+        //         "bid_1":"0.021629",
+        //         "highest_price":"0.021929",
+        //         "ask_1_amount":"0.1245",
+        //         "current_price":"0.021635",
+        //         "fluctuation":"+0.0103",
+        //         "symbol_id":"ETH_BTC",
+        //         "url":"https://www.bitmart.com/trade?$symbol=ETH_BTC",
+        //         "bid_1_amount":"1.8546"
+        //     }
+        //
+        // fetchTickers
+        //
+        //     {
+        //         "priceChange":"0%",
+        //         "symbolId":1066,
+        //         "website":"https://www.bitmart.com/trade?$symbol=1SG_BTC",
+        //         "depthEndPrecision":6,
+        //         "ask_1":"0.000095",
+        //         "anchorId":2,
+        //         "anchorName":"BTC",
+        //         "pair":"1SG_BTC",
+        //         "volume":"0.0",
+        //         "coinId":2029,
+        //         "depthStartPrecision":4,
+        //         "high_24h":"0.000035",
+        //         "low_24h":"0.000035",
+        //         "new_24h":"0.000035",
+        //         "closeTime":1589389249342,
+        //         "bid_1":"0.000035",
+        //         "coinName":"1SG",
+        //         "baseVolume":"0.0",
+        //         "openTime":1589302849342
+        //     }
+        //
+        $timestamp = $this->safe_integer($ticker, 'closeTime', $this->milliseconds());
+        $marketId = $this->safe_string($ticker, 'pair');
         $symbol = null;
         if ($marketId !== null) {
             if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
             } else if ($marketId !== null) {
                 list($baseId, $quoteId) = explode('_', $marketId);
                 $base = $this->safe_currency_code($baseId);
@@ -277,14 +318,26 @@ class bitmart extends Exchange {
                 $symbol = $base . '/' . $quote;
             }
         }
-        $last = $this->safe_float($ticker, 'current_price');
+        if (($symbol === null) && ($market !== null)) {
+            $symbol = $market['symbol'];
+        }
+        $last = $this->safe_float_2($ticker, 'current_price', 'new_24h');
         $percentage = $this->safe_float($ticker, 'fluctuation');
+        if ($percentage === null) {
+            $percentage = $this->safe_string($ticker, 'priceChange');
+            if ($percentage !== null) {
+                $percentage = str_replace('%', '', $percentage);
+                $percentage = floatval ($percentage);
+            }
+        } else {
+            $percentage *= 100;
+        }
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'highest_price'),
-            'low' => $this->safe_float($ticker, 'lowest_price'),
+            'high' => $this->safe_float_2($ticker, 'highest_price', 'high_24h'),
+            'low' => $this->safe_float_2($ticker, 'lowest_price', 'low_24h'),
             'bid' => $this->safe_float($ticker, 'bid_1'),
             'bidVolume' => $this->safe_float($ticker, 'bid_1_amount'),
             'ask' => $this->safe_float($ticker, 'ask_1'),
@@ -295,18 +348,19 @@ class bitmart extends Exchange {
             'last' => $last,
             'previousClose' => null,
             'change' => null,
-            'percentage' => $percentage * 100,
+            'percentage' => $percentage,
             'average' => null,
             'baseVolume' => $this->safe_float($ticker, 'volume'),
-            'quoteVolume' => $this->safe_float($ticker, 'base_volume'),
+            'quoteVolume' => $this->safe_float_2($ticker, 'base_volume', 'baseVolume'),
             'info' => $ticker,
         );
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
+        $market = $this->market($symbol);
         $request = array(
-            'symbol' => $this->market_id($symbol),
+            'symbol' => $market['id'],
         );
         $response = $this->publicGetTicker (array_merge($request, $params));
         //
@@ -325,12 +379,37 @@ class bitmart extends Exchange {
         //         "bid_1_amount":"134.78"
         //     }
         //
-        return $this->parse_ticker($response);
+        return $this->parse_ticker($response, $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
         $tickers = $this->publicGetTicker ($params);
+        //
+        //         array(
+        //             array(
+        //                 "priceChange":"0%",
+        //                 "symbolId":1066,
+        //                 "website":"https://www.bitmart.com/trade?$symbol=1SG_BTC",
+        //                 "depthEndPrecision":6,
+        //                 "ask_1":"0.000095",
+        //                 "anchorId":2,
+        //                 "anchorName":"BTC",
+        //                 "pair":"1SG_BTC",
+        //                 "volume":"0.0",
+        //                 "coinId":2029,
+        //                 "depthStartPrecision":4,
+        //                 "high_24h":"0.000035",
+        //                 "low_24h":"0.000035",
+        //                 "new_24h":"0.000035",
+        //                 "closeTime":1589389249342,
+        //                 "bid_1":"0.000035",
+        //                 "coinName":"1SG",
+        //                 "baseVolume":"0.0",
+        //                 "openTime":1589302849342
+        //             ),
+        //         )
+        //
         $result = array();
         for ($i = 0; $i < count($tickers); $i++) {
             $ticker = $this->parse_ticker($tickers[$i]);
