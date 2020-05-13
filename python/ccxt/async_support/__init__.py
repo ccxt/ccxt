@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.27.54'
+__version__ = '1.27.55'
 
 # -----------------------------------------------------------------------------
 
@@ -150,6 +150,7 @@ from ccxt.async_support.okcoin import okcoin                              # noqa
 from ccxt.async_support.okex import okex                                  # noqa: F401
 from ccxt.async_support.paymium import paymium                            # noqa: F401
 from ccxt.async_support.poloniex import poloniex                          # noqa: F401
+from ccxt.async_support.probit import probit                              # noqa: F401
 from ccxt.async_support.rightbtc import rightbtc                          # noqa: F401
 from ccxt.async_support.southxchange import southxchange                  # noqa: F401
 from ccxt.async_support.stex import stex                                  # noqa: F401
@@ -271,6 +272,7 @@ exchanges = [
     'okex',
     'paymium',
     'poloniex',
+    'probit',
     'rightbtc',
     'southxchange',
     'stex',
