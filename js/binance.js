@@ -38,6 +38,7 @@ module.exports = class binance extends ccxt.binance {
                 // or every 0ms in real-time for futures
                 'watchOrderBookRate': 100,
                 'tradesLimit': 1000,
+                'ordersLimit': 1000,
                 'OHLCVLimit': 1000,
                 'requestId': {},
             },
@@ -688,7 +689,7 @@ module.exports = class binance extends ccxt.binance {
         client.resolve (this.balance, messageHash);
     }
 
-    async watchOrders (params = {}) {
+    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         await this.authenticate ();
         const defaultType = this.safeString2 (this.options, 'watchOrders', 'defaultType', 'spot');
@@ -699,6 +700,7 @@ module.exports = class binance extends ccxt.binance {
         const request = {
             'method': 'SUBSCRIBE',
             'params': [
+                '.',
             ],
             'id': requestId,
         };
@@ -706,7 +708,8 @@ module.exports = class binance extends ccxt.binance {
             'id': requestId,
         };
         const messageHash = 'executionReport';
-        return await this.watch (url, messageHash, this.extend (request, query), 1, subscribe);
+        const future = this.watch (url, messageHash, this.extend (request, query), 1, subscribe);
+        return this.after (future, this.filterBySymbolSinceLimit, symbol, since, limit);
     }
 
     handleOrder (client, message) {
@@ -802,7 +805,32 @@ module.exports = class binance extends ccxt.binance {
             'fee': fee,
             'trades': trades,
         };
-        client.resolve (parsed, messageHash);
+        const defaultKey = this.safeValue (this.orders, symbol, {});
+        defaultKey[orderId] = parsed;
+        this.orders[symbol] = defaultKey;
+        let result = [];
+        const keys = Object.keys (this.orders);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const nested = this.orders[key];
+            const nestedKeys = Object.keys (nested);
+            for (let j = 0; j < nestedKeys.length; j++) {
+                result.push (nested[nestedKeys[j]]);
+            }
+        }
+        const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+        // delete older orders from our structure to prevent memory leaks
+        result = this.sortBy (result, 'timestamp');
+        const resultLength = result.length;
+        if (resultLength > limit) {
+            const toDelete = resultLength - limit;
+            for (let i = 0; i < toDelete; i++) {
+                const id = result[i]['id'];
+                delete this.orders[symbol][id];
+            }
+            result = result.slice (toDelete, resultLength);
+        }
+        client.resolve (result, messageHash);
     }
 
     handleMessage (client, message) {
