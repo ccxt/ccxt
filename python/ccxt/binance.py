@@ -83,7 +83,6 @@ class binance(Exchange):
                     'v1': 'https://testnet.binance.vision/api/v1',
                 },
                 'api': {
-                    'web': 'https://www.binance.com',
                     'wapi': 'https://api.binance.com/wapi/v3',
                     'sapi': 'https://api.binance.com/sapi/v1',
                     'fapiPublic': 'https://fapi.binance.com/fapi/v1',
@@ -102,12 +101,6 @@ class binance(Exchange):
                 'fees': 'https://www.binance.com/en/fee/schedule',
             },
             'api': {
-                'web': {
-                    'get': [
-                        'exchange/public/product',
-                        'assetWithdraw/getAllAsset.html',
-                    ],
-                },
                 # the API structure below will need 3-layer apidefs
                 'sapi': {
                     'get': [
