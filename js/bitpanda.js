@@ -251,11 +251,11 @@ module.exports = class bitpanda extends Exchange {
             'type': type.toUpperCase (),
             'amount': this.amountToPrecision (symbol, amount),
         };
-        if (type === 'limit' || params['type'] === 'stoplimit') {
+        if (type === 'limit' || this.safeString (params, 'type') === 'stoplimit') {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        if (params['type'] === 'stoplimit') {
-            request['trigger_price'] = this.priceToPrecision (symbol, params['stopPrice']);
+        if (this.safeString (params, 'type') === 'stoplimit') {
+            request['trigger_price'] = this.priceToPrecision (symbol, this.safeFloat (params, 'stopPrice'));
         }
         const response = await this.privatePostAccountOrders (this.extend (request, params));
         return this.parseOrder (response);
@@ -332,7 +332,7 @@ module.exports = class bitpanda extends Exchange {
             'instrument': this.marketId (symbol),
             'level': 2,
         };
-        return this.parseBook (request, params);
+        return await this.parseBook (request, params);
     }
 
     async fetchMarkets (params = {}) {
@@ -422,10 +422,11 @@ module.exports = class bitpanda extends Exchange {
         } else {
             request['from'] = this.iso8601 (since);
         }
-        if (params['to'] === undefined) {
-            request['to'] = this.iso8601 (this.microseconds ());
+        const to = this.safeInteger (params, 'to');
+        if (to === undefined) {
+            request['to'] = this.iso8601 (this.milliseconds ());
         } else {
-            params['to'] = this.iso8601 (params['to']);
+            request['to'] = this.iso8601 (to);
         }
         const response = await this.publicGetCandlesticksInstrument (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
@@ -450,7 +451,7 @@ module.exports = class bitpanda extends Exchange {
         const request = {
             'instrument': this.marketId (symbol),
         };
-        return this.parseBook (request, params);
+        return await this.parseBook (request, params);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
