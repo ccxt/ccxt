@@ -41,6 +41,7 @@ class binance(Exchange, ccxt.binance):
                 # or every 0ms in real-time for futures
                 'watchOrderBookRate': 100,
                 'tradesLimit': 1000,
+                'ordersLimit': 1000,
                 'OHLCVLimit': 1000,
                 'requestId': {},
                 'watchOrderBookLimit': 1000,  # default limit
@@ -611,14 +612,15 @@ class binance(Exchange, ccxt.binance):
         messageHash = self.safe_string(message, 'e')
         client.resolve(self.balance, messageHash)
 
-    async def watch_orders(self, params={}):
+    async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         await self.authenticate()
         defaultType = self.safe_string_2(self.options, 'watchOrders', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
         url = self.urls['api']['ws'][type] + '/' + self.options['listenKey']
         messageHash = 'executionReport'
-        return await self.watch(url, messageHash)
+        future = self.watch(url, messageHash)
+        return await self.after(future, self.filter_by_symbol_since_limit, symbol, since, limit)
 
     def handle_order(self, client, message):
         # {
@@ -708,7 +710,25 @@ class binance(Exchange, ccxt.binance):
             'fee': fee,
             'trades': trades,
         }
-        client.resolve(parsed, messageHash)
+        defaultKey = self.safe_value(self.orders, symbol, {})
+        defaultKey[orderId] = parsed
+        self.orders[symbol] = defaultKey
+        result = []
+        values = list(self.orders.values())
+        for i in range(0, len(values)):
+            orders = list(values[i].values())
+            result = self.array_concat(result, orders)
+        # del older orders from our structure to prevent memory leaks
+        limit = self.safe_integer(self.options, 'ordersLimit', 1000)
+        result = self.sort_by(result, 'timestamp')
+        resultLength = len(result)
+        if resultLength > limit:
+            toDelete = resultLength - limit
+            for i in range(0, toDelete):
+                id = result[i]['id']
+                del self.orders[symbol][id]
+            result = result[toDelete:resultLength]
+        client.resolve(result, messageHash)
 
     def handle_message(self, client, message):
         methods = {

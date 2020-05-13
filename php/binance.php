@@ -43,6 +43,7 @@ class binance extends \ccxt\binance {
                 // or every 0ms in real-time for futures
                 'watchOrderBookRate' => 100,
                 'tradesLimit' => 1000,
+                'ordersLimit' => 1000,
                 'OHLCVLimit' => 1000,
                 'requestId' => array(),
                 'watchOrderBookLimit' => 1000, // default limit
@@ -676,14 +677,15 @@ class binance extends \ccxt\binance {
         $client->resolve ($this->balance, $messageHash);
     }
 
-    public function watch_orders($params = array ()) {
+    public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $this->authenticate();
         $defaultType = $this->safe_string_2($this->options, 'watchOrders', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
         $url = $this->urls['api']['ws'][$type] . '/' . $this->options['listenKey'];
         $messageHash = 'executionReport';
-        return $this->watch($url, $messageHash);
+        $future = $this->watch($url, $messageHash);
+        return $this->after($future, array($this, 'filter_by_symbol_since_limit'), $symbol, $since, $limit);
     }
 
     public function handle_order($client, $message) {
@@ -704,7 +706,7 @@ class binance extends \ccxt\binance {
         //   "x" => "NEW",                    // Current execution $type
         //   "X" => "NEW",                    // Current order $status
         //   "r" => "NONE",                   // Order reject reason; will be an error code.
-        //   "i" => 4293153,                  // Order ID
+        //   "$i" => 4293153,                  // Order ID
         //   "l" => "0.00000000",             // Last executed quantity
         //   "z" => "0.00000000",             // Cumulative $filled quantity
         //   "L" => "0.00000000",             // Last executed $price
@@ -718,7 +720,7 @@ class binance extends \ccxt\binance {
         //   "M" => false,                    // Ignore
         //   "O" => 1499405658657,            // Order creation time
         //   "Z" => "0.00000000",             // Cumulative quote asset transacted quantity
-        //   "Y" => "0.00000000"              // Last quote asset transacted quantity (i.e. lastPrice * lastQty),
+        //   "Y" => "0.00000000"              // Last quote asset transacted quantity ($i->e. lastPrice * lastQty),
         //   "Q" => "0.00000000"              // Quote Order Qty
         // }
         $messageHash = $this->safe_string($message, 'e');
@@ -779,7 +781,28 @@ class binance extends \ccxt\binance {
             'fee' => $fee,
             'trades' => $trades,
         );
-        $client->resolve ($parsed, $messageHash);
+        $defaultKey = $this->safe_value($this->orders, $symbol, array());
+        $defaultKey[$orderId] = $parsed;
+        $this->orders[$symbol] = $defaultKey;
+        $result = array();
+        $values = is_array($this->orders) ? array_values($this->orders) : array();
+        for ($i = 0; $i < count($values); $i++) {
+            $orders = is_array($values[$i]) ? array_values($values[$i]) : array();
+            $result = $this->array_concat($result, $orders);
+        }
+        // delete older $orders from our structure to prevent memory leaks
+        $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
+        $result = $this->sort_by($result, 'timestamp');
+        $resultLength = is_array($result) ? count($result) : 0;
+        if ($resultLength > $limit) {
+            $toDelete = $resultLength - $limit;
+            for ($i = 0; $i < $toDelete; $i++) {
+                $id = $result[$i]['id'];
+                unset($this->orders[$symbol][$id]);
+            }
+            $result = mb_substr($result, $toDelete, $resultLength - $toDelete);
+        }
+        $client->resolve ($result, $messageHash);
     }
 
     public function handle_message($client, $message) {
