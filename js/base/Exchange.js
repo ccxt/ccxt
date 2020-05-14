@@ -75,6 +75,7 @@ module.exports = class Exchange {
             'certified': false,
             'pro': false,
             'has': {
+                'loadMarkets': true,
                 'cancelAllOrders': false,
                 'cancelOrder': true,
                 'cancelOrders': false,
