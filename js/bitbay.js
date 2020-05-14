@@ -999,7 +999,7 @@ module.exports = class bitbay extends Exchange {
         }
         const response = await this.v1_01PublicGetTradingTransactionsSymbol (this.extend (request, params));
         const items = this.safeValue (response, 'items');
-        return this.parseTrades (items, symbol, since, limit);
+        return this.parseTrades (items, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
