@@ -966,7 +966,7 @@ class bitbay(Exchange):
             request['limit'] = limit  # default - 10, max - 300
         response = self.v1_01PublicGetTradingTransactionsSymbol(self.extend(request, params))
         items = self.safe_value(response, 'items')
-        return self.parse_trades(items, symbol, since, limit)
+        return self.parse_trades(items, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

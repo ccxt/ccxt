@@ -1001,7 +1001,7 @@ class bitbay extends Exchange {
         }
         $response = $this->v1_01PublicGetTradingTransactionsSymbol (array_merge($request, $params));
         $items = $this->safe_value($response, 'items');
-        return $this->parse_trades($items, $symbol, $since, $limit);
+        return $this->parse_trades($items, $market, $since, $limit);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
