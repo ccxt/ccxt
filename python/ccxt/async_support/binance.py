@@ -247,6 +247,7 @@ class binance(Exchange):
                         'order',
                         'leverage',
                         'listenKey',
+                        'countdownCancelAll',
                     ],
                     'put': [
                         'listenKey',
