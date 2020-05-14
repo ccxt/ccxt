@@ -229,18 +229,11 @@ class tidebit(Exchange):
         for i in range(0, len(ids)):
             id = ids[i]
             market = None
-            symbol = id
             if id in self.markets_by_id:
                 market = self.markets_by_id[id]
                 symbol = market['symbol']
-            else:
-                baseId = id[0:3]
-                quoteId = id[3:6]
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-            ticker = tickers[id]
-            result[symbol] = self.parse_ticker(ticker, market)
+                ticker = tickers[id]
+                result[symbol] = self.parse_ticker(ticker, market)
         return result
 
     async def fetch_ticker(self, symbol, params={}):
