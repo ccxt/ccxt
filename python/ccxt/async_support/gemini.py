@@ -201,6 +201,8 @@ class gemini(Exchange):
         numRows = len(rows)
         if numRows < 2:
             raise NotSupported(error)
+        apiSymbols = await self.fetch_markets_from_api(params)
+        indexedSymbols = self.index_by(apiSymbols, 'symbol')
         result = []
         # skip the first element(empty string)
         for i in range(1, numRows):
@@ -241,6 +243,8 @@ class gemini(Exchange):
                 pricePrecisionParts = pricePrecisionString.split(' ')
                 pricePrecision = self.precision_from_string(pricePrecisionParts[0])
                 symbol = base + '/' + quote
+                if not (symbol in indexedSymbols):
+                    continue
                 id = baseId + quoteId
                 active = None
                 result.append({
