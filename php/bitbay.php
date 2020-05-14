@@ -219,6 +219,7 @@ class bitbay extends Exchange {
                 'ACTION_LIMIT_EXCEEDED' => '\\ccxt\\RateLimitExceeded',
                 'UNDER_MAINTENANCE' => '\\ccxt\\OnMaintenance',
                 'REQUEST_TIMESTAMP_TOO_OLD' => '\\ccxt\\InvalidNonce',
+                'PERMISSIONS_NOT_SUFFICIENT' => '\\ccxt\\PermissionDenied',
             ),
         ));
     }
