@@ -24,7 +24,7 @@ module.exports = class btcturk extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27992709-18e15646-64a3-11e7-9fa2-b0950ec7712f.jpg',
-                'api': 'https://www.btcturk.com/api',
+                'api': 'https://api.btcturk.com/api/v2',
                 'www': 'https://www.btcturk.com',
                 'doc': 'https://github.com/BTCTrader/broker-api-docs',
             },
@@ -60,12 +60,13 @@ module.exports = class btcturk extends Exchange {
 
     async fetchMarkets (params = {}) {
         const response = await this.publicGetTicker (params);
+        const data = this.safeValue (response, 'data', []);
         const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const market = response[i];
-            const id = this.safeString (market, 'pair');
-            let baseId = id.slice (0, 3);
-            let quoteId = id.slice (3, 6);
+        for (let i = 0; i < data.length; i++) {
+            const market = data[i];
+            const id = this.safeString (market, 'pairNormalized');
+            let baseId = id.split ('_')[0];
+            let quoteId = id.split ('_')[1];
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             baseId = baseId.toLowerCase ();
@@ -171,11 +172,12 @@ module.exports = class btcturk extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const tickers = await this.publicGetTicker (params);
+        const response = await this.publicGetTicker (params);
+        const tickers = this.safeValue (response, 'data', []);
         const result = {};
         for (let i = 0; i < tickers.length; i++) {
             const ticker = tickers[i];
-            const marketId = this.safeString (ticker, 'pair');
+            const marketId = this.safeString (ticker, 'pairNormalized', {});
             let symbol = marketId;
             let market = undefined;
             if (marketId in this.markets_by_id) {
