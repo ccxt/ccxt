@@ -231,6 +231,7 @@ module.exports = class binance extends Exchange {
                         'order',
                         'leverage',
                         'listenKey',
+                        'countdownCancelAll',
                     ],
                     'put': [
                         'listenKey',
