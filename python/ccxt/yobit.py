@@ -106,6 +106,7 @@ class yobit(Exchange):
                 'BPC': 'BitcoinPremium',
                 'BTS': 'Bitshares2',
                 'CAT': 'BitClave',
+                'CBC': 'CryptoBossCoin',
                 'CMT': 'CometCoin',
                 'COV': 'Coven Coin',
                 'COVX': 'COV',

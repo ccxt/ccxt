@@ -105,6 +105,7 @@ class livecoin(Exchange):
             'commonCurrencies': {
                 'BTCH': 'Bithash',
                 'CPC': 'Capricoin',
+                'CBC': 'CryptoBossCoin',  # conflict with CBC(CashBet Coin)
                 'CPT': 'Cryptos',  # conflict with CPT = Contents Protocol https://github.com/ccxt/ccxt/issues/4920 and https://github.com/ccxt/ccxt/issues/6081
                 'EDR': 'E-Dinar Coin',  # conflicts with EDR for Endor Protocol and EDRCoin
                 'eETT': 'EETT',
