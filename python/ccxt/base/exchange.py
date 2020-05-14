@@ -243,6 +243,7 @@ class Exchange(object):
 
     # API method metainfo
     has = {
+        'loadMarkets': True,
         'cancelAllOrders': False,
         'cancelOrder': True,
         'cancelOrders': False,
