@@ -602,7 +602,7 @@ class coinmate(Exchange):
         filled = None
         cost = None
         if (amount is not None) and (remaining is not None):
-            filled = min(amount - remaining, 0)
+            filled = max(amount - remaining, 0)
             if remaining == 0:
                 status = 'closed'
             if price is not None:
