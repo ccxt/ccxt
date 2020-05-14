@@ -629,7 +629,7 @@ module.exports = class coinmate extends Exchange {
         let filled = undefined;
         let cost = undefined;
         if ((amount !== undefined) && (remaining !== undefined)) {
-            filled = Math.min (amount - remaining, 0);
+            filled = Math.max (amount - remaining, 0);
             if (remaining === 0) {
                 status = 'closed';
             }
