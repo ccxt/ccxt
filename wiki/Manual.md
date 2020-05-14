@@ -3226,6 +3226,7 @@ The `calculateFee` method will return a unified fee structure with precalculated
 Accessing trading fee rates should be done via the `.markets` property, like so:
 
 ```Javascript
+exchange.markets['ETH/BTC']['taker'] // taker fee rate for ETH/BTC
 exchange.markets['BTC/USD']['maker'] // maker fee rate for BTC/USD
 ```
 
