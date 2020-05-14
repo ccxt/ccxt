@@ -181,8 +181,8 @@ class hbtc extends Exchange {
                 'trading' => array(
                     'tierBased' => false,
                     'percentage' => true,
-                    'maker' => 0.002, // MAKER费率
-                    'taker' => 0.002, // TAKER费率
+                    'maker' => 0.001,
+                    'taker' => 0.001,
                 ),
             ),
             'exceptions' => array(
