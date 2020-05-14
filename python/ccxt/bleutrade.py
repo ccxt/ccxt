@@ -42,17 +42,11 @@ class bleutrade(Exchange):
                 'fetchDepositAddress': True,
             },
             'timeframes': {
-                '15m': '15m',
-                '20m': '20m',
-                '30m': '30m',
                 '1h': '1h',
-                '2h': '2h',
-                '3h': '3h',
                 '4h': '4h',
-                '6h': '6h',
                 '8h': '8h',
-                '12h': '12h',
                 '1d': '1d',
+                '1w': '1w',
             },
             'hostname': 'bleutrade.com',
             'urls': {
@@ -113,6 +107,7 @@ class bleutrade(Exchange):
                 'exact': {
                     'ERR_INSUFICIENT_BALANCE': InsufficientFunds,
                     'ERR_LOW_VOLUME': BadRequest,
+                    'Invalid form': BadRequest,
                 },
                 'broad': {
                     'Order is not open': InvalidOrder,
@@ -763,17 +758,18 @@ class bleutrade(Exchange):
         #    {"success":false,"message":"Erro: Order is not open.","result":""} <-- 'error' is spelt wrong
         #    {"success":false,"message":"Error: Very low volume.","result":"ERR_LOW_VOLUME"}
         #    {"success":false,"message":"Error: Insuficient Balance","result":"ERR_INSUFICIENT_BALANCE"}
+        #    {"success":false,"message":"Invalid form","result":null}
         #
-        if body[0] == '{':
-            success = self.safe_value(response, 'success')
-            if success is None:
-                raise ExchangeError(self.id + ': malformed response: ' + self.json(response))
-            if not success:
-                feedback = self.id + ' ' + body
-                errorCode = self.safe_string(response, 'result')
+        success = self.safe_value(response, 'success')
+        if success is None:
+            raise ExchangeError(self.id + ': malformed response: ' + self.json(response))
+        if not success:
+            feedback = self.id + ' ' + body
+            errorCode = self.safe_string(response, 'result')
+            if errorCode is not None:
                 self.throw_broadly_matched_exception(self.exceptions['broad'], errorCode, feedback)
                 self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
-                errorMessage = self.safe_string(response, 'message')
-                self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
-                self.throw_exactly_matched_exception(self.exceptions['exact'], errorMessage, feedback)
-                raise ExchangeError(feedback)
+            errorMessage = self.safe_string(response, 'message')
+            self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], errorMessage, feedback)
+            raise ExchangeError(feedback)
