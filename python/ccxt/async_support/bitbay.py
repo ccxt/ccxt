@@ -980,6 +980,8 @@ class bitbay(Exchange):
         }
         if type == 'limit':
             request['rate'] = price
+            price = float(price)
+        amount = float(amount)
         response = await self.v1_01PrivatePostTradingOfferSymbol(self.extend(request, params))
         #
         # unfilled(open order)
@@ -1067,8 +1069,8 @@ class bitbay(Exchange):
             'symbol': symbol,
             'type': type,
             'side': side,
-            'price': float(price),
-            'amount': float(amount),
+            'price': price,
+            'amount': amount,
             'cost': cost,
             'filled': filled,
             'remaining': remaining,

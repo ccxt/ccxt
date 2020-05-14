@@ -1016,7 +1016,9 @@ class bitbay extends Exchange {
         );
         if ($type === 'limit') {
             $request['rate'] = $price;
+            $price = floatval ($price);
         }
+        $amount = floatval ($amount);
         $response = $this->v1_01PrivatePostTradingOfferSymbol (array_merge($request, $params));
         //
         // unfilled (open order)
@@ -1106,8 +1108,8 @@ class bitbay extends Exchange {
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
-            'price' => floatval ($price),
-            'amount' => floatval ($amount),
+            'price' => $price,
+            'amount' => $amount,
             'cost' => $cost,
             'filled' => $filled,
             'remaining' => $remaining,
