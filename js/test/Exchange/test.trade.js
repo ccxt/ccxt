@@ -15,7 +15,7 @@ module.exports = (exchange, trade, symbol, now) => {
     assert.isOk (trade)
 
     const sampleTrade = {
-        'info':         { a: 1, b: 2, c: 3 },       // the original decoded JSON as is
+        'info':         { 'a': 1, 'b': 2, 'c': 3 }, // the original decoded JSON as is
         'id':           '12345-67890:09876/54321',  // string trade id
         'timestamp':    1502962946216,              // Unix timestamp in milliseconds
         'datetime':     '2017-08-17 12:42:48.000',  // ISO8601 datetime with milliseconds
@@ -42,7 +42,7 @@ module.exports = (exchange, trade, symbol, now) => {
     if (trade.fees !== undefined) {
         assert (typeof trade.fees === 'object')
         assert (Array.isArray (trade.fees))
-        trade.fees.forEach (fee => assert.containsAllKeys (fee, feeKeys))
+        trade.fees.forEach ((fee) => assert.containsAllKeys (fee, feeKeys))
     }
 
     assert (trade.id === undefined || typeof trade.id === 'string')
@@ -77,8 +77,9 @@ module.exports = (exchange, trade, symbol, now) => {
         'kraken', // override for kraken and possibly other exchanges as well, can't return private trades per symbol at all
     ].includes (exchange.id)
 
-    if (!isExchangeLackingFilteringTradesBySymbol)
-        assert (trade.symbol === symbol, 'trade symbol is not equal to requested symbol: trade: ' + trade.symbol + ' reqeusted: ' + symbol)
+    if (!isExchangeLackingFilteringTradesBySymbol) {
+        assert (trade.symbol === symbol, 'trade symbol is not equal to requested symbol: trade: ' + trade.symbol + ' requested: ' + symbol)
+    }
 
     assert (trade.type  === undefined || typeof trade.type === 'string')
     assert (trade.side  === undefined || trade.side === 'buy' || trade.side === 'sell')
