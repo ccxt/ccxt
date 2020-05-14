@@ -933,6 +933,7 @@ class Exchange {
 
         // API methods metainfo
         $this->has = array(
+            'loadMarkets' => true,
             'cancelAllOrders' => false,
             'cancelOrder' => true,
             'cancelOrders' => false,
