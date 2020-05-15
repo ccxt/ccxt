@@ -116,6 +116,7 @@ module.exports = class eterbase extends Exchange {
             'exceptions': {
                 'exact': {
                     'Invalid cost': InvalidOrder, // {"message":"Invalid cost","_links":{"self":{"href":"/orders","templated":false}}}
+                    'Invalid order ID': InvalidOrder, // {"message":"Invalid order ID","_links":{"self":{"href":"/orders/4a151805-d594-4a96-9d64-e3984f2441f7","templated":false}}}
                 },
                 'broad': {
                     'Failed to convert argument': BadRequest,
@@ -850,17 +851,21 @@ module.exports = class eterbase extends Exchange {
     }
 
     async fetchOrdersByState (state, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (since === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrdersByState requires a since argument');
-        }
+        const now = this.milliseconds ();
+        const ninetyDays = 90 * 24 * 60 * 60 * 1000; // 90 days timerange max
         const request = {
             'id': this.uid,
             'state': state,
-            'from': since,
             // 'side': Integer, // 1 = buy, 2 = sell
             // 'offset': 0, // the number of records to skip
-            // 'end': this.milliseconds (),
         };
+        if (since === undefined) {
+            request['from'] = now - ninetyDays;
+            request['to'] = now;
+        } else {
+            request['from'] = since;
+            request['to'] = this.sum (since, ninetyDays);
+        }
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
@@ -898,30 +903,28 @@ module.exports = class eterbase extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (since === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchClosedOrders requires a since argument');
-        }
         return await this.fetchOrdersByState ('INACTIVE', symbol, since, limit, params);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (since === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a since argument');
-        }
         return await this.fetchOrdersByState ('ACTIVE', symbol, since, limit, params);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (since === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a since argument');
-        }
+        const now = this.milliseconds ();
+        const ninetyDays = 90 * 24 * 60 * 60 * 1000; // 90 days timerange max
         const request = {
             'id': this.uid,
-            'from': since,
             // 'side': Integer, // 1 = buy, 2 = sell
             // 'offset': 0, // the number of records to skip
-            // 'end': this.milliseconds (),
         };
+        if (since === undefined) {
+            request['from'] = now - ninetyDays;
+            request['to'] = now;
+        } else {
+            request['from'] = since;
+            request['to'] = this.sum (since, ninetyDays);
+        }
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
