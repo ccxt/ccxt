@@ -305,6 +305,14 @@ module.exports = class Exchange {
             this.httpsAgent = defaultFetch.https ? new defaultFetch.https.Agent ({ 'keepAlive': true }) : undefined
         }
 
+        if (!this.httpAgent) {
+            this.httpAgent = defaultFetch.http ? new defaultFetch.http.Agent ({ 'keepAlive': true }) : undefined
+        }
+
+        if (!this.httpsAgent) {
+            this.httpsAgent = defaultFetch.https ? new defaultFetch.https.Agent ({ 'keepAlive': true }) : undefined
+        }
+
         // generate old metainfo interface
         const hasKeys = Object.keys (this.has)
         for (let i = 0; i < hasKeys.length; i++) {
