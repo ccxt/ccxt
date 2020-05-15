@@ -206,7 +206,7 @@ class dsx extends Exchange {
 
     public function fetch_balance($params = array ()) {
         $this->load_markets();
-        $response = $this->privatePostInfoAccount ();
+        $response = $this->privatePostInfoAccount ($params);
         //
         //     {
         //         "success" : 1,
@@ -1073,48 +1073,98 @@ class dsx extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
+    public function parse_transaction_type($type) {
+        $types = array(
+            'payin' => 'deposit',
+            'payout' => 'withdrawal',
+            'withdraw' => 'withdrawal',
+        );
+        return $this->safe_string($types, $type, $type);
+    }
+
     public function parse_transaction($transaction, $currency = null) {
-        //
-        //     {
-        //         "id" => 1,
-        //         "$timestamp" => 11, // 11 in their docs (
-        //         "$type" => "Withdraw",
-        //         "amount" => 1,
-        //         "$currency" => "btc",
-        //         "confirmationsCount" => 6,
-        //         "address" => "address",
-        //         "$status" => 2,
-        //         "commission" => 0.0001
-        //     }
-        //
-        $timestamp = $this->safe_timestamp($transaction, 'timestamp');
-        $type = $this->safe_string($transaction, 'type');
-        if ($type !== null) {
-            if ($type === 'Incoming') {
-                $type = 'deposit';
-            } else if ($type === 'Withdraw') {
-                $type = 'withdrawal';
-            }
-        }
+        // deposit
+        // {
+        //     "$id" => "03e620fa",
+        //     "hash" => "bar",
+        //     "$type" => "payin",
+        //     "index" => 2156219,
+        //     "$amount" => "0.26000000",
+        //     "$status" => "success",
+        //     "$address" => "foo",
+        //     "$currency" => "BTC",
+        //     "createdAt" => "2020-05-14T18:08:28.850Z",
+        //     "updatedAt" => "2020-05-14T18:10:59.502Z",
+        //     "confirmations" => 1
+        // }
+        // internal transfer
+        // {
+        //     "$id" => "9e420465",
+        //     "$type" => "bankToExchange",
+        //     "index" => 503401,
+        //     "$amount" => "0.10",
+        //     "$status" => "success",
+        //     "$currency" => "EUR",
+        //     "createdAt" => "2020-03-27T15:19:28.519Z",
+        //     "updatedAt" => "2020-03-27T15:19:28.656Z"
+        // }
+        // internal transfer
+        // {
+        //     "$id" => "48dd5e05",
+        //     "index" => 054766,
+        //     "$type" => "exchangeToBank",
+        //     "$status" => "success",
+        //     "$currency" => "LTC",
+        //     "$amount" => "7.00000000",
+        //     "createdAt" => "2020-05-15T20:34:59.344Z",
+        //     "updatedAt" => "2020-05-15T20:34:59.439Z"
+        // }
+        // {
+        //     "$id" => "df03e8b0",
+        //     "index" => 5430774807,
+        //     "$type" => "payout",
+        //     "$status" => "pending",
+        //     "$currency" => "LTC",
+        //     "$amount" => "6.999000000000000000000000",
+        //     "createdAt" => "2020-05-15T20:39:47.140Z",
+        //     "updatedAt" => "2020-05-15T21:16:49.230Z",
+        //     "hash" => "bar",
+        //     "$address" => "foo",
+        //     "confirmations" => 0,
+        //     "$fee" => "0.001"
+        // }
+        $id = $this->safe_string($transaction, 'id');
+        $timestamp = $this->parse8601($this->safe_string($transaction, 'createdAt'));
+        $updated = $this->parse8601($this->safe_string($transaction, 'updatedAt'));
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
+        $amount = $this->safe_float($transaction, 'amount');
+        $address = $this->safe_string($transaction, 'address');
+        $txid = $this->safe_string($transaction, 'hash');
+        $fee = null;
+        $feeCost = $this->safe_float($transaction, 'fee');
+        if ($feeCost !== null) {
+            $fee = array(
+                'cost' => $feeCost,
+                'currency' => $code,
+            );
+        }
+        $type = $this->parse_transaction_type($this->safe_string($transaction, 'type'));
         return array(
-            'id' => $this->safe_string($transaction, 'id'),
-            'txid' => $this->safe_string($transaction, 'txid'),
+            'info' => $transaction,
+            'id' => $id,
+            'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'address' => $this->safe_string($transaction, 'address'),
+            'address' => $address,
+            'tag' => null,
             'type' => $type,
-            'amount' => $this->safe_float($transaction, 'amount'),
+            'amount' => $amount,
             'currency' => $code,
             'status' => $status,
-            'fee' => array(
-                'currency' => $code,
-                'cost' => $this->safe_float($transaction, 'commission'),
-                'rate' => null,
-            ),
-            'info' => $transaction,
+            'updated' => $updated,
+            'fee' => $fee,
         );
     }
 
