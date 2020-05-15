@@ -1070,98 +1070,48 @@ module.exports = class dsx extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransactionType (type) {
-        const types = {
-            'payin': 'deposit',
-            'payout': 'withdrawal',
-            'withdraw': 'withdrawal',
-        };
-        return this.safeString (types, type, type);
-    }
-
     parseTransaction (transaction, currency = undefined) {
-        // deposit
-        // {
-        //     "id": "03e620fa",
-        //     "hash": "bar",
-        //     "type": "payin",
-        //     "index": 2156219,
-        //     "amount": "0.26000000",
-        //     "status": "success",
-        //     "address": "foo",
-        //     "currency": "BTC",
-        //     "createdAt": "2020-05-14T18:08:28.850Z",
-        //     "updatedAt": "2020-05-14T18:10:59.502Z",
-        //     "confirmations": 1
-        // }
-        // internal transfer
-        // {
-        //     "id": "9e420465",
-        //     "type": "bankToExchange",
-        //     "index": 503401,
-        //     "amount": "0.10",
-        //     "status": "success",
-        //     "currency": "EUR",
-        //     "createdAt": "2020-03-27T15:19:28.519Z",
-        //     "updatedAt": "2020-03-27T15:19:28.656Z"
-        // }
-        // internal transfer
-        // {
-        //     "id": "48dd5e05",
-        //     "index": 054766,
-        //     "type": "exchangeToBank",
-        //     "status": "success",
-        //     "currency": "LTC",
-        //     "amount": "7.00000000",
-        //     "createdAt": "2020-05-15T20:34:59.344Z",
-        //     "updatedAt": "2020-05-15T20:34:59.439Z"
-        // }
-        // {
-        //     "id": "df03e8b0",
-        //     "index": 5430774807,
-        //     "type": "payout",
-        //     "status": "pending",
-        //     "currency": "LTC",
-        //     "amount": "6.999000000000000000000000",
-        //     "createdAt": "2020-05-15T20:39:47.140Z",
-        //     "updatedAt": "2020-05-15T21:16:49.230Z",
-        //     "hash": "bar",
-        //     "address": "foo",
-        //     "confirmations": 0,
-        //     "fee": "0.001"
-        // }
-        const id = this.safeString (transaction, 'id');
-        const timestamp = this.parse8601 (this.safeString (transaction, 'createdAt'));
-        const updated = this.parse8601 (this.safeString (transaction, 'updatedAt'));
+        //
+        //     {
+        //         "id": 1,
+        //         "timestamp": 11, // 11 in their docs (
+        //         "type": "Withdraw",
+        //         "amount": 1,
+        //         "currency": "btc",
+        //         "confirmationsCount": 6,
+        //         "address": "address",
+        //         "status": 2,
+        //         "commission": 0.0001
+        //     }
+        //
+        const timestamp = this.safeTimestamp (transaction, 'timestamp');
+        let type = this.safeString (transaction, 'type');
+        if (type !== undefined) {
+            if (type === 'Incoming') {
+                type = 'deposit';
+            } else if (type === 'Withdraw') {
+                type = 'withdrawal';
+            }
+        }
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
-        const amount = this.safeFloat (transaction, 'amount');
-        const address = this.safeString (transaction, 'address');
-        const txid = this.safeString (transaction, 'hash');
-        let fee = undefined;
-        const feeCost = this.safeFloat (transaction, 'fee');
-        if (feeCost !== undefined) {
-            fee = {
-                'cost': feeCost,
-                'currency': code,
-            };
-        }
-        const type = this.parseTransactionType (this.safeString (transaction, 'type'));
         return {
-            'info': transaction,
-            'id': id,
-            'txid': txid,
+            'id': this.safeString (transaction, 'id'),
+            'txid': this.safeString (transaction, 'txid'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'address': address,
-            'tag': undefined,
+            'address': this.safeString (transaction, 'address'),
             'type': type,
-            'amount': amount,
+            'amount': this.safeFloat (transaction, 'amount'),
             'currency': code,
             'status': status,
-            'updated': updated,
-            'fee': fee,
+            'fee': {
+                'currency': code,
+                'cost': this.safeFloat (transaction, 'commission'),
+                'rate': undefined,
+            },
+            'info': transaction,
         };
     }
 
