@@ -11,7 +11,7 @@ module.exports = class eterbase extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'eterbase',
-            'name': 'ETERBASE',
+            'name': 'Eterbase',
             'countries': [ 'SK' ],
             'rateLimit': 500,
             'version': 'v1',
