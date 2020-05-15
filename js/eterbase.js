@@ -340,6 +340,7 @@ module.exports = class eterbase extends Exchange {
         //     {
         //         "time":1588778516608,
         //         "marketId":250,
+        //         "symbol": "ETHUSDT",
         //         "price":0.0,
         //         "change":0.0,
         //         "volumeBase":0.0,
