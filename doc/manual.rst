@@ -740,7 +740,11 @@ Market Structure
        'quote':   'USD',     // uppercase string, unified quote currency code, 3 or more letters
        'baseId':  'btc',     // any string, exchange-specific base currency id
        'quoteId': 'usd',     // any string, exchange-specific quote currency id
-       'active': true,       // boolean, market status
+       'active':   true,     // boolean, market status
+       'taker':    0.002,    // taker fee rate, 0.002 = 0.2%
+       'maker':    0.0016,   // maker fee rate, 0.0016 = 0.16%
+       'percentage': true,   // whether the taker and maker fee rate is a multiplier or a fixed flat amount
+       'tierBased': false,   // whether the fee depends on your trading tier (your trading volume)
        'precision': {        // number of decimal digits "after the dot"
            'price': 8,       // integer or float for TICK_SIZE roundingMode, might be missing if not supplied by the exchange
            'amount': 8,      // integer, might be missing if not supplied by the exchange
@@ -766,6 +770,10 @@ Each market is an associative array (aka dictionary) with the following keys:
 -  ``baseId``. An exchange-specific id of the base currency for this market, not unified. Can be any string, literally. This is communicated to the exchange using the language the exchange understands.
 -  ``quoteId``. An exchange-specific id of the quote currency, not unified.
 -  ``active``. A boolean indicating whether or not trading this market is currently possible. Often, when a market is inactive, all corresponding tickers, orderbooks and other related endpoints return empty responses, all zeroes, no data or outdated data for that market. The user should check if the market is active and `reload market cache periodically, as explained below <#market-cache-force-reload>`__.
+-  ``maker``. Float, 0.0015 = 0.15%. Maker fees are paid when you provide liquidity to the exchange i.e. you *market-make* an order and someone else fills it. Maker fees are usually lower than taker fees. Fees can be negative, this is very common amongst derivative exchanges. A negative fee means the exchange will pay a rebate (reward) to the user for trading this market.
+-  ``taker``. Float, 0.002 = 0.2%. Taker fees are paid when you *take* liquidity from the exchange and fill someone else’s order.
+-  ``percentage``. A boolean true/false value indicating whether ``taker`` and ``maker`` are multipliers or fixed flat amounts.
+-  ``tierBased``. A boolean true/false value indicating whether the fee depends on your trading tier (usually, your traded volume over a period of time).
 -  ``info``. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
 -  ``precision``. Precision accepted in order values by exchanges upon order placement for price, amount and cost. The values inside this market property depend on the ``exchange.precisionMode``.
 
@@ -774,6 +782,8 @@ Each market is an associative array (aka dictionary) with the following keys:
    -  When ``exchange.precisionMode`` is ``TICK_SIZE`` then the ``market['precision']`` designates the smallest possible float fractions.
 
 -  ``limits``. The minimums and maximums for prices, amounts (volumes) and costs (where cost = price \* amount).
+
+**WARNING! fee related information is experimental, unstable and may only be partial available or not at all.**
 
 Currency Structure
 ------------------
@@ -3416,7 +3426,7 @@ The fee methods will return a unified fee structure, which is often present with
 
 Because this is still a work in progress, some or all of methods and info described in this section may be missing with this or that exchange.
 
-**DO NOT use the ``.fees`` property as most often it contains the predefined/hardcoded info, which is now deprecated. Actual fees should only be accessed from markets and currencies.**
+**DO NOT use the ``.fees`` property of the exchange instance as most often it contains the predefined/hardcoded info. Actual fees should only be accessed from markets and currencies.**
 
 Fee Structure
 ~~~~~~~~~~~~~
@@ -3469,7 +3479,7 @@ Trading Fees
 
 Trading fees are properties of markets. Most often trading fees are loaded into the markets by the ``fetchMarkets`` call. Sometimes, however, the exchanges serve fees from different endpoints.
 
-The ``calculateFee`` method can be used to precalculate trading fees that will be paid. **WARNING! This method is experimental, unstable and may produce incorrect results in certain cases**. You should only use it with caution. Actual fees may be different from the values returned from ``calculateFee``, this is just for precalculation. Do not rely on precalculated values, because market conditions change frequently. It is difficult to know in advance whether your order will be a market taker or maker.
+The ``calculateFee`` method can be used to precalculate trading fees that will be paid. **WARNING! This method is experimental, unstable and may produce incorrect results in certain cases.** You should only use it with caution. Actual fees may be different from the values returned from ``calculateFee``, this is just for precalculation. Do not rely on precalculated values, because market conditions change frequently. It is difficult to know in advance whether your order will be a market taker or maker.
 
 .. code:: javascript
 
@@ -3484,7 +3494,37 @@ Accessing trading fee rates should be done via the ``.markets`` property, like s
    exchange.markets['ETH/BTC']['taker'] // taker fee rate for ETH/BTC
    exchange.markets['BTC/USD']['maker'] // maker fee rate for BTC/USD
 
+The markets stored under the ``.markets`` property may contain additional fee related information:
+
+.. code:: javascript
+
+   {
+       'taker': 0.002,   // taker fee rate, 0.002 = 0.2%
+       'maker': 0.0016,  // maker fee rate, 0.0016 = 0.16%
+       'percentage': true, // whether the taker and maker fee rate is a multiplier or a fixed flat amount
+       'tierBased': false, // whether the fee depends on your trading tier (your trading volume)
+
+       'tiers': {
+           'taker': [
+               [0, 0.0026], // tupple (trade volume in USD, taker fee) ordered by increasing volume
+               [50000, 0.0024],
+               ...
+           ],
+           'maker': [
+               [0, 0.0016], // tupple (trade volume in USD, maker fee) ordered by increasing volume
+               [50000, 0.0014],
+               ...
+           ],
+       },
+   }
+
+**WARNING! fee related information is experimental, unstable and may only be partial available or not at all.**
+
 Maker fees are paid when you provide liquidity to the exchange i.e. you *market-make* an order and someone else fills it. Maker fees are usually lower than taker fees. Similarly, taker fees are paid when you *take* liquidity from the exchange and fill someone else’s order.
+
+Fees can be negative, this is very common amongst derivative exchanges. A negative fee means the exchange will pay a rebate (reward) to the user for the trading.
+
+Also, some exchanges might not specify fees as percentage of volume, check the ``percentage`` field of the market to be sure.
 
 Funding Fees
 ~~~~~~~~~~~~
