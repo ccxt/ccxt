@@ -490,6 +490,7 @@ declare module 'ccxt' {
     export class deribit extends Exchange {}
     export class digifinex extends Exchange {}
     export class dsx extends Exchange {}
+    export class eterbase extends Exchange {}
     export class exmo extends Exchange {}
     export class exx extends Exchange {}
     export class fcoin extends Exchange {}
