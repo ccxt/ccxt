@@ -18,7 +18,7 @@ class eterbase(Exchange):
     def describe(self):
         return self.deep_extend(super(eterbase, self).describe(), {
             'id': 'eterbase',
-            'name': 'ETERBASE',
+            'name': 'Eterbase',
             'countries': ['SK'],
             'rateLimit': 500,
             'version': 'v1',

@@ -15,7 +15,7 @@ class eterbase extends Exchange {
     public function describe() {
         return $this->deep_extend(parent::describe (), array(
             'id' => 'eterbase',
-            'name' => 'ETERBASE',
+            'name' => 'Eterbase',
             'countries' => array( 'SK' ),
             'rateLimit' => 500,
             'version' => 'v1',
