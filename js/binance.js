@@ -318,6 +318,7 @@ module.exports = class binance extends Exchange {
                     'market': 'FULL', // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
                     'limit': 'RESULT', // we change it from 'ACK' by default to 'RESULT'
                 },
+                'quoteOrderQty': true,
             },
             'exceptions': {
                 'API key does not exist': AuthenticationError,
@@ -1172,7 +1173,8 @@ module.exports = class binance extends Exchange {
             'type': uppercaseType,
             'side': side.toUpperCase (),
         };
-        if (uppercaseType === 'MARKET') {
+        const quoteOrderQty = this.safeValue (this.options, 'quoteOrderQty', false);
+        if (uppercaseType === 'MARKET' && quoteOrderQty) {
             const quoteOrderQty = this.safeFloat (params, 'quoteOrderQty');
             const precision = market['precision']['price'];
             if (quoteOrderQty !== undefined) {
