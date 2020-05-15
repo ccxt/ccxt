@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, InvalidOrder } = require ('./base/errors');
+const { ArgumentsRequired, InvalidOrder, ExchangeError } = require ('./base/errors');
 
 // ----------------------------------------------------------------------------
 module.exports = class eterbase extends Exchange {
@@ -111,6 +111,13 @@ module.exports = class eterbase extends Exchange {
             },
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
+            },
+            'exceptions': {
+                'exact': {
+                    'Invalid cost': InvalidOrder, // {"message":"Invalid cost","_links":{"self":{"href":"/orders","templated":false}}}
+                },
+                'broad': {
+                },
             },
         });
     }
@@ -675,7 +682,7 @@ module.exports = class eterbase extends Exchange {
 
     parseOrderStatus (status) {
         const statuses = {
-            '1': 'open', // pending
+            '1': undefined, // pending
             '2': 'open', // open
             '3': 'open', // partially filled
             '4': 'closed', // closed
@@ -686,7 +693,7 @@ module.exports = class eterbase extends Exchange {
             'EXPIRED': 'expired',
             'ONE_CANCELS_OTHER': 'canceled',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status);
     }
 
     parseOrder (order, market = undefined) {
@@ -711,6 +718,22 @@ module.exports = class eterbase extends Exchange {
         //         "closeReason": "FILLED",
         //         "placedAt": 1556355722341,
         //         "closedAt": 1556355722341
+        //     }
+        //
+        // createOrder
+        //
+        //     {
+        //         "id":"042a38b0-e369-4ad2-ae73-a18ff6b1dcf1",
+        //         "accountId":"6d445378-d8a3-4932-91cd-545d0a4ad2a2",
+        //         "marketId":33,
+        //         "type":2,
+        //         "side":1,
+        //         "qty":"1000",
+        //         "limitPrice":"100",
+        //         "postOnly":false,
+        //         "timeInForce":"GTC",
+        //         "state":1,
+        //         "placedAt":1589403938682,
         //     }
         //
         const id = this.safeString (order, 'id');
@@ -911,7 +934,15 @@ module.exports = class eterbase extends Exchange {
             'marketId': market['id'],
             'type': type,
             'side': side,
+            // 'postOnly': false,
+            // 'timeInForce': 'GTC',
         };
+        const clientOrderId = this.safeValue2 (params, 'refId', 'clientOrderId');
+        let query = params;
+        if (clientOrderId !== undefined) {
+            request['refId'] = clientOrderId;
+            query = this.omit (params, [ 'refId', 'clientOrderId' ]);
+        }
         if ((uppercaseType === 'MARKET') && (uppercaseSide === 'BUY')) {
             // for market buy it requires the amount of quote currency to spend
             if (this.options['createMarketBuyOrderRequiresPrice']) {
@@ -928,13 +959,23 @@ module.exports = class eterbase extends Exchange {
         if (uppercaseType === 'LIMIT') {
             request['limitPrice'] = this.priceToPrecision (symbol, price);
         }
-        request['postOnly'] = false;
-        request['timeInForce'] = 'GTC';
-        const response = await this.privatePostOrders (this.extend (request, params));
-        return {
-            'id': this.safeString (response, 'id'),
-            'info': response,
-        };
+        const response = await this.privatePostOrders (this.extend (request, query));
+        //
+        //     {
+        //         "id":"042a38b0-e369-4ad2-ae73-a18ff6b1dcf1",
+        //         "accountId":"6d445378-d8a3-4932-91cd-545d0a4ad2a2",
+        //         "marketId":33,
+        //         "type":2,
+        //         "side":1,
+        //         "qty":"1000",
+        //         "limitPrice":"100",
+        //         "postOnly":false,
+        //         "timeInForce":"GTC",
+        //         "state":1,
+        //         "placedAt":1589403938682,
+        //     }
+        //
+        return this.parseOrder (response);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -997,5 +1038,21 @@ module.exports = class eterbase extends Exchange {
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': httpHeaders };
+    }
+
+    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return; // fallback to default error handler
+        }
+        //
+        //     {"message":"Invalid cost","_links":{"self":{"href":"/orders","templated":false}}}
+        //
+        const message = this.safeString (response, 'message');
+        if (message !== undefined) {
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            throw new ExchangeError (feedback); // unknown message
+        }
     }
 };
