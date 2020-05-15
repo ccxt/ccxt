@@ -277,7 +277,9 @@ module.exports = class Exchange {
 
         const unCamelCaseProperties = (obj = this) => {
             if (obj !== null) {
-                for (const k of Object.getOwnPropertyNames (obj)) {
+                const ownPropertyNames = Object.getOwnPropertyNames (obj)
+                for (let i = 0; i < ownPropertyNames.length; i++) {
+                    const k = ownPropertyNames[i]
                     this[unCamelCase (k)] = this[k]
                 }
                 unCamelCaseProperties (Object.getPrototypeOf (obj))
@@ -289,7 +291,9 @@ module.exports = class Exchange {
         const config = deepExtend (this.describe (), userConfig)
 
         // merge to this
-        for (const [property, value] of Object.entries (config)) {
+        const configEntries = Object.entries (config)
+        for (let i = 0; i < configEntries.length; i++) {
+            const [property, value] = configEntries[i]
             this[property] = deepExtend (this[property], value)
         }
 
@@ -302,7 +306,9 @@ module.exports = class Exchange {
         }
 
         // generate old metainfo interface
-        for (const k in this.has) {
+        const hasKeys = Object.keys (this.has)
+        for (let i = 0; i < hasKeys.length; i++) {
+            const k = hasKeys[i]
             this['has' + capitalize (k)] = !!this.has[k] // converts 'emulated' to true
         }
 
@@ -658,16 +664,16 @@ module.exports = class Exchange {
             this.currencies = deepExtend (currencies, this.currencies)
         } else {
             let baseCurrencies =
-                values.filter (market => 'base' in market)
-                    .map (market => ({
+                values.filter ((market) => 'base' in market)
+                    .map ((market) => ({
                         id: market.baseId || market.base,
                         numericId: (market.baseNumericId !== undefined) ? market.baseNumericId : undefined,
                         code: market.base,
                         precision: market.precision ? (market.precision.base || market.precision.amount) : 8,
                     }))
             let quoteCurrencies =
-                values.filter (market => 'quote' in market)
-                    .map (market => ({
+                values.filter ((market) => 'quote' in market)
+                    .map ((market) => ({
                         id: market.quoteId || market.quote,
                         numericId: (market.quoteNumericId !== undefined) ? market.quoteNumericId : undefined,
                         code: market.quote,
@@ -679,7 +685,7 @@ module.exports = class Exchange {
             this.quoteCurrencies = indexBy (quoteCurrencies, 'code')
             const allCurrencies = baseCurrencies.concat (quoteCurrencies)
             const groupedCurrencies = groupBy (allCurrencies, 'code')
-            const currencies = Object.keys (groupedCurrencies).map (code =>
+            const currencies = Object.keys (groupedCurrencies).map ((code) =>
                 groupedCurrencies[code].reduce ((previous, current) =>
                     ((previous.precision > current.precision) ? previous : current), groupedCurrencies[code][0]))
             const sortedCurrencies = sortBy (flatten (currencies), 'code')
@@ -738,8 +744,9 @@ module.exports = class Exchange {
     }
 
     async fetchOHLCVC (symbol, timeframe = '1m', since = undefined, limits = undefined, params = {}) {
-        if (!this.has['fetchTrades'])
+        if (!this.has['fetchTrades']) {
             throw new NotSupported (this.id + ' fetchOHLCV() not supported yet')
+        }
         await this.loadMarkets ()
         const trades = await this.fetchTrades (symbol, since, limits, params)
         const ohlcvc = buildOHLCVC (trades, timeframe, since, limits)
@@ -747,12 +754,13 @@ module.exports = class Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limits = undefined, params = {}) {
-        if (!this.has['fetchTrades'])
+        if (!this.has['fetchTrades']) {
             throw new NotSupported (this.id + ' fetchOHLCV() not supported yet')
+        }
         await this.loadMarkets ()
         const trades = await this.fetchTrades (symbol, since, limits, params)
         const ohlcvc = buildOHLCVC (trades, timeframe, since, limits)
-        return ohlcvc.map (c => c.slice (0, -1))
+        return ohlcvc.map ((c) => c.slice (0, -1))
     }
 
     parseTradingViewOHLCV (ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
@@ -805,9 +813,7 @@ module.exports = class Exchange {
     purgeCachedOrders (before) {
         const orders = Object
             .values (this.orders)
-            .filter (order =>
-                (order.status === 'open') ||
-                (order.timestamp >= before))
+            .filter ((order) => (order.status === 'open') || (order.timestamp >= before))
         this.orders = indexBy (orders, 'id')
         return this.orders
     }
@@ -917,22 +923,26 @@ module.exports = class Exchange {
 
     currency (code) {
 
-        if (this.currencies === undefined)
+        if (this.currencies === undefined) {
             throw new ExchangeError (this.id + ' currencies not loaded')
+        }
 
-        if ((typeof code === 'string') && (code in this.currencies))
+        if ((typeof code === 'string') && (code in this.currencies)) {
             return this.currencies[code]
+        }
 
         throw new ExchangeError (this.id + ' does not have currency code ' + code)
     }
 
     market (symbol) {
 
-        if (this.markets === undefined)
+        if (this.markets === undefined) {
             throw new ExchangeError (this.id + ' markets not loaded')
+        }
 
-        if ((typeof symbol === 'string') && (symbol in this.markets))
+        if ((typeof symbol === 'string') && (symbol in this.markets)) {
             return this.markets[symbol]
+        }
 
         throw new BadSymbol (this.id + ' does not have market symbol ' + symbol)
     }
@@ -943,7 +953,7 @@ module.exports = class Exchange {
     }
 
     marketIds (symbols) {
-        return symbols.map (symbol => this.marketId (symbol));
+        return symbols.map ((symbol) => this.marketId (symbol))
     }
 
     symbol (symbol) {
@@ -953,8 +963,9 @@ module.exports = class Exchange {
     url (path, params = {}) {
         let result = this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path))
-        if (Object.keys (query).length)
+        if (Object.keys (query).length) {
             result += '?' + this.urlencode (query)
+        }
         return result
     }
 
@@ -965,7 +976,7 @@ module.exports = class Exchange {
     }
 
     parseBidsAsks (bidasks, priceKey = 0, amountKey = 1) {
-        return Object.values (bidasks || []).map (bidask => this.parseBidAsk (bidask, priceKey, amountKey))
+        return Object.values (bidasks || []).map ((bidask) => this.parseBidAsk (bidask, priceKey, amountKey))
     }
 
     async fetchL2OrderBook (symbol, limit = undefined, params = {}) {
@@ -988,33 +999,33 @@ module.exports = class Exchange {
 
     parseBalance (balance) {
 
-        const currencies = Object.keys (this.omit (balance, [ 'info', 'free', 'used', 'total' ]));
+        const codes = Object.keys (this.omit (balance, [ 'info', 'free', 'used', 'total' ]));
 
         balance['free'] = {}
         balance['used'] = {}
         balance['total'] = {}
 
-        for (const currency of currencies) {
+        for (let i = 0; i < codes.length; i++) {
+            const code = codes[i]
+            if (balance[code].total === undefined) {
+                if (balance[code].free !== undefined && balance[code].used !== undefined) {
+                    balance[code].total = this.sum (balance[code].free, balance[code].used)
+                }
+            }
+            if (balance[code].free === undefined) {
+                if (balance[code].total !== undefined && balance[code].used !== undefined) {
+                    balance[code].free = this.sum (balance[code].total, -balance[code].used)
+                }
+            }
+            if (balance[code].used === undefined) {
+                if (balance[code].total !== undefined && balance[code].free !== undefined) {
+                    balance[code].used = this.sum (balance[code].total, -balance[code].free)
+                }
+            }
 
-            if (balance[currency].total === undefined) {
-                if (balance[currency].free !== undefined && balance[currency].used !== undefined) {
-                    balance[currency].total = this.sum (balance[currency].free, balance[currency].used)
-                }
-            }
-            if (balance[currency].free === undefined) {
-                if (balance[currency].total !== undefined && balance[currency].used !== undefined) {
-                    balance[currency].free = this.sum (balance[currency].total, -balance[currency].used)
-                }
-            }
-            if (balance[currency].used === undefined) {
-                if (balance[currency].total !== undefined && balance[currency].free !== undefined) {
-                    balance[currency].used = this.sum (balance[currency].total, -balance[currency].free)
-                }
-            }
-
-            balance.free[currency] = balance[currency].free
-            balance.used[currency] = balance[currency].used
-            balance.total[currency] = balance[currency].total
+            balance.free[code] = balance[code].free
+            balance.used[code] = balance[code].used
+            balance.total[code] = balance[code].total
         }
 
         return balance
@@ -1176,7 +1187,7 @@ module.exports = class Exchange {
         // if (!this.isArray (orders)) {
         //     throw new ExchangeError (this.id + ' parseOrders expected an array in the orders argument, but got ' + typeof orders);
         // }
-        let result = Object.values (orders).map (order => this.extend (this.parseOrder (order, market), params))
+        let result = Object.values (orders).map ((order) => this.extend (this.parseOrder (order, market), params))
         result = sortBy (result, 'timestamp')
         const symbol = (market !== undefined) ? market['symbol'] : undefined
         return this.filterBySymbolSinceLimit (result, symbol, since, limit)
@@ -1198,7 +1209,7 @@ module.exports = class Exchange {
     }
 
     filterBySymbol (array, symbol = undefined) {
-        return ((symbol !== undefined) ? array.filter (entry => entry.symbol === symbol) : array)
+        return ((symbol !== undefined) ? array.filter ((entry) => entry.symbol === symbol) : array)
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
@@ -1238,8 +1249,9 @@ module.exports = class Exchange {
     }
 
     async editOrder (id, symbol, ...args) {
-        if (!this.enableRateLimit)
+        if (!this.enableRateLimit) {
             throw new ExchangeError (this.id + ' editOrder() requires enableRateLimit = true')
+        }
         await this.cancelOrder (id, symbol);
         return this.createOrder (symbol, ...args)
     }
@@ -1315,7 +1327,8 @@ module.exports = class Exchange {
     soliditySha3 (array) {
         // we only support address, uint256, and string solidity types
         const encoded = []
-        for (const value of array) {
+        for (let i = 0; i < array.length; i++) {
+            const value = array[i]
             if (Number.isInteger (value) || value.match (/^[0-9]+$/)) {
                 encoded.push (this.numberToBE (this.numberToString (value), 32))
             } else {
