@@ -297,20 +297,12 @@ module.exports = class Exchange {
             this[property] = deepExtend (this[property], value)
         }
 
-        if (!this.httpAgent) {
-            this.httpAgent = defaultFetch.http ? new defaultFetch.http.Agent ({ 'keepAlive': true }) : undefined
+        if (!this.httpAgent && defaultFetch.http && isNode) {
+            this.httpAgent = new defaultFetch.http.Agent ({ 'keepAlive': true })
         }
 
-        if (!this.httpsAgent) {
-            this.httpsAgent = defaultFetch.https ? new defaultFetch.https.Agent ({ 'keepAlive': true }) : undefined
-        }
-
-        if (!this.httpAgent) {
-            this.httpAgent = defaultFetch.http ? new defaultFetch.http.Agent ({ 'keepAlive': true }) : undefined
-        }
-
-        if (!this.httpsAgent) {
-            this.httpsAgent = defaultFetch.https ? new defaultFetch.https.Agent ({ 'keepAlive': true }) : undefined
+        if (!this.httpsAgent && defaultFetch.https && isNode) {
+            this.httpsAgent = new defaultFetch.https.Agent ({ 'keepAlive': true })
         }
 
         // generate old metainfo interface
