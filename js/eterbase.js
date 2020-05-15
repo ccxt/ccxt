@@ -457,9 +457,22 @@ module.exports = class eterbase extends Exchange {
         //         "takerId":"229ef0d6-fe67-4b5d-9733-824142fab8f3"
         //     }
         //
-        // fetchTrades (private)
+        // fetchMyTrades (private)
         //
-        //     ...
+        //     {
+        //         "id": 123,
+        //         "marketId": 123,
+        //         "side": 1,
+        //         "qty": "1.23456",
+        //         "price": "1.23456",
+        //         "cost": "1.23456",
+        //         "fee": "1.23456",
+        //         "feeAsset": "XBASE",
+        //         "liquidity": 1,
+        //         "orderId": "30a2b5d0-be2e-4d0a-93ed-a7c45fed1792",
+        //         "tradeId": 123,
+        //         "filledAt": 1556355722341
+        //     }
         //
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'qty');
@@ -488,6 +501,10 @@ module.exports = class eterbase extends Exchange {
         const orderId = this.safeString (trade, 'orderId');
         const id = this.safeString (trade, 'id');
         let symbol = undefined;
+        const marketId = this.safeString (trade, 'marketId');
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+        }
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
@@ -784,8 +801,12 @@ module.exports = class eterbase extends Exchange {
         }
         let price = this.safeFloat (order, 'limitPrice');
         const amount = this.safeFloat (order, 'qty');
-        const remaining = this.safeFloat (order, 'remainingQty');
+        let remaining = this.safeFloat (order, 'remainingQty');
         let filled = undefined;
+        const remainingCost = this.safeFloat (order, 'remainingCost');
+        if ((remainingCost !== undefined) && (remainingCost === 0.0)) {
+            remaining = 0;
+        }
         if ((amount !== undefined) && (remaining !== undefined)) {
             filled = Math.max (0, amount - remaining);
         }
@@ -850,40 +871,42 @@ module.exports = class eterbase extends Exchange {
         }
         const response = await this.privateGetAccountsIdOrders (this.extend (request, params));
         //
-        //     {
-        //         "count": 123,
-        //         "result": [
-        //             {
-        //                 "id": "30a2b5d0-be2e-4d0a-93ed-a7c45fed1792",
-        //                 "accountId": "30a2b5d0-be2e-4d0a-93ed-a7c45fed1792",
-        //                 "marketId": 123,
-        //                 "type": 1,
-        //                 "side": 1,
-        //                 "qty": "1.23456",
-        //                 "cost": "1.23456",
-        //                 "remainingQty": "1.23456",
-        //                 "remainingCost": "1.23456",
-        //                 "limitPrice": "1.23456",
-        //                 "stopPrice": "1.23456",
-        //                 "postOnly": false,
-        //                 "timeInForce": "GTC",
-        //                 "state": 1,
-        //                 "closeReason": "FILLED",
-        //                 "placedAt": 1556355722341,
-        //                 "closedAt": 1556355722341
-        //             }
-        //         ]
-        //     }
+        //     [
+        //         {
+        //             "id": "30a2b5d0-be2e-4d0a-93ed-a7c45fed1792",
+        //             "accountId": "30a2b5d0-be2e-4d0a-93ed-a7c45fed1792",
+        //             "marketId": 123,
+        //             "type": 1,
+        //             "side": 1,
+        //             "qty": "1.23456",
+        //             "cost": "1.23456",
+        //             "remainingQty": "1.23456",
+        //             "remainingCost": "1.23456",
+        //             "limitPrice": "1.23456",
+        //             "stopPrice": "1.23456",
+        //             "postOnly": false,
+        //             "timeInForce": "GTC",
+        //             "state": 1,
+        //             "closeReason": "FILLED",
+        //             "placedAt": 1556355722341,
+        //             "closedAt": 1556355722341
+        //         }
+        //     ]
         //
-        const result = this.safeValue (response, 'result', []);
-        return this.parseOrders (result, market, since, limit);
+        return this.parseOrders (response, market, since, limit);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (since === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchClosedOrders requires a since argument');
+        }
         return await this.fetchOrdersByState ('INACTIVE', symbol, since, limit, params);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (since === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a since argument');
+        }
         return await this.fetchOrdersByState ('ACTIVE', symbol, since, limit, params);
     }
 
@@ -909,28 +932,24 @@ module.exports = class eterbase extends Exchange {
         }
         const response = await this.privateGetAccountsIdFills (this.extend (request, params));
         //
-        //     {
-        //         "count": 123,
-        //         "result": [
-        //             {
-        //                 "id": 123,
-        //                 "marketId": 123,
-        //                 "side": 1,
-        //                 "qty": "1.23456",
-        //                 "price": "1.23456",
-        //                 "cost": "1.23456",
-        //                 "fee": "1.23456",
-        //                 "feeAsset": "XBASE",
-        //                 "liquidity": 1,
-        //                 "orderId": "30a2b5d0-be2e-4d0a-93ed-a7c45fed1792",
-        //                 "tradeId": 123,
-        //                 "filledAt": 1556355722341
-        //             }
-        //         ]
-        //     }
+        //     [
+        //         {
+        //             "id": 123,
+        //             "marketId": 123,
+        //             "side": 1,
+        //             "qty": "1.23456",
+        //             "price": "1.23456",
+        //             "cost": "1.23456",
+        //             "fee": "1.23456",
+        //             "feeAsset": "XBASE",
+        //             "liquidity": 1,
+        //             "orderId": "30a2b5d0-be2e-4d0a-93ed-a7c45fed1792",
+        //             "tradeId": 123,
+        //             "filledAt": 1556355722341
+        //         }
+        //     ]
         //
-        const result = this.safeValue (response, 'result', []);
-        return this.parseTrades (result, market, since, limit);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
