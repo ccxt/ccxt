@@ -34,6 +34,7 @@ module.exports = class eterbase extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': false,
+                'fetchOrderTrades': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -459,7 +460,7 @@ module.exports = class eterbase extends Exchange {
         //         "takerId":"229ef0d6-fe67-4b5d-9733-824142fab8f3"
         //     }
         //
-        // fetchMyTrades (private)
+        // fetchMyTrades, fetchOrderTrades (private)
         //
         //     {
         //         "id": 123,
@@ -954,6 +955,15 @@ module.exports = class eterbase extends Exchange {
         //     ]
         //
         return this.parseTrades (response, market, since, limit);
+    }
+
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'id': id,
+        };
+        const trades = await this.privateGetOrdersIdFills (this.extend (request, params));
+        return this.parseTrades (trades);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
