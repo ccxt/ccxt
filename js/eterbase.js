@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, InvalidOrder, ExchangeError } = require ('./base/errors');
+const { ArgumentsRequired, InvalidOrder, ExchangeError, BadRequest } = require ('./base/errors');
 
 // ----------------------------------------------------------------------------
 module.exports = class eterbase extends Exchange {
@@ -117,6 +117,7 @@ module.exports = class eterbase extends Exchange {
                     'Invalid cost': InvalidOrder, // {"message":"Invalid cost","_links":{"self":{"href":"/orders","templated":false}}}
                 },
                 'broad': {
+                    'Failed to convert argument': BadRequest,
                 },
             },
         });
@@ -943,19 +944,19 @@ module.exports = class eterbase extends Exchange {
             request['refId'] = clientOrderId;
             query = this.omit (params, [ 'refId', 'clientOrderId' ]);
         }
-        if ((uppercaseType === 'MARKET') && (uppercaseSide === 'BUY')) {
-            // for market buy it requires the amount of quote currency to spend
-            if (this.options['createMarketBuyOrderRequiresPrice']) {
-                if (price === undefined) {
-                    throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
-                } else {
-                    amount = amount * price;
-                }
-            }
-            request['cost'] = this.amountToPrecision (symbol, amount);
-        } else {
+        // if ((uppercaseType === 'MARKET') && (uppercaseSide === 'BUY')) {
+        //     // for market buy it requires the amount of quote currency to spend
+        //     if (this.options['createMarketBuyOrderRequiresPrice']) {
+        //         if (price === undefined) {
+        //             throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
+        //         } else {
+        //             amount = amount * price;
+        //         }
+        //     }
+        //     request['cost'] = this.amountToPrecision (symbol, amount);
+        // } else {
             request['qty'] = this.amountToPrecision (symbol, amount);
-        }
+        // }
         if (uppercaseType === 'LIMIT') {
             request['limitPrice'] = this.priceToPrecision (symbol, price);
         }
