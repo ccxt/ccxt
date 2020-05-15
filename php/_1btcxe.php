@@ -12,7 +12,7 @@ use \ccxt\ExchangeNotAvailable;
 class _1btcxe extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => '_1btcxe',
             'name' => '1BTCXE',
             'countries' => array( 'PA' ), // Panama

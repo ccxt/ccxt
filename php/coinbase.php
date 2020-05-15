@@ -12,7 +12,7 @@ use \ccxt\ArgumentsRequired;
 class coinbase extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'coinbase',
             'name' => 'Coinbase',
             'countries' => array( 'US' ),
@@ -159,8 +159,16 @@ class coinbase extends Exchange {
 
     public function fetch_time($params = array ()) {
         $response = $this->publicGetTime ($params);
+        //
+        //     {
+        //         "$data" => {
+        //             "epoch" => 1589295679,
+        //             "iso" => "2020-05-12T15:01:19Z"
+        //         }
+        //     }
+        //
         $data = $this->safe_value($response, 'data', array());
-        return $this->parse8601($this->safe_string($data, 'iso'));
+        return $this->safe_timestamp($data, 'epoch');
     }
 
     public function fetch_accounts($params = array ()) {

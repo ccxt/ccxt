@@ -109,7 +109,7 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
     // ----------------------------------------------------------------------------
     // list all supported exchanges
 
-    const exchangesNotListedInDocs = []
+    const exchangesNotListedInDocs = [ 'hitbtc2' ]
 
     function makeTableData (exchanges) {
         return (
@@ -328,14 +328,26 @@ function exportKeywordsToPackageJson (exchanges) {
     }
 
     packageJSON.keywords = [...keywords]
-    fs.writeFileSync ('./package.json', JSON.stringify (packageJSON, null, 2))
+    fs.writeFileSync ('./package.json', JSON.stringify (packageJSON, null, 2) + "\n")
 }
 
 // ----------------------------------------------------------------------------
 
-function exportEverything () {
+function flatten (nested, result = []) {
+    for (const key in nested) {
+        result.push (key)
+        if (Object.keys (nested[key]).length)
+            flatten (nested[key], result)
+    }
+    return result
+}
 
+
+function exportEverything () {
     const ids = getIncludedExchangeIds ()
+    const errorHierarchy = require ('../js/base/errorHierarchy.js')
+    const flat = flatten (errorHierarchy)
+    flat.push ('error_hierarchy')
 
     const replacements = [
         {
@@ -352,6 +364,16 @@ function exportEverything () {
             file: './python/ccxt/__init__.py',
             regex: /(?:from ccxt\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
             replacement: ids.map (id => ('from ccxt.' + id + ' import ' + id).padEnd (60) + '# noqa: F401').join ("\n") + "\n\nexchanges",
+        },
+        {
+            file: './python/ccxt/__init__.py',
+            regex: /(?:from ccxt\.base\.errors import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]/,
+            replacement: flat.map (error => ('from ccxt.base.errors' + ' import ' + error).padEnd (60) + '# noqa: F401').join ("\n") + "\n\n",
+        },
+        {
+            file: './python/ccxt/async_support/__init__.py',
+            regex: /(?:from ccxt\.base\.errors import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]/,
+            replacement: flat.map (error => ('from ccxt.base.errors' + ' import ' + error).padEnd (60) + '# noqa: F401').join ("\n") + "\n\n",
         },
         {
             file: './python/ccxt/async_support/__init__.py',

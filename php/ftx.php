@@ -12,12 +12,13 @@ use \ccxt\InvalidOrder;
 class ftx extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'ftx',
             'name' => 'FTX',
             'countries' => array( 'HK' ),
             'rateLimit' => 100,
             'certified' => true,
+            'pro' => true,
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/67149189-df896480-f2b0-11e9-8816-41593e17f9ec.jpg',
                 'www' => 'https://ftx.com',
@@ -352,14 +353,16 @@ class ftx extends Exchange {
             } else {
                 $base = $this->safe_currency_code($this->safe_string($ticker, 'baseCurrency'));
                 $quote = $this->safe_currency_code($this->safe_string($ticker, 'quoteCurrency'));
-                $symbol = $base . '/' . $quote;
+                if (($base !== null) && ($quote !== null)) {
+                    $symbol = $base . '/' . $quote;
+                }
             }
         }
         if (($symbol === null) && ($market !== null)) {
             $symbol = $market['symbol'];
         }
         $last = $this->safe_float($ticker, 'last');
-        $timestamp = $this->milliseconds();
+        $timestamp = $this->safe_timestamp($ticker, 'time', $this->milliseconds());
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -367,9 +370,9 @@ class ftx extends Exchange {
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
             'bid' => $this->safe_float($ticker, 'bid'),
-            'bidVolume' => null,
+            'bidVolume' => $this->safe_float($ticker, 'bidSize'),
             'ask' => $this->safe_float($ticker, 'ask'),
-            'askVolume' => null,
+            'askVolume' => $this->safe_float($ticker, 'askSize'),
             'vwap' => null,
             'open' => null,
             'close' => $last,
@@ -579,6 +582,7 @@ class ftx extends Exchange {
         //     {
         //         "$fee" => 20.1374935,
         //         "feeRate" => 0.0005,
+        //         "feeCurrency" => "USD",
         //         "future" => "EOS-0329",
         //         "$id" => 11215,
         //         "liquidity" => "taker",
@@ -625,8 +629,11 @@ class ftx extends Exchange {
         $fee = null;
         $feeCost = $this->safe_float($trade, 'fee');
         if ($feeCost !== null) {
+            $feeCurrencyId = $this->safe_string($trade, 'feeCurrency');
+            $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $fee = array(
                 'cost' => $feeCost,
+                'currency' => $feeCurrencyCode,
                 'rate' => $this->safe_float($trade, 'feeRate'),
             );
         }

@@ -193,6 +193,8 @@ class theocean(Exchange):
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='5m', since=None, limit=None, params={}):
+        if since is None:
+            raise ArgumentsRequired(self.id + ' fetchOHLCV requires a since argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -200,8 +202,6 @@ class theocean(Exchange):
             'quoteTokenAddress': market['quoteId'],
             'interval': self.timeframes[timeframe],
         }
-        if since is None:
-            raise ExchangeError(self.id + ' fetchOHLCV requires a since argument')
         since = int(since)
         request['startTime'] = since
         response = await self.publicGetCandlesticks(self.extend(request, params))

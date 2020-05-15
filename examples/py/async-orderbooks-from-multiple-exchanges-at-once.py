@@ -14,7 +14,7 @@ symbol = 'ETH/BTC'
 
 
 def sync_client(exchange):
-    client = getattr(ccxt, exchange)()
+    client = getattr(ccxt, exchange)({'enableRateLimit': True})
     client.load_markets()
     if symbol not in client.symbols:
         raise Exception(exchange + ' does not support symbol ' + symbol)

@@ -8,18 +8,19 @@ namespace ccxt;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\BadRequest;
 use \ccxt\OrderNotFound;
 use \ccxt\NotSupported;
 
 class exmo extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'exmo',
             'name' => 'EXMO',
             'countries' => array( 'ES', 'RU' ), // Spain, Russia
             'rateLimit' => 350, // once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
-            'version' => 'v1',
+            'version' => 'v1.1',
             'has' => array(
                 'CORS' => false,
                 'fetchClosedOrders' => 'emulated',
@@ -37,6 +38,21 @@ class exmo extends Exchange {
                 'fetchFundingFees' => true,
                 'fetchCurrencies' => true,
                 'fetchTransactions' => true,
+                'fetchOHLCV' => true,
+            ),
+            'timeframes' => array(
+                '1m' => '1',
+                '5m' => '5',
+                '15m' => '15',
+                '30m' => '30',
+                '45m' => '45',
+                '1h' => '60',
+                '2h' => '120',
+                '3h' => '180',
+                '4h' => '240',
+                '1d' => 'D',
+                '1w' => 'W',
+                '1M' => 'M',
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg',
@@ -67,6 +83,7 @@ class exmo extends Exchange {
                         'pair_settings',
                         'ticker',
                         'trades',
+                        'candles_history',
                     ),
                 ),
                 'private' => array(
@@ -74,6 +91,8 @@ class exmo extends Exchange {
                         'user_info',
                         'order_create',
                         'order_cancel',
+                        'stop_market_order_create',
+                        'stop_market_order_cancel',
                         'user_open_orders',
                         'user_trades',
                         'user_cancelled_orders',
@@ -108,86 +127,90 @@ class exmo extends Exchange {
                     'error' => '',
                     'data' => array(
                         'limits' => array(
-                            array( 'pair' => 'EXM/USDT', 'min_q' => '1', 'max_q' => '100000000', 'min_p' => '0.00000001', 'max_p' => '1000', 'min_a' => '0.01', 'max_a' => '100000' ),
-                            array( 'pair' => 'EXM/ETH', 'min_q' => '1', 'max_q' => '100000000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.0001', 'max_a' => '5000' ),
+                            array( 'pair' => 'ALGO/EXM', 'min_q' => '1', 'max_q' => '1000000', 'min_p' => '0.001', 'max_p' => '10000', 'min_a' => '1', 'max_a' => '50000000' ),
+                            array( 'pair' => 'ALGO/BTC', 'min_q' => '1', 'max_q' => '1000000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.000001', 'max_a' => '50' ),
+                            array( 'pair' => 'ATOM/EXM', 'min_q' => '1', 'max_q' => '500000', 'min_p' => '0.01', 'max_p' => '100000', 'min_a' => '200', 'max_a' => '50000000' ),
+                            array( 'pair' => 'ATOM/BTC', 'min_q' => '1', 'max_q' => '500000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.001', 'max_a' => '100' ),
                             array( 'pair' => 'BTC/USD', 'min_q' => '0.0001', 'max_q' => '1000', 'min_p' => '1', 'max_p' => '30000', 'min_a' => '1', 'max_a' => '500000' ),
-                            array( 'pair' => 'BTC/KZT', 'min_q' => '0.0001', 'max_q' => '1000', 'min_p' => '1000', 'max_p' => '12000000', 'min_a' => '1000', 'max_a' => '100000000' ),
-                            array( 'pair' => 'ETH/KZT', 'min_q' => '0.001', 'max_q' => '5000', 'min_p' => '4', 'max_p' => '40000000', 'min_a' => '3', 'max_a' => '500000' ),
-                            array( 'pair' => 'USDT/KZT', 'min_q' => '1', 'max_q' => '500000', 'min_p' => '200', 'max_p' => '4000', 'min_a' => '0.1', 'max_a' => '500000' ),
-                            array( 'pair' => 'ONT/EXM', 'min_q' => '1', 'max_q' => '1000000', 'min_p' => '0.01', 'max_p' => '100000', 'min_a' => '200', 'max_a' => '15000000' ),
-                            array( 'pair' => 'ONT/BTC', 'min_q' => '1', 'max_q' => '1000000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.00001', 'max_a' => '10' ),
-                            array( 'pair' => 'ONT/RUB', 'min_q' => '1', 'max_q' => '1000000', 'min_p' => '0.01', 'max_p' => '100000', 'min_a' => '100', 'max_a' => '6000000' ),
-                            array( 'pair' => 'ONT/UAH', 'min_q' => '1', 'max_q' => '1000000', 'min_p' => '0.01', 'max_p' => '100000', 'min_a' => '200', 'max_a' => '250000' ),
-                            array( 'pair' => 'ONG/EXM', 'min_q' => '1', 'max_q' => '1000000', 'min_p' => '0.01', 'max_p' => '100000', 'min_a' => '100', 'max_a' => '15000000' ),
-                            array( 'pair' => 'ONG/BTC', 'min_q' => '1', 'max_q' => '1000000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.00001', 'max_a' => '10' ),
-                            array( 'pair' => 'ONG/RUB', 'min_q' => '1', 'max_q' => '1000000', 'min_p' => '0.01', 'max_p' => '100000', 'min_a' => '100', 'max_a' => '250000' ),
-                            array( 'pair' => 'ONG/UAH', 'min_q' => '1', 'max_q' => '1000000', 'min_p' => '0.01', 'max_p' => '100000', 'min_a' => '50', 'max_a' => '6000000' ),
-                            array( 'pair' => 'CRON/BTC', 'min_q' => '1', 'max_q' => '100000', 'min_p' => '0.0000001', 'max_p' => '1', 'min_a' => '0.00001', 'max_a' => '100' ),
-                            array( 'pair' => 'CRON/ETH', 'min_q' => '1', 'max_q' => '100000', 'min_p' => '0.0000001', 'max_p' => '10', 'min_a' => '0.00001', 'max_a' => '5000' ),
-                            array( 'pair' => 'CRON/USDT', 'min_q' => '1', 'max_q' => '100000', 'min_p' => '0.001', 'max_p' => '1000', 'min_a' => '0.001', 'max_a' => '500000' ),
-                            array( 'pair' => 'CRON/EXM', 'min_q' => '1', 'max_q' => '100000000', 'min_p' => '0.00000001', 'max_p' => '1000', 'min_a' => '0.01', 'max_a' => '100000' ),
                             array( 'pair' => 'BTC/RUB', 'min_q' => '0.0001', 'max_q' => '1000', 'min_p' => '1', 'max_p' => '2000000', 'min_a' => '10', 'max_a' => '50000000' ),
                             array( 'pair' => 'BTC/EUR', 'min_q' => '0.0001', 'max_q' => '1000', 'min_p' => '1', 'max_p' => '30000', 'min_a' => '1', 'max_a' => '500000' ),
                             array( 'pair' => 'BTC/UAH', 'min_q' => '0.0001', 'max_q' => '1000', 'min_p' => '1', 'max_p' => '15000000', 'min_a' => '10', 'max_a' => '15000000' ),
+                            array( 'pair' => 'BTC/GBP', 'min_q' => '0.0001', 'max_q' => '1000', 'min_p' => '1', 'max_p' => '30000', 'min_a' => '1', 'max_a' => '500000' ),
+                            array( 'pair' => 'ETH/GBP', 'min_q' => '0.001', 'max_q' => '5000', 'min_p' => '0.01', 'max_p' => '100000', 'min_a' => '3', 'max_a' => '500000' ),
+                            array( 'pair' => 'XRP/GBP', 'min_q' => '1', 'max_q' => '5000000', 'min_p' => '0.001', 'max_p' => '1000', 'min_a' => '0.001', 'max_a' => '500000' ),
+                            array( 'pair' => 'USDT/GBP', 'min_q' => '1', 'max_q' => '500000', 'min_p' => '0.5', 'max_p' => '10', 'min_a' => '0.1', 'max_a' => '500000' ),
                             array( 'pair' => 'BTC/PLN', 'min_q' => '0.0001', 'max_q' => '1000', 'min_p' => '1', 'max_p' => '20000000', 'min_a' => '50', 'max_a' => '2000000' ),
                             array( 'pair' => 'BTC/TRY', 'min_q' => '0.0001', 'max_q' => '1000', 'min_p' => '1', 'max_p' => '800000', 'min_a' => '40', 'max_a' => '6000000' ),
+                            array( 'pair' => 'BTC/KZT', 'min_q' => '0.0001', 'max_q' => '1000', 'min_p' => '1000', 'max_p' => '12000000', 'min_a' => '1000', 'max_a' => '100000000' ),
                             array( 'pair' => 'BTC/USDT', 'min_q' => '0.0001', 'max_q' => '1000', 'min_p' => '0.01', 'max_p' => '30000', 'min_a' => '3', 'max_a' => '500000' ),
                             array( 'pair' => 'ETH/BTC', 'min_q' => '0.001', 'max_q' => '5000', 'min_p' => '0.00000001', 'max_p' => '10', 'min_a' => '0.001', 'max_a' => '100' ),
                             array( 'pair' => 'ETH/USD', 'min_q' => '0.001', 'max_q' => '5000', 'min_p' => '0.01', 'max_p' => '100000', 'min_a' => '3', 'max_a' => '500000' ),
                             array( 'pair' => 'ETH/RUB', 'min_q' => '0.001', 'max_q' => '5000', 'min_p' => '0.01', 'max_p' => '100000', 'min_a' => '150', 'max_a' => '50000000' ),
-                            array( 'pair' => 'XRP/BTC', 'min_q' => '1', 'max_q' => '100000', 'min_p' => '0.0000001', 'max_p' => '1', 'min_a' => '0.00001', 'max_a' => '100' ),
-                            array( 'pair' => 'XRP/USD', 'min_q' => '1', 'max_q' => '100000', 'min_p' => '0.001', 'max_p' => '1000', 'min_a' => '0.001', 'max_a' => '500000' ),
-                            array( 'pair' => 'XRP/RUB', 'min_q' => '1', 'max_q' => '100000', 'min_p' => '0.000001', 'max_p' => '1000', 'min_a' => '0.01', 'max_a' => '50000000' ),
+                            array( 'pair' => 'XRP/BTC', 'min_q' => '1', 'max_q' => '5000000', 'min_p' => '0.0000001', 'max_p' => '1', 'min_a' => '0.00001', 'max_a' => '100' ),
+                            array( 'pair' => 'XRP/USD', 'min_q' => '1', 'max_q' => '5000000', 'min_p' => '0.001', 'max_p' => '1000', 'min_a' => '0.001', 'max_a' => '500000' ),
+                            array( 'pair' => 'XRP/RUB', 'min_q' => '1', 'max_q' => '5000000', 'min_p' => '0.000001', 'max_p' => '1000', 'min_a' => '0.01', 'max_a' => '50000000' ),
                             array( 'pair' => 'ADA/BTC', 'min_q' => '1', 'max_q' => '10000000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.001', 'max_a' => '100' ),
                             array( 'pair' => 'ADA/ETH', 'min_q' => '0.01', 'max_q' => '10000000', 'min_p' => '0.00000001', 'max_p' => '10', 'min_a' => '0.001', 'max_a' => '5000' ),
                             array( 'pair' => 'ADA/USD', 'min_q' => '0.01', 'max_q' => '10000000', 'min_p' => '0.0001', 'max_p' => '1000', 'min_a' => '0.01', 'max_a' => '500000' ),
-                            array( 'pair' => 'BCH/USD', 'min_q' => '0.003', 'max_q' => '10000', 'min_p' => '0.00000001', 'max_p' => '30000', 'min_a' => '0.0001', 'max_a' => '500000' ),
-                            array( 'pair' => 'BCH/RUB', 'min_q' => '0.003', 'max_q' => '10000', 'min_p' => '0.00000001', 'max_p' => '2000000', 'min_a' => '0.0001', 'max_a' => '50000000' ),
-                            array( 'pair' => 'BCH/EUR', 'min_q' => '0.003', 'max_q' => '100000', 'min_p' => '0.01', 'max_p' => '300000', 'min_a' => '3', 'max_a' => '500000' ),
-                            array( 'pair' => 'BCH/UAH', 'min_q' => '0.003', 'max_q' => '100000', 'min_p' => '0.1', 'max_p' => '30000', 'min_a' => '10', 'max_a' => '15000000' ),
-                            array( 'pair' => 'BCH/BTC', 'min_q' => '0.003', 'max_q' => '10000', 'min_p' => '0.00000001', 'max_p' => '5', 'min_a' => '0.0001', 'max_a' => '100' ),
-                            array( 'pair' => 'BCH/ETH', 'min_q' => '0.003', 'max_q' => '10000', 'min_p' => '0.0000001', 'max_p' => '200', 'min_a' => '0.0001', 'max_a' => '5000' ),
-                            array( 'pair' => 'BCH/USDT', 'min_q' => '0.003', 'max_q' => '100000', 'min_p' => '0.01', 'max_p' => '5000', 'min_a' => '3', 'max_a' => '500000' ),
+                            array( 'pair' => 'ALGO/USDT', 'min_q' => '1', 'max_q' => '1000000', 'min_p' => '0.001', 'max_p' => '1000', 'min_a' => '1', 'max_a' => '500000' ),
+                            array( 'pair' => 'ALGO/RUB', 'min_q' => '1', 'max_q' => '1000000', 'min_p' => '0.000001', 'max_p' => '10000', 'min_a' => '1', 'max_a' => '50000000' ),
+                            array( 'pair' => 'ALGO/EUR', 'min_q' => '1', 'max_q' => '1000000', 'min_p' => '0.001', 'max_p' => '1000', 'min_a' => '1', 'max_a' => '500000' ),
+                            array( 'pair' => 'ATOM/USD', 'min_q' => '1', 'max_q' => '500000', 'min_p' => '0.001', 'max_p' => '1000', 'min_a' => '0.5', 'max_a' => '500000' ),
+                            array( 'pair' => 'ATOM/EUR', 'min_q' => '1', 'max_q' => '500000', 'min_p' => '0.001', 'max_p' => '1000', 'min_a' => '0.5', 'max_a' => '500000' ),
+                            array( 'pair' => 'BCH/USD', 'min_q' => '0.003', 'max_q' => '5000', 'min_p' => '0.00000001', 'max_p' => '30000', 'min_a' => '0.0001', 'max_a' => '500000' ),
+                            array( 'pair' => 'BCH/RUB', 'min_q' => '0.003', 'max_q' => '5000', 'min_p' => '0.00000001', 'max_p' => '2000000', 'min_a' => '0.0001', 'max_a' => '50000000' ),
+                            array( 'pair' => 'BCH/EUR', 'min_q' => '0.003', 'max_q' => '5000', 'min_p' => '0.01', 'max_p' => '300000', 'min_a' => '3', 'max_a' => '500000' ),
+                            array( 'pair' => 'BCH/UAH', 'min_q' => '0.003', 'max_q' => '5000', 'min_p' => '0.1', 'max_p' => '30000', 'min_a' => '10', 'max_a' => '15000000' ),
+                            array( 'pair' => 'BCH/BTC', 'min_q' => '0.003', 'max_q' => '5000', 'min_p' => '0.00000001', 'max_p' => '5', 'min_a' => '0.0001', 'max_a' => '100' ),
+                            array( 'pair' => 'BCH/ETH', 'min_q' => '0.003', 'max_q' => '5000', 'min_p' => '0.0000001', 'max_p' => '200', 'min_a' => '0.0001', 'max_a' => '5000' ),
+                            array( 'pair' => 'BCH/USDT', 'min_q' => '0.003', 'max_q' => '5000', 'min_p' => '0.01', 'max_p' => '5000', 'min_a' => '3', 'max_a' => '500000' ),
                             array( 'pair' => 'BTCZ/BTC', 'min_q' => '100', 'max_q' => '100000000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.001', 'max_a' => '100' ),
-                            array( 'pair' => 'BTG/USD', 'min_q' => '0.01', 'max_q' => '200000', 'min_p' => '0.001', 'max_p' => '1000', 'min_a' => '3', 'max_a' => '500000' ),
-                            array( 'pair' => 'BTG/BTC', 'min_q' => '0.01', 'max_q' => '200000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.001', 'max_a' => '100' ),
-                            array( 'pair' => 'BTG/ETH', 'min_q' => '0.01', 'max_q' => '200000', 'min_p' => '0.0001', 'max_p' => '100', 'min_a' => '0.01', 'max_a' => '5000' ),
-                            array( 'pair' => 'BTT/RUB', 'min_q' => '1', 'max_q' => '10000000', 'min_p' => '0.000001', 'max_p' => '1000', 'min_a' => '0.000001', 'max_a' => '100' ),
-                            array( 'pair' => 'BTT/UAH', 'min_q' => '1', 'max_q' => '10000000', 'min_p' => '0.000001', 'max_p' => '1000', 'min_a' => '0.000001', 'max_a' => '100' ),
-                            array( 'pair' => 'BTT/BTC', 'min_q' => '1', 'max_q' => '10000000', 'min_p' => '0.00000001', 'max_p' => '0.1', 'min_a' => '0.00001', 'max_a' => '100' ),
+                            array( 'pair' => 'BTG/USD', 'min_q' => '0.01', 'max_q' => '100000', 'min_p' => '0.001', 'max_p' => '1000', 'min_a' => '3', 'max_a' => '500000' ),
+                            array( 'pair' => 'BTG/BTC', 'min_q' => '0.01', 'max_q' => '100000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.001', 'max_a' => '100' ),
+                            array( 'pair' => 'BTG/ETH', 'min_q' => '0.01', 'max_q' => '100000', 'min_p' => '0.0001', 'max_p' => '100', 'min_a' => '0.01', 'max_a' => '5000' ),
+                            array( 'pair' => 'BTT/RUB', 'min_q' => '1', 'max_q' => '500000000', 'min_p' => '0.000001', 'max_p' => '1000', 'min_a' => '0.000001', 'max_a' => '100' ),
+                            array( 'pair' => 'BTT/UAH', 'min_q' => '1', 'max_q' => '500000000', 'min_p' => '0.000001', 'max_p' => '1000', 'min_a' => '0.000001', 'max_a' => '100' ),
+                            array( 'pair' => 'BTT/BTC', 'min_q' => '1', 'max_q' => '500000000', 'min_p' => '0.00000001', 'max_p' => '0.1', 'min_a' => '0.00001', 'max_a' => '100' ),
+                            array( 'pair' => 'CRON/BTC', 'min_q' => '1', 'max_q' => '100000', 'min_p' => '0.0000001', 'max_p' => '1', 'min_a' => '0.00001', 'max_a' => '100' ),
+                            array( 'pair' => 'CRON/ETH', 'min_q' => '1', 'max_q' => '100000', 'min_p' => '0.0000001', 'max_p' => '10', 'min_a' => '0.00001', 'max_a' => '5000' ),
+                            array( 'pair' => 'CRON/USDT', 'min_q' => '1', 'max_q' => '100000', 'min_p' => '0.001', 'max_p' => '1000', 'min_a' => '0.001', 'max_a' => '500000' ),
+                            array( 'pair' => 'CRON/EXM', 'min_q' => '1', 'max_q' => '100000000', 'min_p' => '0.00000001', 'max_p' => '1000', 'min_a' => '0.01', 'max_a' => '100000' ),
                             array( 'pair' => 'DAI/USD', 'min_q' => '1', 'max_q' => '500000', 'min_p' => '0.001', 'max_p' => '1000', 'min_a' => '0.1', 'max_a' => '500000' ),
                             array( 'pair' => 'DAI/RUB', 'min_q' => '1', 'max_q' => '500000', 'min_p' => '0.01', 'max_p' => '100000', 'min_a' => '0.5', 'max_a' => '30000000' ),
                             array( 'pair' => 'DAI/BTC', 'min_q' => '1', 'max_q' => '500000', 'min_p' => '0.0000001', 'max_p' => '0.1', 'min_a' => '0.00001', 'max_a' => '100' ),
                             array( 'pair' => 'DAI/ETH', 'min_q' => '1', 'max_q' => '500000', 'min_p' => '0.000001', 'max_p' => '10', 'min_a' => '0.0001', 'max_a' => '5000' ),
-                            array( 'pair' => 'DASH/USD', 'min_q' => '0.01', 'max_q' => '200000', 'min_p' => '0.01', 'max_p' => '10000', 'min_a' => '3', 'max_a' => '500000' ),
-                            array( 'pair' => 'DASH/RUB', 'min_q' => '0.01', 'max_q' => '200000', 'min_p' => '0.01', 'max_p' => '100000', 'min_a' => '150', 'max_a' => '50000000' ),
-                            array( 'pair' => 'DASH/UAH', 'min_q' => '0.01', 'max_q' => '200000', 'min_p' => '0.01', 'max_p' => '200000', 'min_a' => '10', 'max_a' => '15000000' ),
-                            array( 'pair' => 'DASH/BTC', 'min_q' => '0.01', 'max_q' => '200000', 'min_p' => '0.0001', 'max_p' => '1', 'min_a' => '0.001', 'max_a' => '100' ),
-                            array( 'pair' => 'DASH/USDT', 'min_q' => '0.01', 'max_q' => '100000', 'min_p' => '0.01', 'max_p' => '5000', 'min_a' => '3', 'max_a' => '500000' ),
+                            array( 'pair' => 'DASH/USD', 'min_q' => '0.01', 'max_q' => '10000', 'min_p' => '0.01', 'max_p' => '10000', 'min_a' => '3', 'max_a' => '500000' ),
+                            array( 'pair' => 'DASH/RUB', 'min_q' => '0.01', 'max_q' => '10000', 'min_p' => '0.01', 'max_p' => '100000', 'min_a' => '150', 'max_a' => '50000000' ),
+                            array( 'pair' => 'DASH/UAH', 'min_q' => '0.01', 'max_q' => '10000', 'min_p' => '0.01', 'max_p' => '200000', 'min_a' => '10', 'max_a' => '15000000' ),
+                            array( 'pair' => 'DASH/BTC', 'min_q' => '0.01', 'max_q' => '10000', 'min_p' => '0.0001', 'max_p' => '1', 'min_a' => '0.001', 'max_a' => '100' ),
+                            array( 'pair' => 'DASH/USDT', 'min_q' => '0.01', 'max_q' => '10000', 'min_p' => '0.01', 'max_p' => '5000', 'min_a' => '3', 'max_a' => '500000' ),
                             array( 'pair' => 'DCR/RUB', 'min_q' => '0.01', 'max_q' => '50000', 'min_p' => '0.00001', 'max_p' => '100000', 'min_a' => '0.5', 'max_a' => '3000000' ),
                             array( 'pair' => 'DCR/UAH', 'min_q' => '0.01', 'max_q' => '50000', 'min_p' => '0.00001', 'max_p' => '100000', 'min_a' => '0.25', 'max_a' => '1000000' ),
                             array( 'pair' => 'DCR/BTC', 'min_q' => '0.01', 'max_q' => '50000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.001', 'max_a' => '100' ),
-                            array( 'pair' => 'DOGE/USD', 'min_q' => '100', 'max_q' => '1000000000', 'min_p' => '0.0000001', 'max_p' => '1000', 'min_a' => '0.01', 'max_a' => '500000' ),
-                            array( 'pair' => 'DOGE/BTC', 'min_q' => '100', 'max_q' => '100000000', 'min_p' => '0.0000001', 'max_p' => '1', 'min_a' => '0.0001', 'max_a' => '100' ),
-                            array( 'pair' => 'DXT/USD', 'min_q' => '100', 'max_q' => '10000000', 'min_p' => '0.00001', 'max_p' => '1000', 'min_a' => '0.1', 'max_a' => '500000' ),
-                            array( 'pair' => 'DXT/BTC', 'min_q' => '100', 'max_q' => '10000000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.0001', 'max_a' => '100' ),
-                            array( 'pair' => 'EOS/USD', 'min_q' => '0.01', 'max_q' => '100000', 'min_p' => '0.01', 'max_p' => '1000', 'min_a' => '0.5', 'max_a' => '500000' ),
-                            array( 'pair' => 'EOS/EUR', 'min_q' => '0.01', 'max_q' => '100000', 'min_p' => '0.001', 'max_p' => '1000', 'min_a' => '0.5', 'max_a' => '500000' ),
-                            array( 'pair' => 'EOS/BTC', 'min_q' => '0.01', 'max_q' => '100000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.001', 'max_a' => '100' ),
-                            array( 'pair' => 'ETC/USD', 'min_q' => '0.2', 'max_q' => '1000', 'min_p' => '0.01', 'max_p' => '10000', 'min_a' => '0.01', 'max_a' => '500000' ),
-                            array( 'pair' => 'ETC/RUB', 'min_q' => '0.2', 'max_q' => '1000', 'min_p' => '0.01', 'max_p' => '10000', 'min_a' => '0.01', 'max_a' => '50000000' ),
-                            array( 'pair' => 'ETC/BTC', 'min_q' => '0.2', 'max_q' => '1000', 'min_p' => '0.0001', 'max_p' => '0.5', 'min_a' => '0.001', 'max_a' => '100' ),
+                            array( 'pair' => 'DOGE/USD', 'min_q' => '100', 'max_q' => '500000000', 'min_p' => '0.0000001', 'max_p' => '1000', 'min_a' => '0.01', 'max_a' => '500000' ),
+                            array( 'pair' => 'DOGE/BTC', 'min_q' => '100', 'max_q' => '500000000', 'min_p' => '0.0000001', 'max_p' => '1', 'min_a' => '0.0001', 'max_a' => '100' ),
+                            array( 'pair' => 'DXT/USD', 'min_q' => '100', 'max_q' => '50000000', 'min_p' => '0.00001', 'max_p' => '1000', 'min_a' => '0.1', 'max_a' => '500000' ),
+                            array( 'pair' => 'DXT/BTC', 'min_q' => '100', 'max_q' => '50000000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.0001', 'max_a' => '100' ),
+                            array( 'pair' => 'EOS/USD', 'min_q' => '0.01', 'max_q' => '500000', 'min_p' => '0.01', 'max_p' => '1000', 'min_a' => '0.5', 'max_a' => '500000' ),
+                            array( 'pair' => 'EOS/EUR', 'min_q' => '0.01', 'max_q' => '500000', 'min_p' => '0.001', 'max_p' => '1000', 'min_a' => '0.5', 'max_a' => '500000' ),
+                            array( 'pair' => 'EOS/BTC', 'min_q' => '0.01', 'max_q' => '500000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.001', 'max_a' => '100' ),
+                            array( 'pair' => 'ETC/USD', 'min_q' => '0.2', 'max_q' => '100000', 'min_p' => '0.01', 'max_p' => '10000', 'min_a' => '0.01', 'max_a' => '500000' ),
+                            array( 'pair' => 'ETC/RUB', 'min_q' => '0.2', 'max_q' => '100000', 'min_p' => '0.01', 'max_p' => '10000', 'min_a' => '0.01', 'max_a' => '50000000' ),
+                            array( 'pair' => 'ETC/BTC', 'min_q' => '0.2', 'max_q' => '100000', 'min_p' => '0.0001', 'max_p' => '0.5', 'min_a' => '0.001', 'max_a' => '100' ),
                             array( 'pair' => 'ETH/EUR', 'min_q' => '0.001', 'max_q' => '5000', 'min_p' => '0.01', 'max_p' => '100000', 'min_a' => '3', 'max_a' => '500000' ),
                             array( 'pair' => 'ETH/UAH', 'min_q' => '0.001', 'max_q' => '5000', 'min_p' => '0.01', 'max_p' => '1000000', 'min_a' => '90', 'max_a' => '15000000' ),
                             array( 'pair' => 'ETH/PLN', 'min_q' => '0.001', 'max_q' => '5000', 'min_p' => '0.01', 'max_p' => '100000', 'min_a' => '50', 'max_a' => '2000000' ),
                             array( 'pair' => 'ETH/TRY', 'min_q' => '0.001', 'max_q' => '5000', 'min_p' => '0.1', 'max_p' => '80000', 'min_a' => '10', 'max_a' => '6000000' ),
+                            array( 'pair' => 'ETH/KZT', 'min_q' => '0.001', 'max_q' => '5000', 'min_p' => '4', 'max_p' => '40000000', 'min_a' => '3', 'max_a' => '500000' ),
                             array( 'pair' => 'ETH/USDT', 'min_q' => '0.001', 'max_q' => '5000', 'min_p' => '0.01', 'max_p' => '100000', 'min_a' => '3', 'max_a' => '500000' ),
                             array( 'pair' => 'ETH/LTC', 'min_q' => '0.001', 'max_q' => '5000', 'min_p' => '0.00000001', 'max_p' => '100000', 'min_a' => '0.05', 'max_a' => '100000' ),
-                            array( 'pair' => 'ETZ/BTC', 'min_q' => '1', 'max_q' => '1000000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.0001', 'max_a' => '10' ),
-                            array( 'pair' => 'ETZ/ETH', 'min_q' => '1', 'max_q' => '1000000', 'min_p' => '0.00000001', 'max_p' => '100', 'min_a' => '0.001', 'max_a' => '100' ),
-                            array( 'pair' => 'ETZ/USDT', 'min_q' => '1', 'max_q' => '1000000', 'min_p' => '0.000001', 'max_p' => '1000', 'min_a' => '0.01', 'max_a' => '1000' ),
-                            array( 'pair' => 'GAS/USD', 'min_q' => '0.01', 'max_q' => '10000000', 'min_p' => '0.01', 'max_p' => '50000', 'min_a' => '0.1', 'max_a' => '500000' ),
-                            array( 'pair' => 'GAS/BTC', 'min_q' => '0.01', 'max_q' => '10000000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.001', 'max_a' => '100' ),
+                            array( 'pair' => 'ETZ/BTC', 'min_q' => '1', 'max_q' => '50000000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.0001', 'max_a' => '10' ),
+                            array( 'pair' => 'ETZ/ETH', 'min_q' => '1', 'max_q' => '50000000', 'min_p' => '0.00000001', 'max_p' => '100', 'min_a' => '0.001', 'max_a' => '100' ),
+                            array( 'pair' => 'ETZ/USDT', 'min_q' => '1', 'max_q' => '50000000', 'min_p' => '0.000001', 'max_p' => '1000', 'min_a' => '0.01', 'max_a' => '1000' ),
+                            array( 'pair' => 'EXM/USDT', 'min_q' => '1', 'max_q' => '100000000', 'min_p' => '0.00000001', 'max_p' => '1000', 'min_a' => '0.01', 'max_a' => '100000' ),
+                            array( 'pair' => 'EXM/ETH', 'min_q' => '1', 'max_q' => '100000000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.0001', 'max_a' => '5000' ),
+                            array( 'pair' => 'GAS/USD', 'min_q' => '0.01', 'max_q' => '500000', 'min_p' => '0.01', 'max_p' => '50000', 'min_a' => '0.1', 'max_a' => '500000' ),
+                            array( 'pair' => 'GAS/BTC', 'min_q' => '0.01', 'max_q' => '500000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.001', 'max_a' => '100' ),
                             array( 'pair' => 'GNT/BTC', 'min_q' => '1', 'max_q' => '10000000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.001', 'max_a' => '100' ),
                             array( 'pair' => 'GNT/ETH', 'min_q' => '0.01', 'max_q' => '10000000', 'min_p' => '0.00000001', 'max_p' => '10', 'min_a' => '0.01', 'max_a' => '5000' ),
                             array( 'pair' => 'GUSD/USD', 'min_q' => '1', 'max_q' => '500000', 'min_p' => '0.1', 'max_p' => '10', 'min_a' => '0.1', 'max_a' => '500000' ),
@@ -202,84 +225,94 @@ class exmo extends Exchange {
                             array( 'pair' => 'KICK/USDT', 'min_q' => '1', 'max_q' => '100000000', 'min_p' => '0.00000001', 'max_p' => '1000', 'min_a' => '0.01', 'max_a' => '100000' ),
                             array( 'pair' => 'KICK/BTC', 'min_q' => '1', 'max_q' => '100000000', 'min_p' => '0.00000001', 'max_p' => '0.1', 'min_a' => '0.00001', 'max_a' => '100' ),
                             array( 'pair' => 'KICK/ETH', 'min_q' => '1', 'max_q' => '100000000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.0001', 'max_a' => '5000' ),
-                            array( 'pair' => 'LSK/USD', 'min_q' => '0.1', 'max_q' => '200000', 'min_p' => '0.1', 'max_p' => '1000', 'min_a' => '1', 'max_a' => '500000' ),
-                            array( 'pair' => 'LSK/RUB', 'min_q' => '0.1', 'max_q' => '200000', 'min_p' => '0.001', 'max_p' => '100000', 'min_a' => '0.5', 'max_a' => '50000000' ),
-                            array( 'pair' => 'LSK/BTC', 'min_q' => '1', 'max_q' => '200000', 'min_p' => '0.0000001', 'max_p' => '1', 'min_a' => '0.0015', 'max_a' => '100' ),
-                            array( 'pair' => 'LTC/USD', 'min_q' => '0.05', 'max_q' => '1000000', 'min_p' => '0.01', 'max_p' => '10000', 'min_a' => '3', 'max_a' => '500000' ),
-                            array( 'pair' => 'LTC/RUB', 'min_q' => '0.05', 'max_q' => '1000000', 'min_p' => '0.01', 'max_p' => '100000', 'min_a' => '150', 'max_a' => '50000000' ),
-                            array( 'pair' => 'LTC/EUR', 'min_q' => '0.05', 'max_q' => '1000000', 'min_p' => '0.01', 'max_p' => '10000', 'min_a' => '3', 'max_a' => '500000' ),
-                            array( 'pair' => 'LTC/UAH', 'min_q' => '0.05', 'max_q' => '1000000', 'min_p' => '0.01', 'max_p' => '300000', 'min_a' => '5', 'max_a' => '18000000' ),
-                            array( 'pair' => 'LTC/BTC', 'min_q' => '0.05', 'max_q' => '1000000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.001', 'max_a' => '100' ),
+                            array( 'pair' => 'LSK/USD', 'min_q' => '0.1', 'max_q' => '500000', 'min_p' => '0.1', 'max_p' => '1000', 'min_a' => '1', 'max_a' => '500000' ),
+                            array( 'pair' => 'LSK/RUB', 'min_q' => '0.1', 'max_q' => '500000', 'min_p' => '0.001', 'max_p' => '100000', 'min_a' => '0.5', 'max_a' => '50000000' ),
+                            array( 'pair' => 'LSK/BTC', 'min_q' => '1', 'max_q' => '500000', 'min_p' => '0.0000001', 'max_p' => '1', 'min_a' => '0.0015', 'max_a' => '100' ),
+                            array( 'pair' => 'LTC/USD', 'min_q' => '0.05', 'max_q' => '10000', 'min_p' => '0.01', 'max_p' => '10000', 'min_a' => '3', 'max_a' => '500000' ),
+                            array( 'pair' => 'LTC/RUB', 'min_q' => '0.05', 'max_q' => '10000', 'min_p' => '0.01', 'max_p' => '100000', 'min_a' => '150', 'max_a' => '50000000' ),
+                            array( 'pair' => 'LTC/EUR', 'min_q' => '0.05', 'max_q' => '10000', 'min_p' => '0.01', 'max_p' => '10000', 'min_a' => '3', 'max_a' => '500000' ),
+                            array( 'pair' => 'LTC/UAH', 'min_q' => '0.05', 'max_q' => '10000', 'min_p' => '0.01', 'max_p' => '300000', 'min_a' => '5', 'max_a' => '18000000' ),
+                            array( 'pair' => 'LTC/BTC', 'min_q' => '0.05', 'max_q' => '10000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.001', 'max_a' => '100' ),
                             array( 'pair' => 'MKR/BTC', 'min_q' => '0.0001', 'max_q' => '1000', 'min_p' => '0.0001', 'max_p' => '100', 'min_a' => '0.000001', 'max_a' => '100' ),
                             array( 'pair' => 'MKR/DAI', 'min_q' => '0.0001', 'max_q' => '1000', 'min_p' => '0.5', 'max_p' => '500000', 'min_a' => '0.005', 'max_a' => '500000' ),
-                            array( 'pair' => 'MNC/USD', 'min_q' => '10', 'max_q' => '100000000', 'min_p' => '0.000001', 'max_p' => '10000', 'min_a' => '0.01', 'max_a' => '100000' ),
-                            array( 'pair' => 'MNC/BTC', 'min_q' => '10', 'max_q' => '100000000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.000001', 'max_a' => '100' ),
-                            array( 'pair' => 'MNC/ETH', 'min_q' => '10', 'max_q' => '100000000', 'min_p' => '0.0000001', 'max_p' => '10', 'min_a' => '0.00001', 'max_a' => '1000' ),
+                            array( 'pair' => 'MNC/USD', 'min_q' => '10', 'max_q' => '500000000', 'min_p' => '0.000001', 'max_p' => '10000', 'min_a' => '0.01', 'max_a' => '100000' ),
+                            array( 'pair' => 'MNC/BTC', 'min_q' => '10', 'max_q' => '500000000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.000001', 'max_a' => '100' ),
+                            array( 'pair' => 'MNC/ETH', 'min_q' => '10', 'max_q' => '500000000', 'min_p' => '0.0000001', 'max_p' => '10', 'min_a' => '0.00001', 'max_a' => '1000' ),
                             array( 'pair' => 'MNX/USD', 'min_q' => '0.01', 'max_q' => '10000000', 'min_p' => '0.0001', 'max_p' => '1000', 'min_a' => '0.5', 'max_a' => '500000' ),
                             array( 'pair' => 'MNX/BTC', 'min_q' => '1', 'max_q' => '10000000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.001', 'max_a' => '100' ),
                             array( 'pair' => 'MNX/ETH', 'min_q' => '0.01', 'max_q' => '10000000', 'min_p' => '0.00000001', 'max_p' => '10', 'min_a' => '0.01', 'max_a' => '5000' ),
-                            array( 'pair' => 'NEO/USD', 'min_q' => '0.01', 'max_q' => '200000', 'min_p' => '0.01', 'max_p' => '50000', 'min_a' => '0.1', 'max_a' => '500000' ),
-                            array( 'pair' => 'NEO/RUB', 'min_q' => '0.01', 'max_q' => '200000', 'min_p' => '0.001', 'max_p' => '1500000', 'min_a' => '50', 'max_a' => '50000000' ),
-                            array( 'pair' => 'NEO/BTC', 'min_q' => '0.1', 'max_q' => '200000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.001', 'max_a' => '100' ),
-                            array( 'pair' => 'OMG/USD', 'min_q' => '0.01', 'max_q' => '100000', 'min_p' => '0.01', 'max_p' => '1000', 'min_a' => '0.5', 'max_a' => '500000' ),
-                            array( 'pair' => 'OMG/BTC', 'min_q' => '1', 'max_q' => '100000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.001', 'max_a' => '100' ),
-                            array( 'pair' => 'OMG/ETH', 'min_q' => '0.01', 'max_q' => '100000', 'min_p' => '0.00000001', 'max_p' => '10', 'min_a' => '0.01', 'max_a' => '5000' ),
-                            array( 'pair' => 'PTI/RUB', 'min_q' => '1', 'max_q' => '10000000', 'min_p' => '0.00000001', 'max_p' => '600000', 'min_a' => '10', 'max_a' => '600000' ),
-                            array( 'pair' => 'PTI/BTC', 'min_q' => '1', 'max_q' => '100000000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.000001', 'max_a' => '10' ),
-                            array( 'pair' => 'PTI/EOS', 'min_q' => '1', 'max_q' => '10000000', 'min_p' => '0.0000001', 'max_p' => '5000', 'min_a' => '0.01', 'max_a' => '20000' ),
-                            array( 'pair' => 'PTI/USDT', 'min_q' => '1', 'max_q' => '10000000', 'min_p' => '0.000001', 'max_p' => '10000', 'min_a' => '0.01', 'max_a' => '100000' ),
-                            array( 'pair' => 'QTUM/USD', 'min_q' => '0.1', 'max_q' => '200000', 'min_p' => '0.00000001', 'max_p' => '10000', 'min_a' => '0.1', 'max_a' => '500000' ),
-                            array( 'pair' => 'QTUM/BTC', 'min_q' => '0.1', 'max_q' => '200000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.0001', 'max_a' => '100' ),
-                            array( 'pair' => 'QTUM/ETH', 'min_q' => '0.1', 'max_q' => '200000', 'min_p' => '0.00000001', 'max_p' => '100', 'min_a' => '0.001', 'max_a' => '5000' ),
+                            array( 'pair' => 'NEO/USD', 'min_q' => '0.01', 'max_q' => '100000', 'min_p' => '0.01', 'max_p' => '50000', 'min_a' => '0.1', 'max_a' => '500000' ),
+                            array( 'pair' => 'NEO/RUB', 'min_q' => '0.01', 'max_q' => '100000', 'min_p' => '0.001', 'max_p' => '1500000', 'min_a' => '50', 'max_a' => '50000000' ),
+                            array( 'pair' => 'NEO/BTC', 'min_q' => '0.1', 'max_q' => '100000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.001', 'max_a' => '100' ),
+                            array( 'pair' => 'OMG/USD', 'min_q' => '0.01', 'max_q' => '500000', 'min_p' => '0.01', 'max_p' => '1000', 'min_a' => '0.5', 'max_a' => '500000' ),
+                            array( 'pair' => 'OMG/BTC', 'min_q' => '1', 'max_q' => '500000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.001', 'max_a' => '100' ),
+                            array( 'pair' => 'OMG/ETH', 'min_q' => '0.01', 'max_q' => '500000', 'min_p' => '0.00000001', 'max_p' => '10', 'min_a' => '0.01', 'max_a' => '5000' ),
+                            array( 'pair' => 'ONG/EXM', 'min_q' => '1', 'max_q' => '1000000', 'min_p' => '0.01', 'max_p' => '100000', 'min_a' => '100', 'max_a' => '15000000' ),
+                            array( 'pair' => 'ONG/BTC', 'min_q' => '1', 'max_q' => '1000000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.00001', 'max_a' => '10' ),
+                            array( 'pair' => 'ONG/RUB', 'min_q' => '1', 'max_q' => '1000000', 'min_p' => '0.01', 'max_p' => '100000', 'min_a' => '100', 'max_a' => '250000' ),
+                            array( 'pair' => 'ONG/UAH', 'min_q' => '1', 'max_q' => '1000000', 'min_p' => '0.01', 'max_p' => '100000', 'min_a' => '50', 'max_a' => '6000000' ),
+                            array( 'pair' => 'ONT/EXM', 'min_q' => '1', 'max_q' => '500000', 'min_p' => '0.01', 'max_p' => '100000', 'min_a' => '200', 'max_a' => '15000000' ),
+                            array( 'pair' => 'ONT/BTC', 'min_q' => '1', 'max_q' => '500000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.00001', 'max_a' => '10' ),
+                            array( 'pair' => 'ONT/RUB', 'min_q' => '1', 'max_q' => '500000', 'min_p' => '0.01', 'max_p' => '100000', 'min_a' => '100', 'max_a' => '6000000' ),
+                            array( 'pair' => 'ONT/UAH', 'min_q' => '1', 'max_q' => '500000', 'min_p' => '0.01', 'max_p' => '100000', 'min_a' => '200', 'max_a' => '250000' ),
+                            array( 'pair' => 'PTI/RUB', 'min_q' => '1', 'max_q' => '50000000', 'min_p' => '0.00000001', 'max_p' => '600000', 'min_a' => '10', 'max_a' => '600000' ),
+                            array( 'pair' => 'PTI/BTC', 'min_q' => '1', 'max_q' => '50000000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.000001', 'max_a' => '10' ),
+                            array( 'pair' => 'PTI/EOS', 'min_q' => '1', 'max_q' => '50000000', 'min_p' => '0.0000001', 'max_p' => '5000', 'min_a' => '0.01', 'max_a' => '20000' ),
+                            array( 'pair' => 'PTI/USDT', 'min_q' => '1', 'max_q' => '50000000', 'min_p' => '0.000001', 'max_p' => '10000', 'min_a' => '0.01', 'max_a' => '100000' ),
+                            array( 'pair' => 'QTUM/USD', 'min_q' => '0.1', 'max_q' => '500000', 'min_p' => '0.00000001', 'max_p' => '10000', 'min_a' => '0.1', 'max_a' => '500000' ),
+                            array( 'pair' => 'QTUM/BTC', 'min_q' => '0.1', 'max_q' => '500000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.0001', 'max_a' => '100' ),
+                            array( 'pair' => 'QTUM/ETH', 'min_q' => '0.1', 'max_q' => '500000', 'min_p' => '0.00000001', 'max_p' => '100', 'min_a' => '0.001', 'max_a' => '5000' ),
                             array( 'pair' => 'ROOBEE/BTC', 'min_q' => '1', 'max_q' => '10000000', 'min_p' => '0.00000001', 'max_p' => '0.1', 'min_a' => '0.00001', 'max_a' => '100' ),
-                            array( 'pair' => 'SMART/USD', 'min_q' => '10', 'max_q' => '10000000', 'min_p' => '0.000001', 'max_p' => '1000', 'min_a' => '1', 'max_a' => '500000' ),
-                            array( 'pair' => 'SMART/RUB', 'min_q' => '10', 'max_q' => '10000000', 'min_p' => '0.0001', 'max_p' => '100000', 'min_a' => '10', 'max_a' => '50000000' ),
-                            array( 'pair' => 'SMART/EUR', 'min_q' => '10', 'max_q' => '10000000', 'min_p' => '0.000001', 'max_p' => '1000', 'min_a' => '1', 'max_a' => '500000' ),
-                            array( 'pair' => 'SMART/BTC', 'min_q' => '10', 'max_q' => '10000000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.00001', 'max_a' => '100' ),
-                            array( 'pair' => 'TRX/USD', 'min_q' => '1', 'max_q' => '10000000', 'min_p' => '0.0001', 'max_p' => '1000', 'min_a' => '0.01', 'max_a' => '500000' ),
-                            array( 'pair' => 'TRX/RUB', 'min_q' => '1', 'max_q' => '10000000', 'min_p' => '0.000001', 'max_p' => '100000', 'min_a' => '0.1', 'max_a' => '50000000' ),
-                            array( 'pair' => 'TRX/UAH', 'min_q' => '1', 'max_q' => '10000000', 'min_p' => '0.000001', 'max_p' => '100000', 'min_a' => '0.1', 'max_a' => '50000000' ),
-                            array( 'pair' => 'TRX/BTC', 'min_q' => '1', 'max_q' => '10000000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.001', 'max_a' => '100' ),
+                            array( 'pair' => 'SMART/USD', 'min_q' => '10', 'max_q' => '100000000', 'min_p' => '0.000001', 'max_p' => '1000', 'min_a' => '1', 'max_a' => '500000' ),
+                            array( 'pair' => 'SMART/RUB', 'min_q' => '10', 'max_q' => '100000000', 'min_p' => '0.0001', 'max_p' => '100000', 'min_a' => '10', 'max_a' => '50000000' ),
+                            array( 'pair' => 'SMART/EUR', 'min_q' => '10', 'max_q' => '100000000', 'min_p' => '0.000001', 'max_p' => '1000', 'min_a' => '1', 'max_a' => '500000' ),
+                            array( 'pair' => 'SMART/BTC', 'min_q' => '10', 'max_q' => '100000000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.00001', 'max_a' => '100' ),
+                            array( 'pair' => 'TRX/USD', 'min_q' => '1', 'max_q' => '50000000', 'min_p' => '0.0001', 'max_p' => '1000', 'min_a' => '0.01', 'max_a' => '500000' ),
+                            array( 'pair' => 'TRX/EUR', 'min_q' => '0.01', 'max_q' => '50000000', 'min_p' => '0.0001', 'max_p' => '1000', 'min_a' => '0.01', 'max_a' => '500000' ),
+                            array( 'pair' => 'TRX/RUB', 'min_q' => '1', 'max_q' => '50000000', 'min_p' => '0.000001', 'max_p' => '100000', 'min_a' => '0.1', 'max_a' => '50000000' ),
+                            array( 'pair' => 'TRX/UAH', 'min_q' => '1', 'max_q' => '50000000', 'min_p' => '0.000001', 'max_p' => '100000', 'min_a' => '0.1', 'max_a' => '50000000' ),
+                            array( 'pair' => 'TRX/BTC', 'min_q' => '1', 'max_q' => '50000000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.001', 'max_a' => '100' ),
                             array( 'pair' => 'USDC/USD', 'min_q' => '1', 'max_q' => '500000', 'min_p' => '0.0001', 'max_p' => '1000', 'min_a' => '3', 'max_a' => '500000' ),
                             array( 'pair' => 'USDC/BTC', 'min_q' => '1', 'max_q' => '500000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.0001', 'max_a' => '100' ),
                             array( 'pair' => 'USDC/ETH', 'min_q' => '1', 'max_q' => '500000', 'min_p' => '0.0000001', 'max_p' => '100', 'min_a' => '0.001', 'max_a' => '1000' ),
                             array( 'pair' => 'USDC/USDT', 'min_q' => '1', 'max_q' => '500000', 'min_p' => '0.0001', 'max_p' => '1000', 'min_a' => '3', 'max_a' => '500000' ),
                             array( 'pair' => 'USDT/USD', 'min_q' => '1', 'max_q' => '500000', 'min_p' => '0.5', 'max_p' => '10', 'min_a' => '0.1', 'max_a' => '500000' ),
                             array( 'pair' => 'USDT/RUB', 'min_q' => '1', 'max_q' => '500000', 'min_p' => '0.01', 'max_p' => '1000', 'min_a' => '10', 'max_a' => '50000000' ),
-                            array( 'pair' => 'USDT/EUR', 'min_q' => '0.01', 'max_q' => '100000', 'min_p' => '0.1', 'max_p' => '10', 'min_a' => '0.1', 'max_a' => '500000' ),
-                            array( 'pair' => 'USDT/UAH', 'min_q' => '0.01', 'max_q' => '100000', 'min_p' => '1', 'max_p' => '3000', 'min_a' => '2', 'max_a' => '15000000' ),
+                            array( 'pair' => 'USDT/EUR', 'min_q' => '0.01', 'max_q' => '500000', 'min_p' => '0.1', 'max_p' => '10', 'min_a' => '0.1', 'max_a' => '500000' ),
+                            array( 'pair' => 'USDT/UAH', 'min_q' => '0.01', 'max_q' => '500000', 'min_p' => '1', 'max_p' => '3000', 'min_a' => '2', 'max_a' => '15000000' ),
+                            array( 'pair' => 'USDT/KZT', 'min_q' => '1', 'max_q' => '500000', 'min_p' => '200', 'max_p' => '4000', 'min_a' => '0.1', 'max_a' => '500000' ),
                             array( 'pair' => 'VLX/BTC', 'min_q' => '1', 'max_q' => '10000000', 'min_p' => '0.00000001', 'max_p' => '0.1', 'min_a' => '0.00001', 'max_a' => '100' ),
-                            array( 'pair' => 'WAVES/USD', 'min_q' => '0.5', 'max_q' => '10000', 'min_p' => '0.001', 'max_p' => '3500', 'min_a' => '0.5', 'max_a' => '500000' ),
-                            array( 'pair' => 'WAVES/RUB', 'min_q' => '0.5', 'max_q' => '10000', 'min_p' => '0.01', 'max_p' => '10000', 'min_a' => '1', 'max_a' => '50000000' ),
-                            array( 'pair' => 'WAVES/BTC', 'min_q' => '0.5', 'max_q' => '10000', 'min_p' => '0.000001', 'max_p' => '1', 'min_a' => '0.0001', 'max_a' => '100' ),
-                            array( 'pair' => 'WAVES/ETH', 'min_q' => '0.5', 'max_q' => '10000', 'min_p' => '0.00001', 'max_p' => '30', 'min_a' => '0.0035', 'max_a' => '3500' ),
-                            array( 'pair' => 'XEM/USD', 'min_q' => '10', 'max_q' => '5000000', 'min_p' => '0.00001', 'max_p' => '1000', 'min_a' => '0.1', 'max_a' => '500000' ),
-                            array( 'pair' => 'XEM/EUR', 'min_q' => '10', 'max_q' => '5000000', 'min_p' => '0.00001', 'max_p' => '1000', 'min_a' => '0.1', 'max_a' => '500000' ),
-                            array( 'pair' => 'XEM/UAH', 'min_q' => '1', 'max_q' => '5000000', 'min_p' => '0.0001', 'max_p' => '30000', 'min_a' => '10', 'max_a' => '15000000' ),
-                            array( 'pair' => 'XEM/BTC', 'min_q' => '10', 'max_q' => '5000000', 'min_p' => '0.0000001', 'max_p' => '1', 'min_a' => '0.00015', 'max_a' => '100' ),
-                            array( 'pair' => 'XLM/USD', 'min_q' => '0.01', 'max_q' => '200000', 'min_p' => '0.0001', 'max_p' => '1000', 'min_a' => '0.01', 'max_a' => '500000' ),
-                            array( 'pair' => 'XLM/RUB', 'min_q' => '0.01', 'max_q' => '200000', 'min_p' => '0.00001', 'max_p' => '100000', 'min_a' => '0.1', 'max_a' => '50000000' ),
-                            array( 'pair' => 'XLM/TRY', 'min_q' => '0.01', 'max_q' => '200000', 'min_p' => '0.00001', 'max_p' => '100000', 'min_a' => '0.1', 'max_a' => '6000000' ),
-                            array( 'pair' => 'XLM/BTC', 'min_q' => '1', 'max_q' => '200000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.001', 'max_a' => '100' ),
-                            array( 'pair' => 'XMR/USD', 'min_q' => '0.01', 'max_q' => '1000', 'min_p' => '0.001', 'max_p' => '1000', 'min_a' => '0.1', 'max_a' => '500000' ),
-                            array( 'pair' => 'XMR/RUB', 'min_q' => '0.01', 'max_q' => '200000', 'min_p' => '0.001', 'max_p' => '600000', 'min_a' => '10', 'max_a' => '16000000' ),
-                            array( 'pair' => 'XMR/EUR', 'min_q' => '0.01', 'max_q' => '1000', 'min_p' => '0.001', 'max_p' => '1000', 'min_a' => '0.1', 'max_a' => '500000' ),
-                            array( 'pair' => 'XMR/UAH', 'min_q' => '0.01', 'max_q' => '200000', 'min_p' => '0.001', 'max_p' => '300000', 'min_a' => '5', 'max_a' => '16000000' ),
-                            array( 'pair' => 'XMR/BTC', 'min_q' => '0.01', 'max_q' => '1000', 'min_p' => '0.0001', 'max_p' => '1', 'min_a' => '0.001', 'max_a' => '100' ),
-                            array( 'pair' => 'XMR/ETH', 'min_q' => '0.01', 'max_q' => '1000', 'min_p' => '0.00000001', 'max_p' => '100', 'min_a' => '0.001', 'max_a' => '5000' ),
-                            array( 'pair' => 'XRP/EUR', 'min_q' => '1', 'max_q' => '100000', 'min_p' => '0.001', 'max_p' => '1000', 'min_a' => '0.001', 'max_a' => '500000' ),
-                            array( 'pair' => 'XRP/TRY', 'min_q' => '1', 'max_q' => '100000', 'min_p' => '0.0001', 'max_p' => '1000', 'min_a' => '0.01', 'max_a' => '6000000' ),
-                            array( 'pair' => 'XRP/UAH', 'min_q' => '1', 'max_q' => '100000', 'min_p' => '0.0001', 'max_p' => '1000', 'min_a' => '0.01', 'max_a' => '15000000' ),
-                            array( 'pair' => 'XRP/USDT', 'min_q' => '1', 'max_q' => '100000', 'min_p' => '0.001', 'max_p' => '1000', 'min_a' => '0.001', 'max_a' => '500000' ),
-                            array( 'pair' => 'XRP/ETH', 'min_q' => '1', 'max_q' => '100000', 'min_p' => '0.00000001', 'max_p' => '10', 'min_a' => '0.00001', 'max_a' => '5000' ),
+                            array( 'pair' => 'WAVES/USD', 'min_q' => '0.5', 'max_q' => '500000', 'min_p' => '0.001', 'max_p' => '3500', 'min_a' => '0.5', 'max_a' => '500000' ),
+                            array( 'pair' => 'WAVES/RUB', 'min_q' => '0.5', 'max_q' => '500000', 'min_p' => '0.01', 'max_p' => '10000', 'min_a' => '1', 'max_a' => '50000000' ),
+                            array( 'pair' => 'WAVES/BTC', 'min_q' => '0.5', 'max_q' => '500000', 'min_p' => '0.000001', 'max_p' => '1', 'min_a' => '0.0001', 'max_a' => '100' ),
+                            array( 'pair' => 'WAVES/ETH', 'min_q' => '0.5', 'max_q' => '500000', 'min_p' => '0.00001', 'max_p' => '30', 'min_a' => '0.0035', 'max_a' => '3500' ),
+                            array( 'pair' => 'XEM/USD', 'min_q' => '10', 'max_q' => '10000000', 'min_p' => '0.00001', 'max_p' => '1000', 'min_a' => '0.1', 'max_a' => '500000' ),
+                            array( 'pair' => 'XEM/EUR', 'min_q' => '10', 'max_q' => '10000000', 'min_p' => '0.00001', 'max_p' => '1000', 'min_a' => '0.1', 'max_a' => '500000' ),
+                            array( 'pair' => 'XEM/UAH', 'min_q' => '1', 'max_q' => '10000000', 'min_p' => '0.0001', 'max_p' => '30000', 'min_a' => '10', 'max_a' => '15000000' ),
+                            array( 'pair' => 'XEM/BTC', 'min_q' => '10', 'max_q' => '10000000', 'min_p' => '0.0000001', 'max_p' => '1', 'min_a' => '0.00015', 'max_a' => '100' ),
+                            array( 'pair' => 'XLM/USD', 'min_q' => '0.01', 'max_q' => '5000000', 'min_p' => '0.0001', 'max_p' => '1000', 'min_a' => '0.01', 'max_a' => '500000' ),
+                            array( 'pair' => 'XLM/RUB', 'min_q' => '0.01', 'max_q' => '5000000', 'min_p' => '0.00001', 'max_p' => '100000', 'min_a' => '0.1', 'max_a' => '50000000' ),
+                            array( 'pair' => 'XLM/TRY', 'min_q' => '0.01', 'max_q' => '5000000', 'min_p' => '0.00001', 'max_p' => '100000', 'min_a' => '0.1', 'max_a' => '6000000' ),
+                            array( 'pair' => 'XLM/BTC', 'min_q' => '1', 'max_q' => '5000000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.001', 'max_a' => '100' ),
+                            array( 'pair' => 'XMR/USD', 'min_q' => '0.01', 'max_q' => '10000', 'min_p' => '0.001', 'max_p' => '1000', 'min_a' => '0.1', 'max_a' => '500000' ),
+                            array( 'pair' => 'XMR/RUB', 'min_q' => '0.01', 'max_q' => '10000', 'min_p' => '0.001', 'max_p' => '600000', 'min_a' => '10', 'max_a' => '16000000' ),
+                            array( 'pair' => 'XMR/EUR', 'min_q' => '0.01', 'max_q' => '10000', 'min_p' => '0.001', 'max_p' => '1000', 'min_a' => '0.1', 'max_a' => '500000' ),
+                            array( 'pair' => 'XMR/UAH', 'min_q' => '0.01', 'max_q' => '10000', 'min_p' => '0.001', 'max_p' => '300000', 'min_a' => '5', 'max_a' => '16000000' ),
+                            array( 'pair' => 'XMR/BTC', 'min_q' => '0.01', 'max_q' => '10000', 'min_p' => '0.0001', 'max_p' => '1', 'min_a' => '0.001', 'max_a' => '100' ),
+                            array( 'pair' => 'XMR/ETH', 'min_q' => '0.01', 'max_q' => '10000', 'min_p' => '0.00000001', 'max_p' => '100', 'min_a' => '0.001', 'max_a' => '5000' ),
+                            array( 'pair' => 'XRP/EUR', 'min_q' => '1', 'max_q' => '5000000', 'min_p' => '0.001', 'max_p' => '1000', 'min_a' => '0.001', 'max_a' => '500000' ),
+                            array( 'pair' => 'XRP/TRY', 'min_q' => '1', 'max_q' => '5000000', 'min_p' => '0.0001', 'max_p' => '1000', 'min_a' => '0.01', 'max_a' => '6000000' ),
+                            array( 'pair' => 'XRP/UAH', 'min_q' => '1', 'max_q' => '5000000', 'min_p' => '0.0001', 'max_p' => '1000', 'min_a' => '0.01', 'max_a' => '15000000' ),
+                            array( 'pair' => 'XRP/USDT', 'min_q' => '1', 'max_q' => '5000000', 'min_p' => '0.001', 'max_p' => '1000', 'min_a' => '0.001', 'max_a' => '500000' ),
+                            array( 'pair' => 'XRP/ETH', 'min_q' => '1', 'max_q' => '5000000', 'min_p' => '0.00000001', 'max_p' => '10', 'min_a' => '0.00001', 'max_a' => '5000' ),
                             array( 'pair' => 'XTZ/USD', 'min_q' => '0.1', 'max_q' => '100000', 'min_p' => '0.0001', 'max_p' => '1000', 'min_a' => '0.1', 'max_a' => '100000' ),
                             array( 'pair' => 'XTZ/RUB', 'min_q' => '0.1', 'max_q' => '100000', 'min_p' => '0.00001', 'max_p' => '100000', 'min_a' => '0.5', 'max_a' => '500000' ),
                             array( 'pair' => 'XTZ/BTC', 'min_q' => '0.1', 'max_q' => '100000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.00001', 'max_a' => '10' ),
                             array( 'pair' => 'XTZ/ETH', 'min_q' => '0.1', 'max_q' => '100000', 'min_p' => '0.0000001', 'max_p' => '10', 'min_a' => '0.0001', 'max_a' => '1000' ),
-                            array( 'pair' => 'ZEC/USD', 'min_q' => '0.01', 'max_q' => '1000', 'min_p' => '0.001', 'max_p' => '5000', 'min_a' => '0.1', 'max_a' => '500000' ),
-                            array( 'pair' => 'ZEC/RUB', 'min_q' => '0.01', 'max_q' => '1000', 'min_p' => '0.001', 'max_p' => '100000', 'min_a' => '0.1', 'max_a' => '50000000' ),
-                            array( 'pair' => 'ZEC/EUR', 'min_q' => '0.01', 'max_q' => '1000', 'min_p' => '0.001', 'max_p' => '5000', 'min_a' => '0.1', 'max_a' => '500000' ),
-                            array( 'pair' => 'ZEC/BTC', 'min_q' => '0.01', 'max_q' => '1000', 'min_p' => '0.00001', 'max_p' => '10', 'min_a' => '0.001', 'max_a' => '100' ),
+                            array( 'pair' => 'ZEC/USD', 'min_q' => '0.01', 'max_q' => '10000', 'min_p' => '0.001', 'max_p' => '5000', 'min_a' => '0.1', 'max_a' => '500000' ),
+                            array( 'pair' => 'ZEC/RUB', 'min_q' => '0.01', 'max_q' => '10000', 'min_p' => '0.001', 'max_p' => '100000', 'min_a' => '0.1', 'max_a' => '50000000' ),
+                            array( 'pair' => 'ZEC/EUR', 'min_q' => '0.01', 'max_q' => '10000', 'min_p' => '0.001', 'max_p' => '5000', 'min_a' => '0.1', 'max_a' => '500000' ),
+                            array( 'pair' => 'ZEC/BTC', 'min_q' => '0.01', 'max_q' => '10000', 'min_p' => '0.00001', 'max_p' => '10', 'min_a' => '0.001', 'max_a' => '100' ),
                             array( 'pair' => 'ZRX/USD', 'min_q' => '0.01', 'max_q' => '10000000', 'min_p' => '0.00001', 'max_p' => '1000', 'min_a' => '0.1', 'max_a' => '500000' ),
                             array( 'pair' => 'ZRX/BTC', 'min_q' => '1', 'max_q' => '10000000', 'min_p' => '0.00000001', 'max_p' => '1', 'min_a' => '0.001', 'max_a' => '100' ),
                             array( 'pair' => 'ZRX/ETH', 'min_q' => '0.01', 'max_q' => '10000000', 'min_p' => '0.00000001', 'max_p' => '10', 'min_a' => '0.01', 'max_a' => '5000' ),
@@ -342,6 +375,8 @@ class exmo extends Exchange {
                                     array( 'prov' => 'CRON', 'dep' => '0%', 'wd' => '5 CRON' ),
                                     array( 'prov' => 'ONT', 'dep' => '0%', 'wd' => '1 ONT' ),
                                     array( 'prov' => 'ONG', 'dep' => '0%', 'wd' => '5 ONG' ),
+                                    array( 'prov' => 'ALGO', 'dep' => '0%', 'wd' => '0.01 ALGO' ),
+                                    array( 'prov' => 'ATOM', 'dep' => '0%', 'wd' => '' ),
                                 ),
                             ),
                             array(
@@ -350,9 +385,10 @@ class exmo extends Exchange {
                                 'items' => array(
                                     array( 'prov' => 'EX-CODE', 'dep' => '', 'wd' => '0.2%' ),
                                     array( 'prov' => 'Payeer', 'dep' => '3.95%', 'wd' => '-' ),
-                                    array( 'prov' => 'AdvCash', 'dep' => '0%', 'wd' => '3.99%' ),
+                                    array( 'prov' => 'AdvCash', 'dep' => '0%', 'wd' => '3.49%' ),
                                     array( 'prov' => 'Visa/MasterCard (Simplex)', 'dep' => '4.5% . 0.5 USD', 'wd' => '-' ),
                                     array( 'prov' => 'Visa', 'dep' => '3.45%', 'wd' => '-' ),
+                                    array( 'prov' => 'Frick Bank', 'dep' => '0 USD', 'wd' => '-' ),
                                 ),
                             ),
                             array(
@@ -360,22 +396,24 @@ class exmo extends Exchange {
                                 'title' => 'EUR',
                                 'items' => array(
                                     array( 'prov' => 'EX-CODE', 'dep' => '', 'wd' => '0.2%' ),
-                                    array( 'prov' => 'Visa/MasterCard (Simplex)', 'dep' => '4.5% . 0.5 EUR', 'wd' => '-' ),
+                                    array( 'prov' => 'Visa/MasterCard', 'dep' => '4.5% . 0.5 EUR', 'wd' => '-' ),
                                     array( 'prov' => 'Visa', 'dep' => '2.95%', 'wd' => '-' ),
-                                    array( 'prov' => 'SEPA', 'dep' => '10 EUR', 'wd' => '50 EUR' ),
+                                    array( 'prov' => 'Frick Internal Transfer', 'dep' => '0 EUR', 'wd' => '-' ),
+                                    array( 'prov' => 'SEPA Frick Bank', 'dep' => '0 EUR', 'wd' => '-' ),
+                                    array( 'prov' => 'WIRE Frick Bank', 'dep' => '0%', 'wd' => '-' ),
+                                    array( 'prov' => 'SEPA Weg Ag', 'dep' => '-', 'wd' => '1 EUR' ),
                                 ),
                             ),
                             array(
                                 'group' => 'rub',
                                 'title' => 'RUB',
                                 'items' => array(
-                                    array( 'prov' => 'Payeer', 'dep' => '2.49%', 'wd' => '-' ),
+                                    array( 'prov' => 'Payeer', 'dep' => '2.49%', 'wd' => '3.99%' ),
                                     array( 'prov' => 'EX-CODE', 'dep' => '', 'wd' => '0.2%' ),
-                                    array( 'prov' => 'Qiwi', 'dep' => '0.99%', 'wd' => '2%' ),
-                                    array( 'prov' => 'Yandex Money', 'dep' => '1.95%', 'wd' => '-' ),
-                                    array( 'prov' => 'Enfins', 'dep' => '0%', 'wd' => '1.49%' ),
-                                    array( 'prov' => 'AdvCash', 'dep' => '0%', 'wd' => '2.49%' ),
-                                    array( 'prov' => 'Visa/MasterCard', 'dep' => '1.99%', 'wd' => '4.49% . 60 RUB' ),
+                                    array( 'prov' => 'Qiwi', 'dep' => '1.49%', 'wd' => '2.49%' ),
+                                    array( 'prov' => 'Yandex Money', 'dep' => '1.49%', 'wd' => '-' ),
+                                    array( 'prov' => 'AdvCash', 'dep' => '0%', 'wd' => '3.49%' ),
+                                    array( 'prov' => 'Visa/MasterCard', 'dep' => '2.99%', 'wd' => '3.99% . 60 RUB' ),
                                 ),
                             ),
                             array(
@@ -383,7 +421,6 @@ class exmo extends Exchange {
                                 'title' => 'PLN',
                                 'items' => array(
                                     array( 'prov' => 'EX-CODE', 'dep' => '', 'wd' => '0.2%' ),
-                                    array( 'prov' => 'Visa/MasterCard (Simplex)', 'dep' => '4.5% . 1 PLN', 'wd' => '-' ),
                                 ),
                             ),
                             array(
@@ -393,6 +430,7 @@ class exmo extends Exchange {
                                     array( 'prov' => 'EX-CODE', 'dep' => '', 'wd' => '0.2%' ),
                                     array( 'prov' => 'Visa', 'dep' => '3.05%', 'wd' => '-' ),
                                     array( 'prov' => 'Visa/MasterCard (Simplex)', 'dep' => '4.5% . 2 TRY', 'wd' => '-' ),
+                                    array( 'prov' => 'AdvCash', 'dep' => '0%', 'wd' => '-' ),
                                 ),
                             ),
                             array(
@@ -401,17 +439,18 @@ class exmo extends Exchange {
                                 'items' => array(
                                     array( 'prov' => 'EX-CODE', 'dep' => '', 'wd' => '0.2%' ),
                                     array( 'prov' => 'Terminal', 'dep' => '2.6%', 'wd' => '-' ),
-                                    array( 'prov' => 'Enfins', 'dep' => '0%', 'wd' => '1.95%' ),
-                                    array( 'prov' => 'Visa/MasterCard', 'dep' => '1% . 5 UAH', 'wd' => '2.99%' ),
+                                    array( 'prov' => 'Visa/MasterCard', 'dep' => '1% . 5 UAH', 'wd' => '-' ),
+                                    array( 'prov' => 'Visa/MasterCard EasyTransfer', 'dep' => '-', 'wd' => '2.99%' ),
                                 ),
                             ),
                             array(
                                 'group' => 'kzt',
                                 'title' => 'KZT',
                                 'items' => array(
+                                    array( 'prov' => 'EX-CODE', 'dep' => '', 'wd' => '0.2%' ),
                                     array( 'prov' => 'Visa/MasterCard RoyalPay', 'dep' => '-', 'wd' => '2.99% . 450 KZT' ),
                                     array( 'prov' => 'Visa/MasterCard', 'dep' => '3.5%', 'wd' => '-' ),
-                                    array( 'prov' => 'AdvCash', 'dep' => '0%', 'wd' => '1.49%' ),
+                                    array( 'prov' => 'AdvCash', 'dep' => '0%', 'wd' => '-' ),
                                 ),
                             ),
                         ),
@@ -425,6 +464,8 @@ class exmo extends Exchange {
                     '40015' => '\\ccxt\\ExchangeError', // API function do not exist
                     '40016' => '\\ccxt\\OnMaintenance', // array("result":false,"error":"Error 40016 => Maintenance work in progress")
                     '40017' => '\\ccxt\\AuthenticationError', // Wrong API Key
+                    '40032' => '\\ccxt\\PermissionDenied', // array("result":false,"error":"Error 40032 => Access is denied for this API key")
+                    '40034' => '\\ccxt\\RateLimitExceeded', // array("result":false,"error":"Error 40034 => Access is denied, rate limit is exceeded")
                     '50052' => '\\ccxt\\InsufficientFunds',
                     '50054' => '\\ccxt\\InsufficientFunds',
                     '50304' => '\\ccxt\\OrderNotFound', // "Order was not found '123456789'" (fetching order trades for an order that does not have trades yet)
@@ -433,6 +474,8 @@ class exmo extends Exchange {
                     '50321' => '\\ccxt\\InvalidOrder', // Price by order is more than permissible maximum for this pair
                 ),
                 'broad' => array(
+                    'range period is too long' => '\\ccxt\\BadRequest',
+                    'invalid syntax' => '\\ccxt\\BadRequest',
                     'API rate limit exceeded' => '\\ccxt\\RateLimitExceeded', // array("result":false,"error":"API rate limit exceeded for 99.33.55.224. Retry after 60 sec.","history":array(),"begin":1579392000,"end":1579478400)
                 ),
             ),
@@ -594,8 +637,21 @@ class exmo extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
-        $fees = $this->fetch_trading_fees();
         $response = $this->publicGetPairSettings ($params);
+        //
+        //     {
+        //         "EXM_ETH" => array(
+        //         "min_quantity" => "1",
+        //         "max_quantity" => "1000",
+        //         "min_price" => "1",
+        //         "max_price" => "1000",
+        //         "max_amount" => "1000",
+        //         "min_amount" => "1",
+        //         "commission_taker_percent" => "0.2",
+        //         "commission_maker_percent" => "0.2"
+        //         ),
+        //     }
+        //
         $keys = is_array($response) ? array_keys($response) : array();
         $result = array();
         for ($i = 0; $i < count($keys); $i++) {
@@ -605,6 +661,8 @@ class exmo extends Exchange {
             list($baseId, $quoteId) = explode('/', $symbol);
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            $taker = $this->safe_float($market, 'commission_taker_percent');
+            $maker = $this->safe_float($market, 'commission_maker_percent');
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -613,8 +671,8 @@ class exmo extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'active' => true,
-                'taker' => $fees['taker'],
-                'maker' => $fees['maker'],
+                'taker' => $taker / 100,
+                'maker' => $maker / 100,
                 'limits' => array(
                     'amount' => array(
                         'min' => $this->safe_float($market, 'min_quantity'),
@@ -637,6 +695,74 @@ class exmo extends Exchange {
             );
         }
         return $result;
+    }
+
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+            'resolution' => $this->timeframes[$timeframe],
+        );
+        $options = $this->safe_value($this->options, 'fetchOHLCV');
+        $maxLimit = $this->safe_integer($options, 'maxLimit', 3000);
+        $duration = $this->parse_timeframe($timeframe);
+        $now = $this->milliseconds();
+        if ($since === null) {
+            if ($limit === null) {
+                throw new ArgumentsRequired($this->id . ' fetchOHLCV requires a $since argument or a $limit argument');
+            } else {
+                if ($limit > $maxLimit) {
+                    throw new BadRequest($this->id . ' fetchOHLCV will serve ' . (string) $maxLimit . ' $candles at most');
+                }
+                $request['from'] = intval ($now / 1000) - $limit * $duration - 1;
+                $request['to'] = intval ($now / 1000);
+            }
+        } else {
+            $request['from'] = intval ($since / 1000) - 1;
+            if ($limit === null) {
+                $request['to'] = intval ($now / 1000);
+            } else {
+                if ($limit > $maxLimit) {
+                    throw new BadRequest($this->id . ' fetchOHLCV will serve ' . (string) $maxLimit . ' $candles at most');
+                }
+                $to = $this->sum($since, $limit * $duration * 1000);
+                $request['to'] = intval ($to / 1000);
+            }
+        }
+        $response = $this->publicGetCandlesHistory (array_merge($request, $params));
+        //
+        //     {
+        //         "$candles":array(
+        //             array("t":1584057600000,"o":0.02235144,"c":0.02400233,"h":0.025171,"l":0.02221,"v":5988.34031761),
+        //             array("t":1584144000000,"o":0.0240373,"c":0.02367413,"h":0.024399,"l":0.0235,"v":2027.82522329),
+        //             array("t":1584230400000,"o":0.02363458,"c":0.02319242,"h":0.0237948,"l":0.02223196,"v":1707.96944997),
+        //         )
+        //     }
+        //
+        $candles = $this->safe_value($response, 'candles', array());
+        return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
+    }
+
+    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '5m', $since = null, $limit = null) {
+        //
+        //     {
+        //         "t":1584057600000,
+        //         "o":0.02235144,
+        //         "c":0.02400233,
+        //         "h":0.025171,
+        //         "l":0.02221,
+        //         "v":5988.34031761
+        //     }
+        //
+        return array(
+            $this->safe_integer($ohlcv, 't'),
+            $this->safe_float($ohlcv, 'o'),
+            $this->safe_float($ohlcv, 'h'),
+            $this->safe_float($ohlcv, 'l'),
+            $this->safe_float($ohlcv, 'c'),
+            $this->safe_float($ohlcv, 'v'),
+        );
     }
 
     public function fetch_balance($params = array ()) {
@@ -762,8 +888,36 @@ class exmo extends Exchange {
     }
 
     public function parse_trade($trade, $market = null) {
+        //
+        // fetchTrades (public)
+        //
+        //     array(
+        //         "trade_id":165087520,
+        //         "date":1587470005,
+        //         "$type":"buy",
+        //         "quantity":"1.004",
+        //         "$price":"0.02491461",
+        //         "$amount":"0.02501426"
+        //     ),
+        //
+        // fetchMyTrades, fetchOrderTrades
+        //
+        //     {
+        //         "trade_id" => 3,
+        //         "date" => 1435488248,
+        //         "$type" => "buy",
+        //         "pair" => "BTC_USD",
+        //         "order_id" => 12345,
+        //         "quantity" => 1,
+        //         "$price" => 100,
+        //         "$amount" => 100,
+        //         "exec_type" => "taker",
+        //         "commission_amount" => "0.02",
+        //         "commission_currency" => "BTC",
+        //         "commission_percent" => "0.2"
+        //     }
+        //
         $timestamp = $this->safe_timestamp($trade, 'date');
-        $fee = null;
         $symbol = null;
         $id = $this->safe_string($trade, 'trade_id');
         $orderId = $this->safe_string($trade, 'order_id');
@@ -772,24 +926,35 @@ class exmo extends Exchange {
         $cost = $this->safe_float($trade, 'amount');
         $side = $this->safe_string($trade, 'type');
         $type = null;
-        if ($market !== null) {
+        $marketId = $this->safe_string($trade, 'pair');
+        if ($marketId !== null) {
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+            } else {
+                list($baseId, $quoteId) = explode('_', $marketId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
+                $symbol = $base . '/' . $quote;
+            }
+        }
+        if (($symbol === null) && ($market !== null)) {
             $symbol = $market['symbol'];
-            if ($market['taker'] !== $market['maker']) {
-                throw new ExchangeError($this->id . ' parseTrade can not deduce proper $fee costs, taker and maker fees now differ');
+        }
+        $takerOrMaker = $this->safe_string($trade, 'exec_type');
+        $fee = null;
+        $feeCost = $this->safe_float($trade, 'commission_amount');
+        if ($feeCost !== null) {
+            $feeCurrencyId = $this->safe_string($trade, 'commission_currency');
+            $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
+            $feeRate = $this->safe_float($trade, 'commission_percent');
+            if ($feeRate !== null) {
+                $feeRate /= 1000;
             }
-            if (($side === 'buy') && ($amount !== null)) {
-                $fee = array(
-                    'currency' => $market['base'],
-                    'cost' => $amount * $market['taker'],
-                    'rate' => $market['taker'],
-                );
-            } else if (($side === 'sell') && ($cost !== null)) {
-                $fee = array(
-                    'currency' => $market['quote'],
-                    'cost' => $cost * $market['taker'],
-                    'rate' => $market['taker'],
-                );
-            }
+            $fee = array(
+                'cost' => $feeCost,
+                'currency' => $feeCurrencyCode,
+                'rate' => $feeRate,
+            );
         }
         return array(
             'id' => $id,
@@ -800,7 +965,7 @@ class exmo extends Exchange {
             'order' => $orderId,
             'type' => $type,
             'side' => $side,
-            'takerOrMaker' => null,
+            'takerOrMaker' => $takerOrMaker,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
@@ -815,6 +980,28 @@ class exmo extends Exchange {
             'pair' => $market['id'],
         );
         $response = $this->publicGetTrades (array_merge($request, $params));
+        //
+        //     {
+        //         "ETH_BTC":array(
+        //             array(
+        //                 "trade_id":165087520,
+        //                 "date":1587470005,
+        //                 "type":"buy",
+        //                 "quantity":"1.004",
+        //                 "price":"0.02491461",
+        //                 "amount":"0.02501426"
+        //             ),
+        //             {
+        //                 "trade_id":165087369,
+        //                 "date":1587469938,
+        //                 "type":"buy",
+        //                 "quantity":"0.94",
+        //                 "price":"0.02492348",
+        //                 "amount":"0.02342807"
+        //             }
+        //         )
+        //     }
+        //
         $data = $this->safe_value($response, $market['id'], array());
         return $this->parse_trades($data, $market, $since, $limit);
     }
@@ -972,6 +1159,31 @@ class exmo extends Exchange {
             'order_id' => (string) $id,
         );
         $response = $this->privatePostOrderTrades (array_merge($request, $params));
+        //
+        //     {
+        //         "type" => "buy",
+        //         "in_currency" => "BTC",
+        //         "in_amount" => "1",
+        //         "out_currency" => "USD",
+        //         "out_amount" => "100",
+        //         "$trades" => array(
+        //             {
+        //                 "trade_id" => 3,
+        //                 "date" => 1435488248,
+        //                 "type" => "buy",
+        //                 "pair" => "BTC_USD",
+        //                 "order_id" => 12345,
+        //                 "quantity" => 1,
+        //                 "price" => 100,
+        //                 "amount" => 100,
+        //                 "exec_type" => "taker",
+        //                 "commission_amount" => "0.02",
+        //                 "commission_currency" => "BTC",
+        //                 "commission_percent" => "0.2"
+        //             }
+        //         )
+        //     }
+        //
         $trades = $this->safe_value($response, 'trades');
         return $this->parse_trades($trades, $market, $since, $limit);
     }
@@ -1419,9 +1631,10 @@ class exmo extends Exchange {
         if ($response === null) {
             return; // fallback to default error handler
         }
-        if (is_array($response) && array_key_exists('result', $response)) {
+        if ((is_array($response) && array_key_exists('result', $response)) || (is_array($response) && array_key_exists('errmsg', $response))) {
             //
             //     array("result":false,"error":"Error 50052 => Insufficient funds")
+            //     array("s":"error","errmsg":"strconv.ParseInt => parsing \"\" => invalid syntax")
             //
             $success = $this->safe_value($response, 'result', false);
             if (gettype($success) === 'string') {
@@ -1433,7 +1646,7 @@ class exmo extends Exchange {
             }
             if (!$success) {
                 $code = null;
-                $message = $this->safe_string($response, 'error');
+                $message = $this->safe_string_2($response, 'error', 'errmsg');
                 $errorParts = explode(':', $message);
                 $numParts = is_array($errorParts) ? count($errorParts) : 0;
                 if ($numParts > 1) {

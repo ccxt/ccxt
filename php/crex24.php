@@ -18,7 +18,7 @@ use \ccxt\RequestTimeout;
 class crex24 extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'crex24',
             'name' => 'CREX24',
             'countries' => array( 'EE' ), // Estonia
@@ -138,7 +138,6 @@ class crex24 extends Exchange {
                 'fetchClosedOrdersMethod' => 'tradingGetOrderHistory', // or 'tradingGetActiveOrders'
                 'fetchTickersMethod' => 'publicGetTicker24hr',
                 'defaultTimeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
-                'defaultLimitOrderType' => 'limit', // or 'limit_maker'
                 'hasAlreadyAuthenticatedSuccessfully' => false,
                 'warnOnFetchOpenOrdersWithoutSymbol' => true,
                 'parseOrderToPrecision' => false, // force amounts and costs in parseOrder to precision

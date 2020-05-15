@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, DDoSProtection, InsufficientFunds, InvalidNonce, CancelPending, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, NotSupported, BadSymbol } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, DDoSProtection, InsufficientFunds, InvalidNonce, CancelPending, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, NotSupported, BadSymbol } = require ('./base/errors');
 const { TICK_SIZE, TRUNCATE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -61,6 +61,9 @@ module.exports = class okex extends Exchange {
                 'doc': 'https://www.okex.com/docs/en/',
                 'fees': 'https://www.okex.com/pages/products/fees.html',
                 'referral': 'https://www.okex.com/join/1888677',
+                'test': {
+                    'rest': 'https://testnet.okex.com',
+                },
             },
             'api': {
                 'general': {
@@ -79,7 +82,7 @@ module.exports = class okex extends Exchange {
                         'ledger',
                         'deposit/address',
                         'deposit/history',
-                        'deposit/history{<currency}',
+                        'deposit/history/{currency}',
                         'currencies',
                         'withdrawal/fee',
                     ],
@@ -348,8 +351,9 @@ module.exports = class okex extends Exchange {
                     '30034': ExchangeError, // { "code": 30034, "message": "exchange ID does not exist" }
                     '30035': ExchangeError, // { "code": 30035, "message": "trading is not supported in this website" }
                     '30036': ExchangeError, // { "code": 30036, "message": "no relevant data" }
-                    '30038': AuthenticationError, // { "code": 30038, "message": "user does not exist" }
                     '30037': ExchangeNotAvailable, // { "code": 30037, "message": "endpoint is offline or unavailable" }
+                    // '30038': AuthenticationError, // { "code": 30038, "message": "user does not exist" }
+                    '30038': OnMaintenance, // {"client_oid":"","code":"30038","error_code":"30038","error_message":"Matching engine is being upgraded. Please try in about 1 minute.","message":"Matching engine is being upgraded. Please try in about 1 minute.","order_id":"-1","result":false}
                     // futures
                     '32001': AccountSuspended, // { "code": 32001, "message": "futures account suspended" }
                     '32002': PermissionDenied, // { "code": 32002, "message": "futures account does not exist" }
@@ -792,14 +796,6 @@ module.exports = class okex extends Exchange {
             'price': this.safeFloat (market, 'tick_size'),
         };
         const minAmount = this.safeFloat2 (market, 'min_size', 'base_min_size');
-        let minPrice = this.safeFloat (market, 'tick_size');
-        if (precision['price'] !== undefined) {
-            minPrice = Math.pow (10, -precision['price']);
-        }
-        let minCost = undefined;
-        if (minAmount !== undefined && minPrice !== undefined) {
-            minCost = minAmount * minPrice;
-        }
         const active = true;
         const fees = this.safeValue2 (this.fees, marketType, 'trading', {});
         return this.extend (fees, {
@@ -823,11 +819,11 @@ module.exports = class okex extends Exchange {
                     'max': undefined,
                 },
                 'price': {
-                    'min': minPrice,
+                    'min': precision['price'],
                     'max': undefined,
                 },
                 'cost': {
-                    'min': minCost,
+                    'min': precision['price'],
                     'max': undefined,
                 },
             },
@@ -1360,8 +1356,18 @@ module.exports = class okex extends Exchange {
             'instrument_id': market['id'],
             'granularity': this.timeframes[timeframe],
         };
+        const duration = this.parseTimeframe (timeframe);
         if (since !== undefined) {
+            if (limit !== undefined) {
+                request['end'] = this.iso8601 (this.sum (since, limit * duration * 1000));
+            }
             request['start'] = this.iso8601 (since);
+        } else {
+            const now = this.milliseconds ();
+            if (limit !== undefined) {
+                request['start'] = this.iso8601 (now - limit * duration * 1000);
+                request['end'] = this.iso8601 (now);
+            }
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -1841,28 +1847,7 @@ module.exports = class okex extends Exchange {
         //         "result":true
         //     }
         //
-        const timestamp = this.milliseconds ();
-        const id = this.safeString (response, 'order_id');
-        return {
-            'info': response,
-            'id': id,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
-            'status': undefined,
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'price': price,
-            'amount': amount,
-            'filled': undefined,
-            'remaining': undefined,
-            'cost': undefined,
-            'trades': undefined,
-            'fee': undefined,
-            'clientOrderId': undefined,
-            'average': undefined,
-        };
+        return this.parseOrder (response, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -2302,9 +2287,11 @@ module.exports = class okex extends Exchange {
     }
 
     parseDepositAddresses (addresses) {
-        const result = [];
+        const result = {};
         for (let i = 0; i < addresses.length; i++) {
-            result.push (this.parseDepositAddress (addresses[i]));
+            const address = this.parseDepositAddress (addresses[i]);
+            const code = address['currency'];
+            result[code] = address;
         }
         return result;
     }
@@ -2350,11 +2337,11 @@ module.exports = class okex extends Exchange {
         //     ]
         //
         const addresses = this.parseDepositAddresses (response);
-        const numAddresses = addresses.length;
-        if (numAddresses < 1) {
+        const address = this.safeValue (addresses, code);
+        if (address === undefined) {
             throw new InvalidAddress (this.id + ' fetchDepositAddress cannot return nonexistent addresses, you should create withdrawal addresses with the exchange website first');
         }
-        return addresses[0];
+        return address;
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
@@ -2366,7 +2353,7 @@ module.exports = class okex extends Exchange {
         }
         const fee = this.safeString (params, 'fee');
         if (fee === undefined) {
-            throw new ExchangeError (this.id + " withdraw() requires a `fee` string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKEx are fee-free, please set '0'. Withdrawing to external digital asset address requires network transaction fee.");
+            throw new ArgumentsRequired (this.id + " withdraw() requires a `fee` string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKEx are fee-free, please set '0'. Withdrawing to external digital asset address requires network transaction fee.");
         }
         const request = {
             'currency': currency['id'],
@@ -2565,14 +2552,6 @@ module.exports = class okex extends Exchange {
     }
 
     parseMyTrade (pair, market = undefined) {
-        if (!Array.isArray (pair)) {
-            throw new NotSupported (this.id + ' parseMyTrade() received unrecognized response format, the exchange API might have changed, paste your verbose outpu: https://github.com/ccxt/ccxt/wiki/FAQ#what-is-required-to-get-help');
-        }
-        // make sure it has exactly 2 trades, no more, no less
-        const numTradesInPair = pair.length;
-        if (numTradesInPair !== 2) {
-            throw new NotSupported (this.id + ' parseMyTrade() received unrecognized response format, more than two trades in one fill, the exchange API might have changed, paste your verbose output: https://github.com/ccxt/ccxt/wiki/FAQ#what-is-required-to-get-help');
-        }
         // check that trading symbols match in both entries
         const first = pair[0];
         const second = pair[1];
@@ -2695,8 +2674,12 @@ module.exports = class okex extends Exchange {
         for (let i = 0; i < tradeIds.length; i++) {
             const tradeId = tradeIds[i];
             const pair = grouped[tradeId];
-            const trade = this.parseMyTrade (pair);
-            result.push (trade);
+            // make sure it has exactly 2 trades, no more, no less
+            const numTradesInPair = pair.length;
+            if (numTradesInPair === 2) {
+                const trade = this.parseMyTrade (pair);
+                result.push (trade);
+            }
         }
         let symbol = undefined;
         if (market !== undefined) {
@@ -3191,7 +3174,8 @@ module.exports = class okex extends Exchange {
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         const feedback = this.id + ' ' + body;
         if (code === 503) {
-            throw new ExchangeError (feedback);
+            // {"message":"name resolution failed"}
+            throw new ExchangeNotAvailable (feedback);
         }
         if (!response) {
             return; // fallback to default error handler
@@ -3201,10 +3185,12 @@ module.exports = class okex extends Exchange {
         if (message !== undefined) {
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
-        }
-        this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
-        if (message !== undefined) {
-            throw new ExchangeError (feedback); // unknown message
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            const nonEmptyMessage = (message !== '');
+            const nonZeroErrorCode = (errorCode !== undefined) && (errorCode !== '0');
+            if (nonZeroErrorCode || nonEmptyMessage) {
+                throw new ExchangeError (feedback); // unknown message
+            }
         }
     }
 };

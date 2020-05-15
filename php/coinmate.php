@@ -12,7 +12,7 @@ use \ccxt\ArgumentsRequired;
 class coinmate extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'coinmate',
             'name' => 'CoinMate',
             'countries' => array( 'GB', 'CZ', 'EU' ), // UK, Czech Republic
@@ -166,6 +166,7 @@ class coinmate extends Exchange {
                     'No order with given ID' => '\\ccxt\\OrderNotFound',
                 ),
                 'broad' => array(
+                    'Not enough account balance available' => '\\ccxt\\InsufficientFunds',
                     'Incorrect order ID' => '\\ccxt\\InvalidOrder',
                     'Minimum Order Size ' => '\\ccxt\\InvalidOrder',
                     'TOO MANY REQUESTS' => '\\ccxt\\RateLimitExceeded',
@@ -563,6 +564,7 @@ class coinmate extends Exchange {
         $statuses = array(
             'FILLED' => 'closed',
             'CANCELLED' => 'canceled',
+            'PARTIALLY_FILLED' => 'open',
             'OPEN' => 'open',
         );
         return $this->safe_string($statuses, $status, $status);
@@ -630,7 +632,10 @@ class coinmate extends Exchange {
         $filled = null;
         $cost = null;
         if (($amount !== null) && ($remaining !== null)) {
-            $filled = $amount - $remaining;
+            $filled = max ($amount - $remaining, 0);
+            if ($remaining === 0) {
+                $status = 'closed';
+            }
             if ($price !== null) {
                 $cost = $filled * $price;
             }

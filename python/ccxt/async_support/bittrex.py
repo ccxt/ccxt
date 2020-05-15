@@ -684,6 +684,7 @@ class bittrex(Exchange):
         isCeilingOrder = isCeilingLimit or isCeilingMarket
         if isCeilingOrder:
             request['ceiling'] = self.price_to_precision(symbol, price)
+            # bittrex only accepts IMMEDIATE_OR_CANCEL or FILL_OR_KILL for ceiling orders
             request['timeInForce'] = 'IMMEDIATE_OR_CANCEL'
         else:
             request['quantity'] = self.amount_to_precision(symbol, amount)
@@ -691,6 +692,7 @@ class bittrex(Exchange):
                 request['limit'] = self.price_to_precision(symbol, price)
                 request['timeInForce'] = 'GOOD_TIL_CANCELLED'
             else:
+                # bittrex does not allow GOOD_TIL_CANCELLED for market orders
                 request['timeInForce'] = 'IMMEDIATE_OR_CANCEL'
         response = await self.v3PostOrders(self.extend(request, params))
         #

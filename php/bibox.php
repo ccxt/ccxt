@@ -14,7 +14,7 @@ use \ccxt\OrderNotFound;
 class bibox extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'bibox',
             'name' => 'Bibox',
             'countries' => array( 'CN', 'US', 'KR' ),

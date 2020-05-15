@@ -15,7 +15,7 @@ use \ccxt\NotSupported;
 class cex extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'cex',
             'name' => 'CEX.IO',
             'countries' => array( 'GB', 'EU', 'CY', 'RU' ),
@@ -570,9 +570,45 @@ class cex extends Exchange {
             $request['order_type'] = $type;
         }
         $response = $this->privatePostPlaceOrderPair (array_merge($request, $params));
+        //
+        //     {
+        //         "id" => "12978363524",
+        //         "time" => 1586610022259,
+        //         "$type" => "buy",
+        //         "$price" => "0.033934",
+        //         "$amount" => "0.10722802",
+        //         "pending" => "0.10722802",
+        //         "$complete" => false
+        //     }
+        //
+        $placedAmount = $this->safe_float($response, 'amount');
+        $remaining = $this->safe_float($response, 'pending');
+        $timestamp = $this->safe_value($response, 'time');
+        $complete = $this->safe_value($response, 'complete');
+        $status = $complete ? 'closed' : 'open';
+        $filled = null;
+        if (($placedAmount !== null) && ($remaining !== null)) {
+            $filled = max ($placedAmount - $remaining, 0);
+        }
         return array(
+            'id' => $this->safe_string($response, 'id'),
             'info' => $response,
-            'id' => $response['id'],
+            'clientOrderId' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'lastTradeTimestamp' => null,
+            'type' => $type,
+            'side' => $this->safe_string($response, 'type'),
+            'symbol' => $symbol,
+            'status' => $status,
+            'price' => $this->safe_float($response, 'price'),
+            'amount' => $placedAmount,
+            'cost' => null,
+            'average' => null,
+            'remaining' => $remaining,
+            'filled' => $filled,
+            'fee' => null,
+            'trades' => null,
         );
     }
 

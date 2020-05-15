@@ -12,7 +12,7 @@ use \ccxt\InvalidOrder;
 class coinex extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'coinex',
             'name' => 'CoinEx',
             'version' => 'v1',
@@ -728,7 +728,7 @@ class coinex extends Exchange {
         $code = $this->safe_currency_code($currencyId, $currency);
         $timestamp = $this->safe_timestamp($transaction, 'create_time');
         $type = (is_array($transaction) && array_key_exists('coin_withdraw_id', $transaction)) ? 'withdraw' : 'deposit';
-        $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'), $type);
+        $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         $amount = $this->safe_float($transaction, 'amount');
         $feeCost = $this->safe_float($transaction, 'tx_fee');
         if ($type === 'deposit') {

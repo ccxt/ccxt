@@ -12,7 +12,7 @@ use \ccxt\ArgumentsRequired;
 class deribit extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'deribit',
             'name' => 'Deribit',
             'countries' => array( 'NL' ), // Netherlands
@@ -331,6 +331,12 @@ class deribit extends Exchange {
         return $this->safe_integer($response, 'result');
     }
 
+    public function code_from_options($methodName) {
+        $defaultCode = $this->safe_value($this->options, 'code', 'BTC');
+        $options = $this->safe_value($this->options, $methodName, array());
+        return $this->safe_value($options, 'code', $defaultCode);
+    }
+
     public function fetch_status($params = array ()) {
         $request = array(
             // 'expected_result' => false, // true will trigger an error for testing purposes
@@ -469,9 +475,7 @@ class deribit extends Exchange {
 
     public function fetch_balance($params = array ()) {
         $this->load_markets();
-        $defaultCode = $this->safe_value($this->options, 'code', 'BTC');
-        $options = $this->safe_value($this->options, 'fetchBalance', array());
-        $code = $this->safe_value($options, 'code', $defaultCode);
+        $code = $this->code_from_options('fetchBalance');
         $currency = $this->currency($code);
         $request = array(
             'currency' => $currency['id'],
@@ -523,11 +527,13 @@ class deribit extends Exchange {
             'info' => $response,
         );
         $balance = $this->safe_value($response, 'result', array());
+        $currencyId = $this->safe_string($balance, 'currency');
+        $currencyCode = $this->safe_currency_code($currencyId);
         $account = $this->account();
         $account['free'] = $this->safe_float($balance, 'availableFunds');
         $account['used'] = $this->safe_float($balance, 'maintenanceMargin');
         $account['total'] = $this->safe_float($balance, 'equity');
-        $result[$code] = $account;
+        $result[$currencyCode] = $account;
         return $this->parse_balance($result);
     }
 
@@ -719,9 +725,7 @@ class deribit extends Exchange {
 
     public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
-        $defaultCode = $this->safe_value($this->options, 'code', 'BTC');
-        $options = $this->safe_value($this->options, 'fetchTickers', array());
-        $code = $this->safe_value($options, 'code', $defaultCode);
+        $code = $this->code_from_options('fetchTickers');
         $currency = $this->currency($code);
         $request = array(
             'currency' => $currency['id'],
@@ -883,7 +887,7 @@ class deribit extends Exchange {
             // M = maker, T = taker, MT = both
             $takerOrMaker = ($liquidity === 'M') ? 'maker' : 'taker';
         }
-        $feeCost = $this->safe_float($trade, 'feeCost');
+        $feeCost = $this->safe_float($trade, 'fee');
         $fee = null;
         if ($feeCost !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'fee_currency');
@@ -1330,9 +1334,7 @@ class deribit extends Exchange {
         $market = null;
         $method = null;
         if ($symbol === null) {
-            $defaultCode = $this->safe_value($this->options, 'code', 'BTC');
-            $options = $this->safe_value($this->options, 'fetchOpenOrders', array());
-            $code = $this->safe_value($options, 'code', $defaultCode);
+            $code = $this->code_from_options('fetchOpenOrders');
             $currency = $this->currency($code);
             $request['currency'] = $currency['id'];
             $method = 'privateGetGetOpenOrdersByCurrency';
@@ -1352,9 +1354,7 @@ class deribit extends Exchange {
         $market = null;
         $method = null;
         if ($symbol === null) {
-            $defaultCode = $this->safe_value($this->options, 'code', 'BTC');
-            $options = $this->safe_value($this->options, 'fetchClosedOrders', array());
-            $code = $this->safe_value($options, 'code', $defaultCode);
+            $code = $this->code_from_options('fetchClosedOrders');
             $currency = $this->currency($code);
             $request['currency'] = $currency['id'];
             $method = 'privateGetGetOrderHistoryByCurrency';
@@ -1420,9 +1420,7 @@ class deribit extends Exchange {
         $market = null;
         $method = null;
         if ($symbol === null) {
-            $defaultCode = $this->safe_value($this->options, 'code', 'BTC');
-            $options = $this->safe_value($this->options, 'fetchMyTrades', array());
-            $code = $this->safe_value($options, 'code', $defaultCode);
+            $code = $this->code_from_options('fetchMyTrades');
             $currency = $this->currency($code);
             $request['currency'] = $currency['id'];
             if ($since === null) {
@@ -1485,7 +1483,7 @@ class deribit extends Exchange {
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires a $currency $code argument');
+            throw new ArgumentsRequired($this->id . ' fetchDeposits() requires a $currency $code argument');
         }
         $this->load_markets();
         $currency = $this->currency($code);
@@ -1603,7 +1601,7 @@ class deribit extends Exchange {
         //
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $timestamp = $this->safe_integer($transaction, 'created_timestamp', 'received_timestamp');
+        $timestamp = $this->safe_integer_2($transaction, 'created_timestamp', 'received_timestamp');
         $updated = $this->safe_integer($transaction, 'updated_timestamp');
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'state'));
         $address = $this->safe_string($transaction, 'address');

@@ -3,7 +3,7 @@
 The easiest way to install the ccxt library is to use builtin package managers:
 
 - [ccxt in **NPM**](http://npmjs.com/package/ccxt) (JavaScript / Node v7.6+)
-- [ccxt in **PyPI**](https://pypi.python.org/pypi/ccxt) (Python 2 and 3)
+- [ccxt in **PyPI**](https://pypi.python.org/pypi/ccxt) (Python 3)
 
 This library is shipped as an all-in-one module implementation with minimalistic dependencies and requirements:
 
@@ -58,13 +58,13 @@ If that does not help, please, follow here: https://github.com/nodejs/node-gyp#o
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.25.37/dist/ccxt.browser.js
-* unpkg: https://unpkg.com/ccxt@1.25.37/dist/ccxt.browser.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.27.83/dist/ccxt.browser.js
+* unpkg: https://unpkg.com/ccxt@1.27.83/dist/ccxt.browser.js
 
 You can obtain a live-updated version of the bundle by removing the version number from the URL (the `@a.b.c` thing) — however, we do not recommend to do that, as it may break your app eventually. Also, please keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.25.37/dist/ccxt.browser.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.27.83/dist/ccxt.browser.js"></script>
 ```
 
 Creates a global `ccxt` object:
@@ -184,7 +184,7 @@ exchange.proxies = {
 }
 ```
 
-#### Python 2 and 3 sync proxies
+#### Python 3 sync proxies
 
 - https://github.com/ccxt/ccxt/blob/master/examples/py/proxy-sync-python-requests-2-and-3.py
 
@@ -212,7 +212,7 @@ exchange = ccxt.poloniex({
     # This gets passed to the `python-requests` implementation directly
     # You can also enable this with environment variables, as described here:
     # http://docs.python-requests.org/en/master/user/advanced/#proxies
-    # This is the setting you should be using with synchronous version of ccxt in Python 2 and 3
+    # This is the setting you should be using with synchronous version of ccxt in Python 3
     #
     'proxies': {
         'http': 'http://10.10.1.10:3128',

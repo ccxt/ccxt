@@ -15,7 +15,7 @@ use \ccxt\OrderNotFound;
 class bitfinex2 extends bitfinex {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'bitfinex2',
             'name' => 'Bitfinex',
             'countries' => array( 'VG' ),
@@ -700,16 +700,21 @@ class bitfinex2 extends bitfinex {
     }
 
     public function parse_order_status($status) {
+        if ($status === null) {
+            return $status;
+        }
+        $parts = explode(' ', $status);
+        $state = $this->safe_string($parts, 0);
         $statuses = array(
             'ACTIVE' => 'open',
-            'PARTIALLY FILLED' => 'open',
+            'PARTIALLY' => 'open',
             'EXECUTED' => 'closed',
             'CANCELED' => 'canceled',
-            'INSUFFICIENT MARGIN' => 'canceled',
+            'INSUFFICIENT' => 'canceled',
             'RSN_DUST' => 'rejected',
             'RSN_PAUSE' => 'rejected',
         );
-        return $this->safe_string($statuses, $status, $status);
+        return $this->safe_string($statuses, $state, $status);
     }
 
     public function parse_order($order, $market = null) {

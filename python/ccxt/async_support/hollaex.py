@@ -768,7 +768,7 @@ class hollaex(Exchange):
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
         request = {
-            'orderId': id,
+            'order_id': id,
         }
         response = await self.privateDeleteUserOrdersOrderId(self.extend(request, params))
         #

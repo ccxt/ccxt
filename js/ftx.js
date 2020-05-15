@@ -16,6 +16,7 @@ module.exports = class ftx extends Exchange {
             'countries': [ 'HK' ],
             'rateLimit': 100,
             'certified': true,
+            'pro': true,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/67149189-df896480-f2b0-11e9-8816-41593e17f9ec.jpg',
                 'www': 'https://ftx.com',
@@ -350,14 +351,16 @@ module.exports = class ftx extends Exchange {
             } else {
                 const base = this.safeCurrencyCode (this.safeString (ticker, 'baseCurrency'));
                 const quote = this.safeCurrencyCode (this.safeString (ticker, 'quoteCurrency'));
-                symbol = base + '/' + quote;
+                if ((base !== undefined) && (quote !== undefined)) {
+                    symbol = base + '/' + quote;
+                }
             }
         }
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
         const last = this.safeFloat (ticker, 'last');
-        const timestamp = this.milliseconds ();
+        const timestamp = this.safeTimestamp (ticker, 'time', this.milliseconds ());
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -365,9 +368,9 @@ module.exports = class ftx extends Exchange {
             'high': this.safeFloat (ticker, 'high'),
             'low': this.safeFloat (ticker, 'low'),
             'bid': this.safeFloat (ticker, 'bid'),
-            'bidVolume': undefined,
+            'bidVolume': this.safeFloat (ticker, 'bidSize'),
             'ask': this.safeFloat (ticker, 'ask'),
-            'askVolume': undefined,
+            'askVolume': this.safeFloat (ticker, 'askSize'),
             'vwap': undefined,
             'open': undefined,
             'close': last,
@@ -577,6 +580,7 @@ module.exports = class ftx extends Exchange {
         //     {
         //         "fee": 20.1374935,
         //         "feeRate": 0.0005,
+        //         "feeCurrency": "USD",
         //         "future": "EOS-0329",
         //         "id": 11215,
         //         "liquidity": "taker",
@@ -623,8 +627,11 @@ module.exports = class ftx extends Exchange {
         let fee = undefined;
         const feeCost = this.safeFloat (trade, 'fee');
         if (feeCost !== undefined) {
+            const feeCurrencyId = this.safeString (trade, 'feeCurrency');
+            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
                 'cost': feeCost,
+                'currency': feeCurrencyCode,
                 'rate': this.safeFloat (trade, 'feeRate'),
             };
         }

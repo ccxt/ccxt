@@ -10,7 +10,7 @@ use Exception; // a common import
 class vbtc extends foxbit {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'vbtc',
             'name' => 'VBTC',
             'countries' => array( 'VN' ),

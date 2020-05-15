@@ -11,7 +11,7 @@ use \ccxt\ArgumentsRequired;
 class kuna extends acx {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'kuna',
             'name' => 'Kuna',
             'countries' => array( 'UA' ),
@@ -20,11 +20,12 @@ class kuna extends acx {
             'has' => array(
                 'CORS' => false,
                 'fetchTickers' => true,
-                'fetchOHLCV' => false,
+                'fetchOHLCV' => 'emulated',
                 'fetchOpenOrders' => true,
                 'fetchMyTrades' => true,
                 'withdraw' => false,
             ),
+            'timeframes' => null,
             'urls' => array(
                 'referral' => 'https://kuna.io?r=kunaid-gvfihe8az7o4',
                 'logo' => 'https://user-images.githubusercontent.com/1294454/31697638-912824fa-b3c1-11e7-8c36-cf9606eb94ac.jpg',
@@ -192,5 +193,24 @@ class kuna extends acx {
         );
         $response = $this->privateGetTradesMy (array_merge($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
+    }
+
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limits = null, $params = array ()) {
+        $this->load_markets();
+        $trades = $this->fetch_trades($symbol, $since, $limits, $params);
+        $ohlcvc = $this->build_ohlcvc($trades, $timeframe, $since, $limits);
+        $result = array();
+        for ($i = 0; $i < count($ohlcvc); $i++) {
+            $ohlcv = $ohlcvc[$i];
+            $result[] = [
+                $ohlcv[0],
+                $ohlcv[1],
+                $ohlcv[2],
+                $ohlcv[3],
+                $ohlcv[4],
+                $ohlcv[5],
+            ];
+        }
+        return $result;
     }
 }

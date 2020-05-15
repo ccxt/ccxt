@@ -44,7 +44,7 @@ module.exports = (exchange, ticker, method, symbol) => {
 
     log (ticker['datetime'], exchange.id, method, ticker['symbol'].green, ticker['last'])
 
-    keys.forEach (key => assert (key in ticker))
+    keys.forEach ((key) => assert (key in ticker))
 
     const { high, low, vwap, baseVolume, quoteVolume } = ticker
 
@@ -59,11 +59,13 @@ module.exports = (exchange, ticker, method, symbol) => {
     }
     */
 
-    if (baseVolume && vwap)
+    if (baseVolume && vwap) {
         assert (quoteVolume)
+    }
 
-    if (quoteVolume && vwap)
+    if (quoteVolume && vwap) {
         assert (baseVolume)
+    }
 
     // log (symbol.green, 'ticker',
     //     ticker['datetime'],
@@ -76,7 +78,6 @@ module.exports = (exchange, ticker, method, symbol) => {
         'xbtce',
         'coss',
         'idex',
-        'mandala',
         'mercado',
         'okex',
         'southxchange', // https://user-images.githubusercontent.com/1294454/59953532-314bea80-9489-11e9-85b3-2a711ca49aa7.png

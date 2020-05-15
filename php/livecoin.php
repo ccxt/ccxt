@@ -15,7 +15,7 @@ use \ccxt\OrderNotFound;
 class livecoin extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'livecoin',
             'name' => 'LiveCoin',
             'countries' => array( 'US', 'UK', 'RU' ),
@@ -98,6 +98,7 @@ class livecoin extends Exchange {
             'commonCurrencies' => array(
                 'BTCH' => 'Bithash',
                 'CPC' => 'Capricoin',
+                'CBC' => 'CryptoBossCoin', // conflict with CBC (CashBet Coin)
                 'CPT' => 'Cryptos', // conflict with CPT = Contents Protocol https://github.com/ccxt/ccxt/issues/4920 and https://github.com/ccxt/ccxt/issues/6081
                 'EDR' => 'E-Dinar Coin', // conflicts with EDR for Endor Protocol and EDRCoin
                 'eETT' => 'EETT',
@@ -444,7 +445,18 @@ class livecoin extends Exchange {
             }
         }
         $symbol = null;
-        if ($market !== null) {
+        $marketId = $this->safe_string($trade, 'symbol');
+        if ($marketId !== null) {
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+            } else {
+                list($baseId, $quoteId) = explode('/', $marketId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
+                $symbol = $base . '/' . $quote;
+            }
+        }
+        if (($symbol === null) && ($market !== null)) {
             $symbol = $market['symbol'];
         }
         return array(
@@ -465,16 +477,17 @@ class livecoin extends Exchange {
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a $symbol argument');
-        }
         $this->load_markets();
-        $market = $this->market($symbol);
         $request = array(
-            'currencyPair' => $market['id'],
-            // orderDesc' => 'true', // or 'false', if true then new orders will be first, otherwise old orders will be first.
+            // 'currencyPair' => $market['id'],
+            // 'orderDesc' => 'true', // or 'false', if true then new orders will be first, otherwise old orders will be first.
             // 'offset' => 0, // page offset, position of the first item on the page
         );
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['currencyPair'] = $market['id'];
+        }
         if ($limit !== null) {
             $request['limit'] = $limit;
         }

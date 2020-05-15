@@ -12,7 +12,6 @@ try:
 except NameError:
     basestring = str  # Python 2
 import hashlib
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -28,6 +27,7 @@ from ccxt.base.errors import CancelPending
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.decimal_to_precision import TRUNCATE
@@ -88,6 +88,9 @@ class okex(Exchange):
                 'doc': 'https://www.okex.com/docs/en/',
                 'fees': 'https://www.okex.com/pages/products/fees.html',
                 'referral': 'https://www.okex.com/join/1888677',
+                'test': {
+                    'rest': 'https://testnet.okex.com',
+                },
             },
             'api': {
                 'general': {
@@ -106,7 +109,7 @@ class okex(Exchange):
                         'ledger',
                         'deposit/address',
                         'deposit/history',
-                        'deposit/history{<currency}',
+                        'deposit/history/{currency}',
                         'currencies',
                         'withdrawal/fee',
                     ],
@@ -375,8 +378,9 @@ class okex(Exchange):
                     '30034': ExchangeError,  # {"code": 30034, "message": "exchange ID does not exist"}
                     '30035': ExchangeError,  # {"code": 30035, "message": "trading is not supported in self website"}
                     '30036': ExchangeError,  # {"code": 30036, "message": "no relevant data"}
-                    '30038': AuthenticationError,  # {"code": 30038, "message": "user does not exist"}
                     '30037': ExchangeNotAvailable,  # {"code": 30037, "message": "endpoint is offline or unavailable"}
+                    # '30038': AuthenticationError,  # {"code": 30038, "message": "user does not exist"}
+                    '30038': OnMaintenance,  # {"client_oid":"","code":"30038","error_code":"30038","error_message":"Matching engine is being upgraded. Please try in about 1 minute.","message":"Matching engine is being upgraded. Please try in about 1 minute.","order_id":"-1","result":false}
                     # futures
                     '32001': AccountSuspended,  # {"code": 32001, "message": "futures account suspended"}
                     '32002': PermissionDenied,  # {"code": 32002, "message": "futures account does not exist"}
@@ -810,12 +814,6 @@ class okex(Exchange):
             'price': self.safe_float(market, 'tick_size'),
         }
         minAmount = self.safe_float_2(market, 'min_size', 'base_min_size')
-        minPrice = self.safe_float(market, 'tick_size')
-        if precision['price'] is not None:
-            minPrice = math.pow(10, -precision['price'])
-        minCost = None
-        if minAmount is not None and minPrice is not None:
-            minCost = minAmount * minPrice
         active = True
         fees = self.safe_value_2(self.fees, marketType, 'trading', {})
         return self.extend(fees, {
@@ -839,11 +837,11 @@ class okex(Exchange):
                     'max': None,
                 },
                 'price': {
-                    'min': minPrice,
+                    'min': precision['price'],
                     'max': None,
                 },
                 'cost': {
-                    'min': minCost,
+                    'min': precision['price'],
                     'max': None,
                 },
             },
@@ -1347,8 +1345,16 @@ class okex(Exchange):
             'instrument_id': market['id'],
             'granularity': self.timeframes[timeframe],
         }
+        duration = self.parse_timeframe(timeframe)
         if since is not None:
+            if limit is not None:
+                request['end'] = self.iso8601(self.sum(since, limit * duration * 1000))
             request['start'] = self.iso8601(since)
+        else:
+            now = self.milliseconds()
+            if limit is not None:
+                request['start'] = self.iso8601(now - limit * duration * 1000)
+                request['end'] = self.iso8601(now)
         response = getattr(self, method)(self.extend(request, params))
         #
         # spot markets
@@ -1803,28 +1809,7 @@ class okex(Exchange):
         #         "result":true
         #     }
         #
-        timestamp = self.milliseconds()
-        id = self.safe_string(response, 'order_id')
-        return {
-            'info': response,
-            'id': id,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': None,
-            'status': None,
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'price': price,
-            'amount': amount,
-            'filled': None,
-            'remaining': None,
-            'cost': None,
-            'trades': None,
-            'fee': None,
-            'clientOrderId': None,
-            'average': None,
-        }
+        return self.parse_order(response, market)
 
     def cancel_order(self, id, symbol=None, params={}):
         if symbol is None:
@@ -2230,9 +2215,11 @@ class okex(Exchange):
         return self.fetch_orders_by_state('7', symbol, since, limit, params)
 
     def parse_deposit_addresses(self, addresses):
-        result = []
+        result = {}
         for i in range(0, len(addresses)):
-            result.append(self.parse_deposit_address(addresses[i]))
+            address = self.parse_deposit_address(addresses[i])
+            code = address['currency']
+            result[code] = address
         return result
 
     def parse_deposit_address(self, depositAddress, currency=None):
@@ -2275,10 +2262,10 @@ class okex(Exchange):
         #     ]
         #
         addresses = self.parse_deposit_addresses(response)
-        numAddresses = len(addresses)
-        if numAddresses < 1:
+        address = self.safe_value(addresses, code)
+        if address is None:
             raise InvalidAddress(self.id + ' fetchDepositAddress cannot return nonexistent addresses, you should create withdrawal addresses with the exchange website first')
-        return addresses[0]
+        return address
 
     def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
@@ -2288,7 +2275,7 @@ class okex(Exchange):
             address = address + ':' + tag
         fee = self.safe_string(params, 'fee')
         if fee is None:
-            raise ExchangeError(self.id + " withdraw() requires a `fee` string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKEx are fee-free, please set '0'. Withdrawing to external digital asset address requires network transaction fee.")
+            raise ArgumentsRequired(self.id + " withdraw() requires a `fee` string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKEx are fee-free, please set '0'. Withdrawing to external digital asset address requires network transaction fee.")
         request = {
             'currency': currency['id'],
             'to_address': address,
@@ -2473,12 +2460,6 @@ class okex(Exchange):
         }
 
     def parse_my_trade(self, pair, market=None):
-        if not isinstance(pair, list):
-            raise NotSupported(self.id + ' parseMyTrade() received unrecognized response format, the exchange API might have changed, paste your verbose outpu: https://github.com/ccxt/ccxt/wiki/FAQ#what-is-required-to-get-help')
-        # make sure it has exactly 2 trades, no more, no less
-        numTradesInPair = len(pair)
-        if numTradesInPair != 2:
-            raise NotSupported(self.id + ' parseMyTrade() received unrecognized response format, more than two trades in one fill, the exchange API might have changed, paste your verbose output: https://github.com/ccxt/ccxt/wiki/FAQ#what-is-required-to-get-help')
         # check that trading symbols match in both entries
         first = pair[0]
         second = pair[1]
@@ -2595,8 +2576,11 @@ class okex(Exchange):
         for i in range(0, len(tradeIds)):
             tradeId = tradeIds[i]
             pair = grouped[tradeId]
-            trade = self.parse_my_trade(pair)
-            result.append(trade)
+            # make sure it has exactly 2 trades, no more, no less
+            numTradesInPair = len(pair)
+            if numTradesInPair == 2:
+                trade = self.parse_my_trade(pair)
+                result.append(trade)
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -3068,7 +3052,8 @@ class okex(Exchange):
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         feedback = self.id + ' ' + body
         if code == 503:
-            raise ExchangeError(feedback)
+            # {"message":"name resolution failed"}
+            raise ExchangeNotAvailable(feedback)
         if not response:
             return  # fallback to default error handler
         message = self.safe_string(response, 'message')
@@ -3076,6 +3061,8 @@ class okex(Exchange):
         if message is not None:
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
-        self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
-        if message is not None:
-            raise ExchangeError(feedback)  # unknown message
+            self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+            nonEmptyMessage = (message != '')
+            nonZeroErrorCode = (errorCode is not None) and (errorCode != '0')
+            if nonZeroErrorCode or nonEmptyMessage:
+                raise ExchangeError(feedback)  # unknown message

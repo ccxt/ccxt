@@ -694,16 +694,21 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     parseOrderStatus (status) {
+        if (status === undefined) {
+            return status;
+        }
+        const parts = status.split (' ');
+        const state = this.safeString (parts, 0);
         const statuses = {
             'ACTIVE': 'open',
-            'PARTIALLY FILLED': 'open',
+            'PARTIALLY': 'open',
             'EXECUTED': 'closed',
             'CANCELED': 'canceled',
-            'INSUFFICIENT MARGIN': 'canceled',
+            'INSUFFICIENT': 'canceled',
             'RSN_DUST': 'rejected',
             'RSN_PAUSE': 'rejected',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, state, status);
     }
 
     parseOrder (order, market = undefined) {

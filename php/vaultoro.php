@@ -10,7 +10,7 @@ use Exception; // a common import
 class vaultoro extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'vaultoro',
             'name' => 'Vaultoro',
             'countries' => array( 'CH' ),

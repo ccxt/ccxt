@@ -35,6 +35,7 @@ module.exports = class bitmart extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchCanceledOrders': true,
                 'fetchOrder': true,
+                'signIn': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/61835713-a2662f80-ae85-11e9-9d00-6442919701fd.jpg',
@@ -42,6 +43,7 @@ module.exports = class bitmart extends Exchange {
                 'www': 'https://www.bitmart.com/',
                 'doc': 'https://github.com/bitmartexchange/bitmart-official-api-docs',
                 'referral': 'http://www.bitmart.com/?r=rQCFLh',
+                'fees': 'https://www.bitmart.com/fee/en',
             },
             'requiredCredentials': {
                 'apiKey': true,
@@ -256,13 +258,54 @@ module.exports = class bitmart extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        const timestamp = this.milliseconds ();
-        const marketId = this.safeString (ticker, 'symbol_id');
+        //
+        // fetchTicker
+        //
+        //     {
+        //         "volume":"6139.8058",
+        //         "ask_1":"0.021856",
+        //         "base_volume":"131.5157",
+        //         "lowest_price":"0.021090",
+        //         "bid_1":"0.021629",
+        //         "highest_price":"0.021929",
+        //         "ask_1_amount":"0.1245",
+        //         "current_price":"0.021635",
+        //         "fluctuation":"+0.0103",
+        //         "symbol_id":"ETH_BTC",
+        //         "url":"https://www.bitmart.com/trade?symbol=ETH_BTC",
+        //         "bid_1_amount":"1.8546"
+        //     }
+        //
+        // fetchTickers
+        //
+        //     {
+        //         "priceChange":"0%",
+        //         "symbolId":1066,
+        //         "website":"https://www.bitmart.com/trade?symbol=1SG_BTC",
+        //         "depthEndPrecision":6,
+        //         "ask_1":"0.000095",
+        //         "anchorId":2,
+        //         "anchorName":"BTC",
+        //         "pair":"1SG_BTC",
+        //         "volume":"0.0",
+        //         "coinId":2029,
+        //         "depthStartPrecision":4,
+        //         "high_24h":"0.000035",
+        //         "low_24h":"0.000035",
+        //         "new_24h":"0.000035",
+        //         "closeTime":1589389249342,
+        //         "bid_1":"0.000035",
+        //         "coinName":"1SG",
+        //         "baseVolume":"0.0",
+        //         "openTime":1589302849342
+        //     }
+        //
+        const timestamp = this.safeInteger (ticker, 'closeTime', this.milliseconds ());
+        const marketId = this.safeString (ticker, 'pair');
         let symbol = undefined;
         if (marketId !== undefined) {
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
             } else if (marketId !== undefined) {
                 const [ baseId, quoteId ] = marketId.split ('_');
                 const base = this.safeCurrencyCode (baseId);
@@ -270,14 +313,26 @@ module.exports = class bitmart extends Exchange {
                 symbol = base + '/' + quote;
             }
         }
-        const last = this.safeFloat (ticker, 'current_price');
-        const percentage = this.safeFloat (ticker, 'fluctuation');
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
+        const last = this.safeFloat2 (ticker, 'current_price', 'new_24h');
+        let percentage = this.safeFloat (ticker, 'fluctuation');
+        if (percentage === undefined) {
+            percentage = this.safeString (ticker, 'priceChange');
+            if (percentage !== undefined) {
+                percentage = percentage.replace ('%', '');
+                percentage = parseFloat (percentage);
+            }
+        } else {
+            percentage *= 100;
+        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'highest_price'),
-            'low': this.safeFloat (ticker, 'lowest_price'),
+            'high': this.safeFloat2 (ticker, 'highest_price', 'high_24h'),
+            'low': this.safeFloat2 (ticker, 'lowest_price', 'low_24h'),
             'bid': this.safeFloat (ticker, 'bid_1'),
             'bidVolume': this.safeFloat (ticker, 'bid_1_amount'),
             'ask': this.safeFloat (ticker, 'ask_1'),
@@ -288,18 +343,19 @@ module.exports = class bitmart extends Exchange {
             'last': last,
             'previousClose': undefined,
             'change': undefined,
-            'percentage': percentage * 100,
+            'percentage': percentage,
             'average': undefined,
             'baseVolume': this.safeFloat (ticker, 'volume'),
-            'quoteVolume': this.safeFloat (ticker, 'base_volume'),
+            'quoteVolume': this.safeFloat2 (ticker, 'base_volume', 'baseVolume'),
             'info': ticker,
         };
     }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'symbol': this.marketId (symbol),
+            'symbol': market['id'],
         };
         const response = await this.publicGetTicker (this.extend (request, params));
         //
@@ -318,12 +374,37 @@ module.exports = class bitmart extends Exchange {
         //         "bid_1_amount":"134.78"
         //     }
         //
-        return this.parseTicker (response);
+        return this.parseTicker (response, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const tickers = await this.publicGetTicker (params);
+        //
+        //         [
+        //             {
+        //                 "priceChange":"0%",
+        //                 "symbolId":1066,
+        //                 "website":"https://www.bitmart.com/trade?symbol=1SG_BTC",
+        //                 "depthEndPrecision":6,
+        //                 "ask_1":"0.000095",
+        //                 "anchorId":2,
+        //                 "anchorName":"BTC",
+        //                 "pair":"1SG_BTC",
+        //                 "volume":"0.0",
+        //                 "coinId":2029,
+        //                 "depthStartPrecision":4,
+        //                 "high_24h":"0.000035",
+        //                 "low_24h":"0.000035",
+        //                 "new_24h":"0.000035",
+        //                 "closeTime":1589389249342,
+        //                 "bid_1":"0.000035",
+        //                 "coinName":"1SG",
+        //                 "baseVolume":"0.0",
+        //                 "openTime":1589302849342
+        //             },
+        //         ]
+        //
         const result = {};
         for (let i = 0; i < tickers.length; i++) {
             const ticker = this.parseTicker (tickers[i]);

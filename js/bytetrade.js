@@ -47,10 +47,16 @@ module.exports = class bytetrade extends Exchange {
                 '1M': '1M',
             },
             'urls': {
-                'test': 'https://api-v2-test.bytetrade.com',
+                'test': {
+                    'market': 'https://api-v2-test.byte-trade.com',
+                    'public': 'https://api-v2-test.byte-trade.com',
+                },
                 'logo': 'https://user-images.githubusercontent.com/1294454/67288762-2f04a600-f4e6-11e9-9fd6-c60641919491.jpg',
-                'api': 'https://api-v2.bytetrade.com',
-                'www': 'https://www.bytetrade.com',
+                'api': {
+                    'market': 'https://api-v2.bytetrade.com',
+                    'public': 'https://api-v2.bytetrade.com',
+                },
+                'www': 'https://www.byte-trade.com',
                 'doc': 'https://github.com/Bytetrade/bytetrade-official-api-docs/wiki',
             },
             'api': {
@@ -117,7 +123,7 @@ module.exports = class bytetrade extends Exchange {
                 code = this.safeString (currency, 'name');
             }
             const name = this.safeString (currency, 'fullname');
-            // in bytetrade.com DEX, request https://api-v2.bytetrade.com/currencies will return currencies,
+            // in byte-trade.com DEX, request https://api-v2.byte-trade.com/currencies will return currencies,
             // the api doc is https://github.com/Bytetrade/bytetrade-official-api-docs/wiki/rest-api#get-currencies-get-currencys-supported-in-bytetradecom
             // we can see the coin name is none-unique in the result, the coin which code is 18 is the CyberMiles ERC20, and the coin which code is 35 is the CyberMiles main chain, but their name is same.
             // that is because bytetrade is a DEX, supports people create coin with the same name, but the id(code) of coin is unique, so we should use the id or name and id as the identity of coin.
@@ -1222,7 +1228,7 @@ module.exports = class bytetrade extends Exchange {
                 this.numberToLE (address.length, 1),
                 this.stringToBinary (this.encode (address)),
                 this.numberToLE (parseInt (coinId), 4),
-                this.numberToLE (Math.floor (parseInt (parseFloat (this.integerDivide (amountChain, eightBytes)))), 8),
+                this.numberToLE (this.integerDivide (amountChain, eightBytes), 8),
                 this.numberToLE (this.integerModulo (amountChain, eightBytes), 8),
                 this.numberToLE (1, 1),
                 this.numberToLE (this.integerDivide (assetFee, eightBytes), 8),
@@ -1255,7 +1261,7 @@ module.exports = class bytetrade extends Exchange {
                 this.numberToLE (middleAddress.length, 1),
                 this.stringToBinary (this.encode (middleAddress)),
                 this.numberToLE (parseInt (coinId), 4),
-                this.numberToLE (Math.floor (parseInt (parseFloat (this.integerDivide (amountChain, eightBytes)))), 8),
+                this.numberToLE (this.integerDivide (amountChain, eightBytes), 8),
                 this.numberToLE (this.integerModulo (amountChain, eightBytes), 8),
                 this.numberToLE (0, 1),
                 this.numberToLE (1, 1),
@@ -1358,7 +1364,7 @@ module.exports = class bytetrade extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'];
+        let url = this.urls['api'][api];
         url += '/' + path;
         if (Object.keys (params).length) {
             url += '?' + this.urlencode (params);

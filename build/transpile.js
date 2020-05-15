@@ -199,6 +199,7 @@ class Transpiler {
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s/g, '$1' ],
             [ /Object\.keys\s*\((.*)\)\.length/g, '$1' ],
             [ /Object\.keys\s*\((.*)\)/g, 'list($1.keys())' ],
+            [ /Object\.values\s*\((.*)\)/g, 'list($1.values())' ],
             [ /\[([^\]]+)\]\.join\s*\(([^\)]+)\)/g, "$2.join([$1])" ],
             [ /hash \(([^,]+)\, \'(sha[0-9])\'/g, "hash($1, '$2'" ],
             [ /hmac \(([^,]+)\, ([^,]+)\, \'(md5)\'/g, 'hmac($1, $2, hashlib.$3' ],
@@ -307,7 +308,9 @@ class Transpiler {
             [ /this\.stringToBase64\s/g, 'base64_encode' ],
             [ /this\.binaryToBase16\s/g, 'bin2hex' ],
             [ /this\.base64ToBinary\s/g, 'base64_decode' ],
-            [ /this\.deepExtend\s/g, 'array_replace_recursive'],
+            // deepExtend is commented for PHP because it does not overwrite linear arrays
+            // a proper \ccxt\Exchange::deep_extend() base method is implemented instead
+            // [ /this\.deepExtend\s/g, 'array_replace_recursive'],
             [ /(\w+)\.shift\s*\(\)/g, 'array_shift($1)' ],
             [ /(\w+)\.pop\s*\(\)/g, 'array_pop($1)' ],
             [ /Number\.MAX_SAFE_INTEGER/g, 'PHP_INT_MAX' ],
@@ -328,6 +331,7 @@ class Transpiler {
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s/g, '$1' ],
             [ /Object\.keys\s*\((.*)\)\.length/g, '$1' ],
             [ /Object\.keys\s*\((.*)\)/g, 'is_array($1) ? array_keys($1) : array()' ],
+            [ /Object\.values\s*\((.*)\)/g, 'is_array($1) ? array_values($1) : array()' ],
             [ /([^\s]+\s*\(\))\.toString \(\)/g, '(string) $1' ],
             [ /([^\s]+)\.toString \(\)/g, '(string) $1' ],
             [ /throw new Error \((.*)\)/g, 'throw new \\Exception($1)' ],

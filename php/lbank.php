@@ -6,12 +6,12 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
+use \ccxt\ArgumentsRequired;
 
 class lbank extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'lbank',
             'name' => 'LBank',
             'countries' => array( 'CN' ),
@@ -341,10 +341,10 @@ class lbank extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         if ($since === null) {
-            throw new ExchangeError($this->id . ' fetchOHLCV requires a `$since` argument');
+            throw new ArgumentsRequired($this->id . ' fetchOHLCV requires a `$since` argument');
         }
         if ($limit === null) {
-            throw new ExchangeError($this->id . ' fetchOHLCV requires a `$limit` argument');
+            throw new ArgumentsRequired($this->id . ' fetchOHLCV requires a `$limit` argument');
         }
         $request = array(
             'symbol' => $market['id'],

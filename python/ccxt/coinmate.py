@@ -6,6 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import RateLimitExceeded
@@ -168,6 +169,7 @@ class coinmate(Exchange):
                     'No order with given ID': OrderNotFound,
                 },
                 'broad': {
+                    'Not enough account balance available': InsufficientFunds,
                     'Incorrect order ID': InvalidOrder,
                     'Minimum Order Size ': InvalidOrder,
                     'TOO MANY REQUESTS': RateLimitExceeded,
@@ -534,6 +536,7 @@ class coinmate(Exchange):
         statuses = {
             'FILLED': 'closed',
             'CANCELLED': 'canceled',
+            'PARTIALLY_FILLED': 'open',
             'OPEN': 'open',
         }
         return self.safe_string(statuses, status, status)
@@ -599,7 +602,9 @@ class coinmate(Exchange):
         filled = None
         cost = None
         if (amount is not None) and (remaining is not None):
-            filled = amount - remaining
+            filled = max(amount - remaining, 0)
+            if remaining == 0:
+                status = 'closed'
             if price is not None:
                 cost = filled * price
         average = self.safe_float(order, 'avgPrice')

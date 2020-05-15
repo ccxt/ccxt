@@ -35,7 +35,7 @@ use kornrunner\Solidity;
 use Elliptic\EC;
 use BN\BN;
 
-$version = '1.25.37';
+$version = '1.27.83';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -54,12 +54,11 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.25.37';
+    const VERSION = '1.27.83';
 
     public static $exchanges = array(
         '_1btcxe',
         'acx',
-        'adara',
         'anxpro',
         'aofex',
         'bcex',
@@ -101,7 +100,6 @@ class Exchange {
         'bytetrade',
         'cex',
         'chilebit',
-        'cobinhood',
         'coinbase',
         'coinbaseprime',
         'coinbasepro',
@@ -121,6 +119,7 @@ class Exchange {
         'deribit',
         'digifinex',
         'dsx',
+        'eterbase',
         'exmo',
         'exx',
         'fcoin',
@@ -131,8 +130,8 @@ class Exchange {
         'fybse',
         'gateio',
         'gemini',
+        'hbtc',
         'hitbtc',
-        'hitbtc2',
         'hollaex',
         'huobipro',
         'huobiru',
@@ -159,6 +158,7 @@ class Exchange {
         'okex',
         'paymium',
         'poloniex',
+        'probit',
         'rightbtc',
         'southxchange',
         'stex',
@@ -385,7 +385,7 @@ class Exchange {
     }
 
     public static function is_associative($array) {
-        return count(array_filter(array_keys($array), 'is_string')) > 0;
+        return is_array($array) && (count(array_filter(array_keys($array), 'is_string')) > 0);
     }
 
     public static function omit($array, $keys) {
@@ -502,6 +502,27 @@ class Exchange {
             }
         }
         return $string;
+    }
+
+    public static function deep_extend() {
+        //
+        //     extend associative dictionaries only, replace everything else
+        //
+        $out = null;
+        $args = func_get_args();
+        foreach ($args as $arg) {
+            if (static::is_associative($arg) || (is_array ($arg) && (count($arg) === 0))) {
+                if (!static::is_associative($out)) {
+                    $out = array();
+                }
+                foreach ($arg as $k => $v) {
+                    $out[$k] = static::deep_extend(isset($out[$k]) ? $out[$k] : array(), $v);
+                }
+            } else {
+                $out = $arg;
+            }
+        }
+        return $out;
     }
 
     public static function indexBy($arrayOfArrays, $key) {
@@ -656,6 +677,13 @@ class Exchange {
         }
         return $time;
     }
+    
+    public static function rfc2616($timestamp) {	
+        if (!$timestamp) {	
+            $timestamp = $this->milliseconds();	
+        }	
+        return gmdate('D, d M Y H:i:s T', (int) round($timestamp / 1000));	
+    }
 
     public static function dmy($timestamp, $infix = '-') {
         return gmdate('m' . $infix . 'd' . $infix . 'Y', (int) round($timestamp / 1000));
@@ -683,6 +711,14 @@ class Exchange {
 
     public static function binaryToBase64($binary) {
         return static::binary_to_base64($binary);
+    }
+
+    public static function base16_to_binary($data) {
+        return hex2bin($data);
+    }
+
+    public static function base16ToBinary($data) {
+        return static::base16_to_binary($data);
     }
 
     public static function json($data, $params = array()) {
@@ -757,6 +793,7 @@ class Exchange {
     }
 
     public function __construct($options = array()) {
+
         // todo auto-camelcasing for methods in PHP
         // $method_names = get_class_methods ($this);
         // foreach ($method_names as $method_name) {
@@ -904,6 +941,7 @@ class Exchange {
 
         // API methods metainfo
         $this->has = array(
+            'loadMarkets' => true,
             'cancelAllOrders' => false,
             'cancelOrder' => true,
             'cancelOrders' => false,
@@ -973,7 +1011,6 @@ class Exchange {
         $this->urlencode_glue_warning = true;
 
         $options = array_replace_recursive($this->describe(), $options);
-
         if ($options) {
             foreach ($options as $key => $value) {
                 $this->{$key} =
@@ -1208,9 +1245,11 @@ class Exchange {
     public function print() {
         $args = func_get_args();
         if (is_array($args)) {
+            $array = array();
             foreach ($args as $arg) {
-                print_r($arg);
+                $array[] = is_string($arg) ? $arg : json_encode($arg, JSON_PRETTY_PRINT);
             }
+            echo implode(' ', $array), "\n";
         }
     }
 
@@ -1299,7 +1338,8 @@ class Exchange {
         }
 
         if ($this->verbose) {
-            $this->print("\nRequest:\n", array($method, $url, $verbose_headers, $body));
+            $function = array($this, 'print');
+            $function('Request:', $method, $url, $verbose_headers, $body);
         }
 
         // we probably only need to set it once on startup
@@ -1381,7 +1421,8 @@ class Exchange {
         $http_status_code = curl_getinfo($this->curl, CURLINFO_HTTP_CODE);
 
         if ($this->verbose) {
-            $this->print("\nResponse:\n", array($method, $url, $http_status_code, $curl_error, $response_headers, $result));
+            $function = array($this, 'print');
+            $function('Response:', $method, $url, $http_status_code, $curl_error, $response_headers, $result);
         }
 
         $this->handle_errors($http_status_code, $http_status_text, $url, $method, $response_headers, $result ? $result : null, $json_response, $headers, $body);
@@ -1466,7 +1507,7 @@ class Exchange {
         } else {
             $base_currencies = array_map(function ($market) {
                 return array(
-                    'id' => array_key_exists('baseId', $market) ? $market['baseId'] : $market['base'],
+                    'id' => isset($market['baseId']) ? $market['baseId'] : $market['base'],
                     'numericId' => array_key_exists('baseNumericId', $market) ? $market['baseNumericId'] : null,
                     'code' => $market['base'],
                     'precision' => array_key_exists('precision', $market) ? (
@@ -1479,7 +1520,7 @@ class Exchange {
             }));
             $quote_currencies = array_map(function ($market) {
                 return array(
-                    'id' => array_key_exists('quoteId', $market) ? $market['quoteId'] : $market['quote'],
+                    'id' => isset($market['quoteId']) ? $market['quoteId'] : $market['quote'],
                     'numericId' => array_key_exists('quoteNumericId', $market) ? $market['quoteNumericId'] : null,
                     'code' => $market['quote'],
                     'precision' => array_key_exists('precision', $market) ? (
@@ -1943,6 +1984,14 @@ class Exchange {
         return $this->fetch_order($id, $symbol, $params);
     }
 
+    public function fetch_unified_order($order, $params = array ()) {
+        return $this->fetch_order($this->safe_value($order, 'id'), $this->safe_value($order, 'symbol'), $params);
+    }
+
+    public function fetchUnifiedOrder($order, $params = array ()) {
+        return $this->fetch_unified_order($order, $params);
+    }
+
     public function fetch_order_trades($id, $symbol = null, $params = array()) {
         throw new NotSupported($this->id . ' fetch_order_trades() not supported yet');
     }
@@ -2151,6 +2200,14 @@ class Exchange {
 
     public function cancelOrder($id, $symbol = null, $params = array()) {
         return $this->cancel_order($id, $symbol, $params);
+    }
+
+    public function cancel_unified_order($order, $params = array ()) {
+        return $this->cancel_order($this->safe_value($order, 'id'), $this->safe_value($order, 'symbol'), $params);
+    }
+
+    public function cancelUnifiedOrder($order, $params = array ()) {
+        return $this->cancel_unified_order($order, $params);
     }
 
     public function editLimitBuyOrder($id, $symbol, $amount, $price, $params = array()) {
@@ -2467,6 +2524,7 @@ class Exchange {
             $precisionDigitsString = static::decimal_to_precision ($numPrecisionDigits, ROUND, 100, DECIMAL_PLACES, NO_PADDING);
             $newNumPrecisionDigits = static::precisionFromString ($precisionDigitsString);
             $missing = fmod($x, $numPrecisionDigits);
+            $missing = floatval(static::decimal_to_precision ($missing, ROUND, 8, DECIMAL_PLACES, NO_PADDING));
             // See: https://github.com/ccxt/ccxt/pull/6486
             $fpError = static::decimal_to_precision ($missing / $numPrecisionDigits, ROUND, max($newNumPrecisionDigits, 8), DECIMAL_PLACES, NO_PADDING);
             if (static::precisionFromString ($fpError) !== 0) {
@@ -2615,14 +2673,14 @@ class Exchange {
     }
 
     public static function from_wei($amount, $decimals = 18) {
-        $exponential = sprintf('%e', $amount);
+        $exponential = sprintf('%.' . $decimals . 'e', $amount);
         list($n, $exponent) = explode('e', $exponential);
         $new_exponent = intval($exponent) - $decimals;
         return floatval($n . 'e' . strval($new_exponent));
     }
 
     public static function to_wei($amount, $decimals = 18) {
-        $exponential = sprintf('%e', $amount);
+        $exponential = sprintf('%.' . $decimals . 'e', $amount);
         list($n, $exponent) = explode('e', $exponential);
         $new_exponent = intval($exponent) + $decimals;
         return static::number_to_string(floatval($n . 'e' . strval($new_exponent)));

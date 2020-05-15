@@ -10,7 +10,7 @@ use Exception; // a common import
 class binanceje extends binance {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'binanceje',
             'name' => 'Binance Jersey',
             'countries' => array( 'JE' ), // Jersey
@@ -48,6 +48,9 @@ class binanceje extends binance {
                     ),
                     'deposit' => array(),
                 ),
+            ),
+            'options' => array(
+                'quoteOrderQty' => false, // whether market orders support amounts in quote currency
             ),
         ));
     }

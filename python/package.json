@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.25.37",
+  "version": "1.27.83",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 130+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "dist/ccxt.browser.js",
@@ -62,7 +62,7 @@
     "eslint-config-airbnb-base": "14.1.0",
     "eslint-plugin-import": "2.20.1",
     "mocha": "5.2.0",
-    "ololog": "1.1.121"
+    "ololog": "1.1.155"
   },
   "author": {
     "name": "Igor Kroitor",
@@ -463,8 +463,6 @@
     "Binance Jersey",
     "bequant.io",
     "Bequant",
-    "mandalaex.com",
-    "Mandala",
     "dx.exchange",
     "DX.Exchange",
     "oceanex.pro.com",
@@ -506,7 +504,15 @@
     "bybit.com",
     "Bybit",
     "aofex.com",
-    "AOFEX"
+    "AOFEX",
+    "byte-trade.com",
+    "hbtc.com",
+    "HBTC",
+    "probit.com",
+    "ProBit",
+    "eterbase.com",
+    "ETERBASE",
+    "Eterbase"
   ],
   "collective": {
     "type": "opencollective",

@@ -13,7 +13,7 @@ use \ccxt\InvalidOrder;
 class upbit extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'upbit',
             'name' => 'Upbit',
             'countries' => array( 'KR' ),
@@ -1330,7 +1330,9 @@ class upbit extends Exchange {
     public function parse_deposit_addresses($addresses) {
         $result = array();
         for ($i = 0; $i < count($addresses); $i++) {
-            $result[] = $this->parse_deposit_address($addresses[$i]);
+            $address = $this->parse_deposit_address($addresses[$i]);
+            $code = $address['currency'];
+            $result[$code] = $address;
         }
         return $result;
     }

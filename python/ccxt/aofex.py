@@ -24,7 +24,7 @@ class aofex(Exchange):
         return self.deep_extend(super(aofex, self).describe(), {
             'id': 'aofex',
             'name': 'AOFEX',
-            'countries': ['GB', 'CN'],
+            'countries': ['GB'],
             'rateLimit': 1000,
             'has': {
                 'fetchMarkets': True,
@@ -41,6 +41,7 @@ class aofex(Exchange):
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'fetchClosedOrder': True,
+                'fetchOrderTrades': True,
                 'fetchTradingFee': True,
             },
             'timeframes': {
@@ -548,7 +549,7 @@ class aofex(Exchange):
         #
         id = self.safe_string(trade, 'id')
         ctime = self.parse8601(self.safe_string(trade, 'ctime'))
-        timestamp = self.safe_timestamp(trade, 'ts', ctime)
+        timestamp = self.safe_timestamp(trade, 'ts', ctime) - 28800000  # 8 hours, adjust to UTC
         symbol = None
         if (symbol is None) and (market is not None):
             symbol = market['symbol']
@@ -704,6 +705,8 @@ class aofex(Exchange):
             base = market['base']
             quote = market['quote']
         timestamp = self.parse8601(self.safe_string(order, 'ctime'))
+        if timestamp is not None:
+            timestamp -= 28800000  # 8 hours, adjust to UTC
         orderType = self.safe_string(order, 'type')
         type = 'limit' if (orderType == '2') else 'market'
         side = self.safe_string(order, 'side')
@@ -843,11 +846,15 @@ class aofex(Exchange):
         order['trades'] = trades
         return self.parse_order(order)
 
+    def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+        response = self.fetch_closed_order(id, symbol, params)
+        return self.safe_value(response, 'trades', [])
+
     def fetch_orders_with_method(self, method, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         request = {
             # 'from': 'BM7442641584965237751ZMAKJ5',  # query start order_sn
-            # 'direct': 'prev',  # next
+            'direct': 'prev',  # next
         }
         market = None
         if symbol is not None:

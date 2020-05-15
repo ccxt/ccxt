@@ -13,7 +13,7 @@ use \ccxt\NotSupported;
 class bitstamp1 extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'bitstamp1',
             'name' => 'Bitstamp',
             'countries' => array( 'GB' ),

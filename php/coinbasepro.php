@@ -14,7 +14,7 @@ use \ccxt\NotSupported;
 class coinbasepro extends Exchange {
 
     public function describe() {
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'coinbasepro',
             'name' => 'Coinbase Pro',
             'countries' => array( 'US' ),
@@ -523,7 +523,13 @@ class coinbasepro extends Exchange {
 
     public function fetch_time($params = array ()) {
         $response = $this->publicGetTime ($params);
-        return $this->parse8601($this->safe_string($response, 'iso'));
+        //
+        //     {
+        //         "iso":"2020-05-12T08:00:51.504Z",
+        //         "epoch":1589270451.504
+        //     }
+        //
+        return $this->safe_timestamp($response, 'epoch');
     }
 
     public function parse_order_status($status) {

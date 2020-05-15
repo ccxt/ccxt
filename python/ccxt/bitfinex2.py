@@ -664,16 +664,20 @@ class bitfinex2(bitfinex):
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def parse_order_status(self, status):
+        if status is None:
+            return status
+        parts = status.split(' ')
+        state = self.safe_string(parts, 0)
         statuses = {
             'ACTIVE': 'open',
-            'PARTIALLY FILLED': 'open',
+            'PARTIALLY': 'open',
             'EXECUTED': 'closed',
             'CANCELED': 'canceled',
-            'INSUFFICIENT MARGIN': 'canceled',
+            'INSUFFICIENT': 'canceled',
             'RSN_DUST': 'rejected',
             'RSN_PAUSE': 'rejected',
         }
-        return self.safe_string(statuses, status, status)
+        return self.safe_string(statuses, state, status)
 
     def parse_order(self, order, market=None):
         id = self.safe_string(order, 0)

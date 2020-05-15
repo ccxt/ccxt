@@ -176,12 +176,14 @@ class huobipro(Exchange):
             'exceptions': {
                 'exact': {
                     # err-code
+                    'bad-request': BadRequest,
                     'api-not-support-temp-addr': PermissionDenied,  # {"status":"error","err-code":"api-not-support-temp-addr","err-msg":"API withdrawal does not support temporary addresses","data":null}
                     'timeout': RequestTimeout,  # {"ts":1571653730865,"status":"error","err-code":"timeout","err-msg":"Request Timeout"}
                     'gateway-internal-error': ExchangeNotAvailable,  # {"status":"error","err-code":"gateway-internal-error","err-msg":"Failed to load data. Try again later.","data":null}
                     'account-frozen-balance-insufficient-error': InsufficientFunds,  # {"status":"error","err-code":"account-frozen-balance-insufficient-error","err-msg":"trade account balance is not enough, left: `0.0027`","data":null}
                     'invalid-amount': InvalidOrder,  # eg "Paramemter `amount` is invalid."
                     'order-limitorder-amount-min-error': InvalidOrder,  # limit order amount error, min: `0.001`
+                    'order-limitorder-amount-max-error': InvalidOrder,  # market order amount error, max: `1000000`
                     'order-marketorder-amount-min-error': InvalidOrder,  # market order amount error, min: `0.01`
                     'order-limitorder-price-min-error': InvalidOrder,  # limit order price error
                     'order-limitorder-price-max-error': InvalidOrder,  # limit order price error
@@ -336,6 +338,8 @@ class huobipro(Exchange):
 
     def parse_ticker(self, ticker, market=None):
         #
+        # fetchTicker
+        #
         #     {
         #         "amount": 26228.672978342216,
         #         "open": 9078.95,
@@ -350,22 +354,44 @@ class huobipro(Exchange):
         #         "bid": [9146.86, 0.080758],
         #     }
         #
+        # fetchTickers
+        #     {
+        #         symbol: "bhdht",
+        #         open:  2.3938,
+        #         high:  2.4151,
+        #         low:  2.3323,
+        #         close:  2.3909,
+        #         amount:  628.992,
+        #         vol:  1493.71841095,
+        #         count:  2088,
+        #         bid:  2.3643,
+        #         bidSize:  0.7136,
+        #         ask:  2.4061,
+        #         askSize:  0.4156
+        #     }
+        #
         symbol = None
         if market is not None:
             symbol = market['symbol']
         timestamp = self.safe_integer(ticker, 'ts')
         bid = None
-        ask = None
         bidVolume = None
+        ask = None
         askVolume = None
         if 'bid' in ticker:
             if isinstance(ticker['bid'], list):
                 bid = self.safe_float(ticker['bid'], 0)
                 bidVolume = self.safe_float(ticker['bid'], 1)
+            else:
+                bid = self.safe_float(ticker, 'bid')
+                bidVolume = self.safe_value(ticker, 'bidSize')
         if 'ask' in ticker:
             if isinstance(ticker['ask'], list):
                 ask = self.safe_float(ticker['ask'], 0)
                 askVolume = self.safe_float(ticker['ask'], 1)
+            else:
+                ask = self.safe_float(ticker, 'ask')
+                askVolume = self.safe_value(ticker, 'askSize')
         open = self.safe_float(ticker, 'open')
         close = self.safe_float(ticker, 'close')
         change = None
@@ -492,7 +518,7 @@ class huobipro(Exchange):
                 ticker['timestamp'] = timestamp
                 ticker['datetime'] = self.iso8601(timestamp)
                 result[symbol] = ticker
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def parse_trade(self, trade, market=None):
         #
