@@ -334,6 +334,7 @@ class binance(Exchange):
                     'market': 'FULL',  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
                     'limit': 'RESULT',  # we change it from 'ACK' by default to 'RESULT'
                 },
+                'quoteOrderQty': True,  # whether market orders support amounts in quote currency
             },
             'exceptions': {
                 'API key does not exist': AuthenticationError,
@@ -1113,7 +1114,8 @@ class binance(Exchange):
             'type': uppercaseType,
             'side': side.upper(),
         }
-        if uppercaseType == 'MARKET':
+        quoteOrderQty = self.safe_value(self.options, 'quoteOrderQty', False)
+        if uppercaseType == 'MARKET' and quoteOrderQty:
             quoteOrderQty = self.safe_float(params, 'quoteOrderQty')
             precision = market['precision']['price']
             if quoteOrderQty is not None:

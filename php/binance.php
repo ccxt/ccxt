@@ -325,6 +325,7 @@ class binance extends Exchange {
                     'market' => 'FULL', // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
                     'limit' => 'RESULT', // we change it from 'ACK' by default to 'RESULT'
                 ),
+                'quoteOrderQty' => true, // whether market orders support amounts in quote currency
             ),
             'exceptions' => array(
                 'API key does not exist' => '\\ccxt\\AuthenticationError',
@@ -1179,7 +1180,8 @@ class binance extends Exchange {
             'type' => $uppercaseType,
             'side' => strtoupper($side),
         );
-        if ($uppercaseType === 'MARKET') {
+        $quoteOrderQty = $this->safe_value($this->options, 'quoteOrderQty', false);
+        if ($uppercaseType === 'MARKET' && $quoteOrderQty) {
             $quoteOrderQty = $this->safe_float($params, 'quoteOrderQty');
             $precision = $market['precision']['price'];
             if ($quoteOrderQty !== null) {
