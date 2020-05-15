@@ -49,6 +49,9 @@ class binanceje extends binance {
                     'deposit' => array(),
                 ),
             ),
+            'options' => array(
+                'quoteOrderQty' => false, // whether market orders support amounts in quote currency
+            ),
         ));
     }
 }

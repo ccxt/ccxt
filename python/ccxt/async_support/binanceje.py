@@ -48,4 +48,7 @@ class binanceje(binance):
                     'deposit': {},
                 },
             },
+            'options': {
+                'quoteOrderQty': False,  # whether market orders support amounts in quote currency
+            },
         })
