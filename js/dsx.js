@@ -594,13 +594,12 @@ module.exports = class dsx extends Exchange {
     }
 
     parseTransactionType (status) {
+        // bankToExchange and exchangeToBank are internal movements
         const statuses = {
             'payout': 'withdrawal',
             'payin': 'deposit',
             'deposit': 'deposit',
             'withdraw': 'withdrawal',
-            'bankToExchange': 'deposit',
-            'exchangeToBank': 'withdrawal',
         };
         return this.safeString (statuses, status, status);
     }
