@@ -1002,96 +1002,46 @@ class dsx(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction_type(self, type):
-        types = {
-            'payin': 'deposit',
-            'payout': 'withdrawal',
-            'withdraw': 'withdrawal',
-        }
-        return self.safe_string(types, type, type)
-
     def parse_transaction(self, transaction, currency=None):
-        # deposit
-        # {
-        #     "id": "03e620fa",
-        #     "hash": "bar",
-        #     "type": "payin",
-        #     "index": 2156219,
-        #     "amount": "0.26000000",
-        #     "status": "success",
-        #     "address": "foo",
-        #     "currency": "BTC",
-        #     "createdAt": "2020-05-14T18:08:28.850Z",
-        #     "updatedAt": "2020-05-14T18:10:59.502Z",
-        #     "confirmations": 1
-        # }
-        # internal transfer
-        # {
-        #     "id": "9e420465",
-        #     "type": "bankToExchange",
-        #     "index": 503401,
-        #     "amount": "0.10",
-        #     "status": "success",
-        #     "currency": "EUR",
-        #     "createdAt": "2020-03-27T15:19:28.519Z",
-        #     "updatedAt": "2020-03-27T15:19:28.656Z"
-        # }
-        # internal transfer
-        # {
-        #     "id": "48dd5e05",
-        #     "index": 054766,
-        #     "type": "exchangeToBank",
-        #     "status": "success",
-        #     "currency": "LTC",
-        #     "amount": "7.00000000",
-        #     "createdAt": "2020-05-15T20:34:59.344Z",
-        #     "updatedAt": "2020-05-15T20:34:59.439Z"
-        # }
-        # {
-        #     "id": "df03e8b0",
-        #     "index": 5430774807,
-        #     "type": "payout",
-        #     "status": "pending",
-        #     "currency": "LTC",
-        #     "amount": "6.999000000000000000000000",
-        #     "createdAt": "2020-05-15T20:39:47.140Z",
-        #     "updatedAt": "2020-05-15T21:16:49.230Z",
-        #     "hash": "bar",
-        #     "address": "foo",
-        #     "confirmations": 0,
-        #     "fee": "0.001"
-        # }
-        id = self.safe_string(transaction, 'id')
-        timestamp = self.parse8601(self.safe_string(transaction, 'createdAt'))
-        updated = self.parse8601(self.safe_string(transaction, 'updatedAt'))
+        #
+        #     {
+        #         "id": 1,
+        #         "timestamp": 11,  # 11 in their docs(
+        #         "type": "Withdraw",
+        #         "amount": 1,
+        #         "currency": "btc",
+        #         "confirmationsCount": 6,
+        #         "address": "address",
+        #         "status": 2,
+        #         "commission": 0.0001
+        #     }
+        #
+        timestamp = self.safe_timestamp(transaction, 'timestamp')
+        type = self.safe_string(transaction, 'type')
+        if type is not None:
+            if type == 'Incoming':
+                type = 'deposit'
+            elif type == 'Withdraw':
+                type = 'withdrawal'
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId, currency)
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
-        amount = self.safe_float(transaction, 'amount')
-        address = self.safe_string(transaction, 'address')
-        txid = self.safe_string(transaction, 'hash')
-        fee = None
-        feeCost = self.safe_float(transaction, 'fee')
-        if feeCost is not None:
-            fee = {
-                'cost': feeCost,
-                'currency': code,
-            }
-        type = self.parse_transaction_type(self.safe_string(transaction, 'type'))
         return {
-            'info': transaction,
-            'id': id,
-            'txid': txid,
+            'id': self.safe_string(transaction, 'id'),
+            'txid': self.safe_string(transaction, 'txid'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'address': address,
-            'tag': None,
+            'address': self.safe_string(transaction, 'address'),
             'type': type,
-            'amount': amount,
+            'amount': self.safe_float(transaction, 'amount'),
             'currency': code,
             'status': status,
-            'updated': updated,
-            'fee': fee,
+            'fee': {
+                'currency': code,
+                'cost': self.safe_float(transaction, 'commission'),
+                'rate': None,
+            },
+            'info': transaction,
         }
 
     async def create_deposit_address(self, code, params={}):
