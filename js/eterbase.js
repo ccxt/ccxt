@@ -14,8 +14,8 @@ module.exports = class eterbase extends Exchange {
             'name': 'ETERBASE',
             'countries': [ 'SK' ],
             'rateLimit': 500,
-            'certified': false,
             'version': 'v1',
+            'certified': true,
             'has': {
                 'CORS': false,
                 'publicAPI': true,
@@ -51,7 +51,7 @@ module.exports = class eterbase extends Exchange {
                 '1w': '10080',
             },
             'urls': {
-                'logo': 'https://www.eterbase.com/wp-content/uploads/2019/09/Eterbase-Logo-Horizontal-1024x208.png',
+                'logo': 'https://user-images.githubusercontent.com/1294454/82067900-faeb0f80-96d9-11ea-9f22-0071cfcb9871.jpg',
                 'base': 'https://api.eterbase.exchange',
                 'api': 'https://api.eterbase.exchange',
                 'www': 'https://www.eterbase.com',
@@ -1057,7 +1057,84 @@ module.exports = class eterbase extends Exchange {
         const request = {
             'id': id,
         };
-        await this.privateDeleteOrdersId (this.extend (request, params));
+        return await this.privateDeleteOrdersId (this.extend (request, params));
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'id': this.uid,
+            'accountId': this.uid,
+            'currency': currency['id'],
+            'amount': amount,
+            // 'cryptoAddress': address,
+            // 'accountNumber': 'IBAN', // IBAN account number
+            // 'networkId': 'XBASE', // underlying network
+        };
+        if (address !== undefined) {
+            request['cryptoAddress'] = address;
+            if (tag !== undefined) {
+                request['memo'] = tag;
+            }
+        }
+        const response = await this.privatePostAccountsIdWithdrawals (this.extend (request, params));
+        //
+        //     {
+        //         "accountId": "c262de03-7bc1-47a8-8665-82523ea4d0f9",
+        //         "assetId": "XBASE",
+        //         "amount": 9.87654321,
+        //         "cryptoAddress": "",
+        //         "accountNumber": "",
+        //         "networkId": "",
+        //         "memo": ""
+        //     }
+        //
+        return this.parseTransaction (response, currency);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // withdraw
+        //
+        //     {
+        //         "accountId": "c262de03-7bc1-47a8-8665-82523ea4d0f9",
+        //         "assetId": "XBASE",
+        //         "amount": 9.87654321,
+        //         "cryptoAddress": "",
+        //         "accountNumber": "",
+        //         "networkId": "",
+        //         "memo": ""
+        //     }
+        //
+        const timestamp = undefined;
+        const currencyId = this.safeString (transaction, 'assetId');
+        const code = this.safeCurrencyCode (currencyId);
+        const amount = this.safeFloat (transaction, 'amount');
+        const address = this.safeString (transaction, 'address');
+        const tag = this.safeString (transaction, 'memo');
+        const addressTo = address;
+        const tagTo = tag;
+        return {
+            'id': undefined,
+            'info': transaction,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': code,
+            'amount': amount,
+            'address': address,
+            'addressFrom': undefined,
+            'addressTo': addressTo,
+            'tag': undefined,
+            'tagFrom': undefined,
+            'tagTo': tagTo,
+            'status': undefined,
+            'type': undefined,
+            'updated': undefined,
+            'txid': undefined,
+            'fee': undefined,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, httpHeaders = undefined, body = undefined) {
