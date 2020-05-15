@@ -1067,7 +1067,7 @@ module.exports = class eterbase extends Exchange {
         const request = {
             'id': this.uid,
             'accountId': this.uid,
-            'currency': currency['id'],
+            'assetId': currency['id'],
             'amount': amount,
             // 'cryptoAddress': address,
             // 'accountNumber': 'IBAN', // IBAN account number
@@ -1082,58 +1082,12 @@ module.exports = class eterbase extends Exchange {
         const response = await this.privatePostAccountsIdWithdrawals (this.extend (request, params));
         //
         //     {
-        //         "accountId": "c262de03-7bc1-47a8-8665-82523ea4d0f9",
-        //         "assetId": "XBASE",
-        //         "amount": 9.87654321,
-        //         "cryptoAddress": "",
-        //         "accountNumber": "",
-        //         "networkId": "",
-        //         "memo": ""
+        //         "id": "98b62dde-a87f-45f0-8db8-80ae2d312fa6"
         //     }
         //
-        return this.parseTransaction (response, currency);
-    }
-
-    parseTransaction (transaction, currency = undefined) {
-        //
-        // withdraw
-        //
-        //     {
-        //         "accountId": "c262de03-7bc1-47a8-8665-82523ea4d0f9",
-        //         "assetId": "XBASE",
-        //         "amount": 9.87654321,
-        //         "cryptoAddress": "",
-        //         "accountNumber": "",
-        //         "networkId": "",
-        //         "memo": ""
-        //     }
-        //
-        const timestamp = undefined;
-        const currencyId = this.safeString (transaction, 'assetId');
-        const code = this.safeCurrencyCode (currencyId);
-        const amount = this.safeFloat (transaction, 'amount');
-        const address = this.safeString (transaction, 'address');
-        const tag = this.safeString (transaction, 'memo');
-        const addressTo = address;
-        const tagTo = tag;
         return {
-            'id': undefined,
-            'info': transaction,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'currency': code,
-            'amount': amount,
-            'address': address,
-            'addressFrom': undefined,
-            'addressTo': addressTo,
-            'tag': undefined,
-            'tagFrom': undefined,
-            'tagTo': tagTo,
-            'status': undefined,
-            'type': undefined,
-            'updated': undefined,
-            'txid': undefined,
-            'fee': undefined,
+            'info': response,
+            'id': this.safeString (response, 'id'),
         };
     }
 
