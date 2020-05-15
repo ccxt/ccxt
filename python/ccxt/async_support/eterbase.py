@@ -1006,7 +1006,7 @@ class eterbase(Exchange):
         request = {
             'id': self.uid,
             'accountId': self.uid,
-            'currency': currency['id'],
+            'assetId': currency['id'],
             'amount': amount,
             # 'cryptoAddress': address,
             # 'accountNumber': 'IBAN',  # IBAN account number
@@ -1019,57 +1019,12 @@ class eterbase(Exchange):
         response = await self.privatePostAccountsIdWithdrawals(self.extend(request, params))
         #
         #     {
-        #         "accountId": "c262de03-7bc1-47a8-8665-82523ea4d0f9",
-        #         "assetId": "XBASE",
-        #         "amount": 9.87654321,
-        #         "cryptoAddress": "",
-        #         "accountNumber": "",
-        #         "networkId": "",
-        #         "memo": ""
+        #         "id": "98b62dde-a87f-45f0-8db8-80ae2d312fa6"
         #     }
         #
-        return self.parse_transaction(response, currency)
-
-    def parse_transaction(self, transaction, currency=None):
-        #
-        # withdraw
-        #
-        #     {
-        #         "accountId": "c262de03-7bc1-47a8-8665-82523ea4d0f9",
-        #         "assetId": "XBASE",
-        #         "amount": 9.87654321,
-        #         "cryptoAddress": "",
-        #         "accountNumber": "",
-        #         "networkId": "",
-        #         "memo": ""
-        #     }
-        #
-        timestamp = None
-        currencyId = self.safe_string(transaction, 'assetId')
-        code = self.safe_currency_code(currencyId)
-        amount = self.safe_float(transaction, 'amount')
-        address = self.safe_string(transaction, 'address')
-        tag = self.safe_string(transaction, 'memo')
-        addressTo = address
-        tagTo = tag
         return {
-            'id': None,
-            'info': transaction,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'currency': code,
-            'amount': amount,
-            'address': address,
-            'addressFrom': None,
-            'addressTo': addressTo,
-            'tag': None,
-            'tagFrom': None,
-            'tagTo': tagTo,
-            'status': None,
-            'type': None,
-            'updated': None,
-            'txid': None,
-            'fee': None,
+            'info': response,
+            'id': self.safe_string(response, 'id'),
         }
 
     def sign(self, path, api='public', method='GET', params={}, httpHeaders=None, body=None):

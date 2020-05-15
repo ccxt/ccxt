@@ -1071,7 +1071,7 @@ class eterbase extends Exchange {
         $request = array(
             'id' => $this->uid,
             'accountId' => $this->uid,
-            'currency' => $currency['id'],
+            'assetId' => $currency['id'],
             'amount' => $amount,
             // 'cryptoAddress' => $address,
             // 'accountNumber' => 'IBAN', // IBAN account number
@@ -1086,58 +1086,12 @@ class eterbase extends Exchange {
         $response = $this->privatePostAccountsIdWithdrawals (array_merge($request, $params));
         //
         //     {
-        //         "accountId" => "c262de03-7bc1-47a8-8665-82523ea4d0f9",
-        //         "assetId" => "XBASE",
-        //         "$amount" => 9.87654321,
-        //         "cryptoAddress" => "",
-        //         "accountNumber" => "",
-        //         "networkId" => "",
-        //         "memo" => ""
+        //         "id" => "98b62dde-a87f-45f0-8db8-80ae2d312fa6"
         //     }
         //
-        return $this->parse_transaction($response, $currency);
-    }
-
-    public function parse_transaction($transaction, $currency = null) {
-        //
-        // withdraw
-        //
-        //     {
-        //         "accountId" => "c262de03-7bc1-47a8-8665-82523ea4d0f9",
-        //         "assetId" => "XBASE",
-        //         "$amount" => 9.87654321,
-        //         "cryptoAddress" => "",
-        //         "accountNumber" => "",
-        //         "networkId" => "",
-        //         "memo" => ""
-        //     }
-        //
-        $timestamp = null;
-        $currencyId = $this->safe_string($transaction, 'assetId');
-        $code = $this->safe_currency_code($currencyId);
-        $amount = $this->safe_float($transaction, 'amount');
-        $address = $this->safe_string($transaction, 'address');
-        $tag = $this->safe_string($transaction, 'memo');
-        $addressTo = $address;
-        $tagTo = $tag;
         return array(
-            'id' => null,
-            'info' => $transaction,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'currency' => $code,
-            'amount' => $amount,
-            'address' => $address,
-            'addressFrom' => null,
-            'addressTo' => $addressTo,
-            'tag' => null,
-            'tagFrom' => null,
-            'tagTo' => $tagTo,
-            'status' => null,
-            'type' => null,
-            'updated' => null,
-            'txid' => null,
-            'fee' => null,
+            'info' => $response,
+            'id' => $this->safe_string($response, 'id'),
         );
     }
 
