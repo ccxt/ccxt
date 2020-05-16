@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { ExchangeError } = require ('ccxt/js/base/errors');
+const { ExchangeError, AuthenticationError } = require ('ccxt/js/base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -32,6 +32,7 @@ module.exports = class bitfinex extends ccxt.bitfinex {
                     'prec': 'P0',
                     'freq': 'F0',
                 },
+                'ordersLimit': 1000,
             },
         });
     }
@@ -397,6 +398,208 @@ module.exports = class bitfinex extends ccxt.bitfinex {
         return message;
     }
 
+    async authenticate () {
+        const url = this.urls['api']['ws']['private'];
+        const client = this.client (url);
+        const future = client.future ('authenticated');
+        const method = 'auth';
+        const authenticated = this.safeValue (client.subscriptions, method);
+        if (authenticated === undefined) {
+            const nonce = this.milliseconds ();
+            const payload = 'AUTH' + nonce.toString ();
+            const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha384', 'hex');
+            const request = {
+                'apiKey': this.apiKey,
+                'authSig': signature,
+                'authNonce': nonce,
+                'authPayload': payload,
+                'event': method,
+                'filter': [
+                    'trading',
+                    'wallet',
+                ],
+            };
+            this.spawn (this.watch, url, method, request, 1);
+        }
+        return await future;
+    }
+
+    handleAuthenticationMessage (client, message) {
+        const status = this.safeString (message, 'status');
+        const method = this.safeString (message, 'event');
+        if (status === 'OK') {
+            // we resolve the future here permanently so authentication only happens once
+            const future = this.safeValue (client.futures, 'authenticated');
+            future.resolve (true);
+        } else {
+            const error = new AuthenticationError (this.json (message));
+            client.reject (error, 'authenticated');
+            // allows further authentication attempts
+            if (method in client.subscriptions) {
+                delete client.subscriptions[method];
+            }
+        }
+    }
+
+    async watchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const url = this.urls['api']['ws']['private'];
+        const future = this.authenticate ();
+        return await this.afterDropped (future, this.watch, url, id, undefined, 1);
+    }
+
+    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const future = this.authenticate ();
+        const url = this.urls['api']['ws']['private'];
+        const watching = this.afterDropped (future, this.watch, url, 'os', undefined, 1);
+        // purgeOrders here
+        return await this.after (watching, this.filterBySymbolSinceLimit, symbol, since, limit);
+    }
+
+    handleOrders (client, message) {
+        //
+        // order snapshot (extra level of nesting):
+        // [ 0,
+        //   'os',
+        //   [ [ 45287766631,
+        //       'ETHUST',
+        //       -0.07,
+        //       -0.07,
+        //       'EXCHANGE LIMIT',
+        //       'ACTIVE',
+        //       210,
+        //       0,
+        //       '2020-05-16T13:17:46Z',
+        //       0,
+        //       0,
+        //       0 ] ] ]
+        //
+        // order cancel:
+        // [ 0,
+        //   'oc',
+        //   [ 45287766631,
+        //     'ETHUST',
+        //     -0.07,
+        //     -0.07,
+        //     'EXCHANGE LIMIT',
+        //     'CANCELED',
+        //     210,
+        //     0,
+        //     '2020-05-16T13:17:46Z',
+        //     0,
+        //     0,
+        //     0 ] ]
+        //
+        const data = this.safeValue (message, 2, []);
+        const messageType = this.safeString (message, 1);
+        if (messageType === 'os') {
+            for (let i = 0; i < data.length; i++) {
+                const value = data[i];
+                this.handleOrder (client, value);
+            }
+        } else {
+            this.handleOrder (client, data);
+        }
+        // TODO: move to the abstract caching class
+        let result = [];
+        const values = Object.values (this.orders);
+        for (let i = 0; i < values.length; i++) {
+            const orders = Object.values (values[i]);
+            result = this.arrayConcat (result, orders);
+        }
+        // delete older orders from our structure to prevent memory leaks
+        const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+        result = this.sortBy (result, 'timestamp');
+        const resultLength = result.length;
+        if (resultLength > limit) {
+            const toDelete = resultLength - limit;
+            for (let i = 0; i < toDelete; i++) {
+                const id = result[i]['id'];
+                const symbol = result[i]['symbol'];
+                delete this.orders[symbol][id];
+            }
+            result = result.slice (toDelete, resultLength);
+        }
+        client.resolve (result, 'os');
+    }
+
+    parseWsOrderStatus (status) {
+        const statuses = {
+            'ACTIVE': 'open',
+            'CANCELED': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    handleOrder (client, order) {
+        // [ 45287766631,
+        //     'ETHUST',
+        //     -0.07,
+        //     -0.07,
+        //     'EXCHANGE LIMIT',
+        //     'CANCELED',
+        //     210,
+        //     0,
+        //     '2020-05-16T13:17:46Z',
+        //     0,
+        //     0,
+        //     0 ]
+        const id = this.safeString (order, 0);
+        const marketId = this.safeString (order, 1);
+        let symbol = undefined;
+        if (marketId in this.markets_by_id) {
+            const market = this.markets_by_id[marketId];
+            symbol = market['symbol'];
+        } else {
+            symbol = marketId;
+        }
+        let amount = this.safeFloat (order, 2);
+        let remaining = this.safeFloat (order, 3);
+        let side = 'buy';
+        if (amount < 0) {
+            amount = Math.abs (amount);
+            remaining = Math.abs (remaining);
+            side = 'sell';
+        }
+        let type = this.safeString (order, 4);
+        if (type.indexOf ('LIMIT') > -1) {
+            type = 'limit';
+        } else if (type.indexOf ('MARKET') > -1) {
+            type = 'market';
+        }
+        const status = this.parseWsOrderStatus (this.safeString (order, 5));
+        const price = this.safeFloat (order, 6);
+        const rawDatetime = this.safeString (order, 8);
+        const timestamp = this.parse8601 (rawDatetime);
+        const parsed = {
+            'info': order,
+            'id': id,
+            'clientOrderId': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'average': undefined,
+            'amount': amount,
+            'remaining': remaining,
+            'filled': amount - remaining,
+            'status': status,
+            'fee': undefined,
+            'cost': undefined,
+            'trades': undefined,
+        };
+        if (!(symbol in this.orders)) {
+            this.orders[symbol] = {};
+        }
+        this.orders[symbol][id] = parsed;
+        client.resolve (parsed, id);
+        return parsed;
+    }
+
     handleMessage (client, message) {
         if (Array.isArray (message)) {
             const channelId = this.safeString (message, 0);
@@ -411,13 +614,17 @@ module.exports = class bitfinex extends ccxt.bitfinex {
             }
             const subscription = this.safeValue (client.subscriptions, channelId, {});
             const channel = this.safeString (subscription, 'channel');
+            const name = this.safeString (message, 1);
             const methods = {
                 'book': this.handleOrderBook,
                 // 'ohlc': this.handleOHLCV,
                 'ticker': this.handleTicker,
                 'trades': this.handleTrades,
+                'os': this.handleOrders,
+                'on': this.handleOrders,
+                'oc': this.handleOrders,
             };
-            const method = this.safeValue (methods, channel);
+            const method = this.safeValue2 (methods, channel, name);
             if (method === undefined) {
                 return message;
             } else {
@@ -439,6 +646,7 @@ module.exports = class bitfinex extends ccxt.bitfinex {
                     'info': this.handleSystemStatus,
                     // 'book': 'handleOrderBook',
                     'subscribed': this.handleSubscriptionStatus,
+                    'auth': this.handleAuthenticationMessage,
                 };
                 const method = this.safeValue (methods, event);
                 if (method === undefined) {
