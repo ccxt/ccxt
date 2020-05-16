@@ -267,11 +267,12 @@ class coinex extends Exchange {
                 $market = $this->markets_by_id[$marketId];
                 $symbol = $market['symbol'];
             }
-            $ticker = array(
+            $ticker = $this->parse_ticker(array(
                 'date' => $timestamp,
                 'ticker' => $tickers[$marketId],
-            );
-            $result[$symbol] = $this->parse_ticker($ticker, $market);
+            ), $market);
+            $ticker['symbol'] = $symbol;
+            $result[$symbol] = $ticker;
         }
         return $result;
     }

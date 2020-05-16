@@ -263,11 +263,12 @@ class coinex(Exchange):
             if marketId in self.markets_by_id:
                 market = self.markets_by_id[marketId]
                 symbol = market['symbol']
-            ticker = {
+            ticker = self.parse_ticker({
                 'date': timestamp,
                 'ticker': tickers[marketId],
-            }
-            result[symbol] = self.parse_ticker(ticker, market)
+            }, market)
+            ticker['symbol'] = symbol
+            result[symbol] = ticker
         return result
 
     async def fetch_order_book(self, symbol, limit=20, params={}):
