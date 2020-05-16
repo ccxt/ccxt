@@ -726,6 +726,7 @@ class binance(Exchange, ccxt.binance):
             toDelete = resultLength - limit
             for i in range(0, toDelete):
                 id = result[i]['id']
+                symbol = result[i]['symbol']
                 del self.orders[symbol][id]
             result = result[toDelete:resultLength]
         client.resolve(result, messageHash)
