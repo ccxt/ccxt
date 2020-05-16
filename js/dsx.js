@@ -355,20 +355,18 @@ module.exports = class dsx extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateGetTradingBalance ();
-        //   [ { currency: 'BCH', available: '0.00000165', reserved: '0' },
-        //     { currency: 'BTG', available: '0.00000727', reserved: '0' },...
+        const type = this.safeString (params, 'type', 'trading');
+        const method = 'privateGet' + this.capitalize (type) + 'Balance';
+        const query = this.omit (params, 'type');
+        const response = await this[method] (query);
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
-            const id = this.safeString (balance, 'currency');
-            const code = this.safeCurrencyCode (id);
-            const free = this.safeFloat (balance, 'available');
-            const used = this.safeFloat (balance, 'reserved');
+            const currencyId = this.safeString (balance, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = free;
-            account['used'] = used;
-            account['total'] = free + used;
+            account['free'] = this.safeFloat (balance, 'available');
+            account['used'] = this.safeFloat (balance, 'reserved');
             result[code] = account;
         }
         return this.parseBalance (result);
