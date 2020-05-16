@@ -1258,9 +1258,11 @@ class upbit(Exchange):
         return self.parse_order(response)
 
     def parse_deposit_addresses(self, addresses):
-        result = []
+        result = {}
         for i in range(0, len(addresses)):
-            result.append(self.parse_deposit_address(addresses[i]))
+            address = self.parse_deposit_address(addresses[i])
+            code = address['currency']
+            result[code] = address
         return result
 
     def fetch_deposit_addresses(self, codes=None, params={}):

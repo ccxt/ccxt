@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, PermissionDenied, InvalidOrder, AuthenticationError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, PermissionDenied, InvalidOrder, AuthenticationError, InsufficientFunds, OrderNotFound, DDoSProtection, OnMaintenance, RateLimitExceeded } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -176,7 +176,9 @@ module.exports = class bitz extends Exchange {
                 '-109': AuthenticationError, // Invalid scretKey
                 '-110': DDoSProtection, // The number of access requests exceeded
                 '-111': PermissionDenied, // Current IP is not in the range of trusted IP
-                '-112': ExchangeNotAvailable, // Service is under maintenance
+                '-112': OnMaintenance, // Service is under maintenance
+                '-114': RateLimitExceeded, // The number of daily requests has reached the limit
+                '-117': AuthenticationError, // The apikey expires
                 '-100015': AuthenticationError, // Trade password error
                 '-100044': ExchangeError, // Fail to request data
                 '-100101': ExchangeError, // Invalid symbol
@@ -650,7 +652,7 @@ module.exports = class bitz extends Exchange {
             }
         } else {
             if (since !== undefined) {
-                throw new ExchangeError (this.id + ' fetchOHLCV requires a limit argument if the since argument is specified');
+                throw new ArgumentsRequired (this.id + ' fetchOHLCV requires a limit argument if the since argument is specified');
             }
         }
         const response = await this.marketGetKline (this.extend (request, params));

@@ -28,6 +28,7 @@ class paymium(Exchange):
                     'https://github.com/Paymium/api-documentation',
                     'https://www.paymium.com/page/developers',
                 ],
+                'referral': 'https://www.paymium.com/page/sign-up?referral=eDAzPoRQFMvaAB8sf-qj',
             },
             'api': {
                 'public': {
@@ -191,9 +192,9 @@ class paymium(Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         request = {
-            'UUID': id,
+            'uuid': id,
         }
-        return self.privateDeleteUserOrdersUUIDCancel(self.extend(request, params))
+        return self.privateDeleteUserOrdersUuidCancel(self.extend(request, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)

@@ -27,6 +27,7 @@ module.exports = class paymium extends Exchange {
                     'https://github.com/Paymium/api-documentation',
                     'https://www.paymium.com/page/developers',
                 ],
+                'referral': 'https://www.paymium.com/page/sign-up?referral=eDAzPoRQFMvaAB8sf-qj',
             },
             'api': {
                 'public': {
@@ -204,9 +205,9 @@ module.exports = class paymium extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         const request = {
-            'UUID': id,
+            'uuid': id,
         };
-        return await this.privateDeleteUserOrdersUUIDCancel (this.extend (request, params));
+        return await this.privateDeleteUserOrdersUuidCancel (this.extend (request, params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

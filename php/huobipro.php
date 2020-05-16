@@ -338,6 +338,8 @@ class huobipro extends Exchange {
 
     public function parse_ticker($ticker, $market = null) {
         //
+        // fetchTicker
+        //
         //     {
         //         "amount" => 26228.672978342216,
         //         "$open" => 9078.95,
@@ -352,25 +354,47 @@ class huobipro extends Exchange {
         //         "$bid" => array( 9146.86, 0.080758 ),
         //     }
         //
+        // fetchTickers
+        //     {
+        //         $symbol => "bhdht",
+        //         $open =>  2.3938,
+        //         high =>  2.4151,
+        //         low =>  2.3323,
+        //         $close =>  2.3909,
+        //         amount =>  628.992,
+        //         vol =>  1493.71841095,
+        //         count =>  2088,
+        //         $bid =>  2.3643,
+        //         bidSize =>  0.7136,
+        //         $ask =>  2.4061,
+        //         askSize =>  0.4156
+        //     }
+        //
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
         $timestamp = $this->safe_integer($ticker, 'ts');
         $bid = null;
-        $ask = null;
         $bidVolume = null;
+        $ask = null;
         $askVolume = null;
         if (is_array($ticker) && array_key_exists('bid', $ticker)) {
             if (gettype($ticker['bid']) === 'array' && count(array_filter(array_keys($ticker['bid']), 'is_string')) == 0) {
                 $bid = $this->safe_float($ticker['bid'], 0);
                 $bidVolume = $this->safe_float($ticker['bid'], 1);
+            } else {
+                $bid = $this->safe_float($ticker, 'bid');
+                $bidVolume = $this->safe_value($ticker, 'bidSize');
             }
         }
         if (is_array($ticker) && array_key_exists('ask', $ticker)) {
             if (gettype($ticker['ask']) === 'array' && count(array_filter(array_keys($ticker['ask']), 'is_string')) == 0) {
                 $ask = $this->safe_float($ticker['ask'], 0);
                 $askVolume = $this->safe_float($ticker['ask'], 1);
+            } else {
+                $ask = $this->safe_float($ticker, 'ask');
+                $askVolume = $this->safe_value($ticker, 'askSize');
             }
         }
         $open = $this->safe_float($ticker, 'open');

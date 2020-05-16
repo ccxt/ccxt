@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.25.95",
+  "version": "1.27.88",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 130+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "dist/ccxt.browser.js",
@@ -463,8 +463,6 @@
     "Binance Jersey",
     "bequant.io",
     "Bequant",
-    "mandalaex.com",
-    "Mandala",
     "dx.exchange",
     "DX.Exchange",
     "oceanex.pro.com",
@@ -507,7 +505,14 @@
     "Bybit",
     "aofex.com",
     "AOFEX",
-    "byte-trade.com"
+    "byte-trade.com",
+    "hbtc.com",
+    "HBTC",
+    "probit.com",
+    "ProBit",
+    "eterbase.com",
+    "ETERBASE",
+    "Eterbase"
   ],
   "collective": {
     "type": "opencollective",

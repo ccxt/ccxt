@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.25.95'
+__version__ = '1.27.88'
 
 # -----------------------------------------------------------------------------
 
@@ -74,6 +74,8 @@ import time
 import uuid
 import zlib
 from decimal import Decimal
+from time import mktime
+from wsgiref.handlers import format_date_time
 
 # -----------------------------------------------------------------------------
 
@@ -243,6 +245,7 @@ class Exchange(object):
 
     # API method metainfo
     has = {
+        'loadMarkets': True,
         'cancelAllOrders': False,
         'cancelOrder': True,
         'cancelOrders': False,
@@ -372,7 +375,7 @@ class Exchange(object):
             'delay': 0.001,
             'capacity': 1.0,
             'defaultCost': 1.0,
-        }, getattr(self, 'tokenBucket') if hasattr(self, 'tokenBucket') else {})
+        }, getattr(self, 'tokenBucket', {}))
 
         self.session = self.session if self.session or self.asyncio_loop else Session()
         self.logger = self.logger if self.logger else logging.getLogger(__name__)
@@ -876,8 +879,8 @@ class Exchange(object):
         return _urlencode.unquote(Exchange.urlencode(params))
 
     @staticmethod
-    def encode_uri_component(uri):
-        return _urlencode.quote(uri, safe="~()*!.'")
+    def encode_uri_component(uri, safe="~()*!.'"):
+        return _urlencode.quote(uri, safe=safe)
 
     @staticmethod
     def omit(d, *args):
@@ -917,7 +920,7 @@ class Exchange(object):
     @staticmethod
     def aggregate(bidasks):
         ordered = Exchange.ordered({})
-        for [price, volume] in bidasks:
+        for [price, volume, *_] in bidasks:
             if volume > 0:
                 ordered[price] = (ordered[price] if price in ordered else 0) + volume
         result = []
@@ -964,6 +967,15 @@ class Exchange(object):
             return utc.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-6] + "{:03d}".format(int(timestamp) % 1000) + 'Z'
         except (TypeError, OverflowError, OSError):
             return None
+
+    @staticmethod
+    def rfc2616(self, timestamp=None):
+        if timestamp is None:
+            ts = datetime.datetime.now()
+        else:
+            ts = timestamp
+        stamp = mktime(ts.timetuple())
+        return format_date_time(stamp)
 
     @staticmethod
     def dmy(timestamp, infix='-'):
@@ -1336,6 +1348,9 @@ class Exchange(object):
     def cancel_order(self, id, symbol=None, params={}):
         raise NotSupported('cancel_order() not supported yet')
 
+    def cancel_unified_order(self, order, params={}):
+        return self.cancel_order(self.safe_value(order, 'id'), self.safe_value(order, 'symbol'), params)
+
     def fetch_bids_asks(self, symbols=None, params={}):
         raise NotSupported('API does not allow to fetch all prices at once with a single call to fetch_bids_asks() for now')
 
@@ -1357,6 +1372,9 @@ class Exchange(object):
 
     def fetch_order(self, id, symbol=None, params={}):
         raise NotSupported('fetch_order() is not supported yet')
+
+    def fetch_unified_order(self, order, params={}):
+        return self.fetch_order(self.safe_value(order, 'id'), self.safe_value(order, 'symbol'), params)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         raise NotSupported('fetch_orders() is not supported yet')
@@ -1776,7 +1794,7 @@ class Exchange(object):
     @staticmethod
     def from_wei(amount, decimals=18):
         amount_float = float(amount)
-        exponential = '{:e}'.format(amount_float)
+        exponential = '{:.15e}'.format(amount_float)
         n, exponent = exponential.split('e')
         new_exponent = int(exponent) - decimals
         return float(n + 'e' + str(new_exponent))
@@ -1784,7 +1802,7 @@ class Exchange(object):
     @staticmethod
     def to_wei(amount, decimals=18):
         amount_float = float(amount)
-        exponential = '{:e}'.format(amount_float)
+        exponential = '{:.15e}'.format(amount_float)
         n, exponent = exponential.split('e')
         new_exponent = int(exponent) + decimals
         return number_to_string(n + 'e' + str(new_exponent))

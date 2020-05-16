@@ -55,7 +55,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 Exchanges
 =========
 
-The CCXT library currently supports the following 119 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 121 cryptocurrency exchange markets and trading APIs:
 
 +-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 |        logo                                                                             | id                 | name                                                                                    | ver | doc                                                                                             | certified                                                            | pro                             |
@@ -63,8 +63,6 @@ The CCXT library currently supports the following 119 cryptocurrency exchange ma
 | `_1btcxe  <https://1btcxe.com>`__                                                       | _1btcxe            | `1BTCXE <https://1btcxe.com>`__                                                         | \*  | `API <https://1btcxe.com/api-docs.php>`__                                                       |                                                                      |                                 |
 +-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 | `acx <https://acx.io>`__                                                                | acx                | `ACX <https://acx.io>`__                                                                | 2   | `API <https://acx.io/documents/api_v2>`__                                                       |                                                                      |                                 |
-+-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `adara <https://adara.io>`__                                                            | adara              | `Adara <https://adara.io>`__                                                            | 1   | `API <https://api.adara.io/v1>`__                                                               |                                                                      |                                 |
 +-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 | `anxpro <https://anxpro.com>`__                                                         | anxpro             | `ANXPro <https://anxpro.com>`__                                                         | \*  | `API <https://anxv2.docs.apiary.io>`__                                                          |                                                                      |                                 |
 +-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
@@ -186,7 +184,9 @@ The CCXT library currently supports the following 119 cryptocurrency exchange ma
 +-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 | `dsx <https://dsx.uk>`__                                                                | dsx                | `DSX <https://dsx.uk>`__                                                                | 3   | `API <https://dsx.uk/developers/publicApi>`__                                                   |                                                                      |                                 |
 +-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `exmo <https://exmo.me/?ref=131685>`__                                                  | exmo               | `EXMO <https://exmo.me/?ref=131685>`__                                                  | 1   | `API <https://exmo.me/en/api_doc?ref=131685>`__                                                 |                                                                      |                                 |
+| `eterbase <https://www.eterbase.com>`__                                                 | eterbase           | `Eterbase <https://www.eterbase.com>`__                                                 | 1   | `API <https://developers.eterbase.exchange>`__                                                  | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ |                                 |
++-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
+| `exmo <https://exmo.me/?ref=131685>`__                                                  | exmo               | `EXMO <https://exmo.me/?ref=131685>`__                                                  | 1.1 | `API <https://exmo.me/en/api_doc?ref=131685>`__                                                 |                                                                      |                                 |
 +-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 | `exx <https://www.exx.com/r/fde4260159e53ab8a58cc9186d35501f?recommQd=1>`__             | exx                | `EXX <https://www.exx.com/r/fde4260159e53ab8a58cc9186d35501f?recommQd=1>`__             | \*  | `API <https://www.exx.com/help/restApi>`__                                                      |                                                                      |                                 |
 +-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
@@ -205,6 +205,8 @@ The CCXT library currently supports the following 119 cryptocurrency exchange ma
 | `gateio <https://www.gate.io/signup/2436035>`__                                         | gateio             | `Gate.io <https://www.gate.io/signup/2436035>`__                                        | 2   | `API <https://gate.io/api2>`__                                                                  |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
 +-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 | `gemini <https://gemini.com/>`__                                                        | gemini             | `Gemini <https://gemini.com/>`__                                                        | 1   | `API <https://docs.gemini.com/rest-api>`__                                                      |                                                                      |                                 |
++-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
+| `hbtc <https://www.hbtc.com/register/O2S8NS>`__                                         | hbtc               | `HBTC <https://www.hbtc.com/register/O2S8NS>`__                                         | 1   | `API <https://github.com/bhexopen/BHEX-OpenApi/tree/master/doc>`__                              |                                                                      |                                 |
 +-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 | `hitbtc <https://hitbtc.com/?ref_id=5a5d39a65d466>`__                                   | hitbtc             | `HitBTC <https://hitbtc.com/?ref_id=5a5d39a65d466>`__                                   | 2   | `API <https://api.hitbtc.com>`__                                                                |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
 +-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
@@ -256,9 +258,11 @@ The CCXT library currently supports the following 119 cryptocurrency exchange ma
 +-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 | `okex <https://www.okex.com/join/1888677>`__                                            | okex               | `OKEX <https://www.okex.com/join/1888677>`__                                            | 3   | `API <https://www.okex.com/docs/en/>`__                                                         |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
 +-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `paymium <https://www.paymium.com>`__                                                   | paymium            | `Paymium <https://www.paymium.com>`__                                                   | 1   | `API <https://github.com/Paymium/api-documentation>`__                                          |                                                                      |                                 |
+| `paymium <https://www.paymium.com/page/sign-up?referral=eDAzPoRQFMvaAB8sf-qj>`__        | paymium            | `Paymium <https://www.paymium.com/page/sign-up?referral=eDAzPoRQFMvaAB8sf-qj>`__        | 1   | `API <https://github.com/Paymium/api-documentation>`__                                          |                                                                      |                                 |
 +-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 | `poloniex <https://www.poloniex.com/?utm_source=ccxt&utm_medium=web>`__                 | poloniex           | `Poloniex <https://www.poloniex.com/?utm_source=ccxt&utm_medium=web>`__                 | \*  | `API <https://docs.poloniex.com>`__                                                             | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | `CCXT Pro <https://ccxt.pro>`__ |
++-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
+| `probit <https://www.probit.com/r/34608773>`__                                          | probit             | `ProBit <https://www.probit.com/r/34608773>`__                                          | 1   | `API <https://docs-en.probit.com>`__                                                            |                                                                      |                                 |
 +-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 | `rightbtc <https://www.rightbtc.com>`__                                                 | rightbtc           | `RightBTC <https://www.rightbtc.com>`__                                                 | \*  | `API <https://docs.rightbtc.com/api/>`__                                                        |                                                                      |                                 |
 +-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
@@ -278,7 +282,7 @@ The CCXT library currently supports the following 119 cryptocurrency exchange ma
 +-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 | `tidex <https://tidex.com/exchange/?ref=57f5638d9cd7>`__                                | tidex              | `Tidex <https://tidex.com/exchange/?ref=57f5638d9cd7>`__                                | 3   | `API <https://tidex.com/exchange/public-api>`__                                                 |                                                                      |                                 |
 +-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `timex <https://timex.io>`__                                                            | timex              | `TimeX <https://timex.io>`__                                                            | 1   | `API <https://docs.timex.io>`__                                                                 |                                                                      |                                 |
+| `timex <https://timex.io/?refcode=1x27vNkTbP1uwkCck>`__                                 | timex              | `TimeX <https://timex.io/?refcode=1x27vNkTbP1uwkCck>`__                                 | 1   | `API <https://docs.timex.io>`__                                                                 |                                                                      |                                 |
 +-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 | `topq <https://www.topliq.com>`__                                                       | topq               | `TOP.Q <https://www.topliq.com>`__                                                      | 1   | `API <https://github.com/topq-exchange/api_docs_en/wiki/REST_api_reference>`__                  |                                                                      |                                 |
 +-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
@@ -736,7 +740,11 @@ Market Structure
        'quote':   'USD',     // uppercase string, unified quote currency code, 3 or more letters
        'baseId':  'btc',     // any string, exchange-specific base currency id
        'quoteId': 'usd',     // any string, exchange-specific quote currency id
-       'active': true,       // boolean, market status
+       'active':   true,     // boolean, market status
+       'taker':    0.002,    // taker fee rate, 0.002 = 0.2%
+       'maker':    0.0016,   // maker fee rate, 0.0016 = 0.16%
+       'percentage': true,   // whether the taker and maker fee rate is a multiplier or a fixed flat amount
+       'tierBased': false,   // whether the fee depends on your trading tier (your trading volume)
        'precision': {        // number of decimal digits "after the dot"
            'price': 8,       // integer or float for TICK_SIZE roundingMode, might be missing if not supplied by the exchange
            'amount': 8,      // integer, might be missing if not supplied by the exchange
@@ -762,6 +770,10 @@ Each market is an associative array (aka dictionary) with the following keys:
 -  ``baseId``. An exchange-specific id of the base currency for this market, not unified. Can be any string, literally. This is communicated to the exchange using the language the exchange understands.
 -  ``quoteId``. An exchange-specific id of the quote currency, not unified.
 -  ``active``. A boolean indicating whether or not trading this market is currently possible. Often, when a market is inactive, all corresponding tickers, orderbooks and other related endpoints return empty responses, all zeroes, no data or outdated data for that market. The user should check if the market is active and `reload market cache periodically, as explained below <#market-cache-force-reload>`__.
+-  ``maker``. Float, 0.0015 = 0.15%. Maker fees are paid when you provide liquidity to the exchange i.e. you *market-make* an order and someone else fills it. Maker fees are usually lower than taker fees. Fees can be negative, this is very common amongst derivative exchanges. A negative fee means the exchange will pay a rebate (reward) to the user for trading this market.
+-  ``taker``. Float, 0.002 = 0.2%. Taker fees are paid when you *take* liquidity from the exchange and fill someone else’s order.
+-  ``percentage``. A boolean true/false value indicating whether ``taker`` and ``maker`` are multipliers or fixed flat amounts.
+-  ``tierBased``. A boolean true/false value indicating whether the fee depends on your trading tier (usually, your traded volume over a period of time).
 -  ``info``. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
 -  ``precision``. Precision accepted in order values by exchanges upon order placement for price, amount and cost. The values inside this market property depend on the ``exchange.precisionMode``.
 
@@ -771,22 +783,24 @@ Each market is an associative array (aka dictionary) with the following keys:
 
 -  ``limits``. The minimums and maximums for prices, amounts (volumes) and costs (where cost = price \* amount).
 
+**WARNING! fee related information is experimental, unstable and may only be partial available or not at all.**
+
 Currency Structure
 ------------------
 
 .. code:: javascript
 
    {
-       'id':       'btc',     // string literal for referencing within an exchange
-       'code':     'BTC',     // uppercase unified string literal code the currency
-       'name':     'Bitcoin', // string, human-readable name, if specified
-       'active':    true,     // boolean, currency status (tradeable and withdrawable)
-       'fee':       0.123
-       'precision': 8,       // number of decimal digits "after the dot" (depends on exchange.precisionMode)
-       'limits': {           // value limits when placing orders on this market
+       'id':       'btc',       // string literal for referencing within an exchange
+       'code':     'BTC',       // uppercase unified string literal code the currency
+       'name':     'Bitcoin',   // string, human-readable name, if specified
+       'active':    true,       // boolean, currency status (tradeable and withdrawable)
+       'fee':       0.123,      // withdrawal fee, flat
+       'precision': 8,          // number of decimal digits "after the dot" (depends on exchange.precisionMode)
+       'limits': {              // value limits when placing orders on this market
            'amount': {
-               'min': 0.01,  // order amount should be > min
-               'max': 1000,  // order amount should be < max
+               'min': 0.01,     // order amount should be > min
+               'max': 1000,     // order amount should be < max
            },
            'price':    { ... }, // same min/max limits for the price of the order
            'cost':     { ... }, // same limits for order cost = price * amount
@@ -800,6 +814,7 @@ Each currency is an associative array (aka dictionary) with the following keys:
 -  ``id``. The string or numeric ID of the currency within the exchange. Currency ids are used inside exchanges internally to identify coins during the request/response process.
 -  ``code``. An uppercase string code representation of a particular currency. Currency codes are used to reference currencies within the ccxt library (explained below).
 -  ``name``. Self-explaining.
+-  ``fee``. The withdrawal fee value as specified by the exchange. In most cases it means a flat fixed amount paid in the same currency. If the exchnange does not specify it via public endpoints, the ``fee`` can be ``undefined/None/null`` or missing.
 -  ``active``. A boolean indicating whether or not trading and funding (depositing and withdrawing) this currency is currently possible. Often, when a currency is inactive, all corresponding tickers, orderbooks and other related endpoints return empty responses, all zeroes, no data or outdated data for that currency. The user should check if the currency is active and `reload markets periodically, as explained below <#market-cache-force-reload>`__.
 -  ``info``. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
 -  ``precision``. Precision accepted in values by exchanges upon referencing this currency. The value inside this property depend on the ``exchange.precisionMode``.
@@ -1840,14 +1855,35 @@ In order to get current best price (query market price) and calculate bidask spr
 Price Tickers
 -------------
 
-A price ticker contains statistics for a particular market/symbol for some period of time in recent past, usually last 24 hours. The methods for fetching tickers are:
+A price ticker contains statistics for a particular market/symbol for some period of time in recent past, usually last 24 hours. The methods for fetching tickers are described below.
+
+A Single Ticker For One Symbol
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: javascript
 
-   fetchTicker (symbol, params = {})   // for one ticker
-   fetchTickers (symbol, params = {})  // for all tickers at once
+   // one ticker
+   fetchTicker (symbol, params = {})
+
+   // example
+   fetchTicker ('ETH/BTC')
+   fetchTicker ('BTC/USDT')
+
+Multiple Tickers For All Or Many Symmbols
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code:: javascript
+
+   // multiple tickers
+   fetchTickers (symbols = undefined, params = {})  // for all tickers at once
+
+   // for example
+   fetchTickers () // all symbols
+   fetchTickers ([ 'ETH/BTC', 'BTC/USDT' ]) // an array of specific symbols
 
 Check the ``exchange.has['fetchTicker']`` and ``exchange.has['fetchTickers']`` properties of the exchange instance to determine if the exchange in question does support these methods.
+
+**Please, note, that calling ``fetchTickers ()`` without a symbol is usually strictly rate-limited, an exchange may ban you if you poll that endpoint too frequently.**
 
 Ticker structure
 ~~~~~~~~~~~~~~~~
@@ -2224,6 +2260,9 @@ The authentication is already handled for you, so you don’t need to perform an
 API Keys Setup
 --------------
 
+Required Credentials
+~~~~~~~~~~~~~~~~~~~~
+
 The API credentials usually include the following:
 
 -  ``apiKey``. This is your public API Key and/or Token. This part is *non-secret*, it is included in your request header or body and sent over HTTPS in open text to identify your request. It is often a string in Hex or Base64 encoding or an UUID identifier.
@@ -2234,6 +2273,38 @@ The API credentials usually include the following:
 In order to create API keys find the API tab or button in your user settings on the exchange website. Then create your keys and copy-paste them to your config file. Your config file permissions should be set appropriately, unreadable to anyone except the owner.
 
 **Remember to keep your apiKey and secret key safe from unauthorized use, do not send or tell it to anybody. A leak of the secret key or a breach in security can cost you a fund loss.**
+
+Credential Validation
+~~~~~~~~~~~~~~~~~~~~~
+
+For checking if the user has supplied all the required credentials the ``Exchange`` base class has a method called ``exchange.checkRequiredCredentials()`` or ``exchange.check_required_credentials()``. Calling that method will throw an ``AuthenticationError``, if some of the credentials are missing or empty. The ``Exchange`` base class also has property ``exchange.requiredCredentials`` that allows a user to see which credentials are required for this or that exchange, as shown below:
+
+.. code:: javascript
+
+   // JavaScript
+   const ccxt = require ('ccxt')
+   const exchange = new ccxt.binance()
+   console.log (exchange.requiredCredentials) // prints required credentials
+   exchange.checkRequiredCredentials() // throw AuthenticationError
+
+.. code:: python
+
+   # Python
+   import ccxt
+   exchange = ccxt.coinbasepro()
+   print(exchange.requiredCredentials)  # prints required credentials
+   exchange.checkRequiredCredentials()  # raises AuthenticationError
+
+.. code:: php
+
+   // PHP
+   include 'ccxt.php';
+   $exchange = new \ccxt\bittrex ();
+   var_dump($exchange->requiredCredentials); // prints required credentials
+   $exchange->check_required_credentials(); // throws AuthenticationError
+
+Configuring API Keys
+~~~~~~~~~~~~~~~~~~~~
 
 To set up an exchange for trading just assign the API credentials to an existing exchange instance or pass them to exchange constructor upon instantiation, like so:
 
@@ -2566,7 +2637,7 @@ Below are examples of using the fetchOrder method to get order info from an auth
 
 .. code:: python
 
-   # Python 2/3 (synchronous)
+   # Python 3 (synchronous)
    if exchange.has['fetchOrder']:
        order = exchange.fetch_order(id)
        print(order)
@@ -3355,7 +3426,7 @@ The fee methods will return a unified fee structure, which is often present with
 
 Because this is still a work in progress, some or all of methods and info described in this section may be missing with this or that exchange.
 
-**DO NOT use the ``.fees`` property as most often it contains the predefined/hardcoded info, which is now deprecated. Actual fees should only be accessed from markets and currencies.**
+**DO NOT use the ``.fees`` property of the exchange instance as most often it contains the predefined/hardcoded info. Actual fees should only be accessed from markets and currencies.**
 
 Fee Structure
 ~~~~~~~~~~~~~
@@ -3408,7 +3479,7 @@ Trading Fees
 
 Trading fees are properties of markets. Most often trading fees are loaded into the markets by the ``fetchMarkets`` call. Sometimes, however, the exchanges serve fees from different endpoints.
 
-The ``calculateFee`` method can be used to precalculate trading fees that will be paid. **WARNING! This method is experimental, unstable and may produce incorrect results in certain cases**. You should only use it with caution. Actual fees may be different from the values returned from ``calculateFee``, this is just for precalculation. Do not rely on precalculated values, because market conditions change frequently. It is difficult to know in advance whether your order will be a market taker or maker.
+The ``calculateFee`` method can be used to precalculate trading fees that will be paid. **WARNING! This method is experimental, unstable and may produce incorrect results in certain cases.** You should only use it with caution. Actual fees may be different from the values returned from ``calculateFee``, this is just for precalculation. Do not rely on precalculated values, because market conditions change frequently. It is difficult to know in advance whether your order will be a market taker or maker.
 
 .. code:: javascript
 
@@ -3423,7 +3494,37 @@ Accessing trading fee rates should be done via the ``.markets`` property, like s
    exchange.markets['ETH/BTC']['taker'] // taker fee rate for ETH/BTC
    exchange.markets['BTC/USD']['maker'] // maker fee rate for BTC/USD
 
+The markets stored under the ``.markets`` property may contain additional fee related information:
+
+.. code:: javascript
+
+   {
+       'taker': 0.002,   // taker fee rate, 0.002 = 0.2%
+       'maker': 0.0016,  // maker fee rate, 0.0016 = 0.16%
+       'percentage': true, // whether the taker and maker fee rate is a multiplier or a fixed flat amount
+       'tierBased': false, // whether the fee depends on your trading tier (your trading volume)
+
+       'tiers': {
+           'taker': [
+               [0, 0.0026], // tupple (trade volume in USD, taker fee) ordered by increasing volume
+               [50000, 0.0024],
+               ...
+           ],
+           'maker': [
+               [0, 0.0016], // tupple (trade volume in USD, maker fee) ordered by increasing volume
+               [50000, 0.0014],
+               ...
+           ],
+       },
+   }
+
+**WARNING! fee related information is experimental, unstable and may only be partial available or not at all.**
+
 Maker fees are paid when you provide liquidity to the exchange i.e. you *market-make* an order and someone else fills it. Maker fees are usually lower than taker fees. Similarly, taker fees are paid when you *take* liquidity from the exchange and fill someone else’s order.
+
+Fees can be negative, this is very common amongst derivative exchanges. A negative fee means the exchange will pay a rebate (reward) to the user for the trading.
+
+Also, some exchanges might not specify fees as percentage of volume, check the ``percentage`` field of the market to be sure.
 
 Funding Fees
 ~~~~~~~~~~~~
@@ -3854,7 +3955,16 @@ In case you experience any difficulty connecting to a particular exchange, do th
 
 -  Make sure that you have the most recent version of ccxt.
 -  Check the `Issues <https://github.com/ccxt/ccxt/issues>`__ for recent updates.
--  Turn ``verbose = true`` to get more detail about it.
+-  Turn ``verbose = true`` to get more detail about it!
+
+   .. code:: python
+
+      import ccxt
+      exchange = ccxt.binance({'enableRateLimit': True})
+      exchange.load_markets()
+      exchange.verbose = True  # enable verbose mode after loading the markets
+
+   Your `code to reproduce the issue + verbose output is required <https://github.com/ccxt/ccxt/wiki/FAQ#what-is-required-to-get-help>`__ in order to get help.
 -  Python people can turn on DEBUG logging level with a standard pythonic logger, by adding these two lines to the beginning of their code:
 
    .. code:: python
@@ -3864,6 +3974,7 @@ In case you experience any difficulty connecting to a particular exchange, do th
 
 -  Use verbose mode to make sure that the used API credentials correspond to the keys you intend to use. Make sure there’s no confusion of keypairs.
 -  **Try a fresh new keypair if possible.**
+-  Read the answers to Frequently Asked Questions: https://github.com/ccxt/ccxt/wiki/FAQ
 -  Check the permissions on the keypair with the exchange website!
 -  If it is a Cloudflare protection error, try these examples:
 

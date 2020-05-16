@@ -34,6 +34,7 @@ class aofex extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
                 'fetchClosedOrder' => true,
+                'fetchOrderTrades' => true,
                 'fetchTradingFee' => true,
             ),
             'timeframes' => array(
@@ -563,7 +564,7 @@ class aofex extends Exchange {
         //
         $id = $this->safe_string($trade, 'id');
         $ctime = $this->parse8601($this->safe_string($trade, 'ctime'));
-        $timestamp = $this->safe_timestamp($trade, 'ts', $ctime);
+        $timestamp = $this->safe_timestamp($trade, 'ts', $ctime) - 28800000; // 8 hours, adjust to UTC;
         $symbol = null;
         if (($symbol === null) && ($market !== null)) {
             $symbol = $market['symbol'];
@@ -730,6 +731,9 @@ class aofex extends Exchange {
             $quote = $market['quote'];
         }
         $timestamp = $this->parse8601($this->safe_string($order, 'ctime'));
+        if ($timestamp !== null) {
+            $timestamp -= 28800000; // 8 hours, adjust to UTC
+        }
         $orderType = $this->safe_string($order, 'type');
         $type = ($orderType === '2') ? 'limit' : 'market';
         $side = $this->safe_string($order, 'side');
@@ -887,11 +891,16 @@ class aofex extends Exchange {
         return $this->parse_order($order);
     }
 
+    public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        $response = $this->fetch_closed_order($id, $symbol, $params);
+        return $this->safe_value($response, 'trades', array());
+    }
+
     public function fetch_orders_with_method($method, $symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             // 'from' => 'BM7442641584965237751ZMAKJ5', // query start order_sn
-            // 'direct' => 'prev', // next
+            'direct' => 'prev', // next
         );
         $market = null;
         if ($symbol !== null) {

@@ -12,6 +12,7 @@ from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -58,7 +59,7 @@ class bybit(Exchange):
                 '30m': '30',
                 '1h': '60',
                 '2h': '120',
-                '3h': '180',
+                '4h': '240',
                 '6h': '360',
                 '12h': '720',
                 '1d': 'D',
@@ -73,6 +74,7 @@ class bybit(Exchange):
                 'www': 'https://www.bybit.com/',
                 'doc': [
                     'https://bybit-exchange.github.io/docs/inverse/',
+                    'https://bybit-exchange.github.io/docs/linear/',
                     'https://github.com/bybit-exchange',
                 ],
                 'fees': 'https://help.bybit.com/hc/en-us/articles/360039261154',
@@ -124,6 +126,41 @@ class bybit(Exchange):
                         'stop-order/cancel',
                         'stop-order/replace',
                         'position/trading-stop',
+                    ],
+                },
+                'publicLinear': {
+                    'get': [
+                        'kline',
+                        'recent-trading-records',
+                        'funding/prev-funding-rate',
+                        'mark-price-kline',
+                    ],
+                },
+                'privateLinear': {
+                    'get': [
+                        'order/list',
+                        'order/search',
+                        'stop-order/list',
+                        'stop-order/search',
+                        'position/list',
+                        'position/set-auto-add-margin',
+                        'position/set-leverage',
+                        'position/switch-isolated',
+                        'position/trading-stop',
+                        'position/add-margin',
+                        'trade/execution/list',
+                        'trade/closed-pnl/list',
+                        'risk-limit',
+                        'funding/prev-funding',
+                        'funding/predicted-funding',
+                    ],
+                    'post': [
+                        'order/create',
+                        'order/cancel',
+                        'order/cancelAll',
+                        'stop-order/create',
+                        'stop-order/cancel',
+                        'stop-order/cancelAll',
                     ],
                 },
                 'position': {
@@ -237,6 +274,9 @@ class bybit(Exchange):
             },
             'precisionMode': TICK_SIZE,
             'options': {
+                'marketTypes': {
+                    'BTC/USDT': 'linear',
+                },
                 'code': 'BTC',
                 'fetchBalance': {
                     'code': 'BTC',
@@ -314,6 +354,8 @@ class bybit(Exchange):
         #     }
         #
         markets = self.safe_value(response, 'result', [])
+        options = self.safe_value(self.options, 'fetchMarkets', {})
+        linearQuoteCurrencies = self.safe_value(options, 'linear', {'USDT': True})
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
@@ -322,6 +364,8 @@ class bybit(Exchange):
             quoteId = self.safe_string(market, 'quote_currency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            linear = (quote in linearQuoteCurrencies)
+            inverse = not linear
             symbol = base + '/' + quote
             lotSizeFilter = self.safe_value(market, 'lot_size_filter', {})
             priceFilter = self.safe_value(market, 'price_filter', {})
@@ -338,6 +382,12 @@ class bybit(Exchange):
                 'precision': precision,
                 'taker': self.safe_float(market, 'taker_fee'),
                 'maker': self.safe_float(market, 'maker_fee'),
+                'type': 'future',
+                'spot': False,
+                'future': True,
+                'option': False,
+                'linear': linear,
+                'inverse': inverse,
                 'limits': {
                     'amount': {
                         'min': self.safe_float(lotSizeFilter, 'min_trading_qty'),
@@ -352,10 +402,6 @@ class bybit(Exchange):
                         'max': None,
                     },
                 },
-                'type': 'future',
-                'spot': False,
-                'future': True,
-                'option': False,
                 'info': market,
             })
         return result
@@ -602,13 +648,25 @@ class bybit(Exchange):
         #         turnover: '162.32773718999994'
         #     },
         #
+        #     {
+        #         "id":143536,
+        #         "symbol":"BTCUSDT",
+        #         "period":"15",
+        #         "start_at":1587883500,
+        #         "volume":1.035,
+        #         "open":7540.5,
+        #         "high":7541,
+        #         "low":7540.5,
+        #         "close":7541
+        #     }
+        #
         return [
-            self.safe_timestamp(ohlcv, 'open_time'),
+            self.safe_timestamp_2(ohlcv, 'open_time', 'start_at'),
             self.safe_float(ohlcv, 'open'),
             self.safe_float(ohlcv, 'high'),
             self.safe_float(ohlcv, 'low'),
             self.safe_float(ohlcv, 'close'),
-            self.safe_float(ohlcv, 'turnover'),
+            self.safe_float_2(ohlcv, 'turnover', 'volume'),
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -629,7 +687,13 @@ class bybit(Exchange):
             request['from'] = int(since / 1000)
         if limit is not None:
             request['limit'] = limit  # max 200, default 200
-        response = self.publicGetKlineList(self.extend(request, params))
+        marketTypes = self.safe_value(self.options, 'marketTypes', {})
+        marketType = self.safe_string(marketTypes, symbol)
+        method = 'publicLinearGetKline' if (marketType == 'linear') else 'publicGetKlineList'
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        # inverse perpetual BTC/USD
+        #
         #     {
         #         ret_code: 0,
         #         ret_msg: 'OK',
@@ -650,6 +714,30 @@ class bybit(Exchange):
         #         ],
         #         time_now: '1583953082.397330'
         #     }
+        #
+        # linear perpetual BTC/USDT
+        #
+        #     {
+        #         "ret_code":0,
+        #         "ret_msg":"OK",
+        #         "ext_code":"",
+        #         "ext_info":"",
+        #         "result":[
+        #             {
+        #                 "id":143536,
+        #                 "symbol":"BTCUSDT",
+        #                 "period":"15",
+        #                 "start_at":1587883500,
+        #                 "volume":1.035,
+        #                 "open":7540.5,
+        #                 "high":7541,
+        #                 "low":7540.5,
+        #                 "close":7541
+        #             }
+        #         ],
+        #         "time_now":"1587884120.168077"
+        #     }
+        #
         result = self.safe_value(response, 'result', {})
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
@@ -675,6 +763,8 @@ class bybit(Exchange):
         #         "exec_id": "256e5ef8-abfe-5772-971b-f944e15e0d68",
         #         "exec_price": "8178.5",
         #         "exec_qty": 1,
+        #         # the docs say the exec_time field is "abandoned" now
+        #         # the user should use "trade_time_ms"
         #         "exec_time": "1571676941.70682",
         #         "exec_type": "Trade",  #Exec Type Enum
         #         "exec_value": "0.00012227",
@@ -689,31 +779,38 @@ class bybit(Exchange):
         #         "order_type": "Market",  #Order Type Enum
         #         "side": "Buy",  #Side Enum
         #         "symbol": "BTCUSD",  #Symbol Enum
-        #         "user_id": 1
+        #         "user_id": 1,
+        #         "trade_time_ms": 1577480599000
         #     }
         #
         id = self.safe_string_2(trade, 'id', 'exec_id')
         symbol = None
         base = None
         marketId = self.safe_string(trade, 'symbol')
+        amount = self.safe_float_2(trade, 'qty', 'exec_qty')
+        cost = self.safe_float(trade, 'exec_value')
+        price = self.safe_float_2(trade, 'price', 'exec_price')
         if marketId in self.markets_by_id:
             market = self.markets_by_id[marketId]
             symbol = market['symbol']
             base = market['base']
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
-            base = market['base']
-        timestamp = self.parse8601(self.safe_string(trade, 'time'))
-        if timestamp is None:
-            timestamp = self.safe_timestamp(trade, 'exec_time')
-        side = self.safe_string_lower(trade, 'side')
-        price = self.safe_float_2(trade, 'price', 'exec_price')
-        amount = self.safe_float_2(trade, 'qty', 'exec_qty')
-        cost = self.safe_float(trade, 'exec_value')
+        if market is not None:
+            if symbol is None:
+                symbol = market['symbol']
+                base = market['base']
+            # if private trade
+            if 'exec_fee' in trade:
+                if market['inverse']:
+                    amount = self.safe_float(trade, 'exec_value')
+                    cost = self.safe_float(trade, 'exec_qty')
         if cost is None:
             if amount is not None:
                 if price is not None:
                     cost = amount * price
+        timestamp = self.parse8601(self.safe_string(trade, 'time'))
+        if timestamp is None:
+            timestamp = self.safe_integer(trade, 'trade_time_ms')
+        side = self.safe_string_lower(trade, 'side')
         lastLiquidityInd = self.safe_string(trade, 'last_liquidity_ind')
         takerOrMaker = 'maker' if (lastLiquidityInd == 'AddedLiquidity') else 'taker'
         feeCost = self.safe_float(trade, 'exec_fee')
@@ -749,7 +846,10 @@ class bybit(Exchange):
         }
         if limit is not None:
             request['count'] = limit  # default 500, max 1000
-        response = self.publicGetTradingRecords(self.extend(request, params))
+        marketTypes = self.safe_value(self.options, 'marketTypes', {})
+        marketType = self.safe_string(marketTypes, symbol)
+        method = 'publicLinearGetRecentTradingRecords' if (marketType == 'linear') else 'publicGetTradingRecords'
+        response = getattr(self, method)(self.extend(request, params))
         #
         #     {
         #         ret_code: 0,
@@ -857,8 +957,8 @@ class bybit(Exchange):
         #         "last_exec_time": 0,
         #         "last_exec_price": 0,
         #         "leaves_qty": 1,
-        #         "cum_exec_qty": 0,
-        #         "cum_exec_value": 0,
+        #         "cum_exec_qty": 0,  # in contracts, where 1 contract = 1 quote currency unit(USD for inverse contracts)
+        #         "cum_exec_value": 0,  # in contract's underlying currency(BTC for inverse contracts)
         #         "cum_exec_fee": 0,
         #         "reject_reason": "",
         #         "order_link_id": "",
@@ -866,17 +966,65 @@ class bybit(Exchange):
         #         "updated_at": "2019-11-30T11:03:43.455Z"
         #     }
         #
+        # fetchOrder
+        #
+        #     {
+        #         "user_id" : 599946,
+        #         "symbol" : "BTCUSD",
+        #         "side" : "Buy",
+        #         "order_type" : "Limit",
+        #         "price" : "7948",
+        #         "qty" : 10,
+        #         "time_in_force" : "GoodTillCancel",
+        #         "order_status" : "Filled",
+        #         "ext_fields" : {
+        #             "o_req_num" : -1600687220498,
+        #             "xreq_type" : "x_create"
+        #         },
+        #         "last_exec_time" : "1588150113.968422",
+        #         "last_exec_price" : "7948",
+        #         "leaves_qty" : 0,
+        #         "leaves_value" : "0",
+        #         "cum_exec_qty" : 10,
+        #         "cum_exec_value" : "0.00125817",
+        #         "cum_exec_fee" : "-0.00000031",
+        #         "reject_reason" : "",
+        #         "cancel_type" : "",
+        #         "order_link_id" : "",
+        #         "created_at" : "2020-04-29T08:45:24.399146Z",
+        #         "updated_at" : "2020-04-29T08:48:33.968422Z",
+        #         "order_id" : "dd2504b9-0157-406a-99e1-efa522373944"
+        #     }
+        #
+        marketId = self.safe_string(order, 'symbol')
+        symbol = None
+        base = None
+        if marketId in self.markets_by_id:
+            market = self.markets_by_id[marketId]
         timestamp = self.parse8601(self.safe_string(order, 'created_at'))
         id = self.safe_string(order, 'order_id')
         price = self.safe_float(order, 'price')
         average = self.safe_float(order, 'average_price')
-        amount = self.safe_float(order, 'qty')
-        filled = self.safe_float(order, 'cum_exec_qty')
-        remaining = self.safe_float(order, 'leaves_qty')
+        amount = None
+        cost = None
+        filled = None
+        remaining = None
+        if market is not None:
+            symbol = market['symbol']
+            base = market['base']
+            if market['inverse']:
+                cost = self.safe_float(order, 'cum_exec_qty')
+                filled = self.safe_float(order, 'cum_exec_value')
+                remaining = self.safe_float(order, 'leaves_value')
+                amount = self.sum(filled, remaining)
+            else:
+                amount = self.safe_float(order, 'qty')
+                cost = self.safe_float(order, 'cum_exec_value')
+                filled = self.safe_float(order, 'cum_exec_qty')
+                remaining = self.safe_float(order, 'leaves_qty')
         lastTradeTimestamp = self.safe_timestamp(order, 'last_exec_time')
         if lastTradeTimestamp == 0:
             lastTradeTimestamp = None
-        cost = self.safe_float(order, 'cum_exec_value')
         if (filled is None) and (amount is not None) and (remaining is not None):
             filled = amount - remaining
         if filled is not None:
@@ -886,18 +1034,6 @@ class bybit(Exchange):
                 if price is not None:
                     cost = price * filled
         status = self.parse_order_status(self.safe_string(order, 'order_status'))
-        marketId = self.safe_string(order, 'symbol')
-        symbol = None
-        base = None
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
-            base = market['base']
-        if market is not None:
-            if symbol is None:
-                symbol = market['symbol']
-            if base is None:
-                base = market['base']
         side = self.safe_string_lower(order, 'side')
         feeCost = self.safe_float(order, 'cum_exec_fee')
         fee = None
@@ -945,14 +1081,16 @@ class bybit(Exchange):
             # conditional orders ---------------------------------------------
             # 'stop_order_id': id,  # one of stop_order_id or order_link_id is required for conditional orders
         }
-        method = 'privateGetOrder'
+        marketTypes = self.safe_value(self.options, 'marketTypes', {})
+        marketType = self.safe_string(marketTypes, symbol)
+        method = 'privateLinearGetOrderSearch' if (marketType == 'linear') else 'privateGetOrder'
         stopOrderId = self.safe_string(params, 'stop_order_id')
         if stopOrderId is None:
             orderLinkId = self.safe_string(params, 'order_link_id')
             if orderLinkId is None:
                 request['order_id'] = id
         else:
-            method = 'privateGetStopOrder'
+            method = 'privateLinearGetStopOrderSearch' if (marketType == 'linear') else 'privateGetStopOrder'
         response = getattr(self, method)(self.extend(request, params))
         #
         #     {
@@ -1059,12 +1197,14 @@ class bybit(Exchange):
                 raise ArgumentsRequired(self.id + ' createOrder requires a price argument for a ' + type + ' order')
         stopPx = self.safe_value(params, 'stop_px')
         basePrice = self.safe_value(params, 'base_price')
-        method = 'privatePostOrderCreate'
+        marketTypes = self.safe_value(self.options, 'marketTypes', {})
+        marketType = self.safe_string(marketTypes, symbol)
+        method = 'privateLinearPostOrderCreate' if (marketType == 'linear') else 'privatePostOrderCreate'
         if stopPx is not None:
             if basePrice is None:
                 raise ArgumentsRequired(self.id + ' createOrder requires both the stop_px and base_price params for a conditional ' + type + ' order')
             else:
-                method = 'openapiPostStopOrderCreate'
+                method = 'privateLinearPostStopOrderCreate' if (marketType == 'linear') else 'openapiPostStopOrderCreate'
                 request['stop_px'] = self.price_to_precision(symbol, stopPx)
                 request['base_price'] = self.price_to_precision(symbol, basePrice)
                 params = self.omit(params, ['stop_px', 'base_price'])
@@ -1154,6 +1294,10 @@ class bybit(Exchange):
     def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' editOrder requires an symbol argument')
+        marketTypes = self.safe_value(self.options, 'marketTypes', {})
+        marketType = self.safe_string(marketTypes, symbol)
+        if marketType == 'linear':
+            raise NotSupported(self.id + ' does not support editOrder for ' + marketType + ' ' + symbol + ' market type')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1226,14 +1370,16 @@ class bybit(Exchange):
             # conditional orders ---------------------------------------------
             # 'stop_order_id': id,  # one of stop_order_id or order_link_id is required for conditional orders
         }
-        method = 'privatePostOrderCancel'
+        marketTypes = self.safe_value(self.options, 'marketTypes', {})
+        marketType = self.safe_value(marketTypes, symbol)
+        method = 'privateLinearPostOrderCancel' if (marketType == 'linear') else 'privatePostOrderCancel'
         stopOrderId = self.safe_string(params, 'stop_order_id')
         if stopOrderId is None:
             orderLinkId = self.safe_string(params, 'order_link_id')
             if orderLinkId is None:
                 request['order_id'] = id
         else:
-            method = 'openapiPostStopOrderCancel'
+            method = 'privateLinearPostStopOrderCancel' if (marketType == 'linear') else 'openapiPostStopOrderCancel'
         response = getattr(self, method)(self.extend(request, params))
         result = self.safe_value(response, 'result', {})
         return self.parse_order(result, market)
@@ -1247,7 +1393,10 @@ class bybit(Exchange):
             'symbol': market['id'],
         }
         options = self.safe_value(self.options, 'cancelAllOrders')
-        method = self.safe_string(options, 'method', 'privatePostOrderCancelAll')
+        marketTypes = self.safe_value(self.options, 'marketTypes', {})
+        marketType = self.safe_string(marketTypes, symbol)
+        defaultMethod = 'privateLinearPostOrderCancelAll' if (marketType == 'linear') else 'privatePostOrderCancelAll'
+        method = self.safe_string(options, 'method', defaultMethod)
         response = getattr(self, method)(self.extend(request, params))
         result = self.safe_value(response, 'result', [])
         return self.parse_orders(result, market)
@@ -1273,7 +1422,9 @@ class bybit(Exchange):
         if limit is not None:
             request['limit'] = limit
         options = self.safe_value(self.options, 'fetchOrders', {})
-        defaultMethod = 'openapiGetOrderList'
+        marketTypes = self.safe_value(self.options, 'marketTypes', {})
+        marketType = self.safe_string(marketTypes, symbol)
+        defaultMethod = 'privateLinearGetOrderList' if (marketType == 'linear') else 'openapiGetOrderList'
         query = params
         if ('stop_order_id' in params) or ('stop_order_status' in params):
             stopOrderStatus = self.safe_value(params, 'stopOrderStatus')
@@ -1282,7 +1433,7 @@ class bybit(Exchange):
                     stopOrderStatus = ','.join(stopOrderStatus)
                 request['stop_order_status'] = stopOrderStatus
                 query = self.omit(params, 'stop_order_status')
-            defaultMethod = 'openapiGetStopOrderList'
+            defaultMethod = 'privateLinearGetStopOrderList' if (marketType == 'linear') else 'openapiGetStopOrderList'
         method = self.safe_string(options, 'method', defaultMethod)
         response = getattr(self, method)(self.extend(request, query))
         #
@@ -1447,10 +1598,13 @@ class bybit(Exchange):
             market = self.market(symbol)
             request['symbol'] = market['id']
         if since is not None:
-            request['start_time'] = int(since / 1000)
+            request['start_time'] = since
         if limit is not None:
             request['limit'] = limit  # default 20, max 50
-        response = self.privateGetExecutionList(self.extend(request, params))
+        marketTypes = self.safe_value(self.options, 'marketTypes', {})
+        marketType = self.safe_string(marketTypes, symbol)
+        method = 'privateLinearGetTradeExecutionList' if (marketType == 'linear') else 'privateGetExecutionList'
+        response = getattr(self, method)(self.extend(request, params))
         #
         #     {
         #         "ret_code": 0,
@@ -1766,6 +1920,10 @@ class bybit(Exchange):
             request = '/' + self.version + '/' + api + '/' + request
             if params:
                 request += '?' + self.rawencode(params)
+        elif api == 'publicLinear':
+            request = '/public/linear/' + request
+            if params:
+                request += '?' + self.rawencode(params)
         else:
             self.check_required_credentials()
             if api == 'openapi':
@@ -1773,13 +1931,15 @@ class bybit(Exchange):
             elif api == 'private':
                 # private v2
                 request = '/' + self.version + '/' + api + '/' + request
+            elif api == 'privateLinear':
+                request = '/private/linear/' + request
             else:
                 # position, user
-                request += '/' + api + '/' + request
+                request = '/' + api + '/' + request
             timestamp = self.nonce()
             query = self.extend(params, {
                 'api_key': self.apiKey,
-                'recvWindow': self.options['recvWindow'],
+                'recv_window': self.options['recvWindow'],
                 'timestamp': timestamp,
             })
             auth = self.rawencode(self.keysort(query))

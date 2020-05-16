@@ -84,7 +84,9 @@ class kucoin(Exchange):
                 'public': {
                     'get': [
                         'timestamp',
+                        'status',
                         'symbols',
+                        'markets',
                         'market/allTickers',
                         'market/orderbook/level{level}',
                         'market/orderbook/level2',
@@ -96,6 +98,9 @@ class kucoin(Exchange):
                         'market/stats',
                         'currencies',
                         'currencies/{currency}',
+                        'prices',
+                        'mark-price/{symbol}/current',
+                        'margin/config',
                     ],
                     'post': [
                         'bullet-public',
@@ -107,6 +112,10 @@ class kucoin(Exchange):
                         'accounts/{accountId}',
                         'accounts/{accountId}/ledgers',
                         'accounts/{accountId}/holds',
+                        'accounts/transferable',
+                        'sub/user',
+                        'sub-accounts',
+                        'sub-accounts/{subUserId}',
                         'deposit-addresses',
                         'deposits',
                         'hist-deposits',
@@ -116,8 +125,20 @@ class kucoin(Exchange):
                         'withdrawals/quotas',
                         'orders',
                         'orders/{orderId}',
+                        'limit/orders',
                         'fills',
                         'limit/fills',
+                        'margin/account',
+                        'margin/borrow',
+                        'margin/borrow/outstanding',
+                        'margin/borrow/borrow/repaid',
+                        'margin/lend/active',
+                        'margin/lend/done',
+                        'margin/lend/trade/unsettled',
+                        'margin/lend/trade/settled',
+                        'margin/lend/assets',
+                        'margin/market',
+                        'margin/margin/trade/last',
                     ],
                     'post': [
                         'accounts',
@@ -126,11 +147,19 @@ class kucoin(Exchange):
                         'deposit-addresses',
                         'withdrawals',
                         'orders',
+                        'orders/multi',
+                        'margin/borrow',
+                        'margin/repay/all',
+                        'margin/repay/single',
+                        'margin/lend',
+                        'margin/toggle-auto-lend',
                         'bullet-private',
                     ],
                     'delete': [
                         'withdrawals/{withdrawalId}',
+                        'orders',
                         'orders/{orderId}',
+                        'margin/lend/{orderId}',
                     ],
                 },
             },
@@ -258,18 +287,20 @@ class kucoin(Exchange):
     def fetch_markets(self, params={}):
         response = self.publicGetSymbols(params)
         #
-        # {quoteCurrency: 'BTC',
-        #   symbol: 'KCS-BTC',
-        #   quoteMaxSize: '9999999',
-        #   quoteIncrement: '0.000001',
-        #   baseMinSize: '0.01',
-        #   quoteMinSize: '0.00001',
-        #   enableTrading: True,
-        #   priceIncrement: '0.00000001',
-        #   name: 'KCS-BTC',
-        #   baseIncrement: '0.01',
-        #   baseMaxSize: '9999999',
-        #   baseCurrency: 'KCS'}
+        #     {
+        #         quoteCurrency: 'BTC',
+        #         symbol: 'KCS-BTC',
+        #         quoteMaxSize: '9999999',
+        #         quoteIncrement: '0.000001',
+        #         baseMinSize: '0.01',
+        #         quoteMinSize: '0.00001',
+        #         enableTrading: True,
+        #         priceIncrement: '0.00000001',
+        #         name: 'KCS-BTC',
+        #         baseIncrement: '0.01',
+        #         baseMaxSize: '9999999',
+        #         baseCurrency: 'KCS'
+        #     }
         #
         data = response['data']
         result = []
@@ -351,20 +382,27 @@ class kucoin(Exchange):
     def fetch_accounts(self, params={}):
         response = self.privateGetAccounts(params)
         #
-        #     {code:   "200000",
-        #       data: [{  balance: "0.00009788",
+        #     {
+        #         code: "200000",
+        #         data: [
+        #             {
+        #                 balance: "0.00009788",
         #                 available: "0.00009788",
-        #                     holds: "0",
-        #                  currency: "BTC",
-        #                        id: "5c6a4fd399a1d81c4f9cc4d0",
-        #                      type: "trade"                     },
-        #               ...,
-        #               {  balance: "0.00000001",
+        #                 holds: "0",
+        #                 currency: "BTC",
+        #                 id: "5c6a4fd399a1d81c4f9cc4d0",
+        #                 type: "trade"
+        #             },
+        #             {
+        #                 balance: "0.00000001",
         #                 available: "0.00000001",
-        #                     holds: "0",
-        #                  currency: "ETH",
-        #                        id: "5c6a49ec99a1d819392e8e9f",
-        #                      type: "trade"                     }  ]}
+        #                 holds: "0",
+        #                 currency: "ETH",
+        #                 id: "5c6a49ec99a1d819392e8e9f",
+        #                 type: "trade"
+        #             }
+        #         ]
+        #     }
         #
         data = self.safe_value(response, 'data')
         result = []
@@ -627,28 +665,68 @@ class kucoin(Exchange):
             'tag': tag,
         }
 
+    def fetch_l3_order_book(self, symbol, limit=None, params={}):
+        return self.fetch_order_book(symbol, limit, {'level': 3})
+
     def fetch_order_book(self, symbol, limit=None, params={}):
-        level = '2'
-        if limit is not None:
-            if (limit != 20) and (limit != 100):
-                raise ExchangeError(self.id + ' fetchOrderBook limit argument must be None, 20 or 100')
-            level += '_' + str(limit)
+        level = self.safe_integer(params, 'level', 2)
+        levelLimit = str(level)
+        if level == '2':
+            if limit is not None:
+                if (limit != 20) and (limit != 100):
+                    raise ExchangeError(self.id + ' fetchOrderBook limit argument must be None, 20 or 100')
+                levelLimit += '_' + str(limit)
         self.load_markets()
         marketId = self.market_id(symbol)
-        request = self.extend({'symbol': marketId, 'level': level}, params)
-        response = self.publicGetMarketOrderbookLevelLevel(request)
+        request = {'symbol': marketId, 'level': levelLimit}
+        response = self.publicGetMarketOrderbookLevelLevel(self.extend(request, params))
         #
-        # {sequence: '1547731421688',
-        #   asks: [['5c419328ef83c75456bd615c', '0.9', '0.09'], ...],
-        #   bids: [['5c419328ef83c75456bd615c', '0.9', '0.09'], ...],}
+        # 'market/orderbook/level2'
+        # 'market/orderbook/level2_20'
+        # 'market/orderbook/level2_100'
         #
-        data = response['data']
+        #     {
+        #         "code":"200000",
+        #         "data":{
+        #             "sequence":"1583235112106",
+        #             "asks":[
+        #                 # ...
+        #                 ["0.023197","12.5067468"],
+        #                 ["0.023194","1.8"],
+        #                 ["0.023191","8.1069672"]
+        #             ],
+        #             "bids":[
+        #                 ["0.02319","1.6000002"],
+        #                 ["0.023189","2.2842325"],
+        #             ],
+        #             "time":1586584067274
+        #         }
+        #     }
+        #
+        # 'market/orderbook/level3'
+        #
+        #     {
+        #         "code":"200000",
+        #         "data":{
+        #             "sequence":"1583731857120",
+        #             "asks":[
+        #                 # id, price, size, timestamp in nanoseconds
+        #                 ["5e915f8acd26670009675300","6925.7","0.2","1586585482194286069"],
+        #                 ["5e915f8ace35a200090bba48","6925.7","0.001","1586585482229569826"],
+        #                 ["5e915f8a8857740009ca7d33","6926","0.00001819","1586585482149148621"],
+        #             ],
+        #             "bids":[
+        #                 ["5e915f8acca406000ac88194","6925.6","0.05","1586585482384384842"],
+        #                 ["5e915f93cd26670009676075","6925.6","0.08","1586585491334914600"],
+        #                 ["5e915f906aa6e200099b49f6","6925.4","0.2","1586585488941126340"],
+        #             ],
+        #             "time":1586585492487
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
         timestamp = self.safe_integer(data, 'time')
-        # level can be a string such as 2_20 or 2_100
-        levelString = self.safe_string(request, 'level')
-        levelParts = levelString.split('_')
-        offset = int(levelParts[0])
-        orderbook = self.parse_order_book(data, timestamp, 'bids', 'asks', offset - 2, offset - 1)
+        orderbook = self.parse_order_book(data, timestamp, 'bids', 'asks', level - 2, level - 1)
         orderbook['nonce'] = self.safe_integer(data, 'sequence')
         return orderbook
 

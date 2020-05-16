@@ -203,7 +203,7 @@ module.exports = class dsx extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privatePostInfoAccount ();
+        const response = await this.privatePostInfoAccount (params);
         //
         //     {
         //         "success" : 1,

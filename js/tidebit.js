@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InsufficientFunds, OrderNotFound } = require ('./base/errors');
+const { ExchangeError, InsufficientFunds, OrderNotFound, ArgumentsRequired } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -237,19 +237,12 @@ module.exports = class tidebit extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             let market = undefined;
-            let symbol = id;
             if (id in this.markets_by_id) {
                 market = this.markets_by_id[id];
-                symbol = market['symbol'];
-            } else {
-                const baseId = id.slice (0, 3);
-                const quoteId = id.slice (3, 6);
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
+                const symbol = market['symbol'];
+                const ticker = tickers[id];
+                result[symbol] = this.parseTicker (ticker, market);
             }
-            const ticker = tickers[id];
-            result[symbol] = this.parseTicker (ticker, market);
         }
         return result;
     }
@@ -460,7 +453,7 @@ module.exports = class tidebit extends Exchange {
         const currency = this.currency (code);
         const id = this.safeString (params, 'id');
         if (id === undefined) {
-            throw new ExchangeError (this.id + ' withdraw() requires an extra `id` param (withdraw account id according to withdraws/bind_account_list endpoint');
+            throw new ArgumentsRequired (this.id + ' withdraw() requires an extra `id` param (withdraw account id according to withdraws/bind_account_list endpoint');
         }
         const request = {
             'id': id,

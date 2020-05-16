@@ -206,7 +206,7 @@ class dsx extends Exchange {
 
     public function fetch_balance($params = array ()) {
         $this->load_markets();
-        $response = $this->privatePostInfoAccount ();
+        $response = $this->privatePostInfoAccount ($params);
         //
         //     {
         //         "success" : 1,

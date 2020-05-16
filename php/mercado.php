@@ -403,17 +403,17 @@ class mercado extends Exchange {
         if ($code === 'BRL') {
             $account_ref = (is_array($params) && array_key_exists('account_ref', $params));
             if (!$account_ref) {
-                throw new ExchangeError($this->id . ' requires $account_ref parameter to withdraw ' . $code);
+                throw new ArgumentsRequired($this->id . ' requires $account_ref parameter to withdraw ' . $code);
             }
         } else if ($code !== 'LTC') {
             $tx_fee = (is_array($params) && array_key_exists('tx_fee', $params));
             if (!$tx_fee) {
-                throw new ExchangeError($this->id . ' requires $tx_fee parameter to withdraw ' . $code);
+                throw new ArgumentsRequired($this->id . ' requires $tx_fee parameter to withdraw ' . $code);
             }
             if ($code === 'XRP') {
                 if ($tag === null) {
                     if (!(is_array($params) && array_key_exists('destination_tag', $params))) {
-                        throw new ExchangeError($this->id . ' requires a $tag argument or destination_tag parameter to withdraw ' . $code);
+                        throw new ArgumentsRequired($this->id . ' requires a $tag argument or destination_tag parameter to withdraw ' . $code);
                     }
                 } else {
                     $request['destination_tag'] = $tag;

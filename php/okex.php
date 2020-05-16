@@ -67,6 +67,9 @@ class okex extends Exchange {
                 'doc' => 'https://www.okex.com/docs/en/',
                 'fees' => 'https://www.okex.com/pages/products/fees.html',
                 'referral' => 'https://www.okex.com/join/1888677',
+                'test' => array(
+                    'rest' => 'https://testnet.okex.com',
+                ),
             ),
             'api' => array(
                 'general' => array(
@@ -799,14 +802,6 @@ class okex extends Exchange {
             'price' => $this->safe_float($market, 'tick_size'),
         );
         $minAmount = $this->safe_float_2($market, 'min_size', 'base_min_size');
-        $minPrice = $this->safe_float($market, 'tick_size');
-        if ($precision['price'] !== null) {
-            $minPrice = pow(10, -$precision['price']);
-        }
-        $minCost = null;
-        if ($minAmount !== null && $minPrice !== null) {
-            $minCost = $minAmount * $minPrice;
-        }
         $active = true;
         $fees = $this->safe_value_2($this->fees, $marketType, 'trading', array());
         return array_merge($fees, array(
@@ -830,11 +825,11 @@ class okex extends Exchange {
                     'max' => null,
                 ),
                 'price' => array(
-                    'min' => $minPrice,
+                    'min' => $precision['price'],
                     'max' => null,
                 ),
                 'cost' => array(
-                    'min' => $minCost,
+                    'min' => $precision['price'],
                     'max' => null,
                 ),
             ),
@@ -1118,7 +1113,7 @@ class okex extends Exchange {
             $symbol = $ticker['symbol'];
             $result[$symbol] = $ticker;
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -1367,8 +1362,18 @@ class okex extends Exchange {
             'instrument_id' => $market['id'],
             'granularity' => $this->timeframes[$timeframe],
         );
+        $duration = $this->parse_timeframe($timeframe);
         if ($since !== null) {
+            if ($limit !== null) {
+                $request['end'] = $this->iso8601($this->sum($since, $limit * $duration * 1000));
+            }
             $request['start'] = $this->iso8601($since);
+        } else {
+            $now = $this->milliseconds();
+            if ($limit !== null) {
+                $request['start'] = $this->iso8601($now - $limit * $duration * 1000);
+                $request['end'] = $this->iso8601($now);
+            }
         }
         $response = $this->$method (array_merge($request, $params));
         //
@@ -1848,28 +1853,7 @@ class okex extends Exchange {
         //         "result":true
         //     }
         //
-        $timestamp = null;
-        $id = $this->safe_string($response, 'order_id');
-        return array(
-            'info' => $response,
-            'id' => $id,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'lastTradeTimestamp' => null,
-            'status' => null,
-            'symbol' => $symbol,
-            'type' => $type,
-            'side' => $side,
-            'price' => $price,
-            'amount' => $amount,
-            'filled' => null,
-            'remaining' => null,
-            'cost' => null,
-            'trades' => null,
-            'fee' => null,
-            'clientOrderId' => null,
-            'average' => null,
-        );
+        return $this->parse_order($response, $market);
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
@@ -2311,7 +2295,9 @@ class okex extends Exchange {
     public function parse_deposit_addresses($addresses) {
         $result = array();
         for ($i = 0; $i < count($addresses); $i++) {
-            $result[] = $this->parse_deposit_address($addresses[$i]);
+            $address = $this->parse_deposit_address($addresses[$i]);
+            $code = $address['currency'];
+            $result[$code] = $address;
         }
         return $result;
     }
@@ -2351,17 +2337,17 @@ class okex extends Exchange {
         //
         //     array(
         //         {
-        //             address => '0x696abb81974a8793352cbd33aadcf78eda3cfdfa',
+        //             $address => '0x696abb81974a8793352cbd33aadcf78eda3cfdfa',
         //             $currency => 'eth'
         //         }
         //     )
         //
         $addresses = $this->parse_deposit_addresses($response);
-        $numAddresses = is_array($addresses) ? count($addresses) : 0;
-        if ($numAddresses < 1) {
+        $address = $this->safe_value($addresses, $code);
+        if ($address === null) {
             throw new InvalidAddress($this->id . ' fetchDepositAddress cannot return nonexistent $addresses, you should create withdrawal $addresses with the exchange website first');
         }
-        return $addresses[0];
+        return $address;
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
@@ -2373,7 +2359,7 @@ class okex extends Exchange {
         }
         $fee = $this->safe_string($params, 'fee');
         if ($fee === null) {
-            throw new ExchangeError($this->id . " withdraw() requires a `$fee` string parameter, network transaction $fee must be ≥ 0. Withdrawals to OKCoin or OKEx are $fee-free, please set '0'. Withdrawing to external digital asset $address requires network transaction $fee->");
+            throw new ArgumentsRequired($this->id . " withdraw() requires a `$fee` string parameter, network transaction $fee must be ≥ 0. Withdrawals to OKCoin or OKEx are $fee-free, please set '0'. Withdrawing to external digital asset $address requires network transaction $fee->");
         }
         $request = array(
             'currency' => $currency['id'],
@@ -2502,12 +2488,14 @@ class okex extends Exchange {
         // fetchDeposits
         //
         //     {
-        //         $amount => "0.47847546",
-        //         $txid => "1723573_3_0_0_WALLET",
-        //         $currency => "BTC",
-        //         to => "",
-        //         $timestamp => "2018-08-16T03:41:10.000Z",
-        //         $status => "2"
+        //         "$amount" => "4.19511659",
+        //         "$txid" => "14c9a8c925647cdb7e5b2937ea9aefe2b29b2c273150ad3f44b3b8a4635ed437",
+        //         "$currency" => "XMR",
+        //         "from" => "",
+        //         "to" => "48PjH3ksv1fiXniKvKvyH5UtFs5WhfS2Vf7U3TwzdRJtCc7HJWvCQe56dRahyhQyTAViXZ8Nzk4gQg6o4BJBMUoxNy8y8g7",
+        //         "deposit_id" => 11571659, <-- we can use this
+        //         "$timestamp" => "2019-10-01T14:54:19.000Z",
+        //         "$status" => "2"
         //     }
         //
         $type = null;
@@ -2522,7 +2510,7 @@ class okex extends Exchange {
             $address = $addressTo;
         } else {
             // the payment_id will appear on new deposits but appears to be removed from the response after 2 months
-            $id = $this->safe_string($transaction, 'payment_id');
+            $id = $this->safe_string_2($transaction, 'payment_id', 'deposit_id');
             $type = 'deposit';
             $address = $addressTo;
         }

@@ -527,11 +527,13 @@ class deribit extends Exchange {
             'info' => $response,
         );
         $balance = $this->safe_value($response, 'result', array());
+        $currencyId = $this->safe_string($balance, 'currency');
+        $currencyCode = $this->safe_currency_code($currencyId);
         $account = $this->account();
         $account['free'] = $this->safe_float($balance, 'availableFunds');
         $account['used'] = $this->safe_float($balance, 'maintenanceMargin');
         $account['total'] = $this->safe_float($balance, 'equity');
-        $result[$code] = $account;
+        $result[$currencyCode] = $account;
         return $this->parse_balance($result);
     }
 

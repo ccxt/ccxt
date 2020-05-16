@@ -582,6 +582,7 @@ class ftx extends Exchange {
         //     {
         //         "$fee" => 20.1374935,
         //         "feeRate" => 0.0005,
+        //         "feeCurrency" => "USD",
         //         "future" => "EOS-0329",
         //         "$id" => 11215,
         //         "liquidity" => "taker",
@@ -628,8 +629,11 @@ class ftx extends Exchange {
         $fee = null;
         $feeCost = $this->safe_float($trade, 'fee');
         if ($feeCost !== null) {
+            $feeCurrencyId = $this->safe_string($trade, 'feeCurrency');
+            $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $fee = array(
                 'cost' => $feeCost,
+                'currency' => $feeCurrencyCode,
                 'rate' => $this->safe_float($trade, 'feeRate'),
             );
         }

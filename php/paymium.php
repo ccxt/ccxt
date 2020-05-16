@@ -29,6 +29,7 @@ class paymium extends Exchange {
                     'https://github.com/Paymium/api-documentation',
                     'https://www.paymium.com/page/developers',
                 ),
+                'referral' => 'https://www.paymium.com/page/sign-up?referral=eDAzPoRQFMvaAB8sf-qj',
             ),
             'api' => array(
                 'public' => array(
@@ -206,9 +207,9 @@ class paymium extends Exchange {
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
         $request = array(
-            'UUID' => $id,
+            'uuid' => $id,
         );
-        return $this->privateDeleteUserOrdersUUIDCancel (array_merge($request, $params));
+        return $this->privateDeleteUserOrdersUuidCancel (array_merge($request, $params));
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

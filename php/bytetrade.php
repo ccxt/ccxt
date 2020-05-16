@@ -51,9 +51,15 @@ class bytetrade extends Exchange {
                 '1M' => '1M',
             ),
             'urls' => array(
-                'test' => 'https://api-v2-test.byte-trade.com',
+                'test' => array(
+                    'market' => 'https://api-v2-test.byte-trade.com',
+                    'public' => 'https://api-v2-test.byte-trade.com',
+                ),
                 'logo' => 'https://user-images.githubusercontent.com/1294454/67288762-2f04a600-f4e6-11e9-9fd6-c60641919491.jpg',
-                'api' => 'https://api-v2.byte-trade.com',
+                'api' => array(
+                    'market' => 'https://api-v2.bytetrade.com',
+                    'public' => 'https://api-v2.bytetrade.com',
+                ),
                 'www' => 'https://www.byte-trade.com',
                 'doc' => 'https://github.com/Bytetrade/bytetrade-official-api-docs/wiki',
             ),
@@ -1226,7 +1232,7 @@ class bytetrade extends Exchange {
                 $this->number_to_le(strlen($address), 1),
                 $this->encode($address),
                 $this->number_to_le(intval ($coinId), 4),
-                $this->number_to_le((int) floor(intval (floatval ($this->integer_divide($amountChain, $eightBytes)))), 8),
+                $this->number_to_le($this->integer_divide($amountChain, $eightBytes), 8),
                 $this->number_to_le($this->integer_modulo($amountChain, $eightBytes), 8),
                 $this->number_to_le(1, 1),
                 $this->number_to_le($this->integer_divide($assetFee, $eightBytes), 8),
@@ -1259,7 +1265,7 @@ class bytetrade extends Exchange {
                 $this->number_to_le(strlen($middleAddress), 1),
                 $this->encode($middleAddress),
                 $this->number_to_le(intval ($coinId), 4),
-                $this->number_to_le((int) floor(intval (floatval ($this->integer_divide($amountChain, $eightBytes)))), 8),
+                $this->number_to_le($this->integer_divide($amountChain, $eightBytes), 8),
                 $this->number_to_le($this->integer_modulo($amountChain, $eightBytes), 8),
                 $this->number_to_le(0, 1),
                 $this->number_to_le(1, 1),
@@ -1362,7 +1368,7 @@ class bytetrade extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'];
+        $url = $this->urls['api'][$api];
         $url .= '/' . $path;
         if ($params) {
             $url .= '?' . $this->urlencode($params);

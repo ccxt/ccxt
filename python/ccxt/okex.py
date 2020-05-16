@@ -12,7 +12,6 @@ try:
 except NameError:
     basestring = str  # Python 2
 import hashlib
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -89,6 +88,9 @@ class okex(Exchange):
                 'doc': 'https://www.okex.com/docs/en/',
                 'fees': 'https://www.okex.com/pages/products/fees.html',
                 'referral': 'https://www.okex.com/join/1888677',
+                'test': {
+                    'rest': 'https://testnet.okex.com',
+                },
             },
             'api': {
                 'general': {
@@ -812,12 +814,6 @@ class okex(Exchange):
             'price': self.safe_float(market, 'tick_size'),
         }
         minAmount = self.safe_float_2(market, 'min_size', 'base_min_size')
-        minPrice = self.safe_float(market, 'tick_size')
-        if precision['price'] is not None:
-            minPrice = math.pow(10, -precision['price'])
-        minCost = None
-        if minAmount is not None and minPrice is not None:
-            minCost = minAmount * minPrice
         active = True
         fees = self.safe_value_2(self.fees, marketType, 'trading', {})
         return self.extend(fees, {
@@ -841,11 +837,11 @@ class okex(Exchange):
                     'max': None,
                 },
                 'price': {
-                    'min': minPrice,
+                    'min': precision['price'],
                     'max': None,
                 },
                 'cost': {
-                    'min': minCost,
+                    'min': precision['price'],
                     'max': None,
                 },
             },
@@ -1115,7 +1111,7 @@ class okex(Exchange):
             ticker = self.parse_ticker(response[i])
             symbol = ticker['symbol']
             result[symbol] = ticker
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_tickers(self, symbols=None, params={}):
         defaultType = self.safe_string_2(self.options, 'fetchTickers', 'defaultType')
@@ -1349,8 +1345,16 @@ class okex(Exchange):
             'instrument_id': market['id'],
             'granularity': self.timeframes[timeframe],
         }
+        duration = self.parse_timeframe(timeframe)
         if since is not None:
+            if limit is not None:
+                request['end'] = self.iso8601(self.sum(since, limit * duration * 1000))
             request['start'] = self.iso8601(since)
+        else:
+            now = self.milliseconds()
+            if limit is not None:
+                request['start'] = self.iso8601(now - limit * duration * 1000)
+                request['end'] = self.iso8601(now)
         response = getattr(self, method)(self.extend(request, params))
         #
         # spot markets
@@ -1805,28 +1809,7 @@ class okex(Exchange):
         #         "result":true
         #     }
         #
-        timestamp = None
-        id = self.safe_string(response, 'order_id')
-        return {
-            'info': response,
-            'id': id,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': None,
-            'status': None,
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'price': price,
-            'amount': amount,
-            'filled': None,
-            'remaining': None,
-            'cost': None,
-            'trades': None,
-            'fee': None,
-            'clientOrderId': None,
-            'average': None,
-        }
+        return self.parse_order(response, market)
 
     def cancel_order(self, id, symbol=None, params={}):
         if symbol is None:
@@ -2232,9 +2215,11 @@ class okex(Exchange):
         return self.fetch_orders_by_state('7', symbol, since, limit, params)
 
     def parse_deposit_addresses(self, addresses):
-        result = []
+        result = {}
         for i in range(0, len(addresses)):
-            result.append(self.parse_deposit_address(addresses[i]))
+            address = self.parse_deposit_address(addresses[i])
+            code = address['currency']
+            result[code] = address
         return result
 
     def parse_deposit_address(self, depositAddress, currency=None):
@@ -2277,10 +2262,10 @@ class okex(Exchange):
         #     ]
         #
         addresses = self.parse_deposit_addresses(response)
-        numAddresses = len(addresses)
-        if numAddresses < 1:
+        address = self.safe_value(addresses, code)
+        if address is None:
             raise InvalidAddress(self.id + ' fetchDepositAddress cannot return nonexistent addresses, you should create withdrawal addresses with the exchange website first')
-        return addresses[0]
+        return address
 
     def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
@@ -2290,7 +2275,7 @@ class okex(Exchange):
             address = address + ':' + tag
         fee = self.safe_string(params, 'fee')
         if fee is None:
-            raise ExchangeError(self.id + " withdraw() requires a `fee` string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKEx are fee-free, please set '0'. Withdrawing to external digital asset address requires network transaction fee.")
+            raise ArgumentsRequired(self.id + " withdraw() requires a `fee` string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKEx are fee-free, please set '0'. Withdrawing to external digital asset address requires network transaction fee.")
         request = {
             'currency': currency['id'],
             'to_address': address,
@@ -2410,12 +2395,14 @@ class okex(Exchange):
         # fetchDeposits
         #
         #     {
-        #         amount: "0.47847546",
-        #         txid: "1723573_3_0_0_WALLET",
-        #         currency: "BTC",
-        #         to: "",
-        #         timestamp: "2018-08-16T03:41:10.000Z",
-        #         status: "2"
+        #         "amount": "4.19511659",
+        #         "txid": "14c9a8c925647cdb7e5b2937ea9aefe2b29b2c273150ad3f44b3b8a4635ed437",
+        #         "currency": "XMR",
+        #         "from": "",
+        #         "to": "48PjH3ksv1fiXniKvKvyH5UtFs5WhfS2Vf7U3TwzdRJtCc7HJWvCQe56dRahyhQyTAViXZ8Nzk4gQg6o4BJBMUoxNy8y8g7",
+        #         "deposit_id": 11571659, <-- we can use self
+        #         "timestamp": "2019-10-01T14:54:19.000Z",
+        #         "status": "2"
         #     }
         #
         type = None
@@ -2430,7 +2417,7 @@ class okex(Exchange):
             address = addressTo
         else:
             # the payment_id will appear on new deposits but appears to be removed from the response after 2 months
-            id = self.safe_string(transaction, 'payment_id')
+            id = self.safe_string_2(transaction, 'payment_id', 'deposit_id')
             type = 'deposit'
             address = addressTo
         currencyId = self.safe_string(transaction, 'currency')

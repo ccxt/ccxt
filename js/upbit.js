@@ -1324,9 +1324,11 @@ module.exports = class upbit extends Exchange {
     }
 
     parseDepositAddresses (addresses) {
-        const result = [];
+        const result = {};
         for (let i = 0; i < addresses.length; i++) {
-            result.push (this.parseDepositAddress (addresses[i]));
+            const address = this.parseDepositAddress (addresses[i]);
+            const code = address['currency'];
+            result[code] = address;
         }
         return result;
     }
