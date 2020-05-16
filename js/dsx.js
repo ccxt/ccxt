@@ -56,9 +56,16 @@ module.exports = class dsx extends Exchange {
                 },
             },
             'timeframes': {
-                '1m': 'm',
-                '1h': 'h',
-                '1d': 'd',
+                '1m': 'M1',
+                '3m': 'M3',
+                '5m': 'M5',
+                '15m': 'M15',
+                '30m': 'M30',
+                '1h': 'H1',
+                '4h': 'H4',
+                '1d': 'D1',
+                '1w': 'D7',
+                '1M': '1M',
             },
             'api': {
                 // market data (public)
@@ -316,6 +323,34 @@ module.exports = class dsx extends Exchange {
         const orderbook = await this.publicGetOrderbookSymbol (this.extend (request, params));
         const timestamp = this.parse8601 (this.safeString (orderbook, 'timestamp'));
         return this.parseOrderBook (orderbook, timestamp, 'bid', 'ask', 'price', 'size');
+    }
+
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1d', since = undefined, limit = undefined) {
+        return [
+            this.parse8601 (this.safeString (ohlcv, 'timestamp')),
+            this.safeFloat (ohlcv, 'open'),
+            this.safeFloat (ohlcv, 'max'),
+            this.safeFloat (ohlcv, 'min'),
+            this.safeFloat (ohlcv, 'close'),
+            this.safeFloat (ohlcv, 'volume'),
+        ];
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'period': this.timeframes[timeframe],
+        };
+        if (since !== undefined) {
+            request['from'] = this.iso8601 (since);
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetCandlesSymbol (this.extend (request, params));
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     async fetchBalance (params = {}) {
