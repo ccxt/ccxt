@@ -403,22 +403,22 @@ module.exports = class bitfinex extends ccxt.bitfinex {
         const client = this.client (url);
         const future = client.future ('authenticated');
         const method = 'auth';
-        const nonce = this.milliseconds ();
-        const payload = 'AUTH' + nonce.toString ();
-        const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha384', 'hex');
-        const request = {
-            'apiKey': this.apiKey,
-            'authSig': signature,
-            'authNonce': nonce,
-            'authPayload': payload,
-            'event': method,
-            'filter': [
-                'trading',
-                'wallet',
-            ],
-        };
         const authenticated = this.safeValue (client.subscriptions, method);
         if (authenticated === undefined) {
+            const nonce = this.milliseconds ();
+            const payload = 'AUTH' + nonce.toString ();
+            const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha384', 'hex');
+            const request = {
+                'apiKey': this.apiKey,
+                'authSig': signature,
+                'authNonce': nonce,
+                'authPayload': payload,
+                'event': method,
+                'filter': [
+                    'trading',
+                    'wallet',
+                ],
+            };
             this.spawn (this.watch, url, method, request, 1);
         }
         return await future;
