@@ -432,7 +432,7 @@ module.exports = class bitfinex extends ccxt.bitfinex {
             const future = this.safeValue (client.futures, 'authenticated');
             future.resolve (true);
         } else {
-            const error = new AuthenticationError (JSON.stringify (message));
+            const error = new AuthenticationError (this.json (message));
             client.reject (error, 'authenticated');
             // allows further authentication attempts
             if (method in client.subscriptions) {
