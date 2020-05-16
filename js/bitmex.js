@@ -1102,11 +1102,12 @@ module.exports = class bitmex extends Exchange {
         const average = this.safeFloat (order, 'avgPx');
         let cost = undefined;
         if (filled !== undefined) {
-            if (average !== undefined) {
-                cost = average * filled;
-            } else if (price !== undefined) {
-                cost = price * filled;
-            }
+            cost = filled
+            //if (average !== undefined) {
+            //    cost = average * filled;
+            //} else if (price !== undefined) {
+            //    cost = price * filled;
+            //}
         }
         const id = this.safeString (order, 'orderID');
         const type = this.safeStringLower (order, 'ordType');
