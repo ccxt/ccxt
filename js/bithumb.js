@@ -130,7 +130,7 @@ module.exports = class bithumb extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': undefined,
+                        'min': 500,
                         'max': undefined,
                     },
                 },
