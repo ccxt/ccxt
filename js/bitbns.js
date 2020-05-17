@@ -42,7 +42,6 @@ module.exports = class bitbns extends Exchange {
             'urls': {
                 'logo': 'https://bitbns.com/assets/img/logos/bitbns.svg',
                 'api': {
-                    // 'public': 'https://c086dmj6f2.execute-api.ap-south-1.amazonaws.com/dev/',
                     'public': 'https://bitbns.com/order/',
                     'private': 'https://api.bitbns.com/api/trade/v2',
                     'private1': 'https://api.bitbns.com/api/trade/v1',
@@ -52,7 +51,6 @@ module.exports = class bitbns extends Exchange {
                 'fees': 'https://bitbns.com/fees/',
             },
             'api': {
-                // All methods are passed in as query params
                 'public': { 'get': [
                     'fetchOrderBook',
                     'fetchMarkets',
@@ -79,7 +77,7 @@ module.exports = class bitbns extends Exchange {
                     'taker': 0.0025,
                 },
             },
-            'verbose': false,
+            'verbose': true,
             // 'proxy': '',
             'apiKey': '',
             'secret': '',
@@ -107,16 +105,16 @@ module.exports = class bitbns extends Exchange {
                 'body': body,
             };
             // console.log("ccxt data:", data);
-            const payload = this.stringToBase64 (this.json (data));
+            const payload = this.stringToBase64 (this.encode (this.json (data)));
             // console.log("ccxt payload:", payload);
             // Generate signature from payload
-            const signature = this.hmac (payload, this.secret, 'sha512', 'hex');
+            const signature = this.hmac (payload, this.encode (this.secret), 'sha512', 'hex');
             // console.log("ccxt sign:", signature);
             // Init headers
             headers = {};
             // Attach headers
             headers['X-BITBNS-APIKEY'] = this.apiKey;
-            headers['X-BITBNS-PAYLOAD'] = payload;
+            headers['X-BITBNS-PAYLOAD'] = this.decode (payload);
             headers['X-BITBNS-SIGNATURE'] = signature;
             headers['Accept'] = 'application/json';
             headers['Accept-Charset'] = 'utf-8';
@@ -165,7 +163,7 @@ module.exports = class bitbns extends Exchange {
     async fetchMarkets (params = {}) {
         const data = await this.publicGetFetchMarkets ();
         // console.log(data);
-        for (let i = 0; i < data.length; i += 1) {
+        for (let i = 0; i < data.length; i++) {
             if (data[i]['quote'] === 'USDT') {
                 data[i]['us_symbol'] = data[i]['base'] + '_' + data[i]['quote'];
             }
@@ -193,12 +191,11 @@ module.exports = class bitbns extends Exchange {
             'limit': limit,
         };
         const trades = await this.publicGetFetchTrades (this.extend (request, params));
-        // console.log (trades.length);
         for (let i = 0; i < trades.length; i++) {
             trades[i]['symbol'] = symbol;
             trades[i]['id'] = this.safeString (trades[i], 'id');
             const keys = Object.keys (trades[i]);
-            for (let k = 0; k < keys.length; k += 1) {
+            for (let k = 0; k < keys.length; k++) {
                 if (!this.safeString (trades[i], keys[k])) {
                     trades[i][keys[k]] = undefined;
                 }
@@ -279,7 +276,6 @@ module.exports = class bitbns extends Exchange {
             'info': order,              // the original unparsed order structure as is
         };
         const status = this.safeInteger (orderData, 'status');
-        // console.log(status);
         if (status === 0) {
             orderObj['status'] = 'open';
         } else if (status === -1) {
@@ -293,7 +289,6 @@ module.exports = class bitbns extends Exchange {
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        // console.log(market);
         const tradingSymbol = market['id'];
         const request = {
             'symbol': tradingSymbol,
@@ -325,7 +320,7 @@ module.exports = class bitbns extends Exchange {
         // return resp;
         const orders = this.safeValue (resp, 'data');
         const openOrders = [];
-        for (let i = 0; i < orders.length; i += 1) {
+        for (let i = 0; i < orders.length; i++) {
             const orderObj = {
                 'id': this.safeString (orders[i], 'entry_id'), // string
                 'datetime': this.safeString (orders[i], 'time'), // ISO8601 datetime of 'timestamp' with milliseconds
@@ -361,44 +356,41 @@ module.exports = class bitbns extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        // console.log('exchange.currencies :', exchange.currencies);
         const symbols = Object.keys (this.currencies);
-        // same as previous line
         // console.log('symbols :', symbols);
-        await this.loadMarkets ();
+        // Body for the balance API request
         const request = {
             'symbol': 'EVERYTHING',
         };
+        // Make the API call for balance
         const data = await this.private1PostCurrentCoinBalance (this.extend (request, params));
-        // console.log('Data ::', data);
         const balances = {};
-        // balances['info'] = data;
-        // console.log('balances :', balances);
-        const currencybalances = data['data'];
-        // console.log('currencybalances :', currencybalances);
-        const freefiat = currencybalances['availableorderMoney'] ? currencybalances['availableorderMoney'] : 0;
-        const usedfiat = currencybalances['inorderMoney'] ? currencybalances['inorderMoney'] : 0;
-        // console.log('freefiat :', { INR: freefiat });
-        // console.log('usedfiat :', { INR: usedfiat },{INR: freefiat + usedfiat});
+        balances['info'] = data;
+        const currencybalances = this.safeValue (data, 'data');
+        const freefiat = this.safeFloat (currencybalances, 'availableorderMoney');
+        const usedfiat = this.safeFloat (currencybalances, 'inorderMoney');
         balances['free'] = { 'INR': freefiat };
         balances['used'] = { 'INR': usedfiat };
         balances['total'] = { 'INR': freefiat + usedfiat };
-        // console.log('balances :', balances);
-        for (let i = 0; i < this.symbols.length; i += 1) {
+        for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const currency = symbol;
             const availableOrderString = 'availableorder' + symbol;
-            const free = currencybalances[availableOrderString] ? currencybalances[availableOrderString] : 0;
+            let free = this.safeFloat (currencybalances, availableOrderString);
+            free = (free === undefined) ? 0 : free;
             const inorderString = 'inorder' + symbol;
-            const used = currencybalances[inorderString] ? currencybalances[inorderString] : 0;
+            let used = this.safeFloat (currencybalances, inorderString);
+            used = (used === undefined) ? 0 : used;
             const total = free + used;
             balances[currency] = {
                 'free': free,
                 'used': used,
                 'total': total,
             };
+            balances['free'][currency] = free;
+            balances['used'][currency] = used;
+            balances['total'][currency] = total;
         }
-        // console.log ('balances :', balances);
         return balances;
     }
 
@@ -407,7 +399,9 @@ module.exports = class bitbns extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const tradingSymbol = market['id'];
-        limit = limit === undefined ? 0 : limit;
+        if (limit === undefined) {
+            limit = 0;
+        }
         if (since !== undefined) {
             since = this.iso8601 (since);
         }
@@ -429,7 +423,7 @@ module.exports = class bitbns extends Exchange {
             numOfTrades = limit;
         }
         // console.log("numoftrades", numOfTrades);
-        for (let i = 0; i < numOfTrades; i += 1) {
+        for (let i = 0; i < numOfTrades; i++) {
             const tradeObj = {
                 'info': trades[i],
                 'id': trades[i]['id'],
