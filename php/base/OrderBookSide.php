@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: carlorevelli
- * Date: 2019-11-21
- * Time: 10:16
- **/
 
 namespace ccxtpro;
 

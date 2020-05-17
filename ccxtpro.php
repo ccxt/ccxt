@@ -39,6 +39,7 @@ require_once PATH_TO_CCXTPRO_BASE . 'Client.php';
 require_once PATH_TO_CCXTPRO_BASE . 'ClientTrait.php';
 require_once PATH_TO_CCXTPRO_BASE . 'OrderBook.php';
 require_once PATH_TO_CCXTPRO_BASE . 'OrderBookSide.php';
+require_once PATH_TO_CCXTPRO_BASE . 'ArrayCache.php';
 require_once PATH_TO_CCXTPRO_BASE . 'Exchange.php';
 
 spl_autoload_register (function ($class_name) {
