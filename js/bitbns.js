@@ -162,7 +162,15 @@ module.exports = class bitbns extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
-        return await this.publicGetFetchTickers (params);
+        const data = await this.publicGetFetchTickers (params);
+        if (symbols === undefined) {
+            return data;
+        }
+        const result = {};
+        for (let i = 0; i < symbols.length; i++) {
+            result[symbols[i]] = this.safeValue (data, symbols[i])
+        }
+        return result;
     }
 
     async fetchTicker (symbol = undefined, params = {}) {
