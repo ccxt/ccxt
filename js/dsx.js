@@ -638,56 +638,52 @@ module.exports = class dsx extends Exchange {
     }
 
     parseTransaction (transaction, currency = undefined) {
-        //   { id: '6dfgdfgdfgb7c',
-        //     index: 50045646423,
-        //     type: 'deposit',
-        //     status: 'success',
-        //     currency: 'USD',
-        //     amount: '0.01',
-        //     createdAt: '2020-03-25T15:12:24.142Z',
-        //     updatedAt: '2020-03-25T15:18:45.425Z' }
-        //
-        //   { id: 'dfgdfgfe5',
-        //     index: 504564573,
-        //     type: 'deposit',
-        //     status: 'success',
-        //     currency: 'LTC',
-        //     amount: '0.00000210',
-        //     createdAt: '2020-03-25T15:12:28.842Z',
-        //     updatedAt: '2020-03-25T15:20:14.607Z' }
-        //
-        //   { id: '8dfgdfg6ac',
-        //     index: 5546450148,
-        //     type: 'payin',
-        //     status: 'pending',
-        //     currency: 'ETH',
-        //     amount: '0.500000000000000000',
-        //     createdAt: '2020-03-27T14:19:56.885Z',
-        //     updatedAt: '2020-03-27T14:21:07.062Z',
-        //     hash:
-        //     '0xa6f98edfgdfga1718d',
-        //         address: '0xdfgdfg78647107e' }
-        const timestamp = this.parse8601 (this.safeString (transaction, 'updatedAt'));
+        //   {
+        //     "id": "73443ee9f54c",
+        //     "fee": "0.001",
+        //     "hash": "3f077268b8dda69",
+        //     "type": "payout",
+        //     "index": 5430881244,
+        //     "amount": "6.999000000000000000000000",
+        //     "status": "success",
+        //     "address": "L45PsQU7VoqaNa5G336Z68umhG",
+        //     "currency": "LTC",
+        //     "createdAt": "2020-05-15T20:39:47.140Z",
+        //     "updatedAt": "2020-05-15T21:34:58.887Z",
+        //     "confirmations": 5
+        //   }
+        const id = this.safeString (transaction, 'id');
+        const timestamp = this.parse8601 (this.safeString (transaction, 'createdAt'));
+        const updated = this.parse8601 (this.safeString (transaction, 'updatedAt'));
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        const amount = this.safeFloat (transaction, 'amount');
+        const address = this.safeString (transaction, 'address');
+        const txid = this.safeString (transaction, 'hash');
+        let fee = undefined;
+        const feeCost = this.safeFloat (transaction, 'fee');
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': code,
+            };
+        }
         const type = this.parseTransactionType (this.safeString (transaction, 'type'));
         return {
-            'id': this.safeString (transaction, 'id'),
-            'txid': this.safeString (transaction, 'hash'),
+            'info': transaction,
+            'id': id,
+            'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'address': this.safeString (transaction, 'address'),
+            'address': address,
+            'tag': undefined,
             'type': type,
-            'amount': this.safeFloat (transaction, 'amount'),
+            'amount': amount,
             'currency': code,
             'status': status,
-            'fee': {
-                'currency': code,
-                'cost': this.safeFloat (transaction, 'commission'),
-                'rate': undefined,
-            },
-            'info': transaction,
+            'updated': updated,
+            'fee': fee,
         };
     }
 
