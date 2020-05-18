@@ -1087,13 +1087,19 @@ module.exports = class qtrade extends Exchange {
         //         },
         //     }
         //
-        const address = this.safeString (depositAddress, 'address');
         const code = (currency === undefined) ? undefined : currency['code'];
+        let address = this.safeString (depositAddress, 'address');
+        let tag = undefined;
+        if (address !== undefined) {
+            const parts = address.split (':');
+            address = this.safeString (parts, 0);
+            tag = this.safeString (parts, 1);
+        }
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
-            'tag': undefined,
+            'tag': tag,
             'info': depositAddress,
         };
     }
