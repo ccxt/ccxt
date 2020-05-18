@@ -502,6 +502,9 @@ class exmo extends Exchange {
         if (($input === null) || ($input === '-')) {
             return null;
         }
+        if ($input === '') {
+            return 0;
+        }
         $isPercentage = (mb_strpos($input, '%') !== false);
         $parts = explode(' ', $input);
         $value = str_replace('%', '', $parts[0]);
@@ -531,14 +534,10 @@ class exmo extends Exchange {
             $withdrawalFee = $this->safe_string($item, 'wd');
             $depositFee = $this->safe_string($item, 'dep');
             if ($withdrawalFee !== null) {
-                if (strlen($withdrawalFee) > 0) {
-                    $withdraw[$code] = $this->parse_fixed_float_value($withdrawalFee);
-                }
+                $withdraw[$code] = $this->parse_fixed_float_value($withdrawalFee);
             }
             if ($depositFee !== null) {
-                if (strlen($depositFee) > 0) {
-                    $deposit[$code] = $this->parse_fixed_float_value($depositFee);
-                }
+                $deposit[$code] = $this->parse_fixed_float_value($depositFee);
             }
         }
         // sets fiat fees to null
