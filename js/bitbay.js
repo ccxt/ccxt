@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, ExchangeError, OrderNotFound, AccountSuspended, BadSymbol, OrderImmediatelyFillable, RateLimitExceeded, OnMaintenance } = require ('./base/errors');
+const { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, ExchangeError, OrderNotFound, AccountSuspended, BadSymbol, OrderImmediatelyFillable, RateLimitExceeded, OnMaintenance, PermissionDenied } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -217,6 +217,7 @@ module.exports = class bitbay extends Exchange {
                 'ACTION_LIMIT_EXCEEDED': RateLimitExceeded,
                 'UNDER_MAINTENANCE': OnMaintenance,
                 'REQUEST_TIMESTAMP_TOO_OLD': InvalidNonce,
+                'PERMISSIONS_NOT_SUFFICIENT': PermissionDenied,
             },
         });
     }
@@ -999,7 +1000,7 @@ module.exports = class bitbay extends Exchange {
         }
         const response = await this.v1_01PublicGetTradingTransactionsSymbol (this.extend (request, params));
         const items = this.safeValue (response, 'items');
-        return this.parseTrades (items, symbol, since, limit);
+        return this.parseTrades (items, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -1014,7 +1015,9 @@ module.exports = class bitbay extends Exchange {
         };
         if (type === 'limit') {
             request['rate'] = price;
+            price = parseFloat (price);
         }
+        amount = parseFloat (amount);
         const response = await this.v1_01PrivatePostTradingOfferSymbol (this.extend (request, params));
         //
         // unfilled (open order)
@@ -1104,8 +1107,8 @@ module.exports = class bitbay extends Exchange {
             'symbol': symbol,
             'type': type,
             'side': side,
-            'price': parseFloat (price),
-            'amount': parseFloat (amount),
+            'price': price,
+            'amount': amount,
             'cost': cost,
             'filled': filled,
             'remaining': remaining,

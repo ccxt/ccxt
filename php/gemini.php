@@ -189,6 +189,8 @@ class gemini extends Exchange {
         if ($numRows < 2) {
             throw new NotSupported($error);
         }
+        $apiSymbols = $this->fetch_markets_from_api($params);
+        $indexedSymbols = $this->index_by($apiSymbols, 'symbol');
         $result = array();
         // skip the first element (empty string)
         for ($i = 1; $i < $numRows; $i++) {
@@ -231,6 +233,9 @@ class gemini extends Exchange {
                 $pricePrecisionParts = explode(' ', $pricePrecisionString);
                 $pricePrecision = $this->precision_from_string($pricePrecisionParts[0]);
                 $symbol = $base . '/' . $quote;
+                if (!(is_array($indexedSymbols) && array_key_exists($symbol, $indexedSymbols))) {
+                    continue;
+                }
                 $id = $baseId . $quoteId;
                 $active = null;
                 $result[] = array(

@@ -1111,7 +1111,7 @@ class okex(Exchange):
             ticker = self.parse_ticker(response[i])
             symbol = ticker['symbol']
             result[symbol] = ticker
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_tickers(self, symbols=None, params={}):
         defaultType = self.safe_string_2(self.options, 'fetchTickers', 'defaultType')
@@ -2395,12 +2395,14 @@ class okex(Exchange):
         # fetchDeposits
         #
         #     {
-        #         amount: "0.47847546",
-        #         txid: "1723573_3_0_0_WALLET",
-        #         currency: "BTC",
-        #         to: "",
-        #         timestamp: "2018-08-16T03:41:10.000Z",
-        #         status: "2"
+        #         "amount": "4.19511659",
+        #         "txid": "14c9a8c925647cdb7e5b2937ea9aefe2b29b2c273150ad3f44b3b8a4635ed437",
+        #         "currency": "XMR",
+        #         "from": "",
+        #         "to": "48PjH3ksv1fiXniKvKvyH5UtFs5WhfS2Vf7U3TwzdRJtCc7HJWvCQe56dRahyhQyTAViXZ8Nzk4gQg6o4BJBMUoxNy8y8g7",
+        #         "deposit_id": 11571659, <-- we can use self
+        #         "timestamp": "2019-10-01T14:54:19.000Z",
+        #         "status": "2"
         #     }
         #
         type = None
@@ -2415,7 +2417,7 @@ class okex(Exchange):
             address = addressTo
         else:
             # the payment_id will appear on new deposits but appears to be removed from the response after 2 months
-            id = self.safe_string(transaction, 'payment_id')
+            id = self.safe_string_2(transaction, 'payment_id', 'deposit_id')
             type = 'deposit'
             address = addressTo
         currencyId = self.safe_string(transaction, 'currency')

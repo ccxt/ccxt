@@ -264,11 +264,12 @@ module.exports = class coinex extends Exchange {
                 market = this.markets_by_id[marketId];
                 symbol = market['symbol'];
             }
-            const ticker = {
+            const ticker = this.parseTicker ({
                 'date': timestamp,
                 'ticker': tickers[marketId],
-            };
-            result[symbol] = this.parseTicker (ticker, market);
+            }, market);
+            ticker['symbol'] = symbol;
+            result[symbol] = ticker;
         }
         return result;
     }
@@ -628,7 +629,7 @@ module.exports = class coinex extends Exchange {
             'coin_type': currency['id'],
             'coin_address': address, // must be authorized, inter-user transfer by a registered mobile phone number or an email address is supported
             'actual_amount': parseFloat (amount), // the actual amount without fees, https://www.coinex.com/fees
-            'transfer_method': '1', // '1' = normal onchain transfer, '2' = internal local transfer from one user to another
+            'transfer_method': 'onchain', // onchain, local
         };
         const response = await this.privatePostBalanceCoinWithdraw (this.extend (request, params));
         //

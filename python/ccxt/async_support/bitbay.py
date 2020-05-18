@@ -7,6 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
@@ -229,6 +230,7 @@ class bitbay(Exchange):
                 'ACTION_LIMIT_EXCEEDED': RateLimitExceeded,
                 'UNDER_MAINTENANCE': OnMaintenance,
                 'REQUEST_TIMESTAMP_TOO_OLD': InvalidNonce,
+                'PERMISSIONS_NOT_SUFFICIENT': PermissionDenied,
             },
         })
 
@@ -966,7 +968,7 @@ class bitbay(Exchange):
             request['limit'] = limit  # default - 10, max - 300
         response = await self.v1_01PublicGetTradingTransactionsSymbol(self.extend(request, params))
         items = self.safe_value(response, 'items')
-        return self.parse_trades(items, symbol, since, limit)
+        return self.parse_trades(items, market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
@@ -980,6 +982,8 @@ class bitbay(Exchange):
         }
         if type == 'limit':
             request['rate'] = price
+            price = float(price)
+        amount = float(amount)
         response = await self.v1_01PrivatePostTradingOfferSymbol(self.extend(request, params))
         #
         # unfilled(open order)
@@ -1067,8 +1071,8 @@ class bitbay(Exchange):
             'symbol': symbol,
             'type': type,
             'side': side,
-            'price': float(price),
-            'amount': float(amount),
+            'price': price,
+            'amount': amount,
             'cost': cost,
             'filled': filled,
             'remaining': remaining,

@@ -35,7 +35,7 @@ use kornrunner\Solidity;
 use Elliptic\EC;
 use BN\BN;
 
-$version = '1.27.56';
+$version = '1.27.91';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -54,7 +54,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.27.56';
+    const VERSION = '1.27.91';
 
     public static $exchanges = array(
         '_1btcxe',
@@ -119,6 +119,7 @@ class Exchange {
         'deribit',
         'digifinex',
         'dsx',
+        'eterbase',
         'exmo',
         'exx',
         'fcoin',
@@ -158,6 +159,7 @@ class Exchange {
         'paymium',
         'poloniex',
         'probit',
+        'qtrade',
         'rightbtc',
         'southxchange',
         'stex',
@@ -676,6 +678,13 @@ class Exchange {
         }
         return $time;
     }
+    
+    public static function rfc2616($timestamp) {	
+        if (!$timestamp) {	
+            $timestamp = $this->milliseconds();	
+        }	
+        return gmdate('D, d M Y H:i:s T', (int) round($timestamp / 1000));	
+    }
 
     public static function dmy($timestamp, $infix = '-') {
         return gmdate('m' . $infix . 'd' . $infix . 'Y', (int) round($timestamp / 1000));
@@ -933,6 +942,7 @@ class Exchange {
 
         // API methods metainfo
         $this->has = array(
+            'loadMarkets' => true,
             'cancelAllOrders' => false,
             'cancelOrder' => true,
             'cancelOrders' => false,

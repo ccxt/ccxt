@@ -241,19 +241,12 @@ class tidebit extends Exchange {
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
             $market = null;
-            $symbol = $id;
             if (is_array($this->markets_by_id) && array_key_exists($id, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$id];
                 $symbol = $market['symbol'];
-            } else {
-                $baseId = mb_substr($id, 0, 3 - 0);
-                $quoteId = mb_substr($id, 3, 6 - 3);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
+                $ticker = $tickers[$id];
+                $result[$symbol] = $this->parse_ticker($ticker, $market);
             }
-            $ticker = $tickers[$id];
-            $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
         return $result;
     }

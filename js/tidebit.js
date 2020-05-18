@@ -237,19 +237,12 @@ module.exports = class tidebit extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             let market = undefined;
-            let symbol = id;
             if (id in this.markets_by_id) {
                 market = this.markets_by_id[id];
-                symbol = market['symbol'];
-            } else {
-                const baseId = id.slice (0, 3);
-                const quoteId = id.slice (3, 6);
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
+                const symbol = market['symbol'];
+                const ticker = tickers[id];
+                result[symbol] = this.parseTicker (ticker, market);
             }
-            const ticker = tickers[id];
-            result[symbol] = this.parseTicker (ticker, market);
         }
         return result;
     }

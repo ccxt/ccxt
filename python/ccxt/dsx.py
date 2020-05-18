@@ -218,7 +218,7 @@ class dsx(Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        response = self.privatePostInfoAccount()
+        response = self.privatePostInfoAccount(params)
         #
         #     {
         #         "success" : 1,

@@ -185,6 +185,8 @@ module.exports = class gemini extends Exchange {
         if (numRows < 2) {
             throw new NotSupported (error);
         }
+        const apiSymbols = await this.fetchMarketsFromAPI (params);
+        const indexedSymbols = this.indexBy (apiSymbols, 'symbol');
         const result = [];
         // skip the first element (empty string)
         for (let i = 1; i < numRows; i++) {
@@ -227,6 +229,9 @@ module.exports = class gemini extends Exchange {
                 const pricePrecisionParts = pricePrecisionString.split (' ');
                 const pricePrecision = this.precisionFromString (pricePrecisionParts[0]);
                 const symbol = base + '/' + quote;
+                if (!(symbol in indexedSymbols)) {
+                    continue;
+                }
                 const id = baseId + quoteId;
                 const active = undefined;
                 result.push ({

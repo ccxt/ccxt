@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.27.56'
+__version__ = '1.27.91'
 
 # -----------------------------------------------------------------------------
 
@@ -74,6 +74,8 @@ import time
 import uuid
 import zlib
 from decimal import Decimal
+from time import mktime
+from wsgiref.handlers import format_date_time
 
 # -----------------------------------------------------------------------------
 
@@ -243,6 +245,7 @@ class Exchange(object):
 
     # API method metainfo
     has = {
+        'loadMarkets': True,
         'cancelAllOrders': False,
         'cancelOrder': True,
         'cancelOrders': False,
@@ -964,6 +967,15 @@ class Exchange(object):
             return utc.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-6] + "{:03d}".format(int(timestamp) % 1000) + 'Z'
         except (TypeError, OverflowError, OSError):
             return None
+
+    @staticmethod
+    def rfc2616(self, timestamp=None):
+        if timestamp is None:
+            ts = datetime.datetime.now()
+        else:
+            ts = timestamp
+        stamp = mktime(ts.timetuple())
+        return format_date_time(stamp)
 
     @staticmethod
     def dmy(timestamp, infix='-'):

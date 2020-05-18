@@ -115,6 +115,10 @@ const parseDate = (x) => {
     return parse8601 (x);
 }
 
+const rfc2616 = (timestamp = undefined) => {
+    return new Date (timestamp).toUTCString ();
+}
+
 const mdy = (timestamp, infix = '-') => {
     infix = infix || ''
     const date = new Date (timestamp)
@@ -162,6 +166,7 @@ module.exports =
         , seconds
         , iso8601
         , parse8601
+        , rfc2616
         , parseDate
         , mdy
         , ymd

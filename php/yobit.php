@@ -92,6 +92,7 @@ class yobit extends Exchange {
                 'BPC' => 'BitcoinPremium',
                 'BTS' => 'Bitshares2',
                 'CAT' => 'BitClave',
+                'CBC' => 'CryptoBossCoin',
                 'CMT' => 'CometCoin',
                 'COV' => 'Coven Coin',
                 'COVX' => 'COV',
@@ -176,6 +177,7 @@ class yobit extends Exchange {
                     'data unavailable' => '\\ccxt\\ExchangeNotAvailable',
                     'external service unavailable' => '\\ccxt\\ExchangeNotAvailable',
                     'Total transaction amount' => '\\ccxt\\InvalidOrder', // array( "success" => 0, "error" => "Total transaction amount is less than minimal total => 0.00010000")
+                    'The given order has already been closed and cannot be cancelled' => '\\ccxt\\InvalidOrder',
                     'Insufficient funds' => '\\ccxt\\InsufficientFunds',
                     'invalid key' => '\\ccxt\\AuthenticationError',
                     'invalid nonce' => '\\ccxt\\InvalidNonce', // array("success":0,"error":"invalid nonce (has already been used)")'

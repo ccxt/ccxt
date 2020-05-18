@@ -67,7 +67,6 @@ module.exports = class binance extends Exchange {
                     'v1': 'https://testnet.binance.vision/api/v1',
                 },
                 'api': {
-                    'web': 'https://www.binance.com',
                     'wapi': 'https://api.binance.com/wapi/v3',
                     'sapi': 'https://api.binance.com/sapi/v1',
                     'fapiPublic': 'https://fapi.binance.com/fapi/v1',
@@ -86,12 +85,6 @@ module.exports = class binance extends Exchange {
                 'fees': 'https://www.binance.com/en/fee/schedule',
             },
             'api': {
-                'web': {
-                    'get': [
-                        'exchange/public/product',
-                        'assetWithdraw/getAllAsset.html',
-                    ],
-                },
                 // the API structure below will need 3-layer apidefs
                 'sapi': {
                     'get': [
@@ -238,6 +231,7 @@ module.exports = class binance extends Exchange {
                         'order',
                         'leverage',
                         'listenKey',
+                        'countdownCancelAll',
                     ],
                     'put': [
                         'listenKey',
@@ -324,6 +318,7 @@ module.exports = class binance extends Exchange {
                     'market': 'FULL', // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
                     'limit': 'RESULT', // we change it from 'ACK' by default to 'RESULT'
                 },
+                'quoteOrderQty': true, // whether market orders support amounts in quote currency
             },
             'exceptions': {
                 'API key does not exist': AuthenticationError,
@@ -1178,7 +1173,8 @@ module.exports = class binance extends Exchange {
             'type': uppercaseType,
             'side': side.toUpperCase (),
         };
-        if (uppercaseType === 'MARKET') {
+        const quoteOrderQty = this.safeValue (this.options, 'quoteOrderQty', false);
+        if (uppercaseType === 'MARKET' && quoteOrderQty) {
             const quoteOrderQty = this.safeFloat (params, 'quoteOrderQty');
             const precision = market['precision']['price'];
             if (quoteOrderQty !== undefined) {

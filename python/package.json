@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.27.56",
+  "version": "1.27.91",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 130+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "dist/ccxt.browser.js",
@@ -509,7 +509,12 @@
     "hbtc.com",
     "HBTC",
     "probit.com",
-    "ProBit"
+    "ProBit",
+    "eterbase.com",
+    "ETERBASE",
+    "Eterbase",
+    "qtrade.io",
+    "qTrade"
   ],
   "collective": {
     "type": "opencollective",

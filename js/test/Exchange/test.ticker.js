@@ -42,9 +42,9 @@ module.exports = (exchange, ticker, method, symbol) => {
     assert (!('first' in ticker), '`first` field leftover in ' + exchange.id)
     assert (ticker['last'] === ticker['close'], '`last` != `close` in ' + exchange.id)
 
-    log (ticker['datetime'], exchange.id, method, ticker['symbol'].green, ticker['last'])
+    log (ticker['datetime'], exchange.id, method, ticker['symbol'], ticker['last'])
 
-    keys.forEach (key => assert (key in ticker))
+    keys.forEach ((key) => assert (key in ticker))
 
     const { high, low, vwap, baseVolume, quoteVolume } = ticker
 
@@ -59,11 +59,13 @@ module.exports = (exchange, ticker, method, symbol) => {
     }
     */
 
-    if (baseVolume && vwap)
+    if (baseVolume && vwap) {
         assert (quoteVolume)
+    }
 
-    if (quoteVolume && vwap)
+    if (quoteVolume && vwap) {
         assert (baseVolume)
+    }
 
     // log (symbol.green, 'ticker',
     //     ticker['datetime'],

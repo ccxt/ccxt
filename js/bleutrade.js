@@ -34,17 +34,11 @@ module.exports = class bleutrade extends Exchange {
                 'fetchDepositAddress': true,
             },
             'timeframes': {
-                '15m': '15m',
-                '20m': '20m',
-                '30m': '30m',
                 '1h': '1h',
-                '2h': '2h',
-                '3h': '3h',
                 '4h': '4h',
-                '6h': '6h',
                 '8h': '8h',
-                '12h': '12h',
                 '1d': '1d',
+                '1w': '1w',
             },
             'hostname': 'bleutrade.com',
             'urls': {
@@ -105,6 +99,7 @@ module.exports = class bleutrade extends Exchange {
                 'exact': {
                     'ERR_INSUFICIENT_BALANCE': InsufficientFunds,
                     'ERR_LOW_VOLUME': BadRequest,
+                    'Invalid form': BadRequest,
                 },
                 'broad': {
                     'Order is not open': InvalidOrder,
@@ -818,22 +813,23 @@ module.exports = class bleutrade extends Exchange {
         //    {"success":false,"message":"Erro: Order is not open.","result":""} <-- 'error' is spelt wrong
         //    {"success":false,"message":"Error: Very low volume.","result":"ERR_LOW_VOLUME"}
         //    {"success":false,"message":"Error: Insuficient Balance","result":"ERR_INSUFICIENT_BALANCE"}
+        //    {"success":false,"message":"Invalid form","result":null}
         //
-        if (body[0] === '{') {
-            const success = this.safeValue (response, 'success');
-            if (success === undefined) {
-                throw new ExchangeError (this.id + ': malformed response: ' + this.json (response));
-            }
-            if (!success) {
-                const feedback = this.id + ' ' + body;
-                const errorCode = this.safeString (response, 'result');
+        const success = this.safeValue (response, 'success');
+        if (success === undefined) {
+            throw new ExchangeError (this.id + ': malformed response: ' + this.json (response));
+        }
+        if (!success) {
+            const feedback = this.id + ' ' + body;
+            const errorCode = this.safeString (response, 'result');
+            if (errorCode !== undefined) {
                 this.throwBroadlyMatchedException (this.exceptions['broad'], errorCode, feedback);
                 this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
-                const errorMessage = this.safeString (response, 'message');
-                this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
-                this.throwExactlyMatchedException (this.exceptions['exact'], errorMessage, feedback);
-                throw new ExchangeError (feedback);
             }
+            const errorMessage = this.safeString (response, 'message');
+            this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorMessage, feedback);
+            throw new ExchangeError (feedback);
         }
     }
 };

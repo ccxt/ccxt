@@ -77,6 +77,7 @@ class bw(Exchange):
                 'www': 'https://www.bw.com',
                 'doc': 'https://github.com/bw-exchange/api_docs_en/wiki',
                 'fees': 'https://www.bw.com/feesRate',
+                'referral': 'https://www.bw.com/regGetCommission/N3JuT1R3bWxKTE0',
             },
             'requiredCredentials': {
                 'apiKey': True,
