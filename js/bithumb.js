@@ -91,7 +91,7 @@ module.exports = class bithumb extends Exchange {
     }
 
     amountToPrecision (symbol, amount) {
-        return this.decimalToPrecision (amount, TRUNCATE, this.markets[symbol].precision.amount, DECIMAL_PLACES)
+        return this.decimalToPrecision (amount, TRUNCATE, this.markets[symbol]['precision']['amount'], DECIMAL_PLACES);
     }
 
     async fetchMarkets (params = {}) {
