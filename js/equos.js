@@ -838,15 +838,15 @@ module.exports = class equos extends Exchange {
     }
 
     isOpenOrder (order) {
-        let condtionOne = false;
+        let conditionOne = false;
         let conditionTwo = false;
         if (order['execType'] === 'F' && order['leavesQty'] !== 0 && order['ordType'] !== '1') {
-            condtionOne = true;
+            conditionOne = true;
         }
         if (order['execType'] !== 'F' && order['execType'] !== '4' && order['execType'] !== '8' && order['execType'] !== 'B' && order['execType'] !== 'C' && order['ordType'] !== '1') {
             conditionTwo = true;
         }
-        if ((condtionOne || conditionTwo) && order['ordStatus'] !== '8') {
+        if ((conditionOne || conditionTwo) && order['ordStatus'] !== '8') {
             return true;
         } else {
             return false;
@@ -854,15 +854,15 @@ module.exports = class equos extends Exchange {
     }
 
     isClosedOrder (order) {
-        let condtionOne = false;
+        let conditionOne = false;
         let conditionTwo = false;
         if (order['execType'] !== '4' && order['execType'] !== '8' && order['ordStatus'] !== '8' && order['ordType'] === '1') {
-            condtionOne = true;
+            conditionOne = true;
         }
         if (order['execType'] === 'F' || order['execType'] === 'B' || order['execType'] === 'C') {
             conditionTwo = true;
         }
-        if (condtionOne || (conditionTwo && order['cumQty'] !== 0)) {
+        if (conditionOne || (conditionTwo && order['cumQty'] !== 0)) {
             return true;
         } else {
             return false;
@@ -870,15 +870,15 @@ module.exports = class equos extends Exchange {
     }
 
     isCancelledOrder (order) {
-        let condtionOne = false;
+        let conditionOne = false;
         let conditionTwo = false;
         if (order['execType'] === '4' || order['execType'] === '8' || order['ordStatus'] === '8') {
-            condtionOne = true;
+            conditionOne = true;
         }
         if ((order['execType'] === 'B' || order['execType'] === 'C') && order['cumQty'] === 0) {
             conditionTwo = true;
         }
-        if (condtionOne || conditionTwo) {
+        if (conditionOne || conditionTwo) {
             return true;
         } else {
             return false;
