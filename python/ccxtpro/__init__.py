@@ -8,7 +8,7 @@ import ccxt.async_support as ccxt
 
 # -----------------------------------------------------------------------------
 
-__version__ = '0.2.7'
+__version__ = '0.2.8'
 
 # -----------------------------------------------------------------------------
 
@@ -140,6 +140,7 @@ from ccxt.async_support.mixcoins import mixcoins                          # noqa
 from ccxt.async_support.oceanex import oceanex                            # noqa: F401
 from ccxt.async_support.paymium import paymium                            # noqa: F401
 from ccxt.async_support.probit import probit                              # noqa: F401
+from ccxt.async_support.qtrade import qtrade                              # noqa: F401
 from ccxt.async_support.rightbtc import rightbtc                          # noqa: F401
 from ccxt.async_support.southxchange import southxchange                  # noqa: F401
 from ccxt.async_support.stex import stex                                  # noqa: F401
