@@ -969,7 +969,9 @@ module.exports = class qtrade extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        const request = { 'id': id };
+        const request = {
+            'id': parseInt (id),
+        };
         // successful cancellation returns 200 with no payload
         return await this.privatePostCancelOrder (this.extend (request, params));
     }
