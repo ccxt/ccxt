@@ -64,7 +64,7 @@ Certified Cryptocurrency Exchanges
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The CCXT library currently supports the following 121 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 122 cryptocurrency exchange markets and trading APIs:
 
 +--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 | id                 | name                                                                                    | ver | doc                                                                                             | certified                                                            | pro                             |
@@ -273,6 +273,8 @@ The CCXT library currently supports the following 121 cryptocurrency exchange ma
 +--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 | probit             | `ProBit <https://www.probit.com/r/34608773>`__                                          | 1   | `API <https://docs-en.probit.com>`__                                                            |                                                                      |                                 |
 +--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
+| qtrade             | `qTrade <https://qtrade.io/?ref=BKOQWVFGRH2C>`__                                        | 1   | `API <https://qtrade-exchange.github.io/qtrade-docs>`__                                         |                                                                      |                                 |
++--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 | rightbtc           | `RightBTC <https://www.rightbtc.com>`__                                                 | \*  | `API <https://docs.rightbtc.com/api/>`__                                                        |                                                                      |                                 |
 +--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 | southxchange       | `SouthXchange <https://www.southxchange.com>`__                                         | \*  | `API <https://www.southxchange.com/Home/Api>`__                                                 |                                                                      |                                 |
@@ -361,14 +363,14 @@ JavaScript (for use with the ``<script>`` tag):
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
--  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.27.90/dist/ccxt.browser.js
--  unpkg: https://unpkg.com/ccxt@1.27.90/dist/ccxt.browser.js
+-  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.27.91/dist/ccxt.browser.js
+-  unpkg: https://unpkg.com/ccxt@1.27.91/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code:: html
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.27.90/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.27.91/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 

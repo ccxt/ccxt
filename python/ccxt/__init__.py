@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.27.90'
+__version__ = '1.27.91'
 
 # ----------------------------------------------------------------------------
 
@@ -170,6 +170,7 @@ from ccxt.okex import okex                                  # noqa: F401
 from ccxt.paymium import paymium                            # noqa: F401
 from ccxt.poloniex import poloniex                          # noqa: F401
 from ccxt.probit import probit                              # noqa: F401
+from ccxt.qtrade import qtrade                              # noqa: F401
 from ccxt.rightbtc import rightbtc                          # noqa: F401
 from ccxt.southxchange import southxchange                  # noqa: F401
 from ccxt.stex import stex                                  # noqa: F401
@@ -293,6 +294,7 @@ exchanges = [
     'paymium',
     'poloniex',
     'probit',
+    'qtrade',
     'rightbtc',
     'southxchange',
     'stex',
