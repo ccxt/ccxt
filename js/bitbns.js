@@ -86,9 +86,14 @@ module.exports = class bitbns extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '';
-        if (api === 'private1') {
-            // Generate complete url
-            url = this.urls['api'][api] + '/' + path + '/' + this.safeString (params, 'symbol');
+        if (api === 'private1' || api === 'private') {
+            if (api === 'private1') {
+                // Generate complete url
+                url = this.urls['api'][api] + '/' + path + '/' + this.safeString (params, 'symbol');
+            }
+            if (api === 'private') {
+                url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
+            }
             if (method === 'POST') {
                 body = this.json (params);
             }
@@ -107,37 +112,6 @@ module.exports = class bitbns extends Exchange {
             // Attach headers
             headers['X-BITBNS-APIKEY'] = this.apiKey;
             headers['X-BITBNS-PAYLOAD'] = this.decode (payload);
-            headers['X-BITBNS-SIGNATURE'] = signature;
-            headers['Accept'] = 'application/json';
-            headers['Accept-Charset'] = 'utf-8';
-            headers['content-type'] = 'application/x-www-form-urlencoded';
-        } else if (api === 'private') {
-            // Generate complete url
-            url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
-            // console.log (method, url);
-            // console.log ('Signing Privately !!!');
-            if (method === 'POST') {
-                body = this.json (params);
-            }
-            // Generate payload
-            const timeStamp_nonce = this.milliseconds ();
-            // const timeStamp_nonce = '1571663667098';
-            const data = {
-                'symbol': '/' + path + '/' + this.safeString (params, 'symbol'),
-                'timeStamp_nonce': timeStamp_nonce,
-                'body': body,
-            };
-            // console.log("ccxt data:", data);
-            const payload = this.stringToBase64 (this.json (data));
-            // console.log("ccxt payload:", payload);
-            // Generate signature from payload
-            const signature = this.hmac (payload, this.secret, 'sha512', 'hex');
-            // console.log("ccxt sign:", signature);
-            // Init headers
-            headers = {};
-            // Attach headers
-            headers['X-BITBNS-APIKEY'] = this.apiKey;
-            headers['X-BITBNS-PAYLOAD'] = payload;
             headers['X-BITBNS-SIGNATURE'] = signature;
             headers['Accept'] = 'application/json';
             headers['Accept-Charset'] = 'utf-8';
