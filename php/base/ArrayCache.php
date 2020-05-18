@@ -39,4 +39,20 @@ class ArrayCache extends \ArrayObject implements \JsonSerializable {
     public function clear() {
         return $this->deque->clear();
     }
+
+    public function offsetGet($index) {
+        return $this->deque[$index];
+    }
+
+    public function offsetSet($index, $newval) {
+        $this->deque[$index] = $newval;
+    }
+
+    public function offsetExists($index) {
+        return $index < $this->count();
+    }
+
+    public function offsetUnset($index) {
+        unset($this->deque[$index]);
+    }
 }
