@@ -735,15 +735,14 @@ class hitbtc extends Exchange {
     }
 
     public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1d', $since = null, $limit = null) {
-        $timestamp = $this->parse8601($ohlcv['timestamp']);
-        return [
-            $timestamp,
-            floatval ($ohlcv['open']),
-            floatval ($ohlcv['max']),
-            floatval ($ohlcv['min']),
-            floatval ($ohlcv['close']),
-            floatval ($ohlcv['volume']),
-        ];
+        return array(
+            $this->parse8601($this->safe_string($ohlcv, 'timestamp')),
+            $this->safe_float($ohlcv, 'open'),
+            $this->safe_float($ohlcv, 'max'),
+            $this->safe_float($ohlcv, 'min'),
+            $this->safe_float($ohlcv, 'close'),
+            $this->safe_float($ohlcv, 'volume'),
+        );
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {

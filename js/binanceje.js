@@ -47,6 +47,9 @@ module.exports = class binanceje extends binance {
                     'deposit': {},
                 },
             },
+            'options': {
+                'quoteOrderQty': false, // whether market orders support amounts in quote currency
+            },
         });
     }
 };

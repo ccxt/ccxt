@@ -512,7 +512,13 @@ class coinbasepro(Exchange):
 
     async def fetch_time(self, params={}):
         response = await self.publicGetTime(params)
-        return self.parse8601(self.safe_string(response, 'iso'))
+        #
+        #     {
+        #         "iso":"2020-05-12T08:00:51.504Z",
+        #         "epoch":1589270451.504
+        #     }
+        #
+        return self.safe_timestamp(response, 'epoch')
 
     def parse_order_status(self, status):
         statuses = {

@@ -532,11 +532,13 @@ class deribit(Exchange):
             'info': response,
         }
         balance = self.safe_value(response, 'result', {})
+        currencyId = self.safe_string(balance, 'currency')
+        currencyCode = self.safe_currency_code(currencyId)
         account = self.account()
         account['free'] = self.safe_float(balance, 'availableFunds')
         account['used'] = self.safe_float(balance, 'maintenanceMargin')
         account['total'] = self.safe_float(balance, 'equity')
-        result[code] = account
+        result[currencyCode] = account
         return self.parse_balance(result)
 
     def create_deposit_address(self, code, params={}):
@@ -872,7 +874,7 @@ class deribit(Exchange):
         if liquidity is not None:
             # M = maker, T = taker, MT = both
             takerOrMaker = 'maker' if (liquidity == 'M') else 'taker'
-        feeCost = self.safe_float(trade, 'feeCost')
+        feeCost = self.safe_float(trade, 'fee')
         fee = None
         if feeCost is not None:
             feeCurrencyId = self.safe_string(trade, 'fee_currency')

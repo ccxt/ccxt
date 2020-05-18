@@ -57,9 +57,15 @@ class bytetrade(Exchange):
                 '1M': '1M',
             },
             'urls': {
-                'test': 'https://api-v2-test.byte-trade.com',
+                'test': {
+                    'market': 'https://api-v2-test.byte-trade.com',
+                    'public': 'https://api-v2-test.byte-trade.com',
+                },
                 'logo': 'https://user-images.githubusercontent.com/1294454/67288762-2f04a600-f4e6-11e9-9fd6-c60641919491.jpg',
-                'api': 'https://api-v2.byte-trade.com',
+                'api': {
+                    'market': 'https://api-v2.bytetrade.com',
+                    'public': 'https://api-v2.bytetrade.com',
+                },
                 'www': 'https://www.byte-trade.com',
                 'doc': 'https://github.com/Bytetrade/bytetrade-official-api-docs/wiki',
             },
@@ -1144,7 +1150,7 @@ class bytetrade(Exchange):
                 self.number_to_le(len(address), 1),
                 self.encode(address),
                 self.number_to_le(int(coinId), 4),
-                self.number_to_le(int(math.floor(int(float(self.integer_divide(amountChain, eightBytes))))), 8),
+                self.number_to_le(self.integer_divide(amountChain, eightBytes), 8),
                 self.number_to_le(self.integer_modulo(amountChain, eightBytes), 8),
                 self.number_to_le(1, 1),
                 self.number_to_le(self.integer_divide(assetFee, eightBytes), 8),
@@ -1177,7 +1183,7 @@ class bytetrade(Exchange):
                 self.number_to_le(len(middleAddress), 1),
                 self.encode(middleAddress),
                 self.number_to_le(int(coinId), 4),
-                self.number_to_le(int(math.floor(int(float(self.integer_divide(amountChain, eightBytes))))), 8),
+                self.number_to_le(self.integer_divide(amountChain, eightBytes), 8),
                 self.number_to_le(self.integer_modulo(amountChain, eightBytes), 8),
                 self.number_to_le(0, 1),
                 self.number_to_le(1, 1),
@@ -1276,7 +1282,7 @@ class bytetrade(Exchange):
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api']
+        url = self.urls['api'][api]
         url += '/' + path
         if params:
             url += '?' + self.urlencode(params)

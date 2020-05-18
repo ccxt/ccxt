@@ -105,6 +105,7 @@ class livecoin(Exchange):
             'commonCurrencies': {
                 'BTCH': 'Bithash',
                 'CPC': 'Capricoin',
+                'CBC': 'CryptoBossCoin',  # conflict with CBC(CashBet Coin)
                 'CPT': 'Cryptos',  # conflict with CPT = Contents Protocol https://github.com/ccxt/ccxt/issues/4920 and https://github.com/ccxt/ccxt/issues/6081
                 'EDR': 'E-Dinar Coin',  # conflicts with EDR for Endor Protocol and EDRCoin
                 'eETT': 'EETT',
@@ -425,7 +426,16 @@ class livecoin(Exchange):
             if price is not None:
                 cost = amount * price
         symbol = None
-        if market is not None:
+        marketId = self.safe_string(trade, 'symbol')
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+            else:
+                baseId, quoteId = marketId.split('/')
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
+                symbol = base + '/' + quote
+        if (symbol is None) and (market is not None):
             symbol = market['symbol']
         return {
             'id': id,
@@ -444,15 +454,16 @@ class livecoin(Exchange):
         }
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
         await self.load_markets()
-        market = self.market(symbol)
         request = {
-            'currencyPair': market['id'],
-            # orderDesc': 'true',  # or 'false', if True then new orders will be first, otherwise old orders will be first.
+            # 'currencyPair': market['id'],
+            # 'orderDesc': 'true',  # or 'false', if True then new orders will be first, otherwise old orders will be first.
             # 'offset': 0,  # page offset, position of the first item on the page
         }
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['currencyPair'] = market['id']
         if limit is not None:
             request['limit'] = limit
         response = await self.privateGetExchangeTrades(self.extend(request, params))

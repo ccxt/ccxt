@@ -53,6 +53,8 @@ assert(toWei('0.001', 18) == '1000000000000000')
 assert(toWei(0.1, 18) == '100000000000000000')
 assert(toWei(0.01, 18) == '10000000000000000')
 assert(toWei(0.001, 18) == '1000000000000000')
+assert(toWei('0.3323340739', 18) == '332334073900000000')
+assert(toWei(0.3323340739, 18) == '332334073900000000')
 
 # us test that we get the inverse for all these test
 assert(fromWei('1000000000000000000', 18) == 1.0)
@@ -71,6 +73,8 @@ assert(fromWei('1000000000000000', 18) == 0.001)
 assert(fromWei(100000000000000000, 18) == 0.1)
 assert(fromWei(10000000000000000, 18) == 0.01)
 assert(fromWei(1000000000000000, 18) == 0.001)
+assert(fromWei('332334073900000000', 18) == 0.3323340739)
+assert(fromWei(332334073900000000, 18) == 0.3323340739)
 
 # ----------------------------------------------------------------------------
 # number_to_string
@@ -86,6 +90,7 @@ assert(number_to_string(7.9e27) == '7900000000000000000000000000')
 assert(number_to_string(-12.345) == '-12.345')
 assert(number_to_string(12.345) == '12.345')
 assert(number_to_string(0) == '0')
+assert(number_to_string(7.35946e21) == '7359460000000000000000')
 # the following line breaks the test
 # see https://github.com/ccxt/ccxt/issues/5744
 # assert(number_to_string(0.00000001) == '0.00000001')

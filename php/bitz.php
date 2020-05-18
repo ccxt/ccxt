@@ -179,7 +179,9 @@ class bitz extends Exchange {
                 '-109' => '\\ccxt\\AuthenticationError', // Invalid scretKey
                 '-110' => '\\ccxt\\DDoSProtection', // The number of access requests exceeded
                 '-111' => '\\ccxt\\PermissionDenied', // Current IP is not in the range of trusted IP
-                '-112' => '\\ccxt\\ExchangeNotAvailable', // Service is under maintenance
+                '-112' => '\\ccxt\\OnMaintenance', // Service is under maintenance
+                '-114' => '\\ccxt\\RateLimitExceeded', // The number of daily requests has reached the limit
+                '-117' => '\\ccxt\\AuthenticationError', // The apikey expires
                 '-100015' => '\\ccxt\\AuthenticationError', // Trade password error
                 '-100044' => '\\ccxt\\ExchangeError', // Fail to request data
                 '-100101' => '\\ccxt\\ExchangeError', // Invalid symbol
@@ -653,7 +655,7 @@ class bitz extends Exchange {
             }
         } else {
             if ($since !== null) {
-                throw new ExchangeError($this->id . ' fetchOHLCV requires a $limit argument if the $since argument is specified');
+                throw new ArgumentsRequired($this->id . ' fetchOHLCV requires a $limit argument if the $since argument is specified');
             }
         }
         $response = $this->marketGetKline (array_merge($request, $params));

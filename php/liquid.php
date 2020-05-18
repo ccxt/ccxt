@@ -183,7 +183,7 @@ class liquid extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
-        $markets = $this->publicGetProducts ();
+        $spot = $this->publicGetProducts ($params);
         //
         //     array(
         //         array(
@@ -210,24 +210,73 @@ class liquid extends Exchange {
         //             last_traded_quantity => '0.00590974',
         //             quoted_currency => 'SGD',
         //             base_currency => 'BTC',
-        //             disabled => false,
+        //             $disabled => false,
+        //         ),
+        //     )
+        //
+        $perpetual = $this->publicGetProducts (array( 'perpetual' => '1' ));
+        //
+        //     array(
+        //         array(
+        //             "$id" => "603",
+        //             "product_type" => "Perpetual",
+        //             "code" => "CASH",
+        //             "name" => null,
+        //             "market_ask" => "1143900",
+        //             "market_bid" => "1143250",
+        //             "currency" => "JPY",
+        //             "currency_pair_code" => "P-BTCJPY",
+        //             "pusher_channel" => "product_cash_p-btcjpy_603",
+        //             "taker_fee" => "0.0",
+        //             "maker_fee" => "0.0",
+        //             "low_market_bid" => "1124450.0",
+        //             "high_market_ask" => "1151750.0",
+        //             "volume_24h" => "0.1756",
+        //             "last_price_24h" => "1129850.0",
+        //             "last_traded_price" => "1144700.0",
+        //             "last_traded_quantity" => "0.014",
+        //             "quoted_currency" => "JPY",
+        //             "base_currency" => "P-BTC",
+        //             "tick_size" => "50.0",
+        //             "perpetual_enabled" => true,
+        //             "index_price" => "1142636.03935",
+        //             "mark_price" => "1143522.18417",
+        //             "funding_rate" => "0.00033",
+        //             "fair_price" => "1143609.31009",
+        //             "timestamp" => "1581558659.195353100",
         //         ),
         //     )
         //
         $currencies = $this->fetch_currencies();
         $currenciesByCode = $this->index_by($currencies, 'code');
         $result = array();
+        $markets = $this->array_concat($spot, $perpetual);
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
-            $id = (string) $market['id'];
-            $baseId = $market['base_currency'];
-            $quoteId = $market['quoted_currency'];
+            $id = $this->safe_string($market, 'id');
+            $baseId = $this->safe_string($market, 'base_currency');
+            $quoteId = $this->safe_string($market, 'quoted_currency');
+            $productType = $this->safe_string($market, 'product_type');
+            $type = 'spot';
+            $spot = true;
+            $swap = false;
+            if ($productType === 'Perpetual') {
+                $spot = false;
+                $swap = true;
+                $type = 'swap';
+            }
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
+            $symbol = null;
+            if ($swap) {
+                $symbol = $this->safe_string($market, 'currency_pair_code');
+            } else {
+                $symbol = $base . '/' . $quote;
+            }
             $maker = $this->safe_float($market, 'maker_fee');
             $taker = $this->safe_float($market, 'taker_fee');
-            $active = !$market['disabled'];
+            $disabled = $this->safe_value($market, 'disabled', false);
+            $active = !$disabled;
             $baseCurrency = $this->safe_value($currenciesByCode, $base);
             $quoteCurrency = $this->safe_value($currenciesByCode, $quote);
             $precision = array(
@@ -271,6 +320,9 @@ class liquid extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'type' => $type,
+                'spot' => $spot,
+                'swap' => $swap,
                 'maker' => $maker,
                 'taker' => $taker,
                 'limits' => $limits,
@@ -399,7 +451,7 @@ class liquid extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function parse_trade($trade, $market) {
+    public function parse_trade($trade, $market = null) {
         // {             $id =>  12345,
         //         quantity => "6.789",
         //            $price => "98765.4321",
@@ -426,13 +478,17 @@ class liquid extends Exchange {
             }
         }
         $id = $this->safe_string($trade, 'id');
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
         return array(
             'info' => $trade,
             'id' => $id,
             'order' => $orderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $symbol,
             'type' => null,
             'side' => $side,
             'takerOrMaker' => $takerOrMaker,

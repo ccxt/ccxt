@@ -267,11 +267,12 @@ class coinex extends Exchange {
                 $market = $this->markets_by_id[$marketId];
                 $symbol = $market['symbol'];
             }
-            $ticker = array(
+            $ticker = $this->parse_ticker(array(
                 'date' => $timestamp,
                 'ticker' => $tickers[$marketId],
-            );
-            $result[$symbol] = $this->parse_ticker($ticker, $market);
+            ), $market);
+            $ticker['symbol'] = $symbol;
+            $result[$symbol] = $ticker;
         }
         return $result;
     }
@@ -631,7 +632,7 @@ class coinex extends Exchange {
             'coin_type' => $currency['id'],
             'coin_address' => $address, // must be authorized, inter-user transfer by a registered mobile phone number or an email $address is supported
             'actual_amount' => floatval ($amount), // the actual $amount without fees, https://www.coinex.com/fees
-            'transfer_method' => '1', // '1' = normal onchain transfer, '2' = internal local transfer from one user to another
+            'transfer_method' => 'onchain', // onchain, local
         );
         $response = $this->privatePostBalanceCoinWithdraw (array_merge($request, $params));
         //

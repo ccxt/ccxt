@@ -632,7 +632,7 @@ class coinmate extends Exchange {
         $filled = null;
         $cost = null;
         if (($amount !== null) && ($remaining !== null)) {
-            $filled = min ($amount - $remaining, 0);
+            $filled = max ($amount - $remaining, 0);
             if ($remaining === 0) {
                 $status = 'closed';
             }

@@ -29,6 +29,7 @@ class paymium extends Exchange {
                     'https://github.com/Paymium/api-documentation',
                     'https://www.paymium.com/page/developers',
                 ),
+                'referral' => 'https://www.paymium.com/page/sign-up?referral=eDAzPoRQFMvaAB8sf-qj',
             ),
             'api' => array(
                 'public' => array(
@@ -43,12 +44,12 @@ class paymium extends Exchange {
                 ),
                 'private' => array(
                     'get' => array(
-                        'merchant/get_payment/{UUID}',
+                        'merchant/get_payment/{uuid}',
                         'user',
                         'user/addresses',
                         'user/addresses/{btc_address}',
                         'user/orders',
-                        'user/orders/{UUID}',
+                        'user/orders/{uuid}',
                         'user/price_alerts',
                     ),
                     'post' => array(
@@ -59,7 +60,7 @@ class paymium extends Exchange {
                         'merchant/create_payment',
                     ),
                     'delete' => array(
-                        'user/orders/{UUID}/cancel',
+                        'user/orders/{uuid}/cancel',
                         'user/price_alerts/{id}',
                     ),
                 ),
@@ -206,9 +207,9 @@ class paymium extends Exchange {
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
         $request = array(
-            'UUID' => $id,
+            'uuid' => $id,
         );
-        return $this->privateDeleteUserOrdersUUIDCancel (array_merge($request, $params));
+        return $this->privateDeleteUserOrdersUuidCancel (array_merge($request, $params));
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -222,18 +223,24 @@ class paymium extends Exchange {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();
             $auth = $nonce . $url;
+            $headers = array(
+                'Api-Key' => $this->apiKey,
+                'Api-Nonce' => $nonce,
+            );
             if ($method === 'POST') {
                 if ($query) {
                     $body = $this->json($query);
                     $auth .= $body;
+                    $headers['Content-Type'] = 'application/json';
+                }
+            } else {
+                if ($query) {
+                    $queryString = $this->urlencode($query);
+                    $auth .= $queryString;
+                    $url .= '?' . $queryString;
                 }
             }
-            $headers = array(
-                'Api-Key' => $this->apiKey,
-                'Api-Signature' => $this->hmac($this->encode($auth), $this->encode($this->secret)),
-                'Api-Nonce' => $nonce,
-                'Content-Type' => 'application/json',
-            );
+            $headers['Api-Signature'] = $this->hmac($this->encode($auth), $this->encode($this->secret));
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

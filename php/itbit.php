@@ -8,6 +8,7 @@ namespace ccxt;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\AuthenticationError;
+use \ccxt\ArgumentsRequired;
 
 class itbit extends Exchange {
 
@@ -257,7 +258,7 @@ class itbit extends Exchange {
         $this->load_markets();
         $walletId = $this->safe_string($params, 'walletId');
         if ($walletId === null) {
-            throw new ExchangeError($this->id . ' fetchMyTrades requires a $walletId parameter');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a $walletId parameter');
         }
         $request = array(
             'walletId' => $walletId,

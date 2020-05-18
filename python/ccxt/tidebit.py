@@ -5,6 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 
@@ -228,18 +229,11 @@ class tidebit(Exchange):
         for i in range(0, len(ids)):
             id = ids[i]
             market = None
-            symbol = id
             if id in self.markets_by_id:
                 market = self.markets_by_id[id]
                 symbol = market['symbol']
-            else:
-                baseId = id[0:3]
-                quoteId = id[3:6]
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-            ticker = tickers[id]
-            result[symbol] = self.parse_ticker(ticker, market)
+                ticker = tickers[id]
+                result[symbol] = self.parse_ticker(ticker, market)
         return result
 
     def fetch_ticker(self, symbol, params={}):
@@ -430,7 +424,7 @@ class tidebit(Exchange):
         currency = self.currency(code)
         id = self.safe_string(params, 'id')
         if id is None:
-            raise ExchangeError(self.id + ' withdraw() requires an extra `id` param(withdraw account id according to withdraws/bind_account_list endpoint')
+            raise ArgumentsRequired(self.id + ' withdraw() requires an extra `id` param(withdraw account id according to withdraws/bind_account_list endpoint')
         request = {
             'id': id,
             'currency_type': 'coin',  # or 'cash'

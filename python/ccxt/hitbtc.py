@@ -731,14 +731,13 @@ class hitbtc(Exchange):
         return self.parse_balance(result)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1d', since=None, limit=None):
-        timestamp = self.parse8601(ohlcv['timestamp'])
         return [
-            timestamp,
-            float(ohlcv['open']),
-            float(ohlcv['max']),
-            float(ohlcv['min']),
-            float(ohlcv['close']),
-            float(ohlcv['volume']),
+            self.parse8601(self.safe_string(ohlcv, 'timestamp')),
+            self.safe_float(ohlcv, 'open'),
+            self.safe_float(ohlcv, 'max'),
+            self.safe_float(ohlcv, 'min'),
+            self.safe_float(ohlcv, 'close'),
+            self.safe_float(ohlcv, 'volume'),
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):

@@ -525,11 +525,13 @@ module.exports = class deribit extends Exchange {
             'info': response,
         };
         const balance = this.safeValue (response, 'result', {});
+        const currencyId = this.safeString (balance, 'currency');
+        const currencyCode = this.safeCurrencyCode (currencyId);
         const account = this.account ();
         account['free'] = this.safeFloat (balance, 'availableFunds');
         account['used'] = this.safeFloat (balance, 'maintenanceMargin');
         account['total'] = this.safeFloat (balance, 'equity');
-        result[code] = account;
+        result[currencyCode] = account;
         return this.parseBalance (result);
     }
 
@@ -883,7 +885,7 @@ module.exports = class deribit extends Exchange {
             // M = maker, T = taker, MT = both
             takerOrMaker = (liquidity === 'M') ? 'maker' : 'taker';
         }
-        const feeCost = this.safeFloat (trade, 'feeCost');
+        const feeCost = this.safeFloat (trade, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'fee_currency');

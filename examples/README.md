@@ -63,11 +63,15 @@ php -f path/to/example.php # substitute for actual filename here
 
 [CC Power Analytics Part 1: How to get the data of the exchanges](https://www.linkedin.com/pulse/part-1-cc-power-analytics-how-get-data-exchanges-steve-rein/) – The first part of a series of articles on cryptocurrency analytics.
 
+[tv2bt: Kraken Example, without leverage](https://backtest-rookies.com/2020/04/18/tv2bt-kraken-example-without-leverage/) – an article on using CCXT for backtesting.
+
 [Looking for arbitrage opportunies with ccxt](https://steemit.com/steemdev/@codewithcheese/looking-for-arbitrage-opportunies-with-javascript-library-cctx-supporting-70-exchanges) – An article @steemit on getting arbitrage started with ccxt for crypto-arbitrage.
 
 [A n00bs Guide To Deep Cryptocurrency Trading](https://medium.com/@LeonFedden/deep-cryptocurrency-trading-1e64af6d280a) – An article @ Medium on deep neural trading using ccxt for backend tasks.
 
 [A Video Crash-Course On Using CCXT](https://www.youtube.com/playlist?list=PLIFBTFgFpoJ-xGRz3v_2nF7f9HKZrfSpj) – A series of awesome video tutorials on getting started with CCXT!
+
+[Integrando el API de Binance y Kucoin con CCXT en Python](https://juancisneros.com.ve/integrando-api-binance-kucoin-ccxt-python/) – An article in Spanish on using CCXT in Python.
 
 [Let’s write a cryptocurrency bot](https://medium.com/@joeldg/an-advanced-tutorial-a-new-crypto-currency-trading-bot-boilerplate-framework-e777733607ae) – A multi-part advanced tutorial on a new cryptocurrency trading framework also integrating ccxt.
 
@@ -119,6 +123,8 @@ php -f path/to/example.php # substitute for actual filename here
 
 [ccxtの使い方:pythonで価格取得や残高確認できるAPI ccxt](https://oretano.com/ccxt-resume) – An nice overview of using CCXT in Python.
 
+[CCXT 开发手册](https://www.chainside.info/ccxt-dev-book/ccxt-01-%E5%BC%80%E5%8F%91%E6%89%8B%E5%86%8C%E7%AE%80%E4%BB%8B/) – CCXT Manual translated to Chinese.
+
 [如何学习CCXT框架，CCXT框架的使用以及修改交易所的API设置。 讲解如何学习CCXT框架，如何修改和设置CCXT框架中交易所实例的内容设置， 如何获取Tick和行情数据等。](https://www.youtube.com/watch?v=sj8g3gz0k24) – A video on getting started with CCXT and working with market data.
 
 [第二十课：如何使用CCXT框架获取交易所账户信息，下单和查询订单等私有API接口的调用， 以及如何处理交易所返回的数据](https://www.youtube.com/watch?v=GF0uVVIMbn8) – A video on working with private data in CCXT.
@@ -151,6 +157,8 @@ php -f path/to/example.php # substitute for actual filename here
 – Trading Digital Currencies 3: Details on using custom exchange-specific [implicit methods](https://github.com/ccxt/ccxt/wiki/Manual#implicit-api-methods) in ccxt (video in Chinese)
 
 [币圈程序化交易被使用最多的开源项目：ccxt](https://bihu.com/article/1629320804) – An article explaining what CCXT is.
+
+[CCXT框架爬取Bybit交易所历史行情数据和pandas数据处理](https://www.youtube.com/watch?v=iNm11U7icIs) – A video explaining how to use CCXT with Pandas in Chinese.
 
 [Algorithmic Trading - Aula 4](https://www.youtube.com/watch?v=BkKebXrhMGY) – A video introduction to algorithmic trading with CCXT from Curso Algo Trading in Portuguese language.
 

@@ -35,7 +35,7 @@ use kornrunner\Solidity;
 use Elliptic\EC;
 use BN\BN;
 
-$version = '1.25.83';
+$version = '1.27.91';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -54,12 +54,11 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.25.83';
+    const VERSION = '1.27.91';
 
     public static $exchanges = array(
         '_1btcxe',
         'acx',
-        'adara',
         'anxpro',
         'aofex',
         'bcex',
@@ -120,6 +119,7 @@ class Exchange {
         'deribit',
         'digifinex',
         'dsx',
+        'eterbase',
         'exmo',
         'exx',
         'fcoin',
@@ -130,8 +130,8 @@ class Exchange {
         'fybse',
         'gateio',
         'gemini',
+        'hbtc',
         'hitbtc',
-        'hitbtc2',
         'hollaex',
         'huobipro',
         'huobiru',
@@ -158,6 +158,8 @@ class Exchange {
         'okex',
         'paymium',
         'poloniex',
+        'probit',
+        'qtrade',
         'rightbtc',
         'southxchange',
         'stex',
@@ -676,6 +678,13 @@ class Exchange {
         }
         return $time;
     }
+    
+    public static function rfc2616($timestamp) {	
+        if (!$timestamp) {	
+            $timestamp = $this->milliseconds();	
+        }	
+        return gmdate('D, d M Y H:i:s T', (int) round($timestamp / 1000));	
+    }
 
     public static function dmy($timestamp, $infix = '-') {
         return gmdate('m' . $infix . 'd' . $infix . 'Y', (int) round($timestamp / 1000));
@@ -703,6 +712,14 @@ class Exchange {
 
     public static function binaryToBase64($binary) {
         return static::binary_to_base64($binary);
+    }
+
+    public static function base16_to_binary($data) {
+        return hex2bin($data);
+    }
+
+    public static function base16ToBinary($data) {
+        return static::base16_to_binary($data);
     }
 
     public static function json($data, $params = array()) {
@@ -925,6 +942,7 @@ class Exchange {
 
         // API methods metainfo
         $this->has = array(
+            'loadMarkets' => true,
             'cancelAllOrders' => false,
             'cancelOrder' => true,
             'cancelOrders' => false,
@@ -1967,6 +1985,14 @@ class Exchange {
         return $this->fetch_order($id, $symbol, $params);
     }
 
+    public function fetch_unified_order($order, $params = array ()) {
+        return $this->fetch_order($this->safe_value($order, 'id'), $this->safe_value($order, 'symbol'), $params);
+    }
+
+    public function fetchUnifiedOrder($order, $params = array ()) {
+        return $this->fetch_unified_order($order, $params);
+    }
+
     public function fetch_order_trades($id, $symbol = null, $params = array()) {
         throw new NotSupported($this->id . ' fetch_order_trades() not supported yet');
     }
@@ -2175,6 +2201,14 @@ class Exchange {
 
     public function cancelOrder($id, $symbol = null, $params = array()) {
         return $this->cancel_order($id, $symbol, $params);
+    }
+
+    public function cancel_unified_order($order, $params = array ()) {
+        return $this->cancel_order($this->safe_value($order, 'id'), $this->safe_value($order, 'symbol'), $params);
+    }
+
+    public function cancelUnifiedOrder($order, $params = array ()) {
+        return $this->cancel_unified_order($order, $params);
     }
 
     public function editLimitBuyOrder($id, $symbol, $amount, $price, $params = array()) {
@@ -2640,14 +2674,14 @@ class Exchange {
     }
 
     public static function from_wei($amount, $decimals = 18) {
-        $exponential = sprintf('%e', $amount);
+        $exponential = sprintf('%.' . $decimals . 'e', $amount);
         list($n, $exponent) = explode('e', $exponential);
         $new_exponent = intval($exponent) - $decimals;
         return floatval($n . 'e' . strval($new_exponent));
     }
 
     public static function to_wei($amount, $decimals = 18) {
-        $exponential = sprintf('%e', $amount);
+        $exponential = sprintf('%.' . $decimals . 'e', $amount);
         list($n, $exponent) = explode('e', $exponential);
         $new_exponent = intval($exponent) + $decimals;
         return static::number_to_string(floatval($n . 'e' . strval($new_exponent)));

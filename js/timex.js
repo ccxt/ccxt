@@ -42,6 +42,7 @@ module.exports = class timex extends Exchange {
                 'api': 'https://plasma-relay-backend.timex.io',
                 'www': 'https://timex.io',
                 'doc': 'https://docs.timex.io',
+                'referral': 'https://timex.io/?refcode=1x27vNkTbP1uwkCck',
             },
             'api': {
                 'custody': {
@@ -892,7 +893,21 @@ module.exports = class timex extends Exchange {
         //         "active": true,
         //         "withdrawalFee": "50000000000000000",
         //         "purchaseCommissions": []
-        //     },
+        //     }
+        //
+        // https://github.com/ccxt/ccxt/issues/6878
+        //
+        //     {
+        //         "symbol":"XRP",
+        //         "name":"Ripple",
+        //         "address":"0x0dc8882914f3ddeebf4cec6dc20edb99df3def6c",
+        //         "decimals":6,
+        //         "tradeDecimals":16,
+        //         "depositEnabled":true,
+        //         "withdrawalEnabled":true,
+        //         "transferEnabled":true,
+        //         "active":true
+        //     }
         //
         const id = this.safeString (currency, 'symbol');
         const code = this.safeCurrencyCode (id);
@@ -901,20 +916,22 @@ module.exports = class timex extends Exchange {
         const active = this.safeValue (currency, 'active');
         // const fee = this.safeFloat (currency, 'withdrawalFee');
         const feeString = this.safeString (currency, 'withdrawalFee');
-        const feeStringLen = feeString.length;
         const tradeDecimals = this.safeInteger (currency, 'tradeDecimals');
         let fee = undefined;
-        const dotIndex = feeStringLen - tradeDecimals;
-        if (dotIndex > 0) {
-            const whole = feeString.slice (0, dotIndex);
-            const fraction = feeString.slice (-dotIndex);
-            fee = parseFloat (whole + '.' + fraction);
-        } else {
-            let fraction = '.';
-            for (let i = 0; i < -dotIndex; i++) {
-                fraction += '0';
+        if ((feeString !== undefined) && (tradeDecimals !== undefined)) {
+            const feeStringLen = feeString.length;
+            const dotIndex = feeStringLen - tradeDecimals;
+            if (dotIndex > 0) {
+                const whole = feeString.slice (0, dotIndex);
+                const fraction = feeString.slice (-dotIndex);
+                fee = parseFloat (whole + '.' + fraction);
+            } else {
+                let fraction = '.';
+                for (let i = 0; i < -dotIndex; i++) {
+                    fraction += '0';
+                }
+                fee = parseFloat (fraction + feeString);
             }
-            fee = parseFloat (fraction + feeString);
         }
         return {
             'id': code,
@@ -1105,7 +1122,7 @@ module.exports = class timex extends Exchange {
             this.safeFloat (ohlcv, 'high'),
             this.safeFloat (ohlcv, 'low'),
             this.safeFloat (ohlcv, 'close'),
-            this.safeFloat (ohlcv, 'volumeQuote'),
+            this.safeFloat (ohlcv, 'volume'),
         ];
     }
 

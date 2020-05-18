@@ -168,6 +168,26 @@ class gateio extends Exchange {
 
     public function fetch_markets($params = array ()) {
         $response = $this->publicGetMarketinfo ($params);
+        //
+        //     {
+        //         "$result":"true",
+        //         "pairs":array(
+        //             {
+        //                 "usdt_cnyx":array(
+        //                     "decimal_places":3,
+        //                     "amount_decimal_places":3,
+        //                     "min_amount":1,
+        //                     "min_amount_a":1,
+        //                     "min_amount_b":3,
+        //                     "$fee":0.02,
+        //                     "trade_disabled":0,
+        //                     "buy_disabled":0,
+        //                     "sell_disabled":0
+        //                 }
+        //             ),
+        //         )
+        //     }
+        //
         $markets = $this->safe_value($response, 'pairs');
         if (!$markets) {
             throw new ExchangeError($this->id . ' fetchMarkets got an unrecognized response');
@@ -194,14 +214,14 @@ class gateio extends Exchange {
             $symbol = $base . '/' . $quote;
             $precision = array(
                 'amount' => 8,
-                'price' => $details['decimal_places'],
+                'price' => $this->safe_integer($details, 'decimal_places'),
             );
             $amountLimits = array(
-                'min' => $details['min_amount'],
+                'min' => $this->safe_float($details, 'min_amount'),
                 'max' => null,
             );
             $priceLimits = array(
-                'min' => pow(10, -$details['decimal_places']),
+                'min' => pow(10, -$precision['price']),
                 'max' => null,
             );
             $defaultCost = $amountLimits['min'] * $priceLimits['min'];
@@ -215,9 +235,13 @@ class gateio extends Exchange {
                 'price' => $priceLimits,
                 'cost' => $costLimits,
             );
-            $active = true;
+            $disabled = $this->safe_value($details, 'trade_disabled');
+            $active = !$disabled;
+            $uppercaseId = strtoupper($id);
+            $fee = $this->safe_float($details, 'fee');
             $result[] = array(
                 'id' => $id,
+                'uppercaseId' => $uppercaseId,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
@@ -225,8 +249,8 @@ class gateio extends Exchange {
                 'quoteId' => $quoteId,
                 'info' => $market,
                 'active' => $active,
-                'maker' => $details['fee'] / 100,
-                'taker' => $details['fee'] / 100,
+                'maker' => $fee / 100,
+                'taker' => $fee / 100,
                 'precision' => $precision,
                 'limits' => $limits,
             );
@@ -488,22 +512,64 @@ class gateio extends Exchange {
 
     public function parse_order($order, $market = null) {
         //
-        //    array('amount' => '0.00000000',
-        //     'currencyPair' => 'xlm_usdt',
-        //     'fee' => '0.0113766632239302 USDT',
-        //     'feeCurrency' => 'USDT',
-        //     'feePercentage' => 0.18,
-        //     'feeValue' => '0.0113766632239302',
-        //     'filledAmount' => '30.14004987',
-        //     'filledRate' => 0.2097,
-        //     'initialAmount' => '30.14004987',
-        //     'initialRate' => '0.2097',
-        //     'left' => 0,
-        //     'orderNumber' => '998307286',
-        //     'rate' => '0.2097',
-        //     'status' => 'closed',
-        //     'timestamp' => 1531158583,
-        //     'type' => 'sell'),
+        // createOrder
+        //
+        //     {
+        //        "fee" => "0 ZEC",
+        //         "code" => 0,
+        //         "rate" => "0.0055",
+        //         "$side" => 2,
+        //         "type" => "buy",
+        //         "ctime" => 1586460839.138,
+        //         "$market" => "ZEC_BTC",
+        //         "result" => "true",
+        //         "$status" => "open",
+        //         "iceberg" => "0",
+        //         "message" => "Success",
+        //         "feeValue" => "0",
+        //         "filledRate" => "0.005500000",
+        //         "leftAmount" => "0.60607456",
+        //         "feeCurrency" => "ZEC",
+        //         "orderNumber" => 10755887009,
+        //         "filledAmount" => "0",
+        //         "feePercentage" => 0.002,
+        //         "initialAmount" => "0.60607456"
+        //     }
+        //
+        //     {
+        //         'amount' => '0.00000000',
+        //         'currencyPair' => 'xlm_usdt',
+        //         'fee' => '0.0113766632239302 USDT',
+        //         'feeCurrency' => 'USDT',
+        //         'feePercentage' => 0.18,
+        //         'feeValue' => '0.0113766632239302',
+        //         'filledAmount' => '30.14004987',
+        //         'filledRate' => 0.2097,
+        //         'initialAmount' => '30.14004987',
+        //         'initialRate' => '0.2097',
+        //         'left' => 0,
+        //         'orderNumber' => '998307286',
+        //         'rate' => '0.2097',
+        //         'status' => 'closed',
+        //         'timestamp' => 1531158583,
+        //         'type' => 'sell'
+        //     }
+        //
+        //     {
+        //         "orderNumber" => 10802237760,
+        //         "orderType" => 1,
+        //         "type" => "buy",
+        //         "rate" => "0.54250000",
+        //         "$amount" => "45.55638518",
+        //         "total" => "24.71433896",
+        //         "initialRate" => "0.54250000",
+        //         "initialAmount" => "45.55638518",
+        //         "filledRate" => "0.54250000",
+        //         "filledAmount" => "0",
+        //         "currencyPair" => "nano_usdt",
+        //         "$timestamp" => 1586556143,
+        //         "$status" => "open"
+        //     }
         //
         $id = $this->safe_string_2($order, 'orderNumber', 'id');
         $symbol = null;
@@ -524,12 +590,15 @@ class gateio extends Exchange {
         } else if ($side === '2') {
             $side = 'buy';
         }
-        $price = $this->safe_float_2($order, 'initialRate', 'price');
+        $price = $this->safe_float_2($order, 'initialRate', 'rate');
         $average = $this->safe_float($order, 'filledRate');
         $amount = $this->safe_float_2($order, 'initialAmount', 'amount');
         $filled = $this->safe_float($order, 'filledAmount');
         // In the $order $status response, this field has a different name.
         $remaining = $this->safe_float_2($order, 'leftAmount', 'left');
+        if ($remaining === null) {
+            $remaining = $amount - $filled;
+        }
         $feeCost = $this->safe_float($order, 'feeValue');
         $feeCurrencyId = $this->safe_string($order, 'feeCurrency');
         $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
@@ -655,7 +724,7 @@ class gateio extends Exchange {
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades requires $symbol param');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades requires $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);

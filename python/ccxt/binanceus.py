@@ -32,10 +32,13 @@ class binanceus(binance):
             },
             'fees': {
                 'trading': {
-                    'tierBased': False,
+                    'tierBased': True,
                     'percentage': True,
-                    'taker': 0.0,  # 0.1% trading fee, zero fees for all trading pairs before November 1
-                    'maker': 0.0,  # 0.1% trading fee, zero fees for all trading pairs before November 1
+                    'taker': 0.001,  # 0.1% trading fee, zero fees for all trading pairs before November 1
+                    'maker': 0.001,  # 0.1% trading fee, zero fees for all trading pairs before November 1
                 },
+            },
+            'options': {
+                'quoteOrderQty': False,
             },
         })

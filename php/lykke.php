@@ -25,6 +25,19 @@ class lykke extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrders' => true,
             ),
+            'timeframes' => array(
+                '1m' => 'Minute',
+                '5m' => 'Min5',
+                '15m' => 'Min15',
+                '30m' => 'Min30',
+                '1h' => 'Hour',
+                '4h' => 'Hour4',
+                '6h' => 'Hour6',
+                '12h' => 'Hour12',
+                '1d' => 'Day',
+                '1w' => 'Week',
+                '1M' => 'Month',
+            ),
             'requiredCredentials' => array(
                 'apiKey' => true,
                 'secret' => false,
@@ -51,8 +64,26 @@ class lykke extends Exchange {
             'api' => array(
                 'mobile' => array(
                     'get' => array(
+                        'AssetPairs/rate',
+                        'AssetPairs/rate/{assetPairId}',
+                        'AssetPairs/dictionary/{market}',
+                        'Assets/dictionary',
+                        'Candles/history/{market}/available',
+                        'Candles/history/{market}/{assetPair}/{period}/{type}/{from}/{to}',
+                        'Company/ownershipStructure',
+                        'Company/registrationsCount',
+                        'IsAlive',
+                        'Market',
                         'Market/{market}',
+                        'Market/capitalization/{market}',
+                        'OrderBook',
+                        'OrderBook/{assetPairId}',
                         'Trades/{AssetPairId}',
+                        'Trades/Last/{assetPair}/{n}',
+                    ),
+                    'post' => array(
+                        'AssetPairs/rate/history',
+                        'AssetPairs/rate/history/{assetPairId}',
                     ),
                 ),
                 'public' => array(
