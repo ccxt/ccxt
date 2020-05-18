@@ -6,8 +6,6 @@ include $root . '/ccxt.php';
 
 date_default_timezone_set ('UTC');
 
-$lastRequestTimestamp = 0;
-
 class MillisecondsNonceExchange extends \ccxt\yobit {
     public function nonce () {
         return $this->milliseconds();
