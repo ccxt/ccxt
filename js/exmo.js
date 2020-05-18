@@ -496,6 +496,9 @@ module.exports = class exmo extends Exchange {
         if ((input === undefined) || (input === '-')) {
             return undefined;
         }
+        if (input === '') {
+            return 0;
+        }
         const isPercentage = (input.indexOf ('%') >= 0);
         const parts = input.split (' ');
         const value = parts[0].replace ('%', '');
@@ -525,14 +528,10 @@ module.exports = class exmo extends Exchange {
             const withdrawalFee = this.safeString (item, 'wd');
             const depositFee = this.safeString (item, 'dep');
             if (withdrawalFee !== undefined) {
-                if (withdrawalFee.length > 0) {
-                    withdraw[code] = this.parseFixedFloatValue (withdrawalFee);
-                }
+                withdraw[code] = this.parseFixedFloatValue (withdrawalFee);
             }
             if (depositFee !== undefined) {
-                if (depositFee.length > 0) {
-                    deposit[code] = this.parseFixedFloatValue (depositFee);
-                }
+                deposit[code] = this.parseFixedFloatValue (depositFee);
             }
         }
         // sets fiat fees to undefined
