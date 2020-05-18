@@ -1,4 +1,4 @@
-const { hash, ecdsa, jwt } = require ('../../../base/functions/crypto')
+const { hash, ecdsa, jwt, ecSignMessage } = require ('../../../base/functions/crypto')
 const { encode } = require ('../../../base/functions/encode')
 const Exchange = require ('../../../base/Exchange');
 const assert = require ('assert')
@@ -116,3 +116,7 @@ assert (exchange.soliditySha3 ([234]) === '0x61c831beab28d67d1bb40b5ae1a11e2757f
 assert (exchange.soliditySha3 (['234']) === '0x61c831beab28d67d1bb40b5ae1a11e2757fa842f031a2d0bc94a7867bc5d26c2');
 assert (exchange.soliditySha3 (['Hello!%']) === '0x661136a4267dba9ccdf6bfddb7c00e714de936674c4bdb065a531cf1cb15c7fc');
 assert (exchange.soliditySha3 (['0x407D73d8a49eeb85D32Cf465507dd71d507100c1']) === '0x4e8ebbefa452077428f93c9520d3edd60594ff452a29ac7d2ccc11d47f3ab95b');
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+assert (equals (ecSignMessage ('bc07b805c8205aba3409d0420ce1ce5d44402d550b6cfc2020a5465ede63c53e', '9ec3038913c5727980bf8c1cfff7caa06a897108ada3df606fb72805ab37d69d', 'secp256k1'), '0220558a3348e467f58bcabe3716af20e306cbbb75ac72fe91a6ba61d5f2775826f40220'));

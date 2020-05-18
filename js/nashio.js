@@ -3,7 +3,6 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { base64ToString } = require ('./base/functions/encode');
 
 //  ---------------------------------------------------------------------------
 
@@ -448,11 +447,11 @@ module.exports = class nashio extends Exchange {
         query += '  } ';
         query += '}';
         const listAccountTradesParams = {
-            'before': null,
+            'before': undefined,
             'limit': limit,
             'marketName': market['id'],
             'rangeStart': this.iso8601 (since),
-            'rangeStop': null,
+            'rangeStop': undefined,
         };
         const signedPayload = await this.signPayloadMpc (30, 'list_account_trades', listAccountTradesParams);
         const request = {
@@ -491,26 +490,22 @@ module.exports = class nashio extends Exchange {
         // }
     }
 
-    // async cancelAllOrders (symbol = undefined, params = {}) {
-    //     await this.loadMarkets ();
-    // }
-
-    // kind: https://gitlab.com/nash-io-public/nash-protocol/-/blob/master/src/payload/signingPayloadID.ts
     async signPayloadMpc (kindId, kindName, params) {
+        // kind: https://gitlab.com/nash-io-public/nash-protocol/-/blob/master/src/payload/signingPayloadID.ts
         const payload = params;
         payload['timestamp'] = this.milliseconds ();
         const payloadAndKind = {
             'kind': kindId,
             'payload': payload,
         };
-        const json = base64ToString (this.secret);
+        const json = this.base64ToString (this.secret);
         const apiKey = this.unjson (json);
         const signedPayload = await this.preSignPayload (apiKey, payloadAndKind, kindName);
         return {
-            'payload': signedPayload.payload,
+            'payload': signedPayload['payload'],
             'signature': {
-                'publicKey': apiKey.payload_public_key,
-                'signedDigest': signedPayload.signature,
+                'publicKey': apiKey['payload_public_key'],
+                'signedDigest': signedPayload['signature'],
             },
             // 'blockchain_data': signedPayload.blockchainMovement,
             // 'blockchain_raw': signedPayload.blockchainRaw,
@@ -520,22 +515,19 @@ module.exports = class nashio extends Exchange {
 
     async preSignPayload (apiKey, payloadAndKind, kindName) {
         const message = kindName;
-        const messageHash = this.hash (message, 'sha256', 'hex');
-        const der = this.ecSingMessage (messageHash, apiKey.payload_signing_key, 'secp256k1');
-        const buffer = this.bufferize (der);
-        const signature = this.stringify (buffer);
+        const messageHash = this.hash (this.encode (message), 'sha256', 'hex');
+        // console.warn ('messageHash', messageHash);
+        // console.warn ('payload_signing_key', apiKey['payload_signing_key']);
+        const signature = this.ecSignMessage (messageHash, apiKey['payload_signing_key'], 'secp256k1');
+        // console.warn ('der', der);
+        // this.print ('der', der);
+        // const buffer = this.bufferFromHex (der);
+        // const signature = this.bufferToHex (buffer);
+        this.print ('nashio', 'signature', signature);
         return {
-            'payload': payloadAndKind.payload,
+            'payload': payloadAndKind['payload'],
             'signature': signature,
         };
-    }
-
-    bufferize (str) {
-        return Buffer.from (str, 'hex');
-    }
-
-    stringify (buffer) {
-        return buffer.toString ('hex');
     }
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 1) {

@@ -96,15 +96,17 @@ function ecdsa (request, secret, algorithm = 'p256', hashFunction = undefined, f
     }
 }
 
-function ecSingMessage (request, secret, algorithm) {
+function ecSignMessage (request, secret, algorithm) {
     const curve = new EC (algorithm)
     const keypair = curve.keyFromPrivate (secret);
     const sig = keypair.sign (request, {
         'canonical': true,
         'pers': null,
     });
-    // console.warn (sig);
-    return sig.toDER ()
+    const der = sig.toDER ();
+    const buffer = Buffer.from (der, 'hex');
+    const signature = buffer.toString ('hex');
+    return signature;
 }
 
 /*  ------------------------------------------------------------------------ */
@@ -153,7 +155,7 @@ module.exports = {
     totp,
     rsa,
     ecdsa,
-    ecSingMessage,
+    ecSignMessage,
 }
 
 /*  ------------------------------------------------------------------------ */
