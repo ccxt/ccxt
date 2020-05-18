@@ -510,6 +510,8 @@ class exmo(Exchange):
     def parse_fixed_float_value(self, input):
         if (input is None) or (input == '-'):
             return None
+        if input == '':
+            return 0
         isPercentage = (input.find('%') >= 0)
         parts = input.split(' ')
         value = parts[0].replace('%', '')
@@ -536,11 +538,9 @@ class exmo(Exchange):
             withdrawalFee = self.safe_string(item, 'wd')
             depositFee = self.safe_string(item, 'dep')
             if withdrawalFee is not None:
-                if len(withdrawalFee) > 0:
-                    withdraw[code] = self.parse_fixed_float_value(withdrawalFee)
+                withdraw[code] = self.parse_fixed_float_value(withdrawalFee)
             if depositFee is not None:
-                if len(depositFee) > 0:
-                    deposit[code] = self.parse_fixed_float_value(depositFee)
+                deposit[code] = self.parse_fixed_float_value(depositFee)
         # sets fiat fees to None
         fiatGroups = self.to_array(self.omit(groupsByGroup, 'crypto'))
         for i in range(0, len(fiatGroups)):
