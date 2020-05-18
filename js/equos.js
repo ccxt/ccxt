@@ -11,7 +11,7 @@ module.exports = class equos extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'equos',
             'name': 'Equos',
-            'countries': ['US', 'SG'], // Seychelles
+            'countries': ['US', 'SG'],
             'rateLimit': 10,
             'certified': false,
             'has': {
@@ -55,14 +55,14 @@ module.exports = class equos extends Exchange {
                 '7d': 7,
             },
             'urls': {
-                'logo': 'https://exchange.equos.io/assets/img/logo.svg',
+                'logo': 'https://equos.io/assets/img/logo.svg',
                 'api': {
-                    'public': 'https://trading-api.dexp-dev.com/api/',
-                    'private': 'https://trading-api.dexp-dev.com/api/',
+                    'public': 'https://www.equos.io/api/',
+                    'private': 'https://www.equos.io/api/',
                 },
-                'www': 'https://exchange.equos.io/',
+                'www': 'https://www.equos.io/',
                 'doc': [
-                    'https://developer.equos.io/#introduction',
+                    'https://developer.equos.io/',
                 ],
             },
             'api': {
