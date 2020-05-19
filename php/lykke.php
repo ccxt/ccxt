@@ -432,25 +432,25 @@ class lykke extends Exchange {
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $response = $this->privateGetOrders ($params);
-        return $this->parse_orders($response, null, $since, $limit);
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        return $this->parse_orders($response, $market, $since, $limit);
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
         $request = array(
             'status' => 'InOrderBook',
         );
-        $response = $this->privateGetOrders (array_merge($request, $params));
-        return $this->parse_orders($response, null, $since, $limit);
+        return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
         $request = array(
             'status' => 'Matched',
         );
-        $response = $this->privateGetOrders (array_merge($request, $params));
-        return $this->parse_orders($response, null, $since, $limit);
+        return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

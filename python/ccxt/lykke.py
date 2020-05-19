@@ -409,23 +409,22 @@ class lykke(Exchange):
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         response = self.privateGetOrders(params)
-        return self.parse_orders(response, None, since, limit)
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        return self.parse_orders(response, market, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        self.load_markets()
         request = {
             'status': 'InOrderBook',
         }
-        response = self.privateGetOrders(self.extend(request, params))
-        return self.parse_orders(response, None, since, limit)
+        return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        self.load_markets()
         request = {
             'status': 'Matched',
         }
-        response = self.privateGetOrders(self.extend(request, params))
-        return self.parse_orders(response, None, since, limit)
+        return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
