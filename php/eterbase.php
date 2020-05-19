@@ -106,8 +106,8 @@ class eterbase extends Exchange {
                 'trading' => array(
                     'tierBased' => true,
                     'percentage' => true,
-                    'taker' => 0.09,
-                    'maker' => 0.09,
+                    'taker' => 0.35 / 100,
+                    'maker' => 0.35 / 100,
                 ),
             ),
             'requiredCredentials' => array(
