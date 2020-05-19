@@ -183,8 +183,7 @@ module.exports = class bitbns extends Exchange {
             'symbol': excgSymbol,
             'limit': limit,
         };
-        const ob = await this.publicGetFetchOrderBook (this.extend (request, params));
-        return ob;
+        return this.publicGetFetchOrderBook (this.extend (request, params));
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -223,8 +222,7 @@ module.exports = class bitbns extends Exchange {
         } else {
             request['side'] = 'cancelOrder';
         }
-        const resp = await this.privatePostCancel (this.extend (request, params));
-        return resp;
+        return await this.privatePostCancel (this.extend (request, params));
     }
 
     parseOrder (order, market = undefined) {
@@ -266,8 +264,7 @@ module.exports = class bitbns extends Exchange {
             'entry_id': id,
         };
         const resp = await this.private1PostOrderStatus (this.extend (request, params));
-        const order = this.parseOrder (resp, market);
-        return order;
+        return this.parseOrder (resp, market);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
