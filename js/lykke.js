@@ -383,8 +383,15 @@ module.exports = class lykke extends Exchange {
             timestamp = this.parse8601 (order['CreatedAt']);
         }
         const price = this.safeFloat (order, 'Price');
-        const amount = this.safeFloat (order, 'Volume');
-        const remaining = this.safeFloat (order, 'RemainingVolume');
+        let side = undefined;
+        let amount = this.safeFloat (order, 'Volume');
+        if (amount < 0) {
+            side = 'sell';
+            amount = Math.abs (amount);
+        } else {
+            side = 'buy';
+        }
+        const remaining = Math.abs (this.safeFloat (order, 'RemainingVolume'));
         const filled = amount - remaining;
         const cost = filled * price;
         const id = this.safeString (order, 'Id');
@@ -397,7 +404,7 @@ module.exports = class lykke extends Exchange {
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': undefined,
-            'side': undefined,
+            'side': side,
             'price': price,
             'cost': cost,
             'average': undefined,
