@@ -254,7 +254,7 @@ class Transpiler {
             [ /([^\s]+)\.toString \(\)/g, 'str($1)' ],
             [ /([^\s]+)\.join\s*\(\s*([^\)\[\]]+?)\s*\)/g, '$2.join($1)' ],
             [ /Math\.(max|min)\s/g, '$1' ],
-            [ / = new /g, ' = ' ], // python does not have a 'new' keyword
+            [ /([=,]) new /g, '$1 ' ], // python does not have a 'new' keyword
             [ /console\.log\s/g, 'print' ],
             [ /process\.exit\s+/g, 'sys.exit' ],
             [ /([^:+=\/\*\s-]+) \(/g, '$1(' ], // PEP8 E225 remove whitespaces before left ( round bracket
