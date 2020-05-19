@@ -4,6 +4,7 @@
 
 const ccxt = require ('ccxt');
 const { ExchangeError } = require ('ccxt/js/base/errors');
+const { ArrayCache } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -419,12 +420,9 @@ module.exports = class binance extends ccxt.binance {
         const event = this.safeString (message, 'e');
         const messageHash = lowerCaseId + '@' + event;
         const trade = this.parseTrade (message, market);
-        const array = this.safeValue (this.trades, symbol, []);
-        array.push (trade);
-        const length = array.length;
-        if (length > this.options['tradesLimit']) {
-            array.shift ();
-        }
+        const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+        const array = this.safeValue (this.trades, symbol, new ArrayCache (limit));
+        array.append (trade);
         this.trades[symbol] = array;
         client.resolve (array, messageHash);
     }

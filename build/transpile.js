@@ -74,6 +74,9 @@ class CCXTProTranspiler extends Transpiler {
 
 
     createPythonClassHeader (ccxtImports, bodyAsString) {
+        if (bodyAsString.indexOf ('ArrayCache') > -1) {
+            ccxtImports.push ('from ccxtpro.base.cache import ArrayCache')
+        }
         return [
             "# -*- coding: utf-8 -*-",
             "",
