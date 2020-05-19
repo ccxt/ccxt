@@ -34,7 +34,6 @@ module.exports = class dsx extends Exchange {
                 'fetchOrder': true,
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
-                'fetchClosedOrders': 'emulated',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/76909626-cb2bb100-68bc-11ea-99e0-28ba54f04792.jpg',
@@ -203,14 +202,18 @@ module.exports = class dsx extends Exchange {
     async fetchMarkets (params = {}) {
         const response = await this.publicGetSymbol (params);
         //
-        //     [ { id: 'BTCUSDT',
-        //     baseCurrency: 'BTC',
-        //     quoteCurrency: 'USDT',
-        //     quantityIncrement: '0.00001',
-        //     tickSize: '0.01',
-        //     takeLiquidityRate: '0.0025',
-        //     provideLiquidityRate: '0.0015',
-        //     feeCurrency: 'USDT' ... },
+        //     [
+        //         {
+        //             "id":"BTCUSDT",
+        //             "baseCurrency":"BTC",
+        //             "quoteCurrency":"USDT",
+        //             "quantityIncrement":"0.00001",
+        //             "tickSize":"0.01",
+        //             "takeLiquidityRate":"0.0025",
+        //             "provideLiquidityRate":"0.0015",
+        //             "feeCurrency":"USDT"
+        //         }
+        //     ]
         //
         const result = [];
         for (let i = 0; i < response.length; i++) {
@@ -227,11 +230,6 @@ module.exports = class dsx extends Exchange {
                 'price': this.safeFloat (market, 'tickSize'),
                 'amount': this.safeFloat (market, 'quantityIncrement'),
             };
-            const limits = {
-                'amount': {},
-                'price': {},
-                'cost': {},
-            };
             const active = undefined;
             const lowercaseBaseId = this.safeStringLower (market, 'baseCurrency');
             const lowercaseQuoteId = this.safeStringLower (market, 'quoteCurrency');
@@ -244,13 +242,12 @@ module.exports = class dsx extends Exchange {
                 'base': base,
                 'quote': quote,
                 'baseId': baseId,
+                'quoteId': quoteId,
                 'maker': maker,
                 'taker': taker,
-                'feeCurrency': this.safeString (market, 'feeCurrency'),
-                'quoteId': quoteId,
+                // 'feeCurrency': this.safeString (market, 'feeCurrency'),
                 'active': active,
                 'precision': precision,
-                'limits': limits,
                 'info': market,
             });
         }
@@ -456,12 +453,6 @@ module.exports = class dsx extends Exchange {
         return this.parseOrders (response);
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.fetchOrders (symbol, since, limit, params);
-        const orders = this.filterBy (this.orders, 'status', 'closed');
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
-    }
-
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
@@ -507,7 +498,7 @@ module.exports = class dsx extends Exchange {
             'cost': price * amount,
             'fee': {
                 'cost': this.safeFloat (trade, 'fee'),
-                'currency': market['feeCurrency'],
+                'currency': this.safeString (market, 'feeCurrency'),
             },
             'info': trade,
         };
