@@ -24,6 +24,7 @@ class lykke(Exchange):
                 'fetchClosedOrders': True,
                 'fetchOrder': True,
                 'fetchOrders': True,
+                'fetchMyTrades': True,
             },
             'timeframes': {
                 '1m': 'Minute',

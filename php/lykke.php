@@ -24,6 +24,7 @@ class lykke extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrders' => true,
+                'fetchMyTrades' => true,
             ),
             'timeframes' => array(
                 '1m' => 'Minute',
