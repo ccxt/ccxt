@@ -183,6 +183,7 @@ class Transpiler {
             [ /\!\=\=?/g, '!=' ],
             [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
             [ /this\.stringToBase64\s/g, 'base64.b64encode' ],
+            [ /this\.base64ToString\s/g, 'base64.b64decode' ],
             [ /this\.binaryToBase16\s/g, 'base64.b16encode' ],
             [ /this\.base64ToBinary\s/g, 'base64.b64decode' ],
             [ /\.shift\s*\(\)/g, '.pop(0)' ],
@@ -306,6 +307,7 @@ class Transpiler {
             [ /this\.extend\s/g, 'array_merge' ],
             [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
             [ /this\.stringToBase64\s/g, 'base64_encode' ],
+            [ /this\.base64ToString\s/g, 'base64_decode' ],
             [ /this\.binaryToBase16\s/g, 'bin2hex' ],
             [ /this\.base64ToBinary\s/g, 'base64_decode' ],
             // deepExtend is commented for PHP because it does not overwrite linear arrays
@@ -1250,6 +1252,7 @@ class Transpiler {
             "ecdsa = Exchange.ecdsa",
             "jwt = Exchange.jwt",
             "encode = Exchange.encode",
+            "ecSignMessage = Exchange.ecSignMessage",
             "",
             "",
             "def equals(a, b):",
