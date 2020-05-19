@@ -167,7 +167,6 @@ module.exports = class lykke extends Exchange {
         //         Price: 9847.427,
         //         Fee: { Amount: null, Type: 'Unknown', FeeAssetId: null }
         //     },
-
         let symbol = undefined;
         if (market === undefined) {
             const marketId = this.safeString (trade, 'AssetPairId');
