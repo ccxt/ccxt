@@ -22,6 +22,7 @@ module.exports = class lykke extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
+                'fetchMyTrades': true,
             },
             'timeframes': {
                 '1m': 'Minute',
