@@ -977,18 +977,23 @@ module.exports = class bitfinex extends Exchange {
     }
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
-        if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchTransactions() requires a currency `code` argument');
-        }
         await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request = {
-            'currency': currency['id'],
-        };
-        if (since !== undefined) {
-            request['since'] = parseInt (since / 1000);
+        let currencyId = this.safeString (params, 'currency');
+        const query = this.omit (params, 'currency');
+        let currency = undefined;
+        if (currencyId === undefined) {
+            if (code === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchTransactions() requires a currency `code` argument or a `currency` parameter');
+            } else {
+                currency = this.currency (code);
+                currencyId = currency['id'];
+            }
         }
-        const response = await this.privatePostHistoryMovements (this.extend (request, params));
+        query['currency'] = currencyId;
+        if (since !== undefined) {
+            query['since'] = parseInt (since / 1000);
+        }
+        const response = await this.privatePostHistoryMovements (this.extend (query, params));
         //
         //     [
         //         {
