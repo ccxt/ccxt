@@ -420,8 +420,11 @@ module.exports = class binance extends ccxt.binance {
         const event = this.safeString (message, 'e');
         const messageHash = lowerCaseId + '@' + event;
         const trade = this.parseTrade (message, market);
-        const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-        const array = this.safeValue (this.trades, symbol, new ArrayCache (limit));
+        let array = this.safeValue (this.trades, symbol);
+        if (array === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            array = new ArrayCache (limit);
+        }
         array.append (trade);
         this.trades[symbol] = array;
         client.resolve (array, messageHash);
