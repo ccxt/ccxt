@@ -1172,24 +1172,18 @@ class Exchange(object):
         hash_function = getattr(hashlib, curve_info[1])
         encoded_request = Exchange.encode(request)
         digest = base64.b16decode(encoded_request, casefold=True)
-        print('digest', digest)
         key = ecdsa.SigningKey.from_string(base64.b16decode(Exchange.encode(secret),
                                                             casefold=True), curve=curve_info[0])
 
         r_binary, s_binary, v = key.sign_digest_deterministic(digest, hashfunc=hash_function, sigencode=ecdsa.util.sigencode_strings_canonize)
         r, s = Exchange.decode(base64.b16encode(r_binary)).lower(), Exchange.decode(base64.b16encode(s_binary)).lower()
-        print('r_binary', r_binary, 's_binary', s_binary, r, s)
-
         der = Exchange.encodeDER(binascii.unhexlify(r), binascii.unhexlify(s))
-        print('der', der)
-
 
         # r_binary, s_binary, v = key.sign_digest_deterministic(digest, hashfunc=hash_function, sigencode=ecdsa.util.sigencode_strings_canonize)
         # r, s = Exchange.decode(base64.b16encode(r_binary)).lower(), Exchange.decode(base64.b16encode(s_binary)).lower()
         # print('r_binary', r_binary, 's_binary', s_binary, r, s)
 
         signature = der.hex()
-        print('signature', signature, '0220558a3348e467f58bcabe3716af20e306cbbb75ac72fe91a6ba61d5f2775826f40220')
         return signature
 
     @staticmethod
