@@ -330,6 +330,7 @@ class lykke(Exchange):
             'Cancelled': 'canceled',
             'Rejected': 'rejected',
             'Replaced': 'canceled',
+            'Placed': 'open',
         }
         return self.safe_string(statuses, status, status)
 
