@@ -344,6 +344,7 @@ module.exports = class lykke extends Exchange {
             'Cancelled': 'canceled',
             'Rejected': 'rejected',
             'Replaced': 'canceled',
+            'Placed': 'open',
         };
         return this.safeString (statuses, status, status);
     }
