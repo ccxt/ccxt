@@ -376,13 +376,14 @@ module.exports = class nashio extends Exchange {
             'ignoreLowBalance': false,
         };
         const signedPayload = await this.signPayloadMpc (2, 'list_account_balances', listAccountBalancesParams);
+        const signature = signedPayload['signature'];
         const request = {
             'query': query,
             'variables': {
-                'payload': signedPayload.payload,
+                'payload': signedPayload['payload'],
                 'signature': {
-                    'publicKey': signedPayload.signature.publicKey,
-                    'signedDigest': signedPayload.signature.signedDigest,
+                    'publicKey': signature['publicKey'],
+                    'signedDigest': signature['signedDigest'],
                 },
             },
         };
@@ -611,7 +612,8 @@ module.exports = class nashio extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        const timestamp = this.safeTimestamp (trade['executedAt'], 'time');
+        const tradeExecutedAt = this.safeString (trade, 'executedAt');
+        const timestamp = this.safeTimestamp (tradeExecutedAt, 'time');
         const id = this.safeString (trade, 'id');
         const order = undefined;
         const type = undefined;
