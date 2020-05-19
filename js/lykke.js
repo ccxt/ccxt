@@ -430,7 +430,11 @@ module.exports = class lykke extends Exchange {
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetOrders (params);
-        return this.parseOrders (response, undefined, since, limit);
+        const orders = this.parseOrders (response, undefined, since, limit);
+        if (symbol !== undefined) {
+            return this.filterBySymbol (orders, symbol);
+        }
+        return orders;
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -439,7 +443,11 @@ module.exports = class lykke extends Exchange {
             'status': 'InOrderBook',
         };
         const response = await this.privateGetOrders (this.extend (request, params));
-        return this.parseOrders (response, undefined, since, limit);
+        const orders = this.parseOrders (response, undefined, since, limit);
+        if (symbol !== undefined) {
+            return this.filterBySymbol (orders, symbol);
+        }
+        return orders;
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -448,7 +456,11 @@ module.exports = class lykke extends Exchange {
             'status': 'Matched',
         };
         const response = await this.privateGetOrders (this.extend (request, params));
-        return this.parseOrders (response, undefined, since, limit);
+        const orders = this.parseOrders (response, undefined, since, limit);
+        if (symbol !== undefined) {
+            return this.filterBySymbol (orders, symbol);
+        }
+        return orders;
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
