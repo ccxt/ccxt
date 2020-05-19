@@ -385,8 +385,15 @@ class lykke extends Exchange {
             $timestamp = $this->parse8601($order['CreatedAt']);
         }
         $price = $this->safe_float($order, 'Price');
+        $side = null;
         $amount = $this->safe_float($order, 'Volume');
-        $remaining = $this->safe_float($order, 'RemainingVolume');
+        if ($amount < 0) {
+            $side = 'sell';
+            $amount = abs($amount);
+        } else {
+            $side = 'buy';
+        }
+        $remaining = abs($this->safe_float($order, 'RemainingVolume'));
         $filled = $amount - $remaining;
         $cost = $filled * $price;
         $id = $this->safe_string($order, 'Id');
@@ -399,7 +406,7 @@ class lykke extends Exchange {
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $symbol,
             'type' => null,
-            'side' => null,
+            'side' => $side,
             'price' => $price,
             'cost' => $cost,
             'average' => null,

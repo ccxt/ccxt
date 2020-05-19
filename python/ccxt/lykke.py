@@ -365,8 +365,14 @@ class lykke(Exchange):
         elif ('CreatedAt' in order) and (order['CreatedAt']):
             timestamp = self.parse8601(order['CreatedAt'])
         price = self.safe_float(order, 'Price')
+        side = None
         amount = self.safe_float(order, 'Volume')
-        remaining = self.safe_float(order, 'RemainingVolume')
+        if amount < 0:
+            side = 'sell'
+            amount = abs(amount)
+        else:
+            side = 'buy'
+        remaining = abs(self.safe_float(order, 'RemainingVolume'))
         filled = amount - remaining
         cost = filled * price
         id = self.safe_string(order, 'Id')
@@ -379,7 +385,7 @@ class lykke(Exchange):
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': None,
-            'side': None,
+            'side': side,
             'price': price,
             'cost': cost,
             'average': None,
