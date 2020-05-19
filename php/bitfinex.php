@@ -503,7 +503,7 @@ class bitfinex extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array(
-                'price' => $market['price_precision'],
+                'price' => $this->safe_integer($market, 'price_precision'),
                 'amount' => null,
             );
             $limits = array(
@@ -980,18 +980,23 @@ class bitfinex extends Exchange {
     }
 
     public function fetch_transactions($code = null, $since = null, $limit = null, $params = array ()) {
-        if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchTransactions() requires a $currency `$code` argument');
-        }
         $this->load_markets();
-        $currency = $this->currency($code);
-        $request = array(
-            'currency' => $currency['id'],
-        );
-        if ($since !== null) {
-            $request['since'] = intval ($since / 1000);
+        $currencyId = $this->safe_string($params, 'currency');
+        $query = $this->omit($params, 'currency');
+        $currency = null;
+        if ($currencyId === null) {
+            if ($code === null) {
+                throw new ArgumentsRequired($this->id . ' fetchTransactions() requires a $currency `$code` argument or a `$currency` parameter');
+            } else {
+                $currency = $this->currency($code);
+                $currencyId = $currency['id'];
+            }
         }
-        $response = $this->privatePostHistoryMovements (array_merge($request, $params));
+        $query['currency'] = $currencyId;
+        if ($since !== null) {
+            $query['since'] = intval ($since / 1000);
+        }
+        $response = $this->privatePostHistoryMovements (array_merge($query, $params));
         //
         //     array(
         //         {
