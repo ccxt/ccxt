@@ -500,7 +500,7 @@ module.exports = class bitfinex extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const precision = {
-                'price': market['price_precision'],
+                'price': this.safeInteger (market, 'price_precision'),
                 'amount': undefined,
             };
             const limits = {
