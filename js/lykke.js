@@ -226,8 +226,8 @@ module.exports = class lykke extends Exchange {
         const response = await this.mobileGetTradesAssetPairId (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
-    
-   async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
