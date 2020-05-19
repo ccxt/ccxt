@@ -3,6 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
+const { ExchangeNotAvailable, AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -677,5 +678,23 @@ module.exports = class nashio extends Exchange {
         }
         // console.warn (url, method, body, headers);
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        // console.warn ('handleErrors', code, reason, url, method, headers, body, response, requestHeaders, requestBody);
+        if (code === 520) {
+            throw new ExchangeNotAvailable (this.id + ' ' + code.toString () + ' ' + reason);
+        }
+        const errors = this.safeValue (response, 'errors');
+        if (errors) {
+            for (let i = 0; i < errors.length; i++) {
+                const error = errors[i];
+                const code = this.safeFloat (error, 'code');
+                const message = this.safeString (error, 'message');
+                if (code === 10) {
+                    throw new AuthenticationError (message);
+                }
+            }
+        }
     }
 };
