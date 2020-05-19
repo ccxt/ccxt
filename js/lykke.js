@@ -190,8 +190,8 @@ module.exports = class lykke extends Exchange {
         }
         amount = Math.abs (amount);
         const cost = price * amount;
-        const fee = { // There are no fees for trading. https://www.lykke.com/wallet-fees-and-limits/
-            'cost': 0,
+        const fee = {
+            'cost': 0, // There are no fees for trading. https://www.lykke.com/wallet-fees-and-limits/
             'currency': market['quote'],
         };
         return {
