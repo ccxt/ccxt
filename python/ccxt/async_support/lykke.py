@@ -100,11 +100,16 @@ class lykke(Exchange):
                         'Orders',
                         'Orders/{id}',
                         'Wallets',
+                        'History/trades',
                     ],
                     'post': [
                         'Orders/limit',
                         'Orders/market',
                         'Orders/{id}/Cancel',
+                        'Orders/v2/market',
+                        'Orders/v2/limit',
+                        'Orders/stoplimit',
+                        'Orders/bulk',
                     ],
                 },
             },
@@ -145,18 +150,47 @@ class lykke(Exchange):
         #     "action": "Buy"
         #   }
         #
+        #  private fetchMyTrades
+        #     {
+        #         Id: '3500b83c-9963-4349-b3ee-b3e503073cea',
+        #         OrderId: '83b50feb-8615-4dc6-b606-8a4168ecd708',
+        #         DateTime: '2020-05-19T11:17:39.31+00:00',
+        #         Timestamp: '2020-05-19T11:17:39.31+00:00',
+        #         State: null,
+        #         Amount: -0.004,
+        #         BaseVolume: -0.004,
+        #         QuotingVolume: 39.3898,
+        #         Asset: 'BTC',
+        #         BaseAssetId: 'BTC',
+        #         QuotingAssetId: 'USD',
+        #         AssetPair: 'BTCUSD',
+        #         AssetPairId: 'BTCUSD',
+        #         Price: 9847.427,
+        #         Fee: {Amount: null, Type: 'Unknown', FeeAssetId: null}
+        #     },
         symbol = None
         if market is None:
             marketId = self.safe_string(trade, 'AssetPairId')
             market = self.safe_value(self.markets_by_id, marketId)
         if market:
             symbol = market['symbol']
-        id = self.safe_string(trade, 'id')
-        timestamp = self.parse8601(self.safe_string(trade, 'dateTime'))
+        id = self.safe_string_2(trade, 'id', 'Id')
+        orderId = self.safe_string(trade, 'OrderId')
+        timestamp = self.parse8601(self.safe_string_2(trade, 'dateTime', 'DateTime'))
+        price = self.safe_float_2(trade, 'price', 'Price')
+        amount = self.safe_float_2(trade, 'volume', 'Amount')
         side = self.safe_string_lower(trade, 'action')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'volume')
+        if side is None:
+            if amount < 0:
+                side = 'sell'
+            else:
+                side = 'buy'
+        amount = abs(amount)
         cost = price * amount
+        fee = {
+            'cost': 0,  # There are no fees for trading. https://www.lykke.com/wallet-fees-and-limits/
+            'currency': market['quote'],
+        }
         return {
             'id': id,
             'info': trade,
@@ -164,13 +198,13 @@ class lykke(Exchange):
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
             'type': None,
-            'order': None,
+            'order': orderId,
             'side': side,
             'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': None,
+            'fee': fee,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -184,6 +218,18 @@ class lykke(Exchange):
             'take': limit,
         }
         response = await self.mobileGetTradesAssetPairId(self.extend(request, params))
+        return self.parse_trades(response, market, since, limit)
+
+    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        request = {}
+        market = None
+        if limit is not None:
+            request['take'] = limit  # How many maximum items have to be returned, max 1000 default 100.
+        if symbol is not None:
+            market = self.market(symbol)
+            request['assetPairId'] = market['id']
+        response = await self.privateGetHistoryTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
     async def fetch_balance(self, params={}):
