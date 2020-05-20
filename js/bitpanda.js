@@ -402,7 +402,11 @@ module.exports = class bitpanda extends Exchange {
             const trade = this.safeValue (tradeHistory[i], 'trade');
             trades.push (trade);
         }
-        return this.addPaginatorCursor (this.parseTrades (trades, market, since, limit), response.cursor);
+        if ('cursor' in response) {
+            const cursor = this.safeValue (response, 'cursor');
+            return this.addPaginatorCursor (this.parseTrades (trades, market, since, limit, params), cursor);
+        }
+        return this.parseTrades (trades, market, since, limit, params);
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -467,10 +471,7 @@ module.exports = class bitpanda extends Exchange {
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {
-            'with_cancelled_and_rejected': this.options['with_cancelled_and_rejected'],
-            'with_just_filled_inactive': this.options['with_just_filled_inactive'],
-        };
+        const request = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -482,9 +483,19 @@ module.exports = class bitpanda extends Exchange {
         if (limit !== undefined) {
             request['max_page_size'] = limit;
         }
+        if ('with_cancelled_and_rejected' in params) {
+            request['with_cancelled_and_rejected'] = this.safeString (params, 'with_cancelled_and_rejected');
+        }
+        if ('with_just_filled_inactive' in params) {
+            request['with_just_filled_inactive'] = this.safeString (params, 'with_just_filled_inactive');
+        }
         const response = await this.privateGetAccountOrders (this.extend (request, params));
         const orders = this.safeValue (response, 'order_history');
-        return this.addPaginatorCursor (this.parseOrders (orders, market, since, limit, params), response.cursor);
+        if ('cursor' in response) {
+            const cursor = this.safeValue (response, 'cursor');
+            return this.addPaginatorCursor (this.parseOrders (orders, market, since, limit, params), cursor);
+        }
+        return this.parseOrders (orders, market, since, limit, params);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -638,7 +649,7 @@ module.exports = class bitpanda extends Exchange {
         };
     }
 
-    parseTrade (trade) {
+    parseTrade (trade, markets = undefined) {
         const id = this.safeString (trade, 'trade_id');
         const orderId = this.safeString (trade, 'order_id');
         const time = this.safeString (trade, 'time');
@@ -709,12 +720,12 @@ module.exports = class bitpanda extends Exchange {
         throw new ExchangeError (this.id + ' ' + this.json (response));
     }
 
-    addPaginatorCursor (trades, cursor) {
-        if (cursor && trades) {
+    addPaginatorCursor (elements, cursor) {
+        if (cursor && elements) {
             // php transpiler making problems here with array length, thus this specific hint.
-            const lastElement = trades.length;
-            trades[lastElement - 1]['info']['cursor'] = cursor;
+            const lastElement = elements.length;
+            elements[lastElement - 1]['info']['cursor'] = cursor;
         }
-        return trades;
+        return elements;
     }
 };
