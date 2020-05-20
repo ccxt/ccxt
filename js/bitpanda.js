@@ -170,6 +170,8 @@ module.exports = class bitpanda extends Exchange {
                 'MISSING_PERMISSION': PermissionDenied,
                 'ILLEGAL_CHARS': BadRequest,
                 'UNSUPPORTED_MEDIA_TYPE': BadRequest,
+                'ACCOUNT_HISTORY_TIME_RANGE_TOO_BIG': BadRequest,
+                'CANDLESTICKS_TIME_RANGE_TOO_BIG': BadRequest,
                 'INVALID_INSTRUMENT_CODE': BadRequest,
                 'INVALID_ORDER_TYPE': BadRequest,
                 'INVALID_UNIT': BadRequest,
@@ -184,6 +186,18 @@ module.exports = class bitpanda extends Exchange {
                 'INVALID_CURSOR': BadRequest,
                 'INVALID_ACCOUNT_ID': BadRequest,
                 'INVALID_SIDE': BadRequest,
+                'INVALID_ACCOUNT_HISTORY_FROM_TIME': BadRequest,
+                'INVALID_ACCOUNT_HISTORY_MAX_PAGE_SIZE': BadRequest,
+                'INVALID_ACCOUNT_HISTORY_TIME_PERIOD': BadRequest,
+                'INVALID_ACCOUNT_HISTORY_TO_TIME': BadRequest,
+                'INVALID_CANDLESTICKS_GRANULARITY': BadRequest,
+                'INVALID_CANDLESTICKS_UNIT': BadRequest,
+                'INVALID_ORDER_BOOK_DEPTH': BadRequest,
+                'INVALID_ORDER_BOOK_LEVEL': BadRequest,
+                'INVALID_PAGE_CURSOR': BadRequest,
+                'INVALID_TIME_RANGE': BadRequest,
+                'INVALID_TRADE_ID': BadRequest,
+                'INVALID_UI_ACCOUNT_SETTINGS': BadRequest,
                 'NEGATIVE_AMOUNT': BadRequest,
                 'NEGATIVE_PRICE': BadRequest,
                 'MIN_SIZE_NOT_SATISFIED': BadRequest,
@@ -192,9 +206,15 @@ module.exports = class bitpanda extends Exchange {
                 'BAD_TRIGGER_PRICE_PRECISION': BadRequest,
                 'MAX_OPEN_ORDERS_EXCEEDED': BadRequest,
                 'MISSING_PRICE': ArgumentsRequired,
-                'MISSING_INSTRUMENT_CODE': ArgumentsRequired,
                 'MISSING_ORDER_TYPE': ArgumentsRequired,
                 'MISSING_SIDE': ArgumentsRequired,
+                'MISSING_CANDLESTICKS_PERIOD_PARAM': ArgumentsRequired,
+                'MISSING_CANDLESTICKS_UNIT_PARAM': ArgumentsRequired,
+                'MISSING_FROM_PARAM': ArgumentsRequired,
+                'MISSING_INSTRUMENT_CODE': ArgumentsRequired,
+                'MISSING_ORDER_ID': ArgumentsRequired,
+                'MISSING_TO_PARAM': ArgumentsRequired,
+                'MISSING_TRADE_ID': ArgumentsRequired,
                 'INVALID_ORDER_ID': OrderNotFound,
                 'NOT_FOUND': OrderNotFound,
                 'INSUFFICIENT_LIQUIDITY': InsufficientFunds,
@@ -389,7 +409,14 @@ module.exports = class bitpanda extends Exchange {
             market = this.market (symbol);
             request['instrument_code'] = market['id'];
         }
+        // from and to parameters are mutually inclusive
         if (since !== undefined) {
+            // we define now as default to parameter
+            let to = this.iso8601 (this.milliseconds ());
+            if ('to' in params) {
+                to = this.safeString (params, 'to');
+            }
+            request['to'] = to;
             request['from'] = this.iso8601 (since);
         }
         if (limit !== undefined) {
@@ -479,7 +506,14 @@ module.exports = class bitpanda extends Exchange {
             market = this.market (symbol);
             request['instrument_code'] = market['id'];
         }
+        // from and to parameters are mutually inclusive
         if (since !== undefined) {
+            // we define now as default to parameter
+            let to = this.iso8601 (this.milliseconds ());
+            if ('to' in params) {
+                to = this.safeString (params, 'to');
+            }
+            request['to'] = to;
             request['from'] = this.iso8601 (since);
         }
         if (limit !== undefined) {
