@@ -29,6 +29,7 @@ module.exports = class nashio extends Exchange {
                 'fetchOrderBooks': false,
                 'fetchBalance': true,
                 'fetchMyTrades': true,
+                'fetchOpenOrders': true,
             },
             'marketsByAltname': {},
             'timeframes': {
@@ -499,6 +500,79 @@ module.exports = class nashio extends Exchange {
         // }
     }
 
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let query = '';
+        query += 'query ListAccountOrders($payload: ListAccountOrdersParams' + '!, $signature: Signature' + '!' + ') { ';
+        query += '  listAccountOrders(payload: $payload, signature: $signature) {';
+        query += '      next';
+        query += '      orders {';
+        query += '          id';
+        query += '          placedAt';
+        query += '          status';
+        query += '          type';
+        query += '          buyOrSell';
+        query += '          amount { amount }';
+        query += '          amountExecuted { amount }';
+        query += '          amountRemaining { amount }';
+        query += '          limitPrice { amount }';
+        query += '          stopPrice { amount }';
+        query += '          trades {';
+        query += '              accountSide ';
+        query += '              amount { amount currency } ';
+        query += '              cursor ';
+        query += '              direction ';
+        query += '              executedAt ';
+        query += '              id ';
+        query += '              limitPrice { amount currencyA currencyB } ';
+        query += '              makerFee { amount currency } ';
+        query += '              makerGave { amount currency } ';
+        query += '              makerOrderId ';
+        query += '              makerReceived { amount currency } ';
+        query += '              takerFee { amount currency } ';
+        query += '              takerGave { amount currency } ';
+        query += '              takerOrderId ';
+        query += '              takerReceived { amount currency } ';
+        query += '              usdARate { amount currencyA currencyB } ';
+        query += '              usdBRate { amount currencyA currencyB } ';
+        query += '          }';
+        query += '      }';
+        query += '  }';
+        query += '}';
+        const listAccountOrdersParams = {
+            'before': undefined,
+            'buyOrSell': undefined,
+            'limit': undefined,
+            'marketName': market['id'],
+            'rangeStart': undefined,
+            'rangeStop': undefined,
+            'status': 'OPEN',
+            'type': undefined,
+        };
+        if (since !== undefined) {
+            listAccountOrdersParams['rangeStart'] = this.iso8601 (since);
+        }
+        if (limit !== undefined) {
+            listAccountOrdersParams['limit'] = limit;
+        }
+        const signedPayload = await this.signPayloadMpc (0, 'list_account_orders', listAccountOrdersParams);
+        const request = {
+            'query': query,
+            'variables': {
+                'payload': signedPayload.payload,
+                'signature': {
+                    'publicKey': signedPayload.signature.publicKey,
+                    'signedDigest': signedPayload.signature.signedDigest,
+                },
+            },
+        };
+        const response = await this.privatePostGql (this.extend (request, params));
+        // console.warn ('response', response);
+        const orders = this.parseOrders (response['data']['listAccountOrders']['orders'], market, since, limit, params);
+        return orders;
+    }
+
     async signPayloadMpc (kindId, kindName, params) {
         // kind: https://gitlab.com/nash-io-public/nash-protocol/-/blob/master/src/payload/signingPayloadID.ts
         const payload = params;
@@ -658,6 +732,94 @@ module.exports = class nashio extends Exchange {
             'cost': price * amount,
             'fee': fee,
         };
+    }
+
+    parseOrder (order, market = undefined) {
+        // console.warn ('parseOrder', order);
+        const id = this.safeString (order, 'id');
+        const placedAt = this.safeString (order, 'placedAt');
+        const timestamp = this.parse8601 (placedAt);
+        let status = this.safeString (order, 'status');
+        if (status === 'OPEN') {
+            status = 'open';
+        } else if (status === 'FILLED') {
+            status = 'closed';
+        } else if (status === 'CANCELLED') {
+            status = 'canceled';
+        }
+        let type = this.safeString (order, 'type');
+        if (type === 'MARKET') {
+            type = 'market';
+        } else if (type === 'LIMIT') {
+            type = 'limit';
+        }
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        let side = this.safeString (order, 'buyOrSell');
+        if (side === 'BUY') {
+            side = 'buy';
+        } else if (side === 'SELL') {
+            side = 'sell';
+        }
+        const orderAmount = this.safeValue (order, 'amount');
+        const amount = this.safeFloat (orderAmount, 'amount');
+        const orderAmountExecuted = this.safeValue (order, 'amountExecuted');
+        const filled = this.safeFloat (orderAmountExecuted, 'amount');
+        const orderAmountRemaining = this.safeValue (order, 'amountRemaining');
+        const remaining = this.safeFloat (orderAmountRemaining, 'amount');
+        let price = undefined;
+        const limitPrice = this.safeValue (order, 'limitPrice');
+        const stopPrice = this.safeValue (order, 'stopPrice');
+        if (limitPrice) {
+            price = this.safeFloat (limitPrice, 'amount');
+        } else if (stopPrice) {
+            price = this.safeFloat (stopPrice, 'amount');
+        }
+        const orderTrades = this.safeValue (order, 'trades');
+        const trades = this.parseTrades (orderTrades, market);
+        // console.warn ('trades', trades);
+        return {
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'status': status,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'cost': filled * price,
+            'trades': trades,
+            'info': order,
+        };
+        // ### structure
+        // {
+        //     'id':                '12345-67890:09876/54321', // string
+        //     'datetime':          '2017-08-17 12:42:48.000', // ISO8601 datetime of 'timestamp' with milliseconds
+        //     'timestamp':          1502962946216, // order placing/opening Unix timestamp in milliseconds
+        //     'lastTradeTimestamp': 1502962956216, // Unix timestamp of the most recent trade on this order
+        //     'status':     'open',         // 'open', 'closed', 'canceled'
+        //     'symbol':     'ETH/BTC',      // symbol
+        //     'type':       'limit',        // 'market', 'limit'
+        //     'side':       'buy',          // 'buy', 'sell'
+        //     'price':       0.06917684,    // float price in quote currency
+        //     'amount':      1.5,           // ordered amount of base currency
+        //     'filled':      1.1,           // filled amount of base currency
+        //     'remaining':   0.4,           // remaining amount to fill
+        //     'cost':        0.076094524,   // 'filled' * 'price' (filling price used where available)
+        //     'trades':    [ ... ],         // a list of order trades/executions
+        //     'fee': {                      // fee info, if available
+        //         'currency': 'BTC',        // which currency the fee is (usually quote)
+        //         'cost': 0.0009,           // the fee amount in that currency
+        //         'rate': 0.002,            // the fee rate (if available)
+        //     },
+        //     'info': { ... },              // the original unparsed order structure as is
+        // }
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
