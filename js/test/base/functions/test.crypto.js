@@ -1,5 +1,5 @@
 const { hash, ecdsa, jwt, ecSignMessage } = require ('../../../base/functions/crypto')
-const { encode } = require ('../../../base/functions/encode')
+const { encode, signatureToDER } = require ('../../../base/functions/encode')
 const Exchange = require ('../../../base/Exchange');
 const assert = require ('assert')
 
@@ -119,4 +119,4 @@ assert (exchange.soliditySha3 (['0x407D73d8a49eeb85D32Cf465507dd71d507100c1']) =
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-assert (equals (ecSignMessage ('bc07b805c8205aba3409d0420ce1ce5d44402d550b6cfc2020a5465ede63c53e', '9ec3038913c5727980bf8c1cfff7caa06a897108ada3df606fb72805ab37d69d', 'secp256k1'), '0220558a3348e467f58bcabe3716af20e306cbbb75ac72fe91a6ba61d5f2775826f40220'));
+assert (equals (signatureToDER ('558a3348e467f58bcabe3716af20e306cbbb75ac72fe91a6ba61d5f2775826f4', '23cb8d4907f576c451590373a58b29226d25cb571c016048bb8ff176f14d0d5f', 'hex'), '3006024000024000'));

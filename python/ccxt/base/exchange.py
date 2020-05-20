@@ -1157,76 +1157,13 @@ class Exchange(object):
         }
 
     @staticmethod
-    def ec_sign_message(request, secret, algorithm):
-        algorithms = {
-            'p192': [ecdsa.NIST192p, 'sha256'],
-            'p224': [ecdsa.NIST224p, 'sha256'],
-            'p256': [ecdsa.NIST256p, 'sha256'],
-            'p384': [ecdsa.NIST384p, 'sha384'],
-            'p521': [ecdsa.NIST521p, 'sha512'],
-            'secp256k1': [ecdsa.SECP256k1, 'sha256'],
-        }
-        if algorithm not in algorithms:
-            raise ArgumentsRequired(algorithm + ' is not a supported algorithm')
-        curve_info = algorithms[algorithm]
-        hash_function = getattr(hashlib, curve_info[1])
-        encoded_request = Exchange.encode(request)
-        digest = base64.b16decode(encoded_request, casefold=True)
-        key = ecdsa.SigningKey.from_string(base64.b16decode(Exchange.encode(secret),
-                                                            casefold=True), curve=curve_info[0])
-
-        r_binary, s_binary, v = key.sign_digest_deterministic(digest, hashfunc=hash_function, sigencode=ecdsa.util.sigencode_strings_canonize)
-        r, s = Exchange.decode(base64.b16encode(r_binary)).lower(), Exchange.decode(base64.b16encode(s_binary)).lower()
-        der = Exchange.encodeDER(binascii.unhexlify(r), binascii.unhexlify(s))
-
-        # r_binary, s_binary, v = key.sign_digest_deterministic(digest, hashfunc=hash_function, sigencode=ecdsa.util.sigencode_strings_canonize)
-        # r, s = Exchange.decode(base64.b16encode(r_binary)).lower(), Exchange.decode(base64.b16encode(s_binary)).lower()
-        # print('r_binary', r_binary, 's_binary', s_binary, r, s)
-
-        signature = der.hex()
-        return signature
-
-    @staticmethod
-    def encodeDER(r, s):
-        len_r = len(r)
-        len_s = len(s)
-        if len_r == 0:
-            raise Exception('R length is zero')
-
-        if len_s == 0:
-            raise Exception('S length is zero')
-
-        if len_r > 33:
-            raise Exception('R length is too long')
-
-        if len_s > 33:
-            raise Exception('S length is too long')
-
-        if r[0] & 0x80:
-            raise Exception('R value is negative')
-
-        if s[0] & 0x80:
-            raise Exception('S value is negative')
-
-        if len_r > 1 and (r[0] == 0x00) and not (r[1] & 0x80):
-            raise Exception('R value excessively padded')
-
-        if len_s > 1 and (s[0] == 0x00) and not (s[1] & 0x80):
-            raise Exception('S value excessively padded')
-
-        # sign_len = 6 + len_r + len_s
-
-        signature = BytesIO()
-        # signature.write(0x30.to_bytes(1, 'big', signed=False))
-        # signature.write((sign_len - 2).to_bytes(1, 'big', signed=False))
-        signature.write(0x02.to_bytes(1, 'big', signed=False))
-        signature.write(len_r.to_bytes(1, 'big', signed=False))
-        signature.write(r)
-        signature.write(0x02.to_bytes(1, 'big', signed=False))
-        # signature.write(len_s.to_bytes(1, 'big', signed=False))
-        # signature.write(s)
-
-        return signature.getvalue()
+    def signature_to_der(r, s, enc):
+        r = binascii.unhexlify(r)
+        s = binascii.unhexlify(s)
+        der = ecdsa.der.encode_sequence(r, s)
+        if (enc == 'hex'):
+            return der.hex()
+        return der
 
     @staticmethod
     def unjson(input):

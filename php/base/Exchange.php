@@ -33,6 +33,7 @@ namespace ccxt;
 use kornrunner\Keccak;
 use kornrunner\Solidity;
 use Elliptic\EC;
+use Elliptic\EC\Signature;
 use BN\BN;
 
 $version = '1.27.91';
@@ -1174,6 +1175,11 @@ class Exchange {
             'v' => $ellipticSignature->recoveryParam,
         );
         return $signature;
+    }
+
+    public static function signatureToDER($r, $s, $enc) {
+        $signature = new Signature(array('r' => $r, 's' => $s));
+        return $signature->toDER($enc);
     }
 
     // this method is experimental

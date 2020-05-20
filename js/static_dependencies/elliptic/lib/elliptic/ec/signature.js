@@ -47,7 +47,7 @@ function Signature(options, enc) {
     this.recoveryParam = options.recoveryParam;
 }
 
-Signature.prototype.toDER = function toDER() {
+Signature.prototype.toDER = function toDER(enc) {
   var r = this.r.toArray();
   var s = this.s.toArray();
 
@@ -73,6 +73,10 @@ Signature.prototype.toDER = function toDER() {
   var res = [ 0x30 ];
   constructLength(res, backHalf.length);
   res = res.concat(backHalf);
+  if (enc === 'hex') {
+    const buffer = Buffer.from(res, 'hex')
+    return buffer.toString('hex');
+  }
   return arr;
 }
 

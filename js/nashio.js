@@ -517,14 +517,8 @@ module.exports = class nashio extends Exchange {
 
     async preSignPayload (apiKey, payloadAndKind, kindName) {
         const message = kindName;
-        const messageHash = this.hash (this.encode (message), 'sha256', 'hex');
-        // console.warn ('messageHash', messageHash);
-        // console.warn ('payload_signing_key', apiKey['payload_signing_key']);
-        const signature = this.ecSignMessage (messageHash, apiKey['payload_signing_key'], 'secp256k1');
-        // console.warn ('der', der);
-        // this.print ('der', der);
-        // const buffer = this.bufferFromHex (der);
-        // const signature = this.bufferToHex (buffer);
+        let signature = this.ecdsa (message, apiKey['payload_signing_key'], 'secp256k1', 'sha256', true);
+        signature = this.signatureToDER (signature['r'], signature['s'], 'hex');
         this.print ('nashio', 'signature', signature);
         return {
             'payload': payloadAndKind['payload'],
