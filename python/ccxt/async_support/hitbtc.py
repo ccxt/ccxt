@@ -598,7 +598,7 @@ class hitbtc(Exchange):
                 '2011': InvalidOrder,  # "Quantity too low"
                 '2020': InvalidOrder,  # "Price not a valid number"
                 '20002': OrderNotFound,  # canceling non-existent order
-                '20001': InsufficientFunds,
+                '20001': InsufficientFunds,  # {"error":{"code":20001,"message":"Insufficient funds","description":"Check that the funds are sufficient, given commissions"}}
             },
         })
 
@@ -638,6 +638,8 @@ class hitbtc(Exchange):
             }
             taker = self.safe_float(market, 'takeLiquidityRate')
             maker = self.safe_float(market, 'provideLiquidityRate')
+            feeCurrencyId = self.safe_string(market, 'feeCurrency')
+            feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             result.append(self.extend(self.fees['trading'], {
                 'info': market,
                 'id': id,
@@ -650,6 +652,7 @@ class hitbtc(Exchange):
                 'taker': taker,
                 'maker': maker,
                 'precision': precision,
+                'feeCurrency': feeCurrencyCode,
                 'limits': {
                     'amount': {
                         'min': lot,
@@ -884,19 +887,17 @@ class hitbtc(Exchange):
         if marketId is not None:
             if marketId in self.markets_by_id:
                 market = self.markets_by_id[marketId]
-                symbol = market['symbol']
             else:
                 symbol = marketId
-        if symbol is None:
-            if market is not None:
-                symbol = market['symbol']
+        if (symbol is None) and (market is not None):
+            symbol = market['symbol']
         fee = None
         feeCost = self.safe_float(trade, 'fee')
         if feeCost is not None:
-            feeCurrency = market['quote'] if market else None
+            feeCurrencyCode = market['feeCurrency'] if market else None
             fee = {
                 'cost': feeCost,
-                'currency': feeCurrency,
+                'currency': feeCurrencyCode,
             }
         # we use clientOrderId as the order id with HitBTC intentionally
         # because most of their endpoints will require clientOrderId
