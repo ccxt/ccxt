@@ -133,6 +133,7 @@ class hitbtc extends Exchange {
                     ),
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'fees' => array(
                 'trading' => array(
                     'tierBased' => false,
@@ -599,6 +600,20 @@ class hitbtc extends Exchange {
 
     public function fetch_markets($params = array ()) {
         $response = $this->publicGetSymbol ($params);
+        //
+        //     array(
+        //         {
+        //             "$id":"BCNBTC",
+        //             "baseCurrency":"BCN",
+        //             "quoteCurrency":"BTC",
+        //             "quantityIncrement":"100",
+        //             "tickSize":"0.00000000001",
+        //             "takeLiquidityRate":"0.002",
+        //             "provideLiquidityRate":"0.001",
+        //             "feeCurrency":"BTC"
+        //         }
+        //     )
+        //
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $market = $response[$i];
@@ -611,10 +626,8 @@ class hitbtc extends Exchange {
             $lot = $this->safe_float($market, 'quantityIncrement');
             $step = $this->safe_float($market, 'tickSize');
             $precision = array(
-                'price' => $this->precision_from_string($market['tickSize']),
-                // FIXME => for lots > 1 the following line returns 0
-                // 'amount' => $this->precision_from_string($market['quantityIncrement']),
-                'amount' => -1 * intval (log10 ($lot)),
+                'price' => $step,
+                'amount' => $lot,
             );
             $taker = $this->safe_float($market, 'takeLiquidityRate');
             $maker = $this->safe_float($market, 'provideLiquidityRate');
