@@ -321,7 +321,7 @@ module.exports = class bitbns extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const symbols = Object.keys (this.omit (this.currencies, ['INR']));
+        const codes = Object.keys (this.omit (this.currencies, ['INR']));
         // Body for the balance API request
         const request = {
             'symbol': 'EVERYTHING',
@@ -333,20 +333,26 @@ module.exports = class bitbns extends Exchange {
         const currencybalances = this.safeValue (data, 'data');
         const freefiat = this.safeFloat (currencybalances, 'availableorderMoney');
         const usedfiat = this.safeFloat (currencybalances, 'inorderMoney');
-        balances['INR'] = {
-            'free': freefiat,
-            'used': usedfiat,
-        };
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
-            const availableOrderString = 'availableorder' + symbol;
-            const free = this.safeFloat (currencybalances, availableOrderString);
-            const inorderString = 'inorder' + symbol;
-            const used = this.safeFloat (currencybalances, inorderString);
-            balances[symbol] = {
-                'free': free,
-                'used': used,
+        if ((freefiat !== undefined) || (usedfiat !== undefined)) {
+            balances['INR'] = {
+                'free': freefiat,
+                'used': usedfiat,
             };
+        }
+        for (let i = 0; i < codes.length; i++) {
+            const code = codes[i];
+            const currency = this.currency (code);
+            const currencyId = currency['id'];
+            const availableOrderString = 'availableorder' + currencyId;
+            const free = this.safeFloat (currencybalances, availableOrderString);
+            const inorderString = 'inorder' + currencyId;
+            const used = this.safeFloat (currencybalances, inorderString);
+            if ((free !== undefined) || (used !== undefined)) {
+                balances[code] = {
+                    'free': free,
+                    'used': used,
+                };
+            }
         }
         return this.parseBalance (balances);
     }
