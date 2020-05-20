@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { BadSymbol, PermissionDenied, ExchangeError, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, RequestTimeout, AuthenticationError } = require ('./base/errors');
-const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
+const { TRUNCATE, DECIMAL_PLACES, TICK_SIZE } = require ('./base/functions/number');
 // ---------------------------------------------------------------------------
 
 module.exports = class hitbtc extends Exchange {
@@ -128,6 +128,7 @@ module.exports = class hitbtc extends Exchange {
                     ],
                 },
             },
+            'roundingMode': TICK_SIZE,
             'fees': {
                 'trading': {
                     'tierBased': false,
@@ -594,6 +595,20 @@ module.exports = class hitbtc extends Exchange {
 
     async fetchMarkets (params = {}) {
         const response = await this.publicGetSymbol (params);
+        //
+        //     [
+        //         {
+        //             "id":"BCNBTC",
+        //             "baseCurrency":"BCN",
+        //             "quoteCurrency":"BTC",
+        //             "quantityIncrement":"100",
+        //             "tickSize":"0.00000000001",
+        //             "takeLiquidityRate":"0.002",
+        //             "provideLiquidityRate":"0.001",
+        //             "feeCurrency":"BTC"
+        //         }
+        //     ]
+        //
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
@@ -606,10 +621,8 @@ module.exports = class hitbtc extends Exchange {
             const lot = this.safeFloat (market, 'quantityIncrement');
             const step = this.safeFloat (market, 'tickSize');
             const precision = {
-                'price': this.precisionFromString (market['tickSize']),
-                // FIXME: for lots > 1 the following line returns 0
-                // 'amount': this.precisionFromString (market['quantityIncrement']),
-                'amount': -1 * parseInt (Math.log10 (lot)),
+                'price': step,
+                'amount': lot,
             };
             const taker = this.safeFloat (market, 'takeLiquidityRate');
             const maker = this.safeFloat (market, 'provideLiquidityRate');
