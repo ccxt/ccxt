@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeNotAvailable, AuthenticationError } = require ('./base/errors');
+const { ExchangeNotAvailable, ExchangeError, AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -694,6 +694,8 @@ module.exports = class nashio extends Exchange {
                 const message = this.safeString (error, 'message');
                 if (code === 10) {
                     throw new AuthenticationError (message);
+                } else {
+                    throw new ExchangeError (message);
                 }
             }
         }
