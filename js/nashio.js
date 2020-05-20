@@ -30,6 +30,7 @@ module.exports = class nashio extends Exchange {
                 'fetchBalance': true,
                 'fetchMyTrades': true,
                 'fetchOpenOrders': true,
+                'fetchClosedOrders': true,
                 'fetchAllOrders': true,
             },
             'marketsByAltname': {},
@@ -502,14 +503,18 @@ module.exports = class nashio extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.fetchorders (['OPEN'], symbol, since, limit, params);
+        return this.fetchOrdersByStatus (['OPEN'], symbol, since, limit, params);
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return this.fetchOrdersByStatus (['FILLED'], symbol, since, limit, params);
     }
 
     async fetchAllOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.fetchorders (['CANCELLED', 'FILLED', 'OPEN', 'PENDING'], symbol, since, limit, params);
+        return this.fetchOrdersByStatus (['CANCELLED', 'FILLED', 'OPEN', 'PENDING'], symbol, since, limit, params);
     }
 
-    async fetchorders (orderStatus, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrdersByStatus (orderStatus, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let query = '';
