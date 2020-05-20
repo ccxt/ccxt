@@ -450,11 +450,17 @@ module.exports = class nashio extends Exchange {
         query += '}';
         const listAccountTradesParams = {
             'before': undefined,
-            'limit': limit,
+            'limit': undefined,
             'marketName': market['id'],
-            'rangeStart': this.iso8601 (since),
+            'rangeStart': undefined,
             'rangeStop': undefined,
         };
+        if (since !== undefined) {
+            listAccountTradesParams['rangeStart'] = this.iso8601 (since);
+        }
+        if (limit !== undefined) {
+            listAccountTradesParams['limit'] = limit;
+        }
         const signedPayload = await this.signPayloadMpc (30, 'list_account_trades', listAccountTradesParams);
         const request = {
             'query': query,
@@ -467,8 +473,8 @@ module.exports = class nashio extends Exchange {
             },
         };
         const response = await this.privatePostGql (this.extend (request, params));
-        // console.warn ('response', response);
-        const trades = this.safeValue2 (response, 'data', 'listAccountTrades');
+        this.print ('response', response);
+        const trades = response['data']['listAccountTrades']['trades'];
         return this.parseTrades (trades, market, since, limit);
         // structure
         // {
@@ -608,7 +614,7 @@ module.exports = class nashio extends Exchange {
 
     parseTrade (trade, market = undefined) {
         const tradeExecutedAt = this.safeString (trade, 'executedAt');
-        const timestamp = this.safeTimestamp (tradeExecutedAt, 'time');
+        const timestamp = this.parse8601 (tradeExecutedAt);
         const id = this.safeString (trade, 'id');
         const order = undefined;
         const type = undefined;
