@@ -77,7 +77,6 @@ from decimal import Decimal
 from time import mktime
 from wsgiref.handlers import format_date_time
 import binascii
-from io import BytesIO
 
 # -----------------------------------------------------------------------------
 
