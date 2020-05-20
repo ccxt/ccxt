@@ -128,7 +128,7 @@ module.exports = class hitbtc extends Exchange {
                     ],
                 },
             },
-            'roundingMode': TICK_SIZE,
+            'precisionMode': TICK_SIZE,
             'fees': {
                 'trading': {
                     'tierBased': false,
