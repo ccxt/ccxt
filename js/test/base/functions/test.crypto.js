@@ -1,5 +1,5 @@
-const { hash, ecdsa, jwt } = require ('../../../base/functions/crypto')
-const { encode, signatureToDER } = require ('../../../base/functions/encode')
+const { hash, ecdsa, jwt, signatureToDER } = require ('../../../base/functions/crypto')
+const { encode } = require ('../../../base/functions/encode')
 const Exchange = require ('../../../base/Exchange');
 const assert = require ('assert')
 
