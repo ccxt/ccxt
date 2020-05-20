@@ -34,6 +34,9 @@ class dsx extends hitbtc {
                     'taker' => 0.25 / 100,
                 ),
             ),
+            'commonCurrencies' => array(
+                'USD' => 'USD',
+            ),
         ));
     }
 }
