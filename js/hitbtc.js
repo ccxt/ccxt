@@ -74,41 +74,55 @@ module.exports = class hitbtc extends Exchange {
                         'currency/{currency}', // Get currency info
                         'ticker', // Ticker list for all symbols
                         'ticker/{symbol}', // Ticker for symbol
+                        'trades',
                         'trades/{symbol}', // Trades
+                        'orderbook',
                         'orderbook/{symbol}', // Orderbook
+                        'candles',
                         'candles/{symbol}', // Candles
                     ],
                 },
                 'private': {
                     'get': [
+                        'trading/balance', // Get trading balance
                         'order', // List your current open orders
                         'order/{clientOrderId}', // Get a single order by clientOrderId
-                        'trading/balance', // Get trading balance
                         'trading/fee/all', // Get trading fee rate
                         'trading/fee/{symbol}', // Get trading fee rate
-                        'history/trades', // Get historical trades
                         'history/order', // Get historical orders
-                        'history/order/{id}/trades', // Get historical trades by specified order
+                        'history/trades', // Get historical trades
+                        'history/order/{orderId}/trades', // Get historical trades by specified order
                         'account/balance', // Get main acccount balance
+                        'account/crypto/address/{currency}', // Get deposit crypro address
+                        'account/crypto/is-mine/{address}',
                         'account/transactions', // Get account transactions
                         'account/transactions/{id}', // Get account transaction by id
-                        'account/crypto/address/{currency}', // Get deposit crypro address
+                        'sub-acc',
+                        'sub-acc/acl',
+                        'sub-acc/balance/{subAccountUserID}',
+                        'sub-acc/deposit-address/{subAccountUserId}/{currency}',
                     ],
                     'post': [
                         'order', // Create new order
-                        'account/crypto/withdraw', // Withdraw crypro
                         'account/crypto/address/{currency}', // Create new deposit crypro address
+                        'account/crypto/withdraw', // Withdraw crypro
+                        'account/crypto/transfer-convert',
                         'account/transfer', // Transfer amount to trading
+                        'sub-acc/freeze',
+                        'sub-acc/activate',
+                        'sub-acc/transfer',
                     ],
                     'put': [
                         'order/{clientOrderId}', // Create new order
                         'account/crypto/withdraw/{id}', // Commit withdraw crypro
+                        'sub-acc/acl/{subAccountUserId}',
                     ],
                     'delete': [
                         'order', // Cancel all open orders
                         'order/{clientOrderId}', // Cancel order
                         'account/crypto/withdraw/{id}', // Rollback withdraw crypro
                     ],
+                    // outdated?
                     'patch': [
                         'order/{clientOrderId}', // Cancel Replace order
                     ],
@@ -1396,9 +1410,9 @@ module.exports = class hitbtc extends Exchange {
             market = this.market (symbol);
         }
         const request = {
-            'id': id,
+            'orderId': id,
         };
-        const response = await this.privateGetHistoryOrderIdTrades (this.extend (request, params));
+        const response = await this.privateGetHistoryOrderOrderIdTrades (this.extend (request, params));
         const numOrders = response.length;
         if (numOrders > 0) {
             return this.parseTrades (response, market, since, limit);
