@@ -584,7 +584,7 @@ module.exports = class hitbtc extends Exchange {
                 '2011': InvalidOrder, // "Quantity too low"
                 '2020': InvalidOrder, // "Price not a valid number"
                 '20002': OrderNotFound, // canceling non-existent order
-                '20001': InsufficientFunds,
+                '20001': InsufficientFunds, // {"error":{"code":20001,"message":"Insufficient funds","description":"Check that the funds are sufficient, given commissions"}}
             },
         });
     }
@@ -626,6 +626,8 @@ module.exports = class hitbtc extends Exchange {
             };
             const taker = this.safeFloat (market, 'takeLiquidityRate');
             const maker = this.safeFloat (market, 'provideLiquidityRate');
+            const feeCurrencyId = this.safeString (market, 'feeCurrency');
+            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             result.push (this.extend (this.fees['trading'], {
                 'info': market,
                 'id': id,
@@ -638,6 +640,7 @@ module.exports = class hitbtc extends Exchange {
                 'taker': taker,
                 'maker': maker,
                 'precision': precision,
+                'feeCurrency': feeCurrencyCode,
                 'limits': {
                     'amount': {
                         'min': lot,
@@ -901,23 +904,20 @@ module.exports = class hitbtc extends Exchange {
         if (marketId !== undefined) {
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
             } else {
                 symbol = marketId;
             }
         }
-        if (symbol === undefined) {
-            if (market !== undefined) {
-                symbol = market['symbol'];
-            }
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
         }
         let fee = undefined;
         const feeCost = this.safeFloat (trade, 'fee');
         if (feeCost !== undefined) {
-            const feeCurrency = market ? market['quote'] : undefined;
+            const feeCurrencyCode = market ? market['feeCurrency'] : undefined;
             fee = {
                 'cost': feeCost,
-                'currency': feeCurrency,
+                'currency': feeCurrencyCode,
             };
         }
         // we use clientOrderId as the order id with HitBTC intentionally
