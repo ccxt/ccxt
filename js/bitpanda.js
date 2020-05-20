@@ -428,20 +428,22 @@ module.exports = class bitpanda extends Exchange {
         const duration = this.parseTimeframe (timeframe);
         // max time period in ms wrt granularity and limit
         const maxTimePeriod = (limit - 1) * duration * 1000;
-        // default to if none is specified
-        let to = this.iso8601 (this.sum (maxTimePeriod, since));
         if ('to' in params) {
             if (params['to'] <= this.sum (maxTimePeriod, since)) {
-                to = this.iso8601 (params['to']);
+                params['to'] = this.iso8601 (params['to']);
+            } else {
+                throw new ExchangeError (this.id + 'to parameter specified is too large');
             }
-        // else we leave the maximum one from default
+        } else {
+            // default to if none is specified
+            params['to'] = this.iso8601 (this.sum (maxTimePeriod, since));
         }
         const request = {
             'instrument': market['id'],
             'period': granularity['period'],
             'unit': granularity['unit'],
             'from': this.iso8601 (since),
-            'to': to,
+            'to': params['to'],
         };
         const response = await this.publicGetCandlesticksInstrument (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
@@ -584,7 +586,8 @@ module.exports = class bitpanda extends Exchange {
             this.safeFloat (ohlcv, 'high'),
             this.safeFloat (ohlcv, 'low'),
             this.safeFloat (ohlcv, 'close'),
-            this.safeFloat (ohlcv, 'volume'),
+            // Bitpanda's volume is in quote currency we are using total_amount which is in base currency instead
+            this.safeFloat (ohlcv, 'total_amount'),
         ];
     }
 
