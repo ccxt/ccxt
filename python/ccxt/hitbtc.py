@@ -17,6 +17,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
+from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
 class hitbtc(Exchange):
@@ -141,6 +142,7 @@ class hitbtc(Exchange):
                     ],
                 },
             },
+            'precisionMode': TICK_SIZE,
             'fees': {
                 'trading': {
                     'tierBased': False,
@@ -605,6 +607,20 @@ class hitbtc(Exchange):
 
     def fetch_markets(self, params={}):
         response = self.publicGetSymbol(params)
+        #
+        #     [
+        #         {
+        #             "id":"BCNBTC",
+        #             "baseCurrency":"BCN",
+        #             "quoteCurrency":"BTC",
+        #             "quantityIncrement":"100",
+        #             "tickSize":"0.00000000001",
+        #             "takeLiquidityRate":"0.002",
+        #             "provideLiquidityRate":"0.001",
+        #             "feeCurrency":"BTC"
+        #         }
+        #     ]
+        #
         result = []
         for i in range(0, len(response)):
             market = response[i]
@@ -617,10 +633,8 @@ class hitbtc(Exchange):
             lot = self.safe_float(market, 'quantityIncrement')
             step = self.safe_float(market, 'tickSize')
             precision = {
-                'price': self.precision_from_string(market['tickSize']),
-                # FIXME: for lots > 1 the following line returns 0
-                # 'amount': self.precision_from_string(market['quantityIncrement']),
-                'amount': -1 * int(math.log10(lot)),
+                'price': step,
+                'amount': lot,
             }
             taker = self.safe_float(market, 'takeLiquidityRate')
             maker = self.safe_float(market, 'provideLiquidityRate')
