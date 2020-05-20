@@ -32,18 +32,6 @@ module.exports = class dsx extends hitbtc {
                     'taker': 0.25 / 100,
                 },
             },
-            'timeframes': {
-                '1m': 'M1',
-                '3m': 'M3',
-                '5m': 'M5',
-                '15m': 'M15',
-                '30m': 'M30',
-                '1h': 'H1',
-                '4h': 'H4',
-                '1d': 'D1',
-                '1w': 'D7',
-                '1M': '1M',
-            },
         });
     }
 };
