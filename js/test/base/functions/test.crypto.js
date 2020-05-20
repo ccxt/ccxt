@@ -119,4 +119,4 @@ assert (exchange.soliditySha3 (['0x407D73d8a49eeb85D32Cf465507dd71d507100c1']) =
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-assert (equals (signatureToDER ('558a3348e467f58bcabe3716af20e306cbbb75ac72fe91a6ba61d5f2775826f4', '23cb8d4907f576c451590373a58b29226d25cb571c016048bb8ff176f14d0d5f', 'hex'), '3006024000024000'));
+assert (equals (signatureToDER ('558a3348e467f58bcabe3716af20e306cbbb75ac72fe91a6ba61d5f2775826f4', '23cb8d4907f576c451590373a58b29226d25cb571c016048bb8ff176f14d0d5f', 'hex'), '30440220558a3348e467f58bcabe3716af20e306cbbb75ac72fe91a6ba61d5f2775826f4022023cb8d4907f576c451590373a58b29226d25cb571c016048bb8ff176f14d0d5f'));
