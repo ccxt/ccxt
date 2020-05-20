@@ -325,6 +325,7 @@ module.exports = class nashio extends Exchange {
         };
         const response = await this.publicPostGql (this.extend (request, params));
         const trades = response['data']['listTrades']['trades'];
+        // this.print ('fetchTrades.trades', trades);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -389,7 +390,7 @@ module.exports = class nashio extends Exchange {
             },
         };
         const response = await this.privatePostGql (this.extend (request, params));
-        // console.warn ('response', response);
+        // this.print ('response', response);
         const listData = response['data']['listAccountBalances'];
         // console.warn ('response', response['data']['listAccountBalances']);
         const result = {
@@ -473,7 +474,7 @@ module.exports = class nashio extends Exchange {
             },
         };
         const response = await this.privatePostGql (this.extend (request, params));
-        this.print ('response', response);
+        // this.print ('response', response);
         const trades = response['data']['listAccountTrades']['trades'];
         return this.parseTrades (trades, market, since, limit);
         // structure
