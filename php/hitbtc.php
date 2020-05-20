@@ -79,41 +79,55 @@ class hitbtc extends Exchange {
                         'currency/{currency}', // Get currency info
                         'ticker', // Ticker list for all symbols
                         'ticker/{symbol}', // Ticker for symbol
+                        'trades',
                         'trades/{symbol}', // Trades
+                        'orderbook',
                         'orderbook/{symbol}', // Orderbook
+                        'candles',
                         'candles/{symbol}', // Candles
                     ),
                 ),
                 'private' => array(
                     'get' => array(
+                        'trading/balance', // Get trading balance
                         'order', // List your current open orders
                         'order/{clientOrderId}', // Get a single order by clientOrderId
-                        'trading/balance', // Get trading balance
                         'trading/fee/all', // Get trading fee rate
                         'trading/fee/{symbol}', // Get trading fee rate
-                        'history/trades', // Get historical trades
                         'history/order', // Get historical orders
-                        'history/order/{id}/trades', // Get historical trades by specified order
+                        'history/trades', // Get historical trades
+                        'history/order/{orderId}/trades', // Get historical trades by specified order
                         'account/balance', // Get main acccount balance
+                        'account/crypto/address/{currency}', // Get deposit crypro address
+                        'account/crypto/is-mine/{address}',
                         'account/transactions', // Get account transactions
                         'account/transactions/{id}', // Get account transaction by id
-                        'account/crypto/address/{currency}', // Get deposit crypro address
+                        'sub-acc',
+                        'sub-acc/acl',
+                        'sub-acc/balance/{subAccountUserID}',
+                        'sub-acc/deposit-address/{subAccountUserId}/{currency}',
                     ),
                     'post' => array(
                         'order', // Create new order
-                        'account/crypto/withdraw', // Withdraw crypro
                         'account/crypto/address/{currency}', // Create new deposit crypro address
+                        'account/crypto/withdraw', // Withdraw crypro
+                        'account/crypto/transfer-convert',
                         'account/transfer', // Transfer amount to trading
+                        'sub-acc/freeze',
+                        'sub-acc/activate',
+                        'sub-acc/transfer',
                     ),
                     'put' => array(
                         'order/{clientOrderId}', // Create new order
                         'account/crypto/withdraw/{id}', // Commit withdraw crypro
+                        'sub-acc/acl/{subAccountUserId}',
                     ),
                     'delete' => array(
                         'order', // Cancel all open orders
                         'order/{clientOrderId}', // Cancel order
                         'account/crypto/withdraw/{id}', // Rollback withdraw crypro
                     ),
+                    // outdated?
                     'patch' => array(
                         'order/{clientOrderId}', // Cancel Replace order
                     ),
@@ -1401,9 +1415,9 @@ class hitbtc extends Exchange {
             $market = $this->market($symbol);
         }
         $request = array(
-            'id' => $id,
+            'orderId' => $id,
         );
-        $response = $this->privateGetHistoryOrderIdTrades (array_merge($request, $params));
+        $response = $this->privateGetHistoryOrderOrderIdTrades (array_merge($request, $params));
         $numOrders = is_array($response) ? count($response) : 0;
         if ($numOrders > 0) {
             return $this->parse_trades($response, $market, $since, $limit);
