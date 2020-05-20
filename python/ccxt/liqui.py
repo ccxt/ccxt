@@ -736,6 +736,8 @@ class liqui (Exchange):
                 exact = self.exceptions['exact']
                 if code in exact:
                     raise exact[code](feedback)
+                elif message in exact:
+                    raise exact[message](feedback)
                 broad = self.exceptions['broad']
                 broadKey = self.findBroadlyMatchedKey(broad, message)
                 if broadKey is not None:

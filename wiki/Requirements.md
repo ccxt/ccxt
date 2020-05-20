@@ -22,8 +22,8 @@ The exchange is required to implement the following list of methods and structur
 
 #### Trading
 
-- [`fetchBalance`](https://github.com/ccxt/ccxt/wiki/Manual#querying-account-balance) - for all types of accounts + [balance structure](https://github.com/ccxt/ccxt/wiki/Manual#balance-structure)
-- `fetchAccounts` - required if the exchange has multiple accounts or sub-accounts
+- [`fetchBalance`](https://github.com/ccxt/ccxt/wiki/Manual#querying-account-balance) – for all types of accounts + [balance structure](https://github.com/ccxt/ccxt/wiki/Manual#balance-structure)
+- `fetchAccounts` – required if the exchange has multiple accounts or sub-accounts
 - [`createOrder`](https://github.com/ccxt/ccxt/wiki/Manual#placing-orders) – *limit/market* orders + [order structure](https://github.com/ccxt/ccxt/wiki/Manual#order-structure)
 - [`cancelOrder`](https://github.com/ccxt/ccxt/wiki/Manual#canceling-orders)
 - `editOrder` – change the price and/or amount of an open order
@@ -41,6 +41,6 @@ The exchange is required to implement the following list of methods and structur
 - [`fetchDeposits`](https://github.com/ccxt/ccxt/wiki/Manual#transactions)
 - [`fetchWithdrawals`](https://github.com/ccxt/ccxt/wiki/Manual#transactions)
 - [`fetchTransactions`](https://github.com/ccxt/ccxt/wiki/Manual#transactions) + [transaction structure](https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure)
-- [`fetchLedger`](https://github.com/ccxt/ccxt/wiki/Manual#ledger) - transactions, transfers, referrals, cashbacks + [ledger entry structure](https://github.com/ccxt/ccxt/wiki/Manual#ledger-entry-structureccccccigfrubcntngfuhein)
+- [`fetchLedger`](https://github.com/ccxt/ccxt/wiki/Manual#ledger) – transactions, transfers, referrals, cashbacks + [ledger entry structure](https://github.com/ccxt/ccxt/wiki/Manual#ledger-entry-structureccccccigfrubcntngfuhein)
 - [`withdraw`](https://github.com/ccxt/ccxt/wiki/Manual#withdraw)
-- `transfer` - required if exchange has multiple accounts or sub-accounts
+- `transfer` – required if exchange has multiple accounts or sub-accounts

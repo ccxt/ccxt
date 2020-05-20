@@ -305,14 +305,16 @@ class bitsane (Exchange):
         if market:
             symbol = market['symbol']
         timestamp = self.safe_integer(order, 'timestamp') * 1000
-        price = float(order['price'])
+        price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'original_amount')
         filled = self.safe_float(order, 'executed_amount')
         remaining = self.safe_float(order, 'remaining_amount')
+        isCanceled = self.safe_value(order, 'is_cancelled')
+        isLive = self.safe_value(order, 'is_live')
         status = 'closed'
-        if order['is_cancelled']:
+        if isCanceled:
             status = 'canceled'
-        elif order['is_live']:
+        elif isLive:
             status = 'open'
         return {
             'id': self.safe_string(order, 'id'),

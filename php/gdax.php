@@ -174,11 +174,7 @@ class gdax extends Exchange {
             if (($base === 'ETH') || ($base === 'LTC')) {
                 $taker = 0.003;
             }
-            $accessible = true;
-            if (is_array ($market) && array_key_exists ('accessible', $market)) {
-                $accessible = $this->safe_value($market, 'accessible');
-            }
-            $active = ($market['status'] === 'online') && $accessible;
+            $active = $market['status'] === 'online';
             $result[] = array_merge ($this->fees['trading'], array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -533,11 +529,11 @@ class gdax extends Exchange {
         $order = array (
             'product_id' => $this->market_id($symbol),
             'side' => $side,
-            'size' => $amount,
+            'size' => $this->amount_to_precision($symbol, $amount),
             'type' => $type,
         );
         if ($type === 'limit')
-            $order['price'] = $price;
+            $order['price'] = $this->price_to_precision($symbol, $price);
         $response = $this->privatePostOrders (array_merge ($order, $params));
         return $this->parse_order($response);
     }

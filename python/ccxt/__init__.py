@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.18.405'
+__version__ = '1.18.480'
 
 # ----------------------------------------------------------------------------
 
@@ -70,6 +70,7 @@ from ccxt.allcoin import allcoin                            # noqa: F401
 from ccxt.anxpro import anxpro                              # noqa: F401
 from ccxt.anybits import anybits                            # noqa: F401
 from ccxt.bcex import bcex                                  # noqa: F401
+from ccxt.bequant import bequant                            # noqa: F401
 from ccxt.bibox import bibox                                # noqa: F401
 from ccxt.bigone import bigone                              # noqa: F401
 from ccxt.binance import binance                            # noqa: F401
@@ -169,6 +170,7 @@ from ccxt.liquid import liquid                              # noqa: F401
 from ccxt.livecoin import livecoin                          # noqa: F401
 from ccxt.luno import luno                                  # noqa: F401
 from ccxt.lykke import lykke                                # noqa: F401
+from ccxt.mandala import mandala                            # noqa: F401
 from ccxt.mercado import mercado                            # noqa: F401
 from ccxt.mixcoins import mixcoins                          # noqa: F401
 from ccxt.negociecoins import negociecoins                  # noqa: F401
@@ -205,6 +207,7 @@ exchanges = [
     'anxpro',
     'anybits',
     'bcex',
+    'bequant',
     'bibox',
     'bigone',
     'binance',
@@ -304,6 +307,7 @@ exchanges = [
     'livecoin',
     'luno',
     'lykke',
+    'mandala',
     'mercado',
     'mixcoins',
     'negociecoins',

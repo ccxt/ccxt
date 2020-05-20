@@ -509,11 +509,18 @@ class bitfinex extends Exchange {
                 $currency = $balance['currency'];
                 $uppercase = strtoupper ($currency);
                 $uppercase = $this->common_currency_code($uppercase);
-                $account = $this->account ();
-                $account['free'] = floatval ($balance['available']);
-                $account['total'] = floatval ($balance['amount']);
-                $account['used'] = $account['total'] - $account['free'];
-                $result[$uppercase] = $account;
+                // bitfinex had BCH previously, now it's BAB, but the old
+                // BCH symbol is kept for backward-compatibility
+                // we need a workaround here so that the old BCH $balance
+                // would not override the new BAB $balance (BAB is unified to BCH)
+                // https://github.com/ccxt/ccxt/issues/4989
+                if (!(is_array ($result) && array_key_exists ($uppercase, $result))) {
+                    $account = $this->account ();
+                    $account['free'] = floatval ($balance['available']);
+                    $account['total'] = floatval ($balance['amount']);
+                    $account['used'] = $account['total'] - $account['free'];
+                    $result[$uppercase] = $account;
+                }
             }
         }
         return $this->parse_balance($result);
@@ -608,8 +615,11 @@ class bitfinex extends Exchange {
         if (is_array ($trade) && array_key_exists ('fee_amount', $trade)) {
             $feeCost = -$this->safe_float($trade, 'fee_amount');
             $feeCurrency = $this->safe_string($trade, 'fee_currency');
-            if (is_array ($this->currencies_by_id) && array_key_exists ($feeCurrency, $this->currencies_by_id))
+            if (is_array ($this->currencies_by_id) && array_key_exists ($feeCurrency, $this->currencies_by_id)) {
                 $feeCurrency = $this->currencies_by_id[$feeCurrency]['code'];
+            } else {
+                $feeCurrency = $this->common_currency_code($feeCurrency);
+            }
             $fee = array (
                 'cost' => $feeCost,
                 'currency' => $feeCurrency,

@@ -15,6 +15,8 @@ import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import InvalidNonce
@@ -161,16 +163,22 @@ class bitstamp (Exchange):
                 },
             },
             'exceptions': {
-                'No permission found': PermissionDenied,
-                'API key not found': AuthenticationError,
-                'IP address not allowed': PermissionDenied,
-                'Invalid nonce': InvalidNonce,
-                'Invalid signature': AuthenticationError,
-                'Authentication failed': AuthenticationError,
-                'Missing key, signature and nonce parameters': AuthenticationError,
-                'Your account is frozen': PermissionDenied,
-                'Please update your profile with your FATCA information, before using API.': PermissionDenied,
-                'Order not found': OrderNotFound,
+                'exact': {
+                    'No permission found': PermissionDenied,
+                    'API key not found': AuthenticationError,
+                    'IP address not allowed': PermissionDenied,
+                    'Invalid nonce': InvalidNonce,
+                    'Invalid signature': AuthenticationError,
+                    'Authentication failed': AuthenticationError,
+                    'Missing key, signature and nonce parameters': AuthenticationError,
+                    'Your account is frozen': PermissionDenied,
+                    'Please update your profile with your FATCA information, before using API.': PermissionDenied,
+                    'Order not found': OrderNotFound,
+                },
+                'broad': {
+                    'Check your account balance for details.': InsufficientFunds,  # You have only 0.00100000 BTC available. Check your account balance for details.
+                    'Ensure self value has at least': InvalidAddress,  # Ensure self value has at least 25 characters(it has 4).
+                },
             },
         })
 
@@ -342,12 +350,19 @@ class bitstamp (Exchange):
         #
         # fetchMyTrades, trades returned within fetchOrder(private)
         #
-        #     ...
+        #     {
+        #         "usd": "6.0134400000000000",
+        #         "price": "4008.96000000",
+        #         "datetime": "2019-03-28 23:07:37.233599",
+        #         "fee": "0.02",
+        #         "btc": "0.00150000",
+        #         "tid": 84452058,
+        #         "type": 2
+        #     }
         #
         id = self.safe_string_2(trade, 'id', 'tid')
         symbol = None
         side = None
-        timestamp = None
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
         orderId = self.safe_string(trade, 'order_id')
@@ -372,9 +387,17 @@ class bitstamp (Exchange):
             cost = self.safe_float(trade, market['quoteId'], cost)
             feeCurrency = market['quote']
             symbol = market['symbol']
+        timestamp = self.safe_string_2(trade, 'date', 'datetime')
+        if timestamp is not None:
+            if timestamp.find(' ') >= 0:
+                # iso8601
+                timestamp = self.parse8601(timestamp)
+            else:
+                # string unix epoch in seconds
+                timestamp = int(timestamp)
+                timestamp = timestamp * 1000
         # if it is a private trade
         if 'id' in trade:
-            timestamp = self.parse8601(trade['datetime'])
             if amount is not None:
                 if amount < 0:
                     side = 'sell'
@@ -382,7 +405,6 @@ class bitstamp (Exchange):
                 else:
                     side = 'buy'
         else:
-            timestamp = int(trade['date']) * 1000
             side = self.safe_string(trade, 'type')
             if side == '1':
                 side = 'sell'
@@ -497,7 +519,8 @@ class bitstamp (Exchange):
 
     def fetch_order_status(self, id, symbol=None, params={}):
         self.load_markets()
-        response = self.privatePostOrderStatus(self.extend({'id': id}, params))
+        request = {'id': id}
+        response = self.privatePostOrderStatus(self.extend(request, params))
         return self.parse_order_status(self.safe_string(response, 'status'))
 
     def fetch_order(self, id, symbol=None, params={}):
@@ -505,7 +528,24 @@ class bitstamp (Exchange):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        response = self.privatePostOrderStatus(self.extend({'id': id}, params))
+        request = {'id': id}
+        response = self.privatePostOrderStatus(self.extend(request, params))
+        #
+        #     {
+        #         "status": "Finished",
+        #         "id": 3047704374,
+        #         "transactions": [
+        #             {
+        #                 "usd": "6.0134400000000000",
+        #                 "price": "4008.96000000",
+        #                 "datetime": "2019-03-28 23:07:37.233599",
+        #                 "fee": "0.02",
+        #                 "btc": "0.00150000",
+        #                 "tid": 84452058,
+        #                 "type": 2
+        #             }
+        #         ]
+        #     }
         return self.parse_order(response, market)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
@@ -889,20 +929,41 @@ class bitstamp (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response):
-        if not isinstance(body, basestring):
-            return  # fallback to default error handler
-        if len(body) < 2:
-            return  # fallback to default error handler
-        if (body[0] == '{') or (body[0] == '['):
-            # fetchDepositAddress returns {"error": "No permission found"} on apiKeys that don't have the permission required
-            error = self.safe_string(response, 'error')
-            exceptions = self.exceptions
-            if error in exceptions:
-                raise exceptions[error](self.id + ' ' + body)
-            status = self.safe_string(response, 'status')
-            if status == 'error':
-                code = self.safe_string(response, 'code')
-                if code is not None:
-                    if code == 'API0005':
-                        raise AuthenticationError(self.id + ' invalid signature, use the uid for the main account if you have subaccounts')
-                raise ExchangeError(self.id + ' ' + body)
+        if response is None:
+            return
+        # fetchDepositAddress returns {"error": "No permission found"} on apiKeys that don't have the permission required
+        status = self.safe_string(response, 'status')
+        error = self.safe_value(response, 'error')
+        if status == 'error' or error:
+            errors = []
+            if isinstance(error, basestring):
+                errors.append(error)
+            else:
+                keys = list(error.keys())
+                for i in range(0, len(keys)):
+                    key = keys[i]
+                    value = self.safe_value(error, key)
+                    if isinstance(value, list):
+                        errors = self.array_concat(errors, value)
+                    else:
+                        errors.append(value)
+            reason = self.safe_value(response, 'reason', {})
+            all = self.safe_value(reason, '__all__')
+            if all is not None:
+                if isinstance(all, list):
+                    for i in range(0, len(all)):
+                        errors.append(all[i])
+            code = self.safe_string(response, 'code')
+            if code == 'API0005':
+                raise AuthenticationError(self.id + ' invalid signature, use the uid for the main account if you have subaccounts')
+            exact = self.exceptions['exact']
+            broad = self.exceptions['broad']
+            feedback = self.id + ' ' + body
+            for i in range(0, len(errors)):
+                value = errors[i]
+                if value in exact:
+                    raise exact[value](feedback)
+                broadKey = self.findBroadlyMatchedKey(broad, value)
+                if broadKey is not None:
+                    raise broad[broadKey](feedback)
+            raise ExchangeError(feedback)

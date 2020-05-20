@@ -53,7 +53,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 
 # Exchanges
 
-The ccxt library currently supports the following 133 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 135 cryptocurrency exchange markets and trading APIs:
 
 |&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;logo&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                                                                                                     | id                 | name                                                                                 | ver   | doc                                                                                              | certified                                                                                                                  |
 |---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------|--------------------------------------------------------------------------------------|:-----:|:------------------------------------------------------------------------------------------------:|----------------------------------------------------------------------------------------------------------------------------|
@@ -63,6 +63,7 @@ The ccxt library currently supports the following 133 cryptocurrency exchange ma
 |[![anxpro](https://user-images.githubusercontent.com/1294454/27765983-fd8595da-5ec9-11e7-82e3-adb3ab8c2612.jpg)](https://anxpro.com)                                                         | anxpro             | [ANXPro](https://anxpro.com)                                                         | *     | [API](https://anxv2.docs.apiary.io)                                                              |                                                                                                                             | Japan, Singapore, Hong Kong, New Zealand|
 |[![anybits](https://user-images.githubusercontent.com/1294454/41388454-ae227544-6f94-11e8-82a4-127d51d34903.jpg)](https://anybits.com)                                                       | anybits            | [Anybits](https://anybits.com)                                                       | *     | [API](https://anybits.com/help/api)                                                              |                                                                                                                             | Ireland                                 |
 |[![bcex](https://user-images.githubusercontent.com/1294454/43362240-21c26622-92ee-11e8-9464-5801ec526d77.jpg)](https://www.bcex.top/user/reg/type/2/pid/758978)                              | bcex               | [BCEX](https://www.bcex.top/user/reg/type/2/pid/758978)                              | 1     | [API](https://github.com/BCEX-TECHNOLOGY-LIMITED/API_Docs/wiki/Interface)                        |                                                                                                                             | China, Canada                           |
+|[![bequant](https://user-images.githubusercontent.com/1294454/55248342-a75dfe00-525a-11e9-8aa2-05e9dca943c6.jpg)](https://hitbtc.com/?ref_id=5a5d39a65d466)                                  | bequant            | [Bequant](https://hitbtc.com/?ref_id=5a5d39a65d466)                                  | 2     | [API](https://api.bequant.io/)                                                                   |                                                                                                                             | Malta                                   |
 |[![bibox](https://user-images.githubusercontent.com/1294454/34902611-2be8bf1a-f830-11e7-91a2-11b2f292e750.jpg)](https://www.bibox.com/signPage?id=11114745&lang=en)                          | bibox              | [Bibox](https://www.bibox.com/signPage?id=11114745&lang=en)                          | 1     | [API](https://github.com/Biboxcom/api_reference/wiki/home_en)                                    |                                                                                                                             | China, US, South Korea                  |
 |[![bigone](https://user-images.githubusercontent.com/1294454/42803606-27c2b5ec-89af-11e8-8d15-9c8c245e8b2c.jpg)](https://b1.run/users/new?code=D3LLBVFT)                                     | bigone             | [BigONE](https://b1.run/users/new?code=D3LLBVFT)                                     | 2     | [API](https://open.big.one/docs/api.html)                                                        |                                                                                                                             | UK                                      |
 |[![binance](https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg)](https://www.binance.com/?ref=10205187)                                     | binance            | [Binance](https://www.binance.com/?ref=10205187)                                     | *     | [API](https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md)     | [![CCXT Certified](https://img.shields.io/badge/CCXT-certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | Japan, Malta                            |
@@ -85,7 +86,7 @@ The ccxt library currently supports the following 133 cryptocurrency exchange ma
 |[![bitstamp](https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg)](https://www.bitstamp.net)                                                 | bitstamp           | [Bitstamp](https://www.bitstamp.net)                                                 | 2     | [API](https://www.bitstamp.net/api)                                                              |                                                                                                                             | UK                                      |
 |[![bitstamp1](https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg)](https://www.bitstamp.net)                                                | bitstamp1          | [Bitstamp](https://www.bitstamp.net)                                                 | 1     | [API](https://www.bitstamp.net/api)                                                              |                                                                                                                             | UK                                      |
 |[![bittrex](https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg)](https://bittrex.com)                                                       | bittrex            | [Bittrex](https://bittrex.com)                                                       | 1.1   | [API](https://bittrex.github.io/api/)                                                            | [![CCXT Certified](https://img.shields.io/badge/CCXT-certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | US                                      |
-|[![bitz](https://user-images.githubusercontent.com/1294454/35862606-4f554f14-0b5d-11e8-957d-35058c504b6f.jpg)](https://u.bit-z.com/register?invite_code=1429193)                             | bitz               | [Bit-Z](https://u.bit-z.com/register?invite_code=1429193)                            | 2     | [API](https://apidoc.bit-z.com/en)                                                               |                                                                                                                             | Hong Kong                               |
+|[![bitz](https://user-images.githubusercontent.com/1294454/35862606-4f554f14-0b5d-11e8-957d-35058c504b6f.jpg)](https://u.bit-z.com/register?invite_code=1429193)                             | bitz               | [Bit-Z](https://u.bit-z.com/register?invite_code=1429193)                            | 2     | [API](https://apidoc.bit-z.com/en/)                                                              |                                                                                                                             | Hong Kong                               |
 |[![bl3p](https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg)](https://bl3p.eu)                                                              | bl3p               | [BL3P](https://bl3p.eu)                                                              | 1     | [API](https://github.com/BitonicNL/bl3p-api/tree/master/docs)                                    |                                                                                                                             | Netherlands, EU                         |
 |[![bleutrade](https://user-images.githubusercontent.com/1294454/30303000-b602dbe6-976d-11e7-956d-36c5049c01e7.jpg)](https://bleutrade.com)                                                   | bleutrade          | [Bleutrade](https://bleutrade.com)                                                   | 2     | [API](https://bleutrade.com/help/API)                                                            |                                                                                                                             | Brazil                                  |
 |[![braziliex](https://user-images.githubusercontent.com/1294454/34703593-c4498674-f504-11e7-8d14-ff8e44fb78c1.jpg)](https://braziliex.com/?ref=5FE61AB6F6D67DA885BC98BA27223465)             | braziliex          | [Braziliex](https://braziliex.com/?ref=5FE61AB6F6D67DA885BC98BA27223465)             | *     | [API](https://braziliex.com/exchange/api.php)                                                    |                                                                                                                             | Brazil                                  |
@@ -161,6 +162,7 @@ The ccxt library currently supports the following 133 cryptocurrency exchange ma
 |[![livecoin](https://user-images.githubusercontent.com/1294454/27980768-f22fc424-638a-11e7-89c9-6010a54ff9be.jpg)](https://livecoin.net/?from=Livecoin-CQ1hfx44)                             | livecoin           | [LiveCoin](https://livecoin.net/?from=Livecoin-CQ1hfx44)                             | *     | [API](https://www.livecoin.net/api?lang=en)                                                      |                                                                                                                             | US, UK, Russia                          |
 |[![luno](https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg)](https://www.luno.com)                                                         | luno               | [luno](https://www.luno.com)                                                         | 1     | [API](https://www.luno.com/en/api)                                                               |                                                                                                                             | UK, Singapore, South Africa             |
 |[![lykke](https://user-images.githubusercontent.com/1294454/34487620-3139a7b0-efe6-11e7-90f5-e520cef74451.jpg)](https://www.lykke.com)                                                       | lykke              | [Lykke](https://www.lykke.com)                                                       | 1     | [API](https://hft-api.lykke.com/swagger/ui/)                                                     |                                                                                                                             | Switzerland                             |
+|[![mandala](https://user-images.githubusercontent.com/1294454/54686665-df629400-4b2a-11e9-84d3-d88856367dd7.jpg)](https://trade.mandalaex.com/?ref=564377)                                   | mandala            | [Mandala](https://trade.mandalaex.com/?ref=564377)                                   | 1.1   | [API](https://documenter.getpostman.com/view/6273708/RznBP1Hh)                                   |                                                                                                                             | Malta                                   |
 |[![mercado](https://user-images.githubusercontent.com/1294454/27837060-e7c58714-60ea-11e7-9192-f05e86adb83f.jpg)](https://www.mercadobitcoin.com.br)                                         | mercado            | [Mercado Bitcoin](https://www.mercadobitcoin.com.br)                                 | 3     | [API](https://www.mercadobitcoin.com.br/api-doc)                                                 |                                                                                                                             | Brazil                                  |
 |[![mixcoins](https://user-images.githubusercontent.com/1294454/30237212-ed29303c-9535-11e7-8af8-fcd381cfa20c.jpg)](https://mixcoins.com)                                                     | mixcoins           | [MixCoins](https://mixcoins.com)                                                     | 1     | [API](https://mixcoins.com/help/api/)                                                            |                                                                                                                             | UK, Hong Kong                           |
 |[![negociecoins](https://user-images.githubusercontent.com/1294454/38008571-25a6246e-3258-11e8-969b-aeb691049245.jpg)](https://www.negociecoins.com.br)                                      | negociecoins       | [NegocieCoins](https://www.negociecoins.com.br)                                      | 3     | [API](https://www.negociecoins.com.br/documentacao-tradeapi)                                     |                                                                                                                             | Brazil                                  |
@@ -281,6 +283,45 @@ $exchange = new $exchange_class (array (
     'timeout' => 30000,
     'enableRateLimit' => true,
 ));
+```
+
+### Overriding Exchange Properties Upon Instantiation
+
+Most of exchange properties as well as specific options can be overrided upon exchange class instantiation or afterwards, like shown below:
+
+```JavaScript
+// JavaScript
+const exchange = new ccxt.binance ({
+    'rateLimit': 10000, // unified exchange property
+    'options': {
+        'adjustForTimeDifference': true, // exchange-specific option
+    }
+})
+exchange.options['adjustForTimeDifference'] = false
+```
+
+```Python
+# Python
+exchange = ccxt.binance ({
+    'rateLimit': 10000,  # unified exchange property
+    'options': {
+        'adjustForTimeDifference': True,  # exchange-specific option
+    }
+})
+exchange.options['adjustForTimeDifference'] = False
+```
+
+```PHP
+// PHP
+$exchange_id = 'binance';
+$exchange_class = "\\ccxt\\$exchange_id";
+$exchange = new $exchange_class (array (
+    'rateLimit' => 10000, // unified exchange property
+    'options' => array (
+        'adjustForTimeDifference' => true, // exchange-specific option
+    ),
+));
+$exchange->options['adjustForTimeDifference'] = false;
 ```
 
 ## Exchange Structure
@@ -631,6 +672,64 @@ Examples:
     ```
 
 *The `precision` and `limits` params are currently under heavy development, some of these fields may be missing here and there until the unification process is complete. This does not influence most of the orders but can be significant in extreme cases of very large or very small orders. The `active` flag is not yet supported and/or implemented by all markets.*
+
+#### Notes On Precision And Limits
+
+The user is required to stay within all limits and precision! The values of the order should satisfy the following conditions:
+
+- Order `amount` > `limits['min']['amount']`
+- Order `amount` < `limits['max']['amount']`
+- Order `price` > `limits['min']['price']`
+- Order `price` < `limits['max']['price']`
+- Order `cost` (`amount * price`) > `limits['min']['cost']`
+- Order `cost` (`amount * price`) < `limits['max']['cost']`
+- Precision of `amount` must be <= `precision['amount']`
+- Precision of `price` must be <= `precision['price']`
+
+The above values can be missing with some exchanges that don't provide info on limits from their API or don't have it implemented yet.
+
+#### Methods For Foramtting Decimals
+
+The exchange base class contains the `decimalToPrecision` method to help format values to the required decimal precision with support for different rounding, counting and padding modes.
+
+```JavaScript
+// JavaScript
+function decimalToPrecision (x, roundingMode, numPrecisionDigits, countingMode = DECIMAL_PLACES, paddingMode = NO_PADDING)
+```
+
+```Python
+# Python
+# WARNING! The `decimal_to_precision` method is susceptible to getcontext().prec!
+def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=DECIMAL_PLACES, padding_mode=NO_PADDING):
+```
+
+```PHP
+// PHP
+function decimalToPrecision ($x, $roundingMode = ROUND, $numPrecisionDigits = null, $countingMode = DECIMAL_PLACES, $paddingMode = NO_PADDING)
+```
+
+Supported rounding modes are:
+
+- `ROUND` – will round the last decimal digits to precision
+- `TRUNCATE`– will cut off the digits after certain precision
+
+Supported counting modes are:
+
+- `DECIMAL_PLACES` – counts all digits, 99% of exchanges use this counting mode
+- `SIGNIFICANT_DIGITS` – counts non-zero digits only, some exchanges (`bitfinex` and maybe a few other) implement this mode of counting decimals
+
+Supported padding modes are:
+
+- `NO_PADDING` – default for most cases
+- `PAD_WITH_ZERO` – appends zero characters up to precision
+
+For examples of how to use the `decimalToPrecision` to format strings and floats, please, see the following files:
+
+- JavaScript: https://github.com/ccxt/ccxt/blob/master/js/test/base/functions/test.number.js
+- Python: https://github.com/ccxt/ccxt/blob/master/python/test/test_decimal_to_precision.py
+- PHP: https://github.com/ccxt/ccxt/blob/master/php/test/decimal_to_precision.php
+
+**Python WARNING! The `decimal_to_precision` method is susceptible to getcontext().prec!**
 
 ## Loading Markets
 
@@ -3007,6 +3106,82 @@ class MyZaif extends \ccxt\zaif {
 ```
 
 # Error Handling
+
+The error handling with CCXT is done with the exception mechanism that is natively available with all languages.
+
+To handle the errors you should add a `try` block around the call to a unified method and catch the exceptions like you would normally do with your language:
+
+```JavaScript
+// JavaScript
+
+// try to call a unified method
+try {
+    const response = await exchange.fetchTicker ('ETH/BTC')
+    console.log (response)
+} catch (e) {
+    // if the exception is thrown, it is "caught" and can be handled here
+    // the handling reaction depends on the type of the exception
+    // and on the purpose or business logic of your application
+    if (e instanceof ccxt.NetworkError) {
+        console.log (exchange.id, 'fetchTicker failed due to a network error:', e.message)
+        // retry or whatever
+        // ...
+    } else if (e instanceof ccxt.ExchangeError) {
+        console.log (exchange.id, 'fetchTicker failed due to exchange error:', e.message)
+        // retry or whatever
+        // ...
+    } else {
+        console.log (exchange.id, 'fetchTicker failed with:', e.message)
+        // retry or whatever
+        // ...
+    }
+}
+```
+
+```Python
+# Python
+
+# try to call a unified method
+try:
+    response = await exchange.fetch_order_book('ETH/BTC')
+    print(ticker)
+except ccxt.NetworkError as e:
+    print(exchange.id, 'fetch_order_book failed due to a network error:', str(e))
+    # retry or whatever
+    # ...
+except ccxt.ExchangeError as e:
+    print(exchange.id, 'fetch_order_book failed due to exchange error:', str(e))
+    # retry or whatever
+    # ...
+except Exception as e:
+    print(exchange.id, 'fetch_order_book failed with:', str(e))
+    # retry or whatever
+    # ...
+```
+
+```PHP
+// PHP
+
+// try to call a unified method
+try {
+    $response = $exchange->fetch_trades('ETH/BTC');
+    print_r(ticker);
+} catch (\ccxt\NetworkError $e) {
+    echo $exchange->id . ' fetch_trades failed due to a network error: ' . $e->getMessage () . "\n";
+    // retry or whatever
+    // ...
+} catch (\ccxt\ExchangeError $e) {
+    echo $exchange->id . ' fetch_trades failed due to exchange error: ' . $e->getMessage () . "\n";
+    // retry or whatever
+    // ...
+} catch (Exception $e) {
+    echo $exchange->id . ' fetch_trades failed with: ' . $e->getMessage () . "\n";
+    // retry or whatever
+    // ...
+}
+```
+
+## Exception Hierarchy
 
 All exceptions are derived from the base BaseError exception, which, in its turn, is defined in the ccxt library like so:
 

@@ -173,11 +173,7 @@ module.exports = class gdax extends Exchange {
             if ((base === 'ETH') || (base === 'LTC')) {
                 taker = 0.003;
             }
-            let accessible = true;
-            if ('accessible' in market) {
-                accessible = this.safeValue (market, 'accessible');
-            }
-            const active = (market['status'] === 'online') && accessible;
+            const active = market['status'] === 'online';
             result.push (this.extend (this.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
@@ -532,11 +528,11 @@ module.exports = class gdax extends Exchange {
         let order = {
             'product_id': this.marketId (symbol),
             'side': side,
-            'size': amount,
+            'size': this.amountToPrecision (symbol, amount),
             'type': type,
         };
         if (type === 'limit')
-            order['price'] = price;
+            order['price'] = this.priceToPrecision (symbol, price);
         let response = await this.privatePostOrders (this.extend (order, params));
         return this.parseOrder (response);
     }

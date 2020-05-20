@@ -392,7 +392,7 @@ module.exports = class exmo extends Exchange {
             let taker = fee;
             let maker = fee;
             return {
-                'info': response,
+                // 'info': response,
                 'maker': maker,
                 'taker': taker,
             };

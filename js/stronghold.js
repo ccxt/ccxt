@@ -43,7 +43,9 @@ module.exports = class stronghold extends Exchange {
                 'createDepositAddress': true,
                 'withdraw': true,
                 'fetchTicker': false,
+                'fetchTickers': false,
                 'fetchAccounts': true,
+                'fetchTransactions': true,
             },
             'api': {
                 'public': {
@@ -110,6 +112,7 @@ module.exports = class stronghold extends Exchange {
                     'XLM': 'stellar',
                     'XRP': 'ripple',
                     'LTC': 'litecoin',
+                    'SHX': 'stellar',
                 },
             },
             'exceptions': {

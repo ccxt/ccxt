@@ -114,3 +114,9 @@ def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=D
                 if precision > 0:
                     return precise + '.' + precision * '0'
             return precise
+
+
+def number_to_string(x):
+    # avoids scientific notation for too large and too small numbers
+    d = decimal.Decimal(str(x))
+    return '{:f}'.format(d)

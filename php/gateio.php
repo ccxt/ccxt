@@ -27,11 +27,26 @@ class gateio extends Exchange {
                 'createDepositAddress' => true,
                 'fetchDepositAddress' => true,
                 'fetchClosedOrders' => true,
+                'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrderTrades' => true,
                 'fetchOrders' => true,
                 'fetchOrder' => true,
                 'fetchMyTrades' => true,
+            ),
+            'timeframes' => array (
+                '1m' => '60',
+                '5m' => '300',
+                '10m' => '600',
+                '15m' => '900',
+                '30m' => '1200',
+                '1h' => '3600',
+                '2h' => '7200',
+                '4h' => '14400',
+                '6h' => '21600',
+                '12h' => '43200',
+                '1d' => '86400',
+                '1w' => '604800',
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg',
@@ -50,6 +65,7 @@ class gateio extends Exchange {
             'api' => array (
                 'public' => array (
                     'get' => array (
+                        'candlestick2/{id}',
                         'pairs',
                         'marketinfo',
                         'marketlist',
@@ -230,10 +246,52 @@ class gateio extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $orderbook = $this->publicGetOrderBookId (array_merge (array (
+        $request = array (
             'id' => $this->market_id($symbol),
-        ), $params));
-        return $this->parse_order_book($orderbook);
+        );
+        $response = $this->publicGetOrderBookId (array_merge ($request, $params));
+        return $this->parse_order_book($response);
+    }
+
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+        // they return array ( Timestamp, Volume, Close, High, Low, Open )
+        return [
+            intval ($ohlcv[0]),   // t
+            floatval ($ohlcv[5]), // o
+            floatval ($ohlcv[3]), // h
+            floatval ($ohlcv[4]), // l
+            floatval ($ohlcv[2]), // c
+            floatval ($ohlcv[1]), // v
+        ];
+    }
+
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array (
+            'id' => $market['id'],
+            'group_sec' => $this->timeframes[$timeframe],
+        );
+        // max $limit = 1001
+        if ($limit !== null) {
+            $periodDurationInSeconds = $this->parse_timeframe($timeframe);
+            $hours = intval (($periodDurationInSeconds * $limit) / 3600);
+            $request['range_hour'] = max (0, $hours - 1);
+        }
+        $response = $this->publicGetCandlestick2Id (array_merge ($request, $params));
+        //
+        //     {
+        //         "elapsed" => "15ms",
+        //         "result" => "true",
+        //         "data" => array (
+        //             array ( "1553930820000", "1.005299", "4081.05", "4086.18", "4081.05", "4086.18" ),
+        //             array ( "1553930880000", "0.110923277", "4095.2", "4095.23", "4091.15", "4091.15" ),
+        //             ...
+        //             array ( "1553934420000", "0", "4089.42", "4089.42", "4089.42", "4089.42" ),
+        //         )
+        //     }
+        //
+        return $this->parse_ohlcvs($response['data'], $market, $timeframe, $since, $limit);
     }
 
     public function parse_ticker ($ticker, $market = null) {

@@ -329,6 +329,7 @@ declare module 'ccxt' {
     export class anxpro extends Exchange {}
     export class anybits extends bitsane {}
     export class bcex extends Exchange {}
+    export class bequant extends hitbtc2 {}
     export class bibox extends Exchange {}
     export class bigone extends Exchange {}
     export class binance extends Exchange {}
@@ -428,6 +429,7 @@ declare module 'ccxt' {
     export class livecoin extends Exchange {}
     export class luno extends Exchange {}
     export class lykke extends Exchange {}
+    export class mandala extends Exchange {}
     export class mercado extends Exchange {}
     export class mixcoins extends Exchange {}
     export class negociecoins extends Exchange {}

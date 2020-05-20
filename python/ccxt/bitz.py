@@ -62,8 +62,8 @@ class bitz (Exchange):
                     'assets': 'https://apiv2.bitz.com',
                 },
                 'www': 'https://www.bit-z.com',
-                'doc': 'https://apidoc.bit-z.com/en',
-                'fees': 'https://www.bit-z.com/about/fee',
+                'doc': 'https://apidoc.bit-z.com/en/',
+                'fees': 'https://www.bit-z.com/fee?type=1',
                 'referral': 'https://u.bit-z.com/register?invite_code=1429193',
             },
             'api': {

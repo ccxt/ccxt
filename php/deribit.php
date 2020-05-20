@@ -467,7 +467,7 @@ class deribit extends Exchange {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             $auth = '_=' . $nonce . '&_ackey=' . $this->apiKey . '&_acsec=' . $this->secret . '&_action=' . $query;
-            if ($method === 'POST') {
+            if ($params) {
                 $params = $this->keysort ($params);
                 $auth .= '&' . $this->urlencode ($params);
             }
@@ -479,6 +479,8 @@ class deribit extends Exchange {
             if ($method !== 'GET') {
                 $headers['Content-Type'] = 'application/x-www-form-urlencoded';
                 $body = $this->urlencode ($params);
+            } else if ($params) {
+                $url .= '?' . $this->urlencode ($params);
             }
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

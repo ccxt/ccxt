@@ -23,15 +23,24 @@ include_once (__DIR__.'/../Exchange.php');
 function decimal_to_precision ($x, $roundingMode = ROUND, $numPrecisionDigits = null, $countingMode = DECIMAL_PLACES, $paddingMode = NO_PADDING) {
     return Exchange::decimal_to_precision ($x, $roundingMode, $numPrecisionDigits, $countingMode, $paddingMode);
 }
+function number_to_string ($x) {
+    return Exchange::number_to_string ($x);
+}
 
 // ----------------------------------------------------------------------------
-// number_to_string works, not supported in Python and PHP yet
+// number_to_string
 
-// assert (number_to_string (-7.9e-7) === '-0.0000007899999999999999');
-// assert (number_to_string ( 7.9e-7) ===  '0.0000007899999999999999');
-// assert (number_to_string (-12.345) === '-12.345');
-// assert (number_to_string ( 12.345) === '12.345');
-// assert (number_to_string (0) === '0');
+assert (number_to_string (-7.8e-7) === '-0.00000078');
+assert (number_to_string (7.8e-7) === '0.00000078');
+assert (number_to_string (-17.805e-7) === '-0.0000017805');
+assert (number_to_string (17.805e-7) === '0.0000017805');
+assert (number_to_string (-7.0005e27) === '-7000500000000000000000000000');
+assert (number_to_string (7.0005e27) === '7000500000000000000000000000');
+assert (number_to_string (-7.9e27) === '-7900000000000000000000000000');
+assert (number_to_string (7.9e27) === '7900000000000000000000000000');
+assert (number_to_string (-12.345) === '-12.345');
+assert (number_to_string (12.345) === '12.345');
+assert (number_to_string (0) === '0');
 
 // ----------------------------------------------------------------------------
 // testDecimalToPrecisionTruncationToNDigitsAfterDot

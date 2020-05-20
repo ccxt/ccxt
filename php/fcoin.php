@@ -125,6 +125,7 @@ class fcoin extends Exchange {
             'commonCurrencies' => array (
                 'DAG' => 'DAGX',
                 'PAI' => 'PCHAIN',
+                'MT' => 'Mariana Token',
             ),
         ));
     }

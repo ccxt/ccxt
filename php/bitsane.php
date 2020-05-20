@@ -311,14 +311,16 @@ class bitsane extends Exchange {
         if ($market)
             $symbol = $market['symbol'];
         $timestamp = $this->safe_integer($order, 'timestamp') * 1000;
-        $price = floatval ($order['price']);
+        $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'original_amount');
         $filled = $this->safe_float($order, 'executed_amount');
         $remaining = $this->safe_float($order, 'remaining_amount');
+        $isCanceled = $this->safe_value($order, 'is_cancelled');
+        $isLive = $this->safe_value($order, 'is_live');
         $status = 'closed';
-        if ($order['is_cancelled']) {
+        if ($isCanceled) {
             $status = 'canceled';
-        } else if ($order['is_live']) {
+        } else if ($isLive) {
             $status = 'open';
         }
         return array (

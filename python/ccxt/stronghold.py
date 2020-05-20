@@ -52,7 +52,9 @@ class stronghold (Exchange):
                 'createDepositAddress': True,
                 'withdraw': True,
                 'fetchTicker': False,
+                'fetchTickers': False,
                 'fetchAccounts': True,
+                'fetchTransactions': True,
             },
             'api': {
                 'public': {
@@ -119,6 +121,7 @@ class stronghold (Exchange):
                     'XLM': 'stellar',
                     'XRP': 'ripple',
                     'LTC': 'litecoin',
+                    'SHX': 'stellar',
                 },
             },
             'exceptions': {

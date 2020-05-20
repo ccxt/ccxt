@@ -514,11 +514,17 @@ class bitfinex (Exchange):
                 currency = balance['currency']
                 uppercase = currency.upper()
                 uppercase = self.common_currency_code(uppercase)
-                account = self.account()
-                account['free'] = float(balance['available'])
-                account['total'] = float(balance['amount'])
-                account['used'] = account['total'] - account['free']
-                result[uppercase] = account
+                # bitfinex had BCH previously, now it's BAB, but the old
+                # BCH symbol is kept for backward-compatibility
+                # we need a workaround here so that the old BCH balance
+                # would not override the new BAB balance(BAB is unified to BCH)
+                # https://github.com/ccxt/ccxt/issues/4989
+                if not(uppercase in list(result.keys())):
+                    account = self.account()
+                    account['free'] = float(balance['available'])
+                    account['total'] = float(balance['amount'])
+                    account['used'] = account['total'] - account['free']
+                    result[uppercase] = account
         return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
@@ -604,6 +610,8 @@ class bitfinex (Exchange):
             feeCurrency = self.safe_string(trade, 'fee_currency')
             if feeCurrency in self.currencies_by_id:
                 feeCurrency = self.currencies_by_id[feeCurrency]['code']
+            else:
+                feeCurrency = self.common_currency_code(feeCurrency)
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrency,

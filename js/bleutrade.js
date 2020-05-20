@@ -23,6 +23,19 @@ module.exports = class bleutrade extends bittrex {
                 'fetchClosedOrders': true,
                 'fetchOrderTrades': true,
             },
+            'timeframes': {
+                '15m': '15m',
+                '20m': '20m',
+                '30m': '30m',
+                '1h': '1h',
+                '2h': '2h',
+                '3h': '3h',
+                '4h': '4h',
+                '6h': '6h',
+                '8h': '8h',
+                '12h': '12h',
+                '1d': '1d',
+            },
             'hostname': 'bleutrade.com',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30303000-b602dbe6-976d-11e7-956d-36c5049c01e7.jpg',
@@ -47,6 +60,18 @@ module.exports = class bleutrade extends bittrex {
                         'orderhistory',
                         'withdrawhistory',
                         'withdraw',
+                    ],
+                },
+                'public': {
+                    'get': [
+                        'candles',
+                        'currencies',
+                        'markethistory',
+                        'markets',
+                        'marketsummaries',
+                        'marketsummary',
+                        'orderbook',
+                        'ticker',
                     ],
                 },
             },
@@ -213,6 +238,33 @@ module.exports = class bleutrade extends bittrex {
         return await this.fetchTransactionsByType ('withdrawal', code, since, limit, params);
     }
 
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1d', since = undefined, limit = undefined) {
+        let timestamp = this.parse8601 (ohlcv['TimeStamp'] + '+00:00');
+        return [
+            timestamp,
+            ohlcv['Open'],
+            ohlcv['High'],
+            ohlcv['Low'],
+            ohlcv['Close'],
+            ohlcv['Volume'],
+        ];
+    }
+
+    async fetchOHLCV (symbol, timeframe = '15m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'period': this.timeframes[timeframe],
+            'market': market['id'],
+            'count': limit,
+        };
+        let response = await this.publicGetCandles (this.extend (request, params));
+        if ('result' in response) {
+            if (response['result'])
+                return this.parseOHLCVs (response['result'], market, timeframe, since, limit);
+        }
+    }
+
     parseTrade (trade, market = undefined) {
         let timestamp = this.parse8601 (trade['TimeStamp'] + '+00:00');
         let side = undefined;
@@ -245,6 +297,114 @@ module.exports = class bleutrade extends bittrex {
             'amount': amount,
             'cost': cost,
             'fee': undefined,
+        };
+    }
+
+    parseOrder (order, market = undefined) {
+        let side = this.safeString2 (order, 'OrderType', 'Type');
+        const isBuyOrder = (side === 'LIMIT_BUY') || (side === 'BUY');
+        const isSellOrder = (side === 'LIMIT_SELL') || (side === 'SELL');
+        if (isBuyOrder) {
+            side = 'buy';
+        }
+        if (isSellOrder) {
+            side = 'sell';
+        }
+        // We parse different fields in a very specific order.
+        // Order might well be closed and then canceled.
+        let status = undefined;
+        if (('Opened' in order) && order['Opened'])
+            status = 'open';
+        if (('Closed' in order) && order['Closed'])
+            status = 'closed';
+        if (('CancelInitiated' in order) && order['CancelInitiated'])
+            status = 'canceled';
+        if (('Status' in order) && this.options['parseOrderStatus'])
+            status = this.parseOrderStatus (this.safeString (order, 'Status'));
+        let symbol = undefined;
+        if ('Exchange' in order) {
+            let marketId = order['Exchange'];
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+                symbol = market['symbol'];
+            } else {
+                symbol = this.parseSymbol (marketId);
+            }
+        } else {
+            if (market !== undefined) {
+                symbol = market['symbol'];
+            }
+        }
+        let timestamp = undefined;
+        if ('Opened' in order)
+            timestamp = this.parse8601 (order['Opened'] + '+00:00');
+        if ('Created' in order)
+            timestamp = this.parse8601 (order['Created'] + '+00:00');
+        let lastTradeTimestamp = undefined;
+        if (('TimeStamp' in order) && (order['TimeStamp'] !== undefined))
+            lastTradeTimestamp = this.parse8601 (order['TimeStamp'] + '+00:00');
+        if (('Closed' in order) && (order['Closed'] !== undefined))
+            lastTradeTimestamp = this.parse8601 (order['Closed'] + '+00:00');
+        if (timestamp === undefined)
+            timestamp = lastTradeTimestamp;
+        let fee = undefined;
+        let commission = undefined;
+        if ('Commission' in order) {
+            commission = 'Commission';
+        } else if ('CommissionPaid' in order) {
+            commission = 'CommissionPaid';
+        }
+        if (commission) {
+            fee = {
+                'cost': this.safeFloat (order, commission),
+            };
+            if (market !== undefined) {
+                fee['currency'] = market['quote'];
+            } else if (symbol !== undefined) {
+                let currencyIds = symbol.split ('/');
+                let quoteCurrencyId = currencyIds[1];
+                if (quoteCurrencyId in this.currencies_by_id) {
+                    fee['currency'] = this.currencies_by_id[quoteCurrencyId]['code'];
+                } else {
+                    fee['currency'] = this.commonCurrencyCode (quoteCurrencyId);
+                }
+            }
+        }
+        let price = this.safeFloat (order, 'Price');
+        let cost = undefined;
+        const amount = this.safeFloat (order, 'Quantity');
+        const remaining = this.safeFloat (order, 'QuantityRemaining');
+        let filled = undefined;
+        if (amount !== undefined && remaining !== undefined) {
+            filled = amount - remaining;
+        }
+        if (!cost) {
+            if (price && filled)
+                cost = price * filled;
+        }
+        if (!price) {
+            if (cost && filled)
+                price = cost / filled;
+        }
+        const average = this.safeFloat (order, 'PricePerUnit');
+        const id = this.safeString2 (order, 'OrderUuid', 'OrderId');
+        return {
+            'info': order,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'symbol': symbol,
+            'type': 'limit',
+            'side': side,
+            'price': price,
+            'cost': cost,
+            'average': average,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': fee,
         };
     }
 

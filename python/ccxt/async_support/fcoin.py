@@ -142,6 +142,7 @@ class fcoin (Exchange):
             'commonCurrencies': {
                 'DAG': 'DAGX',
                 'PAI': 'PCHAIN',
+                'MT': 'Mariana Token',
             },
         })
 

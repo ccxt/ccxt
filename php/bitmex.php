@@ -281,9 +281,14 @@ class bitmex extends Exchange {
         for ($o = 0; $o < count ($orderbook); $o++) {
             $order = $orderbook[$o];
             $side = ($order['side'] === 'Sell') ? 'asks' : 'bids';
-            $amount = $order['size'];
-            $price = $order['price'];
-            $result[$side][] = array ( $price, $amount );
+            $amount = $this->safe_float($order, 'size');
+            $price = $this->safe_float($order, 'price');
+            // https://github.com/ccxt/ccxt/issues/4926
+            // https://github.com/ccxt/ccxt/issues/4927
+            // the exchange sometimes returns null $price in the $orderbook
+            if ($price !== null) {
+                $result[$side][] = array ( $price, $amount );
+            }
         }
         $result['bids'] = $this->sort_by($result['bids'], 0, true);
         $result['asks'] = $this->sort_by($result['asks'], 0);
@@ -792,9 +797,12 @@ class bitmex extends Exchange {
                 $remaining = max ($amount - $filled, 0.0);
             }
         }
+        $average = $this->safe_float($order, 'avgPx');
         $cost = null;
-        if ($price !== null) {
-            if ($filled !== null) {
+        if ($filled !== null) {
+            if ($average !== null) {
+                $cost = $average * $filled;
+            } else if ($price !== null) {
                 $cost = $price * $filled;
             }
         }
@@ -810,6 +818,7 @@ class bitmex extends Exchange {
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
+            'average' => $average,
             'filled' => $filled,
             'remaining' => $remaining,
             'status' => $status,
