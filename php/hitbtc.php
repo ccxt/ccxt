@@ -589,7 +589,7 @@ class hitbtc extends Exchange {
                 '2011' => '\\ccxt\\InvalidOrder', // "Quantity too low"
                 '2020' => '\\ccxt\\InvalidOrder', // "Price not a valid number"
                 '20002' => '\\ccxt\\OrderNotFound', // canceling non-existent order
-                '20001' => '\\ccxt\\InsufficientFunds',
+                '20001' => '\\ccxt\\InsufficientFunds', // array("error":array("code":20001,"message":"Insufficient funds","description":"Check that the funds are sufficient, given commissions"))
             ),
         ));
     }
@@ -631,6 +631,8 @@ class hitbtc extends Exchange {
             );
             $taker = $this->safe_float($market, 'takeLiquidityRate');
             $maker = $this->safe_float($market, 'provideLiquidityRate');
+            $feeCurrencyId = $this->safe_string($market, 'feeCurrency');
+            $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $result[] = array_merge($this->fees['trading'], array(
                 'info' => $market,
                 'id' => $id,
@@ -643,6 +645,7 @@ class hitbtc extends Exchange {
                 'taker' => $taker,
                 'maker' => $maker,
                 'precision' => $precision,
+                'feeCurrency' => $feeCurrencyCode,
                 'limits' => array(
                     'amount' => array(
                         'min' => $lot,
@@ -906,23 +909,20 @@ class hitbtc extends Exchange {
         if ($marketId !== null) {
             if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
             } else {
                 $symbol = $marketId;
             }
         }
-        if ($symbol === null) {
-            if ($market !== null) {
-                $symbol = $market['symbol'];
-            }
+        if (($symbol === null) && ($market !== null)) {
+            $symbol = $market['symbol'];
         }
         $fee = null;
         $feeCost = $this->safe_float($trade, 'fee');
         if ($feeCost !== null) {
-            $feeCurrency = $market ? $market['quote'] : null;
+            $feeCurrencyCode = $market ? $market['feeCurrency'] : null;
             $fee = array(
                 'cost' => $feeCost,
-                'currency' => $feeCurrency,
+                'currency' => $feeCurrencyCode,
             );
         }
         // we use clientOrderId as the order $id with HitBTC intentionally
