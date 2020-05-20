@@ -29,6 +29,7 @@ module.exports = class nashio extends Exchange {
                 'fetchOrderBooks': false,
                 'fetchBalance': true,
                 'fetchMyTrades': true,
+                'fetchOrder': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchAllOrders': true,
@@ -502,6 +503,62 @@ module.exports = class nashio extends Exchange {
         // }
     }
 
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let query = '';
+        query += 'query GetAccountOrder($payload: GetAccountOrderParams' + '!, $signature: Signature' + '!' + ') { ';
+        query += '  getAccountOrder(payload: $payload, signature: $signature) {';
+        query += '      id';
+        query += '      placedAt';
+        query += '      status';
+        query += '      type';
+        query += '      buyOrSell';
+        query += '      amount { amount }';
+        query += '      amountExecuted { amount }';
+        query += '      amountRemaining { amount }';
+        query += '      limitPrice { amount }';
+        query += '      stopPrice { amount }';
+        query += '      trades {';
+        query += '          accountSide ';
+        query += '          amount { amount currency } ';
+        query += '          cursor ';
+        query += '          direction ';
+        query += '          executedAt ';
+        query += '          id ';
+        query += '          limitPrice { amount currencyA currencyB } ';
+        query += '          makerFee { amount currency } ';
+        query += '          makerGave { amount currency } ';
+        query += '          makerOrderId ';
+        query += '          makerReceived { amount currency } ';
+        query += '          takerFee { amount currency } ';
+        query += '          takerGave { amount currency } ';
+        query += '          takerOrderId ';
+        query += '          takerReceived { amount currency } ';
+        query += '          usdARate { amount currencyA currencyB } ';
+        query += '          usdBRate { amount currencyA currencyB } ';
+        query += '      }';
+        query += '  }';
+        query += '}';
+        const getAccountOrderParams = {
+            'orderId': id,
+        };
+        const signedPayload = await this.signPayloadMpc (8, 'get_account_order', getAccountOrderParams);
+        const request = {
+            'query': query,
+            'variables': {
+                'payload': signedPayload.payload,
+                'signature': {
+                    'publicKey': signedPayload.signature.publicKey,
+                    'signedDigest': signedPayload.signature.signedDigest,
+                },
+            },
+        };
+        const response = await this.privatePostGql (this.extend (request, params));
+        // console.warn ('response', response);
+        return this.parseOrder (response['data']['getAccountOrder'], market);
+    }
+
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         return this.fetchOrdersByStatus (['OPEN'], symbol, since, limit, params);
     }
@@ -582,7 +639,6 @@ module.exports = class nashio extends Exchange {
             },
         };
         const response = await this.privatePostGql (this.extend (request, params));
-        // console.warn ('response', response);
         const orders = this.parseOrders (response['data']['listAccountOrders']['orders'], market, since, limit, params);
         return orders;
     }
