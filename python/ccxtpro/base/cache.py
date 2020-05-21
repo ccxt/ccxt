@@ -17,6 +17,10 @@ class ArrayCache(list):
     __iter__ = Delegate('__iter__')
     __getitem__ = Delegate('__getitem__')
     __setitem__ = Delegate('__setitem__')
+    __delitem__ = Delegate('__delitem__')
+    __len__ = Delegate('__len__')
+    __contains__ = Delegate('__contains__')
+    __reversed__ = Delegate('__reversed__')
 
     def __init__(self, max_size):
         super(list, self).__init__()
@@ -31,3 +35,6 @@ class ArrayCache(list):
 
     def __repr__(self):
         return str(list(self))
+
+    def __add__(self, other):
+        return list(self) + other
