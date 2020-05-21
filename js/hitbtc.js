@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { BadSymbol, PermissionDenied, ExchangeError, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, RequestTimeout, AuthenticationError } = require ('./base/errors');
 const { TRUNCATE, DECIMAL_PLACES, TICK_SIZE } = require ('./base/functions/number');
+
 // ---------------------------------------------------------------------------
 
 module.exports = class hitbtc extends Exchange {
@@ -516,7 +517,7 @@ module.exports = class hitbtc extends Exchange {
                 'currency': feeCurrencyCode,
             };
         }
-        // we use clientOrderId as the order id with HitBTC intentionally
+        // we use clientOrderId as the order id with this exchange intentionally
         // because most of their endpoints will require clientOrderId
         // explained here: https://github.com/ccxt/ccxt/issues/5674
         const orderId = this.safeString (trade, 'clientOrderId');
@@ -688,7 +689,7 @@ module.exports = class hitbtc extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        // we use clientOrderId as the order id with HitBTC intentionally
+        // we use clientOrderId as the order id with this exchange intentionally
         // because most of their endpoints will require clientOrderId
         // explained here: https://github.com/ccxt/ccxt/issues/5674
         // their max accepted length is 32 characters
@@ -721,7 +722,7 @@ module.exports = class hitbtc extends Exchange {
 
     async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets ();
-        // we use clientOrderId as the order id with HitBTC intentionally
+        // we use clientOrderId as the order id with this exchange intentionally
         // because most of their endpoints will require clientOrderId
         // explained here: https://github.com/ccxt/ccxt/issues/5674
         // their max accepted length is 32 characters
@@ -747,7 +748,7 @@ module.exports = class hitbtc extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        // we use clientOrderId as the order id with HitBTC intentionally
+        // we use clientOrderId as the order id with this exchange intentionally
         // because most of their endpoints will require clientOrderId
         // explained here: https://github.com/ccxt/ccxt/issues/5674
         const request = {
@@ -810,7 +811,7 @@ module.exports = class hitbtc extends Exchange {
         const amount = this.safeFloat (order, 'quantity');
         const filled = this.safeFloat (order, 'cumQuantity');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        // we use clientOrderId as the order id with HitBTC intentionally
+        // we use clientOrderId as the order id with this exchange intentionally
         // because most of their endpoints will require clientOrderId
         // explained here: https://github.com/ccxt/ccxt/issues/5674
         const id = this.safeString (order, 'clientOrderId');
@@ -892,7 +893,7 @@ module.exports = class hitbtc extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        // we use clientOrderId as the order id with HitBTC intentionally
+        // we use clientOrderId as the order id with this exchange intentionally
         // because most of their endpoints will require clientOrderId
         // explained here: https://github.com/ccxt/ccxt/issues/5674
         const request = {
@@ -908,7 +909,7 @@ module.exports = class hitbtc extends Exchange {
 
     async fetchOpenOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        // we use clientOrderId as the order id with HitBTC intentionally
+        // we use clientOrderId as the order id with this exchange intentionally
         // because most of their endpoints will require clientOrderId
         // explained here: https://github.com/ccxt/ccxt/issues/5674
         const request = {
