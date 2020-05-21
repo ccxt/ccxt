@@ -268,7 +268,7 @@ module.exports = class equos extends Exchange {
                 }
                 balance[symbol]['free'] = free;
                 balance[symbol]['used'] = used;
-                balance[symbol]['total'] = free + used;
+                balance[symbol]['total'] = this.sum (free, used);
             }
         }
         return this.parseBalance (balance);
@@ -343,7 +343,8 @@ module.exports = class equos extends Exchange {
     async cancelOrder (id, symbol = undefined, params = {}) {
         const openOrders = await this.fetchOpenOrders (symbol, undefined, undefined, params);
         const orders = this.filterBy (openOrders, 'id', id);
-        if (!orders || orders.length <= 0) {
+        const ordersLength = orders.length;
+        if (!orders || ordersLength <= 0) {
             throw new OrderNotFound (this.id + ': order id ' + id + 'is not found in open order');
         }
         const order = orders[0];
@@ -356,7 +357,8 @@ module.exports = class equos extends Exchange {
     async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         const openOrders = await this.fetchOpenOrders (symbol, undefined, undefined, params);
         const orders = this.filterBy (openOrders, 'id', id);
-        if (!orders || orders.length <= 0) {
+        const ordersLength = orders.length;
+        if (!orders || ordersLength <= 0) {
             throw new OrderNotFound (this.id + ': order id ' + id + 'is not found in open order');
         }
         const order = orders[0];
@@ -941,7 +943,8 @@ module.exports = class equos extends Exchange {
             'tag': undefined,           // tag / memo / paymentId for particular currencies (XRP, XMR, ...)
             'info': undefined,     // raw unparsed data as returned from the exchange
         };
-        if (addresses && addresses.length > 0) {
+        const addressesLength = addresses.length;
+        if (addresses && addressesLength > 0) {
             address['currency'] = this.safeString (addresses[0], 'symbol');
             address['address'] = this.safeString (addresses[0], 'address');
             address['info'] = addresses[0];
@@ -1096,7 +1099,8 @@ module.exports = class equos extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let query = path;
         if (method === 'GET') {
-            if (Object.keys (params).length) {
+            const paramsLength = Object.keys (params).length;
+            if (paramsLength > 0) {
                 query += '?' + this.urlencode (params);
             }
         } else if (method === 'POST') {
