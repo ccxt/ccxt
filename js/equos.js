@@ -138,9 +138,6 @@ module.exports = class equos extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (!market && !market['active']) {
-            throw new BadSymbol (this.id + ': symbol ' + symbol + ' is not listed');
-        }
         const request = this.extend ({
             'pairId': market['id'],
             'timespan': 1,
@@ -159,9 +156,6 @@ module.exports = class equos extends Exchange {
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (!market && !market['active']) {
-            throw new BadSymbol (this.id + ': symbol ' + symbol + ' is not listed');
-        }
         if (!this.timeframes[timeframe]) {
             throw new BadRequest (this.id + ': timeframe ' + timeframe + ' is not supported');
         }
@@ -177,9 +171,6 @@ module.exports = class equos extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (!market && !market['active']) {
-            throw new BadSymbol (this.id + ': symbol ' + symbol + ' is not listed');
-        }
         let request = this.extend ({
             'pairId': market['id'],
         }, params);
@@ -230,9 +221,6 @@ module.exports = class equos extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (!market && !market['active']) {
-            throw new BadSymbol (this.id + ': symbol ' + symbol + ' is not listed');
-        }
         let request = this.extend ({
             'pairId': market['id'],
         }, params);
@@ -277,9 +265,6 @@ module.exports = class equos extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (!market && !market['active']) {
-            throw new BadSymbol (this.id + ': symbol ' + symbol + ' is not listed');
-        }
         if (!type || !side || !amount) {
             throw new ArgumentsRequired (this.id + ': Order does not have enough arguments');
         }
@@ -363,9 +348,6 @@ module.exports = class equos extends Exchange {
         }
         const order = orders[0];
         const market = this.market (symbol);
-        if (!market && !market['active']) {
-            throw new BadSymbol (this.id + ': symbol ' + symbol + ' is not listed');
-        }
         if (!type || !side || !amount) {
             throw new ArgumentsRequired (this.id + ': Order does not have enough arguments');
         }
@@ -389,9 +371,6 @@ module.exports = class equos extends Exchange {
         const request = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
-            if (!market && !market['active']) {
-                throw new BadSymbol (this.id + ': symbol ' + symbol + ' is not listed');
-            }
             request['instrumentId'] = market['id'];
         }
         if (limit) {
