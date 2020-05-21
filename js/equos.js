@@ -179,6 +179,7 @@ module.exports = class equos extends Exchange {
             request = this.extend ({ 'limit': limit }, request);
         }
         const response = await this.publicGetGetOrderBook (this.extend (request, params));
+        // we need to tranform response here as parseOrderBook - parseBidAsk does not have market param
         if (response) {
             const orderBook = {
                 'bids': [],
@@ -1078,8 +1079,7 @@ module.exports = class equos extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let query = path;
         if (method === 'GET') {
-            const paramsLength = Object.keys (params).length;
-            if (paramsLength > 0) {
+            if (Object.keys (params).length) {
                 query += '?' + this.urlencode (params);
             }
         } else if (method === 'POST') {
