@@ -642,7 +642,7 @@ module.exports = class equos extends Exchange {
         const id = this.safeString (order, 'orderId');
         const type = this.parseOrderType (this.safeStringLower (order, 'ordType'));
         const side = this.parserOrderSide (this.safeStringLower (order, 'side'));
-        const trades = this.safeValue (order, 'trades', []);
+        const trades = this.parseTrades (this.safeValue (order, 'trades', []));
         return {
             'info': order,
             'id': id,
