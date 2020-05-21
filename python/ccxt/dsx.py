@@ -33,4 +33,7 @@ class dsx(hitbtc):
                     'taker': 0.25 / 100,
                 },
             },
+            'commonCurrencies': {
+                'USD': 'USD',
+            },
         })
