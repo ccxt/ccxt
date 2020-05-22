@@ -9,6 +9,8 @@ function print_orderbook($orderbook, ... $args) {
 
 function test_watch_order_book($exchange, $symbol) {
 
+    echo __FUNCTION__ . "\n";
+
     $future = new \ccxtpro\Future();
 
     if (array_key_exists('watchOrderBook', $exchange->has) && $exchange->has['watchOrderBook']) {
