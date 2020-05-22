@@ -55,4 +55,8 @@ class ArrayCache extends \ArrayObject implements \JsonSerializable {
     public function offsetUnset($index) {
         unset($this->deque[$index]);
     }
+
+    public function getArrayCopy() {
+        return $this->deque->toArray();
+    }
 }
