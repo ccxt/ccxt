@@ -11,6 +11,7 @@ async def test_watch_trades(exchange, symbol):
 
     skipped_exchanges = [
         'binanceje',  # does not have trades frequently enough to pass the test
+        'dsx',
     ]
 
     if exchange.id in skipped_exchanges:

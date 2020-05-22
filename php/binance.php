@@ -798,6 +798,7 @@ class binance extends \ccxt\binance {
             $toDelete = $resultLength - $limit;
             for ($i = 0; $i < $toDelete; $i++) {
                 $id = $result[$i]['id'];
+                $symbol = $result[$i]['symbol'];
                 unset($this->orders[$symbol][$id]);
             }
             $result = mb_substr($result, $toDelete, $resultLength - $toDelete);

@@ -5,7 +5,9 @@
 
 from ccxtpro.base.exchange import Exchange
 import ccxt.async_support as ccxt
+import hashlib
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 
 
 class bitfinex(Exchange, ccxt.bitfinex):
@@ -34,6 +36,7 @@ class bitfinex(Exchange, ccxt.bitfinex):
                     'prec': 'P0',
                     'freq': 'F0',
                 },
+                'ordersLimit': 1000,
             },
         })
 
@@ -365,6 +368,189 @@ class bitfinex(Exchange, ccxt.bitfinex):
         # todo: bitfinex signMessage not implemented yet
         return message
 
+    async def authenticate(self):
+        url = self.urls['api']['ws']['private']
+        client = self.client(url)
+        future = client.future('authenticated')
+        method = 'auth'
+        authenticated = self.safe_value(client.subscriptions, method)
+        if authenticated is None:
+            nonce = self.milliseconds()
+            payload = 'AUTH' + str(nonce)
+            signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha384, 'hex')
+            request = {
+                'apiKey': self.apiKey,
+                'authSig': signature,
+                'authNonce': nonce,
+                'authPayload': payload,
+                'event': method,
+                'filter': [
+                    'trading',
+                    'wallet',
+                ],
+            }
+            self.spawn(self.watch, url, method, request, 1)
+        return await future
+
+    def handle_authentication_message(self, client, message):
+        status = self.safe_string(message, 'status')
+        method = self.safe_string(message, 'event')
+        if status == 'OK':
+            # we resolve the future here permanently so authentication only happens once
+            future = self.safe_value(client.futures, 'authenticated')
+            future.resolve(True)
+        else:
+            error = AuthenticationError(self.json(message))
+            client.reject(error, 'authenticated')
+            # allows further authentication attempts
+            if method in client.subscriptions:
+                del client.subscriptions[method]
+
+    async def watch_order(self, id, symbol=None, params={}):
+        await self.load_markets()
+        url = self.urls['api']['ws']['private']
+        future = self.authenticate()
+        return await self.after_dropped(future, self.watch, url, id, None, 1)
+
+    async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        future = self.authenticate()
+        url = self.urls['api']['ws']['private']
+        watching = self.after_dropped(future, self.watch, url, 'os', None, 1)
+        # purgeOrders here
+        return await self.after(watching, self.filter_by_symbol_since_limit, symbol, since, limit)
+
+    def handle_orders(self, client, message):
+        #
+        # order snapshot(extra level of nesting):
+        # [0,
+        #   'os',
+        #   [[45287766631,
+        #       'ETHUST',
+        #       -0.07,
+        #       -0.07,
+        #       'EXCHANGE LIMIT',
+        #       'ACTIVE',
+        #       210,
+        #       0,
+        #       '2020-05-16T13:17:46Z',
+        #       0,
+        #       0,
+        #       0]]]
+        #
+        # order cancel:
+        # [0,
+        #   'oc',
+        #   [45287766631,
+        #     'ETHUST',
+        #     -0.07,
+        #     -0.07,
+        #     'EXCHANGE LIMIT',
+        #     'CANCELED',
+        #     210,
+        #     0,
+        #     '2020-05-16T13:17:46Z',
+        #     0,
+        #     0,
+        #     0]]
+        #
+        data = self.safe_value(message, 2, [])
+        messageType = self.safe_string(message, 1)
+        if messageType == 'os':
+            for i in range(0, len(data)):
+                value = data[i]
+                self.handle_order(client, value)
+        else:
+            self.handle_order(client, data)
+        # TODO: move to the abstract caching class
+        result = []
+        values = list(self.orders.values())
+        for i in range(0, len(values)):
+            orders = list(values[i].values())
+            result = self.array_concat(result, orders)
+        # del older orders from our structure to prevent memory leaks
+        limit = self.safe_integer(self.options, 'ordersLimit', 1000)
+        result = self.sort_by(result, 'timestamp')
+        resultLength = len(result)
+        if resultLength > limit:
+            toDelete = resultLength - limit
+            for i in range(0, toDelete):
+                id = result[i]['id']
+                symbol = result[i]['symbol']
+                del self.orders[symbol][id]
+            result = result[toDelete:resultLength]
+        client.resolve(result, 'os')
+
+    def parse_ws_order_status(self, status):
+        statuses = {
+            'ACTIVE': 'open',
+            'CANCELED': 'canceled',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def handle_order(self, client, order):
+        # [45287766631,
+        #     'ETHUST',
+        #     -0.07,
+        #     -0.07,
+        #     'EXCHANGE LIMIT',
+        #     'CANCELED',
+        #     210,
+        #     0,
+        #     '2020-05-16T13:17:46Z',
+        #     0,
+        #     0,
+        #     0]
+        id = self.safe_string(order, 0)
+        marketId = self.safe_string(order, 1)
+        symbol = None
+        if marketId in self.markets_by_id:
+            market = self.markets_by_id[marketId]
+            symbol = market['symbol']
+        else:
+            symbol = marketId
+        amount = self.safe_float(order, 2)
+        remaining = self.safe_float(order, 3)
+        side = 'buy'
+        if amount < 0:
+            amount = abs(amount)
+            remaining = abs(remaining)
+            side = 'sell'
+        type = self.safe_string(order, 4)
+        if type.find('LIMIT') > -1:
+            type = 'limit'
+        elif type.find('MARKET') > -1:
+            type = 'market'
+        status = self.parse_ws_order_status(self.safe_string(order, 5))
+        price = self.safe_float(order, 6)
+        rawDatetime = self.safe_string(order, 8)
+        timestamp = self.parse8601(rawDatetime)
+        parsed = {
+            'info': order,
+            'id': id,
+            'clientOrderId': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'average': None,
+            'amount': amount,
+            'remaining': remaining,
+            'filled': amount - remaining,
+            'status': status,
+            'fee': None,
+            'cost': None,
+            'trades': None,
+        }
+        if not (symbol in self.orders):
+            self.orders[symbol] = {}
+        self.orders[symbol][id] = parsed
+        client.resolve(parsed, id)
+        return parsed
+
     def handle_message(self, client, message):
         if isinstance(message, list):
             channelId = self.safe_string(message, 0)
@@ -378,13 +564,17 @@ class bitfinex(Exchange, ccxt.bitfinex):
                 return message  # skip heartbeats within subscription channels for now
             subscription = self.safe_value(client.subscriptions, channelId, {})
             channel = self.safe_string(subscription, 'channel')
+            name = self.safe_string(message, 1)
             methods = {
                 'book': self.handle_order_book,
                 # 'ohlc': self.handleOHLCV,
                 'ticker': self.handle_ticker,
                 'trades': self.handle_trades,
+                'os': self.handle_orders,
+                'on': self.handle_orders,
+                'oc': self.handle_orders,
             }
-            method = self.safe_value(methods, channel)
+            method = self.safe_value_2(methods, channel, name)
             if method is None:
                 return message
             else:
@@ -405,6 +595,7 @@ class bitfinex(Exchange, ccxt.bitfinex):
                     'info': self.handle_system_status,
                     # 'book': 'handleOrderBook',
                     'subscribed': self.handle_subscription_status,
+                    'auth': self.handle_authentication_message,
                 }
                 method = self.safe_value(methods, event)
                 if method is None:

@@ -7,6 +7,7 @@ namespace ccxtpro;
 
 use Exception; // a common import
 use \ccxt\ExchangeError;
+use \ccxt\AuthenticationError;
 
 class bitfinex extends \ccxt\bitfinex {
 
@@ -36,6 +37,7 @@ class bitfinex extends \ccxt\bitfinex {
                     'prec' => 'P0',
                     'freq' => 'F0',
                 ),
+                'ordersLimit' => 1000,
             ),
         ));
     }
@@ -401,6 +403,208 @@ class bitfinex extends \ccxt\bitfinex {
         return $message;
     }
 
+    public function authenticate() {
+        $url = $this->urls['api']['ws']['private'];
+        $client = $this->client($url);
+        $future = $client->future ('authenticated');
+        $method = 'auth';
+        $authenticated = $this->safe_value($client->subscriptions, $method);
+        if ($authenticated === null) {
+            $nonce = $this->milliseconds();
+            $payload = 'AUTH' . (string) $nonce;
+            $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha384', 'hex');
+            $request = array(
+                'apiKey' => $this->apiKey,
+                'authSig' => $signature,
+                'authNonce' => $nonce,
+                'authPayload' => $payload,
+                'event' => $method,
+                'filter' => array(
+                    'trading',
+                    'wallet',
+                ),
+            );
+            $this->spawn(array($this, 'watch'), $url, $method, $request, 1);
+        }
+        return $future;
+    }
+
+    public function handle_authentication_message($client, $message) {
+        $status = $this->safe_string($message, 'status');
+        $method = $this->safe_string($message, 'event');
+        if ($status === 'OK') {
+            // we resolve the $future here permanently so authentication only happens once
+            $future = $this->safe_value($client->futures, 'authenticated');
+            $future->resolve (true);
+        } else {
+            $error = new AuthenticationError ($this->json($message));
+            $client->reject ($error, 'authenticated');
+            // allows further authentication attempts
+            if (is_array($client->subscriptions) && array_key_exists($method, $client->subscriptions)) {
+                unset($client->subscriptions[$method]);
+            }
+        }
+    }
+
+    public function watch_order($id, $symbol = null, $params = array ()) {
+        $this->load_markets();
+        $url = $this->urls['api']['ws']['private'];
+        $future = $this->authenticate();
+        return $this->after_dropped($future, array($this, 'watch'), $url, $id, null, 1);
+    }
+
+    public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $future = $this->authenticate();
+        $url = $this->urls['api']['ws']['private'];
+        $watching = $this->after_dropped($future, array($this, 'watch'), $url, 'os', null, 1);
+        // purgeOrders here
+        return $this->after($watching, array($this, 'filter_by_symbol_since_limit'), $symbol, $since, $limit);
+    }
+
+    public function handle_orders($client, $message) {
+        //
+        // order snapshot (extra level of nesting):
+        // array( 0,
+        //   'os',
+        //   array( array( 45287766631,
+        //       'ETHUST',
+        //       -0.07,
+        //       -0.07,
+        //       'EXCHANGE LIMIT',
+        //       'ACTIVE',
+        //       210,
+        //       0,
+        //       '2020-05-16T13:17:46Z',
+        //       0,
+        //       0,
+        //       0 ) ) )
+        //
+        // order cancel:
+        // array( 0,
+        //   'oc',
+        //   array( 45287766631,
+        //     'ETHUST',
+        //     -0.07,
+        //     -0.07,
+        //     'EXCHANGE LIMIT',
+        //     'CANCELED',
+        //     210,
+        //     0,
+        //     '2020-05-16T13:17:46Z',
+        //     0,
+        //     0,
+        //     0 ) )
+        //
+        $data = $this->safe_value($message, 2, array());
+        $messageType = $this->safe_string($message, 1);
+        if ($messageType === 'os') {
+            for ($i = 0; $i < count($data); $i++) {
+                $value = $data[$i];
+                $this->handle_order($client, $value);
+            }
+        } else {
+            $this->handle_order($client, $data);
+        }
+        // TODO => move to the abstract caching class
+        $result = array();
+        $values = is_array($this->orders) ? array_values($this->orders) : array();
+        for ($i = 0; $i < count($values); $i++) {
+            $orders = is_array($values[$i]) ? array_values($values[$i]) : array();
+            $result = $this->array_concat($result, $orders);
+        }
+        // delete older $orders from our structure to prevent memory leaks
+        $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
+        $result = $this->sort_by($result, 'timestamp');
+        $resultLength = is_array($result) ? count($result) : 0;
+        if ($resultLength > $limit) {
+            $toDelete = $resultLength - $limit;
+            for ($i = 0; $i < $toDelete; $i++) {
+                $id = $result[$i]['id'];
+                $symbol = $result[$i]['symbol'];
+                unset($this->orders[$symbol][$id]);
+            }
+            $result = mb_substr($result, $toDelete, $resultLength - $toDelete);
+        }
+        $client->resolve ($result, 'os');
+    }
+
+    public function parse_ws_order_status($status) {
+        $statuses = array(
+            'ACTIVE' => 'open',
+            'CANCELED' => 'canceled',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function handle_order($client, $order) {
+        // array( 45287766631,
+        //     'ETHUST',
+        //     -0.07,
+        //     -0.07,
+        //     'EXCHANGE LIMIT',
+        //     'CANCELED',
+        //     210,
+        //     0,
+        //     '2020-05-16T13:17:46Z',
+        //     0,
+        //     0,
+        //     0 )
+        $id = $this->safe_string($order, 0);
+        $marketId = $this->safe_string($order, 1);
+        $symbol = null;
+        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+            $market = $this->markets_by_id[$marketId];
+            $symbol = $market['symbol'];
+        } else {
+            $symbol = $marketId;
+        }
+        $amount = $this->safe_float($order, 2);
+        $remaining = $this->safe_float($order, 3);
+        $side = 'buy';
+        if ($amount < 0) {
+            $amount = abs($amount);
+            $remaining = abs($remaining);
+            $side = 'sell';
+        }
+        $type = $this->safe_string($order, 4);
+        if (mb_strpos($type, 'LIMIT') > -1) {
+            $type = 'limit';
+        } else if (mb_strpos($type, 'MARKET') > -1) {
+            $type = 'market';
+        }
+        $status = $this->parse_ws_order_status($this->safe_string($order, 5));
+        $price = $this->safe_float($order, 6);
+        $rawDatetime = $this->safe_string($order, 8);
+        $timestamp = $this->parse8601($rawDatetime);
+        $parsed = array(
+            'info' => $order,
+            'id' => $id,
+            'clientOrderId' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'lastTradeTimestamp' => null,
+            'symbol' => $symbol,
+            'type' => $type,
+            'side' => $side,
+            'price' => $price,
+            'average' => null,
+            'amount' => $amount,
+            'remaining' => $remaining,
+            'filled' => $amount - $remaining,
+            'status' => $status,
+            'fee' => null,
+            'cost' => null,
+            'trades' => null,
+        );
+        if (!(is_array($this->orders) && array_key_exists($symbol, $this->orders))) {
+            $this->orders[$symbol] = array();
+        }
+        $this->orders[$symbol][$id] = $parsed;
+        $client->resolve ($parsed, $id);
+        return $parsed;
+    }
+
     public function handle_message($client, $message) {
         if (gettype($message) === 'array' && count(array_filter(array_keys($message), 'is_string')) == 0) {
             $channelId = $this->safe_string($message, 0);
@@ -415,13 +619,17 @@ class bitfinex extends \ccxt\bitfinex {
             }
             $subscription = $this->safe_value($client->subscriptions, $channelId, array());
             $channel = $this->safe_string($subscription, 'channel');
+            $name = $this->safe_string($message, 1);
             $methods = array(
                 'book' => array($this, 'handle_order_book'),
                 // 'ohlc' => $this->handleOHLCV,
                 'ticker' => array($this, 'handle_ticker'),
                 'trades' => array($this, 'handle_trades'),
+                'os' => array($this, 'handle_orders'),
+                'on' => array($this, 'handle_orders'),
+                'oc' => array($this, 'handle_orders'),
             );
-            $method = $this->safe_value($methods, $channel);
+            $method = $this->safe_value_2($methods, $channel, $name);
             if ($method === null) {
                 return $message;
             } else {
@@ -443,6 +651,7 @@ class bitfinex extends \ccxt\bitfinex {
                     'info' => array($this, 'handle_system_status'),
                     // 'book' => 'handleOrderBook',
                     'subscribed' => array($this, 'handle_subscription_status'),
+                    'auth' => array($this, 'handle_authentication_message'),
                 );
                 $method = $this->safe_value($methods, $event);
                 if ($method === null) {

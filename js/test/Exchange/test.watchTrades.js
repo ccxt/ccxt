@@ -18,7 +18,8 @@ module.exports = async (exchange, symbol) => {
     const method = 'watchTrades'
 
     const skippedExchanges = [
-        'binanceje'
+        'binanceje',
+        'dsx',
     ]
 
     if (skippedExchanges.includes (exchange.id)) {

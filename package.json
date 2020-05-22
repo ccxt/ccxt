@@ -1,6 +1,6 @@
 {
   "name": "ccxt.pro",
-  "version": "0.2.6",
+  "version": "0.2.13",
   "description": "A professional tool for algorithmic cryptocurrency trading",
   "main": "./ccxt.pro.js",
   "unpkg": "dist/ccxt.pro.browser.js",
@@ -35,7 +35,7 @@
   },
   "types": "./ccxt.pro.d.ts",
   "dependencies": {
-    "ccxt": "^1.27.85",
+    "ccxt": "^1.28.13",
     "ws": "^7.2.1"
   },
   "devDependencies": {
@@ -470,6 +470,7 @@
     "bytetrade.com",
     "ByteTrade",
     "ftx.com",
-    "FTX"
+    "FTX",
+    "dsxglobal.com"
   ]
 }

@@ -795,6 +795,7 @@ module.exports = class binance extends ccxt.binance {
             const toDelete = resultLength - limit;
             for (let i = 0; i < toDelete; i++) {
                 const id = result[i]['id'];
+                const symbol = result[i]['symbol'];
                 delete this.orders[symbol][id];
             }
             result = result.slice (toDelete, resultLength);

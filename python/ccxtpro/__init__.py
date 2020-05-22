@@ -8,7 +8,7 @@ import ccxt.async_support as ccxt
 
 # -----------------------------------------------------------------------------
 
-__version__ = '0.2.6'
+__version__ = '0.2.13'
 
 # -----------------------------------------------------------------------------
 
@@ -109,7 +109,6 @@ from ccxt.async_support.coss import coss                                  # noqa
 from ccxt.async_support.crex24 import crex24                              # noqa: F401
 from ccxt.async_support.deribit import deribit                            # noqa: F401
 from ccxt.async_support.digifinex import digifinex                        # noqa: F401
-from ccxt.async_support.dsx import dsx                                    # noqa: F401
 from ccxt.async_support.eterbase import eterbase                          # noqa: F401
 from ccxt.async_support.exmo import exmo                                  # noqa: F401
 from ccxt.async_support.exx import exx                                    # noqa: F401
@@ -140,6 +139,7 @@ from ccxt.async_support.mixcoins import mixcoins                          # noqa
 from ccxt.async_support.oceanex import oceanex                            # noqa: F401
 from ccxt.async_support.paymium import paymium                            # noqa: F401
 from ccxt.async_support.probit import probit                              # noqa: F401
+from ccxt.async_support.qtrade import qtrade                              # noqa: F401
 from ccxt.async_support.rightbtc import rightbtc                          # noqa: F401
 from ccxt.async_support.southxchange import southxchange                  # noqa: F401
 from ccxt.async_support.stex import stex                                  # noqa: F401
@@ -171,6 +171,7 @@ from ccxtpro.bitstamp import bitstamp                                     # noqa
 from ccxtpro.bittrex import bittrex                                       # noqa: F401
 from ccxtpro.coinbaseprime import coinbaseprime                           # noqa: F401
 from ccxtpro.coinbasepro import coinbasepro                               # noqa: F401
+from ccxtpro.dsx import dsx                                               # noqa: F401
 from ccxtpro.ftx import ftx                                               # noqa: F401
 from ccxtpro.gateio import gateio                                         # noqa: F401
 from ccxtpro.hitbtc import hitbtc                                         # noqa: F401

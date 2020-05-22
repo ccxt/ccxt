@@ -9,6 +9,15 @@ async def test_watch_ohlcv(exchange, symbol):
     # todo add real ohlcv tests here
     # log (symbol.green, 'watching ohlcvs...')
     method = 'watchOHLCV'
+
+    skipped_exchanges = [
+        'dsx',
+    ]
+
+    if exchange.id in skipped_exchanges:
+        print(exchange.id, method, 'skipped')
+        return
+
     try:
         timeframe = list(exchange.timeframes.keys())[0]
     except Exception:
