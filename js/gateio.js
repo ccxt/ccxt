@@ -67,6 +67,7 @@ module.exports = class gateio extends Exchange {
                     'get': [
                         'candlestick2/{id}',
                         'pairs',
+                        'coininfo',
                         'marketinfo',
                         'marketlist',
                         'coininfo',
@@ -160,6 +161,35 @@ module.exports = class gateio extends Exchange {
                 'BTCBULL': 'BULL',
             },
         });
+    }
+
+    async fetchCurrencies (params = {}) {
+        const response = await this.publicGetCoininfo (params);
+        const items = this.safeValue (response, 'coins');
+        if (!items) {
+            throw new ExchangeError (this.id + ' fetchMarkets got an unrecognized response');
+        }
+        const result = [];
+        for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            const ids = Object.keys (item);
+            for(let j = 0; j < ids.length; j++) {
+                const id = ids[j];
+                const currency = item[id];
+                const code = this.safeCurrencyCode (id);
+                const delisted = currency['delisted'] === 1;
+                const noWithdrawals = currency['withdraw_disabled'] === 1;
+                const noDeposits = currency['deposit_disabled'] === 1;
+                const noTrading = currency['trade_disabled'] === 1;
+                result[code] = {
+                    'id': id,
+                    'code': code,
+                    'active': delisted || noWithdrawals || noDeposits || noTrading,
+                    'info': currency,
+                };
+            }
+        }
+        return result;
     }
 
     async fetchMarkets (params = {}) {
