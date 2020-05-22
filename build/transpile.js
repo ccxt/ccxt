@@ -74,8 +74,12 @@ class CCXTProTranspiler extends Transpiler {
 
 
     createPythonClassHeader (ccxtImports, bodyAsString) {
-        if (bodyAsString.indexOf ('ArrayCache') > -1) {
-            ccxtImports.push ('from ccxtpro.base.cache import ArrayCache')
+        let imports = ccxtImports
+        if (bodyAsString.includes ('ArrayCache')) {
+            imports = [
+                ... ccxtImports,
+                'from ccxtpro.base.cache import ArrayCache',
+            ]
         }
         return [
             "# -*- coding: utf-8 -*-",
@@ -84,9 +88,9 @@ class CCXTProTranspiler extends Transpiler {
             "# https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code",
             "",
             // "from ccxtpro.base.exchange import Exchange",
-            ... ccxtImports,
+            ... imports,
             // 'from ' + importFrom + ' import ' + baseClass,
-            ... (bodyAsString.match (/basestring/) ? [
+            ... (bodyAsString.includes ('basestring') ? [
                 "",
                 "# -----------------------------------------------------------------------------",
                 "",
