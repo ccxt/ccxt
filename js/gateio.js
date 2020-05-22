@@ -19,6 +19,7 @@ module.exports = class gateio extends Exchange {
             'has': {
                 'CORS': false,
                 'createMarketOrder': false,
+                'fetchCurrencies': true,
                 'fetchTickers': true,
                 'withdraw': true,
                 'fetchDeposits': true,
