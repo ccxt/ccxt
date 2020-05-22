@@ -27,6 +27,7 @@ Exchange::$exchanges = array(
     'bittrex',
     'coinbaseprime',
     'coinbasepro',
+    'dsx',
     'ftx',
     'gateio',
     'hitbtc',
