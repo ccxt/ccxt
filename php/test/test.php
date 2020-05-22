@@ -6,6 +6,7 @@ date_default_timezone_set('UTC');
 require_once 'vendor/autoload.php';
 include_once 'php/test/Exchange/test_watch_order_book.php';
 include_once 'php/test/Exchange/test_watch_ticker.php';
+include_once 'php/test/Exchange/test_watch_trades.php';
 
 if (count($argv) < 2) {
     echo "Exchange id not specified\n";
@@ -35,9 +36,9 @@ function test_public($exchange, $symbol) {
     //
     test_watch_order_book($exchange, $symbol)->then(function() use ($exchange, $symbol, $future) {
         test_watch_ticker($exchange, $symbol)->then(function() use ($exchange, $symbol, $future) {
-        //     test_watch_trades($exchange, $symbol)->then(function() use ($exchange, $symbol, $future) {
+            test_watch_trades($exchange, $symbol)->then(function() use ($exchange, $symbol, $future) {
                 $future->resolve(true);
-        //     });
+            });
         });
     });
     //
