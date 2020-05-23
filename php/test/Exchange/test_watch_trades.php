@@ -19,13 +19,12 @@ function test_watch_trades($exchange, $symbol) {
 
         function tick_trades($future, $iteration, $maxIterations, $exchange, $symbol) {
             $exchange->watch_trades($symbol)->then(function($result) use ($future, $iteration, $maxIterations, $exchange, $symbol) {
-                echo count($result) . " trades\n";
-                // echo $result['datetime'], ' ', $exchange->id, ' ', $symbol, ' watch_trades ', $result['last'] . "\n";
-                // if (++$iteration < $maxIterations) {
-                //     tick_trades($future, $iteration, $maxIterations, $exchange, $symbol);
-                // } else {
+                echo $exchange->id, ' ', $symbol, ' ', count($result) . " trades\n";
+                if (++$iteration < $maxIterations) {
+                    tick_trades($future, $iteration, $maxIterations, $exchange, $symbol);
+                } else {
                     $future->resolve($result);
-                // }
+                }
             });
         };
 
