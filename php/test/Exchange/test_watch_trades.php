@@ -5,6 +5,15 @@ function test_watch_trades($exchange, $symbol) {
     echo __FUNCTION__ . "\n";
 
     $future = new \ccxtpro\Future();
+    
+    $skipped_exchanges = array(
+        'dsx',
+    );
+    
+    if (in_array($exchange->id, $skipped_exchanges)) {
+        echo $exchange->id, " watchTrades() skipped\n";
+        $future->resolve(true);
+    }
 
     if (array_key_exists('watchTrades', $exchange->has) && $exchange->has['watchTrades']) {
 
