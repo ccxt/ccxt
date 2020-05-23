@@ -449,39 +449,35 @@ module.exports = class bitmax extends Exchange {
 
     async fetchAccounts (params = {}) {
         let accountGroup = this.safeString (this.options, 'accountGroup');
-        let records = undefined;
+        let response = undefined;
         if (accountGroup === undefined) {
-            const response = await this.privateGetInfo (params);
+            response = await this.privateGetInfo (params);
             //
-            // {
-            //    'code': 0,
-            //    'data':
-            //        {
-            //            'email': 'xxxcc@gmail.com',
-            //            'accountGroup': 5,
-            //            'viewPermission': True,
-            //            'tradePermission': True,
-            //            'transferPermission': True,
-            //            'withdrawPermission': True,
-            //            'cashAccount': ['xxxxxxxxxxxxxxxxxxxxxxxxxx'],
-            //            'marginAccount': ['yyyyyyyyyyyyyyyyyyyyyyyyy'],
-            //            'futuresAccount': ['zzzzzzzzzzzzzzzzzzzzzzzzz'],
-            //            'userUID': 'U123456789'
-            //        }
-            // }
+            //     {
+            //         "code":0,
+            //         "data":{
+            //             "email":"igor.kroitor@gmail.com",
+            //             "accountGroup":8,
+            //             "viewPermission":true,
+            //             "tradePermission":true,
+            //             "transferPermission":true,
+            //             "cashAccount":["cshrHKLZCjlZ2ejqkmvIHHtPmLYqdnda"],
+            //             "marginAccount":["martXoh1v1N3EMQC5FDtSj5VHso8aI2Z"],
+            //             "futuresAccount":["futc9r7UmFJAyBY2rE3beA2JFxav2XFF"],
+            //             "userUID":"U6491137460"
+            //         }
+            //     }
             //
-            if (response['code'] === 0) {
-                records = response['data'];
-                accountGroup = this.safeString (records, 'accountGroup');
-                this.options['accountGroup'] = accountGroup;
-            }
+            const data = this.safeValue (response, 'data', {});
+            accountGroup = this.safeString (data, 'accountGroup');
+            this.options['accountGroup'] = accountGroup;
         }
         return [
             {
                 'id': accountGroup,
                 'type': undefined,
                 'currency': undefined,
-                'info': records,
+                'info': response,
             },
         ];
     }
