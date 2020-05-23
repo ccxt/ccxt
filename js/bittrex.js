@@ -4,6 +4,7 @@
 
 const ccxt = require ('ccxt');
 const { AuthenticationError } = require ('ccxt/js/base/errors');
+const { ArrayCache } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -441,15 +442,15 @@ module.exports = class bittrex extends ccxt.bittrex {
         const tradesLength = trades.length;
         if (tradesLength > 0) {
             const symbol = market['symbol'];
-            const stored = this.safeValue (this.trades, symbol, []);
-            for (let i = 0; i < trades.length; i++) {
-                stored.push (trades[i]);
-                const storedLength = stored.length;
-                if (storedLength > this.options['tradesLimit']) {
-                    stored.shift ();
-                }
+            let stored = this.safeValue (this.trades, symbol);
+            if (stored === undefined) {
+                const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+                stored = new ArrayCache (limit);
+                this.trades[symbol] = stored;
             }
-            this.trades[symbol] = stored;
+            for (let i = 0; i < trades.length; i++) {
+                stored.append (trades[i]);
+            }
             const name = 'trade';
             const messageHash = name + ':' + market['symbol'];
             client.resolve (stored, messageHash);

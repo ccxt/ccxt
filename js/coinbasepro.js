@@ -3,6 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
+const { ArrayCache } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -87,14 +88,13 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
             // const type = this.safeString (message, 'type');
             const type = 'matches';
             const messageHash = type + ':' + marketId;
-            const array = this.safeValue (this.trades, symbol, []);
-            array.push (trade);
-            const length = array.length;
-            const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            if (length > tradesLimit) {
-                array.shift ();
+            let array = this.safeValue (this.trades, symbol);
+            if (array === undefined) {
+                const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
+                array = new ArrayCache (tradesLimit);
+                this.trades[symbol] = array;
             }
-            this.trades[symbol] = array;
+            array.append (trade);
             client.resolve (array, messageHash);
         }
         return message;

@@ -4,6 +4,7 @@
 
 const ccxt = require ('ccxt');
 const { ExchangeError, AuthenticationError } = require ('ccxt/js/base/errors');
+const { ArrayCache } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -257,17 +258,17 @@ module.exports = class gateio extends ccxt.gateio {
             market = this.markets_by_id[marketId];
             symbol = market['symbol'];
         }
-        const stored = this.safeValue (this.trades, symbol, []);
+        let stored = this.safeValue (this.trades, symbol);
+        if (stored === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            stored = new ArrayCache (limit);
+            this.trades[symbol] = stored;
+        }
         const trades = this.safeValue (params, 1, []);
         const parsed = this.parseTrades (trades, market);
         for (let i = 0; i < parsed.length; i++) {
-            stored.push (parsed[i]);
-            const storedLength = stored.length;
-            if (storedLength > this.options['tradesLimit']) {
-                stored.shift ();
-            }
+            stored.append (parsed[i]);
         }
-        this.trades[symbol] = stored;
         const methodType = message['method'];
         const messageHash = methodType + ':' + marketId;
         client.resolve (stored, messageHash);

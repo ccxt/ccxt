@@ -4,6 +4,7 @@
 
 const ccxt = require ('ccxt');
 const { ArgumentsRequired, AuthenticationError } = require ('ccxt/js/base/errors');
+const { ArrayCache } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -92,13 +93,12 @@ module.exports = class okex extends ccxt.okex {
             const symbol = trade['symbol'];
             const marketId = this.safeString (trade['info'], 'instrument_id');
             const messageHash = table + ':' + marketId;
-            const stored = this.safeValue (this.trades, symbol, []);
-            stored.push (trade);
-            const length = stored.length;
-            if (length > tradesLimit) {
-                stored.shift ();
+            let stored = this.safeValue (this.trades, symbol);
+            if (stored === undefined) {
+                stored = new ArrayCache (tradesLimit);
+                this.trades[symbol] = stored;
             }
-            this.trades[symbol] = stored;
+            stored.append (trade);
             client.resolve (stored, messageHash);
         }
         return message;
@@ -194,18 +194,18 @@ module.exports = class okex extends ccxt.okex {
                 const symbol = market['symbol'];
                 const parsed = this.parseOHLCV (candle, market, timeframe);
                 this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-                const stored = this.safeValue (this.ohlcvs[symbol], timeframe, []);
+                let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+                if (stored === undefined) {
+                    const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+                    stored = new ArrayCache (limit);
+                    this.ohlcvs[symbol][timeframe] = stored;
+                }
                 const length = stored.length;
                 if (length && parsed[0] === stored[length - 1][0]) {
                     stored[length - 1] = parsed;
                 } else {
-                    stored.push (parsed);
-                    const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-                    if (length >= limit) {
-                        stored.shift ();
-                    }
+                    stored.append (parsed);
                 }
-                this.ohlcvs[symbol][timeframe] = stored;
                 const messageHash = table + ':' + marketId;
                 client.resolve (stored, messageHash);
             }

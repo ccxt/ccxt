@@ -4,6 +4,7 @@
 
 const ccxt = require ('ccxt');
 const { ExchangeError, NotSupported, RateLimitExceeded } = require ('ccxt/js/base/errors');
+const { ArrayCache } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -380,15 +381,15 @@ module.exports = class bitmex extends ccxt.bitmex {
                 const messageHash = table + ':' + marketId;
                 const symbol = market['symbol'];
                 const trades = this.parseTrades (dataByMarketIds[marketId], market);
-                const stored = this.safeValue (this.trades, symbol, []);
-                for (let j = 0; j < trades.length; j++) {
-                    stored.push (trades[j]);
-                    const storedLength = stored.length;
-                    if (storedLength > this.options['tradesLimit']) {
-                        stored.shift ();
-                    }
+                let stored = this.safeValue (this.trades, symbol);
+                if (stored === undefined) {
+                    const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+                    stored = new ArrayCache (limit);
+                    this.trades[symbol] = stored;
                 }
-                this.trades[symbol] = stored;
+                for (let j = 0; j < trades.length; j++) {
+                    stored.append (trades[j]);
+                }
                 client.resolve (stored, messageHash);
             }
         }
@@ -551,18 +552,18 @@ module.exports = class bitmex extends ccxt.bitmex {
                     this.safeFloat (candle, 'volume'),
                 ];
                 this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-                const stored = this.safeValue (this.ohlcvs[symbol], timeframe, []);
+                let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+                if (stored === undefined) {
+                    const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+                    stored = new ArrayCache (limit);
+                    this.ohlcvs[symbol][timeframe] = stored;
+                }
                 const length = stored.length;
                 if (length && result[0] === stored[length - 1][0]) {
                     stored[length - 1] = result;
                 } else {
-                    stored.push (result);
-                    const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-                    if (length >= limit) {
-                        stored.shift ();
-                    }
+                    stored.append (result);
                 }
-                this.ohlcvs[symbol][timeframe] = stored;
                 results[messageHash] = stored;
             }
         }

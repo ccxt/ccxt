@@ -3,6 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
+const { ArrayCache } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -195,19 +196,16 @@ module.exports = class upbit extends ccxt.upbit {
         //   stream_type: 'REALTIME' }
         const trade = this.parseTrade (message);
         const symbol = trade['symbol'];
-        if (!(symbol in this.trades)) {
-            this.trades[symbol] = [];
+        let stored = this.safeValue (this.trades, symbol);
+        if (stored === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            stored = new ArrayCache (limit);
+            this.trades[symbol] = stored;
         }
-        const trades = this.trades[symbol];
-        trades.push (trade);
-        const length = trades.length;
-        if (length > this.options['tradesLimit']) {
-            trades.shift ();
-        }
-        this.trades[symbol] = trades;
+        stored.append (trade);
         const marketId = this.safeString (message, 'code');
         const messageHash = 'trade:' + marketId;
-        client.resolve (trades, messageHash);
+        client.resolve (stored, messageHash);
     }
 
     handleMessage (client, message) {
