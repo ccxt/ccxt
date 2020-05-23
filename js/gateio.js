@@ -166,27 +166,78 @@ module.exports = class gateio extends Exchange {
 
     async fetchCurrencies (params = {}) {
         const response = await this.publicGetCoininfo (params);
-        const items = this.safeValue (response, 'coins');
-        if (!items) {
-            throw new ExchangeError (this.id + ' fetchMarkets got an unrecognized response');
+        //
+        //     {
+        //         "result":"true",
+        //         "coins":[
+        //             {
+        //                 "CNYX":{
+        //                     "delisted":0,
+        //                     "withdraw_disabled":1,
+        //                     "withdraw_delayed":0,
+        //                     "deposit_disabled":0,
+        //                     "trade_disabled":0
+        //                 }
+        //             },
+        //             {
+        //                 "USDT_ETH":{
+        //                     "delisted":0,
+        //                     "withdraw_disabled":1,
+        //                     "withdraw_delayed":0,
+        //                     "deposit_disabled":0,
+        //                     "trade_disabled":1
+        //                 }
+        //             }
+        //         ]
+        //     }
+        //
+        const coins = this.safeValue (response, 'coins');
+        if (!coins) {
+            throw new ExchangeError (this.id + ' fetchCurrencies got an unrecognized response');
         }
         const result = [];
-        for (let i = 0; i < items.length; i++) {
-            const item = items[i];
-            const ids = Object.keys (item);
+        for (let i = 0; i < coins.length; i++) {
+            const coin = coins[i];
+            const ids = Object.keys (coin);
             for (let j = 0; j < ids.length; j++) {
                 const id = ids[j];
-                const currency = item[id];
+                const currency = coin[id];
                 const code = this.safeCurrencyCode (id);
-                const delisted = currency['delisted'] === 1;
-                const noWithdrawals = currency['withdraw_disabled'] === 1;
-                const noDeposits = currency['deposit_disabled'] === 1;
-                const noTrading = currency['trade_disabled'] === 1;
+                const delisted = this.safeValue (currency, 'delisted', 0);
+                const withdrawDisabled = this.safeValue (currency, 'withdraw_disabled', 0);
+                const depositDisabled = this.safeValue (currency, 'deposit_disabled', 0);
+                const tradeDisabled = this.safeValue (currency, 'trade_disabled', 0);
+                const listed = (delisted === 0);
+                const withdrawEnabled = (withdrawDisabled === 0);
+                const depositEnabled = (depositDisabled === 0);
+                const tradeEnabled = (tradeDisabled === 0);
+                const active = listed && withdrawEnabled && depositEnabled && tradeEnabled;
                 result[code] = {
                     'id': id,
                     'code': code,
-                    'active': delisted || noWithdrawals || noDeposits || noTrading,
+                    'active': active,
                     'info': currency,
+                    'name': undefined,
+                    'fee': undefined,
+                    'precision': undefined,
+                    'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'price': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'cost': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                    },
                 };
             }
         }
