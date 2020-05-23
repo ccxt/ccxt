@@ -23,8 +23,8 @@ module.exports = class bitmax extends Exchange {
                 'fetchOrderBook': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
-                'fetchAccounts': true,
                 'fetchOHLCV': true,
+                'fetchAccounts': true,
                 'fetchMyTrades': false,
                 'fetchOrder': true,
                 'fetchOrders': true,
@@ -36,18 +36,18 @@ module.exports = class bitmax extends Exchange {
                 'fetchDepositAddress': true,
             },
             'timeframes': {
-                '1m': '60000',
-                '5m': '300000',
-                '15m': '900000',
-                '30m': '1800000',
-                '1h': '3600000',
-                '2h': '7200000',
-                '4h': '14400000',
-                '6h': '21600000',
-                '12h': '43200000',
-                '1d': '86400000',
-                '1w': '604800000',
-                '1M': '2592000000',
+                '1m': '1',
+                '5m': '5',
+                '15m': '15',
+                '30m': '30',
+                '1h': '60',
+                '2h': '120',
+                '4h': '240',
+                '6h': '360',
+                '12h': '720',
+                '1d': '1d',
+                '1w': '1w',
+                '1M': '1m',
             },
             'version': 'v1',
             'urls': {
@@ -689,31 +689,30 @@ module.exports = class bitmax extends Exchange {
         return this.parseTickers (data, symbols);
     }
 
-    parseOHLCV (ohlcvRecord, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         //
-        // {
-        //    'm': 'bar',
-        //    's': 'BTC/USDT',
-        //    'data':
-        //        {
-        //            'i': '1',
-        //            'ts': 1583901000000,
-        //            'o': '7924.98',
-        //            'c': '7926.80',
-        //            'h': '7926.80',
-        //            'l': '7924.98',
-        //            'v': '0.32144'
-        //        }
-        // }
+        //     {
+        //         "m":"bar",
+        //         "s":"BTC/USDT",
+        //         "data":{
+        //             "i":"1",
+        //             "ts":1590228000000,
+        //             "o":"9139.59",
+        //             "c":"9131.94",
+        //             "h":"9139.99",
+        //             "l":"9121.71",
+        //             "v":"25.20648"
+        //         }
+        //     }
         //
-        const ohlcv = this.safeValue (ohlcvRecord, 'data', {});
+        const data = this.safeValue (ohlcv, 'data', {});
         return [
-            this.safeInteger (ohlcv, 'ts'),
-            this.safeFloat (ohlcv, 'o'),
-            this.safeFloat (ohlcv, 'h'),
-            this.safeFloat (ohlcv, 'l'),
-            this.safeFloat (ohlcv, 'c'),
-            this.safeFloat (ohlcv, 'v'),
+            this.safeInteger (data, 'ts'),
+            this.safeFloat (data, 'o'),
+            this.safeFloat (data, 'h'),
+            this.safeFloat (data, 'l'),
+            this.safeFloat (data, 'c'),
+            this.safeFloat (data, 'v'),
         ];
     }
 
@@ -727,17 +726,42 @@ module.exports = class bitmax extends Exchange {
         // if since and limit are not specified
         // the exchange will return just 1 last candle by default
         const duration = this.parseTimeframe (timeframe);
+        const options = this.safeValue (this.options, 'fetchOHLCV', {});
+        const defaultLimit = this.safeInteger (options, 'limit', 500);
         if (since !== undefined) {
             request['from'] = since;
-            if (limit !== undefined) {
-                request['to'] = this.sum (since, limit * duration * 1000, 1);
+            if (limit === undefined) {
+                limit = defaultLimit;
+            } else {
+                limit = Math.min (limit, defaultLimit);
             }
+            request['to'] = this.sum (since, limit * duration * 1000, 1);
         } else if (limit !== undefined) {
-            request['to'] = this.milliseconds ();
-            request['from'] = request['to'] - limit * duration * 1000 - 1;
+            request['n'] = limit; // max 500
         }
         const response = await this.publicGetBarhist (this.extend (request, params));
-        return this.parseOHLCVs (this.safeValue (response, 'data', []), market, timeframe, since, limit);
+        //
+        //     {
+        //         "code":0,
+        //         "data":[
+        //             {
+        //                 "m":"bar",
+        //                 "s":"BTC/USDT",
+        //                 "data":{
+        //                     "i":"1",
+        //                     "ts":1590228000000,
+        //                     "o":"9139.59",
+        //                     "c":"9131.94",
+        //                     "h":"9139.99",
+        //                     "l":"9121.71",
+        //                     "v":"25.20648"
+        //                 }
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
