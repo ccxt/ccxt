@@ -24,6 +24,7 @@ module.exports = class bitmax extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchOHLCV': true,
+                'fetchTrades': true,
                 'fetchAccounts': true,
                 'fetchMyTrades': false,
                 'fetchOrder': true,
@@ -769,95 +770,41 @@ module.exports = class bitmax extends Exchange {
         // public fetchTrades
         //
         //     {
-        //         "p": "13.75", // price
-        //         "q": "6.68", // quantity
-        //         "ts": 1528988084944, // timestamp
-        //         "bm": False, // if true, the buyer is the market maker, we only use this field to "define the side" of a public trade
+        //         "p":"9128.5", // price
+        //         "q":"0.0030", // quantity
+        //         "ts":1590229002385, // timestamp
+        //         "bm":false, // if true, the buyer is the market maker, we only use this field to "define the side" of a public trade
+        //         "seqnum":180143985289898554
         //     }
         //
-        // privateGetCashOrderStatus / privateGetMarginOrderStatus / privateGetFuturesOrderStatus
-        //
-        // {
-        //    'seqNum': 4208248561,
-        //    'orderId': 'r170adcc717eU123456789bbtmabc3P',
-        //    'symbol': 'BTMX/USDT',
-        //    'orderType': 'Limit',
-        //    'lastExecTime': 1583463823205,
-        //    'price': '0.06043',
-        //    'orderQty': '100',
-        //    'side': 'Buy',
-        //    'status': 'Filled',
-        //    'avgPx': '0.06043',
-        //    'cumFilledQty': '100',
-        //    'stopPrice': '',
-        //    'errorCode': '',
-        //    'cumFee': '0.006043',
-        //    'feeAsset': 'USDT',
-        //    'execInst': 'NULL_VAL'
-        // }
-        //
         const timestamp = this.safeInteger (trade, 'ts');
-        const price = this.safeFloat (trade, 'price') || this.safeFloat (trade, 'p');
-        const amount = this.safeFloat (trade, 'orderQty') || this.safeFloat (trade, 'q');
+        const price = this.safeFloat2 (trade, 'price', 'p');
+        const amount = this.safeFloat (trade, 'q');
         let cost = undefined;
         if ((price !== undefined) && (amount !== undefined)) {
             cost = price * amount;
         }
-        const buyerIsMaker = this.safeValue (trade, 'bm');
-        let makerOrTaker = undefined;
-        if (buyerIsMaker !== undefined) {
-            if (buyerIsMaker) {
-                makerOrTaker = 'maker';
-            } else {
-                makerOrTaker = 'taker';
-            }
-        }
+        const buyerIsMaker = this.safeValue (trade, 'bm', false);
+        const makerOrTaker = buyerIsMaker ? 'maker' : 'taker';
+        const side = buyerIsMaker ? 'buy' : 'sell';
         let symbol = undefined;
-        const marketId = this.safeString (trade, 's');
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            } else {
-                const [ baseId, quoteId ] = market.split ('/');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
-        let fee = undefined;
-        const feeCost = this.safeFloat (trade, 'cumFee');
-        if (feeCost !== undefined) {
-            const feeCurrencyId = this.safeString (trade, 'feeAsset');
-            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
-            fee = {
-                'cost': feeCost,
-                'currency': feeCurrencyCode,
-            };
-        }
-        const orderId = this.safeString (trade, 'orderId');
-        let side = this.safeStringLower (trade, 'side');
-        if ((side === undefined) && (buyerIsMaker !== undefined)) {
-            side = buyerIsMaker ? 'buy' : 'sell';
-        }
-        const type = this.safeStringLower (trade, 'orderType');
         return {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'id': undefined,
-            'order': orderId,
-            'type': type,
+            'order': undefined,
+            'type': undefined,
             'takerOrMaker': makerOrTaker,
             'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': fee,
+            'fee': undefined,
         };
     }
 
@@ -868,22 +815,21 @@ module.exports = class bitmax extends Exchange {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['n'] = limit; // currently limited to 100 or fewer
+            request['n'] = limit; // max 100
         }
         const response = await this.publicGetTrades (this.extend (request, params));
         //
-        //    {
-        //        'code': 0,
-        //        'data':
-        //            {
-        //                'm': 'trades',
-        //                'symbol': 'BTC/USDT',
-        //                'data': [{'p': '7812.61',
-        //                        'q': '0.01998',
-        //                        'ts': 1583760687790,
-        //                        'bm': False, # if True, the buyer is the market maker
-        //                        'seqnum': 72057603463162642}]
-        //              }
+        //     {
+        //         "code":0,
+        //         "data":{
+        //             "m":"trades",
+        //             "symbol":"BTC-PERP",
+        //             "data":[
+        //                 {"p":"9128.5","q":"0.0030","ts":1590229002385,"bm":false,"seqnum":180143985289898554},
+        //                 {"p":"9129","q":"0.0030","ts":1590229002642,"bm":false,"seqnum":180143985289898587},
+        //                 {"p":"9129.5","q":"0.0030","ts":1590229021306,"bm":false,"seqnum":180143985289899043}
+        //             ]
+        //         }
         //     }
         //
         const records = this.safeValue (response, 'data', []);
