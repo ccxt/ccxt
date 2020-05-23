@@ -21,6 +21,7 @@ module.exports = class bitmax extends Exchange {
                 'fetchMarkets': true,
                 'fetchCurrencies': true,
                 'fetchOrderBook': true,
+                'fetchTicker': true,
                 'fetchAccounts': true,
                 'fetchTickers': true,
                 'fetchOHLCV': true,
@@ -626,22 +627,23 @@ module.exports = class bitmax extends Exchange {
         };
         const response = await this.publicGetTicker (this.extend (request, params));
         //
-        // {
-        //    'code': 0,
-        //    'data':
-        //        {
-        //            'symbol': 'BTC/USDT',
-        //            'open': '8086.63',
-        //            'close': '7846.16',
-        //            'high': '7846.16',
-        //            'low': '7846.16',
-        //            'volume': '8100.10864',
-        //            'ask': ['7847.7', '0.52882'],
-        //            'bid': ['7846.87', '3.9718']
-        //        }
-        // }
+        //     {
+        //         "code":0,
+        //         "data":{
+        //             "symbol":"BTC-PERP", // or "BTC/USDT"
+        //             "open":"9073",
+        //             "close":"9185.75",
+        //             "high":"9185.75",
+        //             "low":"9185.75",
+        //             "volume":"576.8334",
+        //             "ask":["9185.75","15.5863"],
+        //             "bid":["9185.5","0.003"],
+        //             "type":"derivatives", // or "spot"
+        //         }
+        //     }
         //
-        return this.parseTicker (this.safeValue (response, 'data', {}), market);
+        const data = this.safeValue (response, 'data', {});
+        return this.parseTicker (data, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
