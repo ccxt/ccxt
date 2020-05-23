@@ -30,6 +30,7 @@ class gateio(Exchange):
             'has': {
                 'CORS': False,
                 'createMarketOrder': False,
+                'fetchCurrencies': True,
                 'fetchTickers': True,
                 'withdraw': True,
                 'fetchDeposits': True,
@@ -78,6 +79,7 @@ class gateio(Exchange):
                     'get': [
                         'candlestick2/{id}',
                         'pairs',
+                        'coininfo',
                         'marketinfo',
                         'marketlist',
                         'coininfo',
@@ -171,6 +173,82 @@ class gateio(Exchange):
                 'BTCBULL': 'BULL',
             },
         })
+
+    async def fetch_currencies(self, params={}):
+        response = await self.publicGetCoininfo(params)
+        #
+        #     {
+        #         "result":"true",
+        #         "coins":[
+        #             {
+        #                 "CNYX":{
+        #                     "delisted":0,
+        #                     "withdraw_disabled":1,
+        #                     "withdraw_delayed":0,
+        #                     "deposit_disabled":0,
+        #                     "trade_disabled":0
+        #                 }
+        #             },
+        #             {
+        #                 "USDT_ETH":{
+        #                     "delisted":0,
+        #                     "withdraw_disabled":1,
+        #                     "withdraw_delayed":0,
+        #                     "deposit_disabled":0,
+        #                     "trade_disabled":1
+        #                 }
+        #             }
+        #         ]
+        #     }
+        #
+        coins = self.safe_value(response, 'coins')
+        if not coins:
+            raise ExchangeError(self.id + ' fetchCurrencies got an unrecognized response')
+        result = []
+        for i in range(0, len(coins)):
+            coin = coins[i]
+            ids = list(coin.keys())
+            for j in range(0, len(ids)):
+                id = ids[j]
+                currency = coin[id]
+                code = self.safe_currency_code(id)
+                delisted = self.safe_value(currency, 'delisted', 0)
+                withdrawDisabled = self.safe_value(currency, 'withdraw_disabled', 0)
+                depositDisabled = self.safe_value(currency, 'deposit_disabled', 0)
+                tradeDisabled = self.safe_value(currency, 'trade_disabled', 0)
+                listed = (delisted == 0)
+                withdrawEnabled = (withdrawDisabled == 0)
+                depositEnabled = (depositDisabled == 0)
+                tradeEnabled = (tradeDisabled == 0)
+                active = listed and withdrawEnabled and depositEnabled and tradeEnabled
+                result[code] = {
+                    'id': id,
+                    'code': code,
+                    'active': active,
+                    'info': currency,
+                    'name': None,
+                    'fee': None,
+                    'precision': None,
+                    'limits': {
+                        'amount': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'price': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'cost': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'withdraw': {
+                            'min': None,
+                            'max': None,
+                        },
+                    },
+                }
+        return result
 
     async def fetch_markets(self, params={}):
         response = await self.publicGetMarketinfo(params)

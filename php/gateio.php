@@ -23,6 +23,7 @@ class gateio extends Exchange {
             'has' => array(
                 'CORS' => false,
                 'createMarketOrder' => false,
+                'fetchCurrencies' => true,
                 'fetchTickers' => true,
                 'withdraw' => true,
                 'fetchDeposits' => true,
@@ -71,6 +72,7 @@ class gateio extends Exchange {
                     'get' => array(
                         'candlestick2/{id}',
                         'pairs',
+                        'coininfo',
                         'marketinfo',
                         'marketlist',
                         'coininfo',
@@ -164,6 +166,86 @@ class gateio extends Exchange {
                 'BTCBULL' => 'BULL',
             ),
         ));
+    }
+
+    public function fetch_currencies($params = array ()) {
+        $response = $this->publicGetCoininfo ($params);
+        //
+        //     {
+        //         "$result":"true",
+        //         "$coins":array(
+        //             {
+        //                 "CNYX":array(
+        //                     "$delisted":0,
+        //                     "withdraw_disabled":1,
+        //                     "withdraw_delayed":0,
+        //                     "deposit_disabled":0,
+        //                     "trade_disabled":0
+        //                 }
+        //             ),
+        //             {
+        //                 "USDT_ETH":{
+        //                     "$delisted":0,
+        //                     "withdraw_disabled":1,
+        //                     "withdraw_delayed":0,
+        //                     "deposit_disabled":0,
+        //                     "trade_disabled":1
+        //                 }
+        //             }
+        //         )
+        //     }
+        //
+        $coins = $this->safe_value($response, 'coins');
+        if (!$coins) {
+            throw new ExchangeError($this->id . ' fetchCurrencies got an unrecognized response');
+        }
+        $result = array();
+        for ($i = 0; $i < count($coins); $i++) {
+            $coin = $coins[$i];
+            $ids = is_array($coin) ? array_keys($coin) : array();
+            for ($j = 0; $j < count($ids); $j++) {
+                $id = $ids[$j];
+                $currency = $coin[$id];
+                $code = $this->safe_currency_code($id);
+                $delisted = $this->safe_value($currency, 'delisted', 0);
+                $withdrawDisabled = $this->safe_value($currency, 'withdraw_disabled', 0);
+                $depositDisabled = $this->safe_value($currency, 'deposit_disabled', 0);
+                $tradeDisabled = $this->safe_value($currency, 'trade_disabled', 0);
+                $listed = ($delisted === 0);
+                $withdrawEnabled = ($withdrawDisabled === 0);
+                $depositEnabled = ($depositDisabled === 0);
+                $tradeEnabled = ($tradeDisabled === 0);
+                $active = $listed && $withdrawEnabled && $depositEnabled && $tradeEnabled;
+                $result[$code] = array(
+                    'id' => $id,
+                    'code' => $code,
+                    'active' => $active,
+                    'info' => $currency,
+                    'name' => null,
+                    'fee' => null,
+                    'precision' => null,
+                    'limits' => array(
+                        'amount' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'price' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'cost' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'withdraw' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                    ),
+                );
+            }
+        }
+        return $result;
     }
 
     public function fetch_markets($params = array ()) {
