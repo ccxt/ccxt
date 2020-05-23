@@ -104,12 +104,11 @@ module.exports = class bitmax extends Exchange {
                         'wallet/deposit/address',
                     ],
                     'post': [
-                        'cash/order',
-                        'cash/order/batch',
-                        'futures/order',
-                        'futures/order/batch',
-                        'margin/order',
-                        'margin/order/batch',
+                        'margin/risk',
+                        'futures/transfer/deposit',
+                        'futures/transfer/withdraw',
+                        '{account-category}/order',
+                        '{account-category}/order/batch',
                     ],
                     'delete': [
                         'cash/order',
