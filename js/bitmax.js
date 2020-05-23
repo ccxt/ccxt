@@ -18,6 +18,9 @@ module.exports = class bitmax extends Exchange {
             // new metainfo interface
             'has': {
                 'CORS': false,
+                'fetchMarkets': true,
+                'fetchCurrencies': true,
+                'fetchOrderBook': true,
                 'fetchAccounts': true,
                 'fetchTickers': true,
                 'fetchOHLCV': true,
@@ -28,7 +31,6 @@ module.exports = class bitmax extends Exchange {
                 'fetchOrderTrades': false,
                 'fetchClosedOrders': true,
                 'fetchTransactions': false,
-                'fetchCurrencies': true,
                 'cancelAllOrders': true,
                 'fetchDepositAddress': true,
             },
@@ -377,7 +379,6 @@ module.exports = class bitmax extends Exchange {
             const quoteId = this.safeString (market, 'quoteAsset');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
             const precision = {
                 'amount': this.safeFloat (market, 'lotSize'),
                 'price': this.safeFloat (market, 'tickSize'),
@@ -387,6 +388,10 @@ module.exports = class bitmax extends Exchange {
             const type = ('useLot' in market) ? 'spot' : 'future';
             const spot = (type === 'spot');
             const future = (type === 'future');
+            let symbol = id;
+            if (!future) {
+                symbol = base + '/' + quote;
+            }
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -518,48 +523,35 @@ module.exports = class bitmax extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        if (limit !== undefined) {
-            request['n'] = limit; // default = maximum = 100
-        }
         const response = await this.publicGetDepth (this.extend (request, params));
         //
-        // {
-        //    "code": 0,
-        //    "data": {
-        //        "m": "depth-snapshot",
-        //        "symbol": "BTC/USDT",
-        //        "data": {
-        //            "ts": 1583558793465,
-        //            "seqnum": 8273359781,
-        //            "asks": [
-        //                [
-        //                    "9082.73",
-        //                    "1.31752"
-        //                ],
-        //                [
-        //                    "9082.76",
-        //                    "0.00342"
-        //                ]
-        //            ],
-        //            "bids": [
-        //                [
-        //                    "5532.27",
-        //                    "0.00606"
-        //                ],
-        //                [
-        //                    "4858.54",
-        //                    "0.02789"
-        //                ]
-        //            ]
-        //        }
-        //    }
-        // }
+        //     {
+        //         "code":0,
+        //         "data":{
+        //             "m":"depth-snapshot",
+        //             "symbol":"BTC-PERP",
+        //             "data":{
+        //                 "ts":1590223998202,
+        //                 "seqnum":115444921,
+        //                 "asks":[
+        //                     ["9207.5","18.2383"],
+        //                     ["9207.75","18.8235"],
+        //                     ["9208","10.7873"],
+        //                 ],
+        //                 "bids":[
+        //                     ["9207.25","0.4009"],
+        //                     ["9207","0.003"],
+        //                     ["9206.5","0.003"],
+        //                 ]
+        //             }
+        //         }
+        //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const records = this.safeValue (data, 'data', {});
-        const timestamp = this.safeInteger (records, 'ts');
-        const result = this.parseOrderBook (records, timestamp);
-        result['nonce'] = this.safeInteger (records, 'seqnum');
+        const orderbook = this.safeValue (data, 'data', {});
+        const timestamp = this.safeInteger (orderbook, 'ts');
+        const result = this.parseOrderBook (orderbook, timestamp);
+        result['nonce'] = this.safeInteger (orderbook, 'seqnum');
         return result;
     }
 
