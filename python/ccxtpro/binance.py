@@ -5,6 +5,7 @@
 
 from ccxtpro.base.exchange import Exchange
 import ccxt.async_support as ccxt
+from ccxtpro.base.cache import ArrayCache
 from ccxt.base.errors import ExchangeError
 
 
@@ -377,11 +378,11 @@ class binance(Exchange, ccxt.binance):
         event = self.safe_string(message, 'e')
         messageHash = lowerCaseId + '@' + event
         trade = self.parse_trade(message, market)
-        array = self.safe_value(self.trades, symbol, [])
+        array = self.safe_value(self.trades, symbol)
+        if array is None:
+            limit = self.safe_integer(self.options, 'tradesLimit', 1000)
+            array = ArrayCache(limit)
         array.append(trade)
-        length = len(array)
-        if length > self.options['tradesLimit']:
-            array.pop(0)
         self.trades[symbol] = array
         client.resolve(array, messageHash)
 

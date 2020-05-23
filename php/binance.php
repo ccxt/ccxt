@@ -423,12 +423,12 @@ class binance extends \ccxt\binance {
         $event = $this->safe_string($message, 'e');
         $messageHash = $lowerCaseId . '@' . $event;
         $trade = $this->parse_trade($message, $market);
-        $array = $this->safe_value($this->trades, $symbol, $array());
-        $array[] = $trade;
-        $length = is_array($array) ? count($array) : 0;
-        if ($length > $this->options['tradesLimit']) {
-            array_shift($array);
+        $array = $this->safe_value($this->trades, $symbol);
+        if ($array === null) {
+            $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
+            $array = new ArrayCache ($limit);
         }
+        $array->append ($trade);
         $this->trades[$symbol] = $array;
         $client->resolve ($array, $messageHash);
     }
