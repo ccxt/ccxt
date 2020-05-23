@@ -4,23 +4,17 @@
 
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFunds, InvalidOrder, BadSymbol } = require ('./base/errors');
-const { ROUND } = require ('./base/functions/number');
+const { ROUND, TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class bitmax extends Exchange {
     describe () {
-        // There are cash/margin/futures accounts for each bitmax user.
-        // You could provide it when call the api: params = {'account': 'cash'/'margin'/'futures'};
-        // or you can set in advance by calling setAccount(account), where account is one of 'cash'/'margin'/'futures'.
-        // e.g.  bitmax.createOrder('BTC-PERP', 'limit', 'buy', 0.01, 7125, params = {'account':'futures'})
-        // or bitmax.setAccount('futures')
         return this.deepExtend (super.describe (), {
             'id': 'bitmax',
             'name': 'BitMax',
             'countries': [ 'CN' ], // China
             'rateLimit': 500,
-            'certified': false,
             // new metainfo interface
             'has': {
                 'CORS': false,
@@ -57,33 +51,33 @@ module.exports = class bitmax extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/66820319-19710880-ef49-11e9-8fbe-16be62a11992.jpg',
                 'api': 'https://bitmax.io',
-                'test': 'https://bitmax-test.io/api',
+                'test': 'https://bitmax-test.io',
                 'www': 'https://bitmax.io',
                 'doc': [
-                    'https://bitmax-exchange.github.io/bitmax-pro-api/#rest-apis',
+                    'https://bitmax-exchange.github.io/bitmax-pro-api/#bitmax-pro-api-documentation',
                 ],
                 'fees': 'https://bitmax.io/#/feeRate/tradeRate',
-                'referral': 'https://bitmax.io/#/register?inviteCode=T6J9R0EB',
+                'referral': 'https://bitmax.io/#/register?inviteCode=EL6BXBQM',
             },
             'api': {
                 'public': {
                     'get': [
                         'assets',
-                        'barhist',
-                        'barhist/info',
-                        'cash/assets',
-                        'cash/products',
-                        'depth',
-                        'fees',
-                        'futures/collateral',
-                        'futures/contracts',
-                        'depth',
-                        'margin/assets',
-                        'margin/products',
-                        'margin/ref-price',
-                        'trades',
                         'products',
                         'ticker',
+                        'barhist/info',
+                        'barhist',
+                        'depth',
+                        'trades',
+                        'cash/assets', // not documented
+                        'cash/products', // not documented
+                        'margin/assets', // not documented
+                        'margin/products', // not documented
+                        'futures/collateral',
+                        'futures/contracts',
+                        'futures/ref-px',
+                        'futures/market-data',
+                        'futures/funding-rates',
                     ],
                 },
                 'private': {
@@ -135,6 +129,7 @@ module.exports = class bitmax extends Exchange {
                     'maker': 0.001,
                 },
             },
+            'precisionMode': TICK_SIZE,
             'options': {
                 'account': 'cash', // 'cash'/'margin'/'futures'
                 'accountGroup': undefined,
@@ -252,46 +247,106 @@ module.exports = class bitmax extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.publicGetProducts (params);
+        const products = await this.publicGetProducts (params);
         //
-        // {
-        //    "code": 0,
-        //    "data": [
-        //        {
-        //            "symbol": "DAD/USDT",
-        //            "baseAsset": "DAD",
-        //            "quoteAsset": "USDT",
-        //            "status": "Normal",
-        //            "minNotional": "5",
-        //            "maxNotional": "50000",
-        //            "marginTradable": False,
-        //            "commissionType": "Quote",
-        //            "commissionReserveRate": "0.001",
-        //            "tickSize": "0.00001",
-        //            "lotSize": "1"
-        //        }
-        //    ]
-        // }
+        //     {
+        //         "code":0,
+        //         "data":[
+        //             {
+        //                 "symbol":"LBA/BTC",
+        //                 "baseAsset":"LBA",
+        //                 "quoteAsset":"BTC",
+        //                 "status":"Normal",
+        //                 "minNotional":"0.000625",
+        //                 "maxNotional":"6.25",
+        //                 "marginTradable":false,
+        //                 "commissionType":"Quote",
+        //                 "commissionReserveRate":"0.001",
+        //                 "tickSize":"0.000000001",
+        //                 "lotSize":"1"
+        //             },
+        //         ]
+        //     }
         //
+        const cash = await this.publicGetCashProducts (params);
+        //
+        //     {
+        //         "code":0,
+        //         "data":[
+        //             {
+        //                 "symbol":"QTUM/BTC",
+        //                 "domain":"BTC",
+        //                 "tradingStartTime":1569506400000,
+        //                 "collapseDecimals":"0.0001,0.000001,0.00000001",
+        //                 "minQty":"0.000000001",
+        //                 "maxQty":"1000000000",
+        //                 "minNotional":"0.000625",
+        //                 "maxNotional":"12.5",
+        //                 "statusCode":"Normal",
+        //                 "statusMessage":"",
+        //                 "tickSize":"0.00000001",
+        //                 "useTick":false,
+        //                 "lotSize":"0.1",
+        //                 "useLot":false,
+        //                 "commissionType":"Quote",
+        //                 "commissionReserveRate":"0.001",
+        //                 "qtyScale":1,
+        //                 "priceScale":8,
+        //                 "notionalScale":4
+        //             }
+        //         ]
+        //     }
+        //
+        const futures = await this.publicGetFuturesContracts (params);
+        //
+        //     {
+        //         "code":0,
+        //         "data":[
+        //             {
+        //                 "symbol":"BTC-PERP",
+        //                 "tradingStartTime":1579701600000,
+        //                 "collapseDecimals":"1,0.1,0.01",
+        //                 "minQty":"0.000000001",
+        //                 "maxQty":"1000000000",
+        //                 "minNotional":"5",
+        //                 "maxNotional":"1000000",
+        //                 "statusCode":"Normal",
+        //                 "statusMessage":"",
+        //                 "tickSize":"0.25",
+        //                 "lotSize":"0.0001",
+        //                 "priceScale":2,
+        //                 "qtyScale":4,
+        //                 "notionalScale":2
+        //             }
+        //         ]
+        //     }
+        //
+        const productsData = this.safeValue (products, 'data', []);
+        const productsById = this.indexBy (productsData, 'symbol');
+        const cashData = this.safeValue (cash, 'data', []);
+        const futuresData = this.safeValue (futures, 'data', []);
+        const cashAndFuturesData = this.arrayConcat (cashData, futuresData);
+        const cashAndFuturesById = this.indexBy (cashAndFuturesData, 'symbol');
+        const dataById = this.deepExtend (productsById, cashAndFuturesById);
+        const ids = Object.keys (dataById);
         const result = [];
-        if (this.safeValue (response, 'code', -1) !== 0) {
-            return result;
-        }
-        const records = this.safeValue (response, 'data', []);
-        for (let i = 0; i < records.length; i++) {
-            const market = records[i];
-            const id = this.safeString (market, 'symbol');
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            const market = dataById[id];
             const baseId = this.safeString (market, 'baseAsset');
             const quoteId = this.safeString (market, 'quoteAsset');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = id; // base + '/' + quote;
+            const symbol = base + '/' + quote;
             const precision = {
-                'amount': this.precisionFromString (this.safeString (market, 'lotSize')),
-                'price': this.precisionFromString (this.safeString (market, 'tickSize')),
+                'amount': this.safeFloat (market, 'lotSize'),
+                'price': this.safeFloat (market, 'tickSize'),
             };
             const status = this.safeString (market, 'status');
             const active = (status === 'Normal');
+            const type = ('useLot' in market) ? 'spot' : 'future';
+            const spot = (type === 'spot');
+            const future = (type === 'future');
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -300,12 +355,15 @@ module.exports = class bitmax extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
+                'type': type,
+                'spot': spot,
+                'future': future,
                 'active': active,
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': this.safeFloat (market, 'lotSize'),
-                        'max': undefined,
+                        'min': this.safeFloat (market, 'minQty'),
+                        'max': this.safeFloat (market, 'maxQty'),
                     },
                     'price': {
                         'min': this.safeFloat (market, 'tickSize'),
