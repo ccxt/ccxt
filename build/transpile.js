@@ -74,6 +74,13 @@ class CCXTProTranspiler extends Transpiler {
 
 
     createPythonClassHeader (ccxtImports, bodyAsString) {
+        let imports = ccxtImports
+        if (bodyAsString.includes ('ArrayCache')) {
+            imports = [
+                ... ccxtImports,
+                'from ccxtpro.base.cache import ArrayCache',
+            ]
+        }
         return [
             "# -*- coding: utf-8 -*-",
             "",
@@ -81,9 +88,9 @@ class CCXTProTranspiler extends Transpiler {
             "# https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code",
             "",
             // "from ccxtpro.base.exchange import Exchange",
-            ... ccxtImports,
+            ... imports,
             // 'from ' + importFrom + ' import ' + baseClass,
-            ... (bodyAsString.match (/basestring/) ? [
+            ... (bodyAsString.includes ('basestring') ? [
                 "",
                 "# -----------------------------------------------------------------------------",
                 "",
@@ -127,8 +134,34 @@ class CCXTProTranspiler extends Transpiler {
         const jsFile = './js/test/base/test.OrderBook.js'
         const pyFile = './python/test/test_order_book.py'
         const phpFile = './php/test/OrderBook.php'
+        const pyImports = [
+            '',
+            'from ccxtpro.base.order_book import OrderBook, IndexedOrderBook, CountedOrderBook, IncrementalOrderBook, IncrementalIndexedOrderBook  # noqa: F402',
+            '',
+        ].join ('\n')
+        this.transpileTest (jsFile, pyFile, phpFile, pyImports)
+    }
+
+    // ------------------------------------------------------------------------
+
+    transpileCacheTest () {
+        const jsFile = './js/test/base/test.Cache.js'
+        const pyFile = './python/test/test_cache.py'
+        const phpFile = './php/test/Cache.php'
+        const pyImports = [
+            '',
+            'from ccxtpro.base.cache import ArrayCache  # noqa: F402',
+            '',
+        ].join ('\n')
+        this.transpileTest (jsFile, pyFile, phpFile, pyImports)
+    }
+
+    // ------------------------------------------------------------------------
+
+    transpileTest (jsFile, pyFile, phpFile, pyImports) {
 
         log.magenta ('Transpiling from', jsFile.yellow)
+
         let js = fs.readFileSync (jsFile).toString ()
 
         js = this.regexAll (js, [
@@ -140,25 +173,22 @@ class CCXTProTranspiler extends Transpiler {
         const options = { js, removeEmptyLines: false }
         const transpiled = this.transpileJavaScriptToPythonAndPHP (options)
         const { python3Body, python2Body, phpBody } = transpiled
-
         const pythonHeader = [
-            "",
-            "from ccxtpro.base.order_book import OrderBook, IndexedOrderBook, CountedOrderBook, IncrementalOrderBook, IncrementalIndexedOrderBook  # noqa: F402",
-            "",
-            "",
-            "def equals(a, b):",
-            "    return a == b",
-            "",
-        ].join ("\n")
+            '',
+            '',
+            'def equals(a, b):',
+            '    return a == b',
+            '',
+        ].join ('\n')
 
         const phpHeader = [
-            "",
-            "function equals($a, $b) {",
-            "    return json_encode($a) === json_encode($b);",
-            "}",
-        ].join ("\n")
+            '',
+            'function equals($a, $b) {',
+            '    return json_encode($a) === json_encode($b);',
+            '}',
+        ].join ('\n')
 
-        const python = this.getPythonPreamble () + pythonHeader + python2Body
+        const python = this.getPythonPreamble () + pyImports + pythonHeader + python2Body
         const php = this.getPHPPreamble () + phpHeader + phpBody
 
         log.magenta ('→', pyFile.yellow)
@@ -198,6 +228,7 @@ class CCXTProTranspiler extends Transpiler {
         createFolderRecursively (python3Folder)
         createFolderRecursively (phpFolder)
 
+        this.transpileCacheTest ()
         this.transpileOrderBookTest ()
         const classes = this.transpileDerivedExchangeFiles ('./js/', options, pattern)
 

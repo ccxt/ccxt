@@ -2,6 +2,8 @@
 
 function test_watch_ticker($exchange, $symbol) {
 
+    echo __FUNCTION__ . "\n";
+
     $future = new \ccxtpro\Future();
 
     if (array_key_exists('watchTicker', $exchange->has) && $exchange->has['watchTicker']) {
@@ -26,5 +28,4 @@ function test_watch_ticker($exchange, $symbol) {
     }
 
     return $future;
-
 }

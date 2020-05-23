@@ -6,6 +6,7 @@ date_default_timezone_set('UTC');
 require_once 'vendor/autoload.php';
 include_once 'php/test/Exchange/test_watch_order_book.php';
 include_once 'php/test/Exchange/test_watch_ticker.php';
+include_once 'php/test/Exchange/test_watch_trades.php';
 
 if (count($argv) < 2) {
     echo "Exchange id not specified\n";
