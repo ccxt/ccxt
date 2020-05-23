@@ -180,47 +180,87 @@ module.exports = class bitmax extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        const response = await this.publicGetAssets (params);
+        const assets = await this.publicGetAssets (params);
         //
-        // {
-        //    "code": 0,
-        //    "data": [
-        //        {
-        //            "assetCode": "ONG",
-        //            "assetName": "ONG",
-        //            "precisionScale": 9,
-        //            "nativeScale": 3,
-        //            "withdrawalFee": "1.0",
-        //            "minWithdrawalAmt": "2.0",
-        //            "status": "Normal"
-        //        }
-        //    ]
-        // }
+        //     {
+        //         "code":0,
+        //         "data":[
+        //             {
+        //                 "assetCode" : "LTCBULL",
+        //                 "assetName" : "3X Long LTC Token",
+        //                 "precisionScale" : 9,
+        //                 "nativeScale" : 4,
+        //                 "withdrawalFee" : "0.2",
+        //                 "minWithdrawalAmt" : "1.0",
+        //                 "status" : "Normal"
+        //             },
+        //         ]
+        //     }
         //
+        const margin = await this.publicGetMarginAssets (params);
+        //
+        //     {
+        //         "code":0,
+        //         "data":[
+        //             {
+        //                 "assetCode":"BTT",
+        //                 "borrowAssetCode":"BTT-B",
+        //                 "interestAssetCode":"BTT-I",
+        //                 "nativeScale":0,
+        //                 "numConfirmations":1,
+        //                 "withdrawFee":"100.0",
+        //                 "minWithdrawalAmt":"1000.0",
+        //                 "statusCode":"Normal",
+        //                 "statusMessage":"",
+        //                 "interestRate":"0.001"
+        //             }
+        //         ]
+        //     }
+        //
+        const cash = await this.publicGetCashAssets (params);
+        //
+        //     {
+        //         "code":0,
+        //         "data":[
+        //             {
+        //                 "assetCode":"LTCBULL",
+        //                 "nativeScale":4,
+        //                 "numConfirmations":20,
+        //                 "withdrawFee":"0.2",
+        //                 "minWithdrawalAmt":"1.0",
+        //                 "statusCode":"Normal",
+        //                 "statusMessage":""
+        //             }
+        //         ]
+        //     }
+        //
+        const assetsData = this.safeValue (assets, 'data', []);
+        const marginData = this.safeValue (margin, 'data', []);
+        const cashData = this.safeValue (cash, 'data', []);
+        const assetsById = this.indexBy (assetsData, 'assetCode');
+        const marginById = this.indexBy (marginData, 'assetCode');
+        const cashById = this.indexBy (cashData, 'assetCode');
+        const dataById = this.deepExtend (assetsById, marginById, cashById);
+        const ids = Object.keys (dataById);
         const result = {};
-        if (this.safeValue (response, 'code', -1) !== 0) {
-            return result;
-        }
-        const records = this.safeValue (response, 'data', []);
-        for (let i = 0; i < records.length; i++) {
-            const currency = records[i];
-            const id = this.safeString (currency, 'assetCode');
-            // todo: will need to rethink the fees
-            // to add support for multiple withdrawal/deposit methods and
-            // differentiated fees for each particular method
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            const currency = dataById[id];
             const code = this.safeCurrencyCode (id);
-            const precision = this.safeInteger (currency, 'precisionScale');
-            const fee = this.safeFloat (currency, 'withdrawalFee'); // todo: redesign
-            const status = this.safeString (currency, 'status');
+            const precision = this.safeInteger2 (currency, 'precisionScale', 'nativeScale');
+            // why would the exchange API have different names for the same field
+            const fee = this.safeFloat2 (currency, 'withdrawFee', 'withdrawalFee');
+            const status = this.safeString2 (currency, 'status', 'statusCode');
             const active = (status === 'Normal');
+            const margin = ('borrowAssetCode' in currency);
             result[code] = {
                 'id': id,
                 'code': code,
                 'info': currency,
                 'type': undefined,
+                'margin': margin,
                 'name': this.safeString (currency, 'assetName'),
                 'active': active,
-                // Todo: tiered fee make fee calculation complicated now. To provide separate fee related method.
                 'fee': fee,
                 'precision': precision,
                 'limits': {
