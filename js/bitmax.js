@@ -22,8 +22,8 @@ module.exports = class bitmax extends Exchange {
                 'fetchCurrencies': true,
                 'fetchOrderBook': true,
                 'fetchTicker': true,
-                'fetchAccounts': true,
                 'fetchTickers': true,
+                'fetchAccounts': true,
                 'fetchOHLCV': true,
                 'fetchMyTrades': false,
                 'fetchOrder': true,
@@ -558,53 +558,67 @@ module.exports = class bitmax extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         //
-        // {
-        //    'symbol': 'BTC/USDT',
-        //    'open': '8086.63',
-        //    'close': '7846.16',
-        //    'high': '7846.16',
-        //    'low': '7846.16',
-        //    'volume': '8100.10864',
-        //    'ask': ['7847.7', '0.52882'],
-        //    'bid': ['7846.87', '3.9718']
-        // }
+        //     {
+        //         "symbol":"QTUM/BTC",
+        //         "open":"0.00016537",
+        //         "close":"0.00019077",
+        //         "high":"0.000192",
+        //         "low":"0.00016537",
+        //         "volume":"846.6",
+        //         "ask":["0.00018698","26.2"],
+        //         "bid":["0.00018408","503.7"],
+        //         "type":"spot"
+        //     }
         //
-        let timestamp = this.milliseconds ();
-        timestamp = timestamp - timestamp % 60000;
-        let symbol = undefined;
+        const timestamp = undefined;
         const marketId = this.safeString (ticker, 'symbol');
+        let symbol = marketId;
         if (marketId in this.markets_by_id) {
             market = this.markets_by_id[marketId];
         } else if (marketId !== undefined) {
-            const [ baseId, quoteId ] = marketId.split ('/');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            symbol = base + '/' + quote;
+            const type = this.safeString (ticker, 'type');
+            if (type === 'spot') {
+                const [ baseId, quoteId ] = marketId.split ('/');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
         }
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
-        const last = this.safeFloat (ticker, 'close');
-        const bid = this.safeValue (ticker, 'bid', [undefined, undefined]);
-        const ask = this.safeValue (ticker, 'ask', [undefined, undefined]);
+        const close = this.safeFloat (ticker, 'close');
+        const bid = this.safeValue (ticker, 'bid', []);
+        const ask = this.safeValue (ticker, 'ask', []);
+        const open = this.safeFloat (ticker, 'open');
+        let change = undefined;
+        let percentage = undefined;
+        let average = undefined;
+        if ((open !== undefined) && (close !== undefined)) {
+            change = close - open;
+            if (open > 0) {
+                percentage = change / open * 100;
+            }
+            average = this.sum (open, close) / 2;
+        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': this.safeFloat (ticker, 'high'),
             'low': this.safeFloat (ticker, 'low'),
-            'bid': bid[0],
-            'bidVolume': bid[1],
-            'ask': ask[0],
-            'askVolume': ask[1],
+            'bid': this.safeFloat (bid, 0),
+            'bidVolume': this.safeFloat (bid, 1),
+            'ask': this.safeFloat (ask, 0),
+            'askVolume': this.safeFloat (ask, 1),
             'vwap': undefined,
-            'open': this.safeFloat (ticker, 'open'),
-            'close': last,
-            'last': last,
+            'open': open,
+            'close': close,
+            'last': close,
             'previousClose': undefined, // previous day close
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
+            'change': change,
+            'percentage': percentage,
+            'average': average,
             'baseVolume': this.safeFloat (ticker, 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
@@ -649,16 +663,31 @@ module.exports = class bitmax extends Exchange {
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
-        if (symbols !== undefined && symbols.length > 0) {
-            let symbol = this.market (symbols[0])['id'];
-            for (let i = 1; i < symbols.length; i++) {
-                const market = this.market (symbols[i]);
-                symbol = symbol + ',' + market['id'];
-            }
+        if (symbols !== undefined) {
+            const marketIds = this.marketIds (symbols);
+            request['symbol'] = marketIds.join (',');
         }
         const response = await this.publicGetTicker (this.extend (request, params));
-        const tickers = this.safeValue (response, 'data', []);
-        return this.parseTickers (tickers, symbols);
+        //
+        //     {
+        //         "code":0,
+        //         "data":[
+        //             {
+        //                 "symbol":"QTUM/BTC",
+        //                 "open":"0.00016537",
+        //                 "close":"0.00019077",
+        //                 "high":"0.000192",
+        //                 "low":"0.00016537",
+        //                 "volume":"846.6",
+        //                 "ask":["0.00018698","26.2"],
+        //                 "bid":["0.00018408","503.7"],
+        //                 "type":"spot"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTickers (data, symbols);
     }
 
     parseOHLCV (ohlcvRecord, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
