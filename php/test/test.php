@@ -35,9 +35,9 @@ function test_public($exchange, $symbol) {
     //
     test_watch_order_book($exchange, $symbol)->then(function() use ($exchange, $symbol, $future) {
         test_watch_ticker($exchange, $symbol)->then(function() use ($exchange, $symbol, $future) {
-        //     test_watch_trades($exchange, $symbol)->then(function() use ($exchange, $symbol, $future) {
+            test_watch_trades($exchange, $symbol)->then(function() use ($exchange, $symbol, $future) {
                 $future->resolve(true);
-        //     });
+            });
         });
     });
     //
