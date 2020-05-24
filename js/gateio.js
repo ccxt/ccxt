@@ -195,7 +195,7 @@ module.exports = class gateio extends Exchange {
         if (!coins) {
             throw new ExchangeError (this.id + ' fetchCurrencies got an unrecognized response');
         }
-        const result = [];
+        const result = {};
         for (let i = 0; i < coins.length; i++) {
             const coin = coins[i];
             const ids = Object.keys (coin);
