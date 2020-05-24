@@ -1389,6 +1389,8 @@ class binance extends Exchange {
         }
         $this->load_markets();
         $market = $this->market($symbol);
+        $defaultType = $this->safe_string_2($this->options, 'fetchOpenOrders', 'defaultType', $market['type']);
+        $type = $this->safe_string($params, 'type', $defaultType);
         // https://github.com/ccxt/ccxt/issues/6507
         $origClientOrderId = $this->safe_value($params, 'origClientOrderId');
         $request = array(
@@ -1401,8 +1403,14 @@ class binance extends Exchange {
         } else {
             $request['origClientOrderId'] = $origClientOrderId;
         }
-        $method = $market['spot'] ? 'privateDeleteOrder' : 'fapiPrivateDeleteOrder';
-        $response = $this->$method (array_merge($request, $params));
+        $method = 'privateDeleteOrder';
+        if ($type === 'future') {
+            $method = 'fapiPrivateDeleteOrder';
+        } else if ($type === 'margin') {
+            $method = 'sapiDeleteMarginOrder';
+        }
+        $query = $this->omit($params, 'type');
+        $response = $this->$method (array_merge($request, $query));
         return $this->parse_order($response);
     }
 

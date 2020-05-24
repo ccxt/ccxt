@@ -1300,6 +1300,8 @@ class binance(Exchange):
             raise ArgumentsRequired(self.id + ' cancelOrder requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
+        defaultType = self.safe_string_2(self.options, 'fetchOpenOrders', 'defaultType', market['type'])
+        type = self.safe_string(params, 'type', defaultType)
         # https://github.com/ccxt/ccxt/issues/6507
         origClientOrderId = self.safe_value(params, 'origClientOrderId')
         request = {
@@ -1311,8 +1313,13 @@ class binance(Exchange):
             request['orderId'] = int(id)
         else:
             request['origClientOrderId'] = origClientOrderId
-        method = 'privateDeleteOrder' if market['spot'] else 'fapiPrivateDeleteOrder'
-        response = getattr(self, method)(self.extend(request, params))
+        method = 'privateDeleteOrder'
+        if type == 'future':
+            method = 'fapiPrivateDeleteOrder'
+        elif type == 'margin':
+            method = 'sapiDeleteMarginOrder'
+        query = self.omit(params, 'type')
+        response = getattr(self, method)(self.extend(request, query))
         return self.parse_order(response)
 
     def cancel_all_orders(self, symbol=None, params={}):
