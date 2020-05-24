@@ -593,6 +593,23 @@ module.exports = class binance extends Exchange {
         //         ]
         //     }
         //
+        // margin
+        //
+        //     {
+        //         "borrowEnabled":true,
+        //         "marginLevel":"999.00000000",
+        //         "totalAssetOfBtc":"0.00000000",
+        //         "totalLiabilityOfBtc":"0.00000000",
+        //         "totalNetAssetOfBtc":"0.00000000",
+        //         "tradeEnabled":true,
+        //         "transferEnabled":true,
+        //         "userAssets":[
+        //             {"asset":"MATIC","borrowed":"0.00000000","free":"0.00000000","interest":"0.00000000","locked":"0.00000000","netAsset":"0.00000000"},
+        //             {"asset":"VET","borrowed":"0.00000000","free":"0.00000000","interest":"0.00000000","locked":"0.00000000","netAsset":"0.00000000"},
+        //             {"asset":"USDT","borrowed":"0.00000000","free":"0.00000000","interest":"0.00000000","locked":"0.00000000","netAsset":"0.00000000"}
+        //         ],
+        //     }
+        //
         // futures (fapi)
         //
         //     {
@@ -635,8 +652,8 @@ module.exports = class binance extends Exchange {
         //     }
         //
         const result = { 'info': response };
-        if (type === 'spot') {
-            const balances = this.safeValue (response, 'balances', []);
+        if ((type === 'spot') || (type === 'margin')) {
+            const balances = this.safeValue2 (response, 'balances', 'userAssets', []);
             for (let i = 0; i < balances.length; i++) {
                 const balance = balances[i];
                 const currencyId = this.safeString (balance, 'asset');
