@@ -689,7 +689,7 @@ class kucoin extends Exchange {
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $level = $this->safe_integer($params, 'level', 2);
         $levelLimit = (string) $level;
-        if ($level === '2') {
+        if ($levelLimit === '2') {
             if ($limit !== null) {
                 if (($limit !== 20) && ($limit !== 100)) {
                     throw new ExchangeError($this->id . ' fetchOrderBook $limit argument must be null, 20 or 100');

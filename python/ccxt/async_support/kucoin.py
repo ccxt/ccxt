@@ -671,7 +671,7 @@ class kucoin(Exchange):
     async def fetch_order_book(self, symbol, limit=None, params={}):
         level = self.safe_integer(params, 'level', 2)
         levelLimit = str(level)
-        if level == '2':
+        if levelLimit == '2':
             if limit is not None:
                 if (limit != 20) and (limit != 100):
                     raise ExchangeError(self.id + ' fetchOrderBook limit argument must be None, 20 or 100')
