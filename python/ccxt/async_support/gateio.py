@@ -204,7 +204,7 @@ class gateio(Exchange):
         coins = self.safe_value(response, 'coins')
         if not coins:
             raise ExchangeError(self.id + ' fetchCurrencies got an unrecognized response')
-        result = []
+        result = {}
         for i in range(0, len(coins)):
             coin = coins[i]
             ids = list(coin.keys())
