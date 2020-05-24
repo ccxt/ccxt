@@ -1276,7 +1276,14 @@ class binance extends Exchange {
         }
         $this->load_markets();
         $market = $this->market($symbol);
-        $method = $market['spot'] ? 'privateGetOrder' : 'fapiPrivateGetOrder';
+        $defaultType = $this->safe_string_2($this->options, 'fetchOrder', 'defaultType', $market['type']);
+        $type = $this->safe_string($params, 'type', $defaultType);
+        $method = 'privateGetOrder';
+        if ($type === 'future') {
+            $method = 'fapiPrivateGetOrder';
+        } else if ($type === 'margin') {
+            $method = 'sapiGetMarginOrder';
+        }
         $request = array(
             'symbol' => $market['id'],
         );
@@ -1286,7 +1293,8 @@ class binance extends Exchange {
         } else {
             $request['orderId'] = intval ($id);
         }
-        $response = $this->$method (array_merge($request, $params));
+        $query = $this->omit($params, 'type');
+        $response = $this->$method (array_merge($request, $query));
         return $this->parse_order($response, $market);
     }
 
