@@ -593,6 +593,23 @@ class binance(Exchange):
         #         ]
         #     }
         #
+        # margin
+        #
+        #     {
+        #         "borrowEnabled":true,
+        #         "marginLevel":"999.00000000",
+        #         "totalAssetOfBtc":"0.00000000",
+        #         "totalLiabilityOfBtc":"0.00000000",
+        #         "totalNetAssetOfBtc":"0.00000000",
+        #         "tradeEnabled":true,
+        #         "transferEnabled":true,
+        #         "userAssets":[
+        #             {"asset":"MATIC","borrowed":"0.00000000","free":"0.00000000","interest":"0.00000000","locked":"0.00000000","netAsset":"0.00000000"},
+        #             {"asset":"VET","borrowed":"0.00000000","free":"0.00000000","interest":"0.00000000","locked":"0.00000000","netAsset":"0.00000000"},
+        #             {"asset":"USDT","borrowed":"0.00000000","free":"0.00000000","interest":"0.00000000","locked":"0.00000000","netAsset":"0.00000000"}
+        #         ],
+        #     }
+        #
         # futures(fapi)
         #
         #     {
@@ -635,8 +652,8 @@ class binance(Exchange):
         #     }
         #
         result = {'info': response}
-        if type == 'spot':
-            balances = self.safe_value(response, 'balances', [])
+        if (type == 'spot') or (type == 'margin'):
+            balances = self.safe_value_2(response, 'balances', 'userAssets', [])
             for i in range(0, len(balances)):
                 balance = balances[i]
                 currencyId = self.safe_string(balance, 'asset')

@@ -600,6 +600,23 @@ class binance extends Exchange {
         //         )
         //     }
         //
+        // margin
+        //
+        //     {
+        //         "borrowEnabled":true,
+        //         "marginLevel":"999.00000000",
+        //         "totalAssetOfBtc":"0.00000000",
+        //         "totalLiabilityOfBtc":"0.00000000",
+        //         "totalNetAssetOfBtc":"0.00000000",
+        //         "tradeEnabled":true,
+        //         "transferEnabled":true,
+        //         "userAssets":array(
+        //             array("asset":"MATIC","borrowed":"0.00000000","free":"0.00000000","interest":"0.00000000","locked":"0.00000000","netAsset":"0.00000000"),
+        //             array("asset":"VET","borrowed":"0.00000000","free":"0.00000000","interest":"0.00000000","locked":"0.00000000","netAsset":"0.00000000"),
+        //             array("asset":"USDT","borrowed":"0.00000000","free":"0.00000000","interest":"0.00000000","locked":"0.00000000","netAsset":"0.00000000")
+        //         ),
+        //     }
+        //
         // futures (fapi)
         //
         //     {
@@ -642,8 +659,8 @@ class binance extends Exchange {
         //     }
         //
         $result = array( 'info' => $response );
-        if ($type === 'spot') {
-            $balances = $this->safe_value($response, 'balances', array());
+        if (($type === 'spot') || ($type === 'margin')) {
+            $balances = $this->safe_value_2($response, 'balances', 'userAssets', array());
             for ($i = 0; $i < count($balances); $i++) {
                 $balance = $balances[$i];
                 $currencyId = $this->safe_string($balance, 'asset');
