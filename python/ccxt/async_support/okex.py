@@ -1816,7 +1816,10 @@ class okex(Exchange):
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        type = market['type']
+        defaultType = self.safe_string_2(self.options, 'cancelOrder', 'defaultType', market['type'])
+        type = self.safe_string(params, 'type', defaultType)
+        if type is None:
+            raise ArgumentsRequired(self.id + " cancelOrder requires a type parameter(one of 'spot', 'margin', 'futures', 'swap').")
         method = type + 'PostCancelOrder'
         request = {
             'instrument_id': market['id'],

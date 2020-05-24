@@ -1862,7 +1862,11 @@ class okex extends Exchange {
         }
         $this->load_markets();
         $market = $this->market($symbol);
-        $type = $market['type'];
+        $defaultType = $this->safe_string_2($this->options, 'cancelOrder', 'defaultType', $market['type']);
+        $type = $this->safe_string($params, 'type', $defaultType);
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . " cancelOrder requires a $type parameter (one of 'spot', 'margin', 'futures', 'swap').");
+        }
         $method = $type . 'PostCancelOrder';
         $request = array(
             'instrument_id' => $market['id'],
