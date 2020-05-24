@@ -29,6 +29,9 @@ async def main(asyncio_loop):
     market = exchange.market(symbol)
     try:
         response = await exchange.margin_post_accounts_borrow({
+            # uncomment to set a user-defined order id for this borrow
+            # this may be handy if you're going to repay it later by this id
+            # 'client_oid': exchange.uuid(),  # can be any unique string
             'instrument_id': market['id'],
             'currency': currency['id'],
             'amount': exchange.currency_to_precision(code, amount)
