@@ -1276,8 +1276,9 @@ class binance(Exchange):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-            type = market['type']
-            query = params
+            defaultType = self.safe_string_2(self.options, 'fetchOpenOrders', 'defaultType', market['type'])
+            type = self.safe_string(params, 'type', defaultType)
+            query = self.omit(params, 'type')
         elif self.options['warnOnFetchOpenOrdersWithoutSymbol']:
             symbols = self.symbols
             numSymbols = len(symbols)
@@ -1287,7 +1288,11 @@ class binance(Exchange):
             defaultType = self.safe_string_2(self.options, 'fetchOpenOrders', 'defaultType', 'spot')
             type = self.safe_string(params, 'type', defaultType)
             query = self.omit(params, 'type')
-        method = 'privateGetOpenOrders' if (type == 'spot') else 'fapiPrivateGetOpenOrders'
+        method = 'privateGetOpenOrders'
+        if type == 'futures':
+            method = 'fapiPrivateGetOpenOrders'
+        elif type == 'margin':
+            method = 'sapiGetMarginOpenOrders'
         response = await getattr(self, method)(self.extend(request, query))
         return self.parse_orders(response, market, since, limit)
 

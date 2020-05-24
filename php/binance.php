@@ -1361,8 +1361,9 @@ class binance extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
-            $type = $market['type'];
-            $query = $params;
+            $defaultType = $this->safe_string_2($this->options, 'fetchOpenOrders', 'defaultType', $market['type']);
+            $type = $this->safe_string($params, 'type', $defaultType);
+            $query = $this->omit($params, 'type');
         } else if ($this->options['warnOnFetchOpenOrdersWithoutSymbol']) {
             $symbols = $this->symbols;
             $numSymbols = is_array($symbols) ? count($symbols) : 0;
@@ -1373,7 +1374,12 @@ class binance extends Exchange {
             $type = $this->safe_string($params, 'type', $defaultType);
             $query = $this->omit($params, 'type');
         }
-        $method = ($type === 'spot') ? 'privateGetOpenOrders' : 'fapiPrivateGetOpenOrders';
+        $method = 'privateGetOpenOrders';
+        if ($type === 'futures') {
+            $method = 'fapiPrivateGetOpenOrders';
+        } else if ($type === 'margin') {
+            $method = 'sapiGetMarginOpenOrders';
+        }
         $response = $this->$method (array_merge($request, $query));
         return $this->parse_orders($response, $market, $since, $limit);
     }
