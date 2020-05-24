@@ -686,7 +686,7 @@ module.exports = class kucoin extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         const level = this.safeInteger (params, 'level', 2);
         let levelLimit = level.toString ();
-        if (level === '2') {
+        if (levelLimit === '2') {
             if (limit !== undefined) {
                 if ((limit !== 20) && (limit !== 100)) {
                     throw new ExchangeError (this.id + ' fetchOrderBook limit argument must be undefined, 20 or 100');
