@@ -378,12 +378,12 @@ class binance(Exchange):
         defaultType = self.safe_string_2(self.options, 'fetchMarkets', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
         query = self.omit(params, 'type')
-        if (type != 'spot') and (type != 'future'):
-            raise ExchangeError(self.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to 'spot' or 'future'")  # eslint-disable-line quotes
-        method = 'publicGetExchangeInfo' if (type == 'spot') else 'fapiPublicGetExchangeInfo'
+        if (type != 'spot') and (type != 'future') and (type != 'margin'):
+            raise ExchangeError(self.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to 'spot', 'margin' or 'future'")  # eslint-disable-line quotes
+        method = 'fapiPublicGetExchangeInfo' if (type == 'future') else 'publicGetExchangeInfo'
         response = await getattr(self, method)(query)
         #
-        # spot
+        # spot / margin
         #
         #     {
         #         "timezone":"UTC",
@@ -483,6 +483,7 @@ class binance(Exchange):
             }
             status = self.safe_string(market, 'status')
             active = (status == 'TRADING')
+            margin = self.safe_value(market, 'isMarginTradingAllowed', future)
             entry = {
                 'id': id,
                 'lowercaseId': lowercaseId,
@@ -494,6 +495,7 @@ class binance(Exchange):
                 'info': market,
                 'type': marketType,
                 'spot': spot,
+                'margin': margin,
                 'future': future,
                 'active': active,
                 'precision': precision,

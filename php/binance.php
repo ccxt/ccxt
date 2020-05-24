@@ -373,13 +373,13 @@ class binance extends Exchange {
         $defaultType = $this->safe_string_2($this->options, 'fetchMarkets', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
         $query = $this->omit($params, 'type');
-        if (($type !== 'spot') && ($type !== 'future')) {
-            throw new ExchangeError($this->id . " does not support '" . $type . "' $type, set exchange.options['defaultType'] to 'spot' or 'future'"); // eslint-disable-line quotes
+        if (($type !== 'spot') && ($type !== 'future') && ($type !== 'margin')) {
+            throw new ExchangeError($this->id . " does not support '" . $type . "' $type, set exchange.options['defaultType'] to 'spot', 'margin' or 'future'"); // eslint-disable-line quotes
         }
-        $method = ($type === 'spot') ? 'publicGetExchangeInfo' : 'fapiPublicGetExchangeInfo';
+        $method = ($type === 'future') ? 'fapiPublicGetExchangeInfo' : 'publicGetExchangeInfo';
         $response = $this->$method ($query);
         //
-        // $spot
+        // $spot / $margin
         //
         //     {
         //         "timezone":"UTC",
@@ -480,6 +480,7 @@ class binance extends Exchange {
             );
             $status = $this->safe_string($market, 'status');
             $active = ($status === 'TRADING');
+            $margin = $this->safe_value($market, 'isMarginTradingAllowed', $future);
             $entry = array(
                 'id' => $id,
                 'lowercaseId' => $lowercaseId,
@@ -491,6 +492,7 @@ class binance extends Exchange {
                 'info' => $market,
                 'type' => $marketType,
                 'spot' => $spot,
+                'margin' => $margin,
                 'future' => $future,
                 'active' => $active,
                 'precision' => $precision,
