@@ -18,8 +18,10 @@ async def main(asyncio_loop):
         'apiKey': 'YOUR_API_KEY',
         'secret': 'YOUR_SECRET',
         "options": {
-            "fetchBalance": "margin"
-        }
+            "fetchBalance": "margin",
+        },
+        # set verbose mode to True for debugging output
+        'verbose': True,
     })
     while True:
         try:
