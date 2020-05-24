@@ -417,6 +417,7 @@ declare module 'ccxt' {
         marketIds (symbols: string[]): string[];
         microseconds (): number;
         nonce (): number;
+        parseTimeframe (timeframe: string): number;
         purgeCachedOrders (timestamp: number): void;
         request (path: string, api?: string, method?: string, params?: Params, headers?: any, body?: any): Promise<any>;
         seconds (): number;
