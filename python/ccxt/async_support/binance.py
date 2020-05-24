@@ -1221,6 +1221,13 @@ class binance(Exchange):
             raise ArgumentsRequired(self.id + ' fetchOrders requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
+        defaultType = self.safe_string_2(self.options, 'fetchOrders', 'defaultType', market['type'])
+        type = self.safe_string(params, 'type', defaultType)
+        method = 'privateGetAllOrders'
+        if type == 'future':
+            method = 'fapiPrivateGetAllOrders'
+        elif type == 'margin':
+            method = 'sapiGetMarginAllOrders'
         request = {
             'symbol': market['id'],
         }
@@ -1228,10 +1235,11 @@ class binance(Exchange):
             request['startTime'] = since
         if limit is not None:
             request['limit'] = limit
-        method = 'privateGetAllOrders' if market['spot'] else 'fapiPrivateGetAllOrders'
-        response = await getattr(self, method)(self.extend(request, params))
+        query = self.omit(params, 'type')
+        response = await getattr(self, method)(self.extend(request, query))
         #
-        #  Spot:
+        #  spot
+        #
         #     [
         #         {
         #             "symbol": "LTCBTC",
@@ -1253,7 +1261,8 @@ class binance(Exchange):
         #         }
         #     ]
         #
-        #  Futures:
+        #  futures
+        #
         #     [
         #         {
         #             "symbol": "BTCUSDT",

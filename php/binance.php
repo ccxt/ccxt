@@ -1304,6 +1304,14 @@ class binance extends Exchange {
         }
         $this->load_markets();
         $market = $this->market($symbol);
+        $defaultType = $this->safe_string_2($this->options, 'fetchOrders', 'defaultType', $market['type']);
+        $type = $this->safe_string($params, 'type', $defaultType);
+        $method = 'privateGetAllOrders';
+        if ($type === 'future') {
+            $method = 'fapiPrivateGetAllOrders';
+        } else if ($type === 'margin') {
+            $method = 'sapiGetMarginAllOrders';
+        }
         $request = array(
             'symbol' => $market['id'],
         );
@@ -1313,10 +1321,11 @@ class binance extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $method = $market['spot'] ? 'privateGetAllOrders' : 'fapiPrivateGetAllOrders';
-        $response = $this->$method (array_merge($request, $params));
+        $query = $this->omit($params, 'type');
+        $response = $this->$method (array_merge($request, $query));
         //
-        //  Spot:
+        //  spot
+        //
         //     array(
         //         {
         //             "$symbol" => "LTCBTC",
@@ -1328,7 +1337,7 @@ class binance extends Exchange {
         //             "cummulativeQuoteQty" => "0.0",
         //             "status" => "NEW",
         //             "timeInForce" => "GTC",
-        //             "type" => "LIMIT",
+        //             "$type" => "LIMIT",
         //             "side" => "BUY",
         //             "stopPrice" => "0.0",
         //             "icebergQty" => "0.0",
@@ -1338,7 +1347,8 @@ class binance extends Exchange {
         //         }
         //     )
         //
-        //  Futures:
+        //  futures
+        //
         //     array(
         //         {
         //             "$symbol" => "BTCUSDT",
@@ -1350,7 +1360,7 @@ class binance extends Exchange {
         //             "cumQuote" => "10.0",
         //             "status" => "NEW",
         //             "timeInForce" => "GTC",
-        //             "type" => "LIMIT",
+        //             "$type" => "LIMIT",
         //             "side" => "BUY",
         //             "stopPrice" => "0.0",
         //             "updateTime" => 1499827319559
