@@ -1382,6 +1382,8 @@ module.exports = class binance extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', market['type']);
+        const type = this.safeString (params, 'type', defaultType);
         // https://github.com/ccxt/ccxt/issues/6507
         const origClientOrderId = this.safeValue (params, 'origClientOrderId');
         const request = {
@@ -1394,8 +1396,14 @@ module.exports = class binance extends Exchange {
         } else {
             request['origClientOrderId'] = origClientOrderId;
         }
-        const method = market['spot'] ? 'privateDeleteOrder' : 'fapiPrivateDeleteOrder';
-        const response = await this[method] (this.extend (request, params));
+        let method = 'privateDeleteOrder';
+        if (type === 'future') {
+            method = 'fapiPrivateDeleteOrder';
+        } else if (type === 'margin') {
+            method = 'sapiDeleteMarginOrder';
+        }
+        const query = this.omit (params, 'type');
+        const response = await this[method] (this.extend (request, query));
         return this.parseOrder (response);
     }
 
