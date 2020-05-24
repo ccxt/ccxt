@@ -357,6 +357,7 @@ class binance(Exchange):
                 '-2014': AuthenticationError,  # {"code":-2014, "msg": "API-key format invalid."}
                 '-2015': AuthenticationError,  # "Invalid API-key, IP, or permissions for action."
                 '-3008': InsufficientFunds,  # {"code":-3008,"msg":"Borrow not allowed. Your borrow amount has exceed maximum borrow amount."}
+                '-3010': ExchangeError,  # {"code":-3010,"msg":"Repay not allowed. Repay amount exceeds borrow amount."}
             },
         })
 
