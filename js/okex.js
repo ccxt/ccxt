@@ -2162,7 +2162,11 @@ module.exports = class okex extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const type = market['type'];
+        const defaultType = this.safeString2 (this.options, 'fetchOrder', 'defaultType', market['type']);
+        const type = this.safeString (params, 'type', defaultType);
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + " fetchOrder requires a type parameter (one of 'spot', 'margin', 'futures', 'swap').");
+        }
         const request = {
             'instrument_id': market['id'],
             // '-2': failed,
