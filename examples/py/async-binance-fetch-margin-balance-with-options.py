@@ -21,7 +21,7 @@ async def main(asyncio_loop):
             "fetchBalance": "margin",
         },
         # set verbose mode to True for debugging output
-        'verbose': True,
+        # 'verbose': True,
     })
     while True:
         try:
