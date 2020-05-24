@@ -1180,8 +1180,16 @@ class binance extends Exchange {
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
+        $defaultType = $this->safe_string_2($this->options, 'createOrder', 'defaultType', $market['type']);
+        $orderType = $this->safe_string($params, 'type', $defaultType);
+        $params = $this->omit($params, 'type');
+        $method = 'privatePostOrder';
+        if ($orderType === 'future') {
+            $method = 'fapiPrivatePostOrder';
+        } else if ($orderType === 'margin') {
+            $method = 'sapiPostMarginOrder';
+        }
         // the next 5 lines are added to support for testing orders
-        $method = $market['spot'] ? 'privatePostOrder' : 'fapiPrivatePostOrder';
         if ($market['spot']) {
             $test = $this->safe_value($params, 'test', false);
             if ($test) {

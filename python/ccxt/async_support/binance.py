@@ -1117,8 +1117,15 @@ class binance(Exchange):
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        defaultType = self.safe_string_2(self.options, 'createOrder', 'defaultType', market['type'])
+        orderType = self.safe_string(params, 'type', defaultType)
+        params = self.omit(params, 'type')
+        method = 'privatePostOrder'
+        if orderType == 'future':
+            method = 'fapiPrivatePostOrder'
+        elif orderType == 'margin':
+            method = 'sapiPostMarginOrder'
         # the next 5 lines are added to support for testing orders
-        method = 'privatePostOrder' if market['spot'] else 'fapiPrivatePostOrder'
         if market['spot']:
             test = self.safe_value(params, 'test', False)
             if test:
