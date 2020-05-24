@@ -27,12 +27,14 @@ class binance(Exchange, ccxt.binance):
                 'test': {
                     'ws': {
                         'spot': 'wss://testnet.binance.vision/ws',
+                        'margin': 'wss://testnet.binance.vision/ws',
                         'future': 'wss://stream.binancefuture.com/ws',
                     },
                 },
                 'api': {
                     'ws': {
                         'spot': 'wss://stream.binance.com:9443/ws',
+                        'margin': 'wss://stream.binance.com:9443/ws',
                         'future': 'wss://fstream.binance.com/ws',
                     },
                 },
@@ -560,20 +562,27 @@ class binance(Exchange, ccxt.binance):
 
     async def authenticate(self):
         time = self.seconds()
-        lastAuthenticatedTime = self.safe_integer(self.options, 'lastAuthenticatedTime', 0)
+        type = self.safe_string_2(self.options, 'defaultType', 'authenticate', 'spot')
+        options = self.safe_value(self.options, type, {})
+        lastAuthenticatedTime = self.safe_integer(options, 'lastAuthenticatedTime', 0)
         if time - lastAuthenticatedTime > 1800:
-            type = self.safe_string_2(self.options, 'defaultType', 'spot')
-            method = 'fapiPrivatePostListenKey' if (type == 'future') else 'publicPostUserDataStream'
+            method = 'publicPostUserDataStream'
+            if type == 'future':
+                method = 'fapiPrivatePostListenKey'
+            elif type == 'margin':
+                method = 'sapiPostUserDataStream'
             response = await getattr(self, method)()
-            self.options['listenKey'] = self.safe_string(response, 'listenKey')
-            self.options['lastAuthenticatedTime'] = time
+            self.options[type] = self.extend(options, {
+                'listenKey': self.safe_string(response, 'listenKey'),
+                'lastAuthenticatedTime': time,
+            })
 
     async def watch_balance(self, params={}):
         await self.load_markets()
         await self.authenticate()
         defaultType = self.safe_string_2(self.options, 'watchBalance', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
-        url = self.urls['api']['ws'][type] + '/' + self.options['listenKey']
+        url = self.urls['api']['ws'][type] + '/' + self.options[type]['listenKey']
         messageHash = 'outboundAccountInfo'
         return await self.watch(url, messageHash)
 
@@ -618,7 +627,7 @@ class binance(Exchange, ccxt.binance):
         await self.authenticate()
         defaultType = self.safe_string_2(self.options, 'watchOrders', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
-        url = self.urls['api']['ws'][type] + '/' + self.options['listenKey']
+        url = self.urls['api']['ws'][type] + '/' + self.options[type]['listenKey']
         messageHash = 'executionReport'
         future = self.watch(url, messageHash)
         return await self.after(future, self.filter_by_symbol_since_limit, symbol, since, limit)
