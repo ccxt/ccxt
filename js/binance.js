@@ -25,12 +25,14 @@ module.exports = class binance extends ccxt.binance {
                 'test': {
                     'ws': {
                         'spot': 'wss://testnet.binance.vision/ws',
+                        'margin': 'wss://testnet.binance.vision/ws',
                         'future': 'wss://stream.binancefuture.com/ws',
                     },
                 },
                 'api': {
                     'ws': {
                         'spot': 'wss://stream.binance.com:9443/ws',
+                        'margin': 'wss://stream.binance.com:9443/ws',
                         'future': 'wss://fstream.binance.com/ws',
                     },
                 },
@@ -617,13 +619,21 @@ module.exports = class binance extends ccxt.binance {
 
     async authenticate () {
         const time = this.seconds ();
-        const lastAuthenticatedTime = this.safeInteger (this.options, 'lastAuthenticatedTime', 0);
+        const type = this.safeString2 (this.options, 'defaultType', 'authenticate', 'spot');
+        const options = this.safeValue (this.options, type, {});
+        const lastAuthenticatedTime = this.safeInteger (options, 'lastAuthenticatedTime', 0);
         if (time - lastAuthenticatedTime > 1800) {
-            const type = this.safeString2 (this.options, 'defaultType', 'spot');
-            const method = (type === 'future') ? 'fapiPrivatePostListenKey' : 'publicPostUserDataStream';
+            let method = 'publicPostUserDataStream';
+            if (type === 'future') {
+                method = 'fapiPrivatePostListenKey';
+            } else if (type === 'margin') {
+                method = 'sapiPostUserDataStream';
+            }
             const response = await this[method] ();
-            this.options['listenKey'] = this.safeString (response, 'listenKey');
-            this.options['lastAuthenticatedTime'] = time;
+            this.options[type] = this.extend (options, {
+                'listenKey': this.safeString (response, 'listenKey'),
+                'lastAuthenticatedTime': time,
+            });
         }
     }
 
@@ -632,7 +642,7 @@ module.exports = class binance extends ccxt.binance {
         await this.authenticate ();
         const defaultType = this.safeString2 (this.options, 'watchBalance', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
-        const url = this.urls['api']['ws'][type] + '/' + this.options['listenKey'];
+        const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
         const messageHash = 'outboundAccountInfo';
         return await this.watch (url, messageHash);
     }
@@ -680,7 +690,7 @@ module.exports = class binance extends ccxt.binance {
         await this.authenticate ();
         const defaultType = this.safeString2 (this.options, 'watchOrders', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
-        const url = this.urls['api']['ws'][type] + '/' + this.options['listenKey'];
+        const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
         const messageHash = 'executionReport';
         const future = this.watch (url, messageHash);
         return await this.after (future, this.filterBySymbolSinceLimit, symbol, since, limit);

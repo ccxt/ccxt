@@ -28,12 +28,14 @@ class binance extends \ccxt\binance {
                 'test' => array(
                     'ws' => array(
                         'spot' => 'wss://testnet.binance.vision/ws',
+                        'margin' => 'wss://testnet.binance.vision/ws',
                         'future' => 'wss://stream.binancefuture.com/ws',
                     ),
                 ),
                 'api' => array(
                     'ws' => array(
                         'spot' => 'wss://stream.binance.com:9443/ws',
+                        'margin' => 'wss://stream.binance.com:9443/ws',
                         'future' => 'wss://fstream.binance.com/ws',
                     ),
                 ),
@@ -619,13 +621,21 @@ class binance extends \ccxt\binance {
 
     public function authenticate() {
         $time = $this->seconds();
-        $lastAuthenticatedTime = $this->safe_integer($this->options, 'lastAuthenticatedTime', 0);
+        $type = $this->safe_string_2($this->options, 'defaultType', 'authenticate', 'spot');
+        $options = $this->safe_value($this->options, $type, array());
+        $lastAuthenticatedTime = $this->safe_integer($options, 'lastAuthenticatedTime', 0);
         if ($time - $lastAuthenticatedTime > 1800) {
-            $type = $this->safe_string_2($this->options, 'defaultType', 'spot');
-            $method = ($type === 'future') ? 'fapiPrivatePostListenKey' : 'publicPostUserDataStream';
+            $method = 'publicPostUserDataStream';
+            if ($type === 'future') {
+                $method = 'fapiPrivatePostListenKey';
+            } else if ($type === 'margin') {
+                $method = 'sapiPostUserDataStream';
+            }
             $response = $this->$method ();
-            $this->options['listenKey'] = $this->safe_string($response, 'listenKey');
-            $this->options['lastAuthenticatedTime'] = $time;
+            $this->options[$type] = array_merge($options, array(
+                'listenKey' => $this->safe_string($response, 'listenKey'),
+                'lastAuthenticatedTime' => $time,
+            ));
         }
     }
 
@@ -634,7 +644,7 @@ class binance extends \ccxt\binance {
         $this->authenticate();
         $defaultType = $this->safe_string_2($this->options, 'watchBalance', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
-        $url = $this->urls['api']['ws'][$type] . '/' . $this->options['listenKey'];
+        $url = $this->urls['api']['ws'][$type] . '/' . $this->options[$type]['listenKey'];
         $messageHash = 'outboundAccountInfo';
         return $this->watch($url, $messageHash);
     }
@@ -682,7 +692,7 @@ class binance extends \ccxt\binance {
         $this->authenticate();
         $defaultType = $this->safe_string_2($this->options, 'watchOrders', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
-        $url = $this->urls['api']['ws'][$type] . '/' . $this->options['listenKey'];
+        $url = $this->urls['api']['ws'][$type] . '/' . $this->options[$type]['listenKey'];
         $messageHash = 'executionReport';
         $future = $this->watch($url, $messageHash);
         return $this->after($future, array($this, 'filter_by_symbol_since_limit'), $symbol, $since, $limit);
