@@ -1388,7 +1388,7 @@ module.exports = class binance extends Exchange {
             query = this.omit (params, 'type');
         }
         let method = 'privateGetOpenOrders';
-        if (type === 'futures') {
+        if (type === 'future') {
             method = 'fapiPrivateGetOpenOrders';
         } else if (type === 'margin') {
             method = 'sapiGetMarginOpenOrders';

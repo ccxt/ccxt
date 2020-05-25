@@ -1307,7 +1307,7 @@ class binance(Exchange):
             type = self.safe_string(params, 'type', defaultType)
             query = self.omit(params, 'type')
         method = 'privateGetOpenOrders'
-        if type == 'futures':
+        if type == 'future':
             method = 'fapiPrivateGetOpenOrders'
         elif type == 'margin':
             method = 'sapiGetMarginOpenOrders'
