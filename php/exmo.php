@@ -324,6 +324,7 @@ class exmo extends Exchange {
                                     array( 'prov' => 'XMR', 'dep' => '0%', 'wd' => '0.001 XMR' ),
                                     array( 'prov' => 'XRP', 'dep' => '0%', 'wd' => '0.02 XRP' ),
                                     array( 'prov' => 'ETC', 'dep' => '0%', 'wd' => '0.01 ETC' ),
+                                    array( 'prov' => 'BCH', 'dep' => '0%', 'wd' => '0.001 BCH' ),
                                     array( 'prov' => 'BTG', 'dep' => '0%', 'wd' => '0.001 BTG' ),
                                     array( 'prov' => 'EOS', 'dep' => '0%', 'wd' => '0.05 EOS' ),
                                     array( 'prov' => 'XLM', 'dep' => '0%', 'wd' => '0.01 XLM' ),
