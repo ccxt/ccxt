@@ -953,14 +953,14 @@ module.exports = class kraken extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const clientOrderId = this.safeString2 (params, 'userref', 'clientOrderId');
-        const query = this.omit (params, [ 'userref', 'clientOrderId' ]);
         const request = {
             'pair': market['id'],
             'type': side,
             'ordertype': type,
             'volume': this.amountToPrecision (symbol, amount),
         };
+        const clientOrderId = this.safeString2 (params, 'userref', 'clientOrderId');
+        const query = this.omit (params, [ 'userref', 'clientOrderId' ]);
         if (clientOrderId !== undefined) {
             request['userref'] = clientOrderId;
         }
