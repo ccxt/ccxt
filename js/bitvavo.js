@@ -21,6 +21,7 @@ module.exports = class bitvavo extends Exchange {
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
                 'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchTime': true,
             },
             'urls': {
@@ -308,7 +309,7 @@ module.exports = class bitvavo extends Exchange {
         //     }
         //
         let symbol = undefined;
-        const marketId = this.safeInteger (ticker, 'market');
+        const marketId = this.safeString (ticker, 'market');
         if (marketId !== undefined) {
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
@@ -364,6 +365,38 @@ module.exports = class bitvavo extends Exchange {
             'info': ticker,
         };
         return result;
+    }
+
+    parseTickers (tickers, symbols = undefined) {
+        const result = [];
+        for (let i = 0; i < tickers.length; i++) {
+            result.push (this.parseTicker (tickers[i]));
+        }
+        return this.filterByArray (result, 'symbol', symbols);
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetTicker24h (params);
+        //
+        //     [
+        //         {
+        //             "market":"ADA-BTC",
+        //             "open":"0.0000059595",
+        //             "high":"0.0000059765",
+        //             "low":"0.0000059595",
+        //             "last":"0.0000059765",
+        //             "volume":"2923.172",
+        //             "volumeQuote":"0.01743483",
+        //             "bid":"0.0000059515",
+        //             "bidSize":"1117.630919",
+        //             "ask":"0.0000059585",
+        //             "askSize":"809.999739",
+        //             "timestamp":1590382266324
+        //         }
+        //     ]
+        //
+        return this.parseTickers (response, symbols);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, httpHeaders = undefined, body = undefined) {
