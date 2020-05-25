@@ -784,6 +784,11 @@ class bitfinex2 extends bitfinex {
         if ($type !== 'market') {
             $request['price'] = $this->number_to_string($price);
         }
+        $clientOrderId = $this->safe_value_2($params, 'cid', 'clientOrderId');
+        if ($clientOrderId !== null) {
+            $request['cid'] = $clientOrderId;
+            $params = $this->omit($params, array( 'cid', 'clientOrderId' ));
+        }
         $response = $this->privatePostAuthWOrderSubmit (array_merge($request, $params));
         //
         //     array(
@@ -853,17 +858,18 @@ class bitfinex2 extends bitfinex {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
-        $cid = $this->safe_value($params, 'cid'); // client $order $id
+        $cid = $this->safe_value_2($params, 'cid', 'clientOrderId'); // client $order $id
         $request = null;
         if ($cid !== null) {
             $cidDate = $this->safe_value($params, 'cidDate'); // client $order $id date
             if ($cidDate === null) {
-                throw new InvalidOrder($this->id . " canceling an $order by client $order $id ('cid') requires both 'cid' and 'cid_date' ('YYYY-MM-DD')");
+                throw new InvalidOrder($this->id . " canceling an $order by clientOrderId ('cid') requires both 'cid' and 'cid_date' ('YYYY-MM-DD')");
             }
             $request = array(
                 'cid' => $cid,
                 'cid_date' => $cidDate,
             );
+            $params = $this->omit($params, array( 'cid', 'clientOrderId' ));
         } else {
             $request = array(
                 'id' => intval ($id),
