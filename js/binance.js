@@ -1177,7 +1177,8 @@ module.exports = class binance extends Exchange {
         const market = this.market (symbol);
         const defaultType = this.safeString2 (this.options, 'createOrder', 'defaultType', market['type']);
         const orderType = this.safeString (params, 'type', defaultType);
-        params = this.omit (params, 'type');
+        const clientOrderId = this.safeString2 (params, 'newClientOrderId', 'clientOrderId');
+        params = this.omit (params, [ 'type', 'newClientOrderId', 'clientOrderId' ]);
         let method = 'privatePostOrder';
         if (orderType === 'future') {
             method = 'fapiPrivatePostOrder';
@@ -1202,6 +1203,9 @@ module.exports = class binance extends Exchange {
             'type': uppercaseType,
             'side': side.toUpperCase (),
         };
+        if (clientOrderId !== undefined) {
+            request['newClientOrderId'] = clientOrderId;
+        }
         const quoteOrderQty = this.safeValue (this.options, 'quoteOrderQty', false);
         if (uppercaseType === 'MARKET' && quoteOrderQty) {
             const quoteOrderQty = this.safeFloat (params, 'quoteOrderQty');
