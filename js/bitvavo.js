@@ -19,6 +19,7 @@ module.exports = class bitvavo extends Exchange {
                 'publicAPI': true,
                 'privateAPI': true,
                 'fetchCurrencies': true,
+                'fetchOHLCV': true,
                 'fetchOrderBook': true,
                 'fetchMarkets': true,
                 'fetchTicker': true,
@@ -516,6 +517,27 @@ module.exports = class bitvavo extends Exchange {
         const orderbook = this.parseOrderBook (response);
         orderbook['nonce'] = this.safeInteger (response, 'nonce');
         return orderbook;
+    }
+
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        //
+        //     [
+        //         1590383700000,
+        //         "8088.5",
+        //         "8088.5",
+        //         "8088.5",
+        //         "8088.5",
+        //         "0.04788623"
+        //     ]
+        //
+        return [
+            this.safeInteger (ohlcv, 0),
+            this.safeFloat (ohlcv, 1),
+            this.safeFloat (ohlcv, 2),
+            this.safeFloat (ohlcv, 3),
+            this.safeFloat (ohlcv, 4),
+            this.safeFloat (ohlcv, 5),
+        ];
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
