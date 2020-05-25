@@ -167,12 +167,6 @@ module.exports = class eterbase extends Exchange {
         return result;
     }
 
-    findMarket (id) {
-        // need to pass identifier as string
-        const idString = id.toString ();
-        return super.findMarket (idString);
-    }
-
     parseMarket (market) {
         //
         //     {
