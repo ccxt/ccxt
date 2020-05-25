@@ -1203,9 +1203,7 @@ module.exports = class bitmex extends Exchange {
 
     async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {
-
-        };
+        const request = {};
         const origClOrdID = this.safeString2 (params, 'origClOrdID', 'clientOrderId');
         if (origClOrdID !== undefined) {
             request['origClOrdID'] = origClOrdID;
