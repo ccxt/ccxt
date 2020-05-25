@@ -12,7 +12,7 @@ module.exports = class eterbase extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'eterbase',
             'name': 'Eterbase',
-            'countries': [ 'SK' ],
+            'countries': [ 'SK' ], // Slovakia
             'rateLimit': 500,
             'version': 'v1',
             'certified': true,
@@ -52,7 +52,6 @@ module.exports = class eterbase extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/82067900-faeb0f80-96d9-11ea-9f22-0071cfcb9871.jpg',
-                'base': 'https://api.eterbase.exchange',
                 'api': 'https://api.eterbase.exchange',
                 'www': 'https://www.eterbase.com',
                 'doc': 'https://developers.eterbase.exchange',
@@ -1121,15 +1120,13 @@ module.exports = class eterbase extends Exchange {
             const hasBody = (method === 'POST') || (method === 'PUT') || (method === 'PATCH');
             // const date = 'Mon, 30 Sep 2019 13:57:23 GMT';
             const date = this.rfc2616 (this.milliseconds ());
-            const urlBaselength = this.urls['base'].length - 0;
-            const urlPath = url.slice (urlBaselength);
             let headersCSV = 'date' + ' ' + 'request-line';
-            let message = 'date' + ':' + ' ' + date + "\n" + method + ' ' + urlPath + ' HTTP/1.1'; // eslint-disable-line quotes
+            let message = 'date' + ':' + ' ' + date + "\n" + method + ' ' + request + ' HTTP/1.1'; // eslint-disable-line quotes
             let digest = '';
             if (hasBody) {
                 digest = 'SHA-256=' + this.hash (payload, 'sha256', 'base64');
-                message = message + "\ndigest" + ':' + ' ' + digest;  // eslint-disable-line quotes
-                headersCSV = headersCSV + ' ' + 'digest';
+                message += "\ndigest" + ':' + ' ' + digest;  // eslint-disable-line quotes
+                headersCSV += ' ' + 'digest';
             }
             const signature64 = this.hmac (this.encode (message), this.encode (this.secret), 'sha256', 'base64');
             const signature = this.decode (signature64);
@@ -1140,7 +1137,7 @@ module.exports = class eterbase extends Exchange {
                 'Content-Type': 'application/json',
             };
             if (hasBody) {
-                httpHeaders = this.extend (httpHeaders, { 'Digest': digest });
+                httpHeaders['Digest'] = digest;
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': httpHeaders };
