@@ -11,7 +11,7 @@ module.exports = class bitvavo extends Exchange {
             'id': 'bitvavo',
             'name': 'Bitvavo',
             'countries': [ 'NL' ], // Netherlands
-            'rateLimit': 100,
+            'rateLimit': 500,
             'version': 'v2',
             'certified': true,
             'has': {
@@ -20,6 +20,7 @@ module.exports = class bitvavo extends Exchange {
                 'privateAPI': true,
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
+                'fetchTicker': true,
                 'fetchTime': true,
             },
             'urls': {
@@ -135,7 +136,7 @@ module.exports = class bitvavo extends Exchange {
         //             "pricePrecision":5,
         //             "minOrderInBaseAsset":"100",
         //             "minOrderInQuoteAsset":"0.001",
-        //             "orderTypes":["market","limit"]
+        //             "orderTypes": [ "market", "limit" ]
         //         }
         //     ]
         //
@@ -157,7 +158,7 @@ module.exports = class bitvavo extends Exchange {
         //         "pricePrecision":5,
         //         "minOrderInBaseAsset":"100",
         //         "minOrderInQuoteAsset":"0.001",
-        //         "orderTypes":["market","limit"]
+        //         "orderTypes": [ "market", "limit" ]
         //     }
         //
         const id = this.safeString (market, 'market');
@@ -213,7 +214,7 @@ module.exports = class bitvavo extends Exchange {
         //             "withdrawalFee":"0.2",
         //             "withdrawalMinAmount":"0.2",
         //             "withdrawalStatus":"OK", // "OK", "MAINTENANCE", "DELISTED"
-        //             "networks":["Mainnet"], // "ETH", "NEO", "ONT", "SEPA", "VET"
+        //             "networks": [ "Mainnet" ], // "ETH", "NEO", "ONT", "SEPA", "VET"
         //             "message":"",
         //         },
         //     ]
@@ -258,6 +259,110 @@ module.exports = class bitvavo extends Exchange {
                 },
             };
         }
+        return result;
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+        };
+        const response = await this.publicGetTicker24h (this.extend (request, params));
+        //
+        //     {
+        //         "market":"ETH-BTC",
+        //         "open":"0.022578",
+        //         "high":"0.023019",
+        //         "low":"0.022573",
+        //         "last":"0.023019",
+        //         "volume":"25.16366324",
+        //         "volumeQuote":"0.57333305",
+        //         "bid":"0.023039",
+        //         "bidSize":"0.53500578",
+        //         "ask":"0.023041",
+        //         "askSize":"0.47859202",
+        //         "timestamp":1590381666900
+        //     }
+        //
+        return this.parseTicker (response, market);
+    }
+
+    parseTicker (ticker, market = undefined) {
+        //
+        // fetchTicker
+        //
+        //     {
+        //         "market":"ETH-BTC",
+        //         "open":"0.022578",
+        //         "high":"0.023019",
+        //         "low":"0.022573",
+        //         "last":"0.023019",
+        //         "volume":"25.16366324",
+        //         "volumeQuote":"0.57333305",
+        //         "bid":"0.023039",
+        //         "bidSize":"0.53500578",
+        //         "ask":"0.023041",
+        //         "askSize":"0.47859202",
+        //         "timestamp":1590381666900
+        //     }
+        //
+        let symbol = undefined;
+        const marketId = this.safeInteger (ticker, 'market');
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('-');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
+        const timestamp = this.safeInteger (ticker, 'timestamp');
+        const last = this.safeFloat (ticker, 'last');
+        const baseVolume = this.safeFloat (ticker, 'volume');
+        const quoteVolume = this.safeFloat (ticker, 'volumeQuote');
+        let vwap = undefined;
+        if ((quoteVolume !== undefined) && (baseVolume !== undefined) && (baseVolume > 0)) {
+            vwap = quoteVolume / baseVolume;
+        }
+        let change = undefined;
+        let percentage = undefined;
+        let average = undefined;
+        const open = this.safeFloat (ticker, 'open');
+        if ((open !== undefined) && (last !== undefined)) {
+            change = last - open;
+            if (open > 0) {
+                percentage = change / open * 100;
+            }
+            average = this.sum (open, last) / 2;
+        }
+        const result = {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'bid'),
+            'bidVolume': this.safeFloat (ticker, 'bidSize'),
+            'ask': this.safeFloat (ticker, 'ask'),
+            'askVolume': this.safeFloat (ticker, 'askSize'),
+            'vwap': vwap,
+            'open': open,
+            'close': last,
+            'last': last,
+            'previousClose': undefined, // previous day close
+            'change': change,
+            'percentage': percentage,
+            'average': average,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
+            'info': ticker,
+        };
         return result;
     }
 
