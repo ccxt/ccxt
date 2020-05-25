@@ -963,12 +963,17 @@ class kraken extends Exchange {
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
+        $clientOrderId = $this->safe_string_2($params, 'userref', 'clientOrderId');
+        $query = $this->omit($params, array( 'userref', 'clientOrderId' ));
         $request = array(
             'pair' => $market['id'],
             'type' => $side,
             'ordertype' => $type,
             'volume' => $this->amount_to_precision($symbol, $amount),
         );
+        if ($clientOrderId !== null) {
+            $request['userref'] = $clientOrderId;
+        }
         $priceIsDefined = ($price !== null);
         $marketOrder = ($type === 'market');
         $limitOrder = ($type === 'limit');
@@ -976,7 +981,7 @@ class kraken extends Exchange {
         if ($shouldIncludePrice) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        $response = $this->privatePostAddOrder (array_merge($request, $params));
+        $response = $this->privatePostAddOrder (array_merge($request, $query));
         $id = $this->safe_value($response['result'], 'txid');
         if ($id !== null) {
             if (gettype($id) === 'array' && count(array_filter(array_keys($id), 'is_string')) == 0) {
@@ -984,7 +989,6 @@ class kraken extends Exchange {
                 $id = ($length > 1) ? $id : $id[0];
             }
         }
-        $clientOrderId = $this->safe_string($params, 'userref');
         return array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
