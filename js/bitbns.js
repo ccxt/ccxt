@@ -183,7 +183,7 @@ module.exports = class bitbns extends Exchange {
             'symbol': excgSymbol,
             'limit': limit,
         };
-        return this.publicGetFetchOrderBook (this.extend (request, params));
+        return await this.publicGetFetchOrderBook (this.extend (request, params));
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
