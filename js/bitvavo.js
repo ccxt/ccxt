@@ -26,6 +26,19 @@ module.exports = class bitvavo extends Exchange {
                 'fetchTime': true,
                 'fetchTrades': true,
             },
+            'timeframes': {
+                '1m': '1m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
+                '1h': '1h',
+                '2h': '2h',
+                '4h': '4h',
+                '6h': '6h',
+                '8h': '8h',
+                '12h': '12h',
+                '1d': '1d',
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/82067900-faeb0f80-96d9-11ea-9f22-0071cfcb9871.jpg',
                 'api': {
@@ -503,6 +516,33 @@ module.exports = class bitvavo extends Exchange {
         const orderbook = this.parseOrderBook (response);
         orderbook['nonce'] = this.safeInteger (response, 'nonce');
         return orderbook;
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+            'interval': this.timeframes[timeframe],
+            // 'limit': 1440, // default 1440, max 1440
+            // 'start': since,
+            // 'end': this.milliseconds (),
+        };
+        if (since !== undefined) {
+            request['start'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 1440, max 1440
+        }
+        const response = await this.publicGetMarketCandles (this.extend (request, params));
+        //
+        //     [
+        //         [1590383700000,"8088.5","8088.5","8088.5","8088.5","0.04788623"],
+        //         [1590383580000,"8091.3","8091.5","8091.3","8091.5","0.04931221"],
+        //         [1590383520000,"8090.3","8092.7","8090.3","8092.5","0.04001286"],
+        //     ]
+        //
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, httpHeaders = undefined, body = undefined) {
