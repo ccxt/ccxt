@@ -1881,15 +1881,15 @@ class okex extends Exchange {
         } else {
             $method .= 's';
         }
-        $clientOid = $this->safe_string($params, 'client_oid');
-        if ($clientOid !== null) {
+        $clientOrderId = $this->safe_string_2($params, 'client_oid', 'clientOrderId');
+        if ($clientOrderId !== null) {
             $method .= 'ClientOid';
-            $request['client_oid'] = $clientOid;
+            $request['client_oid'] = $clientOrderId;
         } else {
             $method .= 'OrderId';
             $request['order_id'] = $id;
         }
-        $query = $this->omit($params, 'type');
+        $query = $this->omit($params, array( 'type', 'client_oid', 'clientOrderId' ));
         $response = $this->$method (array_merge($request, $query));
         $result = (is_array($response) && array_key_exists('result', $response)) ? $response : $this->safe_value($response, $market['id'], array());
         //
