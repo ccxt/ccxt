@@ -741,6 +741,10 @@ class bitfinex2(bitfinex):
         }
         if type != 'market':
             request['price'] = self.number_to_string(price)
+        clientOrderId = self.safe_value_2(params, 'cid', 'clientOrderId')
+        if clientOrderId is not None:
+            request['cid'] = clientOrderId
+            params = self.omit(params, ['cid', 'clientOrderId'])
         response = self.privatePostAuthWOrderSubmit(self.extend(request, params))
         #
         #     [
@@ -807,16 +811,17 @@ class bitfinex2(bitfinex):
         return self.parse_orders(orders)
 
     def cancel_order(self, id, symbol=None, params={}):
-        cid = self.safe_value(params, 'cid')  # client order id
+        cid = self.safe_value_2(params, 'cid', 'clientOrderId')  # client order id
         request = None
         if cid is not None:
             cidDate = self.safe_value(params, 'cidDate')  # client order id date
             if cidDate is None:
-                raise InvalidOrder(self.id + " canceling an order by client order id('cid') requires both 'cid' and 'cid_date'('YYYY-MM-DD')")
+                raise InvalidOrder(self.id + " canceling an order by clientOrderId('cid') requires both 'cid' and 'cid_date'('YYYY-MM-DD')")
             request = {
                 'cid': cid,
                 'cid_date': cidDate,
             }
+            params = self.omit(params, ['cid', 'clientOrderId'])
         else:
             request = {
                 'id': int(id),
