@@ -19,7 +19,7 @@ class eterbase(Exchange):
         return self.deep_extend(super(eterbase, self).describe(), {
             'id': 'eterbase',
             'name': 'Eterbase',
-            'countries': ['SK'],
+            'countries': ['SK'],  # Slovakia
             'rateLimit': 500,
             'version': 'v1',
             'certified': True,
@@ -59,7 +59,6 @@ class eterbase(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/82067900-faeb0f80-96d9-11ea-9f22-0071cfcb9871.jpg',
-                'base': 'https://api.eterbase.exchange',
                 'api': 'https://api.eterbase.exchange',
                 'www': 'https://www.eterbase.com',
                 'doc': 'https://developers.eterbase.exchange',
@@ -1052,15 +1051,13 @@ class eterbase(Exchange):
             hasBody = (method == 'POST') or (method == 'PUT') or (method == 'PATCH')
             # date = 'Mon, 30 Sep 2019 13:57:23 GMT'
             date = self.rfc2616(self.milliseconds())
-            urlBaselength = len(self.urls['base']) - 0
-            urlPath = url[urlBaselength:]
             headersCSV = 'date' + ' ' + 'request-line'
-            message = 'date' + ':' + ' ' + date + "\n" + method + ' ' + urlPath + ' HTTP/1.1'  # eslint-disable-line quotes
+            message = 'date' + ':' + ' ' + date + "\n" + method + ' ' + request + ' HTTP/1.1'  # eslint-disable-line quotes
             digest = ''
             if hasBody:
                 digest = 'SHA-256=' + self.hash(payload, 'sha256', 'base64')
-                message = message + "\ndigest" + ':' + ' ' + digest  # eslint-disable-line quotes
-                headersCSV = headersCSV + ' ' + 'digest'
+                message += "\ndigest" + ':' + ' ' + digest  # eslint-disable-line quotes
+                headersCSV += ' ' + 'digest'
             signature64 = self.hmac(self.encode(message), self.encode(self.secret), hashlib.sha256, 'base64')
             signature = self.decode(signature64)
             authorizationHeader = 'hmac username="' + self.apiKey + '",algorithm="hmac-sha256",headers="' + headersCSV + '",signature="' + signature + '"'
@@ -1070,7 +1067,7 @@ class eterbase(Exchange):
                 'Content-Type': 'application/json',
             }
             if hasBody:
-                httpHeaders = self.extend(httpHeaders, {'Digest': digest})
+                httpHeaders['Digest'] = digest
         return {'url': url, 'method': method, 'body': body, 'headers': httpHeaders}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
