@@ -1286,13 +1286,13 @@ module.exports = class binance extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const origClientOrderId = this.safeValue (params, 'origClientOrderId');
-        if (origClientOrderId !== undefined) {
-            request['origClientOrderId'] = origClientOrderId;
+        const clientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['origClientOrderId'] = clientOrderId;
         } else {
             request['orderId'] = parseInt (id);
         }
-        const query = this.omit (params, 'type');
+        const query = this.omit (params, [ 'type', 'clientOrderId', 'origClientOrderId' ]);
         const response = await this[method] (this.extend (request, query));
         return this.parseOrder (response, market);
     }
