@@ -19,6 +19,7 @@ module.exports = class bitvavo extends Exchange {
                 'publicAPI': true,
                 'privateAPI': true,
                 'fetchMarkets': true,
+                'fetchTime': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/82067900-faeb0f80-96d9-11ea-9f22-0071cfcb9871.jpg',
@@ -113,6 +114,14 @@ module.exports = class bitvavo extends Exchange {
         });
     }
 
+    async fetchTime (params = {}) {
+        const response = await this.publicGetTime (params);
+        //
+        //     { "time": 1590379519148 }
+        //
+        return this.safeInteger (response, 'time');
+    }
+
     async fetchMarkets (params = {}) {
         const response = await this.publicGetMarkets (params);
         //
@@ -151,7 +160,6 @@ module.exports = class bitvavo extends Exchange {
         //     }
         //
         const id = this.safeString (market, 'market');
-        // const numericId = this.safeString (market, 'id');
         const baseId = this.safeString (market, 'base');
         const quoteId = this.safeString (market, 'quote');
         const base = this.safeCurrencyCode (baseId);
