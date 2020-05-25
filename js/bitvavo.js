@@ -18,6 +18,7 @@ module.exports = class bitvavo extends Exchange {
                 'CORS': false,
                 'publicAPI': true,
                 'privateAPI': true,
+                'fetchCurrencies': true,
                 'fetchMarkets': true,
                 'fetchTime': true,
             },
@@ -128,7 +129,7 @@ module.exports = class bitvavo extends Exchange {
         //     [
         //         {
         //             "market":"ADA-BTC",
-        //             "status":"trading",
+        //             "status":"trading", // "trading" "halted" "auction"
         //             "base":"ADA",
         //             "quote":"BTC",
         //             "pricePrecision":5,
@@ -150,7 +151,7 @@ module.exports = class bitvavo extends Exchange {
         //
         //     {
         //         "market":"ADA-BTC",
-        //         "status":"trading",
+        //         "status":"trading", // "trading" "halted" "auction"
         //         "base":"ADA",
         //         "quote":"BTC",
         //         "pricePrecision":5,
@@ -196,6 +197,68 @@ module.exports = class bitvavo extends Exchange {
                 },
             },
         };
+    }
+
+    async fetchCurrencies (params = {}) {
+        const response = await this.publicGetAssets (params);
+        //
+        //     [
+        //         {
+        //             "symbol":"ADA",
+        //             "name":"Cardano",
+        //             "decimals":6,
+        //             "depositFee":"0",
+        //             "depositConfirmations":15,
+        //             "depositStatus":"OK", // "OK", "MAINTENANCE", "DELISTED"
+        //             "withdrawalFee":"0.2",
+        //             "withdrawalMinAmount":"0.2",
+        //             "withdrawalStatus":"OK", // "OK", "MAINTENANCE", "DELISTED"
+        //             "networks":["Mainnet"], // "ETH", "NEO", "ONT", "SEPA", "VET"
+        //             "message":"",
+        //         },
+        //     ]
+        //
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const currency = response[i];
+            const id = this.safeString (currency, 'symbol');
+            const code = this.safeCurrencyCode (id);
+            const depositStatus = this.safeValue (currency, 'depositStatus');
+            const deposit = (depositStatus === 'OK');
+            const withdrawalStatus = this.safeValue (currency, 'withdrawalStatus');
+            const withdrawal = (withdrawalStatus === 'OK');
+            const active = deposit && withdrawal;
+            const name = this.safeString (currency, 'name');
+            const precision = this.safeInteger (currency, 'decimals');
+            result[code] = {
+                'id': id,
+                'info': currency,
+                'code': code,
+                'name': name,
+                'active': active,
+                'fee': this.safeFloat (currency, 'withdrawalFee'),
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': this.safeFloat (currency, 'withdrawalMinAmount'),
+                        'max': undefined,
+                    },
+                },
+            };
+        }
+        return result;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, httpHeaders = undefined, body = undefined) {
