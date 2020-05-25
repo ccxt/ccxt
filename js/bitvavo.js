@@ -399,6 +399,38 @@ module.exports = class bitvavo extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+            // 'limit': 500, // default 500, max 1000
+            // 'start': since,
+            // 'end': this.milliseconds (),
+            // 'tradeIdFrom': '57b1159b-6bf5-4cde-9e2c-6bd6a5678baf',
+            // 'tradeIdTo': '57b1159b-6bf5-4cde-9e2c-6bd6a5678baf',
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['start'] = since;
+        }
+        const response = await this.publicGetMarketTrades (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "id":"94154c98-6e8b-4e33-92a8-74e33fc05650",
+        //             "timestamp":1590382761859,
+        //             "amount":"0.06026079",
+        //             "price":"8095.3",
+        //             "side":"buy"
+        //         }
+        //     ]
+        //
+        return this.parseTrades (response, market, since, limit);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, httpHeaders = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
         let url = '/' + this.version + '/' + this.implodeParams (path, params);
