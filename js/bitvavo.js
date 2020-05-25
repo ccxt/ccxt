@@ -19,10 +19,12 @@ module.exports = class bitvavo extends Exchange {
                 'publicAPI': true,
                 'privateAPI': true,
                 'fetchCurrencies': true,
+                'fetchOrderBook': true,
                 'fetchMarkets': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
+                'fetchTrades': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/82067900-faeb0f80-96d9-11ea-9f22-0071cfcb9871.jpg',
@@ -471,6 +473,36 @@ module.exports = class bitvavo extends Exchange {
             'cost': cost,
             'fee': undefined,
         };
+    }
+
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'market': this.marketId (symbol),
+        };
+        if (limit !== undefined) {
+            request['depth'] = limit;
+        }
+        const response = await this.publicGetMarketBook (this.extend (request, params));
+        //
+        //     {
+        //         "market":"BTC-EUR",
+        //         "nonce":35883831,
+        //         "bids":[
+        //             ["8097.4","0.6229099"],
+        //             ["8097.2","0.64151283"],
+        //             ["8097.1","0.24966294"],
+        //         ],
+        //         "asks":[
+        //             ["8097.5","1.36916911"],
+        //             ["8098.8","0.33462248"],
+        //             ["8099.3","1.12908646"],
+        //         ]
+        //     }
+        //
+        const orderbook = this.parseOrderBook (response);
+        orderbook['nonce'] = this.safeInteger (response, 'nonce');
+        return orderbook;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, httpHeaders = undefined, body = undefined) {
