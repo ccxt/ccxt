@@ -342,7 +342,7 @@ class eterbase(Exchange):
         #         "high":0.0,
         #     }
         #
-        marketId = self.safe_integer(ticker, 'marketId')
+        marketId = self.safe_string(ticker, 'marketId')
         if marketId in self.markets_by_id:
             market = self.markets_by_id[marketId]
         symbol = None
