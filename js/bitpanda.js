@@ -402,32 +402,49 @@ module.exports = class bitpanda extends Exchange {
             const trade = this.safeValue (tradeHistory[i], 'trade');
             trades.push (trade);
         }
-        return this.parseTrades (trades, market, since, limit);
+        if ('cursor' in response) {
+            const cursor = this.safeValue (response, 'cursor');
+            return this.addPaginatorCursor (this.parseTrades (trades, market, since, limit, params), cursor);
+        }
+        return this.parseTrades (trades, market, since, limit, params);
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        // maximum supported by bitpanda pro
+        const MAX_LIMIT = 1000;
         await this.loadMarkets ();
-        const time = this.timeframes[timeframe];
-        if (time === undefined) {
+        const granularity = this.timeframes[timeframe];
+        // sanity checks
+        if (granularity === undefined) {
             throw new ExchangeError (this.id + ' does not have the timeframe option: ' + timeframe);
         }
-        const market = this.market (symbol);
-        const request = {
-            'instrument': market['id'],
-            'period': time['period'],
-            'unit': time['unit'],
-        };
         if (since === undefined) {
             throw new ExchangeError (this.id + ' since needs to defined for OHLC');
-        } else {
-            request['from'] = this.iso8601 (since);
         }
-        const to = this.safeInteger (params, 'to');
-        if (to === undefined) {
-            request['to'] = this.iso8601 (this.milliseconds ());
-        } else {
-            request['to'] = this.iso8601 (to);
+        if (limit === undefined || limit > MAX_LIMIT) {
+            limit = MAX_LIMIT;
         }
+        const market = this.market (symbol);
+        const duration = this.parseTimeframe (timeframe);
+        // max time period in ms wrt granularity and limit
+        const maxTimePeriod = (limit - 1) * duration * 1000;
+        if ('to' in params) {
+            if (params['to'] <= this.sum (maxTimePeriod, since)) {
+                params['to'] = this.iso8601 (params['to']);
+            } else {
+                throw new ExchangeError (this.id + 'to parameter specified is too large');
+            }
+        } else {
+            // default to if none is specified
+            params['to'] = this.iso8601 (this.sum (maxTimePeriod, since));
+        }
+        const request = {
+            'instrument': market['id'],
+            'period': granularity['period'],
+            'unit': granularity['unit'],
+            'from': this.iso8601 (since),
+            'to': params['to'],
+        };
         const response = await this.publicGetCandlesticksInstrument (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
@@ -456,10 +473,7 @@ module.exports = class bitpanda extends Exchange {
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {
-            'with_cancelled_and_rejected': this.options['with_cancelled_and_rejected'],
-            'with_just_filled_inactive': this.options['with_just_filled_inactive'],
-        };
+        const request = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -471,8 +485,18 @@ module.exports = class bitpanda extends Exchange {
         if (limit !== undefined) {
             request['max_page_size'] = limit;
         }
+        if ('with_cancelled_and_rejected' in params) {
+            request['with_cancelled_and_rejected'] = this.safeString (params, 'with_cancelled_and_rejected');
+        }
+        if ('with_just_filled_inactive' in params) {
+            request['with_just_filled_inactive'] = this.safeString (params, 'with_just_filled_inactive');
+        }
         const response = await this.privateGetAccountOrders (this.extend (request, params));
         const orders = this.safeValue (response, 'order_history');
+        if ('cursor' in response) {
+            const cursor = this.safeValue (response, 'cursor');
+            return this.addPaginatorCursor (this.parseOrders (orders, market, since, limit, params), cursor);
+        }
         return this.parseOrders (orders, market, since, limit, params);
     }
 
@@ -562,7 +586,8 @@ module.exports = class bitpanda extends Exchange {
             this.safeFloat (ohlcv, 'high'),
             this.safeFloat (ohlcv, 'low'),
             this.safeFloat (ohlcv, 'close'),
-            this.safeFloat (ohlcv, 'volume'),
+            // Bitpanda's volume is in quote currency we are using total_amount which is in base currency instead
+            this.safeFloat (ohlcv, 'total_amount'),
         ];
     }
 
@@ -627,7 +652,7 @@ module.exports = class bitpanda extends Exchange {
         };
     }
 
-    parseTrade (trade) {
+    parseTrade (trade, markets = undefined) {
         const id = this.safeString (trade, 'trade_id');
         const orderId = this.safeString (trade, 'order_id');
         const time = this.safeString (trade, 'time');
@@ -696,5 +721,14 @@ module.exports = class bitpanda extends Exchange {
             throw new this.exceptions[error] (error);
         }
         throw new ExchangeError (this.id + ' ' + this.json (response));
+    }
+
+    addPaginatorCursor (elements, cursor) {
+        if (cursor && elements) {
+            // php transpiler making problems here with array length, thus this specific hint.
+            const lastElement = elements.length;
+            elements[lastElement - 1]['info']['cursor'] = cursor;
+        }
+        return elements;
     }
 };
