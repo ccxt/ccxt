@@ -170,11 +170,6 @@ class eterbase(Exchange):
             result.append(market)
         return result
 
-    def find_market(self, id):
-        # need to pass identifier as string
-        idString = str(id)
-        return super(eterbase, self).findMarket(idString)
-
     def parse_market(self, market):
         #
         #     {

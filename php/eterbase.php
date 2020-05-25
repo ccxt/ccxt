@@ -171,12 +171,6 @@ class eterbase extends Exchange {
         return $result;
     }
 
-    public function find_market($id) {
-        // need to pass identifier as string
-        $idString = (string) $id;
-        return parent::findMarket ($idString);
-    }
-
     public function parse_market($market) {
         //
         //     {
