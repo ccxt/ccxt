@@ -1790,6 +1790,11 @@ module.exports = class okex extends Exchange {
             // 'client_oid': 'abcdef1234567890', // [a-z0-9]{1,32}
             // 'order_type': '0', // 0: Normal limit order (Unfilled and 0 represent normal limit order) 1: Post only 2: Fill Or Kill 3: Immediatel Or Cancel
         };
+        const clientOrderId = this.safeString2 (params, 'client_oid', 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['client_oid'] = clientOrderId;
+            params = this.omit (params, [ 'client_oid', 'clientOrderId' ]);
+        }
         let method = undefined;
         if (market['futures'] || market['swap']) {
             const size = market['futures'] ? this.numberToString (amount) : this.amountToPrecision (symbol, amount);
