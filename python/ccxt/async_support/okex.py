@@ -1759,6 +1759,10 @@ class okex(Exchange):
             # 'client_oid': 'abcdef1234567890',  # [a-z0-9]{1,32}
             # 'order_type': '0',  # 0: Normal limit order(Unfilled and 0 represent normal limit order) 1: Post only 2: Fill Or Kill 3: Immediatel Or Cancel
         }
+        clientOrderId = self.safe_string_2(params, 'client_oid', 'clientOrderId')
+        if clientOrderId is not None:
+            request['client_oid'] = clientOrderId
+            params = self.omit(params, ['client_oid', 'clientOrderId'])
         method = None
         if market['futures'] or market['swap']:
             size = self.number_to_string(amount) if market['futures'] else self.amount_to_precision(symbol, amount)
