@@ -1832,14 +1832,14 @@ class okex(Exchange):
             method += 'InstrumentId'
         else:
             method += 's'
-        clientOid = self.safe_string(params, 'client_oid')
-        if clientOid is not None:
+        clientOrderId = self.safe_string_2(params, 'client_oid', 'clientOrderId')
+        if clientOrderId is not None:
             method += 'ClientOid'
-            request['client_oid'] = clientOid
+            request['client_oid'] = clientOrderId
         else:
             method += 'OrderId'
             request['order_id'] = id
-        query = self.omit(params, 'type')
+        query = self.omit(params, ['type', 'client_oid', 'clientOrderId'])
         response = await getattr(self, method)(self.extend(request, query))
         result = response if ('result' in response) else self.safe_value(response, market['id'], {})
         #
