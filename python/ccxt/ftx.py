@@ -874,6 +874,10 @@ class ftx(Exchange):
             # 'postOnly': False,  # optional, default is False, limit or market orders only
             # 'clientId': 'abcdef0123456789',  # string, optional, client order id, limit or market orders only
         }
+        clientOrderId = self.safe_string(params, ['clientId', 'clientOrderId'])
+        if clientOrderId is not None:
+            params['clientId'] = clientOrderId
+            params = self.omit(params, ['clientId', 'clientOrderId'])
         priceToPrecision = None
         if price is not None:
             priceToPrecision = float(self.price_to_precision(symbol, price))
@@ -957,9 +961,15 @@ class ftx(Exchange):
         defaultMethod = self.safe_string(options, 'method', 'privateDeleteOrdersOrderId')
         method = self.safe_string(params, 'method', defaultMethod)
         type = self.safe_value(params, 'type')
-        if (type == 'stop') or (type == 'trailingStop') or (type == 'takeProfit'):
-            method = 'privateDeleteConditionalOrdersOrderId'
-        query = self.omit(params, ['method', 'type'])
+        clientOrderId = self.safe_value_2(params, 'client_order_id', 'clientOrderId')
+        if clientOrderId is None:
+            request['order_id'] = int(id)
+            if (type == 'stop') or (type == 'trailingStop') or (type == 'takeProfit'):
+                method = 'privateDeleteConditionalOrdersOrderId'
+        else:
+            request['client_order_id'] = clientOrderId
+            method = 'privateDeleteOrdersByClientIdClientOrderId'
+        query = self.omit(params, ['method', 'type', 'client_order_id', 'clientOrderId'])
         response = getattr(self, method)(self.extend(request, query))
         #
         #     {
@@ -993,10 +1003,16 @@ class ftx(Exchange):
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
-        request = {
-            'order_id': id,
-        }
-        response = self.privateGetOrdersOrderId(self.extend(request, params))
+        request = {}
+        clientOrderId = self.safe_value_2(params, 'client_order_id', 'clientOrderId')
+        method = 'privateGetOrdersOrderId'
+        if clientOrderId is None:
+            request['order_id'] = id
+        else:
+            request['client_order_id'] = clientOrderId
+            params = self.omit(params, ['client_order_id', 'clientOrderId'])
+            method = 'privateGetOrdersByClientIdClientOrderId'
+        response = getattr(self, method)(self.extend(request, params))
         #
         #     {
         #         "success": True,
