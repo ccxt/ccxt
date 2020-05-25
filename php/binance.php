@@ -1184,7 +1184,8 @@ class binance extends Exchange {
         $market = $this->market($symbol);
         $defaultType = $this->safe_string_2($this->options, 'createOrder', 'defaultType', $market['type']);
         $orderType = $this->safe_string($params, 'type', $defaultType);
-        $params = $this->omit($params, 'type');
+        $clientOrderId = $this->safe_string_2($params, 'newClientOrderId', 'clientOrderId');
+        $params = $this->omit($params, array( 'type', 'newClientOrderId', 'clientOrderId' ));
         $method = 'privatePostOrder';
         if ($orderType === 'future') {
             $method = 'fapiPrivatePostOrder';
@@ -1209,6 +1210,9 @@ class binance extends Exchange {
             'type' => $uppercaseType,
             'side' => strtoupper($side),
         );
+        if ($clientOrderId !== null) {
+            $request['newClientOrderId'] = $clientOrderId;
+        }
         $quoteOrderQty = $this->safe_value($this->options, 'quoteOrderQty', false);
         if ($uppercaseType === 'MARKET' && $quoteOrderQty) {
             $quoteOrderQty = $this->safe_float($params, 'quoteOrderQty');

@@ -963,14 +963,14 @@ class kraken extends Exchange {
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
-        $clientOrderId = $this->safe_string_2($params, 'userref', 'clientOrderId');
-        $query = $this->omit($params, array( 'userref', 'clientOrderId' ));
         $request = array(
             'pair' => $market['id'],
             'type' => $side,
             'ordertype' => $type,
             'volume' => $this->amount_to_precision($symbol, $amount),
         );
+        $clientOrderId = $this->safe_string_2($params, 'userref', 'clientOrderId');
+        $query = $this->omit($params, array( 'userref', 'clientOrderId' ));
         if ($clientOrderId !== null) {
             $request['userref'] = $clientOrderId;
         }

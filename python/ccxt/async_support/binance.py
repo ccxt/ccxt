@@ -1121,7 +1121,8 @@ class binance(Exchange):
         market = self.market(symbol)
         defaultType = self.safe_string_2(self.options, 'createOrder', 'defaultType', market['type'])
         orderType = self.safe_string(params, 'type', defaultType)
-        params = self.omit(params, 'type')
+        clientOrderId = self.safe_string_2(params, 'newClientOrderId', 'clientOrderId')
+        params = self.omit(params, ['type', 'newClientOrderId', 'clientOrderId'])
         method = 'privatePostOrder'
         if orderType == 'future':
             method = 'fapiPrivatePostOrder'
@@ -1142,6 +1143,8 @@ class binance(Exchange):
             'type': uppercaseType,
             'side': side.upper(),
         }
+        if clientOrderId is not None:
+            request['newClientOrderId'] = clientOrderId
         quoteOrderQty = self.safe_value(self.options, 'quoteOrderQty', False)
         if uppercaseType == 'MARKET' and quoteOrderQty:
             quoteOrderQty = self.safe_float(params, 'quoteOrderQty')
