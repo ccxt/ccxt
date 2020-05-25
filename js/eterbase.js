@@ -344,7 +344,7 @@ module.exports = class eterbase extends Exchange {
         //         "high":0.0,
         //     }
         //
-        const marketId = this.safeInteger (ticker, 'marketId');
+        const marketId = this.safeString (ticker, 'marketId');
         if (marketId in this.markets_by_id) {
             market = this.markets_by_id[marketId];
         }
