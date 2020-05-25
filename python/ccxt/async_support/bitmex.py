@@ -1117,6 +1117,10 @@ class bitmex(Exchange):
         }
         if price is not None:
             request['price'] = price
+        clientOrderId = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
+        if clientOrderId is not None:
+            request['clOrdID'] = clientOrderId
+            params = self.omit(params, ['clOrdID', 'clientOrderId'])
         response = await self.privatePostOrder(self.extend(request, params))
         order = self.parse_order(response)
         id = self.safe_string(order, 'id')
@@ -1125,9 +1129,14 @@ class bitmex(Exchange):
 
     async def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
         await self.load_markets()
-        request = {
-            'orderID': id,
-        }
+        request = {}
+        origClOrdID = self.safe_string_2(params, 'origClOrdID', 'clientOrderId')
+        if origClOrdID is not None:
+            request['origClOrdID'] = origClOrdID
+            clientOrderId = self.safe_string(params, 'clOrdID', 'clientOrderId')
+            if clientOrderId is not None:
+                request['clOrdID'] = clientOrderId
+            params = self.omit(params, ['origClOrdID', 'clOrdID', 'clientOrderId'])
         if amount is not None:
             request['orderQty'] = amount
         if price is not None:
@@ -1140,12 +1149,13 @@ class bitmex(Exchange):
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
         # https://github.com/ccxt/ccxt/issues/6507
-        clOrdID = self.safe_value(params, 'clOrdID')
+        clientOrderId = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
         request = {}
-        if clOrdID is None:
+        if clientOrderId is None:
             request['orderID'] = id
         else:
-            request['clOrdID'] = clOrdID
+            request['clOrdID'] = clientOrderId
+            params = self.omit(params, ['clOrdID', 'clientOrderId'])
         response = await self.privateDeleteOrder(self.extend(request, params))
         order = response[0]
         error = self.safe_string(order, 'error')
