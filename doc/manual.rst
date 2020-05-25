@@ -2932,6 +2932,12 @@ Some exchanges allow you to specify optional parameters for your order. You can 
 User-defined ``clientOrderId``
 ''''''''''''''''''''''''''''''
 
+::
+
+   - this part of the unified API is currenty a work in progress
+   - there may be some issues and missing implementations here and there
+   - contributions, pull requests and feedback appreciated
+
 The user can specify a custom ``clientOrderId`` field can be set upon placing orders with the ``params``. Using the ``clientOrderId`` one can later distinguish between own orders. This is only available for the exchanges that do support ``clientOrderId`` at this time. For the exchanges that don’t support it will either throw an error upon supplying the ``clientOrderId`` or will ignore it setting the ``clientOrderId`` to ``undefined/None/null``.
 
 .. code:: javascript

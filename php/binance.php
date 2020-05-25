@@ -1293,13 +1293,13 @@ class binance extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $origClientOrderId = $this->safe_value($params, 'origClientOrderId');
-        if ($origClientOrderId !== null) {
-            $request['origClientOrderId'] = $origClientOrderId;
+        $clientOrderId = $this->safe_value_2($params, 'origClientOrderId', 'clientOrderId');
+        if ($clientOrderId !== null) {
+            $request['origClientOrderId'] = $clientOrderId;
         } else {
             $request['orderId'] = intval ($id);
         }
-        $query = $this->omit($params, 'type');
+        $query = $this->omit($params, array( 'type', 'clientOrderId', 'origClientOrderId' ));
         $response = $this->$method (array_merge($request, $query));
         return $this->parse_order($response, $market);
     }
