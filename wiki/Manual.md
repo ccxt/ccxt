@@ -2473,6 +2473,7 @@ Most of methods returning orders within ccxt unified API will usually yield an o
 ```JavaScript
 {
     'id':                '12345-67890:09876/54321', // string
+    'clientOrderId':     'abcdef-ghijklmnop-qrstuvwxyz', // a user-defined clientOrderId, if any
     'datetime':          '2017-08-17 12:42:48.000', // ISO8601 datetime of 'timestamp' with milliseconds
     'timestamp':          1502962946216, // order placing/opening Unix timestamp in milliseconds
     'lastTradeTimestamp': 1502962956216, // Unix timestamp of the most recent trade on this order
@@ -2502,6 +2503,7 @@ Most of methods returning orders within ccxt unified API will usually yield an o
 - Order `status` prevails or has precedence over the `lastTradeTimestamp`.
 - The `cost` of an order is: `{ filled * price }`
 - The `cost` of an order means the total *quote* volume of the order (whereas the `amount` is the *base* volume). The value of `cost` should be as close to the actual most recent known order cost as possible. The `cost` field itself is there mostly for convenience and can be deduced from other fields.
+- The `clientOrderId` field can be set upon placing orders by the user with [custom order params](#custom-order-params). Using the `clientOrderId` the user can later distinguish between own orders. This is only available for the exchanges that do support `clientOrderId` at this time.
 
 ### Placing Orders
 
@@ -2695,6 +2697,28 @@ kraken.create_market_buy_order('BTC/USD', 1, {'trading_agreement': 'agree'})
 // PHP
 // add custom user id to your order
 $hitbtc->create_order ('BTC/USD', 'limit', 'buy', 1, 3000, array ('clientOrderId' => '123'));
+```
+
+##### User-defined `clientOrderId`
+
+The user can specify a custom `clientOrderId` field can be set upon placing orders with the `params`. Using the `clientOrderId` one can later distinguish between own orders. This is only available for the exchanges that do support `clientOrderId` at this time. For the exchanges that don't support it will either throw an error upon supplying the `clientOrderId` or will ignore it setting the `clientOrderId` to `undefined/None/null`.
+
+```JavaScript
+exchange.createOrder (symbol, type, side, amount, price, {
+    'clientOrderId': 'Hello',
+})
+```
+
+```Python
+exchange.create_order(symbol, type, side, amount, price, {
+    'clientOrderId': 'World',
+})
+```
+
+```PHP
+$exchange->create_order($symbol, $type, $side, $amount, $price, array(
+    'clientOrderId' => 'Foobar',
+))
 ```
 
 #### Other Order Types
