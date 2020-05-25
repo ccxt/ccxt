@@ -910,6 +910,10 @@ class poloniex(Exchange):
             'rate': self.price_to_precision(symbol, price),
             'amount': amount,
         }
+        clientOrderId = self.safe_string(params, 'clientOrderId')
+        if clientOrderId is not None:
+            request['clientOrderId'] = clientOrderId
+            params = self.omit(params, 'clientOrderId')
         # remember the timestamp before issuing the request
         timestamp = self.milliseconds()
         response = getattr(self, method)(self.extend(request, params))
@@ -978,9 +982,14 @@ class poloniex(Exchange):
         self.load_markets()
         response = None
         try:
-            response = self.privatePostCancelOrder(self.extend({
-                'orderNumber': id,
-            }, params))
+            request = {}
+            clientOrderId = self.safe_value(params, 'clientOrderId')
+            if clientOrderId is None:
+                request['orderNumber'] = id
+            else:
+                request['clientOrderId'] = clientOrderId
+            params = self.omit(params, 'clientOrderId')
+            response = self.privatePostCancelOrder(self.extend(request, params))
         except Exception as e:
             if isinstance(e, CancelPending):
                 # A request to cancel the order has been sent already.
