@@ -124,6 +124,9 @@ module.exports = class bitvavo extends Exchange {
                 'apiKey': true,
                 'secret': true,
             },
+            'options': {
+                'BITVAVO-ACCESS-WINDOW': 10000, // default 10 sec
+            },
             'exceptions': {
                 'exact': {
                 },
@@ -567,7 +570,7 @@ module.exports = class bitvavo extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, httpHeaders = undefined, body = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
         let url = '/' + this.version + '/' + this.implodeParams (path, params);
         if (method === 'GET') {
@@ -577,8 +580,25 @@ module.exports = class bitvavo extends Exchange {
         }
         if (api === 'private') {
             this.checkRequiredCredentials ();
+            let payload = '';
+            if (method !== 'GET') {
+                if (Object.keys (query).length) {
+                    body = this.json (query);
+                    payload = body;
+                }
+            }
+            const timestamp = this.milliseconds ().toString ();
+            const auth = timestamp + method + url + payload;
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret));
+            const accessWindow = this.safeString (this.options, 'BITVAVO-ACCESS-WINDOW', '10000');
+            headers = {
+                'BITVAVO-ACCESS-KEY': this.apiKey,
+                'BITVAVO-ACCESS-SIGNATURE': signature,
+                'BITVAVO-ACCESS-TIMESTAMP': timestamp,
+                'BITVAVO-ACCESS-WINDOW': accessWindow,
+            };
         }
         url = this.urls['api'][api] + url;
-        return { 'url': url, 'method': method, 'body': body, 'headers': httpHeaders };
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 };
