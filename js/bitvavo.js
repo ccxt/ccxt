@@ -18,6 +18,7 @@ module.exports = class bitvavo extends Exchange {
                 'CORS': false,
                 'publicAPI': true,
                 'privateAPI': true,
+                'fetchBalance': true,
                 'fetchCurrencies': true,
                 'fetchOHLCV': true,
                 'fetchOrderBook': true,
@@ -568,6 +569,32 @@ module.exports = class bitvavo extends Exchange {
         //     ]
         //
         return this.parseOHLCVs (response, market, timeframe, since, limit);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetBalance (params);
+        //
+        //     [
+        //         {
+        //             "symbol": "BTC",
+        //             "available": "1.57593193",
+        //             "inOrder": "0.74832374"
+        //         }
+        //     ]
+        //
+        const result = { 'info': response };
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
+            const currencyId = this.safeString (balance, 'symbol');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = {
+                'free': this.safeFloat (balance, 'available'),
+                'used': this.safeFloat (balance, 'inOrder'),
+            };
+            result[code] = account;
+        }
+        return this.parseBalance (result);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
