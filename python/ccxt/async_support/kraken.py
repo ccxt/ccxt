@@ -909,25 +909,28 @@ class kraken(Exchange):
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        clientOrderId = self.safe_string_2(params, 'userref', 'clientOrderId')
+        query = self.omit(params, ['userref', 'clientOrderId'])
         request = {
             'pair': market['id'],
             'type': side,
             'ordertype': type,
             'volume': self.amount_to_precision(symbol, amount),
         }
+        if clientOrderId is not None:
+            request['userref'] = clientOrderId
         priceIsDefined = (price is not None)
         marketOrder = (type == 'market')
         limitOrder = (type == 'limit')
         shouldIncludePrice = limitOrder or (not marketOrder and priceIsDefined)
         if shouldIncludePrice:
             request['price'] = self.price_to_precision(symbol, price)
-        response = await self.privatePostAddOrder(self.extend(request, params))
+        response = await self.privatePostAddOrder(self.extend(request, query))
         id = self.safe_value(response['result'], 'txid')
         if id is not None:
             if isinstance(id, list):
                 length = len(id)
                 id = id if (length > 1) else id[0]
-        clientOrderId = self.safe_string(params, 'userref')
         return {
             'id': id,
             'clientOrderId': clientOrderId,
