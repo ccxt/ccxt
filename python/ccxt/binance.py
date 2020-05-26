@@ -1121,7 +1121,8 @@ class binance(Exchange):
         market = self.market(symbol)
         defaultType = self.safe_string_2(self.options, 'createOrder', 'defaultType', market['type'])
         orderType = self.safe_string(params, 'type', defaultType)
-        params = self.omit(params, 'type')
+        clientOrderId = self.safe_string_2(params, 'newClientOrderId', 'clientOrderId')
+        params = self.omit(params, ['type', 'newClientOrderId', 'clientOrderId'])
         method = 'privatePostOrder'
         if orderType == 'future':
             method = 'fapiPrivatePostOrder'
@@ -1142,6 +1143,8 @@ class binance(Exchange):
             'type': uppercaseType,
             'side': side.upper(),
         }
+        if clientOrderId is not None:
+            request['newClientOrderId'] = clientOrderId
         quoteOrderQty = self.safe_value(self.options, 'quoteOrderQty', False)
         if uppercaseType == 'MARKET' and quoteOrderQty:
             quoteOrderQty = self.safe_float(params, 'quoteOrderQty')
@@ -1209,12 +1212,12 @@ class binance(Exchange):
         request = {
             'symbol': market['id'],
         }
-        origClientOrderId = self.safe_value(params, 'origClientOrderId')
-        if origClientOrderId is not None:
-            request['origClientOrderId'] = origClientOrderId
+        clientOrderId = self.safe_value_2(params, 'origClientOrderId', 'clientOrderId')
+        if clientOrderId is not None:
+            request['origClientOrderId'] = clientOrderId
         else:
             request['orderId'] = int(id)
-        query = self.omit(params, 'type')
+        query = self.omit(params, ['type', 'clientOrderId', 'origClientOrderId'])
         response = getattr(self, method)(self.extend(request, query))
         return self.parse_order(response, market)
 
@@ -1307,7 +1310,7 @@ class binance(Exchange):
             type = self.safe_string(params, 'type', defaultType)
             query = self.omit(params, 'type')
         method = 'privateGetOpenOrders'
-        if type == 'futures':
+        if type == 'future':
             method = 'fapiPrivateGetOpenOrders'
         elif type == 'margin':
             method = 'sapiGetMarginOpenOrders'

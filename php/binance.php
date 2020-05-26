@@ -1184,7 +1184,8 @@ class binance extends Exchange {
         $market = $this->market($symbol);
         $defaultType = $this->safe_string_2($this->options, 'createOrder', 'defaultType', $market['type']);
         $orderType = $this->safe_string($params, 'type', $defaultType);
-        $params = $this->omit($params, 'type');
+        $clientOrderId = $this->safe_string_2($params, 'newClientOrderId', 'clientOrderId');
+        $params = $this->omit($params, array( 'type', 'newClientOrderId', 'clientOrderId' ));
         $method = 'privatePostOrder';
         if ($orderType === 'future') {
             $method = 'fapiPrivatePostOrder';
@@ -1209,6 +1210,9 @@ class binance extends Exchange {
             'type' => $uppercaseType,
             'side' => strtoupper($side),
         );
+        if ($clientOrderId !== null) {
+            $request['newClientOrderId'] = $clientOrderId;
+        }
         $quoteOrderQty = $this->safe_value($this->options, 'quoteOrderQty', false);
         if ($uppercaseType === 'MARKET' && $quoteOrderQty) {
             $quoteOrderQty = $this->safe_float($params, 'quoteOrderQty');
@@ -1289,13 +1293,13 @@ class binance extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $origClientOrderId = $this->safe_value($params, 'origClientOrderId');
-        if ($origClientOrderId !== null) {
-            $request['origClientOrderId'] = $origClientOrderId;
+        $clientOrderId = $this->safe_value_2($params, 'origClientOrderId', 'clientOrderId');
+        if ($clientOrderId !== null) {
+            $request['origClientOrderId'] = $clientOrderId;
         } else {
             $request['orderId'] = intval ($id);
         }
-        $query = $this->omit($params, 'type');
+        $query = $this->omit($params, array( 'type', 'clientOrderId', 'origClientOrderId' ));
         $response = $this->$method (array_merge($request, $query));
         return $this->parse_order($response, $market);
     }
@@ -1395,7 +1399,7 @@ class binance extends Exchange {
             $query = $this->omit($params, 'type');
         }
         $method = 'privateGetOpenOrders';
-        if ($type === 'futures') {
+        if ($type === 'future') {
             $method = 'fapiPrivateGetOpenOrders';
         } else if ($type === 'margin') {
             $method = 'sapiGetMarginOpenOrders';

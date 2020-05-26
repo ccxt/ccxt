@@ -987,6 +987,11 @@ class poloniex extends Exchange {
             'rate' => $this->price_to_precision($symbol, $price),
             'amount' => $amount,
         );
+        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        if ($clientOrderId !== null) {
+            $request['clientOrderId'] = $clientOrderId;
+            $params = $this->omit($params, 'clientOrderId');
+        }
         // remember the $timestamp before issuing the $request
         $timestamp = $this->milliseconds();
         $response = $this->$method (array_merge($request, $params));
@@ -1061,14 +1066,20 @@ class poloniex extends Exchange {
         $this->load_markets();
         $response = null;
         try {
-            $response = $this->privatePostCancelOrder (array_merge(array(
-                'orderNumber' => $id,
-            ), $params));
+            $request = array();
+            $clientOrderId = $this->safe_value($params, 'clientOrderId');
+            if ($clientOrderId === null) {
+                $request['orderNumber'] = $id;
+            } else {
+                $request['clientOrderId'] = $clientOrderId;
+            }
+            $params = $this->omit($params, 'clientOrderId');
+            $response = $this->privatePostCancelOrder (array_merge($request, $params));
         } catch (Exception $e) {
             if ($e instanceof CancelPending) {
-                // A request to cancel the order has been sent already.
+                // A $request to cancel the order has been sent already.
                 // If we then attempt to cancel the order the second time
-                // before the first request is processed the exchange will
+                // before the first $request is processed the exchange will
                 // throw a CancelPending exception. Poloniex won't show the
                 // order in the list of active (open) orders and the cached
                 // order will be marked as 'closed' (see #1801 for details).

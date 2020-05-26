@@ -318,6 +318,7 @@ module.exports = class exmo extends Exchange {
                                     { 'prov': 'XMR', 'dep': '0%', 'wd': '0.001 XMR' },
                                     { 'prov': 'XRP', 'dep': '0%', 'wd': '0.02 XRP' },
                                     { 'prov': 'ETC', 'dep': '0%', 'wd': '0.01 ETC' },
+                                    { 'prov': 'BCH', 'dep': '0%', 'wd': '0.001 BCH' },
                                     { 'prov': 'BTG', 'dep': '0%', 'wd': '0.001 BTG' },
                                     { 'prov': 'EOS', 'dep': '0%', 'wd': '0.05 EOS' },
                                     { 'prov': 'XLM', 'dep': '0%', 'wd': '0.01 XLM' },

@@ -915,19 +915,22 @@ class kraken(Exchange):
             'ordertype': type,
             'volume': self.amount_to_precision(symbol, amount),
         }
+        clientOrderId = self.safe_string_2(params, 'userref', 'clientOrderId')
+        query = self.omit(params, ['userref', 'clientOrderId'])
+        if clientOrderId is not None:
+            request['userref'] = clientOrderId
         priceIsDefined = (price is not None)
         marketOrder = (type == 'market')
         limitOrder = (type == 'limit')
         shouldIncludePrice = limitOrder or (not marketOrder and priceIsDefined)
         if shouldIncludePrice:
             request['price'] = self.price_to_precision(symbol, price)
-        response = self.privatePostAddOrder(self.extend(request, params))
+        response = self.privatePostAddOrder(self.extend(request, query))
         id = self.safe_value(response['result'], 'txid')
         if id is not None:
             if isinstance(id, list):
                 length = len(id)
                 id = id if (length > 1) else id[0]
-        clientOrderId = self.safe_string(params, 'userref')
         return {
             'id': id,
             'clientOrderId': clientOrderId,

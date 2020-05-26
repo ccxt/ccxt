@@ -1189,6 +1189,11 @@ module.exports = class bitmex extends Exchange {
         if (price !== undefined) {
             request['price'] = price;
         }
+        const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['clOrdID'] = clientOrderId;
+            params = this.omit (params, [ 'clOrdID', 'clientOrderId' ]);
+        }
         const response = await this.privatePostOrder (this.extend (request, params));
         const order = this.parseOrder (response);
         const id = this.safeString (order, 'id');
@@ -1198,9 +1203,16 @@ module.exports = class bitmex extends Exchange {
 
     async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {
-            'orderID': id,
-        };
+        const request = {};
+        const origClOrdID = this.safeString2 (params, 'origClOrdID', 'clientOrderId');
+        if (origClOrdID !== undefined) {
+            request['origClOrdID'] = origClOrdID;
+            const clientOrderId = this.safeString (params, 'clOrdID', 'clientOrderId');
+            if (clientOrderId !== undefined) {
+                request['clOrdID'] = clientOrderId;
+            }
+            params = this.omit (params, [ 'origClOrdID', 'clOrdID', 'clientOrderId' ]);
+        }
         if (amount !== undefined) {
             request['orderQty'] = amount;
         }
@@ -1216,15 +1228,16 @@ module.exports = class bitmex extends Exchange {
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         // https://github.com/ccxt/ccxt/issues/6507
-        const clOrdID = this.safeValue (params, 'clOrdID');
+        const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
         const request = {};
-        if (clOrdID === undefined) {
+        if (clientOrderId === undefined) {
             request['orderID'] = id;
         } else {
-            request['clOrdID'] = clOrdID;
+            request['clOrdID'] = clientOrderId;
+            params = this.omit (params, [ 'clOrdID', 'clientOrderId' ]);
         }
         const response = await this.privateDeleteOrder (this.extend (request, params));
-        let order = response[0];
+        let order = this.safeValue (response, 0, {});
         const error = this.safeString (order, 'error');
         if (error !== undefined) {
             if (error.indexOf ('Unable to cancel order due to existing state') >= 0) {

@@ -734,9 +734,10 @@ class kucoin(Exchange):
         await self.load_markets()
         marketId = self.market_id(symbol)
         # required param, cannot be used twice
-        clientOid = self.uuid()
+        clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId', self.uuid())
+        params = self.omit(params, ['clientOid', 'clientOrderId'])
         request = {
-            'clientOid': clientOid,
+            'clientOid': clientOrderId,
             'side': side,
             'symbol': marketId,
             'type': type,
@@ -774,7 +775,7 @@ class kucoin(Exchange):
             'datetime': self.iso8601(timestamp),
             'fee': None,
             'status': 'open',
-            'clientOrderId': clientOid,
+            'clientOrderId': clientOrderId,
             'info': data,
         }
         if not self.safe_value(params, 'quoteAmount'):

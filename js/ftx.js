@@ -905,6 +905,11 @@ module.exports = class ftx extends Exchange {
             // 'postOnly': false, // optional, default is false, limit or market orders only
             // 'clientId': 'abcdef0123456789', // string, optional, client order id, limit or market orders only
         };
+        const clientOrderId = this.safeString (params, [ 'clientId', 'clientOrderId' ]);
+        if (clientOrderId !== undefined) {
+            params['clientId'] = clientOrderId;
+            params = this.omit (params, [ 'clientId', 'clientOrderId' ]);
+        }
         let priceToPrecision = undefined;
         if (price !== undefined) {
             priceToPrecision = parseFloat (this.priceToPrecision (symbol, price));
@@ -991,10 +996,17 @@ module.exports = class ftx extends Exchange {
         const defaultMethod = this.safeString (options, 'method', 'privateDeleteOrdersOrderId');
         let method = this.safeString (params, 'method', defaultMethod);
         const type = this.safeValue (params, 'type');
-        if ((type === 'stop') || (type === 'trailingStop') || (type === 'takeProfit')) {
-            method = 'privateDeleteConditionalOrdersOrderId';
+        const clientOrderId = this.safeValue2 (params, 'client_order_id', 'clientOrderId');
+        if (clientOrderId === undefined) {
+            request['order_id'] = parseInt (id);
+            if ((type === 'stop') || (type === 'trailingStop') || (type === 'takeProfit')) {
+                method = 'privateDeleteConditionalOrdersOrderId';
+            }
+        } else {
+            request['client_order_id'] = clientOrderId;
+            method = 'privateDeleteOrdersByClientIdClientOrderId';
         }
-        const query = this.omit (params, [ 'method', 'type' ]);
+        const query = this.omit (params, [ 'method', 'type', 'client_order_id', 'clientOrderId' ]);
         const response = await this[method] (this.extend (request, query));
         //
         //     {
@@ -1031,10 +1043,17 @@ module.exports = class ftx extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {
-            'order_id': id,
-        };
-        const response = await this.privateGetOrdersOrderId (this.extend (request, params));
+        const request = {};
+        const clientOrderId = this.safeValue2 (params, 'client_order_id', 'clientOrderId');
+        let method = 'privateGetOrdersOrderId';
+        if (clientOrderId === undefined) {
+            request['order_id'] = id;
+        } else {
+            request['client_order_id'] = clientOrderId;
+            params = this.omit (params, [ 'client_order_id', 'clientOrderId']);
+            method = 'privateGetOrdersByClientIdClientOrderId';
+        }
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "success": true,

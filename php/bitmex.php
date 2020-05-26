@@ -1193,6 +1193,11 @@ class bitmex extends Exchange {
         if ($price !== null) {
             $request['price'] = $price;
         }
+        $clientOrderId = $this->safe_string_2($params, 'clOrdID', 'clientOrderId');
+        if ($clientOrderId !== null) {
+            $request['clOrdID'] = $clientOrderId;
+            $params = $this->omit($params, array( 'clOrdID', 'clientOrderId' ));
+        }
         $response = $this->privatePostOrder (array_merge($request, $params));
         $order = $this->parse_order($response);
         $id = $this->safe_string($order, 'id');
@@ -1202,9 +1207,16 @@ class bitmex extends Exchange {
 
     public function edit_order($id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         $this->load_markets();
-        $request = array(
-            'orderID' => $id,
-        );
+        $request = array();
+        $origClOrdID = $this->safe_string_2($params, 'origClOrdID', 'clientOrderId');
+        if ($origClOrdID !== null) {
+            $request['origClOrdID'] = $origClOrdID;
+            $clientOrderId = $this->safe_string($params, 'clOrdID', 'clientOrderId');
+            if ($clientOrderId !== null) {
+                $request['clOrdID'] = $clientOrderId;
+            }
+            $params = $this->omit($params, array( 'origClOrdID', 'clOrdID', 'clientOrderId' ));
+        }
         if ($amount !== null) {
             $request['orderQty'] = $amount;
         }
@@ -1220,15 +1232,16 @@ class bitmex extends Exchange {
     public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         // https://github.com/ccxt/ccxt/issues/6507
-        $clOrdID = $this->safe_value($params, 'clOrdID');
+        $clientOrderId = $this->safe_string_2($params, 'clOrdID', 'clientOrderId');
         $request = array();
-        if ($clOrdID === null) {
+        if ($clientOrderId === null) {
             $request['orderID'] = $id;
         } else {
-            $request['clOrdID'] = $clOrdID;
+            $request['clOrdID'] = $clientOrderId;
+            $params = $this->omit($params, array( 'clOrdID', 'clientOrderId' ));
         }
         $response = $this->privateDeleteOrder (array_merge($request, $params));
-        $order = $response[0];
+        $order = $this->safe_value($response, 0, array());
         $error = $this->safe_string($order, 'error');
         if ($error !== null) {
             if (mb_strpos($error, 'Unable to cancel $order due to existing state') !== false) {
