@@ -311,7 +311,7 @@ class qtrade extends Exchange {
             $this->safe_float($ohlcv, 'high'),
             $this->safe_float($ohlcv, 'low'),
             $this->safe_float($ohlcv, 'close'),
-            $this->safe_float($ohlcv, 'volume'),
+            $this->safe_float($ohlcv, 'market_volume'),
         );
         return $result;
     }

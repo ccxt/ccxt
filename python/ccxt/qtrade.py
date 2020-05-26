@@ -314,7 +314,7 @@ class qtrade(Exchange):
             self.safe_float(ohlcv, 'high'),
             self.safe_float(ohlcv, 'low'),
             self.safe_float(ohlcv, 'close'),
-            self.safe_float(ohlcv, 'volume'),
+            self.safe_float(ohlcv, 'market_volume'),
         ]
         return result
 
