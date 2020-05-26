@@ -24,6 +24,7 @@ module.exports = class bitvavo extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
+                'editOrder': true,
                 'fetchBalance': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
@@ -743,6 +744,32 @@ module.exports = class bitvavo extends Exchange {
         return this.parseOrder (response, market);
     }
 
+    async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let request = {};
+        const amountRemaining = this.safeFloat (params, 'amountRemaining');
+        params = this.omit (params, 'amountRemaining');
+        if (price !== undefined) {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        if (amount !== undefined) {
+            request['amount'] = this.amountToPrecision (symbol, amount);
+        }
+        if (amountRemaining !== undefined) {
+            request['amountRemaining'] = this.amountToPrecision (symbol, amountRemaining);
+        }
+        request = this.extend (request, params);
+        if (Object.keys (request).length) {
+            request['orderId'] = id;
+            request['market'] = market['id'];
+            const response = await this.privatePutOrder (this.extend (request, params));
+            return this.parseOrder (response, market);
+        } else {
+            throw new ArgumentsRequired (this.id + ' editOrder requires an amount argument, or a price argument, or non-empty params');
+        }
+    }
+
     async cancelOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument');
@@ -948,7 +975,7 @@ module.exports = class bitvavo extends Exchange {
         //         }
         //     ]
         //
-        return this.§eOrders (response, market, since, limit);
+        return this.parseOrders (response, market, since, limit);
     }
 
     parseOrderStatus (status) {
