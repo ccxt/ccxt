@@ -21,6 +21,7 @@ module.exports = class bitvavo extends Exchange {
                 'CORS': false,
                 'publicAPI': true,
                 'privateAPI': true,
+                'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
@@ -761,6 +762,25 @@ module.exports = class bitvavo extends Exchange {
         return this.parseOrder (response, market);
     }
 
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['market'] = market['id'];
+        }
+        const response = await this.privateDeleteOrders (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "orderId": "1be6d0df-d5dc-4b53-a250-3376f3b393e6"
+        //         }
+        //     ]
+        //
+        return this.parseOrders (response, market);
+    }
+
     async fetchOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
@@ -928,7 +948,7 @@ module.exports = class bitvavo extends Exchange {
         //         }
         //     ]
         //
-        return this.parseOrders (response, market, since, limit);
+        return this.§eOrders (response, market, since, limit);
     }
 
     parseOrderStatus (status) {
@@ -951,7 +971,7 @@ module.exports = class bitvavo extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
-        // cancelOrder
+        // cancelOrder, cancelAllOrders
         //
         //     {
         //         "orderId": "2e7ce7fc-44e2-4d80-a4a7-d079c4750b61"
