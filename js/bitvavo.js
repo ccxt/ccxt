@@ -824,7 +824,7 @@ module.exports = class bitvavo extends Exchange {
             // 'orderIdFrom': 'af76d6ce-9f7c-4006-b715-bb5d430652d0',
             // 'orderIdTo': 'af76d6ce-9f7c-4006-b715-bb5d430652d0',
         };
-        if (since === undefined) {
+        if (since !== undefined) {
             request['start'] = since;
         }
         if (limit !== undefined) {
@@ -885,7 +885,7 @@ module.exports = class bitvavo extends Exchange {
             market = this.market (symbol);
             request['market'] = market['id'];
         }
-        if (since === undefined) {
+        if (since !== undefined) {
             request['start'] = since;
         }
         if (limit !== undefined) {
