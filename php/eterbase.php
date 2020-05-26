@@ -811,7 +811,6 @@ class eterbase extends Exchange {
             $filled = max (0, $amount - $remaining);
         }
         $cost = $this->safe_float($order, 'cost');
-        // (int) round($price * $filled, $market->precision.cost);
         if ($type === 'market') {
             if ($price === 0.0) {
                 if (($cost !== null) && ($filled !== null)) {

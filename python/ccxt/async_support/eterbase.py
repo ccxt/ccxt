@@ -774,7 +774,6 @@ class eterbase(Exchange):
         if (amount is not None) and (remaining is not None):
             filled = max(0, amount - remaining)
         cost = self.safe_float(order, 'cost')
-        # int(round(price * filled, market.precision.cost))
         if type == 'market':
             if price == 0.0:
                 if (cost is not None) and (filled is not None):
