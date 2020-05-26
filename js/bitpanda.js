@@ -245,6 +245,8 @@ module.exports = class bitpanda extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+
         const request = {
             'instrument_code': this.marketId (symbol),
             'side': side.toUpperCase (),
