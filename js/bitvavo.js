@@ -20,6 +20,7 @@ module.exports = class bitvavo extends Exchange {
                 'privateAPI': true,
                 'fetchBalance': true,
                 'fetchCurrencies': true,
+                'fetchDepositAddress': true,
                 'fetchOHLCV': true,
                 'fetchOrderBook': true,
                 'fetchMarkets': true,
@@ -595,6 +596,30 @@ module.exports = class bitvavo extends Exchange {
             result[code] = account;
         }
         return this.parseBalance (result);
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'symbol': currency['id'],
+        };
+        const response = await this.privateGetDeposit (this.extend (request, params));
+        //
+        //     {
+        //         "address": "0x449889e3234514c45d57f7c5a571feba0c7ad567",
+        //         "paymentId": "10002653"
+        //     }
+        //
+        const address = this.safeString (response, 'address');
+        const tag = this.safeString (response, 'paymentId');
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'info': response,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
