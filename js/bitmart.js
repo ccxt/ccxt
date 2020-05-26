@@ -301,7 +301,7 @@ module.exports = class bitmart extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (ticker, 'closeTime', this.milliseconds ());
-        const marketId = this.safeString (ticker, 'pair');
+        const marketId = this.safeString2 (ticker, 'pair', 'symbol_id');
         let symbol = undefined;
         if (marketId !== undefined) {
             if (marketId in this.markets_by_id) {
