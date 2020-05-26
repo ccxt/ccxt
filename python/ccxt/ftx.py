@@ -874,7 +874,7 @@ class ftx(Exchange):
             # 'postOnly': False,  # optional, default is False, limit or market orders only
             # 'clientId': 'abcdef0123456789',  # string, optional, client order id, limit or market orders only
         }
-        clientOrderId = self.safe_string(params, ['clientId', 'clientOrderId'])
+        clientOrderId = self.safe_string_2(params, 'clientId', 'clientOrderId')
         if clientOrderId is not None:
             params['clientId'] = clientOrderId
             params = self.omit(params, ['clientId', 'clientOrderId'])
@@ -1181,6 +1181,8 @@ class ftx(Exchange):
             # 'password': 'string',  # optional withdrawal password if it is required for your account
             # 'code': '192837',  # optional 2fa code if it is required for your account
         }
+        if self.password is not None:
+            request['password'] = self.password
         if tag is not None:
             request['tag'] = tag
         response = self.privatePostWalletWithdrawals(self.extend(request, params))
@@ -1278,6 +1280,7 @@ class ftx(Exchange):
         address = self.safe_string(transaction, 'address')
         tag = self.safe_string(transaction, 'tag')
         fee = self.safe_float(transaction, 'fee')
+        type = 'deposit' if ('confirmations' in transaction) else 'withdrawal'
         return {
             'info': transaction,
             'id': id,
@@ -1285,12 +1288,12 @@ class ftx(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'addressFrom': None,
-            'address': None,
+            'address': address,
             'addressTo': address,
             'tagFrom': None,
             'tag': tag,
-            'tagTo': None,
-            'type': None,
+            'tagTo': tag,
+            'type': type,
             'amount': amount,
             'currency': code,
             'status': status,

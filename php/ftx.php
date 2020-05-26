@@ -907,7 +907,7 @@ class ftx extends Exchange {
             // 'postOnly' => false, // optional, default is false, limit or $market orders only
             // 'clientId' => 'abcdef0123456789', // string, optional, client order id, limit or $market orders only
         );
-        $clientOrderId = $this->safe_string($params, array( 'clientId', 'clientOrderId' ));
+        $clientOrderId = $this->safe_string_2($params, 'clientId', 'clientOrderId');
         if ($clientOrderId !== null) {
             $params['clientId'] = $clientOrderId;
             $params = $this->omit($params, array( 'clientId', 'clientOrderId' ));
@@ -1236,6 +1236,9 @@ class ftx extends Exchange {
             // 'password' => 'string', // optional withdrawal password if it is required for your account
             // 'code' => '192837', // optional 2fa $code if it is required for your account
         );
+        if ($this->password !== null) {
+            $request['password'] = $this->password;
+        }
         if ($tag !== null) {
             $request['tag'] = $tag;
         }
@@ -1337,6 +1340,7 @@ class ftx extends Exchange {
         $address = $this->safe_string($transaction, 'address');
         $tag = $this->safe_string($transaction, 'tag');
         $fee = $this->safe_float($transaction, 'fee');
+        $type = (is_array($transaction) && array_key_exists('confirmations', $transaction)) ? 'deposit' : 'withdrawal';
         return array(
             'info' => $transaction,
             'id' => $id,
@@ -1344,12 +1348,12 @@ class ftx extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'addressFrom' => null,
-            'address' => null,
+            'address' => $address,
             'addressTo' => $address,
             'tagFrom' => null,
             'tag' => $tag,
-            'tagTo' => null,
-            'type' => null,
+            'tagTo' => $tag,
+            'type' => $type,
             'amount' => $amount,
             'currency' => $code,
             'status' => $status,

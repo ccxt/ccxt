@@ -306,7 +306,7 @@ class bitmart extends Exchange {
         //     }
         //
         $timestamp = $this->safe_integer($ticker, 'closeTime', $this->milliseconds());
-        $marketId = $this->safe_string($ticker, 'pair');
+        $marketId = $this->safe_string_2($ticker, 'pair', 'symbol_id');
         $symbol = null;
         if ($marketId !== null) {
             if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
