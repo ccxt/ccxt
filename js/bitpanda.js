@@ -424,12 +424,7 @@ module.exports = class bitpanda extends Exchange {
             request['max_page_size'] = limit;
         }
         const response = await this.privateGetAccountTrades (this.extend (request, params));
-        const tradeHistory = this.safeValue (response, 'trade_history');
-        const trades = [];
-        for (let i = 0; i < tradeHistory.length; i++) {
-            const trade = this.safeValue (tradeHistory[i], 'trade');
-            trades.push (trade);
-        }
+        const trades = this.safeValue (response, 'trade_history');
         if ('cursor' in response) {
             const cursor = this.safeValue (response, 'cursor');
             return this.addPaginatorCursor (this.parseTrades (trades, market, since, limit, params), cursor);
@@ -627,33 +622,105 @@ module.exports = class bitpanda extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        order = this.safeValue (order, 'order', order);
-        market = this.markets_by_id[this.safeString (order, 'instrument_code')];
-        const id = this.safeString (order, 'order_id');
-        const time = this.safeString (order, 'time');
-        const type = this.safeStringLower (order, 'type');
-        const side = this.safeStringLower (order, 'side');
-        const status = this.safeString (order, 'status');
-        const price = this.safeFloat (order, 'price');
-        const amount = this.safeFloat (order, 'amount');
-        const filled = this.safeFloat (order, 'filled_amount');
-        const cost = price * amount;
+        // example order response
+        // {
+        //   "order": {
+        //     "order_id": "66756a10-3e86-48f4-9678-b634c4b135b2",
+        //     "account_id": "1eb2ad5d-55f1-40b5-bc92-7dc05869e905",
+        //     "instrument_code": "BTC_EUR",
+        //     "amount": "1234.5678",
+        //     "filled_amount": "1234.5678",
+        //     "side": "BUY",
+        //     "type": "LIMIT",
+        //     "status": "OPEN",
+        //     "sequence": 123456789,
+        //     "price": "1234.5678",
+        //     "average_price": "1234.5678",
+        //     "reason": "INSUFFICIENT_FUNDS",
+        //     "time": "2020-05-06T06:53:31Z",
+        //     "time_in_force": "GOOD_TILL_CANCELLED",
+        //     "time_last_updated": "2020-05-06T06:53:31Z",
+        //     "expire_after": "2020-05-06T06:53:31Z",
+        //     "is_post_only": false,
+        //     "time_triggered": "2020-05-06T06:53:31Z",
+        //     "trigger_price": "1234.5678"
+        //   },
+        //   "trades": [
+        //     {
+        //       "trade": {
+        //         "trade_id": "2b42efcd-d5b7-4a56-8e12-b69ffd68c5ef",
+        //         "order_id": "66756a10-3e86-48f4-9678-b634c4b135b2",
+        //         "account_id": "c2d0076a-c20d-41f8-9e9a-1a1d028b2b58",
+        //         "amount": "1234.5678",
+        //         "side": "BUY",
+        //         "instrument_code": "BTC_EUR",
+        //         "price": "1234.5678",
+        //         "time": "2020-05-06T06:53:31Z",
+        //         "sequence": 123456789
+        //       },
+        //       "fee": {
+        //         "fee_amount": "1234.5678",
+        //         "fee_percentage": "1234.5678",
+        //         "fee_group_id": "default",
+        //         "running_trading_volume": "1234.5678",
+        //         "fee_currency": "BTC",
+        //         "fee_type": "TAKER"
+        //       }
+        //     }
+        //   ]
+        // }
+        const orderObject = this.safeValue (order, 'order', order);
+        // handle symbol
+        const marketId = this.safeString (orderObject, 'instrument_code');
+        let symbol = undefined;
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+                symbol = market['symbol'];
+            } else {
+                // if not found we just parse it as the format is known
+                const [ baseId, quoteId ] = marketId.split ('_');
+                const base = this.safeCurrencyCode (baseId); // unified
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        const id = this.safeString (orderObject, 'order_id');
+        const time = this.safeString (orderObject, 'time');
+        const type = this.safeStringLower (orderObject, 'type');
+        const side = this.safeStringLower (orderObject, 'side');
+        const status = this.parseOrderStatus (this.safeString (orderObject, 'status'));
+        const price = this.safeFloat (orderObject, 'price');
+        const average = this.safeFloat (orderObject, 'average_price');
+        const amount = this.safeFloat (orderObject, 'amount');
+        const filled = this.safeFloat (orderObject, 'filled_amount');
+        // using average price which is actual filled price of the trades
+        const cost = average * amount;
         const remaining = amount - filled;
-        const fills = this.safeValue (order, 'fills');
+        const clientId = this.safeString (orderObject, 'client_id');
+        let trades = undefined;
+        // may not contain any trades if not filled
+        const fills = this.safeValue (order, 'trades');
+        if (fills !== undefined) {
+            trades = this.parseTrades (fills, market);
+        }
         return {
             'id': id,
             'datetime': time,
             'timestamp': this.parse8601 (time),
             'status': status,
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': type,
             'side': side,
             'price': price,
+            'average': average,
             'cost': cost,
+            'clientOrderId': clientId,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
-            'fills': fills,
+            'trades': trades,
+            // trades for one order can have multiple fee currencies, each trade contains this information of itself.
             'fee': undefined,
             'info': order,
         };
@@ -687,26 +754,64 @@ module.exports = class bitpanda extends Exchange {
         };
     }
 
-    parseTrade (trade, markets = undefined) {
-        const id = this.safeString (trade, 'trade_id');
-        const orderId = this.safeString (trade, 'order_id');
-        const time = this.safeString (trade, 'time');
-        const market = this.markets_by_id[this.safeString (trade, 'instrument_code')];
-        const side = this.safeString (trade, 'side');
-        const takerOrMaker = this.safeString (trade, 'fee_type');
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'amount');
+    parseTrade (trade, market = undefined) {
+        // Example Trade response
+        // {
+        //   "trade": {
+        //     "trade_id": "2b42efcd-d5b7-4a56-8e12-b69ffd68c5ef",
+        //     "order_id": "66756a10-3e86-48f4-9678-b634c4b135b2",
+        //     "account_id": "c2d0076a-c20d-41f8-9e9a-1a1d028b2b58",
+        //     "amount": "1234.5678",
+        //     "side": "BUY",
+        //     "instrument_code": "BTC_EUR",
+        //     "price": "1234.5678",
+        //     "time": "2020-05-06T06:53:31Z",
+        //     "sequence": 123456789
+        //   },
+        //   "fee": {
+        //     "fee_amount": "1234.5678",
+        //     "fee_percentage": "0.10",
+        //     "fee_group_id": "default",
+        //     "running_trading_volume": "1234.5678",
+        //     "fee_currency": "BTC",
+        //     "fee_type": "TAKER"
+        //   }
+        // }
+        const tradeObject = this.safeValue (trade, 'trade');
+        const feeObject = this.safeValue (trade, 'fee');
+        const id = this.safeString (tradeObject, 'trade_id');
+        const orderId = this.safeString (tradeObject, 'order_id');
+        const time = this.safeString (tradeObject, 'time');
+        const side = this.safeStringLower (tradeObject, 'side');
+        const takerOrMaker = this.safeStringLower (feeObject, 'fee_type');
+        const price = this.safeFloat (tradeObject, 'price');
+        const amount = this.safeFloat (tradeObject, 'amount');
         const cost = price * amount;
+        const marketId = this.safeString (tradeObject, 'instrument_code');
+        let symbol = undefined;
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+                symbol = market['symbol'];
+            } else {
+                // as the format is known and fixed we just parse it
+                const [ baseId, quoteId ] = marketId.split ('_');
+                const base = this.safeCurrencyCode (baseId); // unified
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
         const fee = {
-            'cost': this.safeFloat (trade, 'fee_amount'),
-            'currency': this.safeCurrencyCode (this.safeString (trade, 'fee_currency')),
+            'cost': this.safeFloat (feeObject, 'fee_amount'),
+            'currency': this.safeCurrencyCode (this.safeString (feeObject, 'fee_currency')),
+            'rate': this.safeFloat (feeObject, 'fee_percentage'),
         };
         return {
             'id': id,
             'info': trade,
             'datetime': time,
             'timestamp': this.parse8601 (time),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': undefined,
             'order': orderId,
             'side': side,
@@ -765,5 +870,20 @@ module.exports = class bitpanda extends Exchange {
             elements[lastElement - 1]['info']['cursor'] = cursor;
         }
         return elements;
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            'OPEN': 'open',
+            'STOP_TRIGGERED': 'open',
+            'FILLED': 'open',
+            'FILLED_FULLY': 'closed',
+            'FILLED_CLOSED': 'canceled',
+            'FILLED_REJECTED': 'rejected',
+            'REJECTED': 'rejected',
+            'CLOSED': 'canceled',
+            'FAILED': 'failed',
+        };
+        return this.safeString (statuses, status, status);
     }
 };
