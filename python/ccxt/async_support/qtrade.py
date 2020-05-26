@@ -712,6 +712,7 @@ class qtrade(Exchange):
             code = self.safe_currency_code(currencyId)
             account = result[code] if (code in result) else self.account()
             account['free'] = self.safe_float(balance, 'balance')
+            account['used'] = 0
             result[code] = account
         balances = self.safe_value(data, 'order_balances', [])
         for i in range(0, len(balances)):
