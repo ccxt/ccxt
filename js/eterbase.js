@@ -807,7 +807,6 @@ module.exports = class eterbase extends Exchange {
             filled = Math.max (0, amount - remaining);
         }
         const cost = this.safeFloat (order, 'cost');
-        // Math.round (price * filled, market.precision.cost);
         if (type === 'market') {
             if (price === 0.0) {
                 if ((cost !== undefined) && (filled !== undefined)) {
