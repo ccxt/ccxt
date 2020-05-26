@@ -164,9 +164,8 @@ module.exports = class phemex extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        const marketID = market['id'];
         // market data
-        const contractSide = this.safeInteger (market, marketID, 1);
+        const contractSide = this.safeInteger (market, 'contractSide', 1);
         const precisions = this.safeValue (market, 'precision');
         const priceScale = this.safeInteger (market, 'priceScale');
         const pricePrecision = this.safeInteger (precisions, 'price');
@@ -224,9 +223,8 @@ module.exports = class phemex extends Exchange {
     }
 
     parseMyTrade (trade, market = undefined) {
-        const marketID = market['id'];
         // market data
-        const contractSide = this.safeInteger (market, marketID, 1);
+        const contractSide = this.safeInteger (market, 'contractSide', 1);
         const precisions = this.safeValue (market, 'precision');
         const priceScale = this.safeInteger (market, 'priceScale');
         const pricePrecision = this.safeInteger (precisions, 'price');
