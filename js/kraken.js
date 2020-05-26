@@ -1143,6 +1143,7 @@ module.exports = class kraken extends Exchange {
             const order = this.extend ({ 'id': id }, orders[id]);
             result.push (this.extend (this.parseOrder (order, market), params));
         }
+        result = sortBy (result, 'timestamp')
         return this.filterBySymbolSinceLimit (result, symbol, since, limit);
     }
 
