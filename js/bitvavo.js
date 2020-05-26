@@ -27,6 +27,7 @@ module.exports = class bitvavo extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchOHLCV': true,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchMarkets': true,
                 'fetchTicker': true,
@@ -753,6 +754,55 @@ module.exports = class bitvavo extends Exchange {
         //
         //     {
         //         "orderId": "2e7ce7fc-44e2-4d80-a4a7-d079c4750b61"
+        //     }
+        //
+        return this.parseOrder (response, market);
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'orderId': id,
+            'market': market['id'],
+        };
+        const response = await this.privateGetOrder (this.extend (request, params));
+        //
+        //     {
+        //         "orderId":"af76d6ce-9f7c-4006-b715-bb5d430652d0",
+        //         "market":"ETH-EUR",
+        //         "created":1590505649241,
+        //         "updated":1590505649241,
+        //         "status":"filled",
+        //         "side":"sell",
+        //         "orderType":"market",
+        //         "amount":"0.249825",
+        //         "amountRemaining":"0",
+        //         "onHold":"0",
+        //         "onHoldCurrency":"ETH",
+        //         "filledAmount":"0.249825",
+        //         "filledAmountQuote":"45.84038925",
+        //         "feePaid":"0.12038925",
+        //         "feeCurrency":"EUR",
+        //         "fills":[
+        //             {
+        //                 "id":"b0c86aa5-6ed3-4a2d-ba3a-be9a964220f4",
+        //                 "timestamp":1590505649245,
+        //                 "amount":"0.249825",
+        //                 "price":"183.49",
+        //                 "taker":true,
+        //                 "fee":"0.12038925",
+        //                 "feeCurrency":"EUR",
+        //                 "settled":true
+        //             }
+        //         ],
+        //         "selfTradePrevention":"decrementAndCancel",
+        //         "visible":false,
+        //         "disableMarketProtection":false
         //     }
         //
         return this.parseOrder (response, market);
