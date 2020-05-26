@@ -3,9 +3,11 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadSymbol, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder } = require ('./base/errors');
+const { TRUNCATE } = require ('./base/functions/number');
 
 // ----------------------------------------------------------------------------
+
 module.exports = class bitvavo extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -19,6 +21,7 @@ module.exports = class bitvavo extends Exchange {
                 'CORS': false,
                 'publicAPI': true,
                 'privateAPI': true,
+                'createOrder': true,
                 'fetchBalance': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
@@ -133,13 +136,16 @@ module.exports = class bitvavo extends Exchange {
             'exceptions': {
                 'exact': {
                     '203': BadSymbol, // {"errorCode":203,"error":"symbol parameter is required."}
-                    '205': BadSymbol, // {"errorCode":205,"error":"symbol parameter is invalid."}
+                    '216': InsufficientFunds, // {"errorCode":216,"error":"You do not have sufficient balance to complete this operation."}
+                    '217': InvalidOrder, // {"errorCode":217,"error":"Minimum order size in quote currency is 5 EUR or 0.001 BTC."}
                     '301': AuthenticationError, // {"errorCode":301,"error":"API Key must be of length 64."}
                     '305': AuthenticationError, // {"errorCode":305,"error":"No active API key found."}
                     '308': AuthenticationError, // {"errorCode":308,"error":"The signature length is invalid (HMAC-SHA256 should return a 64 length hexadecimal string)."}
                     '309': AuthenticationError, // {"errorCode":309,"error":"The signature is invalid."}
                 },
                 'broad': {
+                    'symbol parameter is invalid': BadSymbol, // {"errorCode":205,"error":"symbol parameter is invalid."}
+                    'amount parameter is invalid': InvalidOrder, // {"errorCode":205,"error":"amount parameter is invalid."}
                 },
             },
         });
@@ -629,6 +635,78 @@ module.exports = class bitvavo extends Exchange {
         };
     }
 
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+            'side': side,
+            'orderType': type,
+            // 'amount': this.amountToPrecision (symbol, amount),
+            // 'price': this.priceToPrecision (symbol, price),
+            // 'amountQuote': this.costToPrecision (symbol, cost),
+            // 'timeInForce': 'GTC', // "GTC" "IOC" "FOK"
+            // 'selfTradePrevention': "decrementAndCancel", // "decrementAndCancel" "cancelOldest" "cancelNewest" "cancelBoth"
+            // 'postOnly': false,
+            // 'disableMarketProtection': false, // don't cancel if the next fill price is 10% worse than the best fill price
+            // 'responseRequired': true, // false is faster
+        };
+        if (type === 'market') {
+            let cost = undefined;
+            if (price !== undefined) {
+                cost = amount * price;
+            } else {
+                cost = this.safeFloat2 (params, 'cost', 'amountQuote');
+            }
+            if (cost !== undefined) {
+                const precision = market['precision']['price'];
+                request['amountQuote'] = this.decimalToPrecision (cost, TRUNCATE, precision, this.precisionMode);
+            } else {
+                request['amount'] = this.amountToPrecision (symbol, amount);
+            }
+            params = this.omit (params, [ 'cost', 'amountQuote' ]);
+        } else if (type === 'limit') {
+            request['price'] = this.priceToPrecision (symbol, price);
+            request['amount'] = this.amountToPrecision (symbol, amount);
+        }
+        const response = await this.privatePostOrder (this.extend (request, params));
+        //
+        //     {
+        //         "orderId":"af76d6ce-9f7c-4006-b715-bb5d430652d0",
+        //         "market":"ETH-EUR",
+        //         "created":1590505649241,
+        //         "updated":1590505649241,
+        //         "status":"filled",
+        //         "side":"sell",
+        //         "orderType":"market",
+        //         "amount":"0.249825",
+        //         "amountRemaining":"0",
+        //         "onHold":"0",
+        //         "onHoldCurrency":"ETH",
+        //         "filledAmount":"0.249825",
+        //         "filledAmountQuote":"45.84038925",
+        //         "feePaid":"0.12038925",
+        //         "feeCurrency":"EUR",
+        //         "fills":[
+        //             {
+        //                 "id":"b0c86aa5-6ed3-4a2d-ba3a-be9a964220f4",
+        //                 "timestamp":1590505649245,
+        //                 "amount":"0.249825",
+        //                 "price":"183.49",
+        //                 "taker":true,
+        //                 "fee":"0.12038925",
+        //                 "feeCurrency":"EUR",
+        //                 "settled":true
+        //             }
+        //         ],
+        //         "selfTradePrevention":"decrementAndCancel",
+        //         "visible":false,
+        //         "disableMarketProtection":false
+        //     }
+        //
+        return this.parseOrder (response, market);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
         let url = '/' + this.version + '/' + this.implodeParams (path, params);
@@ -656,6 +734,9 @@ module.exports = class bitvavo extends Exchange {
                 'BITVAVO-ACCESS-TIMESTAMP': timestamp,
                 'BITVAVO-ACCESS-WINDOW': accessWindow,
             };
+            if ((method !== 'GET') && (method !== 'DELETE')) {
+                headers['Content-Type'] = 'application/json';
+            }
         }
         url = this.urls['api'][api] + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
