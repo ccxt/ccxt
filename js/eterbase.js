@@ -820,7 +820,7 @@ module.exports = class eterbase extends Exchange {
         let average = undefined;
         if (cost !== undefined) {
             if (filled) {
-                average = Math.round (cost / filled, market.precision.qty);
+                average = cost / filled;
             }
         }
         return {
