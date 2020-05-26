@@ -74,11 +74,12 @@ module.exports = class phemex extends Exchange {
         return this.safeValue (response, 'result', null);
     }
 
-    parseMarket (product, precisions) {
+    parseMarket (product) {
         const id = this.safeString (product, 'symbol');
         const quoteCurrency = this.safeString (product, 'quoteCurrency');
         const settlementCurrency = this.safeString (product, 'settlementCurrency');
         const underlyingSymbol = this.safeString (product, 'underlyingSymbol');
+        const tickSize = this.safeString (product, 'tickSize');
         const baseId = underlyingSymbol.split ('.')[1];
         const quoteId = quoteCurrency;
         const base = this.safeCurrencyCode (baseId);
@@ -98,7 +99,11 @@ module.exports = class phemex extends Exchange {
             'priceScale': this.safeInteger (product, 'priceScale', 1),
             'ratioScale': this.safeInteger (product, 'ratioScale', 1),
             'valueScale': this.safeInteger (product, 'valueScale', 1),
-            'precision': this.safeValue (precisions, id),
+            'precision': {
+                'amount': 0,
+                'price': this.precisionFromString (tickSize),
+                'value': id === 'BTCUSD' ? 8 : 2,
+            },
             'limits': {
                 'amount': {
                     'min': 1,
@@ -448,30 +453,13 @@ module.exports = class phemex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const precisions = {
-            'BTCUSD': {
-                'amount': 0,
-                'price': 1,
-                'value': 8,
-            },
-            'ETHUSD': {
-                'amount': 0,
-                'price': 2,
-                'value': 2,
-            },
-            'XRPUSD': {
-                'amount': 0,
-                'price': 4,
-                'value': 2,
-            },
-        };
         const method = 'publicGetExchangePublicProducts';
         const response = await this[method] (params);
         const products = this.safeValue (response, 'data');
         const productsCount = products.length;
         const result = [];
         for (let i = 0; i < productsCount; i++) {
-            const market = this.parseMarket (products[i], precisions);
+            const market = this.parseMarket (products[i]);
             result.push (market);
         }
         return result;
