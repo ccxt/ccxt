@@ -1074,14 +1074,19 @@ class bitfinex2 extends bitfinex {
             $id = null;
             $status = 'failed';
         }
+        $tag = $this->safe_string($data, 3);
         return array(
             'info' => $transaction,
             'id' => $id,
             'txid' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'address' => null, // this is actually the tag for XRP transfers (the address is missing)
-            'tag' => $this->safe_string($data, 3), // refix it properly for the tag from description
+            'addressFrom' => null,
+            'address' => null, // this is actually the $tag for XRP transfers (the address is missing)
+            'addressTo' => null,
+            'tagFrom' => null,
+            'tag' => $tag, // refix it properly for the $tag from description
+            'tagTo' => $tag,
             'type' => 'withdrawal',
             'amount' => $amount,
             'currency' => $code,
