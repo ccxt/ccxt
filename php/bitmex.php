@@ -1241,7 +1241,7 @@ class bitmex extends Exchange {
             $params = $this->omit($params, array( 'clOrdID', 'clientOrderId' ));
         }
         $response = $this->privateDeleteOrder (array_merge($request, $params));
-        $order = $response[0];
+        $order = $this->safe_value($response, 0, array());
         $error = $this->safe_string($order, 'error');
         if ($error !== null) {
             if (mb_strpos($error, 'Unable to cancel $order due to existing state') !== false) {

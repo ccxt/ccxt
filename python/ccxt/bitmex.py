@@ -1157,7 +1157,7 @@ class bitmex(Exchange):
             request['clOrdID'] = clientOrderId
             params = self.omit(params, ['clOrdID', 'clientOrderId'])
         response = self.privateDeleteOrder(self.extend(request, params))
-        order = response[0]
+        order = self.safe_value(response, 0, {})
         error = self.safe_string(order, 'error')
         if error is not None:
             if error.find('Unable to cancel order due to existing state') >= 0:
