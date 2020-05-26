@@ -7,6 +7,7 @@ const { ArgumentsRequired, InvalidOrder, ExchangeError, BadRequest } = require (
 const { TRUNCATE } = require ('./base/functions/number');
 
 // ----------------------------------------------------------------------------
+
 module.exports = class eterbase extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -39,7 +40,7 @@ module.exports = class eterbase extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'withdraw': false,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -357,7 +358,7 @@ module.exports = class eterbase extends Exchange {
         const baseVolume = this.safeFloat (ticker, 'volumeBase');
         const quoteVolume = this.safeFloat (ticker, 'volume');
         let vwap = undefined;
-        if ((quoteVolume !== undefined) && (baseVolume !== undefined) && (baseVolume > 0)) {
+        if ((quoteVolume !== undefined) && (baseVolume !== undefined) && baseVolume) {
             vwap = quoteVolume / baseVolume;
         }
         const percentage = this.safeFloat (ticker, 'change');

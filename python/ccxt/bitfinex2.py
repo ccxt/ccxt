@@ -1003,14 +1003,19 @@ class bitfinex2(bitfinex):
         if id == 0:
             id = None
             status = 'failed'
+        tag = self.safe_string(data, 3)
         return {
             'info': transaction,
             'id': id,
             'txid': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'addressFrom': None,
             'address': None,  # self is actually the tag for XRP transfers(the address is missing)
-            'tag': self.safe_string(data, 3),  # refix it properly for the tag from description
+            'addressTo': None,
+            'tagFrom': None,
+            'tag': tag,  # refix it properly for the tag from description
+            'tagTo': tag,
             'type': 'withdrawal',
             'amount': amount,
             'currency': code,

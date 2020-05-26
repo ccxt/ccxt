@@ -43,7 +43,7 @@ class eterbase extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
-                'withdraw' => false,
+                'withdraw' => true,
             ),
             'timeframes' => array(
                 '1m' => '1',
@@ -361,7 +361,7 @@ class eterbase extends Exchange {
         $baseVolume = $this->safe_float($ticker, 'volumeBase');
         $quoteVolume = $this->safe_float($ticker, 'volume');
         $vwap = null;
-        if (($quoteVolume !== null) && ($baseVolume !== null) && ($baseVolume > 0)) {
+        if (($quoteVolume !== null) && ($baseVolume !== null) && $baseVolume) {
             $vwap = $quoteVolume / $baseVolume;
         }
         $percentage = $this->safe_float($ticker, 'change');

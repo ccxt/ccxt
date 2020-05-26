@@ -46,7 +46,7 @@ class eterbase(Exchange):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
-                'withdraw': False,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '1',
@@ -353,7 +353,7 @@ class eterbase(Exchange):
         baseVolume = self.safe_float(ticker, 'volumeBase')
         quoteVolume = self.safe_float(ticker, 'volume')
         vwap = None
-        if (quoteVolume is not None) and (baseVolume is not None) and (baseVolume > 0):
+        if (quoteVolume is not None) and (baseVolume is not None) and baseVolume:
             vwap = quoteVolume / baseVolume
         percentage = self.safe_float(ticker, 'change')
         result = {
