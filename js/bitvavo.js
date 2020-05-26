@@ -3,6 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
+const { ExchangeError, BadSymbol, AuthenticationError } = require ('./base/errors');
 
 // ----------------------------------------------------------------------------
 module.exports = class bitvavo extends Exchange {
@@ -131,6 +132,12 @@ module.exports = class bitvavo extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    '203': BadSymbol, // {"errorCode":203,"error":"symbol parameter is required."}
+                    '205': BadSymbol, // {"errorCode":205,"error":"symbol parameter is invalid."}
+                    '301': AuthenticationError, // {"errorCode":301,"error":"API Key must be of length 64."}
+                    '305': AuthenticationError, // {"errorCode":305,"error":"No active API key found."}
+                    '308': AuthenticationError, // {"errorCode":308,"error":"The signature length is invalid (HMAC-SHA256 should return a 64 length hexadecimal string)."}
+                    '309': AuthenticationError, // {"errorCode":309,"error":"The signature is invalid."}
                 },
                 'broad': {
                 },
@@ -652,5 +659,24 @@ module.exports = class bitvavo extends Exchange {
         }
         url = this.urls['api'][api] + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return; // fallback to default error handler
+        }
+        //
+        //     {"errorCode":308,"error":"The signature length is invalid (HMAC-SHA256 should return a 64 length hexadecimal string)."}
+        //     {"errorCode":203,"error":"symbol parameter is required."}
+        //     {"errorCode":205,"error":"symbol parameter is invalid."}
+        //
+        const errorCode = this.safeString (response, 'errorCode');
+        const error = this.safeString (response, 'error');
+        if (errorCode !== undefined) {
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], error, feedback);
+            throw new ExchangeError (feedback); // unknown message
+        }
     }
 };
