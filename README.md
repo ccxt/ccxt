@@ -26,7 +26,6 @@ Current feature list:
 
 ## See Also
 
-- <sub>[![Nomics API](https://user-images.githubusercontent.com/1294454/53875704-2ffbcc80-4016-11e9-828b-337409955609.png)](https://p.nomics.com/cryptocurrency-bitcoin-api)</sub>&nbsp; **[Nomics API](https://p.nomics.com/cryptocurrency-bitcoin-api)**&nbsp;&mdash;&nbsp;enterprise-grade [crypto market cap & pricing data](https://nomics.com) API for your fund, smart contract, or app.
 - <sub>[![Quadency](https://user-images.githubusercontent.com/1294454/69334382-a0618100-0c6b-11ea-9ba9-40aa97440cfa.png)](https://quadency.com?utm_source=ccxt)</sub>&nbsp; **[Quadency](https://quadency.com?utm_source=ccxt)**&nbsp;&mdash;&nbsp;professional crypto terminal, algo trading, and unified streaming APIs.
 - <sub>[![TabTrader](https://user-images.githubusercontent.com/1294454/66755907-9c3e8880-eea1-11e9-846e-0bff349ceb87.png)](https://tab-trader.com/?utm_source=ccxt)</sub>&nbsp; **[TabTrader](https://tab-trader.com/?utm_source=ccxt)**&nbsp;&mdash;&nbsp;trading on all exchanges in one app. Avaliable on [Android](https://play.google.com/store/apps/details?id=com.tabtrader.android&referrer=utm_source%3Dccxt) and [iOS](https://itunes.apple.com/app/apple-store/id1095716562?mt=8).
 
