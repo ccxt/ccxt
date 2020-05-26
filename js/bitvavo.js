@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder } = require ('./base/errors');
+const { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound } = require ('./base/errors');
 const { TRUNCATE } = require ('./base/functions/number');
 
 // ----------------------------------------------------------------------------
@@ -21,6 +21,7 @@ module.exports = class bitvavo extends Exchange {
                 'CORS': false,
                 'publicAPI': true,
                 'privateAPI': true,
+                'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchCurrencies': true,
@@ -138,6 +139,8 @@ module.exports = class bitvavo extends Exchange {
                     '203': BadSymbol, // {"errorCode":203,"error":"symbol parameter is required."}
                     '216': InsufficientFunds, // {"errorCode":216,"error":"You do not have sufficient balance to complete this operation."}
                     '217': InvalidOrder, // {"errorCode":217,"error":"Minimum order size in quote currency is 5 EUR or 0.001 BTC."}
+                    '233': InvalidOrder, // {"errorCode":233,"error":"Order must be active (status new or partiallyFilled) to allow updating/cancelling."}
+                    '240': OrderNotFound, // {"errorCode":240,"error":"No order found. Please be aware that simultaneously updating the same order may return this error."}
                     '301': AuthenticationError, // {"errorCode":301,"error":"API Key must be of length 64."}
                     '305': AuthenticationError, // {"errorCode":305,"error":"No active API key found."}
                     '308': AuthenticationError, // {"errorCode":308,"error":"The signature length is invalid (HMAC-SHA256 should return a 64 length hexadecimal string)."}
@@ -146,6 +149,7 @@ module.exports = class bitvavo extends Exchange {
                 'broad': {
                     'symbol parameter is invalid': BadSymbol, // {"errorCode":205,"error":"symbol parameter is invalid."}
                     'amount parameter is invalid': InvalidOrder, // {"errorCode":205,"error":"amount parameter is invalid."}
+                    'orderId parameter is invalid': InvalidOrder, // {"errorCode":205,"error":"orderId parameter is invalid."}
                 },
             },
         });
@@ -735,6 +739,25 @@ module.exports = class bitvavo extends Exchange {
         return this.parseOrder (response, market);
     }
 
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'orderId': id,
+            'market': market['id'],
+        };
+        const response = await this.privateDeleteOrder (this.extend (request, params));
+        //
+        //     {
+        //         "orderId": "2e7ce7fc-44e2-4d80-a4a7-d079c4750b61"
+        //     }
+        //
+        return this.parseOrder (response, market);
+    }
+
     parseOrderStatus (status) {
         const statuses = {
             'new': 'open',
@@ -755,9 +778,13 @@ module.exports = class bitvavo extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
-        // fetchOrder, fetchOpenOrders, fetchClosedOrders
+        // cancelOrder
         //
-        // createOrder
+        //     {
+        //         "orderId": "2e7ce7fc-44e2-4d80-a4a7-d079c4750b61"
+        //     }
+        //
+        // createOrder, fetchOrder, fetchOpenOrders, fetchClosedOrders
         //
         //     {
         //         "orderId":"af76d6ce-9f7c-4006-b715-bb5d430652d0",
@@ -791,6 +818,8 @@ module.exports = class bitvavo extends Exchange {
         //         "selfTradePrevention":"decrementAndCancel",
         //         "visible":false,
         //         "disableMarketProtection":false
+        //         "timeInForce": "GTC",
+        //         "postOnly": true,
         //     }
         //
         const id = this.safeString (order, 'orderId');
@@ -881,7 +910,8 @@ module.exports = class bitvavo extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
         let url = '/' + this.version + '/' + this.implodeParams (path, params);
-        if (method === 'GET') {
+        const getOrDelete = (method === 'GET') || (method === 'DELETE');
+        if (getOrDelete) {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
@@ -889,7 +919,7 @@ module.exports = class bitvavo extends Exchange {
         if (api === 'private') {
             this.checkRequiredCredentials ();
             let payload = '';
-            if (method !== 'GET') {
+            if (!getOrDelete) {
                 if (Object.keys (query).length) {
                     body = this.json (query);
                     payload = body;
@@ -905,7 +935,7 @@ module.exports = class bitvavo extends Exchange {
                 'BITVAVO-ACCESS-TIMESTAMP': timestamp,
                 'BITVAVO-ACCESS-WINDOW': accessWindow,
             };
-            if ((method !== 'GET') && (method !== 'DELETE')) {
+            if (!getOrDelete) {
                 headers['Content-Type'] = 'application/json';
             }
         }
