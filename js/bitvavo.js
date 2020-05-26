@@ -808,6 +808,127 @@ module.exports = class bitvavo extends Exchange {
         return this.parseOrder (response, market);
     }
 
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+            // 'limit': 500,
+            // 'start': since,
+            // 'end': this.milliseconds (),
+            // 'orderIdFrom': 'af76d6ce-9f7c-4006-b715-bb5d430652d0',
+            // 'orderIdTo': 'af76d6ce-9f7c-4006-b715-bb5d430652d0',
+        };
+        if (since === undefined) {
+            request['start'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 500, max 1000
+        }
+        const response = await this.privateGetOrders (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "orderId":"af76d6ce-9f7c-4006-b715-bb5d430652d0",
+        //             "market":"ETH-EUR",
+        //             "created":1590505649241,
+        //             "updated":1590505649241,
+        //             "status":"filled",
+        //             "side":"sell",
+        //             "orderType":"market",
+        //             "amount":"0.249825",
+        //             "amountRemaining":"0",
+        //             "onHold":"0",
+        //             "onHoldCurrency":"ETH",
+        //             "filledAmount":"0.249825",
+        //             "filledAmountQuote":"45.84038925",
+        //             "feePaid":"0.12038925",
+        //             "feeCurrency":"EUR",
+        //             "fills":[
+        //                 {
+        //                     "id":"b0c86aa5-6ed3-4a2d-ba3a-be9a964220f4",
+        //                     "timestamp":1590505649245,
+        //                     "amount":"0.249825",
+        //                     "price":"183.49",
+        //                     "taker":true,
+        //                     "fee":"0.12038925",
+        //                     "feeCurrency":"EUR",
+        //                     "settled":true
+        //                 }
+        //             ],
+        //             "selfTradePrevention":"decrementAndCancel",
+        //             "visible":false,
+        //             "disableMarketProtection":false
+        //         }
+        //     ]
+        //
+        return this.parseOrders (response, market, since, limit);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            // 'market': market['id'],
+            // 'limit': 500,
+            // 'start': since,
+            // 'end': this.milliseconds (),
+            // 'orderIdFrom': 'af76d6ce-9f7c-4006-b715-bb5d430652d0',
+            // 'orderIdTo': 'af76d6ce-9f7c-4006-b715-bb5d430652d0',
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['market'] = market['id'];
+        }
+        if (since === undefined) {
+            request['start'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 500, max 1000
+        }
+        const response = await this.privateGetOrdersOpen (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "orderId":"af76d6ce-9f7c-4006-b715-bb5d430652d0",
+        //             "market":"ETH-EUR",
+        //             "created":1590505649241,
+        //             "updated":1590505649241,
+        //             "status":"filled",
+        //             "side":"sell",
+        //             "orderType":"market",
+        //             "amount":"0.249825",
+        //             "amountRemaining":"0",
+        //             "onHold":"0",
+        //             "onHoldCurrency":"ETH",
+        //             "filledAmount":"0.249825",
+        //             "filledAmountQuote":"45.84038925",
+        //             "feePaid":"0.12038925",
+        //             "feeCurrency":"EUR",
+        //             "fills":[
+        //                 {
+        //                     "id":"b0c86aa5-6ed3-4a2d-ba3a-be9a964220f4",
+        //                     "timestamp":1590505649245,
+        //                     "amount":"0.249825",
+        //                     "price":"183.49",
+        //                     "taker":true,
+        //                     "fee":"0.12038925",
+        //                     "feeCurrency":"EUR",
+        //                     "settled":true
+        //                 }
+        //             ],
+        //             "selfTradePrevention":"decrementAndCancel",
+        //             "visible":false,
+        //             "disableMarketProtection":false
+        //         }
+        //     ]
+        //
+        return this.parseOrders (response, market, since, limit);
+    }
+
     parseOrderStatus (status) {
         const statuses = {
             'new': 'open',
@@ -834,7 +955,7 @@ module.exports = class bitvavo extends Exchange {
         //         "orderId": "2e7ce7fc-44e2-4d80-a4a7-d079c4750b61"
         //     }
         //
-        // createOrder, fetchOrder, fetchOpenOrders, fetchClosedOrders
+        // createOrder, fetchOrder, fetchOpenOrders, fetchOrders
         //
         //     {
         //         "orderId":"af76d6ce-9f7c-4006-b715-bb5d430652d0",
