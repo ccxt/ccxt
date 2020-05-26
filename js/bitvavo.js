@@ -477,6 +477,19 @@ module.exports = class bitvavo extends Exchange {
         //         "side":"buy"
         //     }
         //
+        // createOrder (private)
+        //
+        //     {
+        //         "id":"b0c86aa5-6ed3-4a2d-ba3a-be9a964220f4",
+        //         "timestamp":1590505649245,
+        //         "amount":"0.249825",
+        //         "price":"183.49",
+        //         "taker":true,
+        //         "fee":"0.12038925",
+        //         "feeCurrency":"EUR",
+        //         "settled":true
+        //     }
+        //
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
         let cost = undefined;
@@ -490,6 +503,21 @@ module.exports = class bitvavo extends Exchange {
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
+        const taker = this.safeValue (trade, 'taker');
+        let takerOrMaker = undefined;
+        if (taker !== undefined) {
+            takerOrMaker = taker ? 'taker' : 'maker';
+        }
+        const feeCost = this.safeFloat (trade, 'fee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            const feeCurrencyId = this.safeString (trade, 'feeCurrency');
+            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            };
+        }
         return {
             'info': trade,
             'id': id,
@@ -499,11 +527,11 @@ module.exports = class bitvavo extends Exchange {
             'order': undefined,
             'type': undefined,
             'side': side,
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': undefined,
+            'fee': fee,
         };
     }
 
@@ -705,6 +733,149 @@ module.exports = class bitvavo extends Exchange {
         //     }
         //
         return this.parseOrder (response, market);
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            'new': 'open',
+            'canceled': 'canceled',
+            'canceledAuction': 'canceled',
+            'canceledSelfTradePrevention': 'canceled',
+            'canceledIOC': 'canceled',
+            'canceledFOK': 'canceled',
+            'canceledMarketProtection': 'canceled',
+            'canceledPostOnly': 'canceled',
+            'filled': 'closed',
+            'partiallyFilled': 'open',
+            'expired': 'canceled',
+            'rejected': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrder (order, market = undefined) {
+        //
+        // fetchOrder, fetchOpenOrders, fetchClosedOrders
+        //
+        // createOrder
+        //
+        //     {
+        //         "orderId":"af76d6ce-9f7c-4006-b715-bb5d430652d0",
+        //         "market":"ETH-EUR",
+        //         "created":1590505649241,
+        //         "updated":1590505649241,
+        //         "status":"filled",
+        //         "side":"sell",
+        //         "orderType":"market",
+        //         "amount":"0.249825",
+        //         "amountRemaining":"0",
+        //         "price": "183.49", // limit orders only
+        //         "onHold":"0",
+        //         "onHoldCurrency":"ETH",
+        //         "filledAmount":"0.249825",
+        //         "filledAmountQuote":"45.84038925",
+        //         "feePaid":"0.12038925",
+        //         "feeCurrency":"EUR",
+        //         "fills":[
+        //             {
+        //                 "id":"b0c86aa5-6ed3-4a2d-ba3a-be9a964220f4",
+        //                 "timestamp":1590505649245,
+        //                 "amount":"0.249825",
+        //                 "price":"183.49",
+        //                 "taker":true,
+        //                 "fee":"0.12038925",
+        //                 "feeCurrency":"EUR",
+        //                 "settled":true
+        //             }
+        //         ],
+        //         "selfTradePrevention":"decrementAndCancel",
+        //         "visible":false,
+        //         "disableMarketProtection":false
+        //     }
+        //
+        const id = this.safeString (order, 'orderId');
+        const timestamp = this.safeInteger (order, 'created');
+        const marketId = this.safeInteger (order, 'market');
+        let symbol = undefined;
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('-');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const side = this.safeString (order, 'side');
+        const type = this.safeString (order, 'orderType');
+        const price = this.safeFloat (order, 'price');
+        const amount = this.safeFloat (order, 'amount');
+        let remaining = this.safeFloat (order, 'amountRemaining');
+        let filled = this.safeFloat (order, 'filledAmount');
+        const remainingCost = this.safeFloat (order, 'remainingCost');
+        if ((remainingCost !== undefined) && (remainingCost === 0.0)) {
+            remaining = 0;
+        }
+        if ((amount !== undefined) && (remaining !== undefined)) {
+            filled = Math.max (0, amount - remaining);
+        }
+        const cost = this.safeFloat (order, 'filledAmountQuote');
+        let average = undefined;
+        if (cost !== undefined) {
+            if (filled) {
+                average = cost / filled;
+            }
+        }
+        let fee = undefined;
+        const feeCost = this.safeFloat (order, 'feePaid');
+        if (feeCost !== undefined) {
+            const feeCurrencyId = this.safeString (order, 'feeCurrency');
+            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            };
+        }
+        let lastTradeTimestamp = undefined;
+        const rawTrades = this.safeValue (order, 'fills');
+        let trades = undefined;
+        if (rawTrades !== undefined) {
+            trades = this.parseTrades (rawTrades, market, undefined, undefined, {
+                'symbol': symbol,
+                'order': id,
+                'side': side,
+            });
+            const numTrades = trades.length;
+            if (numTrades > 0) {
+                const lastTrade = this.safeValue (trades, numTrades - 1);
+                lastTradeTimestamp = lastTrade['timestamp'];
+            }
+        }
+        return {
+            'info': order,
+            'id': id,
+            'clientOrderId': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'average': average,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': fee,
+            'trades': trades,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
