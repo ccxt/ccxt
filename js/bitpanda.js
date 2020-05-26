@@ -246,7 +246,6 @@ module.exports = class bitpanda extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-
         const request = {
             'instrument_code': this.marketId (symbol),
             'side': side.toUpperCase (),
@@ -350,8 +349,8 @@ module.exports = class bitpanda extends Exchange {
             const symbol = base + '/' + quote;
             const active = this.safeString (market, 'state') === 'ACTIVE';
             const precision = {
-                'price': this.safeFloat (market, 'market_precision'),
-                'amount': this.safeFloat (market, 'amount_precision'),
+                'price': this.safeInteger (market, 'market_precision'),
+                'amount': this.safeInteger (market, 'amount_precision'),
             };
             const limits = {
                 'amount': {
