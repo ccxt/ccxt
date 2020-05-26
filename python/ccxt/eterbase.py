@@ -783,7 +783,7 @@ class eterbase(Exchange):
         average = None
         if cost is not None:
             if filled:
-                average = int(round(cost / filled, market.precision.qty))
+                average = cost / filled
         return {
             'info': order,
             'id': id,

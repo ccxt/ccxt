@@ -824,7 +824,7 @@ class eterbase extends Exchange {
         $average = null;
         if ($cost !== null) {
             if ($filled) {
-                $average = (int) round($cost / $filled, $market->precision.qty);
+                $average = $cost / $filled;
             }
         }
         return array(
