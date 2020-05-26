@@ -774,7 +774,6 @@ class eterbase(Exchange):
         if (amount is not None) and (remaining is not None):
             filled = max(0, amount - remaining)
         cost = self.safe_float(order, 'cost')
-        # int(round(price * filled, market.precision.cost))
         if type == 'market':
             if price == 0.0:
                 if (cost is not None) and (filled is not None):
@@ -783,10 +782,11 @@ class eterbase(Exchange):
         average = None
         if cost is not None:
             if filled:
-                average = int(round(cost / filled, market.precision.qty))
+                average = cost / filled
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,

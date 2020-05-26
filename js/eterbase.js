@@ -807,7 +807,6 @@ module.exports = class eterbase extends Exchange {
             filled = Math.max (0, amount - remaining);
         }
         const cost = this.safeFloat (order, 'cost');
-        // Math.round (price * filled, market.precision.cost);
         if (type === 'market') {
             if (price === 0.0) {
                 if ((cost !== undefined) && (filled !== undefined)) {
@@ -820,12 +819,13 @@ module.exports = class eterbase extends Exchange {
         let average = undefined;
         if (cost !== undefined) {
             if (filled) {
-                average = Math.round (cost / filled, market.precision.qty);
+                average = cost / filled;
             }
         }
         return {
             'info': order,
             'id': id,
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
