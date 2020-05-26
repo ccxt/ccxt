@@ -283,8 +283,15 @@ class gemini(Exchange):
         for i in range(0, len(response)):
             id = response[i]
             market = id
-            baseId = id[0:3]
-            quoteId = id[3:6]
+            idLength = len(id) - 0
+            baseId = None
+            quoteId = None
+            if idLength == 7:
+                baseId = id[0:4]
+                quoteId = id[4:7]
+            else:
+                baseId = id[0:3]
+                quoteId = id[3:6]
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
