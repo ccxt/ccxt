@@ -905,7 +905,7 @@ module.exports = class ftx extends Exchange {
             // 'postOnly': false, // optional, default is false, limit or market orders only
             // 'clientId': 'abcdef0123456789', // string, optional, client order id, limit or market orders only
         };
-        const clientOrderId = this.safeString (params, [ 'clientId', 'clientOrderId' ]);
+        const clientOrderId = this.safeString2 (params, 'clientId', 'clientOrderId');
         if (clientOrderId !== undefined) {
             params['clientId'] = clientOrderId;
             params = this.omit (params, [ 'clientId', 'clientOrderId' ]);
@@ -1234,6 +1234,9 @@ module.exports = class ftx extends Exchange {
             // 'password': 'string', // optional withdrawal password if it is required for your account
             // 'code': '192837', // optional 2fa code if it is required for your account
         };
+        if (this.password !== undefined) {
+            request['password'] = this.password;
+        }
         if (tag !== undefined) {
             request['tag'] = tag;
         }
@@ -1335,6 +1338,7 @@ module.exports = class ftx extends Exchange {
         const address = this.safeString (transaction, 'address');
         const tag = this.safeString (transaction, 'tag');
         const fee = this.safeFloat (transaction, 'fee');
+        const type = ('confirmations' in transaction) ? 'deposit' : 'withdrawal';
         return {
             'info': transaction,
             'id': id,
@@ -1342,12 +1346,12 @@ module.exports = class ftx extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'addressFrom': undefined,
-            'address': undefined,
+            'address': address,
             'addressTo': address,
             'tagFrom': undefined,
             'tag': tag,
-            'tagTo': undefined,
-            'type': undefined,
+            'tagTo': tag,
+            'type': type,
             'amount': amount,
             'currency': code,
             'status': status,
