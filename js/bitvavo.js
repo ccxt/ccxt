@@ -28,6 +28,7 @@ module.exports = class bitvavo extends Exchange {
                 'fetchBalance': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -486,11 +487,27 @@ module.exports = class bitvavo extends Exchange {
         //         "side":"buy"
         //     }
         //
-        // createOrder (private)
+        // createOrder, fetchOpenOrders, fetchOrders, editOrder (private)
         //
         //     {
         //         "id":"b0c86aa5-6ed3-4a2d-ba3a-be9a964220f4",
         //         "timestamp":1590505649245,
+        //         "amount":"0.249825",
+        //         "price":"183.49",
+        //         "taker":true,
+        //         "fee":"0.12038925",
+        //         "feeCurrency":"EUR",
+        //         "settled":true
+        //     }
+        //
+        // fetchMyTrades (private)
+        //
+        //     {
+        //         "id":"b0c86aa5-6ed3-4a2d-ba3a-be9a964220f4",
+        //         "orderId":"af76d6ce-9f7c-4006-b715-bb5d430652d0",
+        //         "timestamp":1590505649245,
+        //         "market":"ETH-EUR",
+        //         "side":"sell",
         //         "amount":"0.249825",
         //         "price":"183.49",
         //         "taker":true,
@@ -508,7 +525,18 @@ module.exports = class bitvavo extends Exchange {
         const timestamp = this.safeInteger (trade, 'timestamp');
         const side = this.safeString (trade, 'side');
         const id = this.safeString (trade, 'id');
+        const marketId = this.safeInteger (trade, 'market');
         let symbol = undefined;
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('-');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
@@ -527,13 +555,14 @@ module.exports = class bitvavo extends Exchange {
                 'currency': feeCurrencyCode,
             };
         }
+        const orderId = this.safeString (trade, 'orderId');
         return {
             'info': trade,
             'id': id,
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'order': undefined,
+            'order': orderId,
             'type': undefined,
             'side': side,
             'takerOrMaker': takerOrMaker,
@@ -1004,7 +1033,7 @@ module.exports = class bitvavo extends Exchange {
         //         "orderId": "2e7ce7fc-44e2-4d80-a4a7-d079c4750b61"
         //     }
         //
-        // createOrder, fetchOrder, fetchOpenOrders, fetchOrders
+        // createOrder, fetchOrder, fetchOpenOrders, fetchOrders, editOrder
         //
         //     {
         //         "orderId":"af76d6ce-9f7c-4006-b715-bb5d430652d0",
@@ -1125,6 +1154,47 @@ module.exports = class bitvavo extends Exchange {
             'fee': fee,
             'trades': trades,
         };
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+            // 'limit': 500,
+            // 'start': since,
+            // 'end': this.milliseconds (),
+            // 'tradeIdFrom': 'af76d6ce-9f7c-4006-b715-bb5d430652d0',
+            // 'tradeIdTo': 'af76d6ce-9f7c-4006-b715-bb5d430652d0',
+        };
+        if (since !== undefined) {
+            request['start'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 500, max 1000
+        }
+        const response = await this.privateGetTrades (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "id":"b0c86aa5-6ed3-4a2d-ba3a-be9a964220f4",
+        //             "orderId":"af76d6ce-9f7c-4006-b715-bb5d430652d0",
+        //             "timestamp":1590505649245,
+        //             "market":"ETH-EUR",
+        //             "side":"sell",
+        //             "amount":"0.249825",
+        //             "price":"183.49",
+        //             "taker":true,
+        //             "fee":"0.12038925",
+        //             "feeCurrency":"EUR",
+        //             "settled":true
+        //         }
+        //     ]
+        //
+        return this.parseTrades (response, market, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
