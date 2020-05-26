@@ -43,7 +43,7 @@ class eterbase extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
-                'withdraw' => false,
+                'withdraw' => true,
             ),
             'timeframes' => array(
                 '1m' => '1',

@@ -46,7 +46,7 @@ class eterbase(Exchange):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
-                'withdraw': False,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '1',
