@@ -1227,6 +1227,21 @@ module.exports = class bitvavo extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
+    parseTransactionStatus (status) {
+        const statuses = {
+            'awaiting_processing': 'pending',
+            'awaiting_email_confirmation': 'pending',
+            'awaiting_bitvavo_inspection': 'pending',
+            'approved': 'pending',
+            'sending': 'pending',
+            'in_mempool': 'pending',
+            'processed': 'pending',
+            'completed': 'ok',
+            'canceled': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     parseTransaction (transaction, currency = undefined) {
         //
         // withdraw
