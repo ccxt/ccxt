@@ -28,6 +28,7 @@ module.exports = class bitvavo extends Exchange {
                 'fetchBalance': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDeposits': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
@@ -1267,6 +1268,41 @@ module.exports = class bitvavo extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            // 'symbol': currency['id'],
+            // 'limit': 500, // default 500, max 1000
+            // 'start': since,
+            // 'end': this.milliseconds (),
+        };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['symbol'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['start'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 500, max 1000
+        }
+        const response = await this.privateGetDepositHistory (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "timestamp":1590492401000,
+        //             "symbol":"ETH",
+        //             "amount":"0.249825",
+        //             "fee":"0",
+        //             "status":"completed",
+        //             "txId":"0x5167b473fd37811f9ef22364c3d54726a859ef9d98934b3a1e11d7baa8d2c2e2"
+        //         }
+        //     ]
+        //
+        return this.parseTransactions (response, currency, since, limit);
+    }
+
     parseTransactionStatus (status) {
         const statuses = {
             'awaiting_processing': 'pending',
@@ -1303,6 +1339,17 @@ module.exports = class bitvavo extends Exchange {
         //         "txId": "927b3ea50c5bb52c6854152d305dfa1e27fc01d10464cf10825d96d69d235eb3",
         //         "fee": "0.00006",
         //         "status": "awaiting_processing"
+        //     }
+        //
+        // fetchDeposits
+        //
+        //     {
+        //         "timestamp":1590492401000,
+        //         "symbol":"ETH",
+        //         "amount":"0.249825",
+        //         "fee":"0",
+        //         "status":"completed",
+        //         "txId":"0x5167b473fd37811f9ef22364c3d54726a859ef9d98934b3a1e11d7baa8d2c2e2"
         //     }
         //
         const id = undefined;
