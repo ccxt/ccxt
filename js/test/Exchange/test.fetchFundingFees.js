@@ -13,6 +13,7 @@ const log       = require ('ololog')
 module.exports = async (exchange) => {
 
     const skippedExchanges = [
+        'bibox', // fetchFundingFees should be rewritten to fetchFundingFee
     ]
 
     if (skippedExchanges.includes (exchange.id)) {

@@ -4,24 +4,17 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.decimal_to_precision import ROUND
 
 
-class rightbtc (Exchange):
+class rightbtc(Exchange):
 
     def describe(self):
         return self.deep_extend(super(rightbtc, self).describe(), {
@@ -52,8 +45,7 @@ class rightbtc (Exchange):
                 'api': 'https://www.rightbtc.com/api',
                 'www': 'https://www.rightbtc.com',
                 'doc': [
-                    'https://52.53.159.206/api/trader/',
-                    'https://support.rightbtc.com/hc/en-us/articles/360012809412',
+                    'https://docs.rightbtc.com/api/',
                 ],
                 # eslint-disable-next-line no-useless-escape
                 # 'fees': 'https://www.rightbtc.com/\#\not /support/fee',
@@ -102,7 +94,7 @@ class rightbtc (Exchange):
                     # 0.01 ETP
                     # 0.001 ETH
                     # 0.1 BITCNY
-                    'maker': 0.2 / 100,
+                    'maker': 0.1 / 100,
                     'taker': 0.2 / 100,
                 },
                 'funding': {
@@ -125,11 +117,11 @@ class rightbtc (Exchange):
                         # 'BitCNY': n => 0.1 + n * (1 / 100),
                         # 'MTX': n => 1 + n * (1 / 100),
                         'ETP': 0.01,
-                        'BTC': 0.001,
-                        'ETH': 0.01,
+                        'BTC': 0.0005,
+                        'ETH': 0.005,
                         'ETC': 0.01,
                         'STORJ': 3,
-                        'LTC': 0.001,
+                        'LTC': 0.01,
                         'ZEC': 0.001,
                         'BCC': 0.001,
                         'XRB': 0,
@@ -151,22 +143,21 @@ class rightbtc (Exchange):
         })
 
     async def fetch_markets(self, params={}):
-        response = await self.publicGetTradingPairs()
         # zh = await self.publicGetGetAssetsTradingPairsZh()
-        markets = self.extend(response['status']['message'])
+        markets = await self.publicGetTradingPairs(params)
         marketIds = list(markets.keys())
         result = []
         for i in range(0, len(marketIds)):
             id = marketIds[i]
             market = markets[id]
-            baseId = market['bid_asset_symbol']
-            quoteId = market['ask_asset_symbol']
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            baseId = self.safe_string(market, 'bid_asset_symbol')
+            quoteId = self.safe_string(market, 'ask_asset_symbol')
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
-                'amount': int(market['bid_asset_decimals']),
-                'price': int(market['ask_asset_decimals']),
+                'amount': self.safe_integer(market, 'bid_asset_decimals'),
+                'price': self.safe_integer(market, 'ask_asset_decimals'),
             }
             result.append({
                 'id': id,
@@ -203,7 +194,7 @@ class rightbtc (Exchange):
 
     def parse_ticker(self, ticker, market=None):
         symbol = market['symbol']
-        timestamp = ticker['date']
+        timestamp = self.safe_integer(ticker, 'date')
         last = self.divide_safe_float(ticker, 'last', 1e8)
         high = self.divide_safe_float(ticker, 'high', 1e8)
         low = self.divide_safe_float(ticker, 'low', 1e8)
@@ -236,10 +227,14 @@ class rightbtc (Exchange):
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.publicGetTickerTradingPair(self.extend({
+        request = {
             'trading_pair': market['id'],
-        }, params))
-        return self.parse_ticker(response['result'], market)
+        }
+        response = await self.publicGetTickerTradingPair(self.extend(request, params))
+        result = self.safe_value(response, 'result')
+        if result is None:
+            raise ExchangeError(self.id + ' fetchTicker returned an empty response for symbol ' + symbol)
+        return self.parse_ticker(result, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
@@ -249,7 +244,7 @@ class rightbtc (Exchange):
         for i in range(0, len(tickers)):
             ticker = tickers[i]
             id = ticker['market']
-            if not(id in list(self.marketsById.keys())):
+            if not (id in self.marketsById):
                 continue
             market = self.marketsById[id]
             symbol = market['symbol']
@@ -312,52 +307,54 @@ class rightbtc (Exchange):
             symbol = market['symbol']
         cost = self.cost_to_precision(symbol, price * amount)
         cost = float(cost)
-        side = self.safe_string(trade, 'side')
-        side = side.lower()
+        side = self.safe_string_lower(trade, 'side')
         if side == 'b':
             side = 'buy'
         elif side == 's':
             side = 'sell'
         return {
+            'id': id,
+            'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'id': id,
             'order': orderId,
             'type': 'limit',
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
             'fee': None,
-            'info': trade,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.publicGetTradesTradingPair(self.extend({
+        request = {
             'trading_pair': market['id'],
-        }, params))
+        }
+        response = await self.publicGetTradesTradingPair(self.extend(request, params))
         return self.parse_trades(response['result'], market, since, limit)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='5m', since=None, limit=None):
         return [
-            ohlcv[0],
-            ohlcv[2] / 1e8,
-            ohlcv[3] / 1e8,
-            ohlcv[4] / 1e8,
-            ohlcv[5] / 1e8,
-            ohlcv[1] / 1e8,
+            int(ohlcv[0]),
+            float(ohlcv[2]) / 1e8,
+            float(ohlcv[3]) / 1e8,
+            float(ohlcv[4]) / 1e8,
+            float(ohlcv[5]) / 1e8,
+            float(ohlcv[1]) / 1e8,
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='5m', since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.publicGetCandlestickTimeSymbolTradingPair(self.extend({
+        request = {
             'trading_pair': market['id'],
             'timeSymbol': self.timeframes[timeframe],
-        }, params))
+        }
+        response = await self.publicGetCandlestickTimeSymbolTradingPair(self.extend(request, params))
         return self.parse_ohlcvs(response['result'], market, timeframe, since, limit)
 
     async def fetch_balance(self, params={}):
@@ -386,30 +383,15 @@ class rightbtc (Exchange):
         #     }
         #
         result = {'info': response}
-        balances = response['result']
+        balances = self.safe_value(response, 'result', [])
         for i in range(0, len(balances)):
             balance = balances[i]
-            currencyId = balance['asset']
-            code = self.common_currency_code(currencyId)
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            free = self.divide_safe_float(balance, 'balance', 1e8)
-            used = self.divide_safe_float(balance, 'frozen', 1e8)
-            total = self.sum(free, used)
-            #
+            currencyId = self.safe_string(balance, 'asset')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
             # https://github.com/ccxt/ccxt/issues/3873
-            #
-            #     if total is not None:
-            #         if used is not None:
-            #             free = total - used
-            #         }
-            #     }
-            #
-            account = {
-                'free': free,
-                'used': used,
-                'total': total,
-            }
+            account['free'] = self.divide_safe_float(balance, 'balance', 1e8)
+            account['used'] = self.divide_safe_float(balance, 'frozen', 1e8)
             result[code] = account
         return self.parse_balance(result)
 
@@ -418,8 +400,11 @@ class rightbtc (Exchange):
         market = self.market(symbol)
         order = {
             'trading_pair': market['id'],
-            'quantity': int(amount * 1e8),
-            'limit': int(price * 1e8),
+            # We need to use decimalToPrecision here, since
+            #   0.036*1e8 == 3599999.9999999995
+            # which would get truncated to 3599999 after int// which would then be rejected by rightBtc because it's too precise
+            'quantity': int(self.decimal_to_precision(amount * 1e8, ROUND, 0, self.precisionMode)),
+            'limit': int(self.decimal_to_precision(price * 1e8, ROUND, 0, self.precisionMode)),
             'type': type.upper(),
             'side': side.upper(),
         }
@@ -431,10 +416,11 @@ class rightbtc (Exchange):
             raise ArgumentsRequired(self.id + ' cancelOrder requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.traderDeleteOrderTradingPairIds(self.extend({
+        request = {
             'trading_pair': market['id'],
             'ids': id,
-        }, params))
+        }
+        response = await self.traderDeleteOrderTradingPairIds(self.extend(request, params))
         return response
 
     def parse_order_status(self, status):
@@ -443,9 +429,7 @@ class rightbtc (Exchange):
             'TRADE': 'closed',  # TRADE means filled or partially filled orders
             'CANCEL': 'canceled',
         }
-        if status in statuses:
-            return statuses[status]
-        return status
+        return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
         #
@@ -492,8 +476,7 @@ class rightbtc (Exchange):
             timestamp = order['time']
         elif 'transactTime' in order:
             timestamp = order['transactTime']
-        price = self.safe_float(order, 'limit')
-        price = self.safe_float(order, 'price', price)
+        price = self.safe_float_2(order, 'limit', 'price')
         if price is not None:
             price = price / 1e8
         amount = self.divide_safe_float(order, 'quantity', 1e8)
@@ -509,9 +492,7 @@ class rightbtc (Exchange):
                 if remaining is not None:
                     filled = max(0, amount - remaining)
         type = 'limit'
-        side = self.safe_string(order, 'side')
-        if side is not None:
-            side = side.lower()
+        side = self.safe_string_lower(order, 'side')
         feeCost = self.divide_safe_float(order, 'min_fee', 1e8)
         fee = None
         if feeCost is not None:
@@ -524,9 +505,10 @@ class rightbtc (Exchange):
                 'currency': feeCurrency,
             }
         trades = None
-        result = {
+        return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -541,8 +523,8 @@ class rightbtc (Exchange):
             'status': status,
             'fee': fee,
             'trades': trades,
+            'average': None,
         }
-        return result
 
     async def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
@@ -575,7 +557,7 @@ class rightbtc (Exchange):
         #
         orders = self.parse_orders(response['result'], market)
         ordersById = self.index_by(orders, 'id')
-        if not(id in list(ordersById.keys())):
+        if not (id in ordersById):
             raise OrderNotFound(self.id + ' fetchOrder could not find order ' + str(id) + ' in open orders.')
         return ordersById[id]
 
@@ -616,7 +598,7 @@ class rightbtc (Exchange):
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         ids = self.safe_string(params, 'ids')
         if (symbol is None) or (ids is None):
-            raise ExchangeError(self.id + " fetchOrders requires a 'symbol' argument and an extra 'ids' parameter. The 'ids' should be an array or a string of one or more order ids separated with slashes.")  # eslint-disable-line quotes
+            raise ArgumentsRequired(self.id + " fetchOrders requires a 'symbol' argument and an extra 'ids' parameter. The 'ids' should be an array or a string of one or more order ids separated with slashes.")  # eslint-disable-line quotes
         if isinstance(ids, list):
             ids = '/'.join(ids)
         await self.load_markets()
@@ -655,10 +637,11 @@ class rightbtc (Exchange):
             raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.traderGetHistorysTradingPairPage(self.extend({
+        request = {
             'trading_pair': market['id'],
             'page': 0,
-        }, params))
+        }
+        response = await self.traderGetHistorysTradingPairPage(self.extend(request, params))
         #
         # response = {
         #         "status": {
@@ -709,23 +692,17 @@ class rightbtc (Exchange):
                 headers['Content-Type'] = 'application/json'
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response=None):
-        if not isinstance(body, basestring):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        if response is None:
             return  # fallback to default error handler
-        if len(body) < 2:
-            return  # fallback to default error handler
-        if (body[0] == '{') or (body[0] == '['):
-            response = json.loads(body)
-            status = self.safe_value(response, 'status')
-            if status is not None:
-                #
-                #     {"status":{"success":0,"message":"ERR_USERTOKEN_NOT_FOUND"}}
-                #
-                success = self.safe_string(status, 'success')
-                if success != '1':
-                    message = self.safe_string(status, 'message')
-                    feedback = self.id + ' ' + self.json(response)
-                    exceptions = self.exceptions
-                    if message in exceptions:
-                        raise exceptions[message](feedback)
-                    raise ExchangeError(feedback)
+        status = self.safe_value(response, 'status')
+        if status is not None:
+            #
+            #     {"status":{"success":0,"message":"ERR_USERTOKEN_NOT_FOUND"}}
+            #
+            success = self.safe_string(status, 'success')
+            if success != '1':
+                message = self.safe_string(status, 'message')
+                feedback = self.id + ' ' + body
+                self.throw_exactly_matched_exception(self.exceptions, message, feedback)
+                raise ExchangeError(feedback)

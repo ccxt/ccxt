@@ -17,100 +17,116 @@ module.exports = class paymium extends Exchange {
             'version': 'v1',
             'has': {
                 'CORS': true,
+                'fetchBalance': true,
+                'fetchTicker': true,
+                'fetchTrades': true,
+                'fetchOrderBook': true,
+                'createOrder': true,
+                'cancelOrder': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27790564-a945a9d4-5ff9-11e7-9d2d-b635763f2f24.jpg',
                 'api': 'https://paymium.com/api',
                 'www': 'https://www.paymium.com',
+                'fees': 'https://www.paymium.com/page/help/fees',
                 'doc': [
                     'https://github.com/Paymium/api-documentation',
                     'https://www.paymium.com/page/developers',
                 ],
+                'referral': 'https://www.paymium.com/page/sign-up?referral=eDAzPoRQFMvaAB8sf-qj',
             },
             'api': {
                 'public': {
                     'get': [
                         'countries',
-                        'data/{id}/ticker',
-                        'data/{id}/trades',
-                        'data/{id}/depth',
+                        'data/{currency}/ticker',
+                        'data/{currency}/trades',
+                        'data/{currency}/depth',
                         'bitcoin_charts/{id}/trades',
                         'bitcoin_charts/{id}/depth',
                     ],
                 },
                 'private': {
                     'get': [
-                        'merchant/get_payment/{UUID}',
                         'user',
                         'user/addresses',
-                        'user/addresses/{btc_address}',
+                        'user/addresses/{address}',
                         'user/orders',
-                        'user/orders/{UUID}',
+                        'user/orders/{uuid}',
                         'user/price_alerts',
+                        'merchant/get_payment/{uuid}',
                     ],
                     'post': [
-                        'user/orders',
                         'user/addresses',
+                        'user/orders',
+                        'user/withdrawals',
+                        'user/email_transfers',
                         'user/payment_requests',
                         'user/price_alerts',
                         'merchant/create_payment',
                     ],
                     'delete': [
-                        'user/orders/{UUID}/cancel',
+                        'user/orders/{uuid}',
+                        'user/orders/{uuid}/cancel',
                         'user/price_alerts/{id}',
                     ],
                 },
             },
             'markets': {
-                'BTC/EUR': { 'id': 'eur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
+                'BTC/EUR': { 'id': 'eur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'btc', 'quoteId': 'eur' },
             },
             'fees': {
                 'trading': {
-                    'maker': 0.0059,
-                    'taker': 0.0059,
+                    'maker': 0.002,
+                    'taker': 0.002,
                 },
             },
         });
     }
 
     async fetchBalance (params = {}) {
-        let balances = await this.privateGetUser ();
-        let result = { 'info': balances };
-        let currencies = Object.keys (this.currencies);
+        await this.loadMarkets ();
+        const response = await this.privateGetUser (params);
+        const result = { 'info': response };
+        const currencies = Object.keys (this.currencies);
         for (let i = 0; i < currencies.length; i++) {
-            let currency = currencies[i];
-            let lowercase = currency.toLowerCase ();
-            let account = this.account ();
-            let balance = 'balance_' + lowercase;
-            let locked = 'locked_' + lowercase;
-            if (balance in balances)
-                account['free'] = balances[balance];
-            if (locked in balances)
-                account['used'] = balances[locked];
-            account['total'] = this.sum (account['free'], account['used']);
-            result[currency] = account;
+            const code = currencies[i];
+            const currencyId = this.currencyId (code);
+            const free = 'balance_' + currencyId;
+            if (free in response) {
+                const account = this.account ();
+                const used = 'locked_' + currencyId;
+                account['free'] = this.safeFloat (response, free);
+                account['used'] = this.safeFloat (response, used);
+                result[code] = account;
+            }
         }
         return this.parseBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        let orderbook = await this.publicGetDataIdDepth (this.extend ({
-            'id': this.marketId (symbol),
-        }, params));
-        return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'amount');
+        await this.loadMarkets ();
+        const request = {
+            'currency': this.marketId (symbol),
+        };
+        const response = await this.publicGetDataCurrencyDepth (this.extend (request, params));
+        return this.parseOrderBook (response, undefined, 'bids', 'asks', 'price', 'amount');
     }
 
     async fetchTicker (symbol, params = {}) {
-        let ticker = await this.publicGetDataIdTicker (this.extend ({
-            'id': this.marketId (symbol),
-        }, params));
-        let timestamp = ticker['at'] * 1000;
-        let vwap = this.safeFloat (ticker, 'vwap');
-        let baseVolume = this.safeFloat (ticker, 'volume');
+        await this.loadMarkets ();
+        const request = {
+            'currency': this.marketId (symbol),
+        };
+        const ticker = await this.publicGetDataCurrencyTicker (this.extend (request, params));
+        const timestamp = this.safeTimestamp (ticker, 'at');
+        const vwap = this.safeFloat (ticker, 'vwap');
+        const baseVolume = this.safeFloat (ticker, 'volume');
         let quoteVolume = undefined;
-        if (baseVolume !== undefined && vwap !== undefined)
+        if (baseVolume !== undefined && vwap !== undefined) {
             quoteVolume = baseVolume * vwap;
-        let last = this.safeFloat (ticker, 'price');
+        }
+        const last = this.safeFloat (ticker, 'price');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -136,40 +152,61 @@ module.exports = class paymium extends Exchange {
     }
 
     parseTrade (trade, market) {
-        let timestamp = parseInt (trade['created_at_int']) * 1000;
-        let volume = 'traded_' + market['base'].toLowerCase ();
+        const timestamp = this.safeTimestamp (trade, 'created_at_int');
+        const id = this.safeString (trade, 'uuid');
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        const side = this.safeString (trade, 'side');
+        const price = this.safeFloat (trade, 'price');
+        const amountField = 'traded_' + market['base'].toLowerCase ();
+        const amount = this.safeFloat (trade, amountField);
+        let cost = undefined;
+        if (price !== undefined) {
+            if (amount !== undefined) {
+                cost = amount * price;
+            }
+        }
         return {
             'info': trade,
-            'id': trade['uuid'],
+            'id': id,
             'order': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': undefined,
-            'side': trade['side'],
-            'price': trade['price'],
-            'amount': trade[volume],
+            'side': side,
+            'takerOrMaker': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
         };
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        let market = this.market (symbol);
-        let response = await this.publicGetDataIdTrades (this.extend ({
-            'id': market['id'],
-        }, params));
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'currency': market['id'],
+        };
+        const response = await this.publicGetDataCurrencyTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        let order = {
+        await this.loadMarkets ();
+        const request = {
             'type': this.capitalize (type) + 'Order',
             'currency': this.marketId (symbol),
             'direction': side,
             'amount': amount,
         };
-        if (type !== 'market')
-            order['price'] = price;
-        let response = await this.privatePostUserOrders (this.extend (order, params));
+        if (type !== 'market') {
+            request['price'] = price;
+        }
+        const response = await this.privatePostUserOrders (this.extend (request, params));
         return {
             'info': response,
             'id': response['uuid'],
@@ -177,41 +214,50 @@ module.exports = class paymium extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        return await this.privateDeleteUserOrdersUUIDCancel (this.extend ({
-            'UUID': id,
-        }, params));
+        const request = {
+            'uuid': id,
+        };
+        return await this.privateDeleteUserOrdersUuidCancel (this.extend (request, params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
-        let query = this.omit (params, this.extractParams (path));
+        const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
-            if (Object.keys (query).length)
+            if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
+            }
         } else {
             this.checkRequiredCredentials ();
-            let nonce = this.nonce ().toString ();
+            const nonce = this.nonce ().toString ();
             let auth = nonce + url;
+            headers = {
+                'Api-Key': this.apiKey,
+                'Api-Nonce': nonce,
+            };
             if (method === 'POST') {
                 if (Object.keys (query).length) {
                     body = this.json (query);
                     auth += body;
+                    headers['Content-Type'] = 'application/json';
+                }
+            } else {
+                if (Object.keys (query).length) {
+                    const queryString = this.urlencode (query);
+                    auth += queryString;
+                    url += '?' + queryString;
                 }
             }
-            headers = {
-                'Api-Key': this.apiKey,
-                'Api-Signature': this.hmac (this.encode (auth), this.encode (this.secret)),
-                'Api-Nonce': nonce,
-                'Content-Type': 'application/json',
-            };
+            headers['Api-Signature'] = this.hmac (this.encode (auth), this.encode (this.secret));
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('errors' in response)
+        const response = await this.fetch2 (path, api, method, params, headers, body);
+        if ('errors' in response) {
             throw new ExchangeError (this.id + ' ' + this.json (response));
+        }
         return response;
     }
 };

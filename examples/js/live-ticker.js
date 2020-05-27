@@ -26,7 +26,6 @@ let printTicker = async (id, symbol, rateLimit = undefined) => {
         let exchange = new ccxt[id] ({ enableRateLimit: true,  })
 
         exchange.rateLimit = rateLimit ? rateLimit : exchange.rateLimit
-        exchange.tokenBucket.refillRate = 1 / exchange.rateLimit
 
         log.green ('Rate limit:', exchange.rateLimit.toString ().bright)
 

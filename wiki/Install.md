@@ -3,7 +3,7 @@
 The easiest way to install the ccxt library is to use builtin package managers:
 
 - [ccxt in **NPM**](http://npmjs.com/package/ccxt) (JavaScript / Node v7.6+)
-- [ccxt in **PyPI**](https://pypi.python.org/pypi/ccxt) (Python 2 and 3)
+- [ccxt in **PyPI**](https://pypi.python.org/pypi/ccxt) (Python 3)
 
 This library is shipped as an all-in-one module implementation with minimalistic dependencies and requirements:
 
@@ -56,10 +56,15 @@ If that does not help, please, follow here: https://github.com/nodejs/node-gyp#o
 
 ### JavaScript (for use with the `<script>` tag):
 
-[All-in-one browser bundle](https://unpkg.com/ccxt) (dependencies included), served from [unpkg CDN](https://unpkg.com/), which is a fast, global content delivery network for everything on NPM.
+All-in-one browser bundle (dependencies included), served from a CDN of your choice:
+
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.28.78/dist/ccxt.browser.js
+* unpkg: https://unpkg.com/ccxt@1.28.78/dist/ccxt.browser.js
+
+You can obtain a live-updated version of the bundle by removing the version number from the URL (the `@a.b.c` thing) — however, we do not recommend to do that, as it may break your app eventually. Also, please keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<script type="text/javascript" src="https://unpkg.com/ccxt"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.28.78/dist/ccxt.browser.js"></script>
 ```
 
 Creates a global `ccxt` object:
@@ -104,6 +109,23 @@ It requires common PHP modules:
 ```PHP
 include "ccxt.php";
 var_dump (\ccxt\Exchange::$exchanges); // print a list of all available exchange classes
+```
+
+### Docker
+
+You can get CCXT installed in a container along with all the supported languages and dependencies. This may be useful if you want to contribute to CCXT (e.g. run the build scripts and tests — please see the [Contributing](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) document for the details on that).
+
+Using `docker-compose` (in the cloned CCXT repository):
+
+```shell
+docker-compose run --rm ccxt
+```
+
+Alternatively:
+
+```shell
+docker build . --tag ccxt
+docker run -it ccxt
 ```
 
 ## Proxy
@@ -162,7 +184,7 @@ exchange.proxies = {
 }
 ```
 
-#### Python 2 and 3 sync proxies
+#### Python 3 sync proxies
 
 - https://github.com/ccxt/ccxt/blob/master/examples/py/proxy-sync-python-requests-2-and-3.py
 
@@ -190,7 +212,7 @@ exchange = ccxt.poloniex({
     # This gets passed to the `python-requests` implementation directly
     # You can also enable this with environment variables, as described here:
     # http://docs.python-requests.org/en/master/user/advanced/#proxies
-    # This is the setting you should be using with synchronous version of ccxt in Python 2 and 3
+    # This is the setting you should be using with synchronous version of ccxt in Python 3
     #
     'proxies': {
         'http': 'http://10.10.1.10:3128',
@@ -258,6 +280,35 @@ A more detailed documentation on using proxies with the sync python version of t
 
 - [Proxies](http://docs.python-requests.org/en/master/user/advanced/#proxies)
 - [SOCKS](http://docs.python-requests.org/en/master/user/advanced/#socks)
+
+#### Python aiohttp SOCKS proxy
+
+```
+pip install aiohttp_socks
+```
+
+```Python
+import ccxt.async_support as ccxt
+import aiohttp
+import aiohttp_socks
+
+async def test():
+
+    connector = aiohttp_socks.ProxyConnector.from_url('socks5://user:password@127.0.0.1:1080')
+    session = aiohttp.ClientSession(connector=connector)
+
+    exchange = ccxt.binance({
+        'session': session,
+        'enableRateLimit': True,
+        # ...
+    })
+
+    # ...
+
+    await session.close()  # don't forget to close the session
+
+    # ...
+```
 
 ## CORS (Access-Control-Allow-Origin)
 

@@ -4,24 +4,17 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import hashlib
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 
 
-class indodax (Exchange):
+class indodax(Exchange):
 
     def describe(self):
         return self.deep_extend(super(indodax, self).describe(), {
@@ -76,36 +69,73 @@ class indodax (Exchange):
             'markets': {
                 # HARDCODING IS DEPRECATED
                 # but they don't have a corresponding endpoint in their API
+                # IDR markets
                 'BTC/IDR': {'id': 'btc_idr', 'symbol': 'BTC/IDR', 'base': 'BTC', 'quote': 'IDR', 'baseId': 'btc', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.0001, 'max': None}}},
+                'TEN/IDR': {'id': 'ten_idr', 'symbol': 'TEN/IDR', 'base': 'TEN', 'quote': 'IDR', 'baseId': 'ten', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 5, 'max': None}}},
+                'ABYSS/IDR': {'id': 'abyss_idr', 'symbol': 'ABYSS/IDR', 'base': 'ABYSS', 'quote': 'IDR', 'baseId': 'abyss', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': None, 'max': None}}},
                 'ACT/IDR': {'id': 'act_idr', 'symbol': 'ACT/IDR', 'base': 'ACT', 'quote': 'IDR', 'baseId': 'act', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': None, 'max': None}}},
                 'ADA/IDR': {'id': 'ada_idr', 'symbol': 'ADA/IDR', 'base': 'ADA', 'quote': 'IDR', 'baseId': 'ada', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': None, 'max': None}}},
+                'AOA/IDR': {'id': 'aoa_idr', 'symbol': 'AOA/IDR', 'base': 'AOA', 'quote': 'IDR', 'baseId': 'aoa', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': None, 'max': None}}},
+                'ATOM/IDR': {'id': 'atom_idr', 'symbol': 'ATOM/IDR', 'base': 'ATOM', 'quote': 'IDR', 'baseId': 'atom', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': None, 'max': None}}},
+                'BAT/IDR': {'id': 'bat_idr', 'symbol': 'BAT/IDR', 'base': 'BAT', 'quote': 'IDR', 'baseId': 'bat', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': None, 'max': None}}},
                 'BCD/IDR': {'id': 'bcd_idr', 'symbol': 'BCD/IDR', 'base': 'BCD', 'quote': 'IDR', 'baseId': 'bcd', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': None, 'max': None}}},
-                'BCH/IDR': {'id': 'bch_idr', 'symbol': 'BCH/IDR', 'base': 'BCH', 'quote': 'IDR', 'baseId': 'bch', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.001, 'max': None}}},
+                'BCH/IDR': {'id': 'bchabc_idr', 'symbol': 'BCH/IDR', 'base': 'BCH', 'quote': 'IDR', 'baseId': 'bchabc', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.001, 'max': None}}},
+                'BSV/IDR': {'id': 'bchsv_idr', 'symbol': 'BSV/IDR', 'base': 'BSV', 'quote': 'IDR', 'baseId': 'bchsv', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.001, 'max': None}}},
+                'BNB/IDR': {'id': 'bnb_idr', 'symbol': 'BNB/IDR', 'base': 'BNB', 'quote': 'IDR', 'baseId': 'bnb', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.001, 'max': None}}},
                 'BTG/IDR': {'id': 'btg_idr', 'symbol': 'BTG/IDR', 'base': 'BTG', 'quote': 'IDR', 'baseId': 'btg', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.01, 'max': None}}},
                 'BTS/IDR': {'id': 'bts_idr', 'symbol': 'BTS/IDR', 'base': 'BTS', 'quote': 'IDR', 'baseId': 'bts', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.01, 'max': None}}},
+                'BTT/IDR': {'id': 'btt_idr', 'symbol': 'BTT/IDR', 'base': 'BTT', 'quote': 'IDR', 'baseId': 'btt', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 1000, 'max': None}}},
+                'COAL/IDR': {'id': 'coal_idr', 'symbol': 'COAL/IDR', 'base': 'COAL', 'quote': 'IDR', 'baseId': 'coal', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 50, 'max': None}}},
+                'CRO/IDR': {'id': 'cro_idr', 'symbol': 'CRO/IDR', 'base': 'CRO', 'quote': 'IDR', 'baseId': 'cro', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.01, 'max': None}}},
                 'DASH/IDR': {'id': 'drk_idr', 'symbol': 'DASH/IDR', 'base': 'DASH', 'quote': 'IDR', 'baseId': 'drk', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.01, 'max': None}}},
+                'DAX/IDR': {'id': 'dax_idr', 'symbol': 'DAX/IDR', 'base': 'DAX', 'quote': 'IDR', 'baseId': 'dax', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.01, 'max': None}}},
                 'DOGE/IDR': {'id': 'doge_idr', 'symbol': 'DOGE/IDR', 'base': 'DOGE', 'quote': 'IDR', 'baseId': 'doge', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 1000, 'max': None}}},
                 'ETH/IDR': {'id': 'eth_idr', 'symbol': 'ETH/IDR', 'base': 'ETH', 'quote': 'IDR', 'baseId': 'eth', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.01, 'max': None}}},
+                'EOS/IDR': {'id': 'eos_idr', 'symbol': 'EOS/IDR', 'base': 'EOS', 'quote': 'IDR', 'baseId': 'eos', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.01, 'max': None}}},
                 'ETC/IDR': {'id': 'etc_idr', 'symbol': 'ETC/IDR', 'base': 'ETC', 'quote': 'IDR', 'baseId': 'etc', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.1, 'max': None}}},
+                'GARD/IDR': {'id': 'gard_idr', 'symbol': 'GARD/IDR', 'base': 'GARD', 'quote': 'IDR', 'baseId': 'gard', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.1, 'max': None}}},
                 'GSC/IDR': {'id': 'gsc_idr', 'symbol': 'GSC/IDR', 'base': 'GSC', 'quote': 'IDR', 'baseId': 'gsc', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.1, 'max': None}}},
+                'GXC/IDR': {'id': 'gxs_idr', 'symbol': 'GXC/IDR', 'base': 'GXC', 'quote': 'IDR', 'baseId': 'gxs', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.1, 'max': None}}},
+                'HPB/IDR': {'id': 'hpb_idr', 'symbol': 'HPB/IDR', 'base': 'HPB', 'quote': 'IDR', 'baseId': 'hpb', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 5, 'max': None}}},
                 'IGNIS/IDR': {'id': 'ignis_idr', 'symbol': 'IGNIS/IDR', 'base': 'IGNIS', 'quote': 'IDR', 'baseId': 'ignis', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 1, 'max': None}}},
+                'INX/IDR': {'id': 'inx_idr', 'symbol': 'INX/IDR', 'base': 'INX', 'quote': 'IDR', 'baseId': 'inx', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 1, 'max': None}}},
+                'IOTA/IDR': {'id': 'iota_idr', 'symbol': 'IOTA/IDR', 'base': 'IOTA', 'quote': 'IDR', 'baseId': 'iota', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 5, 'max': None}}},
+                'LINK/IDR': {'id': 'link_idr', 'symbol': 'LINK/IDR', 'base': 'LINK', 'quote': 'IDR', 'baseId': 'link', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 1, 'max': None}}},
                 'LTC/IDR': {'id': 'ltc_idr', 'symbol': 'LTC/IDR', 'base': 'LTC', 'quote': 'IDR', 'baseId': 'ltc', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.01, 'max': None}}},
+                'MBL/IDR': {'id': 'mbl_idr', 'symbol': 'MBL/IDR', 'base': 'MBL', 'quote': 'IDR', 'baseId': 'mbl', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.01, 'max': None}}},
+                'NEO/IDR': {'id': 'neo_idr', 'symbol': 'NEO/IDR', 'base': 'NEO', 'quote': 'IDR', 'baseId': 'neo', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.01, 'max': None}}},
                 'NPXS/IDR': {'id': 'npxs_idr', 'symbol': 'NPXS/IDR', 'base': 'NPXS', 'quote': 'IDR', 'baseId': 'npxs', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 1, 'max': None}}},
                 'NXT/IDR': {'id': 'nxt_idr', 'symbol': 'NXT/IDR', 'base': 'NXT', 'quote': 'IDR', 'baseId': 'nxt', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 5, 'max': None}}},
-                'STQ/IDR': {'id': 'stq_idr', 'symbol': 'STQ/IDR', 'base': 'STQ', 'quote': 'IDR', 'baseId': 'stq', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': None, 'max': None}}},
-                'TEN/IDR': {'id': 'ten_idr', 'symbol': 'TEN/IDR', 'base': 'TEN', 'quote': 'IDR', 'baseId': 'ten', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 5, 'max': None}}},
+                'OKB/IDR': {'id': 'okb_idr', 'symbol': 'OKB/IDR', 'base': 'OKB', 'quote': 'IDR', 'baseId': 'okb', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.5, 'max': None}}},
+                'ONT/IDR': {'id': 'ont_idr', 'symbol': 'ONT/IDR', 'base': 'ONT', 'quote': 'IDR', 'baseId': 'ont', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 5, 'max': None}}},
+                'PXG/IDR': {'id': 'pxg_idr', 'symbol': 'PXG/IDR', 'base': 'PXG', 'quote': 'IDR', 'baseId': 'pxg', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 5, 'max': None}}},
+                'QTUM/IDR': {'id': 'qtum_idr', 'symbol': 'QTUM/IDR', 'base': 'QTUM', 'quote': 'IDR', 'baseId': 'qtum', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 5, 'max': None}}},
+                'RVN/IDR': {'id': 'rvn_idr', 'symbol': 'RVN/IDR', 'base': 'RVN', 'quote': 'IDR', 'baseId': 'rvn', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 5, 'max': None}}},
+                'SSP/IDR': {'id': 'ssp_idr', 'symbol': 'SSP/IDR', 'base': 'SSP', 'quote': 'IDR', 'baseId': 'ssp', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 5, 'max': None}}},
+                'SUMO/IDR': {'id': 'sumo_idr', 'symbol': 'SUMO/IDR', 'base': 'SUMO', 'quote': 'IDR', 'baseId': 'sumo', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 5, 'max': None}}},
+                # 'STQ/IDR': {'id': 'stq_idr', 'symbol': 'STQ/IDR', 'base': 'STQ', 'quote': 'IDR', 'baseId': 'stq', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': None, 'max': None}}},
                 'TRX/IDR': {'id': 'trx_idr', 'symbol': 'TRX/IDR', 'base': 'TRX', 'quote': 'IDR', 'baseId': 'trx', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': None, 'max': None}}},
+                'USDC/IDR': {'id': 'usdc_idr', 'symbol': 'USDC/IDR', 'base': 'USDC', 'quote': 'IDR', 'baseId': 'usdc', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': None, 'max': None}}},
+                'USDT/IDR': {'id': 'usdt_idr', 'symbol': 'USDT/IDR', 'base': 'USDT', 'quote': 'IDR', 'baseId': 'usdt', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': None, 'max': None}}},
+                'VEX/IDR': {'id': 'vex_idr', 'symbol': 'VEX/IDR', 'base': 'VEX', 'quote': 'IDR', 'baseId': 'vex', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': None, 'max': None}}},
+                'VIDY/IDR': {'id': 'vidy_idr', 'symbol': 'VIDY/IDR', 'base': 'VIDY', 'quote': 'IDR', 'baseId': 'vidy', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 100, 'max': None}}},
                 'WAVES/IDR': {'id': 'waves_idr', 'symbol': 'WAVES/IDR', 'base': 'WAVES', 'quote': 'IDR', 'baseId': 'waves', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.1, 'max': None}}},
                 'XEM/IDR': {'id': 'nem_idr', 'symbol': 'XEM/IDR', 'base': 'XEM', 'quote': 'IDR', 'baseId': 'nem', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 1, 'max': None}}},
                 'XLM/IDR': {'id': 'str_idr', 'symbol': 'XLM/IDR', 'base': 'XLM', 'quote': 'IDR', 'baseId': 'str', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 20, 'max': None}}},
+                'XDCE/IDR': {'id': 'xdce_idr', 'symbol': 'XDCE/IDR', 'base': 'XDCE', 'quote': 'IDR', 'baseId': 'xdce', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 10, 'max': None}}},
+                'XMR/IDR': {'id': 'xmr_idr', 'symbol': 'XMR/IDR', 'base': 'XMR', 'quote': 'IDR', 'baseId': 'xmr', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.01, 'max': None}}},
                 'XRP/IDR': {'id': 'xrp_idr', 'symbol': 'XRP/IDR', 'base': 'XRP', 'quote': 'IDR', 'baseId': 'xrp', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 10, 'max': None}}},
                 'XZC/IDR': {'id': 'xzc_idr', 'symbol': 'XZC/IDR', 'base': 'XZC', 'quote': 'IDR', 'baseId': 'xzc', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.1, 'max': None}}},
+                'VSYS/IDR': {'id': 'vsys_idr', 'symbol': 'VSYS/IDR', 'base': 'VSYS', 'quote': 'IDR', 'baseId': 'vsys', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.1, 'max': None}}},
+                'ZEC/IDR': {'id': 'zec_idr', 'symbol': 'ZEC/IDR', 'base': 'ZEC', 'quote': 'IDR', 'baseId': 'zec', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.01, 'max': None}}},
+                # BTC markets
                 'BTS/BTC': {'id': 'bts_btc', 'symbol': 'BTS/BTC', 'base': 'BTS', 'quote': 'BTC', 'baseId': 'bts', 'quoteId': 'btc', 'precision': {'amount': 8, 'price': 8}, 'limits': {'amount': {'min': 0.01, 'max': None}}},
                 'DASH/BTC': {'id': 'drk_btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC', 'baseId': 'drk', 'quoteId': 'btc', 'precision': {'amount': 8, 'price': 6}, 'limits': {'amount': {'min': 0.01, 'max': None}}},
                 'DOGE/BTC': {'id': 'doge_btc', 'symbol': 'DOGE/BTC', 'base': 'DOGE', 'quote': 'BTC', 'baseId': 'doge', 'quoteId': 'btc', 'precision': {'amount': 8, 'price': 8}, 'limits': {'amount': {'min': 1, 'max': None}}},
                 'ETH/BTC': {'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'baseId': 'eth', 'quoteId': 'btc', 'precision': {'amount': 8, 'price': 5}, 'limits': {'amount': {'min': 0.001, 'max': None}}},
                 'LTC/BTC': {'id': 'ltc_btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'baseId': 'ltc', 'quoteId': 'btc', 'precision': {'amount': 8, 'price': 6}, 'limits': {'amount': {'min': 0.01, 'max': None}}},
                 'NXT/BTC': {'id': 'nxt_btc', 'symbol': 'NXT/BTC', 'base': 'NXT', 'quote': 'BTC', 'baseId': 'nxt', 'quoteId': 'btc', 'precision': {'amount': 8, 'price': 8}, 'limits': {'amount': {'min': 0.01, 'max': None}}},
+                'SUMO/BTC': {'id': 'sumo_btc', 'symbol': 'SUMO/BTC', 'base': 'SUMO', 'quote': 'BTC', 'baseId': 'sumo', 'quoteId': 'btc', 'precision': {'amount': 8, 'price': 8}, 'limits': {'amount': {'min': 0.01, 'max': None}}},
                 'TEN/BTC': {'id': 'ten_btc', 'symbol': 'TEN/BTC', 'base': 'TEN', 'quote': 'BTC', 'baseId': 'ten', 'quoteId': 'btc', 'precision': {'amount': 8, 'price': 8}, 'limits': {'amount': {'min': 0.01, 'max': None}}},
                 'XEM/BTC': {'id': 'nem_btc', 'symbol': 'XEM/BTC', 'base': 'XEM', 'quote': 'BTC', 'baseId': 'nem', 'quoteId': 'btc', 'precision': {'amount': 8, 'price': 8}, 'limits': {'amount': {'min': 1, 'max': None}}},
                 'XLM/BTC': {'id': 'str_btc', 'symbol': 'XLM/BTC', 'base': 'XLM', 'quote': 'BTC', 'baseId': 'str', 'quoteId': 'btc', 'precision': {'amount': 8, 'price': 8}, 'limits': {'amount': {'min': 0.01, 'max': None}}},
@@ -119,40 +149,69 @@ class indodax (Exchange):
                     'taker': 0.003,
                 },
             },
+            'exceptions': {
+                'exact': {
+                    'invalid_pair': BadSymbol,  # {"error":"invalid_pair","error_description":"Invalid Pair"}
+                    'Insufficient balance.': InsufficientFunds,
+                    'invalid order.': OrderNotFound,
+                    'Invalid credentials. API not found or session has expired.': AuthenticationError,
+                    'Invalid credentials. Bad sign.': AuthenticationError,
+                },
+                'broad': {
+                    'Minimum price': InvalidOrder,
+                    'Minimum order': InvalidOrder,
+                },
+            },
         })
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        response = await self.privatePostGetInfo()
-        balance = response['return']
-        result = {'info': balance}
-        codes = list(self.currencies.keys())
-        for i in range(0, len(codes)):
-            code = codes[i]
-            currency = self.currencies[code]
-            lowercase = currency['id']
+        response = await self.privatePostGetInfo(params)
+        balances = self.safe_value(response, 'return', {})
+        free = self.safe_value(balances, 'balance', {})
+        used = self.safe_value(balances, 'balance_hold', {})
+        result = {'info': response}
+        currencyIds = list(free.keys())
+        for i in range(0, len(currencyIds)):
+            currencyId = currencyIds[i]
+            code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_float(balance['balance'], lowercase, 0.0)
-            account['used'] = self.safe_float(balance['balance_hold'], lowercase, 0.0)
-            account['total'] = self.sum(account['free'], account['used'])
+            account['free'] = self.safe_float(free, currencyId)
+            account['used'] = self.safe_float(used, currencyId)
             result[code] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
-        orderbook = await self.publicGetPairDepth(self.extend({
+        request = {
             'pair': self.market_id(symbol),
-        }, params))
+        }
+        orderbook = await self.publicGetPairDepth(self.extend(request, params))
         return self.parse_order_book(orderbook, None, 'buy', 'sell')
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.publicGetPairTicker(self.extend({
+        request = {
             'pair': market['id'],
-        }, params))
+        }
+        response = await self.publicGetPairTicker(self.extend(request, params))
+        #
+        #     {
+        #         "ticker": {
+        #             "high":"0.01951",
+        #             "low":"0.01877",
+        #             "vol_eth":"39.38839319",
+        #             "vol_btc":"0.75320886",
+        #             "last":"0.01896",
+        #             "buy":"0.01896",
+        #             "sell":"0.019",
+        #             "server_time":1565248908
+        #         }
+        #     }
+        #
         ticker = response['ticker']
-        timestamp = self.safe_float(ticker, 'server_time') * 1000
+        timestamp = self.safe_timestamp(ticker, 'server_time')
         baseVolume = 'vol_' + market['baseId'].lower()
         quoteVolume = 'vol_' + market['quoteId'].lower()
         last = self.safe_float(ticker, 'last')
@@ -179,36 +238,63 @@ class indodax (Exchange):
             'info': ticker,
         }
 
-    def parse_trade(self, trade, market):
-        timestamp = int(trade['date']) * 1000
+    def parse_trade(self, trade, market=None):
+        timestamp = self.safe_timestamp(trade, 'date')
+        id = self.safe_string(trade, 'tid')
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
+        type = None
+        side = self.safe_string(trade, 'type')
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'amount')
+        cost = None
+        if price is not None:
+            if amount is not None:
+                cost = price * amount
         return {
-            'id': trade['tid'],
+            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
-            'type': None,
-            'side': trade['type'],
-            'price': self.safe_float(trade, 'price'),
-            'amount': self.safe_float(trade, 'amount'),
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'order': None,
+            'takerOrMaker': None,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': None,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.publicGetPairTrades(self.extend({
+        request = {
             'pair': market['id'],
-        }, params))
+        }
+        response = await self.publicGetPairTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
     def parse_order(self, order, market=None):
+        #
+        #     {
+        #         "order_id": "12345",
+        #         "submit_time": "1392228122",
+        #         "price": "8000000",
+        #         "type": "sell",
+        #         "order_ltc": "100000000",
+        #         "remain_ltc": "100000000"
+        #     }
+        #
         side = None
         if 'type' in order:
             side = order['type']
         status = self.safe_string(order, 'status', 'open')
         if status == 'filled':
             status = 'closed'
-        elif status == 'calcelled':
+        elif status == 'cancelled':
             status = 'canceled'
         symbol = None
         cost = None
@@ -220,9 +306,9 @@ class indodax (Exchange):
             symbol = market['symbol']
             quoteId = market['quoteId']
             baseId = market['baseId']
-            if (market['quoteId'] == 'idr') and('order_rp' in list(order.keys())):
+            if (market['quoteId'] == 'idr') and ('order_rp' in order):
                 quoteId = 'rp'
-            if (market['baseId'] == 'idr') and('remain_rp' in list(order.keys())):
+            if (market['baseId'] == 'idr') and ('remain_rp' in order):
                 baseId = 'rp'
             cost = self.safe_float(order, 'order_' + quoteId)
             if cost:
@@ -239,11 +325,13 @@ class indodax (Exchange):
         average = None
         if filled:
             average = cost / filled
-        timestamp = int(order['submit_time'])
+        timestamp = self.safe_integer(order, 'submit_time')
         fee = None
-        result = {
+        id = self.safe_string(order, 'order_id')
+        return {
             'info': order,
-            'id': order['order_id'],
+            'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -258,18 +346,19 @@ class indodax (Exchange):
             'remaining': remaining,
             'status': status,
             'fee': fee,
+            'trades': None,
         }
-        return result
 
     async def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchOrder requires a symbol')
+            raise ArgumentsRequired(self.id + ' fetchOrder requires a symbol')
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.privatePostGetOrder(self.extend({
+        request = {
             'pair': market['id'],
             'order_id': id,
-        }, params))
+        }
+        response = await self.privatePostGetOrder(self.extend(request, params))
         orders = response['return']
         order = self.parse_order(self.extend({'id': id}, orders['order']), market)
         return self.extend({'info': response}, order)
@@ -302,7 +391,7 @@ class indodax (Exchange):
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchOrders requires a symbol')
+            raise ArgumentsRequired(self.id + ' fetchOrders requires a symbol argument')
         await self.load_markets()
         request = {}
         market = None
@@ -321,18 +410,18 @@ class indodax (Exchange):
             raise ExchangeError(self.id + ' allows limit orders only')
         await self.load_markets()
         market = self.market(symbol)
-        order = {
+        request = {
             'pair': market['id'],
             'type': side,
             'price': price,
         }
         currency = market['baseId']
         if side == 'buy':
-            order[market['quoteId']] = amount * price
+            request[market['quoteId']] = amount * price
         else:
-            order[market['baseId']] = amount
-        order[currency] = amount
-        result = await self.privatePostTrade(self.extend(order, params))
+            request[market['baseId']] = amount
+        request[currency] = amount
+        result = await self.privatePostTrade(self.extend(request, params))
         return {
             'info': result,
             'id': str(result['return']['order_id']),
@@ -343,14 +432,15 @@ class indodax (Exchange):
             raise ArgumentsRequired(self.id + ' cancelOrder requires a symbol argument')
         side = self.safe_value(params, 'side')
         if side is None:
-            raise ExchangeError(self.id + ' cancelOrder requires an extra "side" param')
+            raise ArgumentsRequired(self.id + ' cancelOrder requires an extra "side" param')
         await self.load_markets()
         market = self.market(symbol)
-        return await self.privatePostCancelOrder(self.extend({
+        request = {
             'order_id': id,
             'pair': market['id'],
-            'type': params['side'],
-        }, params))
+            'type': side,
+        }
+        return await self.privatePostCancelOrder(self.extend(request, params))
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
@@ -388,7 +478,7 @@ class indodax (Exchange):
         #     }
         #
         id = None
-        if ('txid' in list(response.keys())) and len((response['txid']) > 0):
+        if ('txid' in response) and (len(response['txid']) > 0):
             id = response['txid']
         return {
             'info': response,
@@ -412,37 +502,24 @@ class indodax (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response=None):
-        if not isinstance(body, basestring):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        if response is None:
             return
         # {success: 0, error: "invalid order."}
         # or
         # [{data, ...}, {...}, ...]
-        if response is None:
-            if body[0] == '{' or body[0] == '[':
-                response = json.loads(body)
         if isinstance(response, list):
             return  # public endpoints may return []-arrays
-        if not('success' in list(response.keys())):
+        error = self.safe_value(response, 'error', '')
+        if not ('success' in response) and error == '':
             return  # no 'success' property on public responses
-        if response['success'] == 1:
+        if self.safe_integer(response, 'success', 0) == 1:
             # {success: 1, return: {orders: []}}
-            if not('return' in list(response.keys())):
+            if not ('return' in response):
                 raise ExchangeError(self.id + ': malformed response: ' + self.json(response))
             else:
                 return
-        message = response['error']
-        feedback = self.id + ' ' + self.json(response)
-        if message == 'Insufficient balance.':
-            raise InsufficientFunds(feedback)
-        elif message == 'invalid order.':
-            raise OrderNotFound(feedback)  # cancelOrder(1)
-        elif message.find('Minimum price ') >= 0:
-            raise InvalidOrder(feedback)  # price < limits.price.min, on createLimitBuyOrder('ETH/BTC', 1, 0)
-        elif message.find('Minimum order ') >= 0:
-            raise InvalidOrder(feedback)  # cost < limits.cost.min on createLimitBuyOrder('ETH/BTC', 0, 1)
-        elif message == 'Invalid credentials. API not found or session has expired.':
-            raise AuthenticationError(feedback)  # on bad apiKey
-        elif message == 'Invalid credentials. Bad sign.':
-            raise AuthenticationError(feedback)  # on bad secret
-        raise ExchangeError(self.id + ': unknown error: ' + self.json(response))
+        feedback = self.id + ' ' + body
+        self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)
+        self.throw_broadly_matched_exception(self.exceptions['broad'], error, feedback)
+        raise ExchangeError(feedback)  # unknown message

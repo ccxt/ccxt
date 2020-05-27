@@ -9,7 +9,7 @@
     </style>
     <script>'use strict'
 
-        class MyExchange extends ccxt.gdax {
+        class MyExchange extends ccxt.coinbasepro {
 
             async fetchTicker (symbol, params = {}) {
                 alert ("I'm about to call the parent method from the overrided class, woohooo!")

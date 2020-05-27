@@ -10,7 +10,7 @@ import math
 from ccxt.base.errors import ExchangeError
 
 
-class btcturk (Exchange):
+class btcturk(Exchange):
 
     def describe(self):
         return self.deep_extend(super(btcturk, self).describe(), {
@@ -56,21 +56,21 @@ class btcturk (Exchange):
             'fees': {
                 'trading': {
                     'maker': 0.002 * 1.18,
-                    'taker': 0.0035 * 1.18,
+                    'taker': 0.003 * 1.18,
                 },
             },
         })
 
     async def fetch_markets(self, params={}):
-        response = await self.publicGetTicker()
+        response = await self.publicGetTicker(params)
         result = []
         for i in range(0, len(response)):
             market = response[i]
-            id = market['pair']
+            id = self.safe_string(market, 'pair')
             baseId = id[0:3]
             quoteId = id[3:6]
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             baseId = baseId.lower()
             quoteId = quoteId.lower()
             symbol = base + '/' + quote
@@ -107,36 +107,39 @@ class btcturk (Exchange):
         return result
 
     async def fetch_balance(self, params={}):
-        response = await self.privateGetBalance()
+        await self.load_markets()
+        response = await self.privateGetBalance(params)
         result = {'info': response}
         codes = list(self.currencies.keys())
         for i in range(0, len(codes)):
             code = codes[i]
             currency = self.currencies[code]
-            account = self.account()
             free = currency['id'] + '_available'
             total = currency['id'] + '_balance'
             used = currency['id'] + '_reserved'
             if free in response:
+                account = self.account()
                 account['free'] = self.safe_float(response, free)
                 account['total'] = self.safe_float(response, total)
                 account['used'] = self.safe_float(response, used)
-            result[code] = account
+                result[code] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
+        await self.load_markets()
         market = self.market(symbol)
-        orderbook = await self.publicGetOrderbook(self.extend({
+        request = {
             'pairSymbol': market['id'],
-        }, params))
-        timestamp = int(orderbook['timestamp'] * 1000)
-        return self.parse_order_book(orderbook, timestamp)
+        }
+        response = await self.publicGetOrderbook(self.extend(request, params))
+        timestamp = self.safe_timestamp(response, 'timestamp')
+        return self.parse_order_book(response, timestamp)
 
     def parse_ticker(self, ticker, market=None):
         symbol = None
         if market:
             symbol = market['symbol']
-        timestamp = int(ticker['timestamp']) * 1000
+        timestamp = self.safe_timestamp(ticker, 'timestamp')
         last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
@@ -167,9 +170,10 @@ class btcturk (Exchange):
         result = {}
         for i in range(0, len(tickers)):
             ticker = tickers[i]
-            symbol = ticker['pair']
+            marketId = self.safe_string(ticker, 'pair')
+            symbol = marketId
             market = None
-            if symbol in self.markets_by_id:
+            if marketId in self.markets_by_id:
                 market = self.markets_by_id[symbol]
                 symbol = market['symbol']
             result[symbol] = self.parse_ticker(ticker, market)
@@ -177,43 +181,57 @@ class btcturk (Exchange):
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
-        tickers = await self.fetch_tickers()
-        result = None
-        if symbol in tickers:
-            result = tickers[symbol]
-        return result
+        market = self.market(symbol)
+        tickers = await self.fetch_tickers(params)
+        return self.safe_value_2(tickers, market['id'], symbol)
 
-    def parse_trade(self, trade, market):
-        timestamp = trade['date'] * 1000
+    def parse_trade(self, trade, market=None):
+        timestamp = self.safe_timestamp(trade, 'date')
+        id = self.safe_string(trade, 'tid')
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'amount')
+        cost = None
+        if amount is not None:
+            if price is not None:
+                cost = amount * price
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         return {
-            'id': trade['tid'],
+            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': None,
             'side': None,
-            'price': trade['price'],
-            'amount': trade['amount'],
+            'order': None,
+            'takerOrMaker': None,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': None,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        await self.load_markets()
         market = self.market(symbol)
         # maxCount = 50
-        response = await self.publicGetTrades(self.extend({
+        request = {
             'pairSymbol': market['id'],
-        }, params))
+        }
+        response = await self.publicGetTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1d', since=None, limit=None):
-        timestamp = self.parse8601(ohlcv['Time'])
+        timestamp = self.parse8601(self.safe_string(ohlcv, 'Time'))
         return [
             timestamp,
-            ohlcv['Open'],
-            ohlcv['High'],
-            ohlcv['Low'],
-            ohlcv['Close'],
-            ohlcv['Volume'],
+            self.safe_float(ohlcv, 'Open'),
+            self.safe_float(ohlcv, 'High'),
+            self.safe_float(ohlcv, 'Low'),
+            self.safe_float(ohlcv, 'Close'),
+            self.safe_float(ohlcv, 'Volume'),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1d', since=None, limit=None, params={}):
@@ -227,25 +245,29 @@ class btcturk (Exchange):
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
-        order = {
+        request = {
             'PairSymbol': self.market_id(symbol),
             'OrderType': 0 if (side == 'buy') else 1,
             'OrderMethod': 1 if (type == 'market') else 0,
         }
         if type == 'market':
-            if not('Total' in list(params.keys())):
+            if not ('Total' in params):
                 raise ExchangeError(self.id + ' createOrder requires the "Total" extra parameter for market orders(amount and price are both ignored)')
         else:
-            order['Price'] = price
-            order['Amount'] = amount
-        response = await self.privatePostExchange(self.extend(order, params))
+            request['Price'] = price
+            request['Amount'] = amount
+        response = await self.privatePostExchange(self.extend(request, params))
+        id = self.safe_string(response, 'id')
         return {
             'info': response,
-            'id': response['id'],
+            'id': id,
         }
 
     async def cancel_order(self, id, symbol=None, params={}):
-        return await self.privatePostCancelOrder({'id': id})
+        request = {
+            'id': id,
+        }
+        return await self.privatePostCancelOrder(self.extend(request, params))
 
     def nonce(self):
         return self.milliseconds()

@@ -8,7 +8,7 @@ import hashlib
 from ccxt.base.errors import ExchangeError
 
 
-class fybse (Exchange):
+class fybse(Exchange):
 
     def describe(self):
         return self.deep_extend(super(fybse, self).describe(), {
@@ -23,7 +23,7 @@ class fybse (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766512-31019772-5edb-11e7-8241-2e675e6797f1.jpg',
                 'api': 'https://www.fybse.se/api/SEK',
                 'www': 'https://www.fybse.se',
-                'doc': 'http://docs.fyb.apiary.io',
+                'doc': 'https://fyb.docs.apiary.io',
             },
             'api': {
                 'public': {
@@ -52,39 +52,32 @@ class fybse (Exchange):
         })
 
     async def fetch_balance(self, params={}):
-        balance = await self.privatePostGetaccinfo()
-        btc = float(balance['btcBal'])
+        await self.load_markets()
+        response = await self.privatePostGetaccinfo(params)
+        btc = self.safe_float(response, 'btcBal')
         symbol = self.symbols[0]
         quote = self.markets[symbol]['quote']
         lowercase = quote.lower() + 'Bal'
-        fiat = float(balance[lowercase])
-        crypto = {
-            'free': btc,
-            'used': 0.0,
-            'total': btc,
-        }
+        fiat = self.safe_float(response, lowercase)
+        crypto = self.account()
+        crypto['total'] = btc
         result = {'BTC': crypto}
-        result[quote] = {
-            'free': fiat,
-            'used': 0.0,
-            'total': fiat,
-        }
-        result['info'] = balance
+        result[quote] = self.account()
+        result[quote]['total'] = fiat
+        result['info'] = response
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
-        orderbook = await self.publicGetOrderbook(params)
-        return self.parse_order_book(orderbook)
+        await self.load_markets()
+        response = await self.publicGetOrderbook(params)
+        return self.parse_order_book(response)
 
     async def fetch_ticker(self, symbol, params={}):
+        await self.load_markets()
         ticker = await self.publicGetTickerdetailed(params)
         timestamp = self.milliseconds()
-        last = None
-        volume = None
-        if 'last' in ticker:
-            last = self.safe_float(ticker, 'last')
-        if 'vol' in ticker:
-            volume = self.safe_float(ticker, 'vol')
+        last = self.safe_float(ticker, 'last')
+        volume = self.safe_float(ticker, 'vol')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -108,39 +101,59 @@ class fybse (Exchange):
             'info': ticker,
         }
 
-    def parse_trade(self, trade, market):
-        timestamp = int(trade['date']) * 1000
+    def parse_trade(self, trade, market=None):
+        timestamp = self.safe_timestamp(trade, 'date')
+        id = self.safe_string(trade, 'tid')
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'amount')
+        cost = None
+        if price is not None:
+            if amount is not None:
+                cost = price * amount
         return {
+            'id': id,
             'info': trade,
-            'id': str(trade['tid']),
             'order': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': None,
             'side': None,
-            'price': self.safe_float(trade, 'price'),
-            'amount': self.safe_float(trade, 'amount'),
+            'takerOrMaker': None,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': None,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        await self.load_markets()
         market = self.market(symbol)
         response = await self.publicGetTrades(params)
         return self.parse_trades(response, market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
-        response = await self.privatePostPlaceorder(self.extend({
+        await self.load_markets()
+        request = {
             'qty': amount,
             'price': price,
             'type': side[0].upper(),
-        }, params))
+        }
+        response = await self.privatePostPlaceorder(self.extend(request, params))
         return {
             'info': response,
             'id': response['pending_oid'],
         }
 
     async def cancel_order(self, id, symbol=None, params={}):
-        return await self.privatePostCancelpendingorder({'orderNo': id})
+        await self.load_markets()
+        request = {
+            'orderNo': id,
+        }
+        return await self.privatePostCancelpendingorder(self.extend(request, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + path
