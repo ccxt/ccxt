@@ -482,8 +482,7 @@ module.exports = class bitpanda extends Exchange {
             'id': id,
         };
         const response = await this.privateGetAccountOrdersId (this.extend (request, params));
-        const order = this.safeValue (response, 'order');
-        return this.parseOrder (order);
+        return this.parseOrder (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -687,13 +686,14 @@ module.exports = class bitpanda extends Exchange {
         }
         const id = this.safeString (orderObject, 'order_id');
         const time = this.safeString (orderObject, 'time');
+        const timestamp = this.parse8601 (time);
         const type = this.safeStringLower (orderObject, 'type');
         const side = this.safeStringLower (orderObject, 'side');
         const status = this.parseOrderStatus (this.safeString (orderObject, 'status'));
         const price = this.safeFloat (orderObject, 'price');
-        const average = this.safeFloat (orderObject, 'average_price');
+        const average = this.safeFloat (orderObject, 'average_price', 0);
         const amount = this.safeFloat (orderObject, 'amount');
-        const filled = this.safeFloat (orderObject, 'filled_amount');
+        const filled = this.safeFloat (orderObject, 'filled_amount', 0);
         // using average price which is actual filled price of the trades
         const cost = average * amount;
         const remaining = amount - filled;
@@ -707,7 +707,7 @@ module.exports = class bitpanda extends Exchange {
         return {
             'id': id,
             'datetime': time,
-            'timestamp': this.parse8601 (time),
+            'timestamp': timestamp,
             'status': status,
             'symbol': symbol,
             'type': type,
