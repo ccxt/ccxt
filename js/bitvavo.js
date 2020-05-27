@@ -147,6 +147,7 @@ module.exports = class bitvavo extends Exchange {
             'exceptions': {
                 'exact': {
                     '203': BadSymbol, // {"errorCode":203,"error":"symbol parameter is required."}
+                    '214': InvalidOrder, // Price is too detailed
                     '216': InsufficientFunds, // {"errorCode":216,"error":"You do not have sufficient balance to complete this operation."}
                     '217': InvalidOrder, // {"errorCode":217,"error":"Minimum order size in quote currency is 5 EUR or 0.001 BTC."}
                     '233': InvalidOrder, // {"errorCode":233,"error":"Order must be active (status new or partiallyFilled) to allow updating/cancelling."}
