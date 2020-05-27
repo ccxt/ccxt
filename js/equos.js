@@ -30,7 +30,7 @@ module.exports = class equos extends Exchange {
                 'fetchAccounts': false,
                 'createOrder': true,
                 'cancelOrder': true,
-                'editOrder': false,
+                'editOrder': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
                 'fetchAllOrders': true,
