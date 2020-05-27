@@ -620,27 +620,28 @@ module.exports = class equos extends Exchange {
             'rate': undefined,           // the fee rate (if available)
         };
         const id = this.safeString (order, 'orderId');
+        const clientOrderId = this.safeString (order, 'clOrdId');
         const type = this.parseOrderType (this.safeStringLower (order, 'ordType'));
         const side = this.parserOrderSide (this.safeStringLower (order, 'side'));
         const trades = this.parseTrades (this.safeValue (order, 'trades', []));
         return {
-            'info': order,
             'id': id,
-            'timestamp': timestamp,
+            'clientOrderId': clientOrderId,
             'datetime': this.iso8601 (timestamp),
+            'timestamp': timestamp,
             'lastTradeTimestamp': lastTradeTimestamp,
+            'status': status,
             'symbol': symbol,
             'type': type,
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': cost,
-            'average': average,
             'filled': filled,
             'remaining': remaining,
-            'status': status,
+            'cost': cost,
             'trades': trades,
             'fee': fee,
+            'info': order,
         };
     }
 
