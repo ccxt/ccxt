@@ -74,7 +74,7 @@ module.exports = class luno extends Exchange {
                         'oauth2/grant',
                     ],
                     'put': [
-                        'accounts/{id}/name'
+                        'accounts/{id}/name',
                         'quotes/{id}',
                     ],
                     'delete': [
