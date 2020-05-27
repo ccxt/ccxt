@@ -1153,6 +1153,7 @@ class kraken extends Exchange {
             $order = array_merge(array( 'id' => $id ), $orders[$id]);
             $result[] = array_merge($this->parse_order($order, $market), $params);
         }
+        $result = $this->sort_by($result, 'timestamp');
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
     }
 

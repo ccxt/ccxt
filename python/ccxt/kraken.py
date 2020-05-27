@@ -1077,6 +1077,7 @@ class kraken(Exchange):
             id = ids[i]
             order = self.extend({'id': id}, orders[id])
             result.append(self.extend(self.parse_order(order, market), params))
+        result = self.sort_by(result, 'timestamp')
         return self.filter_by_symbol_since_limit(result, symbol, since, limit)
 
     def fetch_order(self, id, symbol=None, params={}):
