@@ -543,9 +543,10 @@ module.exports = class bitpanda extends Exchange {
         await this.loadMarkets ();
         const response = await this.publicGetMarketTicker (params);
         const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const instrument = this.safeString (response[i], 'instrument_code');
-            result[instrument] = this.parseTicker (response[i]);
+        const responseNum = response.length;
+        for (let i = 0; i < responseNum; i++) {
+            const symbol = this.translateSymbol (this.safeString (response[i], 'instrument_code'));
+            result[symbol] = this.parseTicker (response[i]);
         }
         return result;
     }
@@ -669,21 +670,7 @@ module.exports = class bitpanda extends Exchange {
         //   ]
         // }
         const orderObject = this.safeValue (order, 'order', order);
-        // handle symbol
-        const marketId = this.safeString (orderObject, 'instrument_code');
-        let symbol = undefined;
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            } else {
-                // if not found we just parse it as the format is known
-                const [ baseId, quoteId ] = marketId.split ('_');
-                const base = this.safeCurrencyCode (baseId); // unified
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
+        const symbol = this.translateSymbol (this.safeString (orderObject, 'instrument_code'));
         const id = this.safeString (orderObject, 'order_id');
         const time = this.safeString (orderObject, 'time');
         const timestamp = this.parse8601 (time);
@@ -728,7 +715,7 @@ module.exports = class bitpanda extends Exchange {
 
     parseTicker (ticker) {
         const timestamp = this.milliseconds ();
-        const symbol = this.safeString (ticker, 'instrument_code');
+        const symbol = this.translateSymbol (this.safeString (ticker, 'instrument_code'));
         const last = this.safeFloat (ticker, 'last_price');
         return {
             'symbol': symbol,
@@ -736,9 +723,9 @@ module.exports = class bitpanda extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'high': this.safeFloat (ticker, 'high'),
             'low': this.safeFloat (ticker, 'low'),
-            'bid': undefined,
+            'bid': this.safeFloat (ticker, 'best_bid'),
             'bidVolume': undefined,
-            'ask': undefined,
+            'ask': this.safeFloat (ticker, 'best_ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -787,20 +774,7 @@ module.exports = class bitpanda extends Exchange {
         const price = this.safeFloat (tradeObject, 'price');
         const amount = this.safeFloat (tradeObject, 'amount');
         const cost = price * amount;
-        const marketId = this.safeString (tradeObject, 'instrument_code');
-        let symbol = undefined;
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            } else {
-                // as the format is known and fixed we just parse it
-                const [ baseId, quoteId ] = marketId.split ('_');
-                const base = this.safeCurrencyCode (baseId); // unified
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
+        const symbol = this.translateSymbol (this.safeString (tradeObject, 'instrument_code'));
         const fee = {
             'cost': this.safeFloat (feeObject, 'fee_amount'),
             'currency': this.safeCurrencyCode (this.safeString (feeObject, 'fee_currency')),
@@ -885,5 +859,22 @@ module.exports = class bitpanda extends Exchange {
             'FAILED': 'failed',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    translateSymbol (marketId) {
+        let symbol = undefined;
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                const market = this.markets_by_id[marketId];
+                symbol = market['symbol'];
+            } else {
+                // if not found we just parse it as the format is known
+                const [baseId, quoteId] = marketId.split ('_');
+                const base = this.safeCurrencyCode (baseId); // unified
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        return symbol;
     }
 };
