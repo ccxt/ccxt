@@ -15,7 +15,6 @@ class ArrayCache(list):
     # all method lookups obey the descriptor protocol
     # this is how the implicit api is defined in ccxt under the hood
     __iter__ = Delegate('__iter__')
-    __getitem__ = Delegate('__getitem__')
     __setitem__ = Delegate('__setitem__')
     __delitem__ = Delegate('__delitem__')
     __len__ = Delegate('__len__')
@@ -38,3 +37,11 @@ class ArrayCache(list):
 
     def __add__(self, other):
         return list(self) + other
+
+    def __getitem__(self, item):
+        deque = super(list, self).__getattribute__('_deque')
+        if isinstance(item, slice):
+            start, stop, step = item.indices(len(deque))
+            return [deque[i] for i in range(start, stop, step)]
+        else:
+            return deque[item]
