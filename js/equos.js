@@ -655,10 +655,10 @@ module.exports = class equos extends Exchange {
         const baseCurrency = this.safeValue (this.currencies_by_id, baseId);
         const quoteCurrency = this.safeValue (this.currencies_by_id, quoteId);
         if (baseCurrency) {
-            base = baseCurrency['code'].toLowerCase ();
+            base = baseCurrency['code'];
         }
         if (quoteCurrency) {
-            quote = quoteCurrency['code'].toLowerCase ();
+            quote = quoteCurrency['code'];
         }
         // status
         let active = false;
