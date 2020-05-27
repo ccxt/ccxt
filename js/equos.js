@@ -297,8 +297,6 @@ module.exports = class equos extends Exchange {
         }
         const amount_scale = this.getScale (amount);
         const price_scale = this.getScale (price);
-        const stopPx = 0;
-        const stopPx_scale = this.getScale (stopPx);
         let ordType = 1;
         let requestSide = 1;
         if (type === 'limit') {
@@ -317,11 +315,40 @@ module.exports = class equos extends Exchange {
             'price_scale': price_scale,
             'quantity': this.convertToScale (amount, amount_scale),
             'quantity_scale': amount_scale,
-            'stopPx': this.convertToScale (stopPx, stopPx_scale),
-            'stopPx_scale': stopPx_scale,
-            'targetStrategy': 0,
-            'isHidden': 0,
-            'timeInForce': 1,
+        };
+        return this.extend (request, params);
+    }
+
+    createEditOrderRequest (orgOrder, market, type, side, amount, price = undefined, params = {}) {
+        if (!price) {
+            price = 0;
+        }
+        const amount_scale = this.getScale (amount);
+        const price_scale = this.getScale (price);
+        let ordType = 1;
+        let requestSide = 1;
+        if (type === 'limit') {
+            ordType = 2;
+        }
+        if (side === 'sell') {
+            requestSide = 2;
+        }
+        const request = {
+            'id': 0,
+            'origOrderId': this.safeValue (orgOrder, 'info'),
+            'clOrdId': this.safeValue (orgOrder, 'clOrdId'),
+            'instrumentId': market['id'],
+            'symbol': market['symbol'],
+            'side': requestSide,
+            'ordType': ordType,
+            'price': this.safeValue (orgOrder, 'price'),
+            'price_scale': this.safeValue (orgOrder, 'price_scale'),
+            'quantity': this.safeValue (orgOrder, 'quantity'),
+            'quantity_scale': this.safeValue (orgOrder, 'quantity_scale'),
+            'price2': this.convertToScale (price, price_scale),
+            'price2_scale': price_scale,
+            'quantity2': this.convertToScale (amount, amount_scale),
+            'quantity2_scale': amount_scale,
         };
         return this.extend (request, params);
     }
@@ -341,7 +368,7 @@ module.exports = class equos extends Exchange {
     }
 
     async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        const openOrders = await this.fetchOpenOrders (symbol, undefined, undefined, params);
+        const openOrders = await this.fetchOpenOrders (undefined, undefined, undefined, params);
         const orders = this.filterBy (openOrders, 'id', id);
         const ordersLength = orders.length;
         if (!orders || ordersLength <= 0) {
@@ -352,10 +379,8 @@ module.exports = class equos extends Exchange {
         if (!type || !side || !amount) {
             throw new ArgumentsRequired (this.id + ': Order does not have enough arguments');
         }
-        const newOrderRequest = this.createOrderRequest (market, type, side, amount, price, params);
-        const request = this.safeValue (order, 'info');
-        newOrderRequest['origOrderId'] = this.safeValue (request, 'orderId');
-        newOrderRequest['clOrdId'] = this.safeValue (request, 'clOrdId');
+        const orgOrer = this.safeValue (order, 'info');
+        const newOrderRequest = this.createEditOrderRequest (orgOrer, market, type, side, amount, price, params);
         const response = await this.privatePostCancelReplaceOrder (this.extend (newOrderRequest));
         return this.extend ({ 'info': response });
     }
@@ -592,7 +617,7 @@ module.exports = class equos extends Exchange {
         }
         const timestamp = this.parse8601 (this.convertToISO8601Date (this.safeString (order, 'timeStamp')));
         const lastTradeTimestamp = timestamp;
-        const price = this.convertFromScale (this.safeInteger (order, 'lastPx', 0), this.safeInteger (order, 'lastPx_scale', 0));
+        let price = this.convertFromScale (this.safeInteger (order, 'lastPx', 0), this.safeInteger (order, 'lastPx_scale', 0));
         const amount = this.convertFromScale (this.safeInteger (order, 'quantity', 0), this.safeInteger (order, 'quantity_scale', 0));
         const filled = this.convertFromScale (this.safeInteger (order, 'cumQty', 0), this.safeInteger (order, 'cumQty_scale', 0));
         const remaining = this.convertFromScale (this.safeInteger (order, 'leavesQty', 0), this.safeInteger (order, 'leavesQty_scale', 0));
@@ -604,6 +629,9 @@ module.exports = class equos extends Exchange {
             } else if (price > 0) {
                 cost = price * filled;
             }
+        }
+        if (price <= 0) {
+            price = average;
         }
         let currencyCode = undefined;
         const currencyId = this.safeInteger (order, 'feeInstrumentId');
