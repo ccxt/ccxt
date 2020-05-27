@@ -263,8 +263,11 @@ class Exchange(BaseExchange):
         await self.cancel_order(id, symbol)
         return await self.create_order(symbol, *args)
 
-    async def create_order(self, symbol, type, side, amount, params={}):
+    async def create_order(self, symbol, type, side, amount, price=None, params={}):
         raise NotSupported('create_order() not supported yet')
+
+    async def cancel_order(self, id, symbol=None, params={}):
+        raise NotSupported('cancel_order() not supported yet')
 
     async def fetch_trading_fees(self, params={}):
         raise NotSupported('fetch_trading_fees() not supported yet')
