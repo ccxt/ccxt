@@ -89,6 +89,7 @@ module.exports = class equos extends Exchange {
                         'getWithdrawRequests',
                         'sendWithdrawRequest',
                         'getUserHistory',
+                        'userTrades',
                     ],
                 },
             },
@@ -431,7 +432,18 @@ module.exports = class equos extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.fetchClosedOrders (symbol, since, limit, params);
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const request = {};
+        if (since !== undefined) {
+            request['timestamp'] = since;
+        }
+        const response = await this.privatePostUserTrades (this.extend (request, params));
+        const trades = this.safeValue (response, 'trades', []);
+        return this.parseTrades (trades, market, since, limit, params);
     }
 
     async fetchDepositAddress (code, params = {}) {
@@ -822,31 +834,73 @@ module.exports = class equos extends Exchange {
     }
 
     parseTrade (trade, market) {
-        const price = this.convertFromScale (this.safeInteger (trade, 0), market['precision']['price']);
-        const amount = this.convertFromScale (this.safeInteger (trade, 1), market['precision']['amount']);
-        const date = this.convertToISO8601Date (this.safeString (trade, 2));
-        const timestamp = this.parse8601 (date);
-        const dateTime = this.iso8601 (timestamp);
-        const seqNumber = this.safeString (trade, 3);
-        return {
-            'info': { 'trade': trade },                    // the original decoded JSON as is
-            'id': seqNumber,  // string trade id
-            'timestamp': timestamp,              // Unix timestamp in milliseconds
-            'datetime': dateTime,  // ISO8601 datetime with milliseconds
-            'symbol': market['symbol'],                  // symbol
-            'order': undefined,  // string order id or undefined/None/null
-            'type': undefined,                    // order type, 'market', 'limit' or undefined/None/null
-            'side': undefined,                      // direction of the trade, 'buy' or 'sell'
-            'takerOrMaker': undefined,                    // string, 'taker' or 'maker'
-            'price': price,                 // float price in quote currency
-            'amount': amount,                        // amount of base currency
-            'cost': undefined,                 // total cost (including fees), `price * amount`
-            'fee': {                           // provided by exchange or calculated by ccxt
-                'cost': undefined,                        // float
-                'currency': undefined,                      // usually base currency for buys, quote currency for sells
-                'rate': undefined,                          // the fee rate (if available)
-            },
-        };
+        // parsing for fetchMyTrades it is object
+        if (this.safeValue (trade, 'id') !== undefined) {
+            const id = this.safeString (trade, 'id');
+            const timestamp = this.safeInteger (trade, 'time');
+            const markeySymbol = this.market (this.safeString (trade, 'symbol'));
+            const dateTime = this.iso8601 (timestamp);
+            const orderId = this.safeString (trade, 'orderId');
+            const side = this.safeStringLower (trade, 'side');
+            let takerOrMaker = undefined;
+            const isMaker = this.safeValue (trade, 'maker');
+            if (isMaker === true) {
+                takerOrMaker = 'maker';
+            } else {
+                takerOrMaker = 'taker';
+            }
+            const price = this.safeFloat (trade, 'price');
+            const amount = this.safeFloat (trade, 'qty');
+            const cost = price * amount;
+            const feeCost = this.safeFloat (trade, 'commission');
+            const feeCurrency = this.safeString (trade, 'commissionAsset');
+            return {
+                'info': trade,                    // the original decoded JSON as is
+                'id': id,  // string trade id
+                'timestamp': timestamp,              // Unix timestamp in milliseconds
+                'datetime': dateTime,  // ISO8601 datetime with milliseconds
+                'symbol': markeySymbol['symbol'],                  // symbol
+                'order': orderId,  // string order id or undefined/None/null
+                'type': undefined,                    // order type, 'market', 'limit' or undefined/None/null
+                'side': side,                      // direction of the trade, 'buy' or 'sell'
+                'takerOrMaker': takerOrMaker,                    // string, 'taker' or 'maker'
+                'price': price,                 // float price in quote currency
+                'amount': amount,                        // amount of base currency
+                'cost': cost,                 // total cost (including fees), `price * amount`
+                'fee': {                           // provided by exchange or calculated by ccxt
+                    'cost': feeCost,                        // float
+                    'currency': feeCurrency,                      // usually base currency for buys, quote currency for sells
+                    'rate': undefined,                          // the fee rate (if available)
+                },
+            };
+        } else {
+            // parsing for fetchAllTrades it is array
+            const price = this.convertFromScale (this.safeInteger (trade, 0), market['precision']['price']);
+            const amount = this.convertFromScale (this.safeInteger (trade, 1), market['precision']['amount']);
+            const date = this.convertToISO8601Date (this.safeString (trade, 2));
+            const timestamp = this.parse8601 (date);
+            const dateTime = this.iso8601 (timestamp);
+            const seqNumber = this.safeString (trade, 3);
+            return {
+                'info': { 'trade': trade },                    // the original decoded JSON as is
+                'id': seqNumber,  // string trade id
+                'timestamp': timestamp,              // Unix timestamp in milliseconds
+                'datetime': dateTime,  // ISO8601 datetime with milliseconds
+                'symbol': market['symbol'],                  // symbol
+                'order': undefined,  // string order id or undefined/None/null
+                'type': undefined,                    // order type, 'market', 'limit' or undefined/None/null
+                'side': undefined,                      // direction of the trade, 'buy' or 'sell'
+                'takerOrMaker': undefined,                    // string, 'taker' or 'maker'
+                'price': price,                 // float price in quote currency
+                'amount': amount,                        // amount of base currency
+                'cost': undefined,                 // total cost (including fees), `price * amount`
+                'fee': {                           // provided by exchange or calculated by ccxt
+                    'cost': undefined,                        // float
+                    'currency': undefined,                      // usually base currency for buys, quote currency for sells
+                    'rate': undefined,                          // the fee rate (if available)
+                },
+            };
+        }
     }
 
     isOpenOrder (order) {
