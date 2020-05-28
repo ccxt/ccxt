@@ -109,7 +109,7 @@ module.exports = class equos extends Exchange {
 
     async fetchMarkets (params = {}) {
         // we need currency to parse market
-        if (!this.currencies_by_id) {
+        if (this.currencies_by_id === undefined) {
             await this.fetchCurrencies ();
         }
         const response = await this.publicGetGetInstrumentPairs (params);
@@ -147,7 +147,7 @@ module.exports = class equos extends Exchange {
         const charts = this.safeValue (response, 'chart', []);
         const chart = this.safeValue (charts, 0);
         // let volume = undefined;
-        if (chart) {
+        if (chart !== undefined) {
             return this.parseTicker (chart, market);
         } else {
             return this.parseTicker (undefined, market);
@@ -157,7 +157,7 @@ module.exports = class equos extends Exchange {
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (!this.timeframes[timeframe]) {
+        if (this.timeframes[timeframe] === undefined) {
             throw new BadRequest (this.id + ': timeframe ' + timeframe + ' is not supported');
         }
         const request = this.extend ({
@@ -176,21 +176,21 @@ module.exports = class equos extends Exchange {
             'pairId': market['id'],
         }, params);
         // apply limit though does not work with API
-        if (limit) {
+        if (limit !== undefined) {
             request = this.extend ({ 'limit': limit }, request);
         }
         const response = await this.publicGetGetOrderBook (this.extend (request, params));
         // we need to tranform response here as parseOrderBook - parseBidAsk does not have market param
-        if (response) {
+        if (response !== undefined) {
             const orderBook = {
                 'bids': [],
                 'asks': [],
             };
             const bidData = this.safeValue (response, 'bids');
             const askData = this.safeValue (response, 'asks');
-            if (bidData) {
+            if (bidData !== undefined) {
                 for (let i = 0; i < bidData.length; i++) {
-                    if (bidData[i]) {
+                    if (bidData[i] !== undefined) {
                         const price = this.convertFromScale (bidData[i][0], market['precision']['price']);
                         const amount = this.convertFromScale (bidData[i][1], market['precision']['amount']);
                         if (price > 0 && amount > 0) {
@@ -202,9 +202,9 @@ module.exports = class equos extends Exchange {
                     }
                 }
             }
-            if (askData) {
+            if (askData !== undefined) {
                 for (let i = 0; i < askData.length; i++) {
-                    if (askData[i]) {
+                    if (askData[i] !== undefined) {
                         const price = this.convertFromScale (askData[i][0], market['precision']['price']);
                         const amount = this.convertFromScale (askData[i][1], market['precision']['amount']);
                         if (price > 0 && amount > 0) {
@@ -227,7 +227,7 @@ module.exports = class equos extends Exchange {
             'pairId': market['id'],
         }, params);
         // apply limit though does not work with API
-        if (limit) {
+        if (limit !== undefined) {
             request = this.extend ({ 'limit': limit }, request);
         }
         const response = await this.publicGetGetTradeHistory (request);
@@ -267,7 +267,7 @@ module.exports = class equos extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (!type || !side || !amount) {
+        if (type === undefined || side === undefined || amount === undefined) {
             throw new ArgumentsRequired (this.id + ': Order does not have enough arguments');
         }
         const request = this.createOrderRequest (market, type, side, amount, price, params);
@@ -293,7 +293,7 @@ module.exports = class equos extends Exchange {
     }
 
     createOrderRequest (market, type, side, amount, price = undefined, params = {}) {
-        if (!price) {
+        if (price === undefined) {
             price = 0;
         }
         const amount_scale = this.getScale (amount);
@@ -321,7 +321,7 @@ module.exports = class equos extends Exchange {
     }
 
     createEditOrderRequest (orgOrder, market, type, side, amount, price = undefined, params = {}) {
-        if (!price) {
+        if (price === undefined) {
             price = 0;
         }
         const amount_scale = this.getScale (amount);
@@ -371,7 +371,7 @@ module.exports = class equos extends Exchange {
             throw new OrderNotFound (this.id + ': order id ' + id + ' is not found in open order');
         }
         const market = this.market (symbol);
-        if (!type || !side || !amount) {
+        if (type === undefined || side === undefined || amount === undefined) {
             throw new ArgumentsRequired (this.id + ': Order does not have enough arguments');
         }
         const orgOrder = this.safeValue (order, 'info');
@@ -401,7 +401,7 @@ module.exports = class equos extends Exchange {
             market = this.market (symbol);
             request['instrumentId'] = market['id'];
         }
-        if (limit) {
+        if (limit !== undefined) {
             request['limit'] = limit;
         }
         const response = await this.privatePostGetOrders (this.extend (request, params));
@@ -461,7 +461,7 @@ module.exports = class equos extends Exchange {
         await this.loadMarkets ();
         const request = {};
         let currency = undefined;
-        if (code) {
+        if (code !== undefined) {
             currency = this.getCurrencyByCode (code);
             request['instrumentId'] = currency['id'];
         }
@@ -478,7 +478,7 @@ module.exports = class equos extends Exchange {
         await this.loadMarkets ();
         const request = {};
         let currency = undefined;
-        if (code) {
+        if (code !== undefined) {
             currency = this.getCurrencyByCode (code);
             request['instrumentId'] = currency['id'];
         }
@@ -499,7 +499,7 @@ module.exports = class equos extends Exchange {
         // sort combined array result, latest first
         transactions = this.sortBy (transactions, 'timestamp', true);
         // lets apply limit on combined array
-        if (limit) {
+        if (limit !== undefined) {
             return this.filterBySinceLimit (transactions, since, limit);
         }
         return transactions;
@@ -536,7 +536,7 @@ module.exports = class equos extends Exchange {
         const maker = {};
         for (let i = 0; i < tradingFees.length; i++) {
             const tradingFee = tradingFees[i];
-            if (this.safeString (tradingFee, 'tier')) {
+            if (this.safeString (tradingFee, 'tier') !== undefined) {
                 taker[tradingFee['tier']] = this.safeFloat (tradingFee, 'taker');
                 maker[tradingFee['tier']] = this.safeFloat (tradingFee, 'maker');
             }
@@ -589,7 +589,7 @@ module.exports = class equos extends Exchange {
         await this.loadMarkets ();
         const request = {};
         let currency = undefined;
-        if (code) {
+        if (code !== undefined) {
             currency = this.getCurrencyByCode (code);
             request['instrumentId'] = currency['id'];
         }
@@ -610,7 +610,7 @@ module.exports = class equos extends Exchange {
     getCurrencyByCode (code) {
         code = code.toUpperCase ();
         const currency = this.currencies[code];
-        if (!currency) {
+        if (currency === undefined) {
             throw new BadSymbol (this.id + ': code ' + code + ' is not listed');
         }
         return currency;
@@ -623,7 +623,7 @@ module.exports = class equos extends Exchange {
             symbol = market['symbol'];
         } else {
             const marketId = this.safeString (order, 'instrumentId');
-            if (marketId in this.markets_by_id) {
+            if (this.safeValue (this.markets_by_id, marketId) !== undefined) {
                 market = this.markets_by_id[marketId];
                 symbol = market['symbol'];
             }
@@ -648,9 +648,9 @@ module.exports = class equos extends Exchange {
         }
         let currencyCode = undefined;
         const currencyId = this.safeInteger (order, 'feeInstrumentId');
-        if (currencyId) {
-            const currency = this.currencies_by_id[currencyId];
-            if (currency) {
+        if (currencyId !== undefined) {
+            const currency = this.safeValue (this.currencies_by_id, currencyId);
+            if (currency !== undefined) {
                 currencyCode = currency['code'];
             }
         }
@@ -696,10 +696,10 @@ module.exports = class equos extends Exchange {
         const quoteId = market[2]; // quotedId
         const baseCurrency = this.safeValue (this.currencies_by_id, baseId);
         const quoteCurrency = this.safeValue (this.currencies_by_id, quoteId);
-        if (baseCurrency) {
+        if (baseCurrency !== undefined) {
             base = baseCurrency['code'];
         }
-        if (quoteCurrency) {
+        if (quoteCurrency !== undefined) {
             quote = quoteCurrency['code'];
         }
         // status
@@ -789,7 +789,7 @@ module.exports = class equos extends Exchange {
         let low = undefined;
         let close = undefined;
         // let volume = undefined;
-        if (ticker) {
+        if (ticker !== undefined) {
             timestamp = ticker[0];
             datetime = this.iso8601 (timestamp);
             open = this.convertFromScale (ticker[1], market['precision']['price']);
@@ -906,13 +906,17 @@ module.exports = class equos extends Exchange {
     isOpenOrder (order) {
         let conditionOne = false;
         let conditionTwo = false;
-        if (order['execType'] === 'F' && order['leavesQty'] !== 0 && order['ordType'] !== '1') {
+        const execType = this.safeValue (order, 'execType');
+        const leavesQty = this.safeValue (order, 'leavesQty');
+        const ordType = this.safeValue (order, 'ordType');
+        const ordStatus = this.safeValue (order, 'ordStatus');
+        if (execType === 'F' && leavesQty !== 0 && ordType !== '1') {
             conditionOne = true;
         }
-        if (order['execType'] !== 'F' && order['execType'] !== '4' && order['execType'] !== '8' && order['execType'] !== 'B' && order['execType'] !== 'C' && order['ordType'] !== '1') {
+        if (execType !== 'F' && execType !== '4' && execType !== '8' && execType !== 'B' && execType !== 'C' && ordType !== '1') {
             conditionTwo = true;
         }
-        if ((conditionOne || conditionTwo) && order['ordStatus'] !== '8') {
+        if ((conditionOne || conditionTwo) && ordStatus !== '8') {
             return true;
         } else {
             return false;
@@ -922,13 +926,17 @@ module.exports = class equos extends Exchange {
     isClosedOrder (order) {
         let conditionOne = false;
         let conditionTwo = false;
-        if (order['execType'] !== '4' && order['execType'] !== '8' && order['ordStatus'] !== '8' && order['ordType'] === '1') {
+        const execType = this.safeValue (order, 'execType');
+        const ordType = this.safeValue (order, 'ordType');
+        const ordStatus = this.safeValue (order, 'ordStatus');
+        const cumQty = this.safeValue (order, 'cumQty');
+        if (execType !== '4' && execType !== '8' && ordStatus !== '8' && ordType === '1') {
             conditionOne = true;
         }
-        if (order['execType'] === 'F' || order['execType'] === 'B' || order['execType'] === 'C') {
+        if (execType === 'F' || execType === 'B' || execType === 'C') {
             conditionTwo = true;
         }
-        if (conditionOne || (conditionTwo && order['cumQty'] !== 0)) {
+        if (conditionOne || (conditionTwo && cumQty !== 0)) {
             return true;
         } else {
             return false;
@@ -938,10 +946,13 @@ module.exports = class equos extends Exchange {
     isCancelledOrder (order) {
         let conditionOne = false;
         let conditionTwo = false;
-        if (order['execType'] === '4' || order['execType'] === '8' || order['ordStatus'] === '8') {
+        const execType = this.safeValue (order, 'execType');
+        const ordStatus = this.safeValue (order, 'ordStatus');
+        const cumQty = this.safeValue (order, 'cumQty');
+        if (execType === '4' || execType === '8' || ordStatus === '8') {
             conditionOne = true;
         }
-        if ((order['execType'] === 'B' || order['execType'] === 'C') && order['cumQty'] === 0) {
+        if ((execType === 'B' || execType === 'C') && cumQty === 0) {
             conditionTwo = true;
         }
         if (conditionOne || conditionTwo) {
@@ -1066,9 +1077,9 @@ module.exports = class equos extends Exchange {
         let amount = 0;
         let before = 0;
         let after = 0;
-        if (currencyId) {
+        if (currencyId !== undefined) {
             const currency = this.currencies_by_id[currencyId];
-            if (currency) {
+            if (currency !== undefined) {
                 currencyCode = currency['code'];
                 amount = this.convertFromScale (this.safeInteger (entry, 'change1', 0), currency['precision']);
                 after = this.convertFromScale (this.safeInteger (entry, 'qty1', 0), currency['precision']);
@@ -1132,12 +1143,12 @@ module.exports = class equos extends Exchange {
     }
 
     convertToISO8601Date (dateString) {
-        if (dateString) {
+        if (dateString !== undefined) {
             // '20200328-10:31:01.575' -> '2020-03-28 12:42:48.000'
             const splits = dateString.split ('-');
             const partOne = this.safeString (splits, 0);
             const PartTwo = this.safeString (splits, 1);
-            if (!partOne || !PartTwo) {
+            if (partOne === undefined || PartTwo === undefined) {
                 return undefined;
             }
             if (partOne.length !== 8) {
@@ -1188,7 +1199,7 @@ module.exports = class equos extends Exchange {
                 const signature = this.hmac (this.encode (body), this.encode (this.secret), 'sha384');
                 headers['signature'] = signature;
             }
-            if (!body) {
+            if (body === undefined) {
                 body = this.json (params);
             }
         }
