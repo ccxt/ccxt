@@ -365,19 +365,16 @@ module.exports = class equos extends Exchange {
     }
 
     async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        const openOrders = await this.fetchOpenOrders (undefined, undefined, undefined, params);
-        const orders = this.filterBy (openOrders, 'id', id);
-        const ordersLength = orders.length;
-        if (!orders || ordersLength <= 0) {
-            throw new OrderNotFound (this.id + ': order id ' + id + 'is not found in open order');
+        const order = await this.fetchOrder (id, symbol, params);
+        if (this.safeString (order, 'status') !== 'open') {
+            throw new OrderNotFound (this.id + ': order id ' + id + ' is not found in open order');
         }
-        const order = orders[0];
         const market = this.market (symbol);
         if (!type || !side || !amount) {
             throw new ArgumentsRequired (this.id + ': Order does not have enough arguments');
         }
-        const orgOrer = this.safeValue (order, 'info');
-        const newOrderRequest = this.createEditOrderRequest (orgOrer, market, type, side, amount, price, params);
+        const orgOrder = this.safeValue (order, 'info');
+        const newOrderRequest = this.createEditOrderRequest (orgOrder, market, type, side, amount, price, params);
         const response = await this.privatePostCancelReplaceOrder (this.extend (newOrderRequest));
         return this.extend ({ 'info': response });
     }
