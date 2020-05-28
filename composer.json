@@ -226,7 +226,7 @@
     },
     "require": {
         "php": ">=5.4.0",
-        "ccxt/ccxt": ">=1.28.83",
+        "ccxt/ccxt": ">=1.28.84",
         "ratchet/pawl": "^0.3.4",
         "ext-ds": "*"
     },
