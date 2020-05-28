@@ -80,7 +80,7 @@ module.exports = class equos extends Exchange {
                     'post': [
                         'getPositions',
                         'order',
-                        'getOrder',
+                        'getOrderStatus',
                         'getOrders',
                         'cancelOrder',
                         'cancelReplaceOrder',
@@ -386,9 +386,16 @@ module.exports = class equos extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        const orders = await this.fetchOrders (symbol, undefined, undefined, params);
-        const order = this.filterBy (orders, 'id', id);
-        return order[0];
+        await this.loadMarkets ();
+        let market = undefined;
+        const request = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        request['orderId'] = id;
+        const response = await this.privatePostGetOrderStatus (this.extend (request, params));
+        const order = this.parseOrder (response, market);
+        return order;
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
