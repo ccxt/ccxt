@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, InvalidAddress, BadRequest } = require ('./base/errors');
+const { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, InvalidAddress, BadRequest, RateLimitExceeded, PermissionDenied, ExchangeNotAvailable, AccountSuspended, OnMaintenance } = require ('./base/errors');
 const { TRUNCATE } = require ('./base/functions/number');
 
 // ----------------------------------------------------------------------------
@@ -16,7 +16,7 @@ module.exports = class bitvavo extends Exchange {
             'countries': [ 'NL' ], // Netherlands
             'rateLimit': 500,
             'version': 'v2',
-            'certified': true,
+            'certified': false,
             'has': {
                 'CORS': false,
                 'publicAPI': true,
@@ -141,31 +141,83 @@ module.exports = class bitvavo extends Exchange {
                 'apiKey': true,
                 'secret': true,
             },
-            'options': {
-                'BITVAVO-ACCESS-WINDOW': 10000, // default 10 sec
-            },
             'exceptions': {
                 'exact': {
+                    '101': ExchangeError, // Unknown error. Operation may or may not have succeeded.
+                    '102': BadRequest, // Invalid JSON.
+                    '103': RateLimitExceeded, // You have been rate limited. Please observe the Bitvavo-Ratelimit-AllowAt header to see when you can send requests again. Failure to respect this limit will result in an IP ban. The default value is 1000 weighted requests per minute. Please contact support if you wish to increase this limit.
+                    '104': RateLimitExceeded, // You have been rate limited by the number of new orders. The default value is 100 new orders per second or 100.000 new orders per day. Please update existing orders instead of cancelling and creating orders. Please contact support if you wish to increase this limit.
+                    '105': PermissionDenied, // Your IP or API key has been banned for not respecting the rate limit. The ban expires at ${expiryInMs}.
+                    '107': ExchangeNotAvailable, // The matching engine is overloaded. Please wait 500ms and resubmit your order.
+                    '108': ExchangeNotAvailable, // The matching engine could not process your order in time. Please consider increasing the access window or resubmit your order.
+                    '109': ExchangeNotAvailable, // The matching engine did not respond in time. Operation may or may not have succeeded.
+                    '110': BadRequest, // Invalid endpoint. Please check url and HTTP method.
+                    '200': BadRequest, // ${param} url parameter is not supported. Please note that parameters are case-sensitive and use body parameters for PUT and POST requests.
+                    '201': BadRequest, // ${param} body parameter is not supported. Please note that parameters are case-sensitive and use url parameters for GET and DELETE requests.
+                    '202': BadRequest, // ${param} order parameter is not supported. Please note that certain parameters are only allowed for market or limit orders.
                     '203': BadSymbol, // {"errorCode":203,"error":"symbol parameter is required."}
+                    '204': BadRequest, // ${param} parameter is not supported.
+                    '205': BadRequest, // ${param} parameter is invalid.
+                    '206': BadRequest, // Use either ${paramA} or ${paramB}. The usage of both parameters at the same time is not supported.
+                    '210': InvalidOrder, // Amount exceeds the maximum allowed amount (1000000000).
+                    '211': InvalidOrder, // Price exceeds the maximum allowed amount (100000000000).
+                    '212': InvalidOrder, // Amount is below the minimum allowed amount for this asset.
+                    '213': InvalidOrder, // Price is below the minimum allowed amount (0.000000000000001).
                     '214': InvalidOrder, // Price is too detailed
+                    '215': InvalidOrder, // Price is too detailed. A maximum of 15 digits behind the decimal point are allowed.
                     '216': InsufficientFunds, // {"errorCode":216,"error":"You do not have sufficient balance to complete this operation."}
                     '217': InvalidOrder, // {"errorCode":217,"error":"Minimum order size in quote currency is 5 EUR or 0.001 BTC."}
+                    '230': ExchangeError, // The order is rejected by the matching engine.
+                    '231': ExchangeError, // The order is rejected by the matching engine. TimeInForce must be GTC when markets are paused.
+                    '232': BadRequest, // You must change at least one of amount, amountRemaining, price, timeInForce, selfTradePrevention or postOnly.
                     '233': InvalidOrder, // {"errorCode":233,"error":"Order must be active (status new or partiallyFilled) to allow updating/cancelling."}
+                    '234': InvalidOrder, // Market orders cannot be updated.
+                    '235': ExchangeError, // You can only have 100 open orders on each book.
+                    '236': BadRequest, // You can only update amount or amountRemaining, not both.
                     '240': OrderNotFound, // {"errorCode":240,"error":"No order found. Please be aware that simultaneously updating the same order may return this error."}
+                    '300': AuthenticationError, // Authentication is required for this endpoint.
                     '301': AuthenticationError, // {"errorCode":301,"error":"API Key must be of length 64."}
+                    '302': AuthenticationError, // Timestamp is invalid. This must be a timestamp in ms. See Bitvavo-Access-Timestamp header or timestamp parameter for websocket.
+                    '303': AuthenticationError, // Window must be between 100 and 60000 ms.
+                    '304': AuthenticationError, // Request was not received within acceptable window (default 30s, or custom with Bitvavo-Access-Window header) of Bitvavo-Access-Timestamp header (or timestamp parameter for websocket).
+                    // '304': AuthenticationError, // Authentication is required for this endpoint.
                     '305': AuthenticationError, // {"errorCode":305,"error":"No active API key found."}
+                    '306': AuthenticationError, // No active API key found. Please ensure that you have confirmed the API key by e-mail.
+                    '307': PermissionDenied, // This key does not allow access from this IP.
                     '308': AuthenticationError, // {"errorCode":308,"error":"The signature length is invalid (HMAC-SHA256 should return a 64 length hexadecimal string)."}
                     '309': AuthenticationError, // {"errorCode":309,"error":"The signature is invalid."}
-                    '406': ExchangeError, // {"errorCode":406,"error":"Your withdrawal is too small."}
+                    '310': PermissionDenied, // This key does not allow trading actions.
+                    '311': PermissionDenied, // This key does not allow showing account information.
+                    '312': PermissionDenied, // This key does not allow withdrawal of funds.
+                    '315': BadRequest, // Websocket connections may not be used in a browser. Please use REST requests for this.
+                    '317': AccountSuspended, // This account is locked. Please contact support.
+                    '400': ExchangeError, // Unknown error. Please contact support with a copy of your request.
+                    '401': ExchangeError, // Deposits for this asset are not available at this time.
+                    '402': PermissionDenied, // You need to verify your identitiy before you can deposit and withdraw digital assets.
+                    '403': PermissionDenied, // You need to verify your phone number before you can deposit and withdraw digital assets.
+                    '404': OnMaintenance, // Could not complete this operation, because our node cannot be reached. Possibly under maintenance.
+                    '405': ExchangeError, // You cannot withdraw digital assets during a cooldown period. This is the result of newly added bank accounts.
+                    '406': BadRequest, // {"errorCode":406,"error":"Your withdrawal is too small."}
+                    '407': ExchangeError, // Internal transfer is not possible.
                     '408': InsufficientFunds, // {"errorCode":408,"error":"You do not have sufficient balance to complete this operation."}
                     '409': InvalidAddress, // {"errorCode":409,"error":"This is not a verified bank account."}
+                    '410': ExchangeError, // Withdrawals for this asset are not available at this time.
+                    '411': BadRequest, // You can not transfer assets to yourself.
                     '412': InvalidAddress, // {"errorCode":412,"error":"eth_address_invalid."}
+                    '413': InvalidAddress, // This address violates the whitelist.
+                    '414': ExchangeError, // You cannot withdraw assets within 2 minutes of logging in.
                 },
                 'broad': {
                     'start parameter is invalid': BadRequest, // {"errorCode":205,"error":"start parameter is invalid."}
                     'symbol parameter is invalid': BadSymbol, // {"errorCode":205,"error":"symbol parameter is invalid."}
                     'amount parameter is invalid': InvalidOrder, // {"errorCode":205,"error":"amount parameter is invalid."}
                     'orderId parameter is invalid': InvalidOrder, // {"errorCode":205,"error":"orderId parameter is invalid."}
+                },
+            },
+            'options': {
+                'BITVAVO-ACCESS-WINDOW': 10000, // default 10 sec
+                'fetchCurrencies': {
+                    'expires': 1000, // 1 second
                 },
             },
         });
@@ -181,6 +233,8 @@ module.exports = class bitvavo extends Exchange {
 
     async fetchMarkets (params = {}) {
         const response = await this.publicGetMarkets (params);
+        const currencies = await this.fetchCurrenciesFromCache (params);
+        const currenciesById = this.indexBy (currencies, 'symbol');
         //
         //     [
         //         {
@@ -197,66 +251,72 @@ module.exports = class bitvavo extends Exchange {
         //
         const result = [];
         for (let i = 0; i < response.length; i++) {
-            const market = this.parseMarket (response[i]);
-            result.push (market);
+            const market = response[i];
+            const id = this.safeString (market, 'market');
+            const baseId = this.safeString (market, 'base');
+            const quoteId = this.safeString (market, 'quote');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
+            const status = this.safeString (market, 'status');
+            const active = (status === 'trading');
+            const baseCurrency = this.safeValue (currenciesById, baseId);
+            let amountPrecision = undefined;
+            if (baseCurrency !== undefined) {
+                amountPrecision = this.safeInteger (baseCurrency, 'decimals', 8);
+            }
+            const precision = {
+                'price': this.safeInteger (market, 'pricePrecision'),
+                'amount': amountPrecision,
+            };
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'info': market,
+                'active': active,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': this.safeFloat (market, 'minOrderInBaseAsset'),
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': this.safeFloat (market, 'minOrderInQuoteAsset'),
+                        'max': undefined,
+                    },
+                },
+            });
         }
         return result;
     }
 
-    parseMarket (market) {
-        //
-        //     {
-        //         "market":"ADA-BTC",
-        //         "status":"trading", // "trading" "halted" "auction"
-        //         "base":"ADA",
-        //         "quote":"BTC",
-        //         "pricePrecision":5,
-        //         "minOrderInBaseAsset":"100",
-        //         "minOrderInQuoteAsset":"0.001",
-        //         "orderTypes": [ "market", "limit" ]
-        //     }
-        //
-        const id = this.safeString (market, 'market');
-        const baseId = this.safeString (market, 'base');
-        const quoteId = this.safeString (market, 'quote');
-        const base = this.safeCurrencyCode (baseId);
-        const quote = this.safeCurrencyCode (quoteId);
-        const symbol = base + '/' + quote;
-        const status = this.safeString (market, 'status');
-        const active = (status === 'trading');
-        const precision = {
-            'price': this.safeInteger (market, 'pricePrecision'),
-            'amount': undefined,
-        };
-        return {
-            'id': id,
-            'symbol': symbol,
-            'base': base,
-            'quote': quote,
-            'baseId': baseId,
-            'quoteId': quoteId,
-            'info': market,
-            'active': active,
-            'precision': precision,
-            'limits': {
-                'amount': {
-                    'min': this.safeFloat (market, 'minOrderInBaseAsset'),
-                    'max': undefined,
-                },
-                'price': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'cost': {
-                    'min': this.safeFloat (market, 'minOrderInQuoteAsset'),
-                    'max': undefined,
-                },
-            },
-        };
+    async fetchCurrenciesFromCache (params = {}) {
+        // this method is now redundant
+        // currencies are now fetched before markets
+        const options = this.safeValue (this.options, 'fetchCurrencies', {});
+        const timestamp = this.safeInteger (options, 'timestamp');
+        const expires = this.safeInteger (options, 'expires', 1000);
+        const now = this.milliseconds ();
+        if ((timestamp === undefined) || ((now - timestamp) > expires)) {
+            const response = await this.publicGetAssets (params);
+            this.options['fetchCurrencies'] = this.extend (options, {
+                'response': response,
+                'timestamp': now,
+            });
+        }
+        return this.safeValue (this.options['fetchCurrencies'], 'response');
     }
 
     async fetchCurrencies (params = {}) {
-        const response = await this.publicGetAssets (params);
+        const response = await this.fetchCurrenciesFromCache (params);
         //
         //     [
         //         {
@@ -285,7 +345,7 @@ module.exports = class bitvavo extends Exchange {
             const withdrawal = (withdrawalStatus === 'OK');
             const active = deposit && withdrawal;
             const name = this.safeString (currency, 'name');
-            const precision = this.safeInteger (currency, 'decimals');
+            const precision = this.safeInteger (currency, 'decimals', 8);
             result[code] = {
                 'id': id,
                 'info': currency,
@@ -1446,8 +1506,8 @@ module.exports = class bitvavo extends Exchange {
         const error = this.safeString (response, 'error');
         if (errorCode !== undefined) {
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], error, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
     }
