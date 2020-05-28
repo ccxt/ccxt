@@ -354,13 +354,10 @@ module.exports = class equos extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        const openOrders = await this.fetchOpenOrders (symbol, undefined, undefined, params);
-        const orders = this.filterBy (openOrders, 'id', id);
-        const ordersLength = orders.length;
-        if (!orders || ordersLength <= 0) {
-            throw new OrderNotFound (this.id + ': order id ' + id + 'is not found in open order');
+        const order = await this.fetchOrder (id, symbol, params);
+        if (this.safeString (order, 'status') !== 'open') {
+            throw new OrderNotFound (this.id + ': order id ' + id + ' is not found in open order');
         }
-        const order = orders[0];
         const request = this.safeValue (order, 'info');
         request['origOrderId'] = this.safeValue (request, 'orderId');
         const response = await this.privatePostCancelOrder (this.extend (request, params));
@@ -1084,19 +1081,23 @@ module.exports = class equos extends Exchange {
     }
 
     convertToISO8601Date (dateString) {
-        // '20200328-10:31:01.575' -> '2020-03-28 12:42:48.000'
-        const splits = dateString.split ('-');
-        const partOne = this.safeString (splits, 0);
-        const PartTwo = this.safeString (splits, 1);
-        if (!partOne || !PartTwo) {
-            return undefined;
+        if (dateString) {
+            // '20200328-10:31:01.575' -> '2020-03-28 12:42:48.000'
+            const splits = dateString.split ('-');
+            const partOne = this.safeString (splits, 0);
+            const PartTwo = this.safeString (splits, 1);
+            if (!partOne || !PartTwo) {
+                return undefined;
+            }
+            if (partOne.length !== 8) {
+                return undefined;
+            }
+            const date = partOne.slice (0, 4) + '-' + partOne.slice (4, 6) + '-' + partOne.slice (6, 8);
+            const datetime = date + ' ' + PartTwo;
+            return datetime;
+        } else {
+            return '';
         }
-        if (partOne.length !== 8) {
-            return undefined;
-        }
-        const date = partOne.slice (0, 4) + '-' + partOne.slice (4, 6) + '-' + partOne.slice (6, 8);
-        const datetime = date + ' ' + PartTwo;
-        return datetime;
     }
 
     convertFromScale (number, scale) {
