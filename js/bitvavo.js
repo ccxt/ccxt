@@ -301,10 +301,6 @@ module.exports = class bitvavo extends ccxt.bitvavo {
         const subscriptions = this.safeValue (message, 'subscriptions', {});
         const methods = {
             'book': this.handleOrderBookSubscriptions,
-            // 'trade': this.handleTrade,
-            // 'kline': this.handleOHLCV,
-            // 'outboundAccountInfo': this.handleBalance,
-            // 'executionReport': this.handleOrder,
         };
         const names = Object.keys (subscriptions);
         for (let i = 0; i < names.length; i++) {
