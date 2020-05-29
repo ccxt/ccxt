@@ -3,6 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
+const { ArrayCache } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -12,6 +13,8 @@ module.exports = class bitvavo extends ccxt.bitvavo {
             'has': {
                 'ws': true,
                 'watchOrderBook': true,
+                'watchTrades': true,
+                'watchTicker': true,
             },
             'urls': {
                 'api': {
@@ -26,10 +29,9 @@ module.exports = class bitvavo extends ccxt.bitvavo {
         });
     }
 
-    async watchTicker (symbol, limit = undefined, params = {}) {
+    async watchPublic (name, symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const name = 'ticker24h';
         const messageHash = name + '@' + market['id'];
         const url = this.urls['api']['ws'];
         const request = {
@@ -45,6 +47,10 @@ module.exports = class bitvavo extends ccxt.bitvavo {
         };
         const message = this.extend (request, params);
         return await this.watch (url, messageHash, message, messageHash);
+    }
+
+    async watchTicker (symbol, params = {}) {
+        return await this.watchPublic ('ticker24h', symbol, params);
     }
 
     handleTicker (client, message) {
@@ -84,6 +90,43 @@ module.exports = class bitvavo extends ccxt.bitvavo {
             }
         }
         return message;
+    }
+
+    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        const future = this.watchPublic ('trades', symbol, params);
+        return await this.after (future, this.filterBySinceLimit, since, limit, 'timestamp', true);
+    }
+
+    handleTrade (client, message) {
+        //
+        //     {
+        //         event: 'trade',
+        //         timestamp: 1590779594547,
+        //         market: 'ETH-EUR',
+        //         id: '450c3298-f082-4461-9e2c-a0262cc7cc2e',
+        //         amount: '0.05026233',
+        //         price: '198.46',
+        //         side: 'buy'
+        //     }
+        //
+        const marketId = this.safeString (message, 'market');
+        let market = undefined;
+        let symbol = marketId;
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+            symbol = market['symbol'];
+        }
+        const name = 'trades';
+        const messageHash = name + '@' + marketId;
+        const trade = this.parseTrade (message, market);
+        let array = this.safeValue (this.trades, symbol);
+        if (array === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            array = new ArrayCache (limit);
+        }
+        array.append (trade);
+        this.trades[symbol] = array;
+        client.resolve (array, messageHash);
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
@@ -363,7 +406,7 @@ module.exports = class bitvavo extends ccxt.bitvavo {
             'subscribed': this.handleSubscriptionStatus,
             'book': this.handleOrderBook,
             'getBook': this.handleOrderBookSnapshot,
-            // 'trade': this.handleTrade,
+            'trade': this.handleTrade,
             // 'kline': this.handleOHLCV,
             'ticker24h': this.handleTicker,
             // 'outboundAccountInfo': this.handleBalance,
