@@ -505,11 +505,19 @@ class ftx(Exchange):
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
-        market = self.market(symbol)
         request = {
-            'market_name': market['id'],
             'resolution': self.timeframes[timeframe],
         }
+        market = None
+        if symbol in self.markets:
+            market = self.market(symbol)
+            request['market_name'] = market['id']
+        else:
+            marketId = self.safe_string(params, 'market_name')
+            if marketId is not None:
+                request['market_name'] = marketId
+            else:
+                request['market_name'] = symbol
         # max 1501 candles, including the current candle when since is not specified
         limit = 1501 if (limit is None) else limit
         if since is None:

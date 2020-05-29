@@ -518,11 +518,21 @@ class ftx extends Exchange {
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market($symbol);
         $request = array(
-            'market_name' => $market['id'],
             'resolution' => $this->timeframes[$timeframe],
         );
+        $market = null;
+        if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
+            $market = $this->market($symbol);
+            $request['market_name'] = $market['id'];
+        } else {
+            $marketId = $this->safe_string($params, 'market_name');
+            if ($marketId !== null) {
+                $request['market_name'] = $marketId;
+            } else {
+                $request['market_name'] = $symbol;
+            }
+        }
         // max 1501 candles, including the current candle when $since is not specified
         $limit = ($limit === null) ? 1501 : $limit;
         if ($since === null) {
