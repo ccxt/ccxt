@@ -26,6 +26,66 @@ module.exports = class bitvavo extends ccxt.bitvavo {
         });
     }
 
+    async watchTicker (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const name = 'ticker24h';
+        const messageHash = name + '@' + market['id'];
+        const url = this.urls['api']['ws'];
+        const request = {
+            'action': 'subscribe',
+            'channels': [
+                {
+                    'name': name,
+                    'markets': [
+                        market['id'],
+                    ],
+                },
+            ],
+        };
+        const message = this.extend (request, params);
+        return await this.watch (url, messageHash, message, messageHash);
+    }
+
+    handleTicker (client, message) {
+        //
+        //     {
+        //         event: 'ticker24h',
+        //         data: [
+        //             {
+        //                 market: 'ETH-EUR',
+        //                 open: '193.5',
+        //                 high: '202.72',
+        //                 low: '192.46',
+        //                 last: '199.01',
+        //                 volume: '3587.05020246',
+        //                 volumeQuote: '708030.17',
+        //                 bid: '199.56',
+        //                 bidSize: '4.14730803',
+        //                 ask: '199.57',
+        //                 askSize: '6.13642074',
+        //                 timestamp: 1590770885217
+        //             }
+        //         ]
+        //     }
+        //
+        const event = this.safeString (message, 'event');
+        const tickers = this.safeValue (message, 'data', []);
+        for (let i = 0; i < tickers.length; i++) {
+            const data = tickers[i];
+            const marketId = this.safeString (data, 'market');
+            if (marketId in this.markets_by_id) {
+                const messageHash = event + '@' + marketId;
+                const market = this.markets_by_id[marketId];
+                const ticker = this.parseTicker (data, market);
+                const symbol = ticker['symbol'];
+                this.tickers[symbol] = ticker;
+                client.resolve (ticker, messageHash);
+            }
+        }
+        return message;
+    }
+
     async watchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
