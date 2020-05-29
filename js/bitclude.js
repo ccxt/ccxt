@@ -37,7 +37,7 @@ module.exports = class bitclude extends Exchange {
                 'fetchOrder': false,
                 'fetchOrderBook': false,
                 'fetchOrders': false,
-                'fetchTickers': false,
+                'fetchTickers': true,
                 'fetchTrades': false,
                 'fetchTradingFees': false,
                 'fetchWithdrawals': false,
@@ -102,6 +102,56 @@ module.exports = class bitclude extends Exchange {
             result.push (entry);
         }
         return result;
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        symbols = (symbols === undefined) ? this.symbols : symbols;
+        const tickers = await this.publicGetStatsTickerJson (params);
+        const marketIds = Object.keys (this.marketsById);
+        const result = {};
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            const market = this.marketsById[marketId];
+            const symbol = market['symbol'];
+            const ticker = this.safeValue (tickers, marketId);
+            if (this.inArray (symbol, symbols)) {
+                result[symbol] = this.parseTicker (ticker, market);
+            }
+        }
+        return result;
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        const ticker = await this.fetchTickers ([symbol]);
+        return this.safeValue (ticker, symbol);
+    }
+
+    parseTicker (ticker, market) {
+        const timestamp = this.milliseconds ();
+        const symbol = market['symbol'];
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeFloat (ticker, 'max24H'),
+            'low': this.safeFloat (ticker, 'min24H'),
+            'bid': this.safeFloat (ticker, 'bid'),
+            'bidVolume': undefined,
+            'ask': this.safeFloat (ticker, 'ask'),
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': undefined,
+            'close': this.safeFloat (ticker, 'last'),
+            'last': this.safeFloat (ticker, 'last'),
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': undefined,
+            'info': ticker,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
