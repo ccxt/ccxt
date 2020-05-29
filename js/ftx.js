@@ -516,11 +516,21 @@ module.exports = class ftx extends Exchange {
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
         const request = {
-            'market_name': market['id'],
             'resolution': this.timeframes[timeframe],
         };
+        let market = undefined;
+        if (symbol in this.markets) {
+            market = this.market (symbol);
+            request['market_name'] = market['id'];
+        } else {
+            const marketId = this.safeString (params, 'market_name');
+            if (marketId !== undefined) {
+                request['market_name'] = marketId;
+            } else {
+                request['market_name'] = symbol;
+            }
+        }
         // max 1501 candles, including the current candle when since is not specified
         limit = (limit === undefined) ? 1501 : limit;
         if (since === undefined) {
