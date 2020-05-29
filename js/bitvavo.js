@@ -214,11 +214,17 @@ module.exports = class bitvavo extends ccxt.bitvavo {
         const name = 'book';
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = this.safeString (marketIds, i);
-            const messageHash = name + '@' + marketId;
-            const subscription = this.safeValue (client.subscriptions, messageHash);
-            const method = this.safeValue (subscription, 'method');
-            if (method !== undefined) {
-                method.call (this, client, message, subscription);
+            if (marketId in this.markets_by_id) {
+                const market = this.markets_by_id[marketId];
+                const symbol = market['symbol'];
+                const messageHash = name + '@' + marketId;
+                if (!(symbol in this.orderbooks)) {
+                    const subscription = this.safeValue (client.subscriptions, messageHash);
+                    const method = this.safeValue (subscription, 'method');
+                    if (method !== undefined) {
+                        method.call (this, client, message, subscription);
+                    }
+                }
             }
         }
     }
@@ -237,7 +243,6 @@ module.exports = class bitvavo extends ccxt.bitvavo {
             'book': this.handleOrderBookSubscriptions,
             // 'trade': this.handleTrade,
             // 'kline': this.handleOHLCV,
-            // '24hrTicker': this.handleTicker,
             // 'outboundAccountInfo': this.handleBalance,
             // 'executionReport': this.handleOrder,
         };
@@ -245,8 +250,8 @@ module.exports = class bitvavo extends ccxt.bitvavo {
         for (let i = 0; i < names.length; i++) {
             const name = names[i];
             const method = this.safeValue (methods, name);
-            const subscription = this.safeValue (subscriptions, name);
             if (method !== undefined) {
+                const subscription = this.safeValue (subscriptions, name);
                 method.call (this, client, message, subscription);
             }
         }
@@ -304,7 +309,7 @@ module.exports = class bitvavo extends ccxt.bitvavo {
             'getBook': this.handleOrderBookSnapshot,
             // 'trade': this.handleTrade,
             // 'kline': this.handleOHLCV,
-            // '24hrTicker': this.handleTicker,
+            'ticker24h': this.handleTicker,
             // 'outboundAccountInfo': this.handleBalance,
             // 'executionReport': this.handleOrder,
         };
