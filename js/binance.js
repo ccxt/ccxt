@@ -306,7 +306,7 @@ module.exports = class binance extends ccxt.binance {
     }
 
     signMessage (client, messageHash, message, params = {}) {
-        // todo: implement binance signMessage
+        // todo: implement signMessage
         return message;
     }
 
