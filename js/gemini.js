@@ -20,7 +20,7 @@ module.exports = class gemini extends Exchange {
                 'createDepositAddress': true,
                 'CORS': false,
                 'fetchBidsAsks': false,
-                'fetchTickers': false,
+                'fetchTickers': true,
                 'fetchMyTrades': true,
                 'fetchOrder': true,
                 'fetchOrders': false,
@@ -65,6 +65,7 @@ module.exports = class gemini extends Exchange {
                 'public': {
                     'get': [
                         'v1/symbols',
+                        'v1/pricefeed',
                         'v1/pubticker/{symbol}',
                         'v1/book/{symbol}',
                         'v1/trades/{symbol}',
@@ -339,34 +340,124 @@ module.exports = class gemini extends Exchange {
             'symbol': market['id'],
         };
         const ticker = await this.publicGetV1PubtickerSymbol (this.extend (request, params));
+        const tickerB = await this.publicGetV2TickerSymbol (this.extend(request, params));
         const timestamp = this.safeInteger (ticker['volume'], 'timestamp');
         const baseCurrency = market['base']; // unified structures are guaranteed to have unified fields
         const quoteCurrency = market['quote']; // so we don't need safe-methods for unified structures
-        const last = this.safeFloat (ticker, 'last');
+        const last = this.safeFloat (ticker, 'last');	
+        const open = this.safeFloat (tickerB, 'open');	
+        const close = this.safeFloat (tickerB, 'close');	
+        const high = this.safeFloat (tickerB, 'high');	
+        const low = this.safeFloat (tickerB, 'low');	
+        let change = undefined;	
+        let percentage = undefined;	
+        if (last !== undefined) {	
+            if ((open !== undefined) && (open > 0)) {	
+                change = last - open;	
+                percentage = ((100 / open) * last) - 100;	
+            }	
+        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': undefined,
-            'low': undefined,
+            'high': high,
+            'low': low,
             'bid': this.safeFloat (ticker, 'bid'),
             'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': last,
+            'close': close,
             'last': last,
             'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
+            'change': change,
+            'percentage': percentage,
             'average': undefined,
             'baseVolume': this.safeFloat (ticker['volume'], baseCurrency),
             'quoteVolume': this.safeFloat (ticker['volume'], quoteCurrency),
             'info': ticker,
         };
     }
+    
+    parseTicker (ticker, market = undefined) {
+        const timestamp = undefined;
+        let symbol = undefined;
+        const marketId = this.safeString (ticker, 'pair');
+        if (marketId !== undefined) {
+            const idLength = marketId.length - 0;
+            let baseId = undefined;
+            let quoteId = undefined;
+            if (idLength === 7) {
+                baseId = marketId.slice(0, 4);
+                quoteId = marketId.slice(4, 7);
+            } else {
+                baseId = marketId.slice(0, 3);
+                quoteId = marketId.slice(3, 6);
+            }
+            const base = this.safeCurrencyCode(baseId);
+            const quote = this.safeCurrencyCode(quoteId);
+            symbol = base + '/' + quote;
+        }
 
+        const last = this.safeFloat (ticker, 'price');
+        let percentage = this.safeFloat (ticker, 'percentChange24h');
+        let change = undefined;
+        if (percentage !== undefined && last !== undefined) {
+            change = last * percentage;
+        }
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': undefined,
+            'low': undefined,
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': undefined,
+            'close': undefined,
+            'last': last,
+            'previousClose': undefined, // previous day close
+            'change': change,
+            'percentage': percentage,
+            'average': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': undefined,
+            'info': ticker,
+        };
+    }
+
+    parseTickers (tickers, symbols = undefined) {
+        const result = [];
+        for (let i = 0; i < tickers.length; i++) {
+            result.push (this.parseTicker (tickers[i]));
+        }
+        return this.filterByArray (result, 'symbol', symbols);
+    }
+
+    async fetchTickers(symbols = undefined, params = {}) {
+        await this.loadMarkets();
+        const tickers = await this.publicGetV1Pricefeed(params);
+        // [
+        //     {
+        //       "pair": "BATUSD",
+        //       "price": "0.20687",
+        //       "percentChange24h": "0.0146"
+        //     },
+        //     {
+        //       "pair": "LINKETH",
+        //       "price": "0.018",
+        //       "percentChange24h": "0.0000"
+        //     },
+        //     ...
+        //   ]
+        return this.parseTickers(tickers, symbols);
+    }
+    
     parseTrade (trade, market = undefined) {
         const timestamp = this.safeInteger (trade, 'timestampms');
         const id = this.safeString (trade, 'tid');
