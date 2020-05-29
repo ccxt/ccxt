@@ -26,6 +26,7 @@ module.exports = class bitclude extends Exchange {
             },
             'has': {
                 'fetchMarkets': 'emulated',
+                'fetchCurrencies': false,
                 'cancelAllOrders': false,
                 'fetchClosedOrders': false,
                 'fetchDepositAddress': false,
@@ -35,7 +36,7 @@ module.exports = class bitclude extends Exchange {
                 'fetchOHLCV': false,
                 'fetchOpenOrders': false,
                 'fetchOrder': false,
-                'fetchOrderBook': false,
+                'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchTickers': true,
                 'fetchTrades': false,
@@ -47,6 +48,7 @@ module.exports = class bitclude extends Exchange {
                 'public': {
                     'get': [
                         'stats/ticker.json',
+                        'stats/orderbook_{base}{quote}.json',
                     ],
                 },
             },
@@ -154,8 +156,24 @@ module.exports = class bitclude extends Exchange {
         };
     }
 
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        // todo idk what do with limit
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const [ baseId, quoteId ] = market['id'].split ('_');
+        const request = {
+            'base': baseId,
+            'quote': quoteId,
+        };
+        const response = await this.publicGetStatsOrderbookBaseQuoteJson (this.extend (request, params));
+        const data = this.safeValue (response, 'data');
+        const timestamp = this.safeTimestamp (data, 'timestamp');
+        return this.parseOrderBook (response, timestamp, 'bids', 'asks', 1, 0); // todo check if correct
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api] + '/' + path;
+        const request = '/' + this.implodeParams (path, params);
+        let url = this.urls['api'][api] + request;
         if (api === 'public') {
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
