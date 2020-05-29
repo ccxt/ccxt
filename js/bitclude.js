@@ -71,6 +71,39 @@ module.exports = class bitclude extends Exchange {
         });
     }
 
+    async fetchMarkets (params = {}) {
+        const response = await this.publicGetStatsTickerJson (params);
+        const result = [];
+        const ids = Object.keys (response);
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            const [ baseId, quoteId ] = id.split ('_');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const symbol = (base + '/' + quote);
+            const precision = {
+                'price': undefined,
+                'amount': undefined,
+            };
+            const info = {};
+            info[id] = this.safeValue (response, id);
+            const entry = {
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': true,
+                'precision': precision, // todo
+                'limits': undefined, // this exchange have user-specific limits
+                'info': info,
+            };
+            result.push (entry);
+        }
+        return result;
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + path;
         if (api === 'public') {
