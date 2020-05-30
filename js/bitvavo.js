@@ -3,6 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
+const { AuthenticationError } = require ('ccxt/js/base/errors');
 const { ArrayCache } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -443,6 +444,52 @@ module.exports = class bitvavo extends ccxt.bitvavo {
         return message;
     }
 
+    async authenticate () {
+        const url = this.urls['api']['ws'];
+        const client = this.client (url);
+        const future = client.future ('authenticated');
+        const action = 'authenticate';
+        const authenticated = this.safeValue (client.subscriptions, action);
+        if (authenticated === undefined) {
+            await this.checkRequiredCredentials ();
+            const timestamp = this.milliseconds ();
+            const stringTimestamp = timestamp.toString ();
+            const auth = stringTimestamp + 'GET/' + this.version + '/websocket';
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret));
+            const request = {
+                'action': action,
+                'key': this.apiKey,
+                'signature': signature,
+                'timestamp': timestamp,
+            };
+            this.spawn (this.watch, url, action, request, action);
+        }
+        return await future;
+    }
+
+    handleAuthenticationMessage (client, message) {
+        //
+        //     {
+        //         event: 'authenticate',
+        //         authenticated: true
+        //     }
+        //
+        const event = this.safeValue (message, 'event');
+        const authenticated = this.safeValue (message, 'authenticated', false);
+        if (authenticated) {
+            // we resolve the future here permanently so authentication only happens once
+            const future = this.safeValue (client.futures, 'authenticated');
+            future.resolve (true);
+        } else {
+            const error = new AuthenticationError (this.json (message));
+            client.reject (error, 'authenticated');
+            // allows further authentication attempts
+            if (event in client.subscriptions) {
+                delete client.subscriptions[event];
+            }
+        }
+    }
+
     signMessage (client, messageHash, message, params = {}) {
         // todo: implement signMessage
         return message;
@@ -488,6 +535,11 @@ module.exports = class bitvavo extends ccxt.bitvavo {
         //         }
         //     }
         //
+        //     {
+        //         event: 'authenticate',
+        //         authenticated: true
+        //     }
+        //
         const methods = {
             'subscribed': this.handleSubscriptionStatus,
             'book': this.handleOrderBook,
@@ -495,8 +547,7 @@ module.exports = class bitvavo extends ccxt.bitvavo {
             'trade': this.handleTrade,
             'candle': this.handleOHLCV,
             'ticker24h': this.handleTicker,
-            // 'outboundAccountInfo': this.handleBalance,
-            // 'executionReport': this.handleOrder,
+            'authenticate': this.handleAuthenticationMessage,
         };
         const event = this.safeString (message, 'event');
         let method = this.safeValue (methods, event);
@@ -504,9 +555,6 @@ module.exports = class bitvavo extends ccxt.bitvavo {
             const action = this.safeString (message, 'action');
             method = this.safeValue (methods, action);
             if (method === undefined) {
-                const util = require ('util');
-                console.log ('handleMessage', util.inspect (message, { showHidden: false, depth: null }));
-                process.exit ();
                 return message;
             } else {
                 return method.call (this, client, message);
