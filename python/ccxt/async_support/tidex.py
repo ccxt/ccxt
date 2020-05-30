@@ -562,6 +562,7 @@ class tidex(Exchange):
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -575,7 +576,6 @@ class tidex(Exchange):
             'filled': filled,
             'status': status,
             'fee': fee,
-            'clientOrderId': None,
             'average': None,
             'trades': None,
         }
