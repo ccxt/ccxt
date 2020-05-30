@@ -129,6 +129,92 @@ module.exports = class bitvavo extends ccxt.bitvavo {
         client.resolve (array, messageHash);
     }
 
+    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const name = 'candles';
+        const marketId = market['id'];
+        const interval = this.timeframes[timeframe];
+        const messageHash = name + '@' + marketId + '_' + interval;
+        const url = this.urls['api']['ws'];
+        const request = {
+            'action': 'subscribe',
+            'channels': [
+                {
+                    'name': 'candles',
+                    'interval': [ interval ],
+                    'markets': [ marketId ],
+                },
+            ],
+        };
+        const message = this.extend (request, params);
+        const future = this.watch (url, messageHash, message, messageHash);
+        return await this.after (future, this.filterBySinceLimit, since, limit, 0, true);
+    }
+
+    findTimeframe (timeframe) {
+        // redo to use reverse lookups in a static map instead
+        const keys = Object.keys (this.timeframes);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (this.timeframes[key] === timeframe) {
+                return key;
+            }
+        }
+        return undefined;
+    }
+
+    handleOHLCV (client, message) {
+        //
+        //     {
+        //         event: 'candle',
+        //         market: 'BTC-EUR',
+        //         interval: '1m',
+        //         candle: [
+        //             [
+        //                 1590797160000,
+        //                 '8480.9',
+        //                 '8480.9',
+        //                 '8480.9',
+        //                 '8480.9',
+        //                 '0.01038628'
+        //             ]
+        //         ]
+        //     }
+        //
+        const name = 'candles';
+        const marketId = this.safeString (message, 'market');
+        let symbol = undefined;
+        let market = undefined;
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+            symbol = market['symbol'];
+        }
+        const interval = this.safeString (message, 'interval');
+        // use a reverse lookup in a static map instead
+        const timeframe = this.findTimeframe (interval);
+        const messageHash = name + '@' + marketId + '_' + interval;
+        const candles = this.safeValue (message, 'candle');
+        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        const stored = this.safeValue (this.ohlcvs[symbol], timeframe, []);
+        for (let i = 0; i < candles.length; i++) {
+            const candle = candles[i];
+            const parsed = this.parseOHLCV (candle, market);
+            const length = stored.length;
+            if (length && (parsed[0] === stored[length - 1][0])) {
+                stored[length - 1] = parsed;
+            } else {
+                stored.push (parsed);
+                const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+                if (length >= limit) {
+                    stored.shift ();
+                }
+            }
+        }
+        this.ohlcvs[symbol][timeframe] = stored;
+        client.resolve (stored, messageHash);
+    }
+
     async watchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -407,7 +493,7 @@ module.exports = class bitvavo extends ccxt.bitvavo {
             'book': this.handleOrderBook,
             'getBook': this.handleOrderBookSnapshot,
             'trade': this.handleTrade,
-            // 'kline': this.handleOHLCV,
+            'candle': this.handleOHLCV,
             'ticker24h': this.handleTicker,
             // 'outboundAccountInfo': this.handleBalance,
             // 'executionReport': this.handleOrder,
