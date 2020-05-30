@@ -41,7 +41,7 @@ class dsx(Exchange):
                 'fetchOrders': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': False,
-                'fetchOrderBooks': False,
+                'fetchOrderBooks': True,
                 'createDepositAddress': True,
                 'fetchDepositAddress': True,
                 'fetchTransactions': True,
