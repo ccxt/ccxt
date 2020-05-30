@@ -31,6 +31,7 @@ class bitvavo(Exchange):
             'rateLimit': 500,
             'version': 'v2',
             'certified': False,
+            'pro': True,
             'has': {
                 'CORS': False,
                 'publicAPI': True,

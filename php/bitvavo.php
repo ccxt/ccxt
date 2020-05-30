@@ -19,6 +19,7 @@ class bitvavo extends Exchange {
             'rateLimit' => 500,
             'version' => 'v2',
             'certified' => false,
+            'pro' => true,
             'has' => array(
                 'CORS' => false,
                 'publicAPI' => true,
