@@ -506,7 +506,7 @@ module.exports = class binance extends ccxt.binance {
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
         const stored = this.safeValue (this.ohlcvs[symbol], timeframe, []);
         const length = stored.length;
-        if (length && parsed[0] === stored[length - 1][0]) {
+        if (length && (parsed[0] === stored[length - 1][0])) {
             stored[length - 1] = parsed;
         } else {
             stored.push (parsed);
