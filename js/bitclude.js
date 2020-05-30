@@ -39,7 +39,7 @@ module.exports = class bitclude extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchTickers': true,
-                'fetchTrades': false,
+                'fetchTrades': true,
                 'fetchTradingFees': false,
                 'fetchWithdrawals': false,
                 'withdraw': false,
@@ -49,6 +49,7 @@ module.exports = class bitclude extends Exchange {
                     'get': [
                         'stats/ticker.json',
                         'stats/orderbook_{base}{quote}.json',
+                        'stats/history_{base}{quote}.json',
                     ],
                 },
             },
@@ -169,6 +170,49 @@ module.exports = class bitclude extends Exchange {
         const data = this.safeValue (response, 'data');
         const timestamp = this.safeTimestamp (data, 'timestamp');
         return this.parseOrderBook (response, timestamp, 'bids', 'asks', 1, 0); // todo check if correct
+    }
+
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'base': market['baseId'],
+            'quote': market['quoteId'],
+        };
+        const response = await this.publicGetStatsHistoryBaseQuoteJson (this.extend (request, params));
+        const trades = this.safeValue (response, 'history');
+        return this.parseTrades (trades, market, since, limit);
+    }
+
+    parseTrade (trade, market) {
+        const id = this.safeString (trade, 'nr');
+        const timestamp = this.safeTimestamp (trade, 'time');
+        const type = undefined;
+        const side = this.safeString (trade, 'type'); // todo important
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'amount');
+        let cost = undefined;
+        if (price !== undefined) {
+            if (amount !== undefined) {
+                cost = price * amount;
+            }
+        }
+        const fee = undefined;
+        return {
+            'id': id,
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'type': type,
+            'order': undefined,
+            'side': side,
+            'takerOrMaker': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
