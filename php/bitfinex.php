@@ -431,7 +431,6 @@ class bitfinex extends \ccxt\bitfinex {
 
     public function handle_authentication_message($client, $message) {
         $status = $this->safe_string($message, 'status');
-        $method = $this->safe_string($message, 'event');
         if ($status === 'OK') {
             // we resolve the $future here permanently so authentication only happens once
             $future = $this->safe_value($client->futures, 'authenticated');
@@ -440,6 +439,7 @@ class bitfinex extends \ccxt\bitfinex {
             $error = new AuthenticationError ($this->json($message));
             $client->reject ($error, 'authenticated');
             // allows further authentication attempts
+            $method = $this->safe_string($message, 'event');
             if (is_array($client->subscriptions) && array_key_exists($method, $client->subscriptions)) {
                 unset($client->subscriptions[$method]);
             }

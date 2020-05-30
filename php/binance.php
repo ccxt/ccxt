@@ -309,7 +309,7 @@ class binance extends \ccxt\binance {
     }
 
     public function sign_message($client, $messageHash, $message, $params = array ()) {
-        // todo => implement binance signMessage
+        // todo => implement signMessage
         return $message;
     }
 
@@ -509,7 +509,7 @@ class binance extends \ccxt\binance {
         $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
         $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe, array());
         $length = is_array($stored) ? count($stored) : 0;
-        if ($length && $parsed[0] === $stored[$length - 1][0]) {
+        if ($length && ($parsed[0] === $stored[$length - 1][0])) {
             $stored[$length - 1] = $parsed;
         } else {
             $stored[] = $parsed;

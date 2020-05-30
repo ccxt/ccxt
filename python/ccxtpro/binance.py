@@ -277,7 +277,7 @@ class binance(Exchange, ccxt.binance):
                 client.reject(e, messageHash)
 
     def sign_message(self, client, messageHash, message, params={}):
-        # todo: implement binance signMessage
+        # todo: implement signMessage
         return message
 
     def handle_order_book_subscription(self, client, message, subscription):
@@ -457,7 +457,7 @@ class binance(Exchange, ccxt.binance):
         self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
         stored = self.safe_value(self.ohlcvs[symbol], timeframe, [])
         length = len(stored)
-        if length and parsed[0] == stored[length - 1][0]:
+        if length and (parsed[0] == stored[length - 1][0]):
             stored[length - 1] = parsed
         else:
             stored.append(parsed)

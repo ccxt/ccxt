@@ -394,7 +394,6 @@ class bitfinex(Exchange, ccxt.bitfinex):
 
     def handle_authentication_message(self, client, message):
         status = self.safe_string(message, 'status')
-        method = self.safe_string(message, 'event')
         if status == 'OK':
             # we resolve the future here permanently so authentication only happens once
             future = self.safe_value(client.futures, 'authenticated')
@@ -403,6 +402,7 @@ class bitfinex(Exchange, ccxt.bitfinex):
             error = AuthenticationError(self.json(message))
             client.reject(error, 'authenticated')
             # allows further authentication attempts
+            method = self.safe_string(message, 'event')
             if method in client.subscriptions:
                 del client.subscriptions[method]
 

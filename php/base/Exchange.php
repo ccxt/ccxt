@@ -25,6 +25,7 @@ Exchange::$exchanges = array(
     'bitmex',
     'bitstamp',
     'bittrex',
+    'bitvavo',
     'coinbaseprime',
     'coinbasepro',
     'ftx',
