@@ -474,7 +474,6 @@ module.exports = class bitvavo extends ccxt.bitvavo {
         //         authenticated: true
         //     }
         //
-        const event = this.safeValue (message, 'event');
         const authenticated = this.safeValue (message, 'authenticated', false);
         if (authenticated) {
             // we resolve the future here permanently so authentication only happens once
@@ -484,6 +483,7 @@ module.exports = class bitvavo extends ccxt.bitvavo {
             const error = new AuthenticationError (this.json (message));
             client.reject (error, 'authenticated');
             // allows further authentication attempts
+            const event = this.safeValue (message, 'event');
             if (event in client.subscriptions) {
                 delete client.subscriptions[event];
             }
