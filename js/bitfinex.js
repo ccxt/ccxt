@@ -426,7 +426,6 @@ module.exports = class bitfinex extends ccxt.bitfinex {
 
     handleAuthenticationMessage (client, message) {
         const status = this.safeString (message, 'status');
-        const method = this.safeString (message, 'event');
         if (status === 'OK') {
             // we resolve the future here permanently so authentication only happens once
             const future = this.safeValue (client.futures, 'authenticated');
@@ -435,6 +434,7 @@ module.exports = class bitfinex extends ccxt.bitfinex {
             const error = new AuthenticationError (this.json (message));
             client.reject (error, 'authenticated');
             // allows further authentication attempts
+            const method = this.safeString (message, 'event');
             if (method in client.subscriptions) {
                 delete client.subscriptions[method];
             }
