@@ -20,6 +20,7 @@ class bitvavo(Exchange, ccxt.bitvavo):
                 'watchTrades': True,
                 'watchTicker': True,
                 'watchOHLCV': True,
+                'watchOrders': True,
             },
             'urls': {
                 'api': {

@@ -21,6 +21,7 @@ class bitvavo extends \ccxt\bitvavo {
                 'watchTrades' => true,
                 'watchTicker' => true,
                 'watchOHLCV' => true,
+                'watchOrders' => true,
             ),
             'urls' => array(
                 'api' => array(
