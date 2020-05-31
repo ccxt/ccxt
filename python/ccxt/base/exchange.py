@@ -214,6 +214,7 @@ class Exchange(object):
     balance = None
     orderbooks = None
     orders = None
+    myTrades = None
     trades = None
     transactions = None
     ohlcvs = None
