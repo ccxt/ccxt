@@ -35,6 +35,7 @@ class kucoin(Exchange):
             'comment': 'Platform 2.0',
             'has': {
                 'CORS': False,
+                'fetchStatus': True,
                 'fetchTime': True,
                 'fetchMarkets': True,
                 'fetchCurrencies': True,
@@ -247,6 +248,7 @@ class kucoin(Exchange):
                 'versions': {
                     'public': {
                         'GET': {
+                            'status': 'v1',
                             'market/orderbook/level{level}': 'v1',
                             'market/orderbook/level2': 'v2',
                             'market/orderbook/level2_20': 'v1',
@@ -283,6 +285,27 @@ class kucoin(Exchange):
         #     }
         #
         return self.safe_integer(response, 'data')
+
+    async def fetch_status(self, params={}):
+        response = await self.publicGetStatus(params)
+        #
+        #     {
+        #         "code":"200000",
+        #         "data":{
+        #             "msg":"",
+        #             "status":"open"
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        status = self.safe_value(data, 'status')
+        if status is not None:
+            status = 'ok' if (status == 'open') else 'maintenance'
+            self.status = self.extend(self.status, {
+                'status': status,
+                'updated': self.milliseconds(),
+            })
+        return self.status
 
     async def fetch_markets(self, params={}):
         response = await self.publicGetSymbols(params)
