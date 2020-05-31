@@ -20,7 +20,7 @@ const ccxt = require ('../../ccxt')
 
     log.bright.green ('\nFetching history for:', symbol, '\n')
 
-    let allOrders = [];
+    let allOrders = []
     let since = exchange.parse8601 (startingDate)
 
     while (since < now) {
@@ -40,7 +40,7 @@ const ccxt = require ('../../ccxt')
 
             } else {
 
-                break; // no more orders left for this symbol, move to next one
+                break // no more orders left for this symbol, move to next one
             }
 
         } catch (e) {
