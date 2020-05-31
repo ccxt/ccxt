@@ -35,7 +35,7 @@
   },
   "types": "./ccxt.pro.d.ts",
   "dependencies": {
-    "ccxt": "^1.28.95",
+    "ccxt": "^1.28.96",
     "ws": "^7.2.1"
   },
   "devDependencies": {
