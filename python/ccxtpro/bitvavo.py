@@ -7,6 +7,7 @@ from ccxtpro.base.exchange import Exchange
 import ccxt.async_support as ccxt
 from ccxtpro.base.cache import ArrayCache
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 
 
 class bitvavo(Exchange, ccxt.bitvavo):
@@ -18,6 +19,7 @@ class bitvavo(Exchange, ccxt.bitvavo):
                 'watchOrderBook': True,
                 'watchTrades': True,
                 'watchTicker': True,
+                'watchOHLCV': True,
             },
             'urls': {
                 'api': {
@@ -378,6 +380,83 @@ class bitvavo(Exchange, ccxt.bitvavo):
                     if method is not None:
                         method(client, message, subscription)
 
+    async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' watchOrders requires a symbol argument')
+        await self.load_markets()
+        authenticate = self.authenticate()
+        market = self.market(symbol)
+        marketId = market['id']
+        url = self.urls['api']['ws']
+        name = 'account'
+        subscriptionHash = name + '@' + marketId
+        messageHash = subscriptionHash + '_' + 'order'
+        request = {
+            'action': 'subscribe',
+            'channels': [
+                {
+                    'name': name,
+                    'markets': [marketId],
+                },
+            ],
+        }
+        future = self.after_dropped(authenticate, self.watch, url, messageHash, request, subscriptionHash)
+        return await self.after(future, self.filter_by_symbol_since_limit, symbol, since, limit)
+
+    def handle_order(self, client, message):
+        #
+        #     {
+        #         event: 'order',
+        #         orderId: 'f0e5180f-9497-4d05-9dc2-7056e8a2de9b',
+        #         market: 'ETH-EUR',
+        #         created: 1590948500319,
+        #         updated: 1590948500319,
+        #         status: 'new',
+        #         side: 'sell',
+        #         orderType: 'limit',
+        #         amount: '0.1',
+        #         amountRemaining: '0.1',
+        #         price: '300',
+        #         onHold: '0.1',
+        #         onHoldCurrency: 'ETH',
+        #         selfTradePrevention: 'decrementAndCancel',
+        #         visible: True,
+        #         timeInForce: 'GTC',
+        #         postOnly: False
+        #     }
+        #
+        name = 'account'
+        event = self.safe_string(message, 'event')
+        marketId = self.safe_string(message, 'market')
+        messageHash = name + '@' + marketId + '_' + event
+        symbol = marketId
+        market = None
+        if marketId in self.markets_by_id:
+            market = self.markets_by_id[marketId]
+            symbol = market['symbol']
+        order = self.parse_order(message, market)
+        orderId = order['id']
+        defaultKey = self.safe_value(self.orders, symbol, {})
+        defaultKey[orderId] = order
+        self.orders[symbol] = defaultKey
+        result = []
+        values = list(self.orders.values())
+        for i in range(0, len(values)):
+            orders = list(values[i].values())
+            result = self.array_concat(result, orders)
+        # del older orders from our structure to prevent memory leaks
+        limit = self.safe_integer(self.options, 'ordersLimit', 1000)
+        result = self.sort_by(result, 'timestamp')
+        resultLength = len(result)
+        if resultLength > limit:
+            toDelete = resultLength - limit
+            for i in range(0, toDelete):
+                id = result[i]['id']
+                symbol = result[i]['symbol']
+                del self.orders[symbol][id]
+            result = result[toDelete:resultLength]
+        client.resolve(result, messageHash)
+
     def handle_subscription_status(self, client, message):
         #
         #     {
@@ -407,18 +486,24 @@ class bitvavo(Exchange, ccxt.bitvavo):
         action = 'authenticate'
         authenticated = self.safe_value(client.subscriptions, action)
         if authenticated is None:
-            await self.check_required_credentials()
-            timestamp = self.milliseconds()
-            stringTimestamp = str(timestamp)
-            auth = stringTimestamp + 'GET/' + self.version + '/websocket'
-            signature = self.hmac(self.encode(auth), self.encode(self.secret))
-            request = {
-                'action': action,
-                'key': self.apiKey,
-                'signature': signature,
-                'timestamp': timestamp,
-            }
-            self.spawn(self.watch, url, action, request, action)
+            try:
+                self.check_required_credentials()
+                timestamp = self.milliseconds()
+                stringTimestamp = str(timestamp)
+                auth = stringTimestamp + 'GET/' + self.version + '/websocket'
+                signature = self.hmac(self.encode(auth), self.encode(self.secret))
+                request = {
+                    'action': action,
+                    'key': self.apiKey,
+                    'signature': signature,
+                    'timestamp': timestamp,
+                }
+                self.spawn(self.watch, url, action, request, action)
+            except Exception as e:
+                client.reject(e, 'authenticated')
+                # allows further authentication attempts
+                if action in client.subscriptions:
+                    del client.subscriptions[action]
         return await future
 
     def handle_authentication_message(self, client, message):
@@ -498,6 +583,7 @@ class bitvavo(Exchange, ccxt.bitvavo):
             'candle': self.handle_ohlcv,
             'ticker24h': self.handle_ticker,
             'authenticate': self.handle_authentication_message,
+            'order': self.handle_order,
         }
         event = self.safe_string(message, 'event')
         method = self.safe_value(methods, event)

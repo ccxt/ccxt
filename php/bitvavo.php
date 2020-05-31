@@ -7,6 +7,7 @@ namespace ccxtpro;
 
 use Exception; // a common import
 use \ccxt\AuthenticationError;
+use \ccxt\ArgumentsRequired;
 
 class bitvavo extends \ccxt\bitvavo {
 
@@ -19,6 +20,7 @@ class bitvavo extends \ccxt\bitvavo {
                 'watchOrderBook' => true,
                 'watchTrades' => true,
                 'watchTicker' => true,
+                'watchOHLCV' => true,
             ),
             'urls' => array(
                 'api' => array(
@@ -422,6 +424,90 @@ class bitvavo extends \ccxt\bitvavo {
         }
     }
 
+    public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' watchOrders requires a $symbol argument');
+        }
+        $this->load_markets();
+        $authenticate = $this->authenticate();
+        $market = $this->market($symbol);
+        $marketId = $market['id'];
+        $url = $this->urls['api']['ws'];
+        $name = 'account';
+        $subscriptionHash = $name . '@' . $marketId;
+        $messageHash = $subscriptionHash . '_' . 'order';
+        $request = array(
+            'action' => 'subscribe',
+            'channels' => array(
+                array(
+                    'name' => $name,
+                    'markets' => array( $marketId ),
+                ),
+            ),
+        );
+        $future = $this->after_dropped($authenticate, array($this, 'watch'), $url, $messageHash, $request, $subscriptionHash);
+        return $this->after($future, array($this, 'filter_by_symbol_since_limit'), $symbol, $since, $limit);
+    }
+
+    public function handle_order($client, $message) {
+        //
+        //     {
+        //         $event => 'order',
+        //         $orderId => 'f0e5180f-9497-4d05-9dc2-7056e8a2de9b',
+        //         $market => 'ETH-EUR',
+        //         created => 1590948500319,
+        //         updated => 1590948500319,
+        //         status => 'new',
+        //         side => 'sell',
+        //         orderType => 'limit',
+        //         amount => '0.1',
+        //         amountRemaining => '0.1',
+        //         price => '300',
+        //         onHold => '0.1',
+        //         onHoldCurrency => 'ETH',
+        //         selfTradePrevention => 'decrementAndCancel',
+        //         visible => true,
+        //         timeInForce => 'GTC',
+        //         postOnly => false
+        //     }
+        //
+        $name = 'account';
+        $event = $this->safe_string($message, 'event');
+        $marketId = $this->safe_string($message, 'market');
+        $messageHash = $name . '@' . $marketId . '_' . $event;
+        $symbol = $marketId;
+        $market = null;
+        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+            $market = $this->markets_by_id[$marketId];
+            $symbol = $market['symbol'];
+        }
+        $order = $this->parse_order($message, $market);
+        $orderId = $order['id'];
+        $defaultKey = $this->safe_value($this->orders, $symbol, array());
+        $defaultKey[$orderId] = $order;
+        $this->orders[$symbol] = $defaultKey;
+        $result = array();
+        $values = is_array($this->orders) ? array_values($this->orders) : array();
+        for ($i = 0; $i < count($values); $i++) {
+            $orders = is_array($values[$i]) ? array_values($values[$i]) : array();
+            $result = $this->array_concat($result, $orders);
+        }
+        // delete older $orders from our structure to prevent memory leaks
+        $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
+        $result = $this->sort_by($result, 'timestamp');
+        $resultLength = is_array($result) ? count($result) : 0;
+        if ($resultLength > $limit) {
+            $toDelete = $resultLength - $limit;
+            for ($i = 0; $i < $toDelete; $i++) {
+                $id = $result[$i]['id'];
+                $symbol = $result[$i]['symbol'];
+                unset($this->orders[$symbol][$id]);
+            }
+            $result = mb_substr($result, $toDelete, $resultLength - $toDelete);
+        }
+        $client->resolve ($result, $messageHash);
+    }
+
     public function handle_subscription_status($client, $message) {
         //
         //     {
@@ -454,18 +540,26 @@ class bitvavo extends \ccxt\bitvavo {
         $action = 'authenticate';
         $authenticated = $this->safe_value($client->subscriptions, $action);
         if ($authenticated === null) {
-            $this->check_required_credentials();
-            $timestamp = $this->milliseconds();
-            $stringTimestamp = (string) $timestamp;
-            $auth = $stringTimestamp . 'GET/' . $this->version . '/websocket';
-            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
-            $request = array(
-                'action' => $action,
-                'key' => $this->apiKey,
-                'signature' => $signature,
-                'timestamp' => $timestamp,
-            );
-            $this->spawn(array($this, 'watch'), $url, $action, $request, $action);
+            try {
+                $this->check_required_credentials();
+                $timestamp = $this->milliseconds();
+                $stringTimestamp = (string) $timestamp;
+                $auth = $stringTimestamp . 'GET/' . $this->version . '/websocket';
+                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
+                $request = array(
+                    'action' => $action,
+                    'key' => $this->apiKey,
+                    'signature' => $signature,
+                    'timestamp' => $timestamp,
+                );
+                $this->spawn(array($this, 'watch'), $url, $action, $request, $action);
+            } catch (Exception $e) {
+                $client->reject ($e, 'authenticated');
+                // allows further authentication attempts
+                if (is_array($client->subscriptions) && array_key_exists($action, $client->subscriptions)) {
+                    unset($client->subscriptions[$action]);
+                }
+            }
         }
         return $future;
     }
@@ -551,6 +645,7 @@ class bitvavo extends \ccxt\bitvavo {
             'candle' => array($this, 'handle_ohlcv'),
             'ticker24h' => array($this, 'handle_ticker'),
             'authenticate' => array($this, 'handle_authentication_message'),
+            'order' => array($this, 'handle_order'),
         );
         $event = $this->safe_string($message, 'event');
         $method = $this->safe_value($methods, $event);
