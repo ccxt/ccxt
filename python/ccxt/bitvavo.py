@@ -1095,7 +1095,7 @@ class bitvavo(Exchange):
         #
         id = self.safe_string(order, 'orderId')
         timestamp = self.safe_integer(order, 'created')
-        marketId = self.safe_integer(order, 'market')
+        marketId = self.safe_string(order, 'market')
         symbol = None
         if marketId is not None:
             if marketId in self.markets_by_id:

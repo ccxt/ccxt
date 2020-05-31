@@ -1146,7 +1146,7 @@ class bitvavo extends Exchange {
         //
         $id = $this->safe_string($order, 'orderId');
         $timestamp = $this->safe_integer($order, 'created');
-        $marketId = $this->safe_integer($order, 'market');
+        $marketId = $this->safe_string($order, 'market');
         $symbol = null;
         if ($marketId !== null) {
             if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
