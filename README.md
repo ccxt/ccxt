@@ -283,6 +283,8 @@ Using `docker-compose` (in the cloned CCXT repository):
 docker-compose run --rm ccxt
 ```
 
+You don't need the Docker image if you're not going to develop CCXT. If you just want to use CCXT – just install it as a regular package into your project.
+
 ---
 
 ## Documentation

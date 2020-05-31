@@ -115,6 +115,8 @@ var_dump (\ccxt\Exchange::$exchanges); // print a list of all available exchange
 
 You can get CCXT installed in a container along with all the supported languages and dependencies. This may be useful if you want to contribute to CCXT (e.g. run the build scripts and tests — please see the [Contributing](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) document for the details on that).
 
+You don't need the Docker image if you're not going to develop CCXT. If you just want to use CCXT – just install it as a regular package into your project.
+
 Using `docker-compose` (in the cloned CCXT repository):
 
 ```shell
