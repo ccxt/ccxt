@@ -459,37 +459,49 @@ module.exports = class bitfinex extends ccxt.bitfinex {
 
     handleOrders (client, message) {
         //
-        // order snapshot (extra level of nesting):
-        // [ 0,
-        //   'os',
-        //   [ [ 45287766631,
-        //       'ETHUST',
-        //       -0.07,
-        //       -0.07,
-        //       'EXCHANGE LIMIT',
-        //       'ACTIVE',
-        //       210,
-        //       0,
-        //       '2020-05-16T13:17:46Z',
-        //       0,
-        //       0,
-        //       0 ] ] ]
+        // order snapshot
         //
-        // order cancel:
-        // [ 0,
-        //   'oc',
-        //   [ 45287766631,
-        //     'ETHUST',
-        //     -0.07,
-        //     -0.07,
-        //     'EXCHANGE LIMIT',
-        //     'CANCELED',
-        //     210,
-        //     0,
-        //     '2020-05-16T13:17:46Z',
-        //     0,
-        //     0,
-        //     0 ] ]
+        //     [
+        //         0,
+        //         'os',
+        //         [
+        //             [
+        //                 45287766631,
+        //                 'ETHUST',
+        //                 -0.07,
+        //                 -0.07,
+        //                 'EXCHANGE LIMIT',
+        //                 'ACTIVE',
+        //                 210,
+        //                 0,
+        //                 '2020-05-16T13:17:46Z',
+        //                 0,
+        //                 0,
+        //                 0
+        //             ]
+        //         ]
+        //     ]
+        //
+        // order cancel
+        //
+        //     [
+        //         0,
+        //         'oc',
+        //         [
+        //             45287766631,
+        //             'ETHUST',
+        //             -0.07,
+        //             -0.07,
+        //             'EXCHANGE LIMIT',
+        //             'CANCELED',
+        //             210,
+        //             0,
+        //             '2020-05-16T13:17:46Z',
+        //             0,
+        //             0,
+        //             0,
+        //         ]
+        //     ]
         //
         const data = this.safeValue (message, 2, []);
         const messageType = this.safeString (message, 1);
