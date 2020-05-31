@@ -1144,7 +1144,7 @@ module.exports = class bitvavo extends Exchange {
         //
         const id = this.safeString (order, 'orderId');
         const timestamp = this.safeInteger (order, 'created');
-        const marketId = this.safeInteger (order, 'market');
+        const marketId = this.safeString (order, 'market');
         let symbol = undefined;
         if (marketId !== undefined) {
             if (marketId in this.markets_by_id) {
