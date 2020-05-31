@@ -3717,6 +3717,7 @@ In case you experience any difficulty connecting to a particular exchange, do th
 
 - Make sure that you have the most recent version of ccxt.
 - Check the [Issues](https://github.com/ccxt/ccxt/issues) for recent updates.
+- Make sure you have [rate-limiter enabled with `enableRateLimit: true`](#rate-limit) (either the built-in rate-limiter or your own custom rate-limiter).
 - Turn `verbose = true` to get more detail about it!
   ```Python
   import ccxt
