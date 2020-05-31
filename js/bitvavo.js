@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { AuthenticationError } = require ('ccxt/js/base/errors');
+const { AuthenticationError, ArgumentsRequired } = require ('ccxt/js/base/errors');
 const { ArrayCache } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -16,6 +16,7 @@ module.exports = class bitvavo extends ccxt.bitvavo {
                 'watchOrderBook': true,
                 'watchTrades': true,
                 'watchTicker': true,
+                'watchOHLCV': true,
             },
             'urls': {
                 'api': {
@@ -419,6 +420,90 @@ module.exports = class bitvavo extends ccxt.bitvavo {
         }
     }
 
+    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchOrders requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const authenticate = this.authenticate ();
+        const market = this.market (symbol);
+        const marketId = market['id'];
+        const url = this.urls['api']['ws'];
+        const name = 'account';
+        const subscriptionHash = name + '@' + marketId;
+        const messageHash = subscriptionHash + '_' + 'order';
+        const request = {
+            'action': 'subscribe',
+            'channels': [
+                {
+                    'name': name,
+                    'markets': [ marketId ],
+                },
+            ],
+        };
+        const future = this.afterDropped (authenticate, this.watch, url, messageHash, request, subscriptionHash);
+        return await this.after (future, this.filterBySymbolSinceLimit, symbol, since, limit);
+    }
+
+    handleOrder (client, message) {
+        //
+        //     {
+        //         event: 'order',
+        //         orderId: 'f0e5180f-9497-4d05-9dc2-7056e8a2de9b',
+        //         market: 'ETH-EUR',
+        //         created: 1590948500319,
+        //         updated: 1590948500319,
+        //         status: 'new',
+        //         side: 'sell',
+        //         orderType: 'limit',
+        //         amount: '0.1',
+        //         amountRemaining: '0.1',
+        //         price: '300',
+        //         onHold: '0.1',
+        //         onHoldCurrency: 'ETH',
+        //         selfTradePrevention: 'decrementAndCancel',
+        //         visible: true,
+        //         timeInForce: 'GTC',
+        //         postOnly: false
+        //     }
+        //
+        const name = 'account';
+        const event = this.safeString (message, 'event');
+        const marketId = this.safeString (message, 'market');
+        const messageHash = name + '@' + marketId + '_' + event;
+        let symbol = marketId;
+        let market = undefined;
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+            symbol = market['symbol'];
+        }
+        const order = this.parseOrder (message, market);
+        const orderId = order['id'];
+        const defaultKey = this.safeValue (this.orders, symbol, {});
+        defaultKey[orderId] = order;
+        this.orders[symbol] = defaultKey;
+        let result = [];
+        const values = Object.values (this.orders);
+        for (let i = 0; i < values.length; i++) {
+            const orders = Object.values (values[i]);
+            result = this.arrayConcat (result, orders);
+        }
+        // delete older orders from our structure to prevent memory leaks
+        const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+        result = this.sortBy (result, 'timestamp');
+        const resultLength = result.length;
+        if (resultLength > limit) {
+            const toDelete = resultLength - limit;
+            for (let i = 0; i < toDelete; i++) {
+                const id = result[i]['id'];
+                const symbol = result[i]['symbol'];
+                delete this.orders[symbol][id];
+            }
+            result = result.slice (toDelete, resultLength);
+        }
+        client.resolve (result, messageHash);
+    }
+
     handleSubscriptionStatus (client, message) {
         //
         //     {
@@ -451,18 +536,26 @@ module.exports = class bitvavo extends ccxt.bitvavo {
         const action = 'authenticate';
         const authenticated = this.safeValue (client.subscriptions, action);
         if (authenticated === undefined) {
-            await this.checkRequiredCredentials ();
-            const timestamp = this.milliseconds ();
-            const stringTimestamp = timestamp.toString ();
-            const auth = stringTimestamp + 'GET/' + this.version + '/websocket';
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret));
-            const request = {
-                'action': action,
-                'key': this.apiKey,
-                'signature': signature,
-                'timestamp': timestamp,
-            };
-            this.spawn (this.watch, url, action, request, action);
+            try {
+                this.checkRequiredCredentials ();
+                const timestamp = this.milliseconds ();
+                const stringTimestamp = timestamp.toString ();
+                const auth = stringTimestamp + 'GET/' + this.version + '/websocket';
+                const signature = this.hmac (this.encode (auth), this.encode (this.secret));
+                const request = {
+                    'action': action,
+                    'key': this.apiKey,
+                    'signature': signature,
+                    'timestamp': timestamp,
+                };
+                this.spawn (this.watch, url, action, request, action);
+            } catch (e) {
+                client.reject (e, 'authenticated');
+                // allows further authentication attempts
+                if (action in client.subscriptions) {
+                    delete client.subscriptions[action];
+                }
+            }
         }
         return await future;
     }
@@ -548,6 +641,7 @@ module.exports = class bitvavo extends ccxt.bitvavo {
             'candle': this.handleOHLCV,
             'ticker24h': this.handleTicker,
             'authenticate': this.handleAuthenticationMessage,
+            'order': this.handleOrder,
         };
         const event = this.safeString (message, 'event');
         let method = this.safeValue (methods, event);
