@@ -23,7 +23,6 @@ module.exports = class currencycom extends Exchange {
                 'fetchMarkets': true,
                 'fetchOrderBook': true,
                 'fetchTicker': true,
-                'fetchBidsAsks': true,
                 'fetchTickers': true,
                 'fetchOHLCV': true,
                 'fetchMyTrades': true,
@@ -484,13 +483,23 @@ module.exports = class currencycom extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        //
+        //     [
+        //         1590971040000,
+        //         "0.02454",
+        //         "0.02456",
+        //         "0.02452",
+        //         "0.02456",
+        //         249
+        //     ]
+        //
         return [
-            ohlcv[0],
-            parseFloat (ohlcv[1]),
-            parseFloat (ohlcv[2]),
-            parseFloat (ohlcv[3]),
-            parseFloat (ohlcv[4]),
-            parseFloat (ohlcv[5]),
+            this.safeInteger (ohlcv, 0),
+            this.safeFloat (ohlcv, 1),
+            this.safeFloat (ohlcv, 2),
+            this.safeFloat (ohlcv, 3),
+            this.safeFloat (ohlcv, 4),
+            this.safeFloat (ohlcv, 5),
         ];
     }
 
@@ -505,9 +514,16 @@ module.exports = class currencycom extends Exchange {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // default == max == 500
+            request['limit'] = limit; // default 500, max 1000
         }
         const response = await this.publicGetKlines (this.extend (request, params));
+        //
+        //     [
+        //         [1590971040000,"0.02454","0.02456","0.02452","0.02456",249],
+        //         [1590971100000,"0.02455","0.02457","0.02452","0.02456",300],
+        //         [1590971160000,"0.02455","0.02456","0.02453","0.02454",286],
+        //     ]
+        //
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
