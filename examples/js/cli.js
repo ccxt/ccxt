@@ -15,6 +15,10 @@ let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x
     , table = process.argv.includes ('--table')
     , iso8601 = process.argv.includes ('--iso8601')
     , cors = process.argv.includes ('--cors')
+    , testnet =
+        process.argv.includes ('--test') ||
+        process.argv.includes ('--testnet') ||
+        process.argv.includes ('--sandbox')
 
 //-----------------------------------------------------------------------------
 
@@ -115,6 +119,10 @@ try {
         agent,
         ... settings,
     })
+
+    if (testnet) {
+        exchange.setSandboxMode (true)
+    }
 
 } catch (e) {
 

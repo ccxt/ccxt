@@ -16,7 +16,7 @@ module.exports = class bitvavo extends Exchange {
             'countries': [ 'NL' ], // Netherlands
             'rateLimit': 500,
             'version': 'v2',
-            'certified': false,
+            'certified': true,
             'pro': true,
             'has': {
                 'CORS': false,
@@ -587,6 +587,22 @@ module.exports = class bitvavo extends Exchange {
         //         "settled":true
         //     }
         //
+        // watchMyTrades (private)
+        //
+        //     {
+        //         event: 'fill',
+        //         timestamp: 1590964470132,
+        //         market: 'ETH-EUR',
+        //         orderId: '85d082e1-eda4-4209-9580-248281a29a9a',
+        //         fillId: '861d2da5-aa93-475c-8d9a-dce431bd4211',
+        //         side: 'sell',
+        //         amount: '0.1',
+        //         price: '211.46',
+        //         taker: true,
+        //         fee: '0.056',
+        //         feeCurrency: 'EUR'
+        //     }
+        //
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
         let cost = undefined;
@@ -595,7 +611,7 @@ module.exports = class bitvavo extends Exchange {
         }
         const timestamp = this.safeInteger (trade, 'timestamp');
         const side = this.safeString (trade, 'side');
-        const id = this.safeString (trade, 'id');
+        const id = this.safeString2 (trade, 'id', 'fillId');
         const marketId = this.safeInteger (trade, 'market');
         let symbol = undefined;
         if (marketId !== undefined) {
@@ -1144,7 +1160,7 @@ module.exports = class bitvavo extends Exchange {
         //
         const id = this.safeString (order, 'orderId');
         const timestamp = this.safeInteger (order, 'created');
-        const marketId = this.safeInteger (order, 'market');
+        const marketId = this.safeString (order, 'market');
         let symbol = undefined;
         if (marketId !== undefined) {
             if (marketId in this.markets_by_id) {
