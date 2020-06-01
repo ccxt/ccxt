@@ -16,7 +16,7 @@ module.exports = class bitvavo extends Exchange {
             'countries': [ 'NL' ], // Netherlands
             'rateLimit': 500,
             'version': 'v2',
-            'certified': false,
+            'certified': true,
             'pro': true,
             'has': {
                 'CORS': false,
