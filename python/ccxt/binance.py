@@ -370,8 +370,8 @@ class binance(Exchange):
         response = getattr(self, method)(params)
         return self.safe_integer(response, 'serverTime')
 
-    def load_time_difference(self):
-        serverTime = self.fetch_time()
+    def load_time_difference(self, params={}):
+        serverTime = self.fetch_time(params)
         after = self.milliseconds()
         self.options['timeDifference'] = after - serverTime
         return self.options['timeDifference']
