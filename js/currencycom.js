@@ -103,7 +103,6 @@ module.exports = class currencycom extends Exchange {
             // exchange-specific options
             'options': {
                 'fetchTradesMethod': 'publicGetAggTrades',
-                'fetchTickersMethod': 'publicGetTicker24hr',
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 'defaultLimitOrderType': 'limit', // or 'limit_maker'
                 'hasAlreadyAuthenticatedSuccessfully': false,
@@ -369,6 +368,18 @@ module.exports = class currencycom extends Exchange {
         //         "closeTime":1591000072693
         //     }
         //
+        // fetchTickers
+        //
+        //     {
+        //         "symbol":"EVK",
+        //         "highPrice":"22.57",
+        //         "lowPrice":"22.16",
+        //         "volume":"1",
+        //         "quoteVolume":"22.2",
+        //         "openTime":1590699364000,
+        //         "closeTime":1590785764000
+        //     }
+        //
         const timestamp = this.safeInteger (ticker, 'closeTime');
         const marketId = this.safeString (ticker, 'symbol');
         let symbol = marketId;
@@ -455,8 +466,20 @@ module.exports = class currencycom extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const method = this.options['fetchTickersMethod'];
-        const response = await this[method] (params);
+        const response = await this.publicGetTicker24hr (params);
+        //
+        //     [
+        //         {
+        //             "symbol":"EVK",
+        //             "highPrice":"22.57",
+        //             "lowPrice":"22.16",
+        //             "volume":"1",
+        //             "quoteVolume":"22.2",
+        //             "openTime":1590699364000,
+        //             "closeTime":1590785764000
+        //         }
+        //     ]
+        //
         return this.parseTickers (response, symbols);
     }
 
