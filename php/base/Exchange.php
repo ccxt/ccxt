@@ -155,6 +155,7 @@ class Exchange {
         'lykke',
         'mercado',
         'mixcoins',
+        'nashio',
         'oceanex',
         'okcoin',
         'okex',
