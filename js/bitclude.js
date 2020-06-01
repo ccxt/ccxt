@@ -20,9 +20,15 @@ module.exports = class bitclude extends Exchange {
             'urls': {
                 'api': {
                     'public': 'https://api.bitclude.com/',
+                    'private': 'https://api.bitclude.com/',
                 },
                 'www': 'https://bitclude.com',
                 'doc': 'https://docs.bitclude.com',
+            },
+            'requiredCredentials': {
+                'apiKey': true,
+                'secret': false,
+                'uid': true,
             },
             'has': {
                 'fetchMarkets': 'emulated',
@@ -50,6 +56,11 @@ module.exports = class bitclude extends Exchange {
                         'stats/ticker.json',
                         'stats/orderbook_{base}{quote}.json',
                         'stats/history_{base}{quote}.json',
+                    ],
+                },
+                'private': {
+                    'get': [
+                        '',
                     ],
                 },
             },
@@ -215,13 +226,37 @@ module.exports = class bitclude extends Exchange {
         };
     }
 
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        params['method'] = 'account';
+        params['action'] = 'info';
+        const response = await this.privateGet (params);
+        const result = {
+            'info': response,
+        };
+        const balances = this.safeValue (response, 'balances', []);
+        const currencies = Object.keys (balances);
+        for (let i = 0; i < currencies.length; i++) {
+            const balance = this.safeValue (balances, currencies[i]);
+            const currencyCode = this.safeCurrencyCode (currencies[i]);
+            const account = this.account ();
+            account['free'] = this.safeFloat (balance, 'active');
+            account['used'] = this.safeFloat (balance, 'inactive');
+            result[currencyCode] = account;
+        }
+        return this.parseBalance (result);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const request = '/' + this.implodeParams (path, params);
         let url = this.urls['api'][api] + request;
-        if (api === 'public') {
-            if (Object.keys (params).length) {
-                url += '?' + this.urlencode (params);
-            }
+        if (api === 'private') {
+            this.checkRequiredCredentials ();
+            params['id'] = this.uid;
+            params['key'] = this.apiKey;
+        }
+        if (Object.keys (params).length) {
+            url += '?' + this.urlencode (params);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
