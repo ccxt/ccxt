@@ -62,7 +62,7 @@ class kuna extends acx {
     }
 
     public function fetch_markets($params = array ()) {
-        $quotes = array( 'btc', 'eth', 'eurs', 'rub', 'uah', 'usd', 'usdt' );
+        $quotes = array( 'btc', 'eth', 'eurs', 'rub', 'uah', 'usd', 'usdt', 'gol' );
         $pricePrecisions = array(
             'UAH' => 0,
         );
