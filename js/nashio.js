@@ -409,8 +409,13 @@ module.exports = class nashio extends Exchange {
             const listSymbol = listItem['asset']['symbol'];
             const code = this.safeCurrencyCode (listSymbol);
             // console.warn (listSymbol, code);
-            const free = listData[i]['available']['amount'];
-            const used = this.sum (listData[i]['inOrders']['amount'], listData[i]['pending']['amount']);
+            const available = this.safeValue (listData[i], 'available');
+            const free = this.safeFloat (available, 'amount');
+            const inOrders = this.safeValue (listData[i], 'inOrders');
+            const inOrdersAmount = this.safeFloat (inOrders, 'amount');
+            const pending = this.safeValue (listData[i], 'pending');
+            const pendingAmount = this.safeFloat (pending, 'amount');
+            const used = this.sum (inOrdersAmount, pendingAmount);
             const total = this.sum (free, used);
             result['free'][code] = free;
             result['used'][code] = used;
