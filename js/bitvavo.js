@@ -18,6 +18,7 @@ module.exports = class bitvavo extends ccxt.bitvavo {
                 'watchTicker': true,
                 'watchOHLCV': true,
                 'watchOrders': true,
+                'watchMyTrades': true,
             },
             'urls': {
                 'api': {
@@ -446,6 +447,31 @@ module.exports = class bitvavo extends ccxt.bitvavo {
         return await this.after (future, this.filterBySymbolSinceLimit, symbol, since, limit);
     }
 
+    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchMyTrades requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const authenticate = this.authenticate ();
+        const market = this.market (symbol);
+        const marketId = market['id'];
+        const url = this.urls['api']['ws'];
+        const name = 'account';
+        const subscriptionHash = name + '@' + marketId;
+        const messageHash = subscriptionHash + '_' + 'fill';
+        const request = {
+            'action': 'subscribe',
+            'channels': [
+                {
+                    'name': name,
+                    'markets': [ marketId ],
+                },
+            ],
+        };
+        const future = this.afterDropped (authenticate, this.watch, url, messageHash, request, subscriptionHash);
+        return await this.after (future, this.filterBySymbolSinceLimit, symbol, since, limit);
+    }
+
     handleOrder (client, message) {
         //
         //     {
@@ -503,6 +529,41 @@ module.exports = class bitvavo extends ccxt.bitvavo {
             result = result.slice (toDelete, resultLength);
         }
         client.resolve (result, messageHash);
+    }
+
+    handleMyTrade (client, message) {
+        //
+        //     {
+        //         event: 'fill',
+        //         timestamp: 1590964470132,
+        //         market: 'ETH-EUR',
+        //         orderId: '85d082e1-eda4-4209-9580-248281a29a9a',
+        //         fillId: '861d2da5-aa93-475c-8d9a-dce431bd4211',
+        //         side: 'sell',
+        //         amount: '0.1',
+        //         price: '211.46',
+        //         taker: true,
+        //         fee: '0.056',
+        //         feeCurrency: 'EUR'
+        //     }
+        //
+        const name = 'account';
+        const event = this.safeString (message, 'event');
+        const marketId = this.safeString (message, 'market');
+        const messageHash = name + '@' + marketId + '_' + event;
+        let market = undefined;
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+        }
+        const trade = this.parseTrade (message, market);
+        if (this.myTrades === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            this.myTrades = new ArrayCache (limit);
+        }
+        const array = this.myTrades;
+        array.append (trade);
+        this.myTrades = array;
+        client.resolve (array, messageHash);
     }
 
     handleSubscriptionStatus (client, message) {
@@ -643,6 +704,7 @@ module.exports = class bitvavo extends ccxt.bitvavo {
             'ticker24h': this.handleTicker,
             'authenticate': this.handleAuthenticationMessage,
             'order': this.handleOrder,
+            'fill': this.handleMyTrade,
         };
         const event = this.safeString (message, 'event');
         let method = this.safeValue (methods, event);
