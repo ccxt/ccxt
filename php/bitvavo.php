@@ -18,7 +18,7 @@ class bitvavo extends Exchange {
             'countries' => array( 'NL' ), // Netherlands
             'rateLimit' => 500,
             'version' => 'v2',
-            'certified' => false,
+            'certified' => true,
             'pro' => true,
             'has' => array(
                 'CORS' => false,

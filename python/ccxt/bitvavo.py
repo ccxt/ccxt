@@ -30,7 +30,7 @@ class bitvavo(Exchange):
             'countries': ['NL'],  # Netherlands
             'rateLimit': 500,
             'version': 'v2',
-            'certified': False,
+            'certified': True,
             'pro': True,
             'has': {
                 'CORS': False,
