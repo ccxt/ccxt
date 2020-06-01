@@ -528,53 +528,23 @@ module.exports = class currencycom extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        if ('isDustTrade' in trade) {
-            return this.parseDustTrade (trade, market);
-        }
         //
-        // aggregate trades
+        // fetchTrades (public aggregate trades)
         //
         //     {
-        //         "a": 26129,         // Aggregate tradeId
-        //         "p": "0.01633102",  // Price
-        //         "q": "4.70443515",  // Quantity
-        //         "f": 27781,         // First tradeId
-        //         "l": 27781,         // Last tradeId
-        //         "T": 1498793709153, // Timestamp
-        //         "m": true,          // Was the buyer the maker?
-        //         "M": true           // Was the trade the best price match?
+        //         "a":1658318071,
+        //         "p":"0.02476",
+        //         "q":"0.0",
+        //         "T":1591001423382,
+        //         "m":false
         //     }
         //
-        // recent public trades and old public trades
-        //
-        //     {
-        //         "id": 28457,
-        //         "price": "4.00000100",
-        //         "qty": "12.00000000",
-        //         "time": 1499865549590,
-        //         "isBuyerMaker": true,
-        //         "isBestMatch": true
-        //     }
-        //
-        // private trades
-        //
-        //     {
-        //         "symbol": "BNBBTC",
-        //         "id": 28457,
-        //         "orderId": 100234,
-        //         "price": "4.00000100",
-        //         "qty": "12.00000000",
-        //         "commission": "10.10000000",
-        //         "commissionAsset": "BNB",
-        //         "time": 1499865549590,
-        //         "isBuyer": true,
-        //         "isMaker": false,
-        //         "isBestMatch": true
-        //     }
-        //
-        const timestamp = this.safeInteger2 (trade, 'T', 'time');
+        const timestamp = this.safeInteger (trade, 'T', 'time');
         const price = this.safeFloat2 (trade, 'p', 'price');
-        const amount = this.safeFloat2 (trade, 'q', 'qty');
+        let amount = this.safeFloat2 (trade, 'q', 'qty');
+        if (amount !== undefined) {
+            amount = Math.abs (amount);
+        }
         const id = this.safeString2 (trade, 'a', 'id');
         let side = undefined;
         const orderId = this.safeString (trade, 'orderId');
