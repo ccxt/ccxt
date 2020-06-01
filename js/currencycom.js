@@ -25,6 +25,7 @@ module.exports = class currencycom extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchOHLCV': true,
+                'fetchTrades': true,
                 'fetchMyTrades': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
@@ -101,7 +102,6 @@ module.exports = class currencycom extends Exchange {
             },
             // exchange-specific options
             'options': {
-                'fetchTradesMethod': 'publicGetAggTrades',
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 'defaultLimitOrderType': 'limit', // or 'limit_maker'
                 'hasAlreadyAuthenticatedSuccessfully': false,
@@ -628,57 +628,20 @@ module.exports = class currencycom extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-            // 'fromId': 123,    // ID to get aggregate trades from INCLUSIVE.
-            // 'startTime': 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.
-            // 'endTime': 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
-            // 'limit': 500,     // default = 500, maximum = 1000
+            // 'limit': 500, // default 500, max 1000
         };
-        if (this.options['fetchTradesMethod'] === 'publicGetAggTrades') {
-            if (since !== undefined) {
-                request['startTime'] = since;
-                request['endTime'] = this.sum (since, 3600000);
-            }
-        }
         if (limit !== undefined) {
-            request['limit'] = limit; // default = 500, maximum = 1000
+            request['limit'] = limit; // default 500, max 1000
         }
-        //
-        // Caveats:
-        // - default limit (500) applies only if no other parameters set, trades up
-        //   to the maximum limit may be returned to satisfy other parameters
-        // - if both limit and time window is set and time window contains more
-        //   trades than the limit then the last trades from the window are returned
-        // - 'tradeId' accepted and returned by this method is "aggregate" trade id
-        //   which is different from actual trade id
-        // - setting both fromId and time window results in error
-        const method = this.safeValue (this.options, 'fetchTradesMethod', 'publicGetTrades');
-        const response = await this[method] (this.extend (request, params));
-        //
-        // aggregate trades
+        const response = await this.publicGetAggTrades (this.extend (request, params));
         //
         //     [
         //         {
-        //             "a": 26129,         // Aggregate tradeId
-        //             "p": "0.01633102",  // Price
-        //             "q": "4.70443515",  // Quantity
-        //             "f": 27781,         // First tradeId
-        //             "l": 27781,         // Last tradeId
-        //             "T": 1498793709153, // Timestamp
-        //             "m": true,          // Was the buyer the maker?
-        //             "M": true           // Was the trade the best price match?
-        //         }
-        //     ]
-        //
-        // recent public trades and historical public trades
-        //
-        //     [
-        //         {
-        //             "id": 28457,
-        //             "price": "4.00000100",
-        //             "qty": "12.00000000",
-        //             "time": 1499865549590,
-        //             "isBuyerMaker": true,
-        //             "isBestMatch": true
+        //             "a":1658318071,
+        //             "p":"0.02476",
+        //             "q":"0.0",
+        //             "T":1591001423382,
+        //             "m":false
         //         }
         //     ]
         //
