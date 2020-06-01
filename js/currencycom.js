@@ -321,9 +321,24 @@ module.exports = class currencycom extends Exchange {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit; // default = maximum = 100
+            request['limit'] = limit; // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000, 5000
         }
         const response = await this.publicGetDepth (this.extend (request, params));
+        //
+        //     {
+        //         "lastUpdateId":1590999849037,
+        //         "asks":[
+        //             [0.02495,60.0000],
+        //             [0.02496,120.0000],
+        //             [0.02497,240.0000],
+        //         ],
+        //         "bids":[
+        //             [0.02487,60.0000],
+        //             [0.02486,120.0000],
+        //             [0.02485,240.0000],
+        //         ]
+        //     }
+        //
         const orderbook = this.parseOrderBook (response);
         orderbook['nonce'] = this.safeInteger (response, 'lastUpdateId');
         return orderbook;
