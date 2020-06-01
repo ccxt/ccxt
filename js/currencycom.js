@@ -453,12 +453,6 @@ module.exports = class currencycom extends Exchange {
         return this.filterByArray (tickers, 'symbol', symbols);
     }
 
-    async fetchBidsAsks (symbols = undefined, params = {}) {
-        await this.loadMarkets ();
-        const response = await this.publicGetTickerBookTicker (params);
-        return this.parseTickers (response, symbols);
-    }
-
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const method = this.options['fetchTickersMethod'];
