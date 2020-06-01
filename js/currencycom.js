@@ -16,6 +16,7 @@ module.exports = class currencycom extends Exchange {
             'countries': [ 'BY' ], // Belarus
             'rateLimit': 500,
             'certified': false,
+            'version': 'v1',
             // new metainfo interface
             'has': {
                 'fetchDepositAddress': false,
@@ -48,10 +49,8 @@ module.exports = class currencycom extends Exchange {
             'urls': {
                 'logo': 'https://currency.com/img/platforms/logo-currency.png',
                 'api': {
-                    'web': 'https://www.currency.com',
-                    'public': 'https://api-adapter.backend.currency.com/api/v1',
-                    'private': 'https://api-adapter.backend.currency.com/api/v1',
-                    'v1': 'https://api-adapter.backend.currency.com/api/v1',
+                    'public': 'https://api-adapter.backend.currency.com/api',
+                    'private': 'https://api-adapter.backend.currency.com/api',
                 },
                 'www': 'https://www.currency.com',
                 'referral': 'https://www.currency.com/?ref=10205187',
@@ -62,47 +61,29 @@ module.exports = class currencycom extends Exchange {
                 'fees': 'https://currency.com/fees-charges', // TODO
             },
             'api': {
-                'v3': {
-                    'get': [
-                        'ticker/price',
-                        'ticker/bookTicker',
-                    ],
-                },
                 'public': {
                     'get': [
-                        'ping',
                         'time',
+                        'exchangeInfo',
                         'depth',
-                        'trades',
                         'aggTrades',
-                        'historicalTrades',
                         'klines',
                         'ticker/24hr',
-                        'ticker/allPrices',
-                        'ticker/allBookTickers',
-                        'ticker/price',
-                        'ticker/bookTicker',
-                        'exchangeInfo',
                     ],
-                    'put': [ 'userDataStream' ],
-                    'post': [ 'userDataStream' ],
-                    'delete': [ 'userDataStream' ],
                 },
                 'private': {
                     'get': [
-                        'order',
+                        'leverageSettings',
                         'openOrders',
-                        'allOrders',
+                        'tradingPositions',
                         'account',
                         'myTrades',
-                        'tradingPositions',
-                        'leverageSettings',
                     ],
                     'post': [
                         'order',
-                        'order/test',
-                        'closeTradingPosition',
                         'updateTradingPosition',
+                        'updateTradingOrder',
+                        'closeTradingPosition',
                     ],
                     'delete': [
                         'order',
@@ -113,13 +94,9 @@ module.exports = class currencycom extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'taker': 0.001,
-                    'maker': 0.001,
+                    'taker': 0.002,
+                    'maker': 0.002,
                 },
-            },
-            'commonCurrencies': {
-                'BCC': 'BCC', // kept for backward-compatibility http://github.com/ccxt/ccxt/issues/4848
-                'YOYO': 'YOYOW',
             },
             // exchange-specific options
             'options': {
@@ -163,8 +140,18 @@ module.exports = class currencycom extends Exchange {
         return this.milliseconds () - this.options['timeDifference'];
     }
 
-    async loadTimeDifference () {
-        const response = await this.publicGetTime ();
+    async fetchTime (params = {}) {
+        const response = await this.publicGetTime (params);
+        //
+        //     {
+        //         "serverTime": 1590998366609
+        //     }
+        //
+        return this.safeInteger (response, 'serverTime');
+    }
+
+    async loadTimeDifference (params = {}) {
+        const response = await this.publicGetTime (params);
         const after = this.milliseconds ();
         this.options['timeDifference'] = parseInt (after - response['serverTime']);
         return this.options['timeDifference'];
@@ -1207,25 +1194,13 @@ module.exports = class currencycom extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api];
-        url += '/' + path;
-        if (api === 'wapi') {
-            url += '.html';
-        }
-        const userDataStream = (path === 'userDataStream');
+        let url = this.urls['api'][api] + '/' + this.version + '/' + path;
         if (path === 'historicalTrades') {
             headers = {
                 'X-MBX-APIKEY': this.apiKey,
             };
-        } else if (userDataStream) {
-            // v1 special case for userDataStream
-            body = this.urlencode (params);
-            headers = {
-                'X-MBX-APIKEY': this.apiKey,
-                'Content-Type': 'application/x-www-form-urlencoded',
-            };
         }
-        if ((api === 'private') || (api === 'wapi' && path !== 'systemStatus')) {
+        if (api === 'private') {
             this.checkRequiredCredentials ();
             let query = this.urlencode (this.extend ({
                 'timestamp': this.nonce (),
@@ -1236,20 +1211,15 @@ module.exports = class currencycom extends Exchange {
             headers = {
                 'X-MBX-APIKEY': this.apiKey,
             };
-            if ((method === 'GET') || (method === 'DELETE') || (api === 'wapi')) {
+            if ((method === 'GET') || (method === 'DELETE')) {
                 url += '?' + query;
             } else {
                 body = query;
                 headers['Content-Type'] = 'application/x-www-form-urlencoded';
             }
         } else {
-            // userDataStream endpoints are public, but POST, PUT, DELETE
-            // therefore they don't accept URL query arguments
-            // http://github.com/ccxt/ccxt/issues/5224
-            if (!userDataStream) {
-                if (Object.keys (params).length) {
-                    url += '?' + this.urlencode (params);
-                }
+            if (Object.keys (params).length) {
+                url += '?' + this.urlencode (params);
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
