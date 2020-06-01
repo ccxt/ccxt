@@ -139,7 +139,7 @@ class kuna(acx):
                 'ask': 'sell',
                 'bid': 'buy',
             }
-            side = self.safe_string(sideMap, side)
+            side = self.safe_string(sideMap, side, side)
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'volume')
         cost = self.safe_float(trade, 'funds')

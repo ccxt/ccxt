@@ -148,7 +148,7 @@ class kuna extends acx {
                 'ask' => 'sell',
                 'bid' => 'buy',
             );
-            $side = $this->safe_string($sideMap, $side);
+            $side = $this->safe_string($sideMap, $side, $side);
         }
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'volume');
