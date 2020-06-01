@@ -307,8 +307,8 @@ class bybit(Exchange):
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
-    async def load_time_difference(self):
-        serverTime = await self.fetch_time()
+    async def load_time_difference(self, params={}):
+        serverTime = await self.fetch_time(params)
         after = self.milliseconds()
         self.options['timeDifference'] = after - serverTime
         return self.options['timeDifference']
