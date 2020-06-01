@@ -19,6 +19,7 @@ module.exports = async (exchange, symbol) => {
 
     const skippedExchanges = [
         'binanceje',
+        'bitvavo',
         'dsx',
     ]
 
