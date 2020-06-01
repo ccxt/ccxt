@@ -608,7 +608,6 @@ module.exports = class equos extends Exchange {
     }
 
     getCurrencyByCode (code) {
-        code = code.toUpperCase ();
         const currency = this.currencies[code];
         if (currency === undefined) {
             throw new BadSymbol (this.id + ': code ' + code + ' is not listed');
@@ -654,7 +653,10 @@ module.exports = class equos extends Exchange {
                 currencyCode = currency['code'];
             }
         }
-        const feeTotal = this.convertFromScale (this.safeInteger (order, 'feeTotal', 0), this.safeInteger (order, 'fee_scale', 0));
+        let feeTotal = undefined;
+        if (this.safeInteger (order, 'feeTotal') !== undefined && this.safeInteger (order, 'fee_scale') !== undefined) {
+            feeTotal = this.convertFromScale (this.safeInteger (order, 'feeTotal'), this.safeInteger (order, 'fee_scale'));
+        }
         const fee = {                         // fee info, if available
             'currency': currencyCode,        // which currency the fee is (usually quote)
             'cost': feeTotal,           // the fee amount in that currency
@@ -842,6 +844,7 @@ module.exports = class equos extends Exchange {
             const dateTime = this.iso8601 (timestamp);
             const orderId = this.safeString (trade, 'orderId');
             const side = this.safeStringLower (trade, 'side');
+            const type = this.parseOrderType (this.safeString (trade, 'ordType'));
             let takerOrMaker = undefined;
             const isMaker = this.safeValue (trade, 'maker');
             if (isMaker === true) {
@@ -861,7 +864,7 @@ module.exports = class equos extends Exchange {
                 'datetime': dateTime,  // ISO8601 datetime with milliseconds
                 'symbol': markeySymbol['symbol'],                  // symbol
                 'order': orderId,  // string order id or undefined/None/null
-                'type': undefined,                    // order type, 'market', 'limit' or undefined/None/null
+                'type': type,                    // order type, 'market', 'limit' or undefined/None/null
                 'side': side,                      // direction of the trade, 'buy' or 'sell'
                 'takerOrMaker': takerOrMaker,                    // string, 'taker' or 'maker'
                 'price': price,                 // float price in quote currency
