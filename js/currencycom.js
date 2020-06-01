@@ -19,8 +19,8 @@ module.exports = class currencycom extends Exchange {
             'version': 'v1',
             // new metainfo interface
             'has': {
-                'fetchDepositAddress': false,
                 'CORS': false,
+                'fetchMarkets': true,
                 'fetchBidsAsks': true,
                 'fetchTickers': true,
                 'fetchOHLCV': true,
@@ -159,6 +159,36 @@ module.exports = class currencycom extends Exchange {
 
     async fetchMarkets (params = {}) {
         const response = await this.publicGetExchangeInfo (params);
+        //
+        //     {
+        //         "timezone":"UTC",
+        //         "serverTime":1590998061253,
+        //         "rateLimits":[
+        //             {"rateLimitType":"REQUEST_WEIGHT","interval":"MINUTE","intervalNum":1,"limit":1200},
+        //             {"rateLimitType":"ORDERS","interval":"SECOND","intervalNum":1,"limit":10},
+        //             {"rateLimitType":"ORDERS","interval":"DAY","intervalNum":1,"limit":864000}
+        //         ],
+        //         "exchangeFilters":[],
+        //         "symbols":[
+        //             {
+        //                 "symbol":"EVK",
+        //                 "name":"Evonik",
+        //                 "status":"HALT",
+        //                 "baseAsset":"EVK",
+        //                 "baseAssetPrecision":3,
+        //                 "quoteAsset":"EUR",
+        //                 "quoteAssetId":"EUR",
+        //                 "quotePrecision":3,
+        //                 "orderTypes":["LIMIT","MARKET"],
+        //                 "filters":[
+        //                     {"filterType":"LOT_SIZE","minQty":"1","maxQty":"27000","stepSize":"1"},
+        //                     {"filterType":"MIN_NOTIONAL","minNotional":"23"}
+        //                 ],
+        //                 "marketType":"SPOT"
+        //             },
+        //         ]
+        //     }
+        //
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference ();
         }
@@ -167,21 +197,16 @@ module.exports = class currencycom extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString (market, 'symbol');
-            // "123456" is a "test symbol/market"
-            if (id === '123456') {
-                continue;
-            }
-            const baseId = market['baseAsset'];
-            const quoteId = market['quoteAsset'];
+            const baseId = this.safeString (market, 'baseAsset');
+            const quoteId = this.safeString (market, 'quoteAsset');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
-            const filters = this.indexBy (market['filters'], 'filterType');
+            const filters = this.safeValue (market, 'filters', []);
+            const filtersByType = this.indexBy (filters, 'filterType');
             const precision = {
-                'base': market['baseAssetPrecision'],
-                'quote': market['quotePrecision'],
-                'amount': market['baseAssetPrecision'],
-                'price': market['quotePrecision'],
+                'amount': this.safeInteger (market, 'baseAssetPrecision'),
+                'price': this.safeInteger (market, 'quotePrecision'),
             };
             const status = this.safeString (market, 'status');
             const active = (status === 'TRADING');
@@ -210,11 +235,11 @@ module.exports = class currencycom extends Exchange {
                     },
                 },
             };
-            if ('PRICE_FILTER' in filters) {
-                const filter = filters['PRICE_FILTER'];
+            if ('PRICE_FILTER' in filtersByType) {
+                const filter = this.safeValue (filtersByType, 'PRICE_FILTER', {});
                 // PRICE_FILTER reports zero values for maxPrice
                 // since they updated filter types in November 2018
-                // http://github.com/ccxt/ccxt/issues/4286
+                // https://github.com/ccxt/ccxt/issues/4286
                 // therefore limits['price']['max'] doesn't have any meaningful value except undefined
                 entry['limits']['price'] = {
                     'min': this.safeFloat (filter, 'minPrice'),
@@ -226,8 +251,8 @@ module.exports = class currencycom extends Exchange {
                 }
                 entry['precision']['price'] = this.precisionFromString (filter['tickSize']);
             }
-            if ('LOT_SIZE' in filters) {
-                const filter = this.safeValue (filters, 'LOT_SIZE', {});
+            if ('LOT_SIZE' in filtersByType) {
+                const filter = this.safeValue (filtersByType, 'LOT_SIZE', {});
                 const stepSize = this.safeString (filter, 'stepSize');
                 entry['precision']['amount'] = this.precisionFromString (stepSize);
                 entry['limits']['amount'] = {
@@ -235,8 +260,16 @@ module.exports = class currencycom extends Exchange {
                     'max': this.safeFloat (filter, 'maxQty'),
                 };
             }
-            if ('MIN_NOTIONAL' in filters) {
-                entry['limits']['cost']['min'] = this.safeFloat (filters['MIN_NOTIONAL'], 'minNotional');
+            if ('MARKET_LOT_SIZE' in filtersByType) {
+                const filter = this.safeValue (filtersByType, 'MARKET_LOT_SIZE', {});
+                entry['limits']['market'] = {
+                    'min': this.safeFloat (filter, 'minQty'),
+                    'max': this.safeFloat (filter, 'maxQty'),
+                };
+            }
+            if ('MIN_NOTIONAL' in filtersByType) {
+                const filter = this.safeValue (filtersByType, 'MIN_NOTIONAL', {});
+                entry['limits']['cost']['min'] = this.safeFloat (filter, 'minNotional');
             }
             result.push (entry);
         }
