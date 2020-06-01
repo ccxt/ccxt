@@ -21,6 +21,8 @@ module.exports = class currencycom extends Exchange {
             'has': {
                 'CORS': false,
                 'fetchMarkets': true,
+                'fetchOrderBook': true,
+                'fetchTicker': true,
                 'fetchBidsAsks': true,
                 'fetchTickers': true,
                 'fetchOHLCV': true,
@@ -345,16 +347,50 @@ module.exports = class currencycom extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        //
+        // fetchTicker
+        //
+        //     {
+        //         "symbol":"ETH/BTC",
+        //         "priceChange":"0.00030",
+        //         "priceChangePercent":"1.21",
+        //         "weightedAvgPrice":"0.02481",
+        //         "prevClosePrice":"0.02447",
+        //         "lastPrice":"0.02477",
+        //         "lastQty":"60.0",
+        //         "bidPrice":"0.02477",
+        //         "askPrice":"0.02484",
+        //         "openPrice":"0.02447",
+        //         "highPrice":"0.02524",
+        //         "lowPrice":"0.02438",
+        //         "volume":"11.97",
+        //         "quoteVolume":"0.298053",
+        //         "openTime":1590969600000,
+        //         "closeTime":1591000072693
+        //     }
+        //
         const timestamp = this.safeInteger (ticker, 'closeTime');
-        let symbol = undefined;
         const marketId = this.safeString (ticker, 'symbol');
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
+        let symbol = marketId;
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            } else if (marketId.indexOf ('/') >= 0) {
+                const [ baseId, quoteId ] = marketId.split ('/');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
         }
-        if (market !== undefined) {
+        if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
         const last = this.safeFloat (ticker, 'lastPrice');
+        const open = this.safeFloat (ticker, 'openPrice');
+        let average = undefined;
+        if ((open !== undefined) && (last !== undefined)) {
+            average = this.sum (open, last) / 2;
+        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -366,13 +402,13 @@ module.exports = class currencycom extends Exchange {
             'ask': this.safeFloat (ticker, 'askPrice'),
             'askVolume': this.safeFloat (ticker, 'askQty'),
             'vwap': this.safeFloat (ticker, 'weightedAvgPrice'),
-            'open': this.safeFloat (ticker, 'openPrice'),
+            'open': open,
             'close': last,
             'last': last,
             'previousClose': this.safeFloat (ticker, 'prevClosePrice'), // previous day close
             'change': this.safeFloat (ticker, 'priceChange'),
             'percentage': this.safeFloat (ticker, 'priceChangePercent'),
-            'average': undefined,
+            'average': average,
             'baseVolume': this.safeFloat (ticker, 'volume'),
             'quoteVolume': this.safeFloat (ticker, 'quoteVolume'),
             'info': ticker,
@@ -386,6 +422,26 @@ module.exports = class currencycom extends Exchange {
             'symbol': market['id'],
         };
         const response = await this.publicGetTicker24hr (this.extend (request, params));
+        //
+        //     {
+        //         "symbol":"ETH/BTC",
+        //         "priceChange":"0.00030",
+        //         "priceChangePercent":"1.21",
+        //         "weightedAvgPrice":"0.02481",
+        //         "prevClosePrice":"0.02447",
+        //         "lastPrice":"0.02477",
+        //         "lastQty":"60.0",
+        //         "bidPrice":"0.02477",
+        //         "askPrice":"0.02484",
+        //         "openPrice":"0.02447",
+        //         "highPrice":"0.02524",
+        //         "lowPrice":"0.02438",
+        //         "volume":"11.97",
+        //         "quoteVolume":"0.298053",
+        //         "openTime":1590969600000,
+        //         "closeTime":1591000072693
+        //     }
+        //
         return this.parseTicker (response, market);
     }
 
