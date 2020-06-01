@@ -268,8 +268,8 @@ class kucoin(Exchange):
     def nonce(self):
         return self.milliseconds()
 
-    def load_time_difference(self):
-        response = self.publicGetTimestamp()
+    def load_time_difference(self, params={}):
+        response = self.publicGetTimestamp(params)
         after = self.milliseconds()
         kucoinTime = self.safe_integer(response, 'data')
         self.options['timeDifference'] = int(after - kucoinTime)
