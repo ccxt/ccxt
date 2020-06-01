@@ -22,6 +22,7 @@ class bitvavo extends \ccxt\bitvavo {
                 'watchTicker' => true,
                 'watchOHLCV' => true,
                 'watchOrders' => true,
+                'watchMyTrades' => true,
             ),
             'urls' => array(
                 'api' => array(
@@ -450,6 +451,31 @@ class bitvavo extends \ccxt\bitvavo {
         return $this->after($future, array($this, 'filter_by_symbol_since_limit'), $symbol, $since, $limit);
     }
 
+    public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' watchMyTrades requires a $symbol argument');
+        }
+        $this->load_markets();
+        $authenticate = $this->authenticate();
+        $market = $this->market($symbol);
+        $marketId = $market['id'];
+        $url = $this->urls['api']['ws'];
+        $name = 'account';
+        $subscriptionHash = $name . '@' . $marketId;
+        $messageHash = $subscriptionHash . '_' . 'fill';
+        $request = array(
+            'action' => 'subscribe',
+            'channels' => array(
+                array(
+                    'name' => $name,
+                    'markets' => array( $marketId ),
+                ),
+            ),
+        );
+        $future = $this->after_dropped($authenticate, array($this, 'watch'), $url, $messageHash, $request, $subscriptionHash);
+        return $this->after($future, array($this, 'filter_by_symbol_since_limit'), $symbol, $since, $limit);
+    }
+
     public function handle_order($client, $message) {
         //
         //     {
@@ -507,6 +533,41 @@ class bitvavo extends \ccxt\bitvavo {
             $result = mb_substr($result, $toDelete, $resultLength - $toDelete);
         }
         $client->resolve ($result, $messageHash);
+    }
+
+    public function handle_my_trade($client, $message) {
+        //
+        //     {
+        //         $event => 'fill',
+        //         timestamp => 1590964470132,
+        //         $market => 'ETH-EUR',
+        //         orderId => '85d082e1-eda4-4209-9580-248281a29a9a',
+        //         fillId => '861d2da5-aa93-475c-8d9a-dce431bd4211',
+        //         side => 'sell',
+        //         amount => '0.1',
+        //         price => '211.46',
+        //         taker => true,
+        //         fee => '0.056',
+        //         feeCurrency => 'EUR'
+        //     }
+        //
+        $name = 'account';
+        $event = $this->safe_string($message, 'event');
+        $marketId = $this->safe_string($message, 'market');
+        $messageHash = $name . '@' . $marketId . '_' . $event;
+        $market = null;
+        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+            $market = $this->markets_by_id[$marketId];
+        }
+        $trade = $this->parse_trade($message, $market);
+        if ($this->myTrades === null) {
+            $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
+            $this->myTrades = new ArrayCache ($limit);
+        }
+        $array = $this->myTrades;
+        $array->append ($trade);
+        $this->myTrades = $array;
+        $client->resolve ($array, $messageHash);
     }
 
     public function handle_subscription_status($client, $message) {
@@ -647,6 +708,7 @@ class bitvavo extends \ccxt\bitvavo {
             'ticker24h' => array($this, 'handle_ticker'),
             'authenticate' => array($this, 'handle_authentication_message'),
             'order' => array($this, 'handle_order'),
+            'fill' => array($this, 'handle_my_trade'),
         );
         $event = $this->safe_string($message, 'event');
         $method = $this->safe_value($methods, $event);

@@ -21,6 +21,7 @@ class bitvavo(Exchange, ccxt.bitvavo):
                 'watchTicker': True,
                 'watchOHLCV': True,
                 'watchOrders': True,
+                'watchMyTrades': True,
             },
             'urls': {
                 'api': {
@@ -404,6 +405,29 @@ class bitvavo(Exchange, ccxt.bitvavo):
         future = self.after_dropped(authenticate, self.watch, url, messageHash, request, subscriptionHash)
         return await self.after(future, self.filter_by_symbol_since_limit, symbol, since, limit)
 
+    async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' watchMyTrades requires a symbol argument')
+        await self.load_markets()
+        authenticate = self.authenticate()
+        market = self.market(symbol)
+        marketId = market['id']
+        url = self.urls['api']['ws']
+        name = 'account'
+        subscriptionHash = name + '@' + marketId
+        messageHash = subscriptionHash + '_' + 'fill'
+        request = {
+            'action': 'subscribe',
+            'channels': [
+                {
+                    'name': name,
+                    'markets': [marketId],
+                },
+            ],
+        }
+        future = self.after_dropped(authenticate, self.watch, url, messageHash, request, subscriptionHash)
+        return await self.after(future, self.filter_by_symbol_since_limit, symbol, since, limit)
+
     def handle_order(self, client, message):
         #
         #     {
@@ -457,6 +481,38 @@ class bitvavo(Exchange, ccxt.bitvavo):
                 del self.orders[symbol][id]
             result = result[toDelete:resultLength]
         client.resolve(result, messageHash)
+
+    def handle_my_trade(self, client, message):
+        #
+        #     {
+        #         event: 'fill',
+        #         timestamp: 1590964470132,
+        #         market: 'ETH-EUR',
+        #         orderId: '85d082e1-eda4-4209-9580-248281a29a9a',
+        #         fillId: '861d2da5-aa93-475c-8d9a-dce431bd4211',
+        #         side: 'sell',
+        #         amount: '0.1',
+        #         price: '211.46',
+        #         taker: True,
+        #         fee: '0.056',
+        #         feeCurrency: 'EUR'
+        #     }
+        #
+        name = 'account'
+        event = self.safe_string(message, 'event')
+        marketId = self.safe_string(message, 'market')
+        messageHash = name + '@' + marketId + '_' + event
+        market = None
+        if marketId in self.markets_by_id:
+            market = self.markets_by_id[marketId]
+        trade = self.parse_trade(message, market)
+        if self.myTrades is None:
+            limit = self.safe_integer(self.options, 'tradesLimit', 1000)
+            self.myTrades = ArrayCache(limit)
+        array = self.myTrades
+        array.append(trade)
+        self.myTrades = array
+        client.resolve(array, messageHash)
 
     def handle_subscription_status(self, client, message):
         #
@@ -585,6 +641,7 @@ class bitvavo(Exchange, ccxt.bitvavo):
             'ticker24h': self.handle_ticker,
             'authenticate': self.handle_authentication_message,
             'order': self.handle_order,
+            'fill': self.handle_my_trade,
         }
         event = self.safe_string(message, 'event')
         method = self.safe_value(methods, event)
