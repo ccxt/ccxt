@@ -338,6 +338,7 @@ class exmo(Exchange):
                                     {'prov': 'XMR', 'dep': '0%', 'wd': '0.001 XMR'},
                                     {'prov': 'XRP', 'dep': '0%', 'wd': '0.02 XRP'},
                                     {'prov': 'ETC', 'dep': '0%', 'wd': '0.01 ETC'},
+                                    {'prov': 'BCH', 'dep': '0%', 'wd': '0.001 BCH'},
                                     {'prov': 'BTG', 'dep': '0%', 'wd': '0.001 BTG'},
                                     {'prov': 'EOS', 'dep': '0%', 'wd': '0.05 EOS'},
                                     {'prov': 'XLM', 'dep': '0%', 'wd': '0.01 XLM'},
@@ -470,6 +471,7 @@ class exmo(Exchange):
                     '50054': InsufficientFunds,
                     '50304': OrderNotFound,  # "Order was not found '123456789'"(fetching order trades for an order that does not have trades yet)
                     '50173': OrderNotFound,  # "Order with id X was not found."(cancelling non-existent, closed and cancelled order)
+                    '50277': InvalidOrder,
                     '50319': InvalidOrder,  # Price by order is less than permissible minimum for self pair
                     '50321': InvalidOrder,  # Price by order is more than permissible maximum for self pair
                 },
@@ -510,6 +512,8 @@ class exmo(Exchange):
     def parse_fixed_float_value(self, input):
         if (input is None) or (input == '-'):
             return None
+        if input == '':
+            return 0
         isPercentage = (input.find('%') >= 0)
         parts = input.split(' ')
         value = parts[0].replace('%', '')
@@ -536,11 +540,9 @@ class exmo(Exchange):
             withdrawalFee = self.safe_string(item, 'wd')
             depositFee = self.safe_string(item, 'dep')
             if withdrawalFee is not None:
-                if len(withdrawalFee) > 0:
-                    withdraw[code] = self.parse_fixed_float_value(withdrawalFee)
+                withdraw[code] = self.parse_fixed_float_value(withdrawalFee)
             if depositFee is not None:
-                if len(depositFee) > 0:
-                    deposit[code] = self.parse_fixed_float_value(depositFee)
+                deposit[code] = self.parse_fixed_float_value(depositFee)
         # sets fiat fees to None
         fiatGroups = self.to_array(self.omit(groupsByGroup, 'crypto'))
         for i in range(0, len(fiatGroups)):
@@ -621,15 +623,16 @@ class exmo(Exchange):
         response = await self.publicGetPairSettings(params)
         #
         #     {
-        #         "EXM_ETH": {
-        #         "min_quantity": "1",
-        #         "max_quantity": "1000",
-        #         "min_price": "1",
-        #         "max_price": "1000",
-        #         "max_amount": "1000",
-        #         "min_amount": "1",
-        #         "commission_taker_percent": "0.2",
-        #         "commission_maker_percent": "0.2"
+        #         "BTC_USD":{
+        #             "min_quantity":"0.0001",
+        #             "max_quantity":"1000",
+        #             "min_price":"1",
+        #             "max_price":"30000",
+        #             "max_amount":"500000",
+        #             "min_amount":"1",
+        #             "price_precision":8,
+        #             "commission_taker_percent":"0.4",
+        #             "commission_maker_percent":"0.4"
         #         },
         #     }
         #
@@ -670,7 +673,7 @@ class exmo(Exchange):
                 },
                 'precision': {
                     'amount': 8,
-                    'price': 8,
+                    'price': self.safe_integer(market, 'price_precision'),
                 },
                 'info': market,
             })

@@ -16,7 +16,7 @@ class eterbase extends Exchange {
         return $this->deep_extend(parent::describe (), array(
             'id' => 'eterbase',
             'name' => 'Eterbase',
-            'countries' => array( 'SK' ),
+            'countries' => array( 'SK' ), // Slovakia
             'rateLimit' => 500,
             'version' => 'v1',
             'certified' => true,
@@ -43,7 +43,7 @@ class eterbase extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
-                'withdraw' => false,
+                'withdraw' => true,
             ),
             'timeframes' => array(
                 '1m' => '1',
@@ -56,7 +56,6 @@ class eterbase extends Exchange {
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/82067900-faeb0f80-96d9-11ea-9f22-0071cfcb9871.jpg',
-                'base' => 'https://api.eterbase.exchange',
                 'api' => 'https://api.eterbase.exchange',
                 'www' => 'https://www.eterbase.com',
                 'doc' => 'https://developers.eterbase.exchange',
@@ -106,8 +105,8 @@ class eterbase extends Exchange {
                 'trading' => array(
                     'tierBased' => true,
                     'percentage' => true,
-                    'taker' => 0.09,
-                    'maker' => 0.09,
+                    'taker' => 0.35 / 100,
+                    'maker' => 0.35 / 100,
                 ),
             ),
             'requiredCredentials' => array(
@@ -170,12 +169,6 @@ class eterbase extends Exchange {
             $result[] = $market;
         }
         return $result;
-    }
-
-    public function find_market($id) {
-        // need to pass identifier as string
-        $idString = (string) $id;
-        return parent::findMarket ($idString);
     }
 
     public function parse_market($market) {
@@ -355,7 +348,7 @@ class eterbase extends Exchange {
         //         "high":0.0,
         //     }
         //
-        $marketId = $this->safe_integer($ticker, 'marketId');
+        $marketId = $this->safe_string($ticker, 'marketId');
         if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
             $market = $this->markets_by_id[$marketId];
         }
@@ -368,7 +361,7 @@ class eterbase extends Exchange {
         $baseVolume = $this->safe_float($ticker, 'volumeBase');
         $quoteVolume = $this->safe_float($ticker, 'volume');
         $vwap = null;
-        if (($quoteVolume !== null) && ($baseVolume !== null) && ($baseVolume > 0)) {
+        if (($quoteVolume !== null) && ($baseVolume !== null) && $baseVolume) {
             $vwap = $quoteVolume / $baseVolume;
         }
         $percentage = $this->safe_float($ticker, 'change');
@@ -818,7 +811,6 @@ class eterbase extends Exchange {
             $filled = max (0, $amount - $remaining);
         }
         $cost = $this->safe_float($order, 'cost');
-        // (int) round($price * $filled, $market->precision.cost);
         if ($type === 'market') {
             if ($price === 0.0) {
                 if (($cost !== null) && ($filled !== null)) {
@@ -831,12 +823,13 @@ class eterbase extends Exchange {
         $average = null;
         if ($cost !== null) {
             if ($filled) {
-                $average = (int) round($cost / $filled, $market->precision.qty);
+                $average = $cost / $filled;
             }
         }
         return array(
             'info' => $order,
             'id' => $id,
+            'clientOrderId' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
@@ -1125,15 +1118,13 @@ class eterbase extends Exchange {
             $hasBody = ($method === 'POST') || ($method === 'PUT') || ($method === 'PATCH');
             // $date = 'Mon, 30 Sep 2019 13:57:23 GMT';
             $date = $this->rfc2616($this->milliseconds());
-            $urlBaselength = strlen($this->urls['base']) - 0;
-            $urlPath = mb_substr($url, $urlBaselength);
             $headersCSV = 'date' . ' ' . 'request-line';
-            $message = 'date' . ':' . ' ' . $date . "\n" . $method . ' ' . $urlPath . ' HTTP/1.1'; // eslint-disable-line quotes
+            $message = 'date' . ':' . ' ' . $date . "\n" . $method . ' ' . $request . ' HTTP/1.1'; // eslint-disable-line quotes
             $digest = '';
             if ($hasBody) {
                 $digest = 'SHA-256=' . $this->hash($payload, 'sha256', 'base64');
-                $message = $message . "\ndigest" . ':' . ' ' . $digest;  // eslint-disable-line quotes
-                $headersCSV = $headersCSV . ' ' . 'digest';
+                $message .= "\ndigest" . ':' . ' ' . $digest;  // eslint-disable-line quotes
+                $headersCSV .= ' ' . 'digest';
             }
             $signature64 = $this->hmac($this->encode($message), $this->encode($this->secret), 'sha256', 'base64');
             $signature = $this->decode($signature64);
@@ -1144,7 +1135,7 @@ class eterbase extends Exchange {
                 'Content-Type' => 'application/json',
             );
             if ($hasBody) {
-                $httpHeaders = array_merge($httpHeaders, array( 'Digest' => $digest ));
+                $httpHeaders['Digest'] = $digest;
             }
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $httpHeaders );

@@ -39,6 +39,9 @@ class bitmex(Exchange):
                 'fetchMyTrades': True,
                 'fetchLedger': True,
                 'fetchTransactions': 'emulated',
+                'createOrder': True,
+                'cancelOrder': True,
+                'cancelAllOrders': True,
             },
             'timeframes': {
                 '1m': '1m',
@@ -1117,6 +1120,10 @@ class bitmex(Exchange):
         }
         if price is not None:
             request['price'] = price
+        clientOrderId = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
+        if clientOrderId is not None:
+            request['clOrdID'] = clientOrderId
+            params = self.omit(params, ['clOrdID', 'clientOrderId'])
         response = self.privatePostOrder(self.extend(request, params))
         order = self.parse_order(response)
         id = self.safe_string(order, 'id')
@@ -1125,9 +1132,14 @@ class bitmex(Exchange):
 
     def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
         self.load_markets()
-        request = {
-            'orderID': id,
-        }
+        request = {}
+        origClOrdID = self.safe_string_2(params, 'origClOrdID', 'clientOrderId')
+        if origClOrdID is not None:
+            request['origClOrdID'] = origClOrdID
+            clientOrderId = self.safe_string(params, 'clOrdID', 'clientOrderId')
+            if clientOrderId is not None:
+                request['clOrdID'] = clientOrderId
+            params = self.omit(params, ['origClOrdID', 'clOrdID', 'clientOrderId'])
         if amount is not None:
             request['orderQty'] = amount
         if price is not None:
@@ -1140,14 +1152,15 @@ class bitmex(Exchange):
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         # https://github.com/ccxt/ccxt/issues/6507
-        clOrdID = self.safe_value(params, 'clOrdID')
+        clientOrderId = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
         request = {}
-        if clOrdID is None:
+        if clientOrderId is None:
             request['orderID'] = id
         else:
-            request['clOrdID'] = clOrdID
+            request['clOrdID'] = clientOrderId
+            params = self.omit(params, ['clOrdID', 'clientOrderId'])
         response = self.privateDeleteOrder(self.extend(request, params))
-        order = response[0]
+        order = self.safe_value(response, 0, {})
         error = self.safe_string(order, 'error')
         if error is not None:
             if error.find('Unable to cancel order due to existing state') >= 0:
@@ -1155,6 +1168,55 @@ class bitmex(Exchange):
         order = self.parse_order(order)
         self.orders[order['id']] = order
         return self.extend({'info': response}, order)
+
+    def cancel_all_orders(self, symbol=None, params={}):
+        self.load_markets()
+        request = {}
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        response = self.privateDeleteOrderAll(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "orderID": "string",
+        #             "clOrdID": "string",
+        #             "clOrdLinkID": "string",
+        #             "account": 0,
+        #             "symbol": "string",
+        #             "side": "string",
+        #             "simpleOrderQty": 0,
+        #             "orderQty": 0,
+        #             "price": 0,
+        #             "displayQty": 0,
+        #             "stopPx": 0,
+        #             "pegOffsetValue": 0,
+        #             "pegPriceType": "string",
+        #             "currency": "string",
+        #             "settlCurrency": "string",
+        #             "ordType": "string",
+        #             "timeInForce": "string",
+        #             "execInst": "string",
+        #             "contingencyType": "string",
+        #             "exDestination": "string",
+        #             "ordStatus": "string",
+        #             "triggered": "string",
+        #             "workingIndicator": True,
+        #             "ordRejReason": "string",
+        #             "simpleLeavesQty": 0,
+        #             "leavesQty": 0,
+        #             "simpleCumQty": 0,
+        #             "cumQty": 0,
+        #             "avgPx": 0,
+        #             "multiLegReportingType": "string",
+        #             "text": "string",
+        #             "transactTime": "2020-06-01T09:36:35.290Z",
+        #             "timestamp": "2020-06-01T09:36:35.290Z"
+        #         }
+        #     ]
+        #
+        return self.parse_orders(response, market)
 
     def is_fiat(self, currency):
         if currency == 'EUR':

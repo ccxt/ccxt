@@ -264,6 +264,7 @@ module.exports = class Exchange {
         this.trades       = {}
         this.transactions = {}
         this.ohlcvs       = {}
+        this.myTrades     = undefined
 
         this.requiresWeb3 = false
         this.precision = {}

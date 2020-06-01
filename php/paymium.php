@@ -19,6 +19,12 @@ class paymium extends Exchange {
             'version' => 'v1',
             'has' => array(
                 'CORS' => true,
+                'fetchBalance' => true,
+                'fetchTicker' => true,
+                'fetchTrades' => true,
+                'fetchOrderBook' => true,
+                'createOrder' => true,
+                'cancelOrder' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27790564-a945a9d4-5ff9-11e7-9d2d-b635763f2f24.jpg',
@@ -35,31 +41,34 @@ class paymium extends Exchange {
                 'public' => array(
                     'get' => array(
                         'countries',
-                        'data/{id}/ticker',
-                        'data/{id}/trades',
-                        'data/{id}/depth',
+                        'data/{currency}/ticker',
+                        'data/{currency}/trades',
+                        'data/{currency}/depth',
                         'bitcoin_charts/{id}/trades',
                         'bitcoin_charts/{id}/depth',
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'merchant/get_payment/{uuid}',
                         'user',
                         'user/addresses',
-                        'user/addresses/{btc_address}',
+                        'user/addresses/{address}',
                         'user/orders',
                         'user/orders/{uuid}',
                         'user/price_alerts',
+                        'merchant/get_payment/{uuid}',
                     ),
                     'post' => array(
-                        'user/orders',
                         'user/addresses',
+                        'user/orders',
+                        'user/withdrawals',
+                        'user/email_transfers',
                         'user/payment_requests',
                         'user/price_alerts',
                         'merchant/create_payment',
                     ),
                     'delete' => array(
+                        'user/orders/{uuid}',
                         'user/orders/{uuid}/cancel',
                         'user/price_alerts/{id}',
                     ),
@@ -100,17 +109,18 @@ class paymium extends Exchange {
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
-            'id' => $this->market_id($symbol),
+            'currency' => $this->market_id($symbol),
         );
-        $response = $this->publicGetDataIdDepth (array_merge($request, $params));
+        $response = $this->publicGetDataCurrencyDepth (array_merge($request, $params));
         return $this->parse_order_book($response, null, 'bids', 'asks', 'price', 'amount');
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
+        $this->load_markets();
         $request = array(
-            'id' => $this->market_id($symbol),
+            'currency' => $this->market_id($symbol),
         );
-        $ticker = $this->publicGetDataIdTicker (array_merge($request, $params));
+        $ticker = $this->publicGetDataCurrencyTicker (array_merge($request, $params));
         $timestamp = $this->safe_timestamp($ticker, 'at');
         $vwap = $this->safe_float($ticker, 'vwap');
         $baseVolume = $this->safe_float($ticker, 'volume');
@@ -181,9 +191,9 @@ class paymium extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
-            'id' => $market['id'],
+            'currency' => $market['id'],
         );
-        $response = $this->publicGetDataIdTrades (array_merge($request, $params));
+        $response = $this->publicGetDataCurrencyTrades (array_merge($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 

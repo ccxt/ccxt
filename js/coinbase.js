@@ -730,13 +730,17 @@ module.exports = class coinbase extends Exchange {
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
         const request = await this.prepareAccountRequestWithCurrencyCode (code, limit, params);
         const query = this.omit (params, ['account_id', 'accountId']);
         // for pagination use parameter 'starting_after'
         // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
         // eg: instance.last_json_response.pagination.next_starting_after
         const response = await this.privateGetAccountsAccountIdTransactions (this.extend (request, query));
-        return this.parseLedger (response['data'], undefined, since, limit);
+        return this.parseLedger (response['data'], currency, since, limit);
     }
 
     parseLedgerEntryStatus (status) {

@@ -417,6 +417,7 @@ declare module 'ccxt' {
         marketIds (symbols: string[]): string[];
         microseconds (): number;
         nonce (): number;
+        parseTimeframe (timeframe: string): number;
         purgeCachedOrders (timestamp: number): void;
         request (path: string, api?: string, method?: string, params?: Params, headers?: any, body?: any): Promise<any>;
         seconds (): number;
@@ -455,6 +456,7 @@ declare module 'ccxt' {
     export class bitstamp extends Exchange {}
     export class bitstamp1 extends Exchange {}
     export class bittrex extends Exchange {}
+    export class bitvavo extends Exchange {}
     export class bitz extends Exchange {}
     export class bl3p extends Exchange {}
     export class bleutrade extends Exchange {}

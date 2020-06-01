@@ -22,12 +22,12 @@ const warn = log.bright.yellow.error // .error → stderr
 
 /*  ------------------------------------------------------------------------ */
 
-process.on ('uncaughtException',  e => { log.bright.red.error (e); process.exit (1) })
-process.on ('unhandledRejection', e => { log.bright.red.error (e); process.exit (1) })
+process.on ('uncaughtException',  (e) => { log.bright.red.error (e); process.exit (1) })
+process.on ('unhandledRejection', (e) => { log.bright.red.error (e); process.exit (1) })
 
 /*  ------------------------------------------------------------------------ */
 
-log.bright ('\nTESTING', { exchange: exchangeId, symbol: exchangeSymbol || 'all' }, '\n')
+log.bright ('\nTESTING', { 'exchange': exchangeId, 'symbol': exchangeSymbol || 'all' }, '\n')
 
 /*  ------------------------------------------------------------------------ */
 
@@ -46,12 +46,14 @@ const agent = new Agent ({
     ecdhCurve: 'auto',
 })
 
+const timeout = 20000
+
 const exchange = new (ccxt)[exchangeId] ({
     agent,
     verbose,
     enableRateLimit,
     debug,
-    timeout: 20000,
+    timeout,
 })
 
 //-----------------------------------------------------------------------------

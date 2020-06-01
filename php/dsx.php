@@ -26,7 +26,7 @@ class dsx extends Exchange {
                 'fetchOrders' => true,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => false,
-                'fetchOrderBooks' => false,
+                'fetchOrderBooks' => true,
                 'createDepositAddress' => true,
                 'fetchDepositAddress' => true,
                 'fetchTransactions' => true,
@@ -206,7 +206,7 @@ class dsx extends Exchange {
 
     public function fetch_balance($params = array ()) {
         $this->load_markets();
-        $response = $this->privatePostInfoAccount ($params);
+        $response = $this->privatePostInfoAccount ();
         //
         //     {
         //         "success" : 1,
@@ -717,9 +717,6 @@ class dsx extends Exchange {
             'filled' => $filled,
             'fee' => null,
             // 'trades' => $this->parse_trades(order['trades'], $market),
-            'clientOrderId' => null,
-            'average' => null,
-            'trades' => null,
         );
     }
 
@@ -846,7 +843,6 @@ class dsx extends Exchange {
             'status' => $status,
             'fee' => $fee,
             'trades' => $trades,
-            'average' => null,
         );
     }
 

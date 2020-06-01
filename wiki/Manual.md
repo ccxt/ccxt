@@ -53,7 +53,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 
 # Exchanges
 
-The CCXT library currently supports the following 122 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 123 cryptocurrency exchange markets and trading APIs:
 
 |&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;logo&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                                                                                                     | id                 | name                                                                                 | ver | doc                                                                                          | certified                                                                                                                   | pro                                                                         |
 |---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------|--------------------------------------------------------------------------------------|:---:|:--------------------------------------------------------------------------------------------:|-----------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------|
@@ -84,6 +84,7 @@ The CCXT library currently supports the following 122 cryptocurrency exchange ma
 |[![bitstamp](https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg)](https://www.bitstamp.net)                                                 | bitstamp           | [Bitstamp](https://www.bitstamp.net)                                                 | 2   | [API](https://www.bitstamp.net/api)                                                          |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro)|
 |[![bitstamp1](https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg)](https://www.bitstamp.net)                                                | bitstamp1          | [Bitstamp](https://www.bitstamp.net)                                                 | 1   | [API](https://www.bitstamp.net/api)                                                          |                                                                                                                             |                                                                             |
 |[![bittrex](https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg)](https://bittrex.com/Account/Register?referralCode=1ZE-G0G-M3B)             | bittrex            | [Bittrex](https://bittrex.com/Account/Register?referralCode=1ZE-G0G-M3B)             | 1.1 | [API](https://bittrex.github.io/api/)                                                        | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro)|
+|[![bitvavo](https://user-images.githubusercontent.com/1294454/83165440-2f1cf200-a116-11ea-9046-a255d09fb2ed.jpg)](https://bitvavo.com/?a=24F34952F7)                                         | bitvavo            | [Bitvavo](https://bitvavo.com/?a=24F34952F7)                                         | 2   | [API](https://docs.bitvavo.com/)                                                             | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro)|
 |[![bitz](https://user-images.githubusercontent.com/1294454/35862606-4f554f14-0b5d-11e8-957d-35058c504b6f.jpg)](https://u.bitz.com/register?invite_code=1429193)                              | bitz               | [Bit-Z](https://u.bitz.com/register?invite_code=1429193)                             | 2   | [API](https://apidoc.bitz.com/en/)                                                           |                                                                                                                             |                                                                             |
 |[![bl3p](https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg)](https://bl3p.eu)                                                              | bl3p               | [BL3P](https://bl3p.eu)                                                              | 1   | [API](https://github.com/BitonicNL/bl3p-api/tree/master/docs)                                |                                                                                                                             |                                                                             |
 |[![bleutrade](https://user-images.githubusercontent.com/1294454/30303000-b602dbe6-976d-11e7-956d-36c5049c01e7.jpg)](https://bleutrade.com)                                                   | bleutrade          | [Bleutrade](https://bleutrade.com)                                                   | *   | [API](https://app.swaggerhub.com/apis-docs/bleu/white-label/3.0.0)                           |                                                                                                                             |                                                                             |
@@ -157,7 +158,7 @@ The CCXT library currently supports the following 122 cryptocurrency exchange ma
 |[![okcoin](https://user-images.githubusercontent.com/1294454/27766791-89ffb502-5ee5-11e7-8a5b-c5950b68ac65.jpg)](https://www.okcoin.com/account/register?flag=activity&channelId=600001513)  | okcoin             | [OKCoin](https://www.okcoin.com/account/register?flag=activity&channelId=600001513)  | 3   | [API](https://www.okcoin.com/docs/en/)                                                       |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro)|
 |[![okex](https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg)](https://www.okex.com/join/1888677)                                            | okex               | [OKEX](https://www.okex.com/join/1888677)                                            | 3   | [API](https://www.okex.com/docs/en/)                                                         |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro)|
 |[![paymium](https://user-images.githubusercontent.com/1294454/27790564-a945a9d4-5ff9-11e7-9d2d-b635763f2f24.jpg)](https://www.paymium.com/page/sign-up?referral=eDAzPoRQFMvaAB8sf-qj)        | paymium            | [Paymium](https://www.paymium.com/page/sign-up?referral=eDAzPoRQFMvaAB8sf-qj)        | 1   | [API](https://github.com/Paymium/api-documentation)                                          |                                                                                                                             |                                                                             |
-|[![poloniex](https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg)](https://www.poloniex.com/?utm_source=ccxt&utm_medium=web)                 | poloniex           | [Poloniex](https://www.poloniex.com/?utm_source=ccxt&utm_medium=web)                 | *   | [API](https://docs.poloniex.com)                                                             | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro)|
+|[![poloniex](https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg)](https://poloniex.com/signup?c=UBFZJRPJ)                                   | poloniex           | [Poloniex](https://poloniex.com/signup?c=UBFZJRPJ)                                   | *   | [API](https://docs.poloniex.com)                                                             | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro)|
 |[![probit](https://user-images.githubusercontent.com/51840849/79268032-c4379480-7ea2-11ea-80b3-dd96bb29fd0d.jpg)](https://www.probit.com/r/34608773)                                         | probit             | [ProBit](https://www.probit.com/r/34608773)                                          | 1   | [API](https://docs-en.probit.com)                                                            |                                                                                                                             |                                                                             |
 |[![qtrade](https://user-images.githubusercontent.com/51840849/80491487-74a99c00-896b-11ea-821e-d307e832f13e.jpg)](https://qtrade.io/?ref=BKOQWVFGRH2C)                                       | qtrade             | [qTrade](https://qtrade.io/?ref=BKOQWVFGRH2C)                                        | 1   | [API](https://qtrade-exchange.github.io/qtrade-docs)                                         |                                                                                                                             |                                                                             |
 |[![rightbtc](https://user-images.githubusercontent.com/1294454/42633917-7d20757e-85ea-11e8-9f53-fffe9fbb7695.jpg)](https://www.rightbtc.com)                                                 | rightbtc           | [RightBTC](https://www.rightbtc.com)                                                 | *   | [API](https://docs.rightbtc.com/api/)                                                        |                                                                                                                             |                                                                             |
@@ -2473,6 +2474,7 @@ Most of methods returning orders within ccxt unified API will usually yield an o
 ```JavaScript
 {
     'id':                '12345-67890:09876/54321', // string
+    'clientOrderId':     'abcdef-ghijklmnop-qrstuvwxyz', // a user-defined clientOrderId, if any
     'datetime':          '2017-08-17 12:42:48.000', // ISO8601 datetime of 'timestamp' with milliseconds
     'timestamp':          1502962946216, // order placing/opening Unix timestamp in milliseconds
     'lastTradeTimestamp': 1502962956216, // Unix timestamp of the most recent trade on this order
@@ -2502,6 +2504,7 @@ Most of methods returning orders within ccxt unified API will usually yield an o
 - Order `status` prevails or has precedence over the `lastTradeTimestamp`.
 - The `cost` of an order is: `{ filled * price }`
 - The `cost` of an order means the total *quote* volume of the order (whereas the `amount` is the *base* volume). The value of `cost` should be as close to the actual most recent known order cost as possible. The `cost` field itself is there mostly for convenience and can be deduced from other fields.
+- The `clientOrderId` field can be set upon placing orders by the user with [custom order params](#custom-order-params). Using the `clientOrderId` the user can later distinguish between own orders. This is only available for the exchanges that do support `clientOrderId` at this time.
 
 ### Placing Orders
 
@@ -2695,6 +2698,34 @@ kraken.create_market_buy_order('BTC/USD', 1, {'trading_agreement': 'agree'})
 // PHP
 // add custom user id to your order
 $hitbtc->create_order ('BTC/USD', 'limit', 'buy', 1, 3000, array ('clientOrderId' => '123'));
+```
+
+##### User-defined `clientOrderId`
+
+```
+- this part of the unified API is currenty a work in progress
+- there may be some issues and missing implementations here and there
+- contributions, pull requests and feedback appreciated
+```
+
+The user can specify a custom `clientOrderId` field can be set upon placing orders with the `params`. Using the `clientOrderId` one can later distinguish between own orders. This is only available for the exchanges that do support `clientOrderId` at this time. For the exchanges that don't support it will either throw an error upon supplying the `clientOrderId` or will ignore it setting the `clientOrderId` to `undefined/None/null`.
+
+```JavaScript
+exchange.createOrder (symbol, type, side, amount, price, {
+    'clientOrderId': 'Hello',
+})
+```
+
+```Python
+exchange.create_order(symbol, type, side, amount, price, {
+    'clientOrderId': 'World',
+})
+```
+
+```PHP
+$exchange->create_order($symbol, $type, $side, $amount, $price, array(
+    'clientOrderId' => 'Foobar',
+))
 ```
 
 #### Other Order Types
@@ -3686,6 +3717,7 @@ In case you experience any difficulty connecting to a particular exchange, do th
 
 - Make sure that you have the most recent version of ccxt.
 - Check the [Issues](https://github.com/ccxt/ccxt/issues) for recent updates.
+- Make sure you have [rate-limiter enabled with `enableRateLimit: true`](#rate-limit) (either the built-in rate-limiter or your own custom rate-limiter).
 - Turn `verbose = true` to get more detail about it!
   ```Python
   import ccxt

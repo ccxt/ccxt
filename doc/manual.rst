@@ -55,7 +55,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 Exchanges
 =========
 
-The CCXT library currently supports the following 122 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 123 cryptocurrency exchange markets and trading APIs:
 
 +-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 |        logo                                                                             | id                 | name                                                                                    | ver | doc                                                                                             | certified                                                            | pro                             |
@@ -113,6 +113,8 @@ The CCXT library currently supports the following 122 cryptocurrency exchange ma
 | `bitstamp1 <https://www.bitstamp.net>`__                                                | bitstamp1          | `Bitstamp <https://www.bitstamp.net>`__                                                 | 1   | `API <https://www.bitstamp.net/api>`__                                                          |                                                                      |                                 |
 +-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 | `bittrex <https://bittrex.com/Account/Register?referralCode=1ZE-G0G-M3B>`__             | bittrex            | `Bittrex <https://bittrex.com/Account/Register?referralCode=1ZE-G0G-M3B>`__             | 1.1 | `API <https://bittrex.github.io/api/>`__                                                        | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | `CCXT Pro <https://ccxt.pro>`__ |
++-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
+| `bitvavo <https://bitvavo.com/?a=24F34952F7>`__                                         | bitvavo            | `Bitvavo <https://bitvavo.com/?a=24F34952F7>`__                                         | 2   | `API <https://docs.bitvavo.com/>`__                                                             | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | `CCXT Pro <https://ccxt.pro>`__ |
 +-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 | `bitz <https://u.bitz.com/register?invite_code=1429193>`__                              | bitz               | `Bit-Z <https://u.bitz.com/register?invite_code=1429193>`__                             | 2   | `API <https://apidoc.bitz.com/en/>`__                                                           |                                                                      |                                 |
 +-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
@@ -260,7 +262,7 @@ The CCXT library currently supports the following 122 cryptocurrency exchange ma
 +-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 | `paymium <https://www.paymium.com/page/sign-up?referral=eDAzPoRQFMvaAB8sf-qj>`__        | paymium            | `Paymium <https://www.paymium.com/page/sign-up?referral=eDAzPoRQFMvaAB8sf-qj>`__        | 1   | `API <https://github.com/Paymium/api-documentation>`__                                          |                                                                      |                                 |
 +-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `poloniex <https://www.poloniex.com/?utm_source=ccxt&utm_medium=web>`__                 | poloniex           | `Poloniex <https://www.poloniex.com/?utm_source=ccxt&utm_medium=web>`__                 | \*  | `API <https://docs.poloniex.com>`__                                                             | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | `CCXT Pro <https://ccxt.pro>`__ |
+| `poloniex <https://poloniex.com/signup?c=UBFZJRPJ>`__                                   | poloniex           | `Poloniex <https://poloniex.com/signup?c=UBFZJRPJ>`__                                   | \*  | `API <https://docs.poloniex.com>`__                                                             | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | `CCXT Pro <https://ccxt.pro>`__ |
 +-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 | `probit <https://www.probit.com/r/34608773>`__                                          | probit             | `ProBit <https://www.probit.com/r/34608773>`__                                          | 1   | `API <https://docs-en.probit.com>`__                                                            |                                                                      |                                 |
 +-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
@@ -2698,6 +2700,7 @@ Most of methods returning orders within ccxt unified API will usually yield an o
 
    {
        'id':                '12345-67890:09876/54321', // string
+       'clientOrderId':     'abcdef-ghijklmnop-qrstuvwxyz', // a user-defined clientOrderId, if any
        'datetime':          '2017-08-17 12:42:48.000', // ISO8601 datetime of 'timestamp' with milliseconds
        'timestamp':          1502962946216, // order placing/opening Unix timestamp in milliseconds
        'lastTradeTimestamp': 1502962956216, // Unix timestamp of the most recent trade on this order
@@ -2726,6 +2729,7 @@ Most of methods returning orders within ccxt unified API will usually yield an o
 -  Order ``status`` prevails or has precedence over the ``lastTradeTimestamp``.
 -  The ``cost`` of an order is: ``{ filled * price }``
 -  The ``cost`` of an order means the total *quote* volume of the order (whereas the ``amount`` is the *base* volume). The value of ``cost`` should be as close to the actual most recent known order cost as possible. The ``cost`` field itself is there mostly for convenience and can be deduced from other fields.
+-  The ``clientOrderId`` field can be set upon placing orders by the user with `custom order params <#custom-order-params>`__. Using the ``clientOrderId`` the user can later distinguish between own orders. This is only available for the exchanges that do support ``clientOrderId`` at this time.
 
 Placing Orders
 ~~~~~~~~~~~~~~
@@ -2926,6 +2930,35 @@ Some exchanges allow you to specify optional parameters for your order. You can 
    // PHP
    // add custom user id to your order
    $hitbtc->create_order ('BTC/USD', 'limit', 'buy', 1, 3000, array ('clientOrderId' => '123'));
+
+User-defined ``clientOrderId``
+''''''''''''''''''''''''''''''
+
+::
+
+   - this part of the unified API is currenty a work in progress
+   - there may be some issues and missing implementations here and there
+   - contributions, pull requests and feedback appreciated
+
+The user can specify a custom ``clientOrderId`` field can be set upon placing orders with the ``params``. Using the ``clientOrderId`` one can later distinguish between own orders. This is only available for the exchanges that do support ``clientOrderId`` at this time. For the exchanges that don’t support it will either throw an error upon supplying the ``clientOrderId`` or will ignore it setting the ``clientOrderId`` to ``undefined/None/null``.
+
+.. code:: javascript
+
+   exchange.createOrder (symbol, type, side, amount, price, {
+       'clientOrderId': 'Hello',
+   })
+
+.. code:: python
+
+   exchange.create_order(symbol, type, side, amount, price, {
+       'clientOrderId': 'World',
+   })
+
+.. code:: php
+
+   $exchange->create_order($symbol, $type, $side, $amount, $price, array(
+       'clientOrderId' => 'Foobar',
+   ))
 
 Other Order Types
 ^^^^^^^^^^^^^^^^^
@@ -3957,6 +3990,7 @@ In case you experience any difficulty connecting to a particular exchange, do th
 
 -  Make sure that you have the most recent version of ccxt.
 -  Check the `Issues <https://github.com/ccxt/ccxt/issues>`__ for recent updates.
+-  Make sure you have `rate-limiter enabled with ``enableRateLimit: true`` <#rate-limit>`__ (either the built-in rate-limiter or your own custom rate-limiter).
 -  Turn ``verbose = true`` to get more detail about it!
 
    .. code:: python

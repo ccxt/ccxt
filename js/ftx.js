@@ -516,11 +516,21 @@ module.exports = class ftx extends Exchange {
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
         const request = {
-            'market_name': market['id'],
             'resolution': this.timeframes[timeframe],
         };
+        let market = undefined;
+        if (symbol in this.markets) {
+            market = this.market (symbol);
+            request['market_name'] = market['id'];
+        } else {
+            const marketId = this.safeString (params, 'market_name');
+            if (marketId !== undefined) {
+                request['market_name'] = marketId;
+            } else {
+                request['market_name'] = symbol;
+            }
+        }
         // max 1501 candles, including the current candle when since is not specified
         limit = (limit === undefined) ? 1501 : limit;
         if (since === undefined) {
@@ -905,6 +915,11 @@ module.exports = class ftx extends Exchange {
             // 'postOnly': false, // optional, default is false, limit or market orders only
             // 'clientId': 'abcdef0123456789', // string, optional, client order id, limit or market orders only
         };
+        const clientOrderId = this.safeString2 (params, 'clientId', 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            params['clientId'] = clientOrderId;
+            params = this.omit (params, [ 'clientId', 'clientOrderId' ]);
+        }
         let priceToPrecision = undefined;
         if (price !== undefined) {
             priceToPrecision = parseFloat (this.priceToPrecision (symbol, price));
@@ -991,10 +1006,17 @@ module.exports = class ftx extends Exchange {
         const defaultMethod = this.safeString (options, 'method', 'privateDeleteOrdersOrderId');
         let method = this.safeString (params, 'method', defaultMethod);
         const type = this.safeValue (params, 'type');
-        if ((type === 'stop') || (type === 'trailingStop') || (type === 'takeProfit')) {
-            method = 'privateDeleteConditionalOrdersOrderId';
+        const clientOrderId = this.safeValue2 (params, 'client_order_id', 'clientOrderId');
+        if (clientOrderId === undefined) {
+            request['order_id'] = parseInt (id);
+            if ((type === 'stop') || (type === 'trailingStop') || (type === 'takeProfit')) {
+                method = 'privateDeleteConditionalOrdersOrderId';
+            }
+        } else {
+            request['client_order_id'] = clientOrderId;
+            method = 'privateDeleteOrdersByClientIdClientOrderId';
         }
-        const query = this.omit (params, [ 'method', 'type' ]);
+        const query = this.omit (params, [ 'method', 'type', 'client_order_id', 'clientOrderId' ]);
         const response = await this[method] (this.extend (request, query));
         //
         //     {
@@ -1031,10 +1053,17 @@ module.exports = class ftx extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {
-            'order_id': id,
-        };
-        const response = await this.privateGetOrdersOrderId (this.extend (request, params));
+        const request = {};
+        const clientOrderId = this.safeValue2 (params, 'client_order_id', 'clientOrderId');
+        let method = 'privateGetOrdersOrderId';
+        if (clientOrderId === undefined) {
+            request['order_id'] = id;
+        } else {
+            request['client_order_id'] = clientOrderId;
+            params = this.omit (params, [ 'client_order_id', 'clientOrderId']);
+            method = 'privateGetOrdersByClientIdClientOrderId';
+        }
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -1215,6 +1244,9 @@ module.exports = class ftx extends Exchange {
             // 'password': 'string', // optional withdrawal password if it is required for your account
             // 'code': '192837', // optional 2fa code if it is required for your account
         };
+        if (this.password !== undefined) {
+            request['password'] = this.password;
+        }
         if (tag !== undefined) {
             request['tag'] = tag;
         }
@@ -1316,6 +1348,7 @@ module.exports = class ftx extends Exchange {
         const address = this.safeString (transaction, 'address');
         const tag = this.safeString (transaction, 'tag');
         const fee = this.safeFloat (transaction, 'fee');
+        const type = ('confirmations' in transaction) ? 'deposit' : 'withdrawal';
         return {
             'info': transaction,
             'id': id,
@@ -1323,12 +1356,12 @@ module.exports = class ftx extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'addressFrom': undefined,
-            'address': undefined,
+            'address': address,
             'addressTo': address,
             'tagFrom': undefined,
             'tag': tag,
-            'tagTo': undefined,
-            'type': undefined,
+            'tagTo': tag,
+            'type': type,
             'amount': amount,
             'currency': code,
             'status': status,

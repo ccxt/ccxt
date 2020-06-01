@@ -376,7 +376,27 @@ class coinfloor(Exchange):
         else:
             request['price'] = price
             request['amount'] = amount
-        return getattr(self, method)(self.extend(request, params))
+        #
+        #     {
+        #         "id":31950584,
+        #         "datetime":"2020-05-21 08:38:18",
+        #         "type":1,
+        #         "price":"9100",
+        #         "amount":"0.0026"
+        #     }
+        #
+        response = getattr(self, method)(self.extend(request, params))
+        timestamp = self.parse8601(self.safe_string(response, 'datetime'))
+        return {
+            'id': self.safe_string(response, 'id'),
+            'clientOrderId': None,
+            'datetime': self.iso8601(timestamp),
+            'timestamp': timestamp,
+            'type': type,
+            'price': self.safe_float(response, 'price'),
+            'remaining': self.safe_float(response, 'amount'),
+            'info': response,
+        }
 
     def cancel_order(self, id, symbol=None, params={}):
         if symbol is None:
@@ -423,9 +443,9 @@ class coinfloor(Exchange):
             'type': 'limit',
             'side': side,
             'price': price,
-            'amount': amount,
+            'amount': None,
             'filled': None,
-            'remaining': None,
+            'remaining': amount,
             'cost': cost,
             'fee': None,
             'average': None,

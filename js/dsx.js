@@ -23,7 +23,7 @@ module.exports = class dsx extends Exchange {
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': false,
-                'fetchOrderBooks': false,
+                'fetchOrderBooks': true,
                 'createDepositAddress': true,
                 'fetchDepositAddress': true,
                 'fetchTransactions': true,
@@ -203,7 +203,7 @@ module.exports = class dsx extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privatePostInfoAccount (params);
+        const response = await this.privatePostInfoAccount ();
         //
         //     {
         //         "success" : 1,
@@ -714,9 +714,6 @@ module.exports = class dsx extends Exchange {
             'filled': filled,
             'fee': undefined,
             // 'trades': this.parseTrades (order['trades'], market),
-            'clientOrderId': undefined,
-            'average': undefined,
-            'trades': undefined,
         };
     }
 
@@ -843,7 +840,6 @@ module.exports = class dsx extends Exchange {
             'status': status,
             'fee': fee,
             'trades': trades,
-            'average': undefined,
         };
     }
 

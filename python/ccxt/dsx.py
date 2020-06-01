@@ -41,7 +41,7 @@ class dsx(Exchange):
                 'fetchOrders': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': False,
-                'fetchOrderBooks': False,
+                'fetchOrderBooks': True,
                 'createDepositAddress': True,
                 'fetchDepositAddress': True,
                 'fetchTransactions': True,
@@ -218,7 +218,7 @@ class dsx(Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        response = self.privatePostInfoAccount(params)
+        response = self.privatePostInfoAccount()
         #
         #     {
         #         "success" : 1,
@@ -682,9 +682,6 @@ class dsx(Exchange):
             'filled': filled,
             'fee': None,
             # 'trades': self.parse_trades(order['trades'], market),
-            'clientOrderId': None,
-            'average': None,
-            'trades': None,
         }
 
     def parse_order_status(self, status):
@@ -798,7 +795,6 @@ class dsx(Exchange):
             'status': status,
             'fee': fee,
             'trades': trades,
-            'average': None,
         }
 
     def fetch_order(self, id, symbol=None, params={}):

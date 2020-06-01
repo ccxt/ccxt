@@ -207,7 +207,7 @@ function test_exchange($exchange) {
     usleep($delay);
 
     $balance = $exchange->fetch_balance();
-    print_r($balance);
+    var_dump($balance);
 
     // $exchange->verbose = true;
     // $order = $exchange->create_market_buy_order ('LTC/BTC', 0.1);

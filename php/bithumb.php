@@ -74,6 +74,7 @@ class bithumb extends Exchange {
                     'taker' => 0.25 / 100,
                 ),
             ),
+            'precisionMode' => SIGNIFICANT_DIGITS,
             'exceptions' => array(
                 'Bad Request(SSL)' => '\\ccxt\\BadRequest',
                 'Bad Request(Bad Method)' => '\\ccxt\\BadRequest',
@@ -90,6 +91,10 @@ class bithumb extends Exchange {
                 'After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions' => '\\ccxt\\ExchangeError', // array("status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions")
             ),
         ));
+    }
+
+    public function amount_to_precision($symbol, $amount) {
+        return $this->decimal_to_precision($amount, TRUNCATE, $this->markets[$symbol]['precision']['amount'], DECIMAL_PLACES);
     }
 
     public function fetch_markets($params = array ()) {
@@ -121,8 +126,8 @@ class bithumb extends Exchange {
                 'info' => $market,
                 'active' => $active,
                 'precision' => array(
-                    'amount' => null,
-                    'price' => null,
+                    'amount' => 4,
+                    'price' => 4,
                 ),
                 'limits' => array(
                     'amount' => array(
@@ -134,8 +139,8 @@ class bithumb extends Exchange {
                         'max' => null,
                     ),
                     'cost' => array(
-                        'min' => null,
-                        'max' => null,
+                        'min' => 500,
+                        'max' => 5000000000,
                     ),
                 ),
                 'baseId' => null,
@@ -628,6 +633,7 @@ class bithumb extends Exchange {
         return array(
             'info' => $order,
             'id' => $id,
+            'clientOrderId' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,

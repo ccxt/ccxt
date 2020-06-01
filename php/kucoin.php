@@ -23,6 +23,7 @@ class kucoin extends Exchange {
             'comment' => 'Platform 2.0',
             'has' => array(
                 'CORS' => false,
+                'fetchStatus' => true,
                 'fetchTime' => true,
                 'fetchMarkets' => true,
                 'fetchCurrencies' => true,
@@ -235,6 +236,7 @@ class kucoin extends Exchange {
                 'versions' => array(
                     'public' => array(
                         'GET' => array(
+                            'status' => 'v1',
                             'market/orderbook/level{level}' => 'v1',
                             'market/orderbook/level2' => 'v2',
                             'market/orderbook/level2_20' => 'v1',
@@ -256,8 +258,8 @@ class kucoin extends Exchange {
         return $this->milliseconds();
     }
 
-    public function load_time_difference() {
-        $response = $this->publicGetTimestamp ();
+    public function load_time_difference($params = array ()) {
+        $response = $this->publicGetTimestamp ($params);
         $after = $this->milliseconds();
         $kucoinTime = $this->safe_integer($response, 'data');
         $this->options['timeDifference'] = intval ($after - $kucoinTime);
@@ -274,6 +276,29 @@ class kucoin extends Exchange {
         //     }
         //
         return $this->safe_integer($response, 'data');
+    }
+
+    public function fetch_status($params = array ()) {
+        $response = $this->publicGetStatus ($params);
+        //
+        //     {
+        //         "code":"200000",
+        //         "$data":{
+        //             "msg":"",
+        //             "$status":"open"
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $status = $this->safe_value($data, 'status');
+        if ($status !== null) {
+            $status = ($status === 'open') ? 'ok' : 'maintenance';
+            $this->status = array_merge($this->status, array(
+                'status' => $status,
+                'updated' => $this->milliseconds(),
+            ));
+        }
+        return $this->status;
     }
 
     public function fetch_markets($params = array ()) {
@@ -689,7 +714,7 @@ class kucoin extends Exchange {
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $level = $this->safe_integer($params, 'level', 2);
         $levelLimit = (string) $level;
-        if ($level === '2') {
+        if ($levelLimit === '2') {
             if ($limit !== null) {
                 if (($limit !== 20) && ($limit !== 100)) {
                     throw new ExchangeError($this->id . ' fetchOrderBook $limit argument must be null, 20 or 100');
@@ -756,9 +781,10 @@ class kucoin extends Exchange {
         $this->load_markets();
         $marketId = $this->market_id($symbol);
         // required param, cannot be used twice
-        $clientOid = $this->uuid();
+        $clientOrderId = $this->safe_string_2($params, 'clientOid', 'clientOrderId', $this->uuid());
+        $params = $this->omit($params, array( 'clientOid', 'clientOrderId' ));
         $request = array(
-            'clientOid' => $clientOid,
+            'clientOid' => $clientOrderId,
             'side' => $side,
             'symbol' => $marketId,
             'type' => $type,
@@ -798,7 +824,7 @@ class kucoin extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'fee' => null,
             'status' => 'open',
-            'clientOrderId' => $clientOid,
+            'clientOrderId' => $clientOrderId,
             'info' => $data,
         );
         if (!$this->safe_value($params, 'quoteAmount')) {

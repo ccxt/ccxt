@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.27.91'
+__version__ = '1.29.6'
 
 # -----------------------------------------------------------------------------
 
@@ -215,6 +215,7 @@ class Exchange(object):
     balance = None
     orderbooks = None
     orders = None
+    myTrades = None
     trades = None
     transactions = None
     ohlcvs = None
@@ -1804,7 +1805,7 @@ class Exchange(object):
     @staticmethod
     def from_wei(amount, decimals=18):
         amount_float = float(amount)
-        exponential = '{:.15e}'.format(amount_float)
+        exponential = '{:.14e}'.format(amount_float)
         n, exponent = exponential.split('e')
         new_exponent = int(exponent) - decimals
         return float(n + 'e' + str(new_exponent))
@@ -1812,7 +1813,7 @@ class Exchange(object):
     @staticmethod
     def to_wei(amount, decimals=18):
         amount_float = float(amount)
-        exponential = '{:.15e}'.format(amount_float)
+        exponential = '{:.14e}'.format(amount_float)
         n, exponent = exponential.split('e')
         new_exponent = int(exponent) + decimals
         return number_to_string(n + 'e' + str(new_exponent))

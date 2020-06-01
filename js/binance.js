@@ -307,7 +307,7 @@ module.exports = class binance extends Exchange {
                 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
                 'fetchTickersMethod': 'publicGetTicker24hr',
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
-                'defaultType': 'spot', // 'spot', 'future'
+                'defaultType': 'spot', // 'spot', 'future', 'margin'
                 'hasAlreadyAuthenticatedSuccessfully': false,
                 'warnOnFetchOpenOrdersWithoutSymbol': true,
                 'recvWindow': 5 * 1000, // 5 sec, binance default
@@ -340,6 +340,8 @@ module.exports = class binance extends Exchange {
                 '-2013': OrderNotFound, // fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'
                 '-2014': AuthenticationError, // { "code":-2014, "msg": "API-key format invalid." }
                 '-2015': AuthenticationError, // "Invalid API-key, IP, or permissions for action."
+                '-3008': InsufficientFunds, // {"code":-3008,"msg":"Borrow not allowed. Your borrow amount has exceed maximum borrow amount."}
+                '-3010': ExchangeError, // {"code":-3010,"msg":"Repay not allowed. Repay amount exceeds borrow amount."}
             },
         });
     }
@@ -355,8 +357,8 @@ module.exports = class binance extends Exchange {
         return this.safeInteger (response, 'serverTime');
     }
 
-    async loadTimeDifference () {
-        const serverTime = await this.fetchTime ();
+    async loadTimeDifference (params = {}) {
+        const serverTime = await this.fetchTime (params);
         const after = this.milliseconds ();
         this.options['timeDifference'] = after - serverTime;
         return this.options['timeDifference'];
@@ -366,13 +368,13 @@ module.exports = class binance extends Exchange {
         const defaultType = this.safeString2 (this.options, 'fetchMarkets', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         const query = this.omit (params, 'type');
-        if ((type !== 'spot') && (type !== 'future')) {
-            throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to 'spot' or 'future'"); // eslint-disable-line quotes
+        if ((type !== 'spot') && (type !== 'future') && (type !== 'margin')) {
+            throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to 'spot', 'margin' or 'future'"); // eslint-disable-line quotes
         }
-        const method = (type === 'spot') ? 'publicGetExchangeInfo' : 'fapiPublicGetExchangeInfo';
+        const method = (type === 'future') ? 'fapiPublicGetExchangeInfo' : 'publicGetExchangeInfo';
         const response = await this[method] (query);
         //
-        // spot
+        // spot / margin
         //
         //     {
         //         "timezone":"UTC",
@@ -464,7 +466,8 @@ module.exports = class binance extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
-            const filters = this.indexBy (market['filters'], 'filterType');
+            const filters = this.safeValue (market, 'filters', []);
+            const filtersByType = this.indexBy (filters, 'filterType');
             const precision = {
                 'base': this.safeInteger (market, 'baseAssetPrecision'),
                 'quote': this.safeInteger (market, 'quotePrecision'),
@@ -473,6 +476,7 @@ module.exports = class binance extends Exchange {
             };
             const status = this.safeString (market, 'status');
             const active = (status === 'TRADING');
+            const margin = this.safeValue (market, 'isMarginTradingAllowed', future);
             const entry = {
                 'id': id,
                 'lowercaseId': lowercaseId,
@@ -484,6 +488,7 @@ module.exports = class binance extends Exchange {
                 'info': market,
                 'type': marketType,
                 'spot': spot,
+                'margin': margin,
                 'future': future,
                 'active': active,
                 'precision': precision,
@@ -502,8 +507,8 @@ module.exports = class binance extends Exchange {
                     },
                 },
             };
-            if ('PRICE_FILTER' in filters) {
-                const filter = filters['PRICE_FILTER'];
+            if ('PRICE_FILTER' in filtersByType) {
+                const filter = this.safeValue (filtersByType, 'PRICE_FILTER', {});
                 // PRICE_FILTER reports zero values for maxPrice
                 // since they updated filter types in November 2018
                 // https://github.com/ccxt/ccxt/issues/4286
@@ -518,8 +523,8 @@ module.exports = class binance extends Exchange {
                 }
                 entry['precision']['price'] = this.precisionFromString (filter['tickSize']);
             }
-            if ('LOT_SIZE' in filters) {
-                const filter = this.safeValue (filters, 'LOT_SIZE', {});
+            if ('LOT_SIZE' in filtersByType) {
+                const filter = this.safeValue (filtersByType, 'LOT_SIZE', {});
                 const stepSize = this.safeString (filter, 'stepSize');
                 entry['precision']['amount'] = this.precisionFromString (stepSize);
                 entry['limits']['amount'] = {
@@ -527,15 +532,16 @@ module.exports = class binance extends Exchange {
                     'max': this.safeFloat (filter, 'maxQty'),
                 };
             }
-            if ('MARKET_LOT_SIZE' in filters) {
-                const filter = this.safeValue (filters, 'MARKET_LOT_SIZE', {});
+            if ('MARKET_LOT_SIZE' in filtersByType) {
+                const filter = this.safeValue (filtersByType, 'MARKET_LOT_SIZE', {});
                 entry['limits']['market'] = {
                     'min': this.safeFloat (filter, 'minQty'),
                     'max': this.safeFloat (filter, 'maxQty'),
                 };
             }
-            if ('MIN_NOTIONAL' in filters) {
-                entry['limits']['cost']['min'] = this.safeFloat (filters['MIN_NOTIONAL'], 'minNotional');
+            if ('MIN_NOTIONAL' in filtersByType) {
+                const filter = this.safeValue (filtersByType, 'MIN_NOTIONAL', {});
+                entry['limits']['cost']['min'] = this.safeFloat (filter, 'minNotional');
             }
             result.push (entry);
         }
@@ -593,6 +599,23 @@ module.exports = class binance extends Exchange {
         //         ]
         //     }
         //
+        // margin
+        //
+        //     {
+        //         "borrowEnabled":true,
+        //         "marginLevel":"999.00000000",
+        //         "totalAssetOfBtc":"0.00000000",
+        //         "totalLiabilityOfBtc":"0.00000000",
+        //         "totalNetAssetOfBtc":"0.00000000",
+        //         "tradeEnabled":true,
+        //         "transferEnabled":true,
+        //         "userAssets":[
+        //             {"asset":"MATIC","borrowed":"0.00000000","free":"0.00000000","interest":"0.00000000","locked":"0.00000000","netAsset":"0.00000000"},
+        //             {"asset":"VET","borrowed":"0.00000000","free":"0.00000000","interest":"0.00000000","locked":"0.00000000","netAsset":"0.00000000"},
+        //             {"asset":"USDT","borrowed":"0.00000000","free":"0.00000000","interest":"0.00000000","locked":"0.00000000","netAsset":"0.00000000"}
+        //         ],
+        //     }
+        //
         // futures (fapi)
         //
         //     {
@@ -635,8 +658,8 @@ module.exports = class binance extends Exchange {
         //     }
         //
         const result = { 'info': response };
-        if (type === 'spot') {
-            const balances = this.safeValue (response, 'balances', []);
+        if ((type === 'spot') || (type === 'margin')) {
+            const balances = this.safeValue2 (response, 'balances', 'userAssets', []);
             for (let i = 0; i < balances.length; i++) {
                 const balance = balances[i];
                 const currencyId = this.safeString (balance, 'asset');
@@ -1154,8 +1177,17 @@ module.exports = class binance extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const defaultType = this.safeString2 (this.options, 'createOrder', 'defaultType', market['type']);
+        const orderType = this.safeString (params, 'type', defaultType);
+        const clientOrderId = this.safeString2 (params, 'newClientOrderId', 'clientOrderId');
+        params = this.omit (params, [ 'type', 'newClientOrderId', 'clientOrderId' ]);
+        let method = 'privatePostOrder';
+        if (orderType === 'future') {
+            method = 'fapiPrivatePostOrder';
+        } else if (orderType === 'margin') {
+            method = 'sapiPostMarginOrder';
+        }
         // the next 5 lines are added to support for testing orders
-        let method = market['spot'] ? 'privatePostOrder' : 'fapiPrivatePostOrder';
         if (market['spot']) {
             const test = this.safeValue (params, 'test', false);
             if (test) {
@@ -1173,6 +1205,9 @@ module.exports = class binance extends Exchange {
             'type': uppercaseType,
             'side': side.toUpperCase (),
         };
+        if (clientOrderId !== undefined) {
+            request['newClientOrderId'] = clientOrderId;
+        }
         const quoteOrderQty = this.safeValue (this.options, 'quoteOrderQty', false);
         if (uppercaseType === 'MARKET' && quoteOrderQty) {
             const quoteOrderQty = this.safeFloat (params, 'quoteOrderQty');
@@ -1242,17 +1277,25 @@ module.exports = class binance extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const method = market['spot'] ? 'privateGetOrder' : 'fapiPrivateGetOrder';
+        const defaultType = this.safeString2 (this.options, 'fetchOrder', 'defaultType', market['type']);
+        const type = this.safeString (params, 'type', defaultType);
+        let method = 'privateGetOrder';
+        if (type === 'future') {
+            method = 'fapiPrivateGetOrder';
+        } else if (type === 'margin') {
+            method = 'sapiGetMarginOrder';
+        }
         const request = {
             'symbol': market['id'],
         };
-        const origClientOrderId = this.safeValue (params, 'origClientOrderId');
-        if (origClientOrderId !== undefined) {
-            request['origClientOrderId'] = origClientOrderId;
+        const clientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['origClientOrderId'] = clientOrderId;
         } else {
             request['orderId'] = parseInt (id);
         }
-        const response = await this[method] (this.extend (request, params));
+        const query = this.omit (params, [ 'type', 'clientOrderId', 'origClientOrderId' ]);
+        const response = await this[method] (this.extend (request, query));
         return this.parseOrder (response, market);
     }
 
@@ -1262,6 +1305,14 @@ module.exports = class binance extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const defaultType = this.safeString2 (this.options, 'fetchOrders', 'defaultType', market['type']);
+        const type = this.safeString (params, 'type', defaultType);
+        let method = 'privateGetAllOrders';
+        if (type === 'future') {
+            method = 'fapiPrivateGetAllOrders';
+        } else if (type === 'margin') {
+            method = 'sapiGetMarginAllOrders';
+        }
         const request = {
             'symbol': market['id'],
         };
@@ -1271,10 +1322,11 @@ module.exports = class binance extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const method = market['spot'] ? 'privateGetAllOrders' : 'fapiPrivateGetAllOrders';
-        const response = await this[method] (this.extend (request, params));
+        const query = this.omit (params, 'type');
+        const response = await this[method] (this.extend (request, query));
         //
-        //  Spot:
+        //  spot
+        //
         //     [
         //         {
         //             "symbol": "LTCBTC",
@@ -1296,7 +1348,8 @@ module.exports = class binance extends Exchange {
         //         }
         //     ]
         //
-        //  Futures:
+        //  futures
+        //
         //     [
         //         {
         //             "symbol": "BTCUSDT",
@@ -1327,8 +1380,9 @@ module.exports = class binance extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
-            type = market['type'];
-            query = params;
+            const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', market['type']);
+            type = this.safeString (params, 'type', defaultType);
+            query = this.omit (params, 'type');
         } else if (this.options['warnOnFetchOpenOrdersWithoutSymbol']) {
             const symbols = this.symbols;
             const numSymbols = symbols.length;
@@ -1339,7 +1393,12 @@ module.exports = class binance extends Exchange {
             type = this.safeString (params, 'type', defaultType);
             query = this.omit (params, 'type');
         }
-        const method = (type === 'spot') ? 'privateGetOpenOrders' : 'fapiPrivateGetOpenOrders';
+        let method = 'privateGetOpenOrders';
+        if (type === 'future') {
+            method = 'fapiPrivateGetOpenOrders';
+        } else if (type === 'margin') {
+            method = 'sapiGetMarginOpenOrders';
+        }
         const response = await this[method] (this.extend (request, query));
         return this.parseOrders (response, market, since, limit);
     }
@@ -1355,6 +1414,8 @@ module.exports = class binance extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', market['type']);
+        const type = this.safeString (params, 'type', defaultType);
         // https://github.com/ccxt/ccxt/issues/6507
         const origClientOrderId = this.safeValue (params, 'origClientOrderId');
         const request = {
@@ -1367,8 +1428,14 @@ module.exports = class binance extends Exchange {
         } else {
             request['origClientOrderId'] = origClientOrderId;
         }
-        const method = market['spot'] ? 'privateDeleteOrder' : 'fapiPrivateDeleteOrder';
-        const response = await this[method] (this.extend (request, params));
+        let method = 'privateDeleteOrder';
+        if (type === 'future') {
+            method = 'fapiPrivateDeleteOrder';
+        } else if (type === 'margin') {
+            method = 'sapiDeleteMarginOrder';
+        }
+        const query = this.omit (params, 'type');
+        const response = await this[method] (this.extend (request, query));
         return this.parseOrder (response);
     }
 

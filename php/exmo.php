@@ -324,6 +324,7 @@ class exmo extends Exchange {
                                     array( 'prov' => 'XMR', 'dep' => '0%', 'wd' => '0.001 XMR' ),
                                     array( 'prov' => 'XRP', 'dep' => '0%', 'wd' => '0.02 XRP' ),
                                     array( 'prov' => 'ETC', 'dep' => '0%', 'wd' => '0.01 ETC' ),
+                                    array( 'prov' => 'BCH', 'dep' => '0%', 'wd' => '0.001 BCH' ),
                                     array( 'prov' => 'BTG', 'dep' => '0%', 'wd' => '0.001 BTG' ),
                                     array( 'prov' => 'EOS', 'dep' => '0%', 'wd' => '0.05 EOS' ),
                                     array( 'prov' => 'XLM', 'dep' => '0%', 'wd' => '0.01 XLM' ),
@@ -456,6 +457,7 @@ class exmo extends Exchange {
                     '50054' => '\\ccxt\\InsufficientFunds',
                     '50304' => '\\ccxt\\OrderNotFound', // "Order was not found '123456789'" (fetching order trades for an order that does not have trades yet)
                     '50173' => '\\ccxt\\OrderNotFound', // "Order with id X was not found." (cancelling non-existent, closed and cancelled order)
+                    '50277' => '\\ccxt\\InvalidOrder',
                     '50319' => '\\ccxt\\InvalidOrder', // Price by order is less than permissible minimum for this pair
                     '50321' => '\\ccxt\\InvalidOrder', // Price by order is more than permissible maximum for this pair
                 ),
@@ -502,6 +504,9 @@ class exmo extends Exchange {
         if (($input === null) || ($input === '-')) {
             return null;
         }
+        if ($input === '') {
+            return 0;
+        }
         $isPercentage = (mb_strpos($input, '%') !== false);
         $parts = explode(' ', $input);
         $value = str_replace('%', '', $parts[0]);
@@ -531,14 +536,10 @@ class exmo extends Exchange {
             $withdrawalFee = $this->safe_string($item, 'wd');
             $depositFee = $this->safe_string($item, 'dep');
             if ($withdrawalFee !== null) {
-                if (strlen($withdrawalFee) > 0) {
-                    $withdraw[$code] = $this->parse_fixed_float_value($withdrawalFee);
-                }
+                $withdraw[$code] = $this->parse_fixed_float_value($withdrawalFee);
             }
             if ($depositFee !== null) {
-                if (strlen($depositFee) > 0) {
-                    $deposit[$code] = $this->parse_fixed_float_value($depositFee);
-                }
+                $deposit[$code] = $this->parse_fixed_float_value($depositFee);
             }
         }
         // sets fiat fees to null
@@ -626,15 +627,16 @@ class exmo extends Exchange {
         $response = $this->publicGetPairSettings ($params);
         //
         //     {
-        //         "EXM_ETH" => array(
-        //         "min_quantity" => "1",
-        //         "max_quantity" => "1000",
-        //         "min_price" => "1",
-        //         "max_price" => "1000",
-        //         "max_amount" => "1000",
-        //         "min_amount" => "1",
-        //         "commission_taker_percent" => "0.2",
-        //         "commission_maker_percent" => "0.2"
+        //         "BTC_USD":array(
+        //             "min_quantity":"0.0001",
+        //             "max_quantity":"1000",
+        //             "min_price":"1",
+        //             "max_price":"30000",
+        //             "max_amount":"500000",
+        //             "min_amount":"1",
+        //             "price_precision":8,
+        //             "commission_taker_percent":"0.4",
+        //             "commission_maker_percent":"0.4"
         //         ),
         //     }
         //
@@ -675,7 +677,7 @@ class exmo extends Exchange {
                 ),
                 'precision' => array(
                     'amount' => 8,
-                    'price' => 8,
+                    'price' => $this->safe_integer($market, 'price_precision'),
                 ),
                 'info' => $market,
             );

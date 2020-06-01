@@ -35,6 +35,7 @@ class kucoin(Exchange):
             'comment': 'Platform 2.0',
             'has': {
                 'CORS': False,
+                'fetchStatus': True,
                 'fetchTime': True,
                 'fetchMarkets': True,
                 'fetchCurrencies': True,
@@ -247,6 +248,7 @@ class kucoin(Exchange):
                 'versions': {
                     'public': {
                         'GET': {
+                            'status': 'v1',
                             'market/orderbook/level{level}': 'v1',
                             'market/orderbook/level2': 'v2',
                             'market/orderbook/level2_20': 'v1',
@@ -266,8 +268,8 @@ class kucoin(Exchange):
     def nonce(self):
         return self.milliseconds()
 
-    def load_time_difference(self):
-        response = self.publicGetTimestamp()
+    def load_time_difference(self, params={}):
+        response = self.publicGetTimestamp(params)
         after = self.milliseconds()
         kucoinTime = self.safe_integer(response, 'data')
         self.options['timeDifference'] = int(after - kucoinTime)
@@ -283,6 +285,27 @@ class kucoin(Exchange):
         #     }
         #
         return self.safe_integer(response, 'data')
+
+    def fetch_status(self, params={}):
+        response = self.publicGetStatus(params)
+        #
+        #     {
+        #         "code":"200000",
+        #         "data":{
+        #             "msg":"",
+        #             "status":"open"
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        status = self.safe_value(data, 'status')
+        if status is not None:
+            status = 'ok' if (status == 'open') else 'maintenance'
+            self.status = self.extend(self.status, {
+                'status': status,
+                'updated': self.milliseconds(),
+            })
+        return self.status
 
     def fetch_markets(self, params={}):
         response = self.publicGetSymbols(params)
@@ -671,7 +694,7 @@ class kucoin(Exchange):
     def fetch_order_book(self, symbol, limit=None, params={}):
         level = self.safe_integer(params, 'level', 2)
         levelLimit = str(level)
-        if level == '2':
+        if levelLimit == '2':
             if limit is not None:
                 if (limit != 20) and (limit != 100):
                     raise ExchangeError(self.id + ' fetchOrderBook limit argument must be None, 20 or 100')
@@ -734,9 +757,10 @@ class kucoin(Exchange):
         self.load_markets()
         marketId = self.market_id(symbol)
         # required param, cannot be used twice
-        clientOid = self.uuid()
+        clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId', self.uuid())
+        params = self.omit(params, ['clientOid', 'clientOrderId'])
         request = {
-            'clientOid': clientOid,
+            'clientOid': clientOrderId,
             'side': side,
             'symbol': marketId,
             'type': type,
@@ -774,7 +798,7 @@ class kucoin(Exchange):
             'datetime': self.iso8601(timestamp),
             'fee': None,
             'status': 'open',
-            'clientOrderId': clientOid,
+            'clientOrderId': clientOrderId,
             'info': data,
         }
         if not self.safe_value(params, 'quoteAmount'):

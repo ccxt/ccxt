@@ -14,6 +14,9 @@ from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.decimal_to_precision import TRUNCATE
+from ccxt.base.decimal_to_precision import DECIMAL_PLACES
+from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS
 
 
 class bithumb(Exchange):
@@ -80,6 +83,7 @@ class bithumb(Exchange):
                     'taker': 0.25 / 100,
                 },
             },
+            'precisionMode': SIGNIFICANT_DIGITS,
             'exceptions': {
                 'Bad Request(SSL)': BadRequest,
                 'Bad Request(Bad Method)': BadRequest,
@@ -96,6 +100,9 @@ class bithumb(Exchange):
                 'After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions': ExchangeError,  # {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
             },
         })
+
+    def amount_to_precision(self, symbol, amount):
+        return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'], DECIMAL_PLACES)
 
     def fetch_markets(self, params={}):
         response = self.publicGetTickerAll(params)
@@ -123,8 +130,8 @@ class bithumb(Exchange):
                 'info': market,
                 'active': active,
                 'precision': {
-                    'amount': None,
-                    'price': None,
+                    'amount': 4,
+                    'price': 4,
                 },
                 'limits': {
                     'amount': {
@@ -136,8 +143,8 @@ class bithumb(Exchange):
                         'max': None,
                     },
                     'cost': {
-                        'min': None,
-                        'max': None,
+                        'min': 500,
+                        'max': 5000000000,
                     },
                 },
                 'baseId': None,
@@ -589,6 +596,7 @@ class bithumb(Exchange):
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,

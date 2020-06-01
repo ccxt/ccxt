@@ -305,7 +305,7 @@ class bitmart(Exchange):
         #     }
         #
         timestamp = self.safe_integer(ticker, 'closeTime', self.milliseconds())
-        marketId = self.safe_string(ticker, 'pair')
+        marketId = self.safe_string_2(ticker, 'pair', 'symbol_id')
         symbol = None
         if marketId is not None:
             if marketId in self.markets_by_id:

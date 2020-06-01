@@ -61,7 +61,7 @@ class kuna(acx):
         })
 
     async def fetch_markets(self, params={}):
-        quotes = ['btc', 'eth', 'eurs', 'rub', 'uah', 'usd', 'usdt']
+        quotes = ['btc', 'eth', 'eurs', 'rub', 'uah', 'usd', 'usdt', 'gol']
         pricePrecisions = {
             'UAH': 0,
         }

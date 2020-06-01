@@ -75,6 +75,7 @@ module.exports = class huobipro extends Exchange {
                 },
                 'v2Private': {
                     'get': [
+                        'account/ledger',
                         'account/withdraw/quota',
                         'account/deposit/address',
                         'reference/transact-fee-rate',

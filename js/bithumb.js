@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ExchangeNotAvailable, AuthenticationError, BadRequest, PermissionDenied, InvalidAddress, ArgumentsRequired, InvalidOrder } = require ('./base/errors');
+const { DECIMAL_PLACES, SIGNIFICANT_DIGITS, TRUNCATE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -70,6 +71,7 @@ module.exports = class bithumb extends Exchange {
                     'taker': 0.25 / 100,
                 },
             },
+            'precisionMode': SIGNIFICANT_DIGITS,
             'exceptions': {
                 'Bad Request(SSL)': BadRequest,
                 'Bad Request(Bad Method)': BadRequest,
@@ -86,6 +88,10 @@ module.exports = class bithumb extends Exchange {
                 'After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions': ExchangeError, // {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
             },
         });
+    }
+
+    amountToPrecision (symbol, amount) {
+        return this.decimalToPrecision (amount, TRUNCATE, this.markets[symbol]['precision']['amount'], DECIMAL_PLACES);
     }
 
     async fetchMarkets (params = {}) {
@@ -117,8 +123,8 @@ module.exports = class bithumb extends Exchange {
                 'info': market,
                 'active': active,
                 'precision': {
-                    'amount': undefined,
-                    'price': undefined,
+                    'amount': 4,
+                    'price': 4,
                 },
                 'limits': {
                     'amount': {
@@ -130,8 +136,8 @@ module.exports = class bithumb extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': undefined,
-                        'max': undefined,
+                        'min': 500,
+                        'max': 5000000000,
                     },
                 },
                 'baseId': undefined,
@@ -624,6 +630,7 @@ module.exports = class bithumb extends Exchange {
         return {
             'info': order,
             'id': id,
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
