@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, InvalidAddress } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError } = require ('./base/errors');
 const { ROUND } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -760,13 +760,6 @@ module.exports = class currencycom extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        // the next 5 lines are added to support for testing orders
-        let method = 'privatePostOrder';
-        const test = this.safeValue (params, 'test', false);
-        if (test) {
-            method += 'Test';
-            params = this.omit (params, 'test');
-        }
         const uppercaseType = type.toUpperCase ();
         const newOrderRespType = this.safeValue (this.options['newOrderRespType'], type, 'RESULT');
         const request = {
@@ -809,7 +802,22 @@ module.exports = class currencycom extends Exchange {
                 request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
             }
         }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this.privatePostOrder (this.extend (request, params));
+        //
+        //     {
+        //         "symbol":"BTC/USD",
+        //         "orderId":"00000000-0000-0000-0000-000000234db0",
+        //         "clientOrderId":"00000000-0000-0000-0000-000000234db0",
+        //         "transactTime":1591058006339,
+        //         "price":"10000.00000000",
+        //         "origQty":"1",
+        //         "executedQty":"0.0",
+        //         "status":"REJECTED",
+        //         "timeInForce":"GTC",
+        //         "type":"LIMIT",
+        //         "side":"SELL",
+        //     }
+        //
         return this.parseOrder (response, market);
     }
 
