@@ -159,6 +159,8 @@ module.exports = class currencycom extends Exchange {
     async fetchMarkets (params = {}) {
         const response = await this.publicGetExchangeInfo (params);
         //
+        // spot
+        //
         //     {
         //         "timezone":"UTC",
         //         "serverTime":1590998061253,
@@ -185,6 +187,22 @@ module.exports = class currencycom extends Exchange {
         //                 ],
         //                 "marketType":"SPOT"
         //             },
+        //             {
+        //                 "symbol":"BTC/USD_LEVERAGE",
+        //                 "name":"Bitcoin / USD",
+        //                 "status":"TRADING",
+        //                 "baseAsset":"BTC",
+        //                 "baseAssetPrecision":3,
+        //                 "quoteAsset":"USD",
+        //                 "quoteAssetId":"USD_LEVERAGE",
+        //                 "quotePrecision":3,
+        //                 "orderTypes":["LIMIT","MARKET","STOP"],
+        //                 "filters":[
+        //                     {"filterType":"LOT_SIZE","minQty":"0.001","maxQty":"100","stepSize":"0.001"},
+        //                     {"filterType":"MIN_NOTIONAL","minNotional":"11"}
+        //                 ],
+        //                 "marketType":"LEVERAGE"
+        //             }
         //         ]
         //     }
         //
@@ -212,6 +230,12 @@ module.exports = class currencycom extends Exchange {
             };
             const status = this.safeString (market, 'status');
             const active = (status === 'TRADING');
+            let type = this.safeStringLower (market, 'marketType');
+            if (type === 'leverage') {
+                type = 'margin';
+            }
+            const spot = (type === 'spot');
+            const margin = (type === 'margin');
             const entry = {
                 'id': id,
                 'symbol': symbol,
@@ -219,6 +243,9 @@ module.exports = class currencycom extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': type,
+                'spot': spot,
+                'margin': margin,
                 'info': market,
                 'active': active,
                 'precision': precision,
