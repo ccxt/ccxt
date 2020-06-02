@@ -2603,6 +2603,8 @@ class okex3(Exchange):
         if message is not None:
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
-        self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
-        if message is not None:
-            raise ExchangeError(feedback)  # unknown message
+            self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+            nonEmptyMessage = (message != '')
+            nonZeroErrorCode = (errorCode is not None) and (errorCode != '0')
+            if nonZeroErrorCode or nonEmptyMessage:
+                raise ExchangeError(feedback)  # unknown message
