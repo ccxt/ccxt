@@ -219,8 +219,14 @@ module.exports = class coinone extends Exchange {
         const last = this.safeFloat (ticker, 'last');
         const previousClose = this.safeFloat (ticker, 'yesterday_last');
         let change = undefined;
+        let percentage = undefined;
         if (last !== undefined && previousClose !== undefined) {
-            change = previousClose - last;
+            change = last - previousClose;
+            if (change != 0) {
+                percentage = change / previousClose * 100;
+            } else {
+                percentage = 0;
+            }
         }
         const symbol = (market !== undefined) ? market['symbol'] : undefined;
         return {
@@ -239,7 +245,7 @@ module.exports = class coinone extends Exchange {
             'last': last,
             'previousClose': previousClose,
             'change': change,
-            'percentage': undefined,
+            'percentage': percentage,
             'average': undefined,
             'baseVolume': this.safeFloat (ticker, 'volume'),
             'quoteVolume': undefined,
