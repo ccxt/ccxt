@@ -2042,51 +2042,50 @@ class binance extends Exchange {
                 throw new InvalidOrder($this->id . ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use $this->price_to_precision(symbol, amount) ' . $body);
             }
         }
-        if (strlen($body) > 0) {
-            if ($body[0] === '{') {
-                // check $success value for wapi endpoints
-                // $response in format array('msg' => 'The coin does not exist.', 'success' => true/false)
-                $success = $this->safe_value($response, 'success', true);
-                if (!$success) {
-                    $message = $this->safe_string($response, 'msg');
+        if ($response === null) {
+            return; // fallback to default $error handler
+        }
+        // check $success value for wapi endpoints
+        // $response in format array('msg' => 'The coin does not exist.', 'success' => true/false)
+        $success = $this->safe_value($response, 'success', true);
+        if (!$success) {
+            $message = $this->safe_string($response, 'msg');
+            $parsedMessage = null;
+            if ($message !== null) {
+                try {
+                    $parsedMessage = json_decode($message, $as_associative_array = true);
+                } catch (Exception $e) {
+                    // do nothing
                     $parsedMessage = null;
-                    if ($message !== null) {
-                        try {
-                            $parsedMessage = json_decode($message, $as_associative_array = true);
-                        } catch (Exception $e) {
-                            // do nothing
-                            $parsedMessage = null;
-                        }
-                        if ($parsedMessage !== null) {
-                            $response = $parsedMessage;
-                        }
-                    }
                 }
-                $message = $this->safe_string($response, 'msg');
-                if ($message !== null) {
-                    $this->throw_exactly_matched_exception($this->exceptions, $message, $this->id . ' ' . $message);
-                }
-                // checks against $error codes
-                $error = $this->safe_string($response, 'code');
-                if ($error !== null) {
-                    // https://github.com/ccxt/ccxt/issues/6501
-                    if ($error === '200') {
-                        return;
-                    }
-                    // a workaround for array("$code":-2015,"msg":"Invalid API-key, IP, or permissions for action.")
-                    // despite that their $message is very confusing, it is raised by Binance
-                    // on a temporary ban, the API key is valid, but disabled for a while
-                    if (($error === '-2015') && $this->options['hasAlreadyAuthenticatedSuccessfully']) {
-                        throw new DDoSProtection($this->id . ' temporary banned => ' . $body);
-                    }
-                    $feedback = $this->id . ' ' . $body;
-                    $this->throw_exactly_matched_exception($this->exceptions, $error, $feedback);
-                    throw new ExchangeError($feedback);
-                }
-                if (!$success) {
-                    throw new ExchangeError($this->id . ' ' . $body);
+                if ($parsedMessage !== null) {
+                    $response = $parsedMessage;
                 }
             }
+        }
+        $message = $this->safe_string($response, 'msg');
+        if ($message !== null) {
+            $this->throw_exactly_matched_exception($this->exceptions, $message, $this->id . ' ' . $message);
+        }
+        // checks against $error codes
+        $error = $this->safe_string($response, 'code');
+        if ($error !== null) {
+            // https://github.com/ccxt/ccxt/issues/6501
+            if ($error === '200') {
+                return;
+            }
+            // a workaround for array("$code":-2015,"msg":"Invalid API-key, IP, or permissions for action.")
+            // despite that their $message is very confusing, it is raised by Binance
+            // on a temporary ban, the API key is valid, but disabled for a while
+            if (($error === '-2015') && $this->options['hasAlreadyAuthenticatedSuccessfully']) {
+                throw new DDoSProtection($this->id . ' temporary banned => ' . $body);
+            }
+            $feedback = $this->id . ' ' . $body;
+            $this->throw_exactly_matched_exception($this->exceptions, $error, $feedback);
+            throw new ExchangeError($feedback);
+        }
+        if (!$success) {
+            throw new ExchangeError($this->id . ' ' . $body);
         }
     }
 

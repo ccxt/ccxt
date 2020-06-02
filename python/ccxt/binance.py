@@ -1891,41 +1891,41 @@ class binance(Exchange):
                 raise InvalidOrder(self.id + ' order amount should be evenly divisible by lot size ' + body)
             if body.find('PRICE_FILTER') >= 0:
                 raise InvalidOrder(self.id + ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use self.price_to_precision(symbol, amount) ' + body)
-        if len(body) > 0:
-            if body[0] == '{':
-                # check success value for wapi endpoints
-                # response in format {'msg': 'The coin does not exist.', 'success': True/false}
-                success = self.safe_value(response, 'success', True)
-                if not success:
-                    message = self.safe_string(response, 'msg')
+        if response is None:
+            return  # fallback to default error handler
+        # check success value for wapi endpoints
+        # response in format {'msg': 'The coin does not exist.', 'success': True/false}
+        success = self.safe_value(response, 'success', True)
+        if not success:
+            message = self.safe_string(response, 'msg')
+            parsedMessage = None
+            if message is not None:
+                try:
+                    parsedMessage = json.loads(message)
+                except Exception as e:
+                    # do nothing
                     parsedMessage = None
-                    if message is not None:
-                        try:
-                            parsedMessage = json.loads(message)
-                        except Exception as e:
-                            # do nothing
-                            parsedMessage = None
-                        if parsedMessage is not None:
-                            response = parsedMessage
-                message = self.safe_string(response, 'msg')
-                if message is not None:
-                    self.throw_exactly_matched_exception(self.exceptions, message, self.id + ' ' + message)
-                # checks against error codes
-                error = self.safe_string(response, 'code')
-                if error is not None:
-                    # https://github.com/ccxt/ccxt/issues/6501
-                    if error == '200':
-                        return
-                    # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
-                    # despite that their message is very confusing, it is raised by Binance
-                    # on a temporary ban, the API key is valid, but disabled for a while
-                    if (error == '-2015') and self.options['hasAlreadyAuthenticatedSuccessfully']:
-                        raise DDoSProtection(self.id + ' temporary banned: ' + body)
-                    feedback = self.id + ' ' + body
-                    self.throw_exactly_matched_exception(self.exceptions, error, feedback)
-                    raise ExchangeError(feedback)
-                if not success:
-                    raise ExchangeError(self.id + ' ' + body)
+                if parsedMessage is not None:
+                    response = parsedMessage
+        message = self.safe_string(response, 'msg')
+        if message is not None:
+            self.throw_exactly_matched_exception(self.exceptions, message, self.id + ' ' + message)
+        # checks against error codes
+        error = self.safe_string(response, 'code')
+        if error is not None:
+            # https://github.com/ccxt/ccxt/issues/6501
+            if error == '200':
+                return
+            # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
+            # despite that their message is very confusing, it is raised by Binance
+            # on a temporary ban, the API key is valid, but disabled for a while
+            if (error == '-2015') and self.options['hasAlreadyAuthenticatedSuccessfully']:
+                raise DDoSProtection(self.id + ' temporary banned: ' + body)
+            feedback = self.id + ' ' + body
+            self.throw_exactly_matched_exception(self.exceptions, error, feedback)
+            raise ExchangeError(feedback)
+        if not success:
+            raise ExchangeError(self.id + ' ' + body)
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)
