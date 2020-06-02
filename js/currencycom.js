@@ -20,6 +20,7 @@ module.exports = class currencycom extends Exchange {
             // new metainfo interface
             'has': {
                 'CORS': false,
+                'fetchAccounts': true,
                 'fetchMarkets': true,
                 'fetchOrderBook': true,
                 'fetchTicker': true,
@@ -324,6 +325,47 @@ module.exports = class currencycom extends Exchange {
             'rate': rate,
             'cost': parseFloat (cost),
         };
+    }
+
+    async fetchAccounts (params = {}) {
+        const response = await this.privateGetAccount (params);
+        //
+        //     {
+        //         "makerCommission":0.20,
+        //         "takerCommission":0.20,
+        //         "buyerCommission":0.20,
+        //         "sellerCommission":0.20,
+        //         "canTrade":true,
+        //         "canWithdraw":true,
+        //         "canDeposit":true,
+        //         "updateTime":1591056268,
+        //         "balances":[
+        //             {
+        //                 "accountId":5470306579272968,
+        //                 "collateralCurrency":true,
+        //                 "asset":"ETH",
+        //                 "free":0.0,
+        //                 "locked":0.0,
+        //                 "default":false,
+        //             },
+        //         ]
+        //     }
+        //
+        const accounts = this.safeValue (response, 'balances', []);
+        const result = [];
+        for (let i = 0; i < accounts.length; i++) {
+            const account = accounts[i];
+            const accountId = this.safeInteger (account, 'accountId');
+            const currencyId = this.safeString (account, 'asset');
+            const currencyCode = this.safeCurrencyCode (currencyId);
+            result.push ({
+                'id': accountId,
+                'type': undefined,
+                'currency': currencyCode,
+                'info': response,
+            });
+        }
+        return result;
     }
 
     async fetchBalance (params = {}) {
