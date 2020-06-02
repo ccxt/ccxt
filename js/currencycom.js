@@ -25,6 +25,7 @@ module.exports = class currencycom extends Exchange {
                 'fetchOrderBook': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTradingFees': true,
                 'fetchOHLCV': true,
                 'fetchTrades': true,
                 'fetchMyTrades': true,
@@ -366,6 +367,16 @@ module.exports = class currencycom extends Exchange {
             });
         }
         return result;
+    }
+
+    async fetchTradingFees (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetAccount (params);
+        return {
+            'info': response,
+            'maker': this.safeFloat (response, 'makerCommission'),
+            'taker': this.safeFloat (response, 'takerCommission'),
+        };
     }
 
     async fetchBalance (params = {}) {
