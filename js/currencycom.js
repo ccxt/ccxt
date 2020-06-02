@@ -58,10 +58,9 @@ module.exports = class currencycom extends Exchange {
                 'www': 'https://www.currency.com',
                 'referral': 'https://www.currency.com/?ref=10205187',
                 'doc': [
-                    'https://www.currency.com', // TODO
-                    'https://www.currency.com', // TODO
+                    'https://currency.com/api',
                 ],
-                'fees': 'https://currency.com/fees-charges', // TODO
+                'fees': 'https://currency.com/fees-charges',
             },
             'api': {
                 'public': {
