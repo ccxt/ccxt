@@ -13,13 +13,52 @@ module.exports = class coinone extends Exchange {
             'id': 'coinone',
             'name': 'CoinOne',
             'countries': [ 'KR' ], // Korea
+            // 'enableRateLimit': false,
             'rateLimit': 667,
             'version': 'v2',
             'has': {
+                // 'loadMarkets': true,         // true
+                // 'cancelAllOrders': false,
+                // 'cancelOrder': true,         // true
+                // 'cancelOrders': false,
                 'CORS': false,
+                // 'createDepositAddress': false,
+                // 'createLimitOrder': true,    // true
                 'createMarketOrder': false,
-                'fetchTickers': true,
+                // 'createOrder': true,         // true
+                // 'deposit': false,
+                // 'editOrder': 'emulated',
+                // 'fetchBalance': true,        // true
+                // 'fetchBidsAsks': false,
+                // 'fetchClosedOrders': false,  // good to be true
+                // 'fetchCurrencies': false,
+                // 'fetchDepositAddress': false,
+                // 'fetchDeposits': false,
+                // 'fetchFundingFees': false,
+                // 'fetchL2OrderBook': true,    // true
+                // 'fetchLedger': false,
+                // 'fetchMarkets': true,        // true
+                // 'fetchMyTrades': false,      // good to be true
+                // 'fetchOHLCV': 'emulated',
+                // 'fetchOpenOrders': false,    // good to be true
                 'fetchOrder': true,
+                // 'fetchOrderBook': true,      // true
+                // 'fetchOrderBooks': false,
+                // 'fetchOrders': false,        // good to be true
+                // 'fetchOrderTrades': false,
+                // 'fetchStatus': 'emulated',
+                // 'fetchTicker': true,         // true
+                'fetchTickers': true,
+                // 'fetchTime': false,
+                // 'fetchTrades': true,         // true
+                // 'fetchTradingFee': false,
+                // 'fetchTradingFees': false,
+                // 'fetchTradingLimits': false,
+                // 'fetchTransactions': false,
+                // 'fetchWithdrawals': false,
+                // 'privateAPI': true,
+                // 'publicAPI': true,
+                // 'withdraw': false,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg',
@@ -61,56 +100,12 @@ module.exports = class coinone extends Exchange {
                     ],
                 },
             },
-            'markets': {
-                'BCH/KRW': { 'id': 'bch', 'symbol': 'BCH/KRW', 'base': 'BCH', 'quote': 'KRW', 'baseId': 'bch', 'quoteId': 'krw' },
-                'BTC/KRW': { 'id': 'btc', 'symbol': 'BTC/KRW', 'base': 'BTC', 'quote': 'KRW', 'baseId': 'btc', 'quoteId': 'krw' },
-                'BTG/KRW': { 'id': 'btg', 'symbol': 'BTG/KRW', 'base': 'BTG', 'quote': 'KRW', 'baseId': 'btg', 'quoteId': 'krw' },
-                'ETC/KRW': { 'id': 'etc', 'symbol': 'ETC/KRW', 'base': 'ETC', 'quote': 'KRW', 'baseId': 'etc', 'quoteId': 'krw' },
-                'ETH/KRW': { 'id': 'eth', 'symbol': 'ETH/KRW', 'base': 'ETH', 'quote': 'KRW', 'baseId': 'eth', 'quoteId': 'krw' },
-                'IOTA/KRW': { 'id': 'iota', 'symbol': 'IOTA/KRW', 'base': 'IOTA', 'quote': 'KRW', 'baseId': 'iota', 'quoteId': 'krw' },
-                'LTC/KRW': { 'id': 'ltc', 'symbol': 'LTC/KRW', 'base': 'LTC', 'quote': 'KRW', 'baseId': 'ltc', 'quoteId': 'krw' },
-                'OMG/KRW': { 'id': 'omg', 'symbol': 'OMG/KRW', 'base': 'OMG', 'quote': 'KRW', 'baseId': 'omg', 'quoteId': 'krw' },
-                'QTUM/KRW': { 'id': 'qtum', 'symbol': 'QTUM/KRW', 'base': 'QTUM', 'quote': 'KRW', 'baseId': 'qtum', 'quoteId': 'krw' },
-                'XRP/KRW': { 'id': 'xrp', 'symbol': 'XRP/KRW', 'base': 'XRP', 'quote': 'KRW', 'baseId': 'xrp', 'quoteId': 'krw' },
-                'EOS/KRW': { 'id': 'eos', 'symbol': 'EOS/KRW', 'base': 'EOS', 'quote': 'KRW', 'baseId': 'eos', 'quoteId': 'krw' },
-                'DATA/KRW': { 'id': 'data', 'symbol': 'DATA/KRW', 'base': 'DATA', 'quote': 'KRW', 'baseId': 'data', 'quoteId': 'krw' },
-                'ZIL/KRW': { 'id': 'zil', 'symbol': 'ZIL/KRW', 'base': 'ZIL', 'quote': 'KRW', 'baseId': 'zil', 'quoteId': 'krw' },
-                'KNC/KRW': { 'id': 'knc', 'symbol': 'KNC/KRW', 'base': 'KNC', 'quote': 'KRW', 'baseId': 'knc', 'quoteId': 'krw' },
-                'ZRX/KRW': { 'id': 'zrx', 'symbol': 'ZRX/KRW', 'base': 'ZRX', 'quote': 'KRW', 'baseId': 'zrx', 'quoteId': 'krw' },
-                'LUNA/KRW': { 'id': 'luna', 'symbol': 'LUNA/KRW', 'base': 'LUNA', 'quote': 'KRW', 'baseId': 'luna', 'quoteId': 'krw' },
-                'ATOM/KRW': { 'id': 'atom', 'symbol': 'ATOM/KRW', 'base': 'ATOM', 'quote': 'KRW', 'baseId': 'atom', 'quoteId': 'krw' },
-                'VNT/KRW': { 'id': 'vnt', 'symbol': 'VNT/KRW', 'base': 'VNT', 'quote': 'KRW', 'baseId': 'vnt', 'quoteId': 'krw' },
-            },
             'fees': {
                 'trading': {
-                    'tierBased': true,
+                    'tierBased': false,
                     'percentage': true,
-                    'taker': 0.001,
-                    'maker': 0.001,
-                    'tiers': {
-                        'taker': [
-                            [0, 0.001],
-                            [100000000, 0.0009],
-                            [1000000000, 0.0008],
-                            [5000000000, 0.0007],
-                            [10000000000, 0.0006],
-                            [20000000000, 0.0005],
-                            [30000000000, 0.0004],
-                            [40000000000, 0.0003],
-                            [50000000000, 0.0002],
-                        ],
-                        'maker': [
-                            [0, 0.001],
-                            [100000000, 0.0008],
-                            [1000000000, 0.0006],
-                            [5000000000, 0.0004],
-                            [10000000000, 0.0002],
-                            [20000000000, 0],
-                            [30000000000, 0],
-                            [40000000000, 0],
-                            [50000000000, 0],
-                        ],
-                    },
+                    'taker': 0.002,
+                    'maker': 0.002,
                 },
             },
             'exceptions': {
@@ -120,6 +115,36 @@ module.exports = class coinone extends Exchange {
                 '107': BadRequest, // {"errorCode":"107","errorMsg":"Parameter error","result":"error"}
             },
         });
+    }
+
+    async fetchMarkets (params = {}) {
+        const request = {
+            'currency': 'all',
+        };
+        const response = await this.publicGetTicker (request);
+        const result = [];
+        const quoteId = 'krw';
+        const quote = quoteId.toUpperCase ();
+        const currencyIds = Object.keys (response);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const ticker = response[currencyIds[i]];
+            let id = this.safeString (ticker, 'currency');
+            if (id === undefined) {
+                continue;
+            }
+            id = id.toLowerCase ();
+            const base = id.toUpperCase ();
+            result.push ({
+                'id': id,
+                'symbol': base + '/' + quote,
+                'base': base,
+                'quote': quote,
+                'baseId': id,
+                'quoteId': quoteId,
+                'active': true,
+            });
+        }
+        return result;
     }
 
     async fetchBalance (params = {}) {
