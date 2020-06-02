@@ -20,6 +20,8 @@ module.exports = class currencycom extends Exchange {
             // new metainfo interface
             'has': {
                 'CORS': false,
+                'cancelOrder': true,
+                'createOrder': true,
                 'fetchAccounts': true,
                 'fetchMarkets': true,
                 'fetchOrderBook': true,
@@ -34,11 +36,6 @@ module.exports = class currencycom extends Exchange {
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
-                'withdraw': false,
-                'fetchFundingFees': true,
-                'fetchDeposits': false,
-                'fetchWithdrawals': false,
-                'fetchTransactions': false,
             },
             'timeframes': {
                 '1m': '1m',
@@ -104,7 +101,7 @@ module.exports = class currencycom extends Exchange {
             },
             // exchange-specific options
             'options': {
-                'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+                'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel, 'FOK' = Fill Or Kill
                 'warnOnFetchOpenOrdersWithoutSymbol': true,
                 'recvWindow': 5 * 1000, // 5 sec, default
                 'timeDifference': 0, // the difference between system clock and Binance clock
@@ -836,6 +833,13 @@ module.exports = class currencycom extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        let accountId = undefined;
+        if (market['margin']) {
+            accountId = this.safeInteger (params, 'accountId');
+            if (accountId === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder requires an accountId parameter for ' + market['type'] + ' market ' + symbol);
+            }
+        }
         const uppercaseType = type.toUpperCase ();
         const newOrderRespType = this.safeValue (this.options['newOrderRespType'], type, 'RESULT');
         const request = {
@@ -843,40 +847,19 @@ module.exports = class currencycom extends Exchange {
             'quantity': this.amountToPrecision (symbol, amount),
             'type': uppercaseType,
             'side': side.toUpperCase (),
-            'newOrderRespType': newOrderRespType, // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+            'newOrderRespType': newOrderRespType, // 'RESULT' for full order or 'FULL' for order with fills
+            // 'leverage': 1,
+            // 'accountId': 5470306579272968, // required for leverage markets
+            // 'takeProfit': '123.45',
+            // 'stopLoss': '54.321'
+            // 'guaranteedStopLoss': '54.321',
         };
-        let timeInForceIsRequired = false;
-        let priceIsRequired = false;
-        let stopPriceIsRequired = false;
         if (uppercaseType === 'LIMIT') {
-            priceIsRequired = true;
-            timeInForceIsRequired = true;
-        } else if ((uppercaseType === 'STOP_LOSS') || (uppercaseType === 'TAKE_PROFIT')) {
-            stopPriceIsRequired = true;
-        } else if ((uppercaseType === 'STOP_LOSS_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
-            stopPriceIsRequired = true;
-            priceIsRequired = true;
-            timeInForceIsRequired = true;
-        } else if (uppercaseType === 'LIMIT_MAKER') {
-            priceIsRequired = true;
-        }
-        if (priceIsRequired) {
             if (price === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder method requires a price argument for a ' + type + ' order');
             }
             request['price'] = this.priceToPrecision (symbol, price);
-        }
-        if (timeInForceIsRequired) {
-            request['timeInForce'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
-        }
-        if (stopPriceIsRequired) {
-            const stopPrice = this.safeFloat (params, 'stopPrice');
-            if (stopPrice === undefined) {
-                throw new InvalidOrder (this.id + ' createOrder method requires a stopPrice extra param for a ' + type + ' order');
-            } else {
-                params = this.omit (params, 'stopPrice');
-                request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
-            }
+            request['timeInForce'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel, 'FOK' = Fill Or Kill
         }
         const response = await this.privatePostOrder (this.extend (request, params));
         //
@@ -985,11 +968,17 @@ module.exports = class currencycom extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const origClientOrderId = this.safeValue (params, 'origClientOrderId');
         const request = {
             'symbol': market['id'],
-            'orderId': id,
+            // 'orderId': parseInt (id),
             // 'origClientOrderId': id,
         };
+        if (origClientOrderId === undefined) {
+            request['orderId'] = parseInt (id);
+        } else {
+            request['origClientOrderId'] = origClientOrderId;
+        }
         const response = await this.privateDeleteOrder (this.extend (request, params));
         return this.parseOrder (response);
     }
