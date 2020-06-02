@@ -30,6 +30,9 @@ module.exports = class bitmex extends Exchange {
                 'fetchMyTrades': true,
                 'fetchLedger': true,
                 'fetchTransactions': 'emulated',
+                'createOrder': true,
+                'cancelOrder': true,
+                'cancelAllOrders': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -53,7 +56,7 @@ module.exports = class bitmex extends Exchange {
                     'https://github.com/BitMEX/api-connectors/tree/master/official-http',
                 ],
                 'fees': 'https://www.bitmex.com/app/fees',
-                'referral': 'https://www.bitmex.com/register/rm3C16',
+                'referral': 'https://www.bitmex.com/register/upZpOX',
             },
             'api': {
                 'public': {
@@ -1111,9 +1114,11 @@ module.exports = class bitmex extends Exchange {
         const id = this.safeString (order, 'orderID');
         const type = this.safeStringLower (order, 'ordType');
         const side = this.safeStringLower (order, 'side');
+        const clientOrderId = this.safeString (order, 'clOrdID');
         return {
             'info': order,
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -1128,6 +1133,7 @@ module.exports = class bitmex extends Exchange {
             'remaining': remaining,
             'status': status,
             'fee': undefined,
+            'trades': undefined,
         };
     }
 
@@ -1186,6 +1192,11 @@ module.exports = class bitmex extends Exchange {
         if (price !== undefined) {
             request['price'] = price;
         }
+        const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['clOrdID'] = clientOrderId;
+            params = this.omit (params, [ 'clOrdID', 'clientOrderId' ]);
+        }
         const response = await this.privatePostOrder (this.extend (request, params));
         const order = this.parseOrder (response);
         const id = this.safeString (order, 'id');
@@ -1195,9 +1206,16 @@ module.exports = class bitmex extends Exchange {
 
     async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {
-            'orderID': id,
-        };
+        const request = {};
+        const origClOrdID = this.safeString2 (params, 'origClOrdID', 'clientOrderId');
+        if (origClOrdID !== undefined) {
+            request['origClOrdID'] = origClOrdID;
+            const clientOrderId = this.safeString (params, 'clOrdID', 'clientOrderId');
+            if (clientOrderId !== undefined) {
+                request['clOrdID'] = clientOrderId;
+            }
+            params = this.omit (params, [ 'origClOrdID', 'clOrdID', 'clientOrderId' ]);
+        }
         if (amount !== undefined) {
             request['orderQty'] = amount;
         }
@@ -1213,15 +1231,16 @@ module.exports = class bitmex extends Exchange {
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         // https://github.com/ccxt/ccxt/issues/6507
-        const clOrdID = this.safeValue (params, 'clOrdID');
+        const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
         const request = {};
-        if (clOrdID === undefined) {
+        if (clientOrderId === undefined) {
             request['orderID'] = id;
         } else {
-            request['clOrdID'] = clOrdID;
+            request['clOrdID'] = clientOrderId;
+            params = this.omit (params, [ 'clOrdID', 'clientOrderId' ]);
         }
         const response = await this.privateDeleteOrder (this.extend (request, params));
-        let order = response[0];
+        let order = this.safeValue (response, 0, {});
         const error = this.safeString (order, 'error');
         if (error !== undefined) {
             if (error.indexOf ('Unable to cancel order due to existing state') >= 0) {
@@ -1231,6 +1250,57 @@ module.exports = class bitmex extends Exchange {
         order = this.parseOrder (order);
         this.orders[order['id']] = order;
         return this.extend ({ 'info': response }, order);
+    }
+
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        const response = await this.privateDeleteOrderAll (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "orderID": "string",
+        //             "clOrdID": "string",
+        //             "clOrdLinkID": "string",
+        //             "account": 0,
+        //             "symbol": "string",
+        //             "side": "string",
+        //             "simpleOrderQty": 0,
+        //             "orderQty": 0,
+        //             "price": 0,
+        //             "displayQty": 0,
+        //             "stopPx": 0,
+        //             "pegOffsetValue": 0,
+        //             "pegPriceType": "string",
+        //             "currency": "string",
+        //             "settlCurrency": "string",
+        //             "ordType": "string",
+        //             "timeInForce": "string",
+        //             "execInst": "string",
+        //             "contingencyType": "string",
+        //             "exDestination": "string",
+        //             "ordStatus": "string",
+        //             "triggered": "string",
+        //             "workingIndicator": true,
+        //             "ordRejReason": "string",
+        //             "simpleLeavesQty": 0,
+        //             "leavesQty": 0,
+        //             "simpleCumQty": 0,
+        //             "cumQty": 0,
+        //             "avgPx": 0,
+        //             "multiLegReportingType": "string",
+        //             "text": "string",
+        //             "transactTime": "2020-06-01T09:36:35.290Z",
+        //             "timestamp": "2020-06-01T09:36:35.290Z"
+        //         }
+        //     ]
+        //
+        return this.parseOrders (response, market);
     }
 
     isFiat (currency) {

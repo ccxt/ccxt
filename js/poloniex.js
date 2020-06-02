@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, RequestTimeout, AuthenticationError, PermissionDenied, DDoSProtection, InsufficientFunds, OrderNotFound, OrderNotCached, InvalidOrder, AccountSuspended, CancelPending, InvalidNonce } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, RequestTimeout, AuthenticationError, PermissionDenied, DDoSProtection, InsufficientFunds, OrderNotFound, OrderNotCached, InvalidOrder, AccountSuspended, CancelPending, InvalidNonce, OnMaintenance } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -59,7 +59,7 @@ module.exports = class poloniex extends Exchange {
                 'www': 'https://www.poloniex.com',
                 'doc': 'https://docs.poloniex.com',
                 'fees': 'https://poloniex.com/fees',
-                'referral': 'https://www.poloniex.com/?utm_source=ccxt&utm_medium=web',
+                'referral': 'https://poloniex.com/signup?c=UBFZJRPJ',
             },
             'api': {
                 'public': {
@@ -170,6 +170,7 @@ module.exports = class poloniex extends Exchange {
                     'Permission denied': PermissionDenied,
                     'Connection timed out. Please try again.': RequestTimeout,
                     'Internal error. Please try again.': ExchangeNotAvailable,
+                    'Currently in maintenance mode.': OnMaintenance,
                     'Order not found, or you are not the person who placed it.': OrderNotFound,
                     'Invalid API key/secret pair.': AuthenticationError,
                     'Please do not make more than 8 API calls per second.': DDoSProtection,
@@ -749,6 +750,7 @@ module.exports = class poloniex extends Exchange {
         //             },
         //         ],
         //         'fee': '0.00000000',
+        //         'clientOrderId': '12345',
         //         'currencyPair': 'BTC_MANA',
         //         // ---------------------------------------------------------
         //         // the following fields are injected by createOrder
@@ -835,9 +837,11 @@ module.exports = class poloniex extends Exchange {
                 'currency': feeCurrencyCode,
             };
         }
+        const clientOrderId = this.safeString (order, 'clientOrderId');
         return {
             'info': order,
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -978,6 +982,11 @@ module.exports = class poloniex extends Exchange {
             'rate': this.priceToPrecision (symbol, price),
             'amount': amount,
         };
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['clientOrderId'] = clientOrderId;
+            params = this.omit (params, 'clientOrderId');
+        }
         // remember the timestamp before issuing the request
         const timestamp = this.milliseconds ();
         const response = await this[method] (this.extend (request, params));
@@ -1031,6 +1040,7 @@ module.exports = class poloniex extends Exchange {
                 'id': newid,
                 'price': price,
                 'status': 'open',
+                'trades': [],
             });
             if (amount !== undefined) {
                 this.orders[newid]['amount'] = amount;
@@ -1051,9 +1061,15 @@ module.exports = class poloniex extends Exchange {
         await this.loadMarkets ();
         let response = undefined;
         try {
-            response = await this.privatePostCancelOrder (this.extend ({
-                'orderNumber': id,
-            }, params));
+            const request = {};
+            const clientOrderId = this.safeValue (params, 'clientOrderId');
+            if (clientOrderId === undefined) {
+                request['orderNumber'] = id;
+            } else {
+                request['clientOrderId'] = clientOrderId;
+            }
+            params = this.omit (params, 'clientOrderId');
+            response = await this.privatePostCancelOrder (this.extend (request, params));
         } catch (e) {
             if (e instanceof CancelPending) {
                 // A request to cancel the order has been sent already.

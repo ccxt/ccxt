@@ -275,6 +275,23 @@ module.exports = class coinfalcon extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //
+        //     {
+        //         "id":"8bdd79f4-8414-40a2-90c3-e9f4d6d1eef4"
+        //         "market":"IOT-BTC"
+        //         "price":"0.0000003"
+        //         "size":"4.0"
+        //         "size_filled":"3.0"
+        //         "fee":"0.0075"
+        //         "fee_currency_code":"iot"
+        //         "funds":"0.0"
+        //         "status":"canceled"
+        //         "order_type":"buy"
+        //         "post_only":false
+        //         "operation_type":"market_order"
+        //         "created_at":"2018-01-12T21:14:06.747828Z"
+        //     }
+        //
         if (market === undefined) {
             const marketId = this.safeString (order, 'market');
             if (marketId in this.markets_by_id) {
@@ -308,6 +325,7 @@ module.exports = class coinfalcon extends Exchange {
         const side = this.safeString (order, 'order_type');
         return {
             'id': this.safeString (order, 'id'),
+            'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'status': status,
@@ -322,6 +340,8 @@ module.exports = class coinfalcon extends Exchange {
             'trades': undefined,
             'fee': undefined,
             'info': order,
+            'lastTradeTimestamp': undefined,
+            'average': undefined,
         };
     }
 

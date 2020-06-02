@@ -10,8 +10,8 @@ use \ccxt\ExchangeError;
 
 class btctradeim extends coinegg {
 
-    public function describe () {
-        $result = array_replace_recursive(parent::describe (), array(
+    public function describe() {
+        $result = $this->deep_extend(parent::describe (), array(
             'id' => 'btctradeim',
             'name' => 'BtcTrade.im',
             'countries' => array( 'HK' ),
@@ -54,8 +54,8 @@ class btctradeim extends coinegg {
         return $result;
     }
 
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
+    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $response = $this->fetch2($path, $api, $method, $params, $headers, $body);
         if ($api === 'web') {
             return $response;
         }

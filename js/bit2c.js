@@ -279,6 +279,7 @@ module.exports = class bit2c extends Exchange {
         const status = this.safeString (order, 'status');
         return {
             'id': id,
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -294,6 +295,7 @@ module.exports = class bit2c extends Exchange {
             'trades': undefined,
             'fee': undefined,
             'info': order,
+            'average': undefined,
         };
     }
 

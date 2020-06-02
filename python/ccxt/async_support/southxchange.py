@@ -87,6 +87,8 @@ class southxchange(Exchange):
                 'quoteId': quoteId,
                 'active': None,
                 'info': market,
+                'precision': self.precision,
+                'limits': self.limits,
             })
         return result
 
@@ -229,6 +231,7 @@ class southxchange(Exchange):
         result = {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -242,6 +245,8 @@ class southxchange(Exchange):
             'remaining': remaining,
             'status': status,
             'fee': None,
+            'average': None,
+            'trades': None,
         }
         return result
 

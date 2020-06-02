@@ -22,10 +22,14 @@ class ftx(Exchange):
             'countries': ['HK'],
             'rateLimit': 100,
             'certified': True,
+            'pro': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/67149189-df896480-f2b0-11e9-8816-41593e17f9ec.jpg',
                 'www': 'https://ftx.com',
-                'api': 'https://ftx.com',
+                'api': {
+                    'public': 'https://ftx.com',
+                    'private': 'https://ftx.com',
+                },
                 'doc': 'https://github.com/ftexchange/ftx',
                 'fees': 'https://ftexchange.zendesk.com/hc/en-us/articles/360024479432-Fees',
                 'referral': 'https://ftx.com/#a=1623029',
@@ -165,6 +169,19 @@ class ftx(Exchange):
                 },
             },
             'precisionMode': TICK_SIZE,
+            'options': {
+                # support for canceling conditional orders
+                # https://github.com/ccxt/ccxt/issues/6669
+                'cancelOrder': {
+                    'method': 'privateDeleteOrdersOrderId',  # privateDeleteConditionalOrdersOrderId
+                },
+                'fetchOpenOrders': {
+                    'method': 'privateGetOrders',  # privateGetConditionalOrders
+                },
+                'fetchOrders': {
+                    'method': 'privateGetOrdersHistory',  # privateGetConditionalOrdersHistory
+                },
+            },
         })
 
     async def fetch_currencies(self, params={}):
@@ -335,11 +352,12 @@ class ftx(Exchange):
             else:
                 base = self.safe_currency_code(self.safe_string(ticker, 'baseCurrency'))
                 quote = self.safe_currency_code(self.safe_string(ticker, 'quoteCurrency'))
-                symbol = base + '/' + quote
+                if (base is not None) and (quote is not None):
+                    symbol = base + '/' + quote
         if (symbol is None) and (market is not None):
             symbol = market['symbol']
         last = self.safe_float(ticker, 'last')
-        timestamp = self.milliseconds()
+        timestamp = self.safe_timestamp(ticker, 'time', self.milliseconds())
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -347,9 +365,9 @@ class ftx(Exchange):
             'high': self.safe_float(ticker, 'high'),
             'low': self.safe_float(ticker, 'low'),
             'bid': self.safe_float(ticker, 'bid'),
-            'bidVolume': None,
+            'bidVolume': self.safe_float(ticker, 'bidSize'),
             'ask': self.safe_float(ticker, 'ask'),
-            'askVolume': None,
+            'askVolume': self.safe_float(ticker, 'askSize'),
             'vwap': None,
             'open': None,
             'close': last,
@@ -487,11 +505,19 @@ class ftx(Exchange):
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
-        market = self.market(symbol)
         request = {
-            'market_name': market['id'],
             'resolution': self.timeframes[timeframe],
         }
+        market = None
+        if symbol in self.markets:
+            market = self.market(symbol)
+            request['market_name'] = market['id']
+        else:
+            marketId = self.safe_string(params, 'market_name')
+            if marketId is not None:
+                request['market_name'] = marketId
+            else:
+                request['market_name'] = symbol
         # max 1501 candles, including the current candle when since is not specified
         limit = 1501 if (limit is None) else limit
         if since is None:
@@ -549,6 +575,7 @@ class ftx(Exchange):
         #     {
         #         "fee": 20.1374935,
         #         "feeRate": 0.0005,
+        #         "feeCurrency": "USD",
         #         "future": "EOS-0329",
         #         "id": 11215,
         #         "liquidity": "taker",
@@ -590,8 +617,11 @@ class ftx(Exchange):
         fee = None
         feeCost = self.safe_float(trade, 'fee')
         if feeCost is not None:
+            feeCurrencyId = self.safe_string(trade, 'feeCurrency')
+            feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
                 'cost': feeCost,
+                'currency': feeCurrencyCode,
                 'rate': self.safe_float(trade, 'feeRate'),
             }
         orderId = self.safe_string(trade, 'orderId')
@@ -816,9 +846,11 @@ class ftx(Exchange):
         if filled is not None and price is not None:
             cost = filled * price
         lastTradeTimestamp = self.parse8601(self.safe_string(order, 'triggeredAt'))
+        clientOrderId = self.safe_string(order, 'clientId')
         return {
             'info': order,
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -850,6 +882,10 @@ class ftx(Exchange):
             # 'postOnly': False,  # optional, default is False, limit or market orders only
             # 'clientId': 'abcdef0123456789',  # string, optional, client order id, limit or market orders only
         }
+        clientOrderId = self.safe_string_2(params, 'clientId', 'clientOrderId')
+        if clientOrderId is not None:
+            params['clientId'] = clientOrderId
+            params = self.omit(params, ['clientId', 'clientOrderId'])
         priceToPrecision = None
         if price is not None:
             priceToPrecision = float(self.price_to_precision(symbol, price))
@@ -927,7 +963,22 @@ class ftx(Exchange):
         request = {
             'order_id': int(id),
         }
-        response = await self.privateDeleteOrdersOrderId(self.extend(request, params))
+        # support for canceling conditional orders
+        # https://github.com/ccxt/ccxt/issues/6669
+        options = self.safe_value(self.options, 'cancelOrder', {})
+        defaultMethod = self.safe_string(options, 'method', 'privateDeleteOrdersOrderId')
+        method = self.safe_string(params, 'method', defaultMethod)
+        type = self.safe_value(params, 'type')
+        clientOrderId = self.safe_value_2(params, 'client_order_id', 'clientOrderId')
+        if clientOrderId is None:
+            request['order_id'] = int(id)
+            if (type == 'stop') or (type == 'trailingStop') or (type == 'takeProfit'):
+                method = 'privateDeleteConditionalOrdersOrderId'
+        else:
+            request['client_order_id'] = clientOrderId
+            method = 'privateDeleteOrdersByClientIdClientOrderId'
+        query = self.omit(params, ['method', 'type', 'client_order_id', 'clientOrderId'])
+        response = await getattr(self, method)(self.extend(request, query))
         #
         #     {
         #         "success": True,
@@ -960,10 +1011,16 @@ class ftx(Exchange):
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        request = {
-            'order_id': id,
-        }
-        response = await self.privateGetOrdersOrderId(self.extend(request, params))
+        request = {}
+        clientOrderId = self.safe_value_2(params, 'client_order_id', 'clientOrderId')
+        method = 'privateGetOrdersOrderId'
+        if clientOrderId is None:
+            request['order_id'] = id
+        else:
+            request['client_order_id'] = clientOrderId
+            params = self.omit(params, ['client_order_id', 'clientOrderId'])
+            method = 'privateGetOrdersByClientIdClientOrderId'
+        response = await getattr(self, method)(self.extend(request, params))
         #
         #     {
         #         "success": True,
@@ -997,7 +1054,16 @@ class ftx(Exchange):
         if symbol is not None:
             market = self.market(symbol)
             request['market'] = market['id']
-        response = await self.privateGetOrders(self.extend(request, params))
+        # support for canceling conditional orders
+        # https://github.com/ccxt/ccxt/issues/6669
+        options = self.safe_value(self.options, 'fetchOpenOrders', {})
+        defaultMethod = self.safe_string(options, 'method', 'privateGetOrders')
+        method = self.safe_string(params, 'method', defaultMethod)
+        type = self.safe_value(params, 'type')
+        if (type == 'stop') or (type == 'trailingStop') or (type == 'takeProfit'):
+            method = 'privateGetConditionalOrders'
+        query = self.omit(params, ['method', 'type'])
+        response = await getattr(self, method)(self.extend(request, query))
         #
         #     {
         #         "success": True,
@@ -1037,7 +1103,16 @@ class ftx(Exchange):
             request['limit'] = limit  # default 100, max 100
         if since is not None:
             request['start_time'] = int(since / 1000)
-        response = await self.privateGetOrdersHistory(self.extend(request, params))
+        # support for canceling conditional orders
+        # https://github.com/ccxt/ccxt/issues/6669
+        options = self.safe_value(self.options, 'fetchOrders', {})
+        defaultMethod = self.safe_string(options, 'method', 'privateGetOrdersHistory')
+        method = self.safe_string(params, 'method', defaultMethod)
+        type = self.safe_value(params, 'type')
+        if (type == 'stop') or (type == 'trailingStop') or (type == 'takeProfit'):
+            method = 'privateGetConditionalOrdersHistory'
+        query = self.omit(params, ['method', 'type'])
+        response = await getattr(self, method)(self.extend(request, query))
         #
         #     {
         #         "success": True,
@@ -1114,6 +1189,8 @@ class ftx(Exchange):
             # 'password': 'string',  # optional withdrawal password if it is required for your account
             # 'code': '192837',  # optional 2fa code if it is required for your account
         }
+        if self.password is not None:
+            request['password'] = self.password
         if tag is not None:
             request['tag'] = tag
         response = await self.privatePostWalletWithdrawals(self.extend(request, params))
@@ -1211,6 +1288,7 @@ class ftx(Exchange):
         address = self.safe_string(transaction, 'address')
         tag = self.safe_string(transaction, 'tag')
         fee = self.safe_float(transaction, 'fee')
+        type = 'deposit' if ('confirmations' in transaction) else 'withdrawal'
         return {
             'info': transaction,
             'id': id,
@@ -1218,12 +1296,12 @@ class ftx(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'addressFrom': None,
-            'address': None,
+            'address': address,
             'addressTo': address,
             'tagFrom': None,
             'tag': tag,
-            'tagTo': None,
-            'type': None,
+            'tagTo': tag,
+            'type': type,
             'amount': amount,
             'currency': code,
             'status': status,
@@ -1283,7 +1361,7 @@ class ftx(Exchange):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = '/api/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        url = self.urls['api'] + request
+        url = self.urls['api'][api] + request
         if method != 'POST':
             if query:
                 suffix = '?' + self.urlencode(query)

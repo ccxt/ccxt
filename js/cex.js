@@ -354,6 +354,7 @@ module.exports = class cex extends Exchange {
                         'max': undefined,
                     },
                 },
+                'active': undefined,
             });
         }
         return result;
@@ -563,9 +564,45 @@ module.exports = class cex extends Exchange {
             request['order_type'] = type;
         }
         const response = await this.privatePostPlaceOrderPair (this.extend (request, params));
+        //
+        //     {
+        //         "id": "12978363524",
+        //         "time": 1586610022259,
+        //         "type": "buy",
+        //         "price": "0.033934",
+        //         "amount": "0.10722802",
+        //         "pending": "0.10722802",
+        //         "complete": false
+        //     }
+        //
+        const placedAmount = this.safeFloat (response, 'amount');
+        const remaining = this.safeFloat (response, 'pending');
+        const timestamp = this.safeValue (response, 'time');
+        const complete = this.safeValue (response, 'complete');
+        const status = complete ? 'closed' : 'open';
+        let filled = undefined;
+        if ((placedAmount !== undefined) && (remaining !== undefined)) {
+            filled = Math.max (placedAmount - remaining, 0);
+        }
         return {
+            'id': this.safeString (response, 'id'),
             'info': response,
-            'id': response['id'],
+            'clientOrderId': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'type': type,
+            'side': this.safeString (response, 'type'),
+            'symbol': symbol,
+            'status': status,
+            'price': this.safeFloat (response, 'price'),
+            'amount': placedAmount,
+            'cost': undefined,
+            'average': undefined,
+            'remaining': remaining,
+            'filled': filled,
+            'fee': undefined,
+            'trades': undefined,
         };
     }
 
@@ -805,11 +842,14 @@ module.exports = class cex extends Exchange {
                         'currency': market['quote'],
                     },
                     'info': item,
+                    'type': undefined,
+                    'takerOrMaker': undefined,
                 });
             }
         }
         return {
             'id': orderId,
+            'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
@@ -825,6 +865,7 @@ module.exports = class cex extends Exchange {
             'trades': trades,
             'fee': fee,
             'info': order,
+            'average': undefined,
         };
     }
 

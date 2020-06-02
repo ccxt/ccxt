@@ -17,6 +17,7 @@ from ccxt.base.errors import OrderNotCached
 from ccxt.base.errors import CancelPending
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
 
@@ -74,7 +75,7 @@ class poloniex(Exchange):
                 'www': 'https://www.poloniex.com',
                 'doc': 'https://docs.poloniex.com',
                 'fees': 'https://poloniex.com/fees',
-                'referral': 'https://www.poloniex.com/?utm_source=ccxt&utm_medium=web',
+                'referral': 'https://poloniex.com/signup?c=UBFZJRPJ',
             },
             'api': {
                 'public': {
@@ -185,6 +186,7 @@ class poloniex(Exchange):
                     'Permission denied': PermissionDenied,
                     'Connection timed out. Please try again.': RequestTimeout,
                     'Internal error. Please try again.': ExchangeNotAvailable,
+                    'Currently in maintenance mode.': OnMaintenance,
                     'Order not found, or you are not the person who placed it.': OrderNotFound,
                     'Invalid API key/secret pair.': AuthenticationError,
                     'Please do not make more than 8 API calls per second.': DDoSProtection,
@@ -715,6 +717,7 @@ class poloniex(Exchange):
         #             },
         #         ],
         #         'fee': '0.00000000',
+        #         'clientOrderId': '12345',
         #         'currencyPair': 'BTC_MANA',
         #         # ---------------------------------------------------------
         #         # the following fields are injected by createOrder
@@ -786,9 +789,11 @@ class poloniex(Exchange):
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
             }
+        clientOrderId = self.safe_string(order, 'clientOrderId')
         return {
             'info': order,
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -905,6 +910,10 @@ class poloniex(Exchange):
             'rate': self.price_to_precision(symbol, price),
             'amount': amount,
         }
+        clientOrderId = self.safe_string(params, 'clientOrderId')
+        if clientOrderId is not None:
+            request['clientOrderId'] = clientOrderId
+            params = self.omit(params, 'clientOrderId')
         # remember the timestamp before issuing the request
         timestamp = self.milliseconds()
         response = getattr(self, method)(self.extend(request, params))
@@ -956,6 +965,7 @@ class poloniex(Exchange):
                 'id': newid,
                 'price': price,
                 'status': 'open',
+                'trades': [],
             })
             if amount is not None:
                 self.orders[newid]['amount'] = amount
@@ -972,9 +982,14 @@ class poloniex(Exchange):
         self.load_markets()
         response = None
         try:
-            response = self.privatePostCancelOrder(self.extend({
-                'orderNumber': id,
-            }, params))
+            request = {}
+            clientOrderId = self.safe_value(params, 'clientOrderId')
+            if clientOrderId is None:
+                request['orderNumber'] = id
+            else:
+                request['clientOrderId'] = clientOrderId
+            params = self.omit(params, 'clientOrderId')
+            response = self.privatePostCancelOrder(self.extend(request, params))
         except Exception as e:
             if isinstance(e, CancelPending):
                 # A request to cancel the order has been sent already.
@@ -1191,7 +1206,7 @@ class poloniex(Exchange):
         withdrawals = self.parse_transactions(response['withdrawals'], currency, since, limit)
         deposits = self.parse_transactions(response['deposits'], currency, since, limit)
         transactions = self.array_concat(deposits, withdrawals)
-        return self.filterByCurrencySinceLimit(self.sort_by(transactions, 'timestamp'), code, since, limit)
+        return self.filter_by_currency_since_limit(self.sort_by(transactions, 'timestamp'), code, since, limit)
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         response = self.fetch_transactions_helper(code, since, limit, params)
@@ -1201,7 +1216,7 @@ class poloniex(Exchange):
         if code is not None:
             currency = self.currency(code)
         withdrawals = self.parse_transactions(response['withdrawals'], currency, since, limit)
-        return self.filterByCurrencySinceLimit(withdrawals, code, since, limit)
+        return self.filter_by_currency_since_limit(withdrawals, code, since, limit)
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         response = self.fetch_transactions_helper(code, since, limit, params)
@@ -1211,7 +1226,7 @@ class poloniex(Exchange):
         if code is not None:
             currency = self.currency(code)
         deposits = self.parse_transactions(response['deposits'], currency, since, limit)
-        return self.filterByCurrencySinceLimit(deposits, code, since, limit)
+        return self.filter_by_currency_since_limit(deposits, code, since, limit)
 
     def parse_transaction_status(self, status):
         statuses = {

@@ -102,6 +102,7 @@ class coinmarketcap(Exchange):
             'Blocktrade Token': 'Blocktrade Token',
             'Catcoin': 'Catcoin',
             'CanYaCoin': 'CanYaCoin',  # conflict with CAN(Content and AD Network)
+            'CryptoBossCoin': 'CryptoBossCoin',  # conflict with CBC(CashBet Coin)
             'Comet': 'Comet',  # conflict with CMT(CyberMiles)
             'CPChain': 'CPChain',
             'CrowdCoin': 'CrowdCoin',  # conflict with CRC CryCash
@@ -169,6 +170,9 @@ class coinmarketcap(Exchange):
                     'baseId': baseId,
                     'quoteId': quoteId,
                     'info': market,
+                    'active': None,
+                    'precision': self.precision,
+                    'limits': self.limits,
                 })
         return result
 

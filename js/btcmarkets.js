@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, OrderNotFound, ArgumentsRequired, InvalidOrder, DDoSProtection } = require ('./base/errors');
+const { ROUND } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -467,8 +468,8 @@ module.exports = class btcmarkets extends Exchange {
         });
         request['currency'] = market['quote'];
         request['instrument'] = market['base'];
-        request['price'] = parseInt (price * multiplier);
-        request['volume'] = parseInt (amount * multiplier);
+        request['price'] = parseInt (this.decimalToPrecision (price * multiplier, ROUND, 0));
+        request['volume'] = parseInt (this.decimalToPrecision (amount * multiplier, ROUND, 0));
         request['orderSide'] = orderSide;
         request['ordertype'] = this.capitalize (type);
         request['clientRequestId'] = this.nonce ().toString ();
@@ -564,6 +565,7 @@ module.exports = class btcmarkets extends Exchange {
                 'currency': feeCurrencyCode,
                 'cost': feeCost,
             },
+            'takerOrMaker': undefined,
         };
     }
 
@@ -611,9 +613,11 @@ module.exports = class btcmarkets extends Exchange {
             lastTradeTimestamp = trades[numTrades - 1]['timestamp'];
         }
         const id = this.safeString (order, 'id');
+        const clientOrderId = this.safeString (order, 'clientRequestId');
         return {
             'info': order,
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,

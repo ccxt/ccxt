@@ -11,8 +11,8 @@ use \ccxt\InvalidOrder;
 
 class bleutrade extends Exchange {
 
-    public function describe () {
-        return array_replace_recursive(parent::describe (), array(
+    public function describe() {
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'bleutrade',
             'name' => 'Bleutrade',
             'countries' => ['BR'], // Brazil
@@ -31,23 +31,18 @@ class bleutrade extends Exchange {
                 'fetchTicker' => true,
                 'fetchOrders' => false,
                 'fetchClosedOrders' => true,
+                'fetchOpenOrders' => true,
                 'fetchWithdrawals' => true,
                 'fetchOrderTrades' => false,
                 'fetchLedger' => true,
                 'fetchDepositAddress' => true,
             ),
             'timeframes' => array(
-                '15m' => '15m',
-                '20m' => '20m',
-                '30m' => '30m',
                 '1h' => '1h',
-                '2h' => '2h',
-                '3h' => '3h',
                 '4h' => '4h',
-                '6h' => '6h',
                 '8h' => '8h',
-                '12h' => '12h',
                 '1d' => '1d',
+                '1w' => '1w',
             ),
             'hostname' => 'bleutrade.com',
             'urls' => array(
@@ -76,6 +71,9 @@ class bleutrade extends Exchange {
                     ),
                 ),
                 'v3Private' => array(
+                    'get' => array(
+                        'statement',
+                    ),
                     'post' => array(
                         'getbalance',
                         'getbalances',
@@ -105,6 +103,7 @@ class bleutrade extends Exchange {
                 'exact' => array(
                     'ERR_INSUFICIENT_BALANCE' => '\\ccxt\\InsufficientFunds',
                     'ERR_LOW_VOLUME' => '\\ccxt\\BadRequest',
+                    'Invalid form' => '\\ccxt\\BadRequest',
                 ),
                 'broad' => array(
                     'Order is not open' => '\\ccxt\\InvalidOrder',
@@ -132,7 +131,7 @@ class bleutrade extends Exchange {
         // https://bleutrade.com/config contains the fees
     }
 
-    public function fetch_currencies ($params = array ()) {
+    public function fetch_currencies($params = array ()) {
         $response = $this->v3PublicGetGetassets ($params);
         $items = $response['result'];
         $result = array();
@@ -166,12 +165,13 @@ class bleutrade extends Exchange {
                 'fee' => $this->safe_float($item, 'WithdrawTxFee'),
                 'precision' => $this->safe_float($item, 'DecimalPlaces'),
                 'info' => $item,
+                'limits' => $this->limits,
             );
         }
         return $result;
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         // https://github.com/ccxt/ccxt/issues/5668
         $response = $this->v3PublicGetGetmarkets ($params);
         $result = array();
@@ -191,8 +191,8 @@ class bleutrade extends Exchange {
             //     MarketCurrencyLong => 'Litecoin',
             //     BaseCurrencyLong => 'Tether' }
             $id = $this->safe_string($market, 'MarketName');
-            $baseId = $this->safe_string($market, 'MarketCurrency');
-            $quoteId = $this->safe_string($market, 'BaseCurrency');
+            $baseId = $this->safe_string($market, 'MarketAsset');
+            $quoteId = $this->safe_string($market, 'BaseAsset');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
@@ -228,7 +228,7 @@ class bleutrade extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'market' => $this->market_id($symbol),
@@ -240,14 +240,14 @@ class bleutrade extends Exchange {
         $response = $this->v3PublicGetGetorderbook (array_merge($request, $params));
         $orderbook = $this->safe_value($response, 'result');
         if (!$orderbook) {
-            throw new ExchangeError($this->id . ' no $orderbook data in ' . $this->json ($response));
+            throw new ExchangeError($this->id . ' no $orderbook data in ' . $this->json($response));
         }
         return $this->parse_order_book($orderbook, null, 'buy', 'sell', 'Rate', 'Quantity');
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
         );
@@ -256,7 +256,7 @@ class bleutrade extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function fetch_tickers ($symbols = null, $params = array ()) {
+    public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
         $response = $this->v3PublicGetGetmarketsummaries ($params);
         $result = $this->safe_value($response, 'result');
@@ -268,7 +268,7 @@ class bleutrade extends Exchange {
         return $this->filter_by_array($tickers, 'symbol', $symbols);
     }
 
-    public function parse_ticker ($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null) {
         //   { TimeStamp => '2020-01-14 14:32:28',
         //     MarketName => 'LTC_USDT',
         //     MarketAsset => 'LTC',
@@ -288,14 +288,14 @@ class bleutrade extends Exchange {
         //     InfoMessage => '',
         //     MarketCurrency => 'Litecoin',
         //     BaseCurrency => 'Tether' }
-        $timestamp = $this->parse8601 ($this->safe_string($ticker, 'TimeStamp'));
+        $timestamp = $this->parse8601($this->safe_string($ticker, 'TimeStamp'));
         $symbol = null;
         $marketId = $this->safe_string($ticker, 'MarketName');
         if ($marketId !== null) {
             if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$marketId];
             } else {
-                $symbol = $this->parse_symbol ($marketId);
+                $symbol = $this->parse_symbol($marketId);
             }
         }
         if (($symbol === null) && ($market !== null)) {
@@ -316,7 +316,7 @@ class bleutrade extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'High'),
             'low' => $this->safe_float($ticker, 'Low'),
             'bid' => $this->safe_float($ticker, 'Bid'),
@@ -337,8 +337,8 @@ class bleutrade extends Exchange {
         );
     }
 
-    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1d', $since = null, $limit = null) {
-        $timestamp = $this->parse8601 ($ohlcv['TimeStamp'] . '+00:00');
+    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1d', $since = null, $limit = null) {
+        $timestamp = $this->parse8601($ohlcv['TimeStamp'] . '+00:00');
         return array(
             $timestamp,
             $this->safe_float($ohlcv, 'Open'),
@@ -349,9 +349,9 @@ class bleutrade extends Exchange {
         );
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = '15m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '15m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'period' => $this->timeframes[$timeframe],
             'market' => $market['id'],
@@ -361,7 +361,7 @@ class bleutrade extends Exchange {
         return $this->parse_ohlcvs($response['result'], $market, $timeframe, $since, $limit);
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         if ($type !== 'limit') {
             // todo => STOP-LIMIT and AMI order types are supported
             throw new InvalidOrder($this->id . ' allows limit orders only');
@@ -388,7 +388,7 @@ class bleutrade extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         $request = array(
             'orderid' => $id,
         );
@@ -397,12 +397,12 @@ class bleutrade extends Exchange {
         return $response;
     }
 
-    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = null;
         $request = array();
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
             $request['market'] = $market['id'];
         }
         $response = $this->v3PrivatePostGetopenorders (array_merge($request, $params));
@@ -410,14 +410,14 @@ class bleutrade extends Exchange {
         return $this->parse_orders($items, $market, $since, $limit);
     }
 
-    public function parse_symbol ($id) {
+    public function parse_symbol($id) {
         list($base, $quote) = explode($this->options['symbolSeparator'], $id);
         $base = $this->safe_currency_code($base);
         $quote = $this->safe_currency_code($quote);
         return $base . '/' . $quote;
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $response = $this->v3PrivatePostGetbalances ($params);
         $result = array( 'info' => $response );
@@ -426,7 +426,7 @@ class bleutrade extends Exchange {
             $item = $items[$i];
             $currencyId = $this->safe_string($item, 'Asset');
             $code = $this->safe_currency_code($currencyId);
-            $account = $this->account ();
+            $account = $this->account();
             $account['free'] = $this->safe_float($item, 'Available');
             $account['total'] = $this->safe_float($item, 'Balance');
             $result[$code] = $account;
@@ -434,12 +434,12 @@ class bleutrade extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array();
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
             $request['market'] = $market['id'];
         }
         $response = $this->v3PrivatePostGetcloseorders (array_merge($request, $params));
@@ -447,24 +447,24 @@ class bleutrade extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_transactions_with_method ($method, $code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_transactions_with_method($method, $code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $response = $this->$method ($params);
         $transactions = $this->safe_value($response, 'result', array());
         return $this->parse_transactions($transactions, $code, $since, $limit);
     }
 
-    public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_transactions_with_method ('v3PrivatePostGetdeposithistory', $code, $since, $limit, $params);
+    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_transactions_with_method('v3PrivatePostGetdeposithistory', $code, $since, $limit, $params);
     }
 
-    public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_transactions_with_method ('v3PrivatePostGetwithdrawhistory', $code, $since, $limit, $params);
+    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_transactions_with_method('v3PrivatePostGetwithdrawhistory', $code, $since, $limit, $params);
     }
 
-    public function fetch_deposit_address ($code, $params = array ()) {
+    public function fetch_deposit_address($code, $params = array ()) {
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $request = array(
             'asset' => $currency['id'],
         );
@@ -487,7 +487,7 @@ class bleutrade extends Exchange {
         );
     }
 
-    public function parse_ledger_entry_type ($type) {
+    public function parse_ledger_entry_type($type) {
         // deposits don't seem to appear in here
         $types = array(
             'TRADE' => 'trade',
@@ -496,7 +496,7 @@ class bleutrade extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_entry ($item, $currency = null) {
+    public function parse_ledger_entry($item, $currency = null) {
         //
         // trade (both sides)
         //
@@ -543,7 +543,7 @@ class bleutrade extends Exchange {
         //
         $code = $this->safe_currency_code($this->safe_string($item, 'CoinSymbol'), $currency);
         $description = $this->safe_string($item, 'Description');
-        $type = $this->parse_ledger_entry_type ($this->safe_string($item, 'Type'));
+        $type = $this->parse_ledger_entry_type($this->safe_string($item, 'Type'));
         $referenceId = null;
         $fee = null;
         $delimiter = ($type === 'trade') ? ', ' : '; ';
@@ -573,7 +573,7 @@ class bleutrade extends Exchange {
             //     }
             //
         }
-        $timestamp = $this->parse8601 ($this->safe_string($item, 'TimeStamp'));
+        $timestamp = $this->parse8601($this->safe_string($item, 'TimeStamp'));
         $amount = $this->safe_float($item, 'Amount');
         $direction = null;
         if ($amount !== null) {
@@ -588,7 +588,7 @@ class bleutrade extends Exchange {
             'id' => $id,
             'info' => $item,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'direction' => $direction,
             'account' => null,
             'referenceId' => $referenceId,
@@ -603,7 +603,7 @@ class bleutrade extends Exchange {
         );
     }
 
-    public function fetch_ledger ($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         // only seems to return 100 $items and there is no documented way to change page size or offset
         $request = array(
@@ -613,7 +613,7 @@ class bleutrade extends Exchange {
         return $this->parse_ledger($items, $code, $since, $limit);
     }
 
-    public function parse_order ($order, $market = null) {
+    public function parse_order($order, $market = null) {
         //
         // fetchClosedOrders
         //
@@ -653,12 +653,12 @@ class bleutrade extends Exchange {
                 $market = $this->markets_by_id[$marketId];
                 $symbol = $market['symbol'];
             } else {
-                $symbol = $this->parse_symbol ($marketId);
+                $symbol = $this->parse_symbol($marketId);
             }
         }
         $timestamp = null;
         if (is_array($order) && array_key_exists('Created', $order)) {
-            $timestamp = $this->parse8601 ($order['Created'] . '+00:00');
+            $timestamp = $this->parse8601($order['Created'] . '+00:00');
         }
         $price = $this->safe_float($order, 'Price');
         $cost = null;
@@ -683,8 +683,9 @@ class bleutrade extends Exchange {
         return array(
             'info' => $order,
             'id' => $id,
+            'clientOrderId' => null,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => 'limit',
@@ -697,10 +698,11 @@ class bleutrade extends Exchange {
             'remaining' => $remaining,
             'status' => $status,
             'fee' => null,
+            'trades' => null,
         );
     }
 
-    public function parse_order_status ($status) {
+    public function parse_order_status($status) {
         $statuses = array(
             'OK' => 'closed',
             'OPEN' => 'open',
@@ -709,7 +711,7 @@ class bleutrade extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction ($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null) {
         //
         //  deposit:
         //
@@ -743,7 +745,7 @@ class bleutrade extends Exchange {
         $currencyId = $this->safe_string($transaction, 'Asset');
         $code = $this->safe_currency_code($currencyId, $currency);
         $label = $this->safe_string($transaction, 'Label');
-        $timestamp = $this->parse8601 ($this->safe_string($transaction, 'Timestamp'));
+        $timestamp = $this->parse8601($this->safe_string($transaction, 'Timestamp'));
         $txid = $this->safe_string($transaction, 'TransactionID');
         $address = null;
         $feeCost = null;
@@ -770,7 +772,7 @@ class bleutrade extends Exchange {
         return array(
             'info' => $transaction,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'id' => $id,
             'currency' => $code,
             'amount' => $amount,
@@ -784,11 +786,11 @@ class bleutrade extends Exchange {
         );
     }
 
-    public function nonce () {
-        return $this->milliseconds ();
+    public function nonce() {
+        return $this->milliseconds();
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->implode_params($this->urls['api'][$api], array(
             'hostname' => $this->hostname,
         )) . '/';
@@ -796,18 +798,18 @@ class bleutrade extends Exchange {
             $this->check_required_credentials();
             $request = array(
                 'apikey' => $this->apiKey,
-                'nonce' => $this->nonce (),
+                'nonce' => $this->nonce(),
             );
-            $url .= $path . '?' . $this->urlencode (array_merge($request, $params));
-            $signature = $this->hmac ($this->encode ($url), $this->encode ($this->secret), 'sha512');
+            $url .= $path . '?' . $this->urlencode(array_merge($request, $params));
+            $signature = $this->hmac($this->encode($url), $this->encode($this->secret), 'sha512');
             $headers = array( 'apisign' => $signature );
         } else {
-            $url .= $path . '?' . $this->urlencode ($params);
+            $url .= $path . '?' . $this->urlencode($params);
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return; // fallback to default error handler
         }
@@ -815,22 +817,23 @@ class bleutrade extends Exchange {
         //    array("$success":false,"message":"Erro => Order is not open.","result":"") <-- 'error' is spelt wrong
         //    array("$success":false,"message":"Error => Very low volume.","result":"ERR_LOW_VOLUME")
         //    array("$success":false,"message":"Error => Insuficient Balance","result":"ERR_INSUFICIENT_BALANCE")
+        //    array("$success":false,"message":"Invalid form","result":null)
         //
-        if ($body[0] === '{') {
-            $success = $this->safe_value($response, 'success');
-            if ($success === null) {
-                throw new ExchangeError($this->id . ' => malformed $response => ' . $this->json ($response));
-            }
-            if (!$success) {
-                $feedback = $this->id . ' ' . $body;
-                $errorCode = $this->safe_string($response, 'result');
+        $success = $this->safe_value($response, 'success');
+        if ($success === null) {
+            throw new ExchangeError($this->id . ' => malformed $response => ' . $this->json($response));
+        }
+        if (!$success) {
+            $feedback = $this->id . ' ' . $body;
+            $errorCode = $this->safe_string($response, 'result');
+            if ($errorCode !== null) {
                 $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorCode, $feedback);
                 $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
-                $errorMessage = $this->safe_string($response, 'message');
-                $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorMessage, $feedback);
-                $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorMessage, $feedback);
-                throw new ExchangeError($feedback);
             }
+            $errorMessage = $this->safe_string($response, 'message');
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorMessage, $feedback);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorMessage, $feedback);
+            throw new ExchangeError($feedback);
         }
     }
 }

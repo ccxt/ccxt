@@ -272,6 +272,20 @@ module.exports = class exx extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //
+        //     {
+        //         "fees": 0,
+        //         "total_amount": 1,
+        //         "trade_amount": 0,
+        //         "price": 30,
+        //         "currency": “eth_hsr",
+        //         "id": "13878",
+        //         "trade_money": 0,
+        //         "type": "buy",
+        //         "trade_date": 1509728897772,
+        //         "status": 0
+        //     }
+        //
         const symbol = market['symbol'];
         const timestamp = parseInt (order['trade_date']);
         const price = this.safeFloat (order, 'price');
@@ -296,6 +310,7 @@ module.exports = class exx extends Exchange {
         }
         return {
             'id': this.safeString (order, 'id'),
+            'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
@@ -311,6 +326,7 @@ module.exports = class exx extends Exchange {
             'trades': undefined,
             'fee': fee,
             'info': order,
+            'average': undefined,
         };
     }
 

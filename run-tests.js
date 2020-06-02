@@ -5,7 +5,7 @@
     A tests launcher. Runs tests for all languages and all exchanges, in
     parallel, with a humanized error reporting.
 
-    Usage: node run-tests [--php] [--js] [--python] [--python2] [--python3] [exchange] [symbol]
+    Usage: node run-tests [--php] [--js] [--python] [--python-async] [exchange] [symbol]
 
     --------------------------------------------------------------------------- */
 
@@ -26,9 +26,8 @@ const keys = {
 
     '--js': false,      // run JavaScript tests only
     '--php': false,     // run PHP tests only
-    '--python': false,  // run Python tests only
-    '--python2': false, // run Python 2 tests only
-    '--python3': false, // run Python 3 tests only
+    '--python': false,  // run Python 3 tests only
+    '--python-async': false, // run Python 3 async tests only
 }
 
 let exchanges = []
@@ -84,18 +83,21 @@ const exec = (bin, ...args) =>
             output = ansi.strip (output.trim ())
             stderr = ansi.strip (stderr)
 
-            const regex = /^\[[^\] ]+\]/mg
+            const regex = /\[[a-z]+?\]/gmi
 
             let match = undefined
             const warnings = []
 
             match = regex.exec (output)
 
-            do {
-                if (match = regex.exec (output)) {
-                    warnings.push (match[0])
-                }
-            } while (match);
+            if (match) {
+                warnings.push (match[0])
+                do {
+                    if (match = regex.exec (output)) {
+                        warnings.push (match[0])
+                    }
+                } while (match);
+            }
 
             return_ ({
                 failed: code !== 0,
@@ -147,11 +149,10 @@ const testExchange = async (exchange) => {
     const args = [exchange, ...symbol === 'all' ? [] : symbol]
         , allTests = [
 
-            { language: 'JavaScript', key: '--js',      exec: ['node',      'js/test/test.js',           ...args] },
-            { language: 'Python',     key: '--python',  exec: ['python',    'python/test/test.py',       ...args] },
-            { language: 'Python 2',   key: '--python2', exec: ['python2',   'python/test/test.py',       ...args] },
-            { language: 'Python 3',   key: '--python3', exec: ['python3',   'python/test/test_async.py', ...args] },
-            { language: 'PHP',        key: '--php',     exec: ['php', '-f', 'php/test/test.php',         ...args] }
+            { language: 'JavaScript',     key: '--js',           exec: ['node',      'js/test/test.js',           ...args] },
+            { language: 'Python 3',       key: '--python',       exec: ['python3',   'python/test/test.py',       ...args] },
+            { language: 'Python 3 Async', key: '--python-async', exec: ['python3',   'python/test/test_async.py', ...args] },
+            { language: 'PHP',            key: '--php',          exec: ['php', '-f', 'php/test/test.php',         ...args] }
         ]
         , selectedTests  = allTests.filter (t => keys[t.key])
         , scheduledTests = selectedTests.length ? selectedTests : allTests

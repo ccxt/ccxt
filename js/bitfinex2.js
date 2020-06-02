@@ -517,6 +517,26 @@ module.exports = class bitfinex2 extends bitfinex {
         return this.parseTicker (ticker, market);
     }
 
+    parseSymbol (marketId) {
+        if (marketId === undefined) {
+            return marketId;
+        }
+        marketId = marketId.replace ('t', '');
+        let baseId = undefined;
+        let quoteId = undefined;
+        if (marketId.indexOf (':') >= 0) {
+            const parts = marketId.split (':');
+            baseId = parts[0];
+            quoteId = parts[1];
+        } else {
+            baseId = marketId.slice (0, 3);
+            quoteId = marketId.slice (3, 6);
+        }
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        return base + '/' + quote;
+    }
+
     parseTrade (trade, market = undefined) {
         //
         // fetchTrades (public)
@@ -563,21 +583,29 @@ module.exports = class bitfinex2 extends bitfinex {
         const timestamp = trade[timestampIndex];
         if (isPrivate) {
             const marketId = trade[1];
-            if (marketId !== undefined) {
-                if (marketId in this.markets_by_id) {
-                    market = this.markets_by_id[marketId];
-                    symbol = market['symbol'];
-                } else {
-                    symbol = marketId;
-                }
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+                symbol = market['symbol'];
+            } else {
+                symbol = this.parseSymbol (marketId);
             }
             orderId = trade[3].toString ();
             takerOrMaker = (trade[8] === 1) ? 'maker' : 'taker';
-            const feeCost = trade[9];
+            let feeCost = trade[9];
             const feeCurrency = this.safeCurrencyCode (trade[10]);
             if (feeCost !== undefined) {
+                feeCost = -feeCost;
+                if (symbol in this.markets) {
+                    feeCost = this.feeToPrecision (symbol, feeCost);
+                } else {
+                    const currencyId = 'f' + feeCurrency;
+                    if (currencyId in this.currencies_by_id) {
+                        const currency = this.currencies_by_id[currencyId];
+                        feeCost = this.currencyToPrecision (currency['code'], feeCost);
+                    }
+                }
                 fee = {
-                    'cost': parseFloat (this.feeToPrecision (symbol, Math.abs (feeCost))),
+                    'cost': parseFloat (feeCost),
                     'currency': feeCurrency,
                 };
             }
@@ -666,16 +694,21 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     parseOrderStatus (status) {
+        if (status === undefined) {
+            return status;
+        }
+        const parts = status.split (' ');
+        const state = this.safeString (parts, 0);
         const statuses = {
             'ACTIVE': 'open',
-            'PARTIALLY FILLED': 'open',
+            'PARTIALLY': 'open',
             'EXECUTED': 'closed',
             'CANCELED': 'canceled',
-            'INSUFFICIENT MARGIN': 'canceled',
+            'INSUFFICIENT': 'canceled',
             'RSN_DUST': 'rejected',
             'RSN_PAUSE': 'rejected',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, state, status);
     }
 
     parseOrder (order, market = undefined) {
@@ -684,11 +717,15 @@ module.exports = class bitfinex2 extends bitfinex {
         const marketId = this.safeString (order, 3);
         if (marketId in this.markets_by_id) {
             market = this.markets_by_id[marketId];
+        } else {
+            symbol = this.parseSymbol (marketId);
         }
-        if (market !== undefined) {
+        if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
-        const timestamp = this.safeTimestamp (order, 5);
+        // https://github.com/ccxt/ccxt/issues/6686
+        // const timestamp = this.safeTimestamp (order, 5);
+        const timestamp = this.safeInteger (order, 5);
         const remaining = Math.abs (this.safeFloat (order, 6));
         const amount = Math.abs (this.safeFloat (order, 7));
         const filled = amount - remaining;
@@ -704,9 +741,11 @@ module.exports = class bitfinex2 extends bitfinex {
         const price = this.safeFloat (order, 16);
         const average = this.safeFloat (order, 17);
         const cost = price * filled;
+        const clientOrderId = this.safeString (order, 2);
         return {
             'info': order,
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -738,6 +777,11 @@ module.exports = class bitfinex2 extends bitfinex {
         };
         if (type !== 'market') {
             request['price'] = this.numberToString (price);
+        }
+        const clientOrderId = this.safeValue2 (params, 'cid', 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['cid'] = clientOrderId;
+            params = this.omit (params, [ 'cid', 'clientOrderId' ]);
         }
         const response = await this.privatePostAuthWOrderSubmit (this.extend (request, params));
         //
@@ -808,17 +852,18 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        const cid = this.safeValue (params, 'cid'); // client order id
+        const cid = this.safeValue2 (params, 'cid', 'clientOrderId'); // client order id
         let request = undefined;
         if (cid !== undefined) {
             const cidDate = this.safeValue (params, 'cidDate'); // client order id date
             if (cidDate === undefined) {
-                throw new InvalidOrder (this.id + " canceling an order by client order id ('cid') requires both 'cid' and 'cid_date' ('YYYY-MM-DD')");
+                throw new InvalidOrder (this.id + " canceling an order by clientOrderId ('cid') requires both 'cid' and 'cid_date' ('YYYY-MM-DD')");
             }
             request = {
                 'cid': cid,
                 'cid_date': cidDate,
             };
+            params = this.omit (params, [ 'cid', 'clientOrderId' ]);
         } else {
             request = {
                 'id': parseInt (id),
@@ -1023,14 +1068,19 @@ module.exports = class bitfinex2 extends bitfinex {
             id = undefined;
             status = 'failed';
         }
+        const tag = this.safeString (data, 3);
         return {
             'info': transaction,
             'id': id,
             'txid': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'addressFrom': undefined,
             'address': undefined, // this is actually the tag for XRP transfers (the address is missing)
-            'tag': this.safeString (data, 3), // refix it properly for the tag from description
+            'addressTo': undefined,
+            'tagFrom': undefined,
+            'tag': tag, // refix it properly for the tag from description
+            'tagTo': tag,
             'type': 'withdrawal',
             'amount': amount,
             'currency': code,

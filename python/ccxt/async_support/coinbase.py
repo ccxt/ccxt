@@ -159,8 +159,16 @@ class coinbase(Exchange):
 
     async def fetch_time(self, params={}):
         response = await self.publicGetTime(params)
+        #
+        #     {
+        #         "data": {
+        #             "epoch": 1589295679,
+        #             "iso": "2020-05-12T15:01:19Z"
+        #         }
+        #     }
+        #
         data = self.safe_value(response, 'data', {})
-        return self.parse8601(self.safe_string(data, 'iso'))
+        return self.safe_timestamp(data, 'epoch')
 
     async def fetch_accounts(self, params={}):
         response = await self.privateGetAccounts(params)
@@ -691,13 +699,16 @@ class coinbase(Exchange):
 
     async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
         request = await self.prepare_account_request_with_currency_code(code, limit, params)
         query = self.omit(params, ['account_id', 'accountId'])
         # for pagination use parameter 'starting_after'
         # the value for the next page can be obtained from the result of the previous call in the 'pagination' field
         # eg: instance.last_json_response.pagination.next_starting_after
         response = await self.privateGetAccountsAccountIdTransactions(self.extend(request, query))
-        return self.parse_ledger(response['data'], None, since, limit)
+        return self.parse_ledger(response['data'], currency, since, limit)
 
     def parse_ledger_entry_status(self, status):
         types = {

@@ -59,7 +59,6 @@ module.exports = class coinfloor extends Exchange {
             'markets': {
                 'BTC/GBP': { 'id': 'XBT/GBP', 'symbol': 'BTC/GBP', 'base': 'BTC', 'quote': 'GBP', 'baseId': 'XBT', 'quoteId': 'GBP', 'precision': { 'price': 0, 'amount': 4 }},
                 'BTC/EUR': { 'id': 'XBT/EUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'XBT', 'quoteId': 'EUR', 'precision': { 'price': 0, 'amount': 4 }},
-                'ETH/GBP': { 'id': 'ETH/GBP', 'symbol': 'ETH/GBP', 'base': 'ETH', 'quote': 'GBP', 'baseId': 'ETH', 'quoteId': 'GBP', 'precision': { 'price': 0, 'amount': 4 }},
             },
             'exceptions': {
                 'exact': {
@@ -400,7 +399,27 @@ module.exports = class coinfloor extends Exchange {
             request['price'] = price;
             request['amount'] = amount;
         }
-        return await this[method] (this.extend (request, params));
+        //
+        //     {
+        //         "id":31950584,
+        //         "datetime":"2020-05-21 08:38:18",
+        //         "type":1,
+        //         "price":"9100",
+        //         "amount":"0.0026"
+        //     }
+        //
+        const response = await this[method] (this.extend (request, params));
+        const timestamp = this.parse8601 (this.safeString (response, 'datetime'));
+        return {
+            'id': this.safeString (response, 'id'),
+            'clientOrderId': undefined,
+            'datetime': this.iso8601 (timestamp),
+            'timestamp': timestamp,
+            'type': type,
+            'price': this.safeFloat (response, 'price'),
+            'remaining': this.safeFloat (response, 'amount'),
+            'info': response,
+        };
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -446,6 +465,7 @@ module.exports = class coinfloor extends Exchange {
         return {
             'info': order,
             'id': id,
+            'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
@@ -454,11 +474,13 @@ module.exports = class coinfloor extends Exchange {
             'type': 'limit',
             'side': side,
             'price': price,
-            'amount': amount,
+            'amount': undefined,
             'filled': undefined,
-            'remaining': undefined,
+            'remaining': amount,
             'cost': cost,
             'fee': undefined,
+            'average': undefined,
+            'trades': undefined,
         };
     }
 

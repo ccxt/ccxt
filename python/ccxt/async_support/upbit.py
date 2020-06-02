@@ -25,6 +25,7 @@ class upbit(Exchange):
             'version': 'v1',
             'rateLimit': 1000,
             'certified': True,
+            'pro': True,
             # new metainfo interface
             'has': {
                 'CORS': True,
@@ -59,7 +60,10 @@ class upbit(Exchange):
             'hostname': 'api.upbit.com',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/49245610-eeaabe00-f423-11e8-9cba-4b0aed794799.jpg',
-                'api': 'https://{hostname}',
+                'api': {
+                    'public': 'https://{hostname}',
+                    'private': 'https://{hostname}',
+                },
                 'www': 'https://upbit.com',
                 'doc': 'https://docs.upbit.com/docs/%EC%9A%94%EC%B2%AD-%EC%88%98-%EC%A0%9C%ED%95%9C',
                 'fees': 'https://upbit.com/service_center/guide',
@@ -529,7 +533,7 @@ class upbit(Exchange):
         #                     timestamp:  1542883543813  }
         #
         timestamp = self.safe_integer(ticker, 'trade_timestamp')
-        symbol = self.get_symbol_from_market_id(self.safe_string(ticker, 'market'), market)
+        symbol = self.get_symbol_from_market_id(self.safe_string_2(ticker, 'market', 'code'), market)
         previous = self.safe_float(ticker, 'prev_closing_price')
         last = self.safe_float(ticker, 'trade_price')
         change = self.safe_float(ticker, 'signed_change_price')
@@ -659,8 +663,8 @@ class upbit(Exchange):
             if amount is not None:
                 if price is not None:
                     cost = price * amount
-        marketId = self.safe_string(trade, 'market')
-        market = self.safe_value(self.markets_by_id, marketId)
+        marketId = self.safe_string_2(trade, 'market', 'code')
+        market = self.safe_value(self.markets_by_id, marketId, market)
         fee = None
         feeCurrency = None
         symbol = None
@@ -1138,6 +1142,7 @@ class upbit(Exchange):
         result = {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -1253,9 +1258,11 @@ class upbit(Exchange):
         return self.parse_order(response)
 
     def parse_deposit_addresses(self, addresses):
-        result = []
+        result = {}
         for i in range(0, len(addresses)):
-            result.append(self.parse_deposit_address(addresses[i]))
+            address = self.parse_deposit_address(addresses[i])
+            code = address['currency']
+            result[code] = address
         return result
 
     async def fetch_deposit_addresses(self, codes=None, params={}):
@@ -1382,7 +1389,7 @@ class upbit(Exchange):
         return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.implode_params(self.urls['api'], {
+        url = self.implode_params(self.urls['api'][api], {
             'hostname': self.hostname,
         })
         url += '/' + self.version + '/' + self.implode_params(path, params)

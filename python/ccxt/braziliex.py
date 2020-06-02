@@ -439,6 +439,7 @@ class braziliex(Exchange):
         status = 'closed' if (filledPercentage == 1.0) else 'open'
         return {
             'id': id,
+            'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
@@ -454,6 +455,7 @@ class braziliex(Exchange):
             'trades': None,
             'fee': fee,
             'info': info,
+            'average': None,
         }
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -567,7 +569,7 @@ class braziliex(Exchange):
             headers = {
                 'Content-type': 'application/x-www-form-urlencoded',
                 'Key': self.apiKey,
-                'Sign': self.decode(signature),
+                'Sign': signature,
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 

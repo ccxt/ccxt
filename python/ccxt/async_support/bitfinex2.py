@@ -507,6 +507,23 @@ class bitfinex2(bitfinex):
         ticker = await self.publicGetTickerSymbol(self.extend(request, params))
         return self.parse_ticker(ticker, market)
 
+    def parse_symbol(self, marketId):
+        if marketId is None:
+            return marketId
+        marketId = marketId.replace('t', '')
+        baseId = None
+        quoteId = None
+        if marketId.find(':') >= 0:
+            parts = marketId.split(':')
+            baseId = parts[0]
+            quoteId = parts[1]
+        else:
+            baseId = marketId[0:3]
+            quoteId = marketId[3:6]
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        return base + '/' + quote
+
     def parse_trade(self, trade, market=None):
         #
         # fetchTrades(public)
@@ -553,19 +570,26 @@ class bitfinex2(bitfinex):
         timestamp = trade[timestampIndex]
         if isPrivate:
             marketId = trade[1]
-            if marketId is not None:
-                if marketId in self.markets_by_id:
-                    market = self.markets_by_id[marketId]
-                    symbol = market['symbol']
-                else:
-                    symbol = marketId
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+                symbol = market['symbol']
+            else:
+                symbol = self.parse_symbol(marketId)
             orderId = str(trade[3])
             takerOrMaker = 'maker' if (trade[8] == 1) else 'taker'
             feeCost = trade[9]
             feeCurrency = self.safe_currency_code(trade[10])
             if feeCost is not None:
+                feeCost = -feeCost
+                if symbol in self.markets:
+                    feeCost = self.fee_to_precision(symbol, feeCost)
+                else:
+                    currencyId = 'f' + feeCurrency
+                    if currencyId in self.currencies_by_id:
+                        currency = self.currencies_by_id[currencyId]
+                        feeCost = self.currency_to_precision(currency['code'], feeCost)
                 fee = {
-                    'cost': float(self.fee_to_precision(symbol, abs(feeCost))),
+                    'cost': float(feeCost),
                     'currency': feeCurrency,
                 }
             orderType = trade[6]
@@ -640,16 +664,20 @@ class bitfinex2(bitfinex):
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def parse_order_status(self, status):
+        if status is None:
+            return status
+        parts = status.split(' ')
+        state = self.safe_string(parts, 0)
         statuses = {
             'ACTIVE': 'open',
-            'PARTIALLY FILLED': 'open',
+            'PARTIALLY': 'open',
             'EXECUTED': 'closed',
             'CANCELED': 'canceled',
-            'INSUFFICIENT MARGIN': 'canceled',
+            'INSUFFICIENT': 'canceled',
             'RSN_DUST': 'rejected',
             'RSN_PAUSE': 'rejected',
         }
-        return self.safe_string(statuses, status, status)
+        return self.safe_string(statuses, state, status)
 
     def parse_order(self, order, market=None):
         id = self.safe_string(order, 0)
@@ -657,9 +685,13 @@ class bitfinex2(bitfinex):
         marketId = self.safe_string(order, 3)
         if marketId in self.markets_by_id:
             market = self.markets_by_id[marketId]
-        if market is not None:
+        else:
+            symbol = self.parse_symbol(marketId)
+        if (symbol is None) and (market is not None):
             symbol = market['symbol']
-        timestamp = self.safe_timestamp(order, 5)
+        # https://github.com/ccxt/ccxt/issues/6686
+        # timestamp = self.safe_timestamp(order, 5)
+        timestamp = self.safe_integer(order, 5)
         remaining = abs(self.safe_float(order, 6))
         amount = abs(self.safe_float(order, 7))
         filled = amount - remaining
@@ -674,9 +706,11 @@ class bitfinex2(bitfinex):
         price = self.safe_float(order, 16)
         average = self.safe_float(order, 17)
         cost = price * filled
+        clientOrderId = self.safe_string(order, 2)
         return {
             'info': order,
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -707,6 +741,10 @@ class bitfinex2(bitfinex):
         }
         if type != 'market':
             request['price'] = self.number_to_string(price)
+        clientOrderId = self.safe_value_2(params, 'cid', 'clientOrderId')
+        if clientOrderId is not None:
+            request['cid'] = clientOrderId
+            params = self.omit(params, ['cid', 'clientOrderId'])
         response = await self.privatePostAuthWOrderSubmit(self.extend(request, params))
         #
         #     [
@@ -773,16 +811,17 @@ class bitfinex2(bitfinex):
         return self.parse_orders(orders)
 
     async def cancel_order(self, id, symbol=None, params={}):
-        cid = self.safe_value(params, 'cid')  # client order id
+        cid = self.safe_value_2(params, 'cid', 'clientOrderId')  # client order id
         request = None
         if cid is not None:
             cidDate = self.safe_value(params, 'cidDate')  # client order id date
             if cidDate is None:
-                raise InvalidOrder(self.id + " canceling an order by client order id('cid') requires both 'cid' and 'cid_date'('YYYY-MM-DD')")
+                raise InvalidOrder(self.id + " canceling an order by clientOrderId('cid') requires both 'cid' and 'cid_date'('YYYY-MM-DD')")
             request = {
                 'cid': cid,
                 'cid_date': cidDate,
             }
+            params = self.omit(params, ['cid', 'clientOrderId'])
         else:
             request = {
                 'id': int(id),
@@ -964,14 +1003,19 @@ class bitfinex2(bitfinex):
         if id == 0:
             id = None
             status = 'failed'
+        tag = self.safe_string(data, 3)
         return {
             'info': transaction,
             'id': id,
             'txid': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'addressFrom': None,
             'address': None,  # self is actually the tag for XRP transfers(the address is missing)
-            'tag': self.safe_string(data, 3),  # refix it properly for the tag from description
+            'addressTo': None,
+            'tagFrom': None,
+            'tag': tag,  # refix it properly for the tag from description
+            'tagTo': tag,
             'type': 'withdrawal',
             'amount': amount,
             'currency': code,

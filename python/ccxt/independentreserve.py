@@ -97,6 +97,9 @@ class independentreserve(Exchange):
                     'baseId': baseId,
                     'quoteId': quoteId,
                     'info': id,
+                    'active': None,
+                    'precision': self.precision,
+                    'limits': self.limits,
                 })
         return result
 
@@ -165,6 +168,21 @@ class independentreserve(Exchange):
         return self.parse_ticker(response, market)
 
     def parse_order(self, order, market=None):
+        #
+        #     {
+        #         "OrderGuid": "c7347e4c-b865-4c94-8f74-d934d4b0b177",
+        #         "CreatedTimestampUtc": "2014-09-23T12:39:34.3817763Z",
+        #         "Type": "MarketBid",
+        #         "VolumeOrdered": 5.0,
+        #         "VolumeFilled": 5.0,
+        #         "Price": null,
+        #         "AvgPrice": 100.0,
+        #         "ReservedAmount": 0.0,
+        #         "Status": "Filled",
+        #         "PrimaryCurrencyCode": "Xbt",
+        #         "SecondaryCurrencyCode": "Usd"
+        #     }
+        #
         symbol = None
         baseId = self.safe_string(order, 'PrimaryCurrencyCode')
         quoteId = self.safe_string(order, 'PrimaryCurrencyCode')
@@ -214,6 +232,7 @@ class independentreserve(Exchange):
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -228,6 +247,7 @@ class independentreserve(Exchange):
             'remaining': remaining,
             'status': status,
             'fee': fee,
+            'trades': None,
         }
 
     def parse_order_status(self, status):

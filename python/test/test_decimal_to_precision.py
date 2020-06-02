@@ -24,11 +24,11 @@ from ccxt.base.exchange import Exchange                          # noqa F401
 
 
 def toWei(amount, decimals):
-    return Exchange.toWei(amount, decimals)
+    return Exchange.to_wei(amount, decimals)
 
 
 def fromWei(amount, decimals):
-    return Exchange.fromWei(amount, decimals)
+    return Exchange.from_wei(amount, decimals)
 
 
 # ----------------------------------------------------------------------------
@@ -53,6 +53,10 @@ assert(toWei('0.001', 18) == '1000000000000000')
 assert(toWei(0.1, 18) == '100000000000000000')
 assert(toWei(0.01, 18) == '10000000000000000')
 assert(toWei(0.001, 18) == '1000000000000000')
+assert(toWei('0.3323340739', 18) == '332334073900000000')
+assert(toWei(0.3323340739, 18) == '332334073900000000')
+assert(toWei('0.009428', 18) == '9428000000000000')
+assert(toWei(0.009428, 18) == '9428000000000000')
 
 # us test that we get the inverse for all these test
 assert(fromWei('1000000000000000000', 18) == 1.0)
@@ -71,6 +75,10 @@ assert(fromWei('1000000000000000', 18) == 0.001)
 assert(fromWei(100000000000000000, 18) == 0.1)
 assert(fromWei(10000000000000000, 18) == 0.01)
 assert(fromWei(1000000000000000, 18) == 0.001)
+assert(fromWei('332334073900000000', 18) == 0.3323340739)
+assert(fromWei(332334073900000000, 18) == 0.3323340739)
+assert(fromWei('9428000000000000', 18) == 0.009428)
+assert(fromWei(9428000000000000, 18) == 0.009428)
 
 # ----------------------------------------------------------------------------
 # number_to_string
@@ -86,6 +94,7 @@ assert(number_to_string(7.9e27) == '7900000000000000000000000000')
 assert(number_to_string(-12.345) == '-12.345')
 assert(number_to_string(12.345) == '12.345')
 assert(number_to_string(0) == '0')
+assert(number_to_string(7.35946e21) == '7359460000000000000000')
 # the following line breaks the test
 # see https://github.com/ccxt/ccxt/issues/5744
 # assert(number_to_string(0.00000001) == '0.00000001')
@@ -239,6 +248,11 @@ assert(decimal_to_precision('1.2', ROUND, 0.02, TICK_SIZE) == '1.2')
 assert(decimal_to_precision('-1.2', ROUND, 0.02, TICK_SIZE) == '-1.2')
 assert(decimal_to_precision('44', ROUND, 4.4, TICK_SIZE) == '44')
 assert(decimal_to_precision('-44', ROUND, 4.4, TICK_SIZE) == '-44')
+assert(decimal_to_precision('44.00000001', ROUND, 4.4, TICK_SIZE) == '44')
+assert(decimal_to_precision('-44.00000001', ROUND, 4.4, TICK_SIZE) == '-44')
+
+# https://github.com/ccxt/ccxt/issues/6731
+assert(decimal_to_precision('20', TRUNCATE, 0.00000001, TICK_SIZE) == '20')
 
 # ----------------------------------------------------------------------------
 # testDecimalToPrecisionNegativeNumbers

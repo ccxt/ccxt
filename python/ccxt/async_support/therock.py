@@ -918,6 +918,7 @@ class therock(Exchange):
                 cost = 0
         return {
             'id': id,
+            'clientOrderId': None,
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),

@@ -26,6 +26,23 @@ npm install git@ssh://github.com/kroitor/ccxt.pro.git
 npm install ssh://github.com/kroitor/ccxt.pro.git
 ```
 
+### JavaScript Dependency
+
+Adding CCXT Pro as a dependency to `package.json` in your Node.js project or package is done automatically by the above commands. To add it manually list it in your `package.json` among your `dependencies` or `devDependencies` as usual:
+
+```JavaScript
+// package.json
+{
+  // ...
+  "dependencies": {
+    "ccxt.pro": "git+https://github.com/kroitor/ccxt.pro.git"
+  }
+  // ...
+}
+```
+
+Running `npm install` in the same folder after adding the above to `package.json` will install CCXT Pro to your `node_modules/`. To update it later run `npm update ccxt.pro`.
+
 ## Python
 
 ```shell
@@ -36,10 +53,49 @@ pip3 install git+https://github.com/kroitor/ccxt.pro.git#subdirectory=python
 pip3 install git+ssh://git@github.com/kroitor/ccxt.pro.git#subdirectory=python
 ```
 
-## #PHP
+### Python Dependency
+
+With [setuptools](https://setuptools.readthedocs.io/en/latest/) adding CCXT Pro as a dependency to your Python package can be done by listing it in `setup.py` or in your [Requirements Files](https://pip.pypa.io/en/latest/user_guide/#requirements-files):
+
+```Python
+# setup.py
+setup(
+    # ...
+    install_requires=[
+        # install the most recent version
+        'ccxtpro @ git+https://github.com/kroitor/ccxt.pro.git#subdirectory=python'
+        # install a specific version number
+        # 'ccxtpro @ git+https://github.com/kroitor/ccxt.pro.git@0.1.13#subdirectory=python'
+    ]
+    # ...
+)
+```
+
+## PHP
 
 ```shell
 # in your project directory
 composer config repositories.ccxtpro '{"type": "git", "url": "https://github.com/kroitor/ccxt.pro.git"}'
 composer require ccxt/ccxtpro
+```
+
+### PHP Dependency
+
+The CCXT Pro is added as a dependency to `composer.json` in your PHP package with the above commands automatically. To add it manually list it in your `composer.json` as usual:
+
+```PHP
+// composer.json
+{
+    // ...
+    "require": {
+        "ccxt/ccxtpro": "^0.0.70"
+    },
+    "repositories": {
+        "ccxtpro": {
+            "type": "git",
+            "url": "https://github.com/kroitor/ccxt.pro.git"
+        }
+    }
+    // ...
+}
 ```

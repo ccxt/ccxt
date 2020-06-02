@@ -12,8 +12,8 @@ use \ccxt\ArgumentsRequired;
 
 class bitmart extends Exchange {
 
-    public function describe () {
-        return array_replace_recursive(parent::describe (), array(
+    public function describe() {
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'bitmart',
             'name' => 'BitMart',
             'countries' => array( 'US', 'CN', 'HK', 'KR' ),
@@ -40,6 +40,7 @@ class bitmart extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchCanceledOrders' => true,
                 'fetchOrder' => true,
+                'signIn' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/61835713-a2662f80-ae85-11e9-9d00-6442919701fd.jpg',
@@ -47,6 +48,7 @@ class bitmart extends Exchange {
                 'www' => 'https://www.bitmart.com/',
                 'doc' => 'https://github.com/bitmartexchange/bitmart-official-api-docs',
                 'referral' => 'http://www.bitmart.com/?r=rQCFLh',
+                'fees' => 'https://www.bitmart.com/fee/en',
             ),
             'requiredCredentials' => array(
                 'apiKey' => true,
@@ -160,7 +162,7 @@ class bitmart extends Exchange {
         ));
     }
 
-    public function fetch_time ($params = array ()) {
+    public function fetch_time($params = array ()) {
         $response = $this->publicGetTime ($params);
         //
         //     {
@@ -170,12 +172,12 @@ class bitmart extends Exchange {
         return $this->safe_integer($response, 'server_time');
     }
 
-    public function sign_in ($params = array ()) {
+    public function sign_in($params = array ()) {
         $message = $this->apiKey . ':' . $this->secret . ':' . $this->uid;
         $data = array(
             'grant_type' => 'client_credentials',
             'client_id' => $this->apiKey,
-            'client_secret' => $this->hmac ($this->encode ($message), $this->encode ($this->secret), 'sha256'),
+            'client_secret' => $this->hmac($this->encode($message), $this->encode($this->secret), 'sha256'),
         );
         $response = $this->tokenPostAuthentication (array_merge($data, $params));
         $accessToken = $this->safe_string($response, 'access_token');
@@ -183,12 +185,12 @@ class bitmart extends Exchange {
             throw new AuthenticationError($this->id . ' signIn() failed to authenticate. Access token missing from $response->');
         }
         $expiresIn = $this->safe_integer($response, 'expires_in');
-        $this->options['expires'] = $this->sum ($this->nonce (), $expiresIn * 1000);
+        $this->options['expires'] = $this->sum($this->nonce(), $expiresIn * 1000);
         $this->options['accessToken'] = $accessToken;
         return $response;
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         $markets = $this->publicGetSymbolsDetails ($params);
         //
         //     array(
@@ -254,19 +256,61 @@ class bitmart extends Exchange {
                 'precision' => $precision,
                 'limits' => $limits,
                 'info' => $market,
+                'active' => null,
             );
         }
         return $result;
     }
 
-    public function parse_ticker ($ticker, $market = null) {
-        $timestamp = $this->milliseconds ();
-        $marketId = $this->safe_string($ticker, 'symbol_id');
+    public function parse_ticker($ticker, $market = null) {
+        //
+        // fetchTicker
+        //
+        //     {
+        //         "volume":"6139.8058",
+        //         "ask_1":"0.021856",
+        //         "base_volume":"131.5157",
+        //         "lowest_price":"0.021090",
+        //         "bid_1":"0.021629",
+        //         "highest_price":"0.021929",
+        //         "ask_1_amount":"0.1245",
+        //         "current_price":"0.021635",
+        //         "fluctuation":"+0.0103",
+        //         "symbol_id":"ETH_BTC",
+        //         "url":"https://www.bitmart.com/trade?$symbol=ETH_BTC",
+        //         "bid_1_amount":"1.8546"
+        //     }
+        //
+        // fetchTickers
+        //
+        //     {
+        //         "priceChange":"0%",
+        //         "symbolId":1066,
+        //         "website":"https://www.bitmart.com/trade?$symbol=1SG_BTC",
+        //         "depthEndPrecision":6,
+        //         "ask_1":"0.000095",
+        //         "anchorId":2,
+        //         "anchorName":"BTC",
+        //         "pair":"1SG_BTC",
+        //         "volume":"0.0",
+        //         "coinId":2029,
+        //         "depthStartPrecision":4,
+        //         "high_24h":"0.000035",
+        //         "low_24h":"0.000035",
+        //         "new_24h":"0.000035",
+        //         "closeTime":1589389249342,
+        //         "bid_1":"0.000035",
+        //         "coinName":"1SG",
+        //         "baseVolume":"0.0",
+        //         "openTime":1589302849342
+        //     }
+        //
+        $timestamp = $this->safe_integer($ticker, 'closeTime', $this->milliseconds());
+        $marketId = $this->safe_string_2($ticker, 'pair', 'symbol_id');
         $symbol = null;
         if ($marketId !== null) {
             if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
             } else if ($marketId !== null) {
                 list($baseId, $quoteId) = explode('_', $marketId);
                 $base = $this->safe_currency_code($baseId);
@@ -274,14 +318,26 @@ class bitmart extends Exchange {
                 $symbol = $base . '/' . $quote;
             }
         }
-        $last = $this->safe_float($ticker, 'current_price');
+        if (($symbol === null) && ($market !== null)) {
+            $symbol = $market['symbol'];
+        }
+        $last = $this->safe_float_2($ticker, 'current_price', 'new_24h');
         $percentage = $this->safe_float($ticker, 'fluctuation');
+        if ($percentage === null) {
+            $percentage = $this->safe_string($ticker, 'priceChange');
+            if ($percentage !== null) {
+                $percentage = str_replace('%', '', $percentage);
+                $percentage = floatval ($percentage);
+            }
+        } else {
+            $percentage *= 100;
+        }
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
-            'high' => $this->safe_float($ticker, 'highest_price'),
-            'low' => $this->safe_float($ticker, 'lowest_price'),
+            'datetime' => $this->iso8601($timestamp),
+            'high' => $this->safe_float_2($ticker, 'highest_price', 'high_24h'),
+            'low' => $this->safe_float_2($ticker, 'lowest_price', 'low_24h'),
             'bid' => $this->safe_float($ticker, 'bid_1'),
             'bidVolume' => $this->safe_float($ticker, 'bid_1_amount'),
             'ask' => $this->safe_float($ticker, 'ask_1'),
@@ -292,18 +348,19 @@ class bitmart extends Exchange {
             'last' => $last,
             'previousClose' => null,
             'change' => null,
-            'percentage' => $percentage * 100,
+            'percentage' => $percentage,
             'average' => null,
             'baseVolume' => $this->safe_float($ticker, 'volume'),
-            'quoteVolume' => $this->safe_float($ticker, 'base_volume'),
+            'quoteVolume' => $this->safe_float_2($ticker, 'base_volume', 'baseVolume'),
             'info' => $ticker,
         );
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
+        $market = $this->market($symbol);
         $request = array(
-            'symbol' => $this->market_id($symbol),
+            'symbol' => $market['id'],
         );
         $response = $this->publicGetTicker (array_merge($request, $params));
         //
@@ -322,12 +379,37 @@ class bitmart extends Exchange {
         //         "bid_1_amount":"134.78"
         //     }
         //
-        return $this->parse_ticker($response);
+        return $this->parse_ticker($response, $market);
     }
 
-    public function fetch_tickers ($symbols = null, $params = array ()) {
+    public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
         $tickers = $this->publicGetTicker ($params);
+        //
+        //         array(
+        //             array(
+        //                 "priceChange":"0%",
+        //                 "symbolId":1066,
+        //                 "website":"https://www.bitmart.com/trade?$symbol=1SG_BTC",
+        //                 "depthEndPrecision":6,
+        //                 "ask_1":"0.000095",
+        //                 "anchorId":2,
+        //                 "anchorName":"BTC",
+        //                 "pair":"1SG_BTC",
+        //                 "volume":"0.0",
+        //                 "coinId":2029,
+        //                 "depthStartPrecision":4,
+        //                 "high_24h":"0.000035",
+        //                 "low_24h":"0.000035",
+        //                 "new_24h":"0.000035",
+        //                 "closeTime":1589389249342,
+        //                 "bid_1":"0.000035",
+        //                 "coinName":"1SG",
+        //                 "baseVolume":"0.0",
+        //                 "openTime":1589302849342
+        //             ),
+        //         )
+        //
         $result = array();
         for ($i = 0; $i < count($tickers); $i++) {
             $ticker = $this->parse_ticker($tickers[$i]);
@@ -337,7 +419,7 @@ class bitmart extends Exchange {
         return $result;
     }
 
-    public function fetch_currencies ($params = array ()) {
+    public function fetch_currencies($params = array ()) {
         $currencies = $this->publicGetCurrencies ($params);
         //
         //     array(
@@ -377,7 +459,7 @@ class bitmart extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'symbol' => $this->market_id($symbol),
@@ -387,7 +469,7 @@ class bitmart extends Exchange {
         return $this->parse_order_book($response, null, 'buys', 'sells', 'price', 'amount');
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         //
         // fetchTrades (public)
         //
@@ -464,7 +546,7 @@ class bitmart extends Exchange {
             'id' => $id,
             'order' => $orderId,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
@@ -476,9 +558,9 @@ class bitmart extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
@@ -497,12 +579,12 @@ class bitmart extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a $symbol argument');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         // $limit is required, must be in the range (0, 50)
         $maxLimit = 50;
         $limit = ($limit === null) ? $maxLimit : min ($limit, $maxLimit);
@@ -535,7 +617,7 @@ class bitmart extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_order_trades ($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'entrust_id' => $id,
@@ -543,7 +625,7 @@ class bitmart extends Exchange {
         return $this->fetch_my_trades($symbol, $since, $limit, array_merge($request, $params));
     }
 
-    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
         return array(
             $this->safe_integer($ohlcv, 'timestamp'),
             $this->safe_float($ohlcv, 'open_price'),
@@ -554,19 +636,19 @@ class bitmart extends Exchange {
         );
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         if ($since === null && $limit === null) {
             throw new ArgumentsRequired($this->id . ' fetchOHLCV requires either a `$since` argument or a `$limit` argument (or both)');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $periodInSeconds = $this->parse_timeframe($timeframe);
         $duration = $periodInSeconds * $limit * 1000;
-        $to = $this->milliseconds ();
+        $to = $this->milliseconds();
         if ($since === null) {
             $since = $to - $duration;
         } else {
-            $to = $this->sum ($since, $duration);
+            $to = $this->sum($since, $duration);
         }
         $request = array(
             'symbol' => $market['id'],
@@ -590,7 +672,7 @@ class bitmart extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $balances = $this->privateGetWallet ($params);
         //
@@ -608,7 +690,7 @@ class bitmart extends Exchange {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'id');
             $code = $this->safe_currency_code($currencyId);
-            $account = $this->account ();
+            $account = $this->account();
             $account['free'] = $this->safe_float($balance, 'available');
             $account['used'] = $this->safe_float($balance, 'frozen');
             $result[$code] = $account;
@@ -616,7 +698,7 @@ class bitmart extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function parse_order ($order, $market = null) {
+    public function parse_order($order, $market = null) {
         //
         // createOrder
         //
@@ -644,7 +726,7 @@ class bitmart extends Exchange {
         //     }
         //
         $id = $this->safe_string($order, 'entrust_id');
-        $timestamp = $this->milliseconds ();
+        $timestamp = $this->milliseconds();
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $symbol = null;
         $marketId = $this->safe_string($order, 'symbol');
@@ -687,9 +769,10 @@ class bitmart extends Exchange {
         $type = null;
         return array(
             'id' => $id,
+            'clientOrderId' => null,
             'info' => $order,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
@@ -706,7 +789,7 @@ class bitmart extends Exchange {
         );
     }
 
-    public function parse_order_status ($status) {
+    public function parse_order_status($status) {
         $statuses = array(
             '0' => 'all',
             '1' => 'open',
@@ -719,12 +802,12 @@ class bitmart extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         if ($type !== 'limit') {
             throw new ExchangeError($this->id . ' allows limit orders only');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
             'side' => strtolower($side),
@@ -740,7 +823,7 @@ class bitmart extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $intId = intval ($id);
         $request = array(
@@ -754,7 +837,7 @@ class bitmart extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function cancel_all_orders ($symbol = null, $params = array ()) {
+    public function cancel_all_orders($symbol = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelAllOrders requires a $symbol argument');
         }
@@ -763,7 +846,7 @@ class bitmart extends Exchange {
             throw new ArgumentsRequired($this->id . " cancelAllOrders requires a `$side` parameter ('buy' or 'sell')");
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
             'side' => $side, // 'buy' or 'sell'
@@ -775,12 +858,12 @@ class bitmart extends Exchange {
         return $response;
     }
 
-    public function fetch_orders_by_status ($status, $symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders_by_status($status, $symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrdersByStatus requires a $symbol argument');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         if ($limit === null) {
             $limit = 500; // default 500, max 1000
         }
@@ -816,22 +899,22 @@ class bitmart extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         // 5 = pending & partially filled orders
-        return $this->fetch_orders_by_status (5, $symbol, $since, $limit, $params);
+        return $this->fetch_orders_by_status(5, $symbol, $since, $limit, $params);
     }
 
-    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         // 3 = closed orders
-        return $this->fetch_orders_by_status (3, $symbol, $since, $limit, $params);
+        return $this->fetch_orders_by_status(3, $symbol, $since, $limit, $params);
     }
 
-    public function fetch_canceled_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_canceled_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         // 4 = canceled orders
-        return $this->fetch_orders_by_status (4, $symbol, $since, $limit, $params);
+        return $this->fetch_orders_by_status(4, $symbol, $since, $limit, $params);
     }
 
-    public function fetch_order ($id, $symbol = null, $params = array ()) {
+    public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'id' => $id,
@@ -854,25 +937,25 @@ class bitmart extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function nonce () {
-        return $this->milliseconds ();
+    public function nonce() {
+        return $this->milliseconds();
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
-        $query = $this->omit ($params, $this->extract_params($path));
+        $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
             if ($query) {
-                $url .= '?' . $this->urlencode ($query);
+                $url .= '?' . $this->urlencode($query);
             }
         } else if ($api === 'token') {
             $this->check_required_credentials();
-            $body = $this->urlencode ($query);
+            $body = $this->urlencode($query);
             $headers = array(
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );
         } else {
-            $nonce = $this->nonce ();
+            $nonce = $this->nonce();
             $this->check_required_credentials();
             $token = $this->safe_string($this->options, 'accessToken');
             if ($token === null) {
@@ -885,7 +968,7 @@ class bitmart extends Exchange {
                 }
             }
             if ($query) {
-                $url .= '?' . $this->urlencode ($query);
+                $url .= '?' . $this->urlencode($query);
             }
             $headers = array(
                 'Content-Type' => 'application/json',
@@ -893,16 +976,16 @@ class bitmart extends Exchange {
                 'X-BM-AUTHORIZATION' => 'Bearer ' . $token,
             );
             if ($method !== 'GET') {
-                $query = $this->keysort ($query);
-                $body = $this->json ($query);
-                $message = $this->urlencode ($query);
-                $headers['X-BM-SIGNATURE'] = $this->hmac ($this->encode ($message), $this->encode ($this->secret), 'sha256');
+                $query = $this->keysort($query);
+                $body = $this->json($query);
+                $message = $this->urlencode($query);
+                $headers['X-BM-SIGNATURE'] = $this->hmac($this->encode($message), $this->encode($this->secret), 'sha256');
             }
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return;
         }

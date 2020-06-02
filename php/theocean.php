@@ -16,9 +16,9 @@ use \ccxt\NotSupported;
 
 class theocean extends Exchange {
 
-    public function describe () {
+    public function describe() {
         $this->check_required_dependencies();
-        return array_replace_recursive(parent::describe (), array(
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'theocean',
             'name' => 'The Ocean',
             'countries' => array( 'US' ),
@@ -102,7 +102,7 @@ class theocean extends Exchange {
         ));
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         $markets = $this->publicGetTokenPairs ($params);
         //
         //     array(
@@ -146,16 +146,16 @@ class theocean extends Exchange {
                 'price' => -intval ($quoteToken['precision']),
             );
             $amountLimits = array(
-                'min' => $this->fromWei ($this->safe_string($baseToken, 'minAmount'), $baseDecimals),
-                'max' => $this->fromWei ($this->safe_string($baseToken, 'maxAmount'), $baseDecimals),
+                'min' => $this->from_wei($this->safe_string($baseToken, 'minAmount'), $baseDecimals),
+                'max' => $this->from_wei($this->safe_string($baseToken, 'maxAmount'), $baseDecimals),
             );
             $priceLimits = array(
                 'min' => null,
                 'max' => null,
             );
             $costLimits = array(
-                'min' => $this->fromWei ($this->safe_string($quoteToken, 'minAmount'), $quoteDecimals),
-                'max' => $this->fromWei ($this->safe_string($quoteToken, 'maxAmount'), $quoteDecimals),
+                'min' => $this->from_wei($this->safe_string($quoteToken, 'minAmount'), $quoteDecimals),
+                'max' => $this->from_wei($this->safe_string($quoteToken, 'maxAmount'), $quoteDecimals),
             );
             $limits = array(
                 'amount' => $amountLimits,
@@ -179,7 +179,7 @@ class theocean extends Exchange {
         return $result;
     }
 
-    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '5m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '5m', $since = null, $limit = null) {
         $baseDecimals = $this->safe_integer($this->options['decimals'], $market['base'], 18);
         return array(
             $this->safe_timestamp($ohlcv, 'startTime'),
@@ -187,21 +187,21 @@ class theocean extends Exchange {
             $this->safe_float($ohlcv, 'high'),
             $this->safe_float($ohlcv, 'low'),
             $this->safe_float($ohlcv, 'close'),
-            $this->fromWei ($this->safe_string($ohlcv, 'baseVolume'), $baseDecimals),
+            $this->from_wei($this->safe_string($ohlcv, 'baseVolume'), $baseDecimals),
         );
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {
+        if ($since === null) {
+            throw new ArgumentsRequired($this->id . ' fetchOHLCV requires a $since argument');
+        }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'baseTokenAddress' => $market['baseId'],
             'quoteTokenAddress' => $market['quoteId'],
             'interval' => $this->timeframes[$timeframe],
         );
-        if ($since === null) {
-            throw new ExchangeError($this->id . ' fetchOHLCV requires a $since argument');
-        }
         $since = intval ($since);
         $request['startTime'] = $since;
         $response = $this->publicGetCandlesticks (array_merge($request, $params));
@@ -229,12 +229,12 @@ class theocean extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_balance_by_code ($code, $params = array ()) {
+    public function fetch_balance_by_code($code, $params = array ()) {
         if (!$this->walletAddress || (mb_strpos($this->walletAddress, '0x') !== 0)) {
             throw new InvalidAddress($this->id . ' fetchBalanceByCode() requires the .walletAddress to be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377"');
         }
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $request = array(
             'walletAddress' => strtolower($this->walletAddress),
             'tokenAddress' => $currency['id'],
@@ -244,9 +244,9 @@ class theocean extends Exchange {
         //     array("available":"0","committed":"0","$total":"0")
         //
         $decimals = $this->safe_integer($this->options['decimals'], $code, 18);
-        $free = $this->fromWei ($this->safe_string($response, 'available'), $decimals);
-        $used = $this->fromWei ($this->safe_string($response, 'committed'), $decimals);
-        $total = $this->fromWei ($this->safe_string($response, 'total'), $decimals);
+        $free = $this->from_wei($this->safe_string($response, 'available'), $decimals);
+        $used = $this->from_wei($this->safe_string($response, 'committed'), $decimals);
+        $total = $this->from_wei($this->safe_string($response, 'total'), $decimals);
         return array(
             'free' => $free,
             'used' => $used,
@@ -254,7 +254,7 @@ class theocean extends Exchange {
         );
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         if (!$this->walletAddress || (mb_strpos($this->walletAddress, '0x') !== 0)) {
             throw new InvalidAddress($this->id . ' fetchBalance() requires the .walletAddress to be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377"');
         }
@@ -269,25 +269,25 @@ class theocean extends Exchange {
         $result = array();
         for ($i = 0; $i < count($codes); $i++) {
             $code = $codes[$i];
-            $result[$code] = $this->fetch_balance_by_code ($code);
+            $result[$code] = $this->fetch_balance_by_code($code);
         }
         return $this->parse_balance($result);
     }
 
-    public function parse_bid_ask ($bidask, $priceKey = 0, $amountKey = 1, $market = null) {
+    public function parse_bid_ask($bidask, $priceKey = 0, $amountKey = 1, $market = null) {
         if ($market === null) {
             throw new ArgumentsRequired($this->id . ' parseBidAsk requires a $market argument');
         }
         $price = floatval ($bidask[$priceKey]);
         $amountDecimals = $this->safe_integer($this->options['decimals'], $market['base'], 18);
-        $amount = $this->fromWei ($bidask[$amountKey], 'ether', $amountDecimals);
+        $amount = $this->from_wei($bidask[$amountKey], 'ether', $amountDecimals);
         return array( $price, $amount );
     }
 
-    public function parse_order_book ($orderbook, $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', $priceKey = 0, $amountKey = 1, $market = null) {
+    public function parse_order_book($orderbook, $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', $priceKey = 0, $amountKey = 1, $market = null) {
         $result = array(
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'nonce' => null,
         );
         $sides = array( $bidsKey, $asksKey );
@@ -305,9 +305,9 @@ class theocean extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'baseTokenAddress' => $market['baseId'],
             'quoteTokenAddress' => $market['quoteId'],
@@ -339,7 +339,7 @@ class theocean extends Exchange {
         return $this->parse_order_book($response, null, 'bids', 'asks', 'price', 'availableAmount', $market);
     }
 
-    public function parse_ticker ($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null) {
         //
         //     {
         //         "bid" => "0.00050915",
@@ -357,12 +357,12 @@ class theocean extends Exchange {
             $base = $market['base'];
         }
         $baseDecimals = $this->safe_integer($this->options['decimals'], $base, 18);
-        $baseVolume = $this->fromWei ($this->safe_string($ticker, 'volume'), $baseDecimals);
+        $baseVolume = $this->from_wei($this->safe_string($ticker, 'volume'), $baseDecimals);
         $last = $this->safe_float($ticker, 'last');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => null,
             'low' => null,
             'bid' => $this->safe_float($ticker, 'bid'),
@@ -383,7 +383,7 @@ class theocean extends Exchange {
         );
     }
 
-    public function fetch_tickers ($symbols = null, $params = array ()) {
+    public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
         $tickers = $this->publicGetTickers ($params);
         //
@@ -416,9 +416,9 @@ class theocean extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'baseTokenAddress' => $market['baseId'],
             'quoteTokenAddress' => $market['quoteId'],
@@ -427,7 +427,7 @@ class theocean extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         //
         // fetchTrades
         //
@@ -464,7 +464,7 @@ class theocean extends Exchange {
             $base = $market['base'];
         }
         $baseDecimals = $this->safe_integer($this->options['decimals'], $base, 18);
-        $amount = $this->fromWei ($this->safe_string($trade, 'amount'), $baseDecimals);
+        $amount = $this->from_wei($this->safe_string($trade, 'amount'), $baseDecimals);
         $cost = null;
         if ($amount !== null && $price !== null) {
             $cost = $amount * $price;
@@ -474,7 +474,7 @@ class theocean extends Exchange {
             'id' => $id,
             'order' => $id,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'type' => null,
             'side' => $side,
@@ -487,9 +487,9 @@ class theocean extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'baseTokenAddress' => $market['baseId'],
             'quoteTokenAddress' => $market['quoteId'],
@@ -510,7 +510,7 @@ class theocean extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $errorMessage = $this->id . ' createOrder() requires `exchange.walletAddress` and `exchange.privateKey`. The .walletAddress should be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377". The .privateKey for that wallet should be a "0x"-prefixed hexstring like "0xe4f40d465efa94c98aec1a51f574329344c772c1bce33be07fa20a56795fdd09".';
         if (!$this->walletAddress || (mb_strpos($this->walletAddress, '0x') !== 0)) {
             throw new InvalidAddress($errorMessage);
@@ -518,20 +518,20 @@ class theocean extends Exchange {
         if (!$this->privateKey || (mb_strpos($this->privateKey, '0x') !== 0)) {
             throw new InvalidAddress($errorMessage);
         }
-        $orderParams = $this->fetch_order_params_to_sign ($symbol, $type, $side, $amount, $price, $params);
+        $orderParams = $this->fetch_order_params_to_sign($symbol, $type, $side, $amount, $price, $params);
         $unsignedOrder = $orderParams['unsignedZeroExOrder'];
         if ($unsignedOrder === null) {
             throw new OrderNotFillable($this->id . ' ' . $type . ' $order to ' . $side . ' ' . $symbol . ' is not fillable at the moment');
         }
-        $signedOrder = $this->signZeroExOrderV2 ($unsignedOrder, $this->privateKey);
+        $signedOrder = $this->sign_zero_ex_order_v2($unsignedOrder, $this->privateKey);
         $id = $this->safe_string($signedOrder, 'orderHash');
-        $this->post_signed_order ($signedOrder, $orderParams, $params);
+        $this->post_signed_order($signedOrder, $orderParams, $params);
         $order = $this->fetch_order($id);
         $order['type'] = $type;
         return $order;
     }
 
-    public function fetch_order_params_to_sign ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function fetch_order_params_to_sign($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         if ($side !== 'buy' && $side !== 'sell') {
             throw new ExchangeError($side . ' is not valid $side param. Use \'buy\' or \'sell\'');
         }
@@ -542,14 +542,14 @@ class theocean extends Exchange {
             throw new ExchangeError('Price is not provided for limit order');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $baseDecimals = $this->safe_integer($this->options['decimals'], $market['base'], 18);
         $request = array(
             'walletAddress' => strtolower($this->walletAddress), // Your Wallet Address
             'baseTokenAddress' => $market['baseId'], // Base token address
             'quoteTokenAddress' => $market['quoteId'], // Quote token address
             'side' => $side, // "buy" or "sell"
-            'amount' => $this->toWei ($this->amount_to_precision($symbol, $amount), $baseDecimals), // Base token $amount in wei
+            'amount' => $this->to_wei($this->amount_to_precision($symbol, $amount), $baseDecimals), // Base token $amount in wei
         );
         $method = null;
         if ($type === 'limit') {
@@ -564,15 +564,15 @@ class theocean extends Exchange {
         return $response;
     }
 
-    public function post_signed_order ($signedOrder, $requestParams, $params = array ()) {
+    public function post_signed_order($signedOrder, $requestParams, $params = array ()) {
         $request = $requestParams;
         $request['signedZeroExOrder'] = $signedOrder;
-        $request = $this->omit ($request, 'unsignedZeroExOrder');
+        $request = $this->omit($request, 'unsignedZeroExOrder');
         $response = $this->privatePostOrder (array_merge($request, $params));
         return $response;
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'orderHash' => $id,
@@ -588,14 +588,14 @@ class theocean extends Exchange {
         //
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
         }
         return array_merge($this->parse_order($response['canceledOrder'], $market), array(
             'status' => 'canceled',
         ));
     }
 
-    public function cancel_all_orders ($symbol = null, $params = array ()) {
+    public function cancel_all_orders($symbol = null, $params = array ()) {
         $response = $this->privateDeleteOrder ($params);
         //
         //     [{
@@ -608,7 +608,7 @@ class theocean extends Exchange {
         return $response;
     }
 
-    public function parse_order ($order, $market = null) {
+    public function parse_order($order, $market = null) {
         $zeroExOrder = $this->safe_value($order, 'zeroExOrder');
         $id = $this->safe_string($order, 'orderHash');
         if (($id === null) && ($zeroExOrder !== null)) {
@@ -635,14 +635,14 @@ class theocean extends Exchange {
         }
         $baseDecimals = $this->safe_integer($this->options['decimals'], $base, 18);
         $price = $this->safe_float($order, 'price');
-        $filledAmount = $this->fromWei ($this->safe_string($order, 'filledAmount'), $baseDecimals);
-        $settledAmount = $this->fromWei ($this->safe_string($order, 'settledAmount'), $baseDecimals);
-        $confirmedAmount = $this->fromWei ($this->safe_string($order, 'confirmedAmount'), $baseDecimals);
-        $failedAmount = $this->fromWei ($this->safe_string($order, 'failedAmount'), $baseDecimals);
-        $deadAmount = $this->fromWei ($this->safe_string($order, 'deadAmount'), $baseDecimals);
-        $prunedAmount = $this->fromWei ($this->safe_string($order, 'prunedAmount'), $baseDecimals);
-        $amount = $this->fromWei ($this->safe_string($order, 'initialAmount'), $baseDecimals);
-        $filled = $this->sum ($filledAmount, $settledAmount, $confirmedAmount);
+        $filledAmount = $this->from_wei($this->safe_string($order, 'filledAmount'), $baseDecimals);
+        $settledAmount = $this->from_wei($this->safe_string($order, 'settledAmount'), $baseDecimals);
+        $confirmedAmount = $this->from_wei($this->safe_string($order, 'confirmedAmount'), $baseDecimals);
+        $failedAmount = $this->from_wei($this->safe_string($order, 'failedAmount'), $baseDecimals);
+        $deadAmount = $this->from_wei($this->safe_string($order, 'deadAmount'), $baseDecimals);
+        $prunedAmount = $this->from_wei($this->safe_string($order, 'prunedAmount'), $baseDecimals);
+        $amount = $this->from_wei($this->safe_string($order, 'initialAmount'), $baseDecimals);
+        $filled = $this->sum($filledAmount, $settledAmount, $confirmedAmount);
         $remaining = null;
         $lastTradeTimestamp = null;
         $timeline = $this->safe_value($order, 'timeline');
@@ -701,7 +701,7 @@ class theocean extends Exchange {
             }
             $feeDecimals = $this->safe_integer($this->options['decimals'], $feeCurrency, 18);
             $fee = array(
-                'cost' => $this->fromWei ($feeCost, $feeDecimals),
+                'cost' => $this->from_wei($feeCost, $feeDecimals),
                 'currency' => $feeCurrency,
             );
         }
@@ -718,9 +718,10 @@ class theocean extends Exchange {
         $result = array(
             'info' => $order,
             'id' => $id,
+            'clientOrderId' => null,
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'type' => $type,
             'side' => $side,
@@ -732,23 +733,24 @@ class theocean extends Exchange {
             'status' => $status,
             'fee' => $fee,
             'trades' => $trades,
+            'average' => null,
         );
         return $result;
     }
 
-    public function fetch_open_order ($id, $symbol = null, $params = array ()) {
+    public function fetch_open_order($id, $symbol = null, $params = array ()) {
         $method = $this->options['fetchOrderMethod'];
         return $this->$method ($id, $symbol, array_merge(array(
             'openAmount' => 1,
         ), $params));
     }
 
-    public function fetch_closed_order ($id, $symbol = null, $params = array ()) {
+    public function fetch_closed_order($id, $symbol = null, $params = array ()) {
         $method = $this->options['fetchOrderMethod'];
         return $this->$method ($id, $symbol, array_merge($params));
     }
 
-    public function fetch_order_from_history ($id, $symbol = null, $params = array ()) {
+    public function fetch_order_from_history($id, $symbol = null, $params = array ()) {
         $request = array(
             'orderHash' => $id,
         );
@@ -760,7 +762,7 @@ class theocean extends Exchange {
         throw new OrderNotFound($this->id . ' could not find order ' . $id . ' in order history');
     }
 
-    public function fetch_order_by_id ($id, $symbol = null, $params = array ()) {
+    public function fetch_order_by_id($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'orderHash' => $id,
@@ -797,7 +799,7 @@ class theocean extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function fetch_order ($id, $symbol = null, $params = array ()) {
+    public function fetch_order($id, $symbol = null, $params = array ()) {
         $request = array(
             'orderHash' => $id,
         );
@@ -809,12 +811,12 @@ class theocean extends Exchange {
         return $orders[0];
     }
 
-    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array();
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
             $request['baseTokenAddress'] = $market['baseId'];
             $request['quoteTokenAddress'] = $market['quoteId'];
         }
@@ -849,37 +851,37 @@ class theocean extends Exchange {
         return $this->parse_orders($response, null, $since, $limit);
     }
 
-    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $request = array(
             'openAmount' => 1, // returns open orders with remaining openAmount >= 1
         );
         return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
-    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $request = array(
             'openAmount' => 0, // returns closed orders with remaining openAmount === 0
         );
         return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
-        $query = $this->omit ($params, $this->extract_params($path));
+        $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'private') {
             $this->check_required_credentials();
-            $timestamp = (string) $this->seconds ();
+            $timestamp = (string) $this->seconds();
             $prehash = $this->apiKey . $timestamp . $method;
             if ($method === 'POST') {
-                $body = $this->json ($query);
+                $body = $this->json($query);
                 $prehash .= $body;
             } else {
                 if ($query) {
-                    $url .= '?' . $this->urlencode ($query);
+                    $url .= '?' . $this->urlencode($query);
                 }
-                $prehash .= $this->json (array());
+                $prehash .= $this->json(array());
             }
-            $signature = $this->hmac ($this->encode ($prehash), $this->encode ($this->secret), 'sha256', 'base64');
+            $signature = $this->hmac($this->encode($prehash), $this->encode($this->secret), 'sha256', 'base64');
             $headers = array(
                 'TOX-ACCESS-KEY' => $this->apiKey,
                 'TOX-ACCESS-SIGN' => $signature,
@@ -888,13 +890,13 @@ class theocean extends Exchange {
             );
         } else if ($api === 'public') {
             if ($query) {
-                $url .= '?' . $this->urlencode ($query);
+                $url .= '?' . $this->urlencode($query);
             }
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return; // fallback to default error handler
         }

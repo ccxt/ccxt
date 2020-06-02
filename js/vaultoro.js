@@ -83,6 +83,9 @@ module.exports = class vaultoro extends Exchange {
             'baseId': baseId,
             'quoteId': quoteId,
             'info': market,
+            'active': undefined,
+            'precision': this.precision,
+            'limits': this.limits,
         });
         return result;
     }

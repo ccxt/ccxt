@@ -514,6 +514,22 @@ module.exports = class fcoin extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //
+        //     {
+        //         "id": "string",
+        //         "symbol": "string",
+        //         "type": "limit",
+        //         "side": "buy",
+        //         "price": "string",
+        //         "amount": "string",
+        //         "state": "submitted",
+        //         "executed_value": "string",
+        //         "fill_fees": "string",
+        //         "filled_amount": "string",
+        //         "created_at": 0,
+        //         "source": "web"
+        //     }
+        //
         const id = this.safeString (order, 'id');
         const side = this.safeString (order, 'side');
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
@@ -562,6 +578,7 @@ module.exports = class fcoin extends Exchange {
         return {
             'info': order,
             'id': id,
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,

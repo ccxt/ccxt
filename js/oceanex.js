@@ -556,6 +556,23 @@ module.exports = class oceanex extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //
+        //     {
+        //         "created_at": "2019-01-18T00:38:18Z",
+        //         "trades_count": 0,
+        //         "remaining_volume": "0.2",
+        //         "price": "1001.0",
+        //         "created_on": "1547771898",
+        //         "side": "buy",
+        //         "volume": "0.2",
+        //         "state": "wait",
+        //         "ord_type": "limit",
+        //         "avg_price": "0.0",
+        //         "executed_volume": "0.0",
+        //         "id": 473797,
+        //         "market": "veteth"
+        //     }
+        //
         const status = this.parseOrderStatus (this.safeValue (order, 'state'));
         const marketId = this.safeValue2 (order, 'market', 'market_id');
         let symbol = undefined;
@@ -579,6 +596,7 @@ module.exports = class oceanex extends Exchange {
         return {
             'info': order,
             'id': this.safeString (order, 'id'),
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,

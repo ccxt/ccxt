@@ -278,6 +278,16 @@ class indodax(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     def parse_order(self, order, market=None):
+        #
+        #     {
+        #         "order_id": "12345",
+        #         "submit_time": "1392228122",
+        #         "price": "8000000",
+        #         "type": "sell",
+        #         "order_ltc": "100000000",
+        #         "remain_ltc": "100000000"
+        #     }
+        #
         side = None
         if 'type' in order:
             side = order['type']
@@ -321,6 +331,7 @@ class indodax(Exchange):
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -335,11 +346,12 @@ class indodax(Exchange):
             'remaining': remaining,
             'status': status,
             'fee': fee,
+            'trades': None,
         }
 
     def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchOrder requires a symbol')
+            raise ArgumentsRequired(self.id + ' fetchOrder requires a symbol')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -379,7 +391,7 @@ class indodax(Exchange):
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchOrders requires a symbol')
+            raise ArgumentsRequired(self.id + ' fetchOrders requires a symbol argument')
         self.load_markets()
         request = {}
         market = None
@@ -420,7 +432,7 @@ class indodax(Exchange):
             raise ArgumentsRequired(self.id + ' cancelOrder requires a symbol argument')
         side = self.safe_value(params, 'side')
         if side is None:
-            raise ExchangeError(self.id + ' cancelOrder requires an extra "side" param')
+            raise ArgumentsRequired(self.id + ' cancelOrder requires an extra "side" param')
         self.load_markets()
         market = self.market(symbol)
         request = {

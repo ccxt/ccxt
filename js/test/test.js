@@ -22,16 +22,16 @@ const warn = log.bright.yellow.error // .error → stderr
 
 /*  ------------------------------------------------------------------------ */
 
-process.on ('uncaughtException',  e => { log.bright.red.error (e); process.exit (1) })
-process.on ('unhandledRejection', e => { log.bright.red.error (e); process.exit (1) })
+process.on ('uncaughtException',  (e) => { log.bright.red.error (e); process.exit (1) })
+process.on ('unhandledRejection', (e) => { log.bright.red.error (e); process.exit (1) })
 
 /*  ------------------------------------------------------------------------ */
 
-log.bright ('\nTESTING', { exchange: exchangeId, symbol: exchangeSymbol || 'all' }, '\n')
+log.bright ('\nTESTING', { 'exchange': exchangeId, 'symbol': exchangeSymbol || 'all' }, '\n')
 
 /*  ------------------------------------------------------------------------ */
 
-let proxies = [
+const proxies = [
     '',
     'https://cors-anywhere.herokuapp.com/'
 ]
@@ -46,12 +46,14 @@ const agent = new Agent ({
     ecdhCurve: 'auto',
 })
 
+const timeout = 20000
+
 const exchange = new (ccxt)[exchangeId] ({
     agent,
     verbose,
     enableRateLimit,
     debug,
-    timeout: 20000,
+    timeout,
 })
 
 //-----------------------------------------------------------------------------
@@ -59,8 +61,8 @@ const exchange = new (ccxt)[exchangeId] ({
 const tests = {}
 const properties = Object.keys (exchange.has)
 properties
-    .filter (property => fs.existsSync (__dirname + '/Exchange/test.' + property + '.js'))
-    .forEach (property => {
+    .filter ((property) => fs.existsSync (__dirname + '/Exchange/test.' + property + '.js'))
+    .forEach ((property) => {
         // eslint-disable-next-line import/no-dynamic-require
         tests[property] = require (__dirname + '/Exchange/test.' + property + '.js')
     })
@@ -68,8 +70,8 @@ properties
 const errors = require ('../base/errors.js')
 
 Object.keys (errors)
-    .filter (error => fs.existsSync (__dirname + '/errors/test.' + error + '.js'))
-    .forEach (error => {
+    .filter ((error) => fs.existsSync (__dirname + '/errors/test.' + error + '.js'))
+    .forEach ((error) => {
         // eslint-disable-next-line import/no-dynamic-require
         tests[error] = require (__dirname + '/errors/test.' + error + '.js')
     })
@@ -103,7 +105,7 @@ if (settings && settings.skip) {
 let testSymbol = async (exchange, symbol) => {
 
     if (exchange.id !== 'coinmarketcap') {
-        await tests['fetchMarkets']    (exchange)
+        await tests['loadMarkets'] (exchange)
         await tests['fetchCurrencies'] (exchange)
     }
 

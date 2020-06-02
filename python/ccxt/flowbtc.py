@@ -108,6 +108,7 @@ class flowbtc(Exchange):
                     },
                 },
                 'info': market,
+                'active': None,
             }
         return result
 
@@ -189,6 +190,8 @@ class flowbtc(Exchange):
             'price': price,
             'amount': amount,
             'cost': cost,
+            'takerOrMaker': None,
+            'fee': None,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):

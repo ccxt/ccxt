@@ -435,7 +435,7 @@ class zb(Exchange):
 
     def fetch_orders(self, symbol=None, since=None, limit=50, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + 'fetchOrders requires a symbol parameter')
+            raise ArgumentsRequired(self.id + 'fetchOrders requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -458,7 +458,7 @@ class zb(Exchange):
 
     def fetch_open_orders(self, symbol=None, since=None, limit=10, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + 'fetchOpenOrders requires a symbol parameter')
+            raise ArgumentsRequired(self.id + 'fetchOpenOrders requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -525,6 +525,7 @@ class zb(Exchange):
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -539,6 +540,7 @@ class zb(Exchange):
             'remaining': remaining,
             'status': status,
             'fee': None,
+            'trades': None,
         }
 
     def parse_order_status(self, status):

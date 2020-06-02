@@ -184,7 +184,7 @@ class liquid(Exchange):
         return result
 
     async def fetch_markets(self, params={}):
-        markets = await self.publicGetProducts()
+        spot = await self.publicGetProducts(params)
         #
         #     [
         #         {
@@ -215,20 +215,67 @@ class liquid(Exchange):
         #         },
         #     ]
         #
+        perpetual = await self.publicGetProducts({'perpetual': '1'})
+        #
+        #     [
+        #         {
+        #             "id": "603",
+        #             "product_type": "Perpetual",
+        #             "code": "CASH",
+        #             "name": null,
+        #             "market_ask": "1143900",
+        #             "market_bid": "1143250",
+        #             "currency": "JPY",
+        #             "currency_pair_code": "P-BTCJPY",
+        #             "pusher_channel": "product_cash_p-btcjpy_603",
+        #             "taker_fee": "0.0",
+        #             "maker_fee": "0.0",
+        #             "low_market_bid": "1124450.0",
+        #             "high_market_ask": "1151750.0",
+        #             "volume_24h": "0.1756",
+        #             "last_price_24h": "1129850.0",
+        #             "last_traded_price": "1144700.0",
+        #             "last_traded_quantity": "0.014",
+        #             "quoted_currency": "JPY",
+        #             "base_currency": "P-BTC",
+        #             "tick_size": "50.0",
+        #             "perpetual_enabled": True,
+        #             "index_price": "1142636.03935",
+        #             "mark_price": "1143522.18417",
+        #             "funding_rate": "0.00033",
+        #             "fair_price": "1143609.31009",
+        #             "timestamp": "1581558659.195353100",
+        #         },
+        #     ]
+        #
         currencies = await self.fetch_currencies()
         currenciesByCode = self.index_by(currencies, 'code')
         result = []
+        markets = self.array_concat(spot, perpetual)
         for i in range(0, len(markets)):
             market = markets[i]
-            id = str(market['id'])
-            baseId = market['base_currency']
-            quoteId = market['quoted_currency']
+            id = self.safe_string(market, 'id')
+            baseId = self.safe_string(market, 'base_currency')
+            quoteId = self.safe_string(market, 'quoted_currency')
+            productType = self.safe_string(market, 'product_type')
+            type = 'spot'
+            spot = True
+            swap = False
+            if productType == 'Perpetual':
+                spot = False
+                swap = True
+                type = 'swap'
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
+            symbol = None
+            if swap:
+                symbol = self.safe_string(market, 'currency_pair_code')
+            else:
+                symbol = base + '/' + quote
             maker = self.safe_float(market, 'maker_fee')
             taker = self.safe_float(market, 'taker_fee')
-            active = not market['disabled']
+            disabled = self.safe_value(market, 'disabled', False)
+            active = not disabled
             baseCurrency = self.safe_value(currenciesByCode, base)
             quoteCurrency = self.safe_value(currenciesByCode, quote)
             precision = {
@@ -268,6 +315,9 @@ class liquid(Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': type,
+                'spot': spot,
+                'swap': swap,
                 'maker': maker,
                 'taker': taker,
                 'limits': limits,
@@ -378,7 +428,7 @@ class liquid(Exchange):
         response = await self.publicGetProductsId(self.extend(request, params))
         return self.parse_ticker(response, market)
 
-    def parse_trade(self, trade, market):
+    def parse_trade(self, trade, market=None):
         # {            id:  12345,
         #         quantity: "6.789",
         #            price: "98765.4321",
@@ -402,13 +452,16 @@ class liquid(Exchange):
             if amount is not None:
                 cost = price * amount
         id = self.safe_string(trade, 'id')
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         return {
             'info': trade,
             'id': id,
             'order': orderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': None,
             'side': side,
             'takerOrMaker': takerOrMaker,
@@ -619,6 +672,7 @@ class liquid(Exchange):
         side = self.safe_string(order, 'side')
         return {
             'id': orderId,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,

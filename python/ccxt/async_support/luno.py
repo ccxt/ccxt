@@ -55,6 +55,7 @@ class luno(Exchange):
                         'accounts/{id}/pending',
                         'accounts/{id}/transactions',
                         'balance',
+                        'beneficiaries',
                         'fee_info',
                         'funding_address',
                         'listorders',
@@ -76,6 +77,7 @@ class luno(Exchange):
                         'oauth2/grant',
                     ],
                     'put': [
+                        'accounts/{id}/name',
                         'quotes/{id}',
                     ],
                     'delete': [
@@ -105,6 +107,9 @@ class luno(Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
+                'active': None,
+                'precision': self.precision,
+                'limits': self.limits,
             })
         return result
 
@@ -140,6 +145,23 @@ class luno(Exchange):
         return self.parse_order_book(response, timestamp, 'bids', 'asks', 'price', 'volume')
 
     def parse_order(self, order, market=None):
+        #
+        #     {
+        #         "base": "string",
+        #         "completed_timestamp": "string",
+        #         "counter": "string",
+        #         "creation_timestamp": "string",
+        #         "expiration_timestamp": "string",
+        #         "fee_base": "string",
+        #         "fee_counter": "string",
+        #         "limit_price": "string",
+        #         "limit_volume": "string",
+        #         "order_id": "string",
+        #         "pair": "string",
+        #         "state": "PENDING",
+        #         "type": "BID"
+        #     }
+        #
         timestamp = self.safe_integer(order, 'creation_timestamp')
         status = 'open' if (order['state'] == 'PENDING') else 'closed'
         side = 'sell' if (order['type'] == 'ASK') else 'buy'
@@ -171,6 +193,7 @@ class luno(Exchange):
         id = self.safe_string(order, 'order_id')
         return {
             'id': id,
+            'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
@@ -186,6 +209,7 @@ class luno(Exchange):
             'trades': None,
             'fee': fee,
             'info': order,
+            'average': None,
         }
 
     async def fetch_order(self, id, symbol=None, params={}):

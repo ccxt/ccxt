@@ -238,7 +238,16 @@ class btcbox(Exchange):
 
     def parse_order(self, order, market=None):
         #
-        # {"id":11,"datetime":"2014-10-21 10:47:20","type":"sell","price":42000,"amount_original":1.2,"amount_outstanding":1.2,"status":"closed","trades":[]}
+        #     {
+        #         "id":11,
+        #         "datetime":"2014-10-21 10:47:20",
+        #         "type":"sell",
+        #         "price":42000,
+        #         "amount_original":1.2,
+        #         "amount_outstanding":1.2,
+        #         "status":"closed",
+        #         "trades":[]
+        #     }
         #
         id = self.safe_string(order, 'id')
         datetimeString = self.safe_string(order, 'datetime')
@@ -269,6 +278,7 @@ class btcbox(Exchange):
         side = self.safe_string(order, 'type')
         return {
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -284,6 +294,7 @@ class btcbox(Exchange):
             'trades': trades,
             'fee': None,
             'info': order,
+            'average': None,
         }
 
     async def fetch_order(self, id, symbol=None, params={}):

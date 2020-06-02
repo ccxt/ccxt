@@ -735,6 +735,7 @@ module.exports = class bigone extends Exchange {
         return {
             'info': order,
             'id': id,
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -922,7 +923,7 @@ module.exports = class bigone extends Exchange {
         //     }
         //
         const trades = this.safeValue (response, 'data', []);
-        return this.parseTrades (trades, market, since, limit, params);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     parseOrderStatus (status) {

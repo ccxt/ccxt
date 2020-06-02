@@ -197,76 +197,84 @@ class gemini(Exchange):
         numTables = len(tables)
         if numTables < 2:
             raise NotSupported(error)
-        # tables[1] = tables[1].replace("\n", '')  # eslint-disable-line quotes
-        rows = tables[1].split("<tr>\n")  # eslint-disable-line quotes
+        rows = tables[1].split("\n<tr>\n")  # eslint-disable-line quotes
         numRows = len(rows)
         if numRows < 2:
             raise NotSupported(error)
+        apiSymbols = self.fetch_markets_from_api(params)
+        indexedSymbols = self.index_by(apiSymbols, 'symbol')
         result = []
         # skip the first element(empty string)
         for i in range(1, numRows):
             row = rows[i]
             cells = row.split("</td>\n")  # eslint-disable-line quotes
             numCells = len(cells)
-            if numCells < 7:
+            if numCells < 9:
                 raise NotSupported(error)
-            #
             #     [
-            #         '<td><code class="prettyprint">btcusd</code>',
-            #         '<td>USD',  # quote
-            #         '<td>BTC',  # base
-            #         '<td>0.00001 BTC(1e-5)',  # min amount
-            #         '<td>0.00000001 BTC(1e-8)',  # amount min tick size
-            #         '<td>0.01 USD',  # price min tick size
-            #         '</tr>\n'
+            #         '<td>BTC',  # currency
+            #         '<td>0.00001 BTC(1e-5)',  # min order size
+            #         '<td>0.00000001 BTC(1e-8)',  # tick size
+            #         '<td>0.01 USD',  # usd price increment
+            #         '<td>N/A',  # btc price increment
+            #         '<td>0.0001 ETH(1e-4)',  # eth price increment
+            #         '<td>0.0001 BCH(1e-4)',  # bch price increment
+            #         '<td>0.001 LTC(1e-3)',  # ltc price increment
+            #         '</tr>'
             #     ]
             #
-            id = cells[0].replace('<td>', '')
-            id = id.replace('<code class="prettyprint">', '')
-            id = id.replace('</code>', '')
-            baseId = cells[2].replace('<td>', '')
-            quoteId = cells[1].replace('<td>', '')
-            minAmountAsString = cells[3].replace('<td>', '')
-            amountTickSizeAsString = cells[4].replace('<td>', '')
-            priceTickSizeAsString = cells[5].replace('<td>', '')
-            minAmount = minAmountAsString.split(' ')
-            amountPrecision = amountTickSizeAsString.split(' ')
-            pricePrecision = priceTickSizeAsString.split(' ')
-            baseId = baseId.lower()
-            quoteId = quoteId.lower()
+            uppercaseBaseId = cells[0].replace('<td>', '')
+            baseId = uppercaseBaseId.lower()
             base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            precision = {
-                'amount': self.precision_from_string(amountPrecision[0]),
-                'price': self.precision_from_string(pricePrecision[0]),
-            }
-            active = None
-            result.append({
-                'id': id,
-                'info': row,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'active': active,
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': float(minAmount[0]),
-                        'max': None,
+            quoteIds = ['usd', 'btc', 'eth', 'bch', 'ltc']
+            minAmountString = cells[1].replace('<td>', '')
+            minAmountParts = minAmountString.split(' ')
+            minAmount = self.safe_float(minAmountParts, 0)
+            amountPrecisionString = cells[2].replace('<td>', '')
+            amountPrecisionParts = amountPrecisionString.split(' ')
+            amountPrecision = self.precision_from_string(amountPrecisionParts[0])
+            for j in range(0, len(quoteIds)):
+                quoteId = quoteIds[j]
+                quote = self.safe_currency_code(quoteId)
+                pricePrecisionIndex = self.sum(3, j)
+                pricePrecisionString = cells[pricePrecisionIndex].replace('<td>', '')
+                if pricePrecisionString == 'N/A':
+                    continue
+                pricePrecisionParts = pricePrecisionString.split(' ')
+                pricePrecision = self.precision_from_string(pricePrecisionParts[0])
+                symbol = base + '/' + quote
+                if not (symbol in indexedSymbols):
+                    continue
+                id = baseId + quoteId
+                active = None
+                result.append({
+                    'id': id,
+                    'info': row,
+                    'symbol': symbol,
+                    'base': base,
+                    'quote': quote,
+                    'baseId': baseId,
+                    'quoteId': quoteId,
+                    'active': active,
+                    'precision': {
+                        'amount': amountPrecision,
+                        'price': pricePrecision,
                     },
-                    'price': {
-                        'min': None,
-                        'max': None,
+                    'limits': {
+                        'amount': {
+                            'min': minAmount,
+                            'max': None,
+                        },
+                        'price': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'cost': {
+                            'min': None,
+                            'max': None,
+                        },
                     },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
-            })
+                })
         return result
 
     def fetch_markets_from_api(self, params={}):
@@ -275,8 +283,15 @@ class gemini(Exchange):
         for i in range(0, len(response)):
             id = response[i]
             market = id
-            baseId = id[0:3]
-            quoteId = id[3:6]
+            idLength = len(id) - 0
+            baseId = None
+            quoteId = None
+            if idLength == 7:
+                baseId = id[0:4]
+                quoteId = id[4:7]
+            else:
+                baseId = id[0:3]
+                quoteId = id[3:6]
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
@@ -307,6 +322,7 @@ class gemini(Exchange):
                         'max': None,
                     },
                 },
+                'active': None,
             })
         return result
 
@@ -448,8 +464,10 @@ class gemini(Exchange):
             symbol = market['symbol']
         id = self.safe_string(order, 'order_id')
         side = self.safe_string_lower(order, 'side')
+        clientOrderId = self.safe_string(order, 'client_order_id')
         return {
             'id': id,
+            'clientOrderId': clientOrderId,
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -465,6 +483,7 @@ class gemini(Exchange):
             'filled': filled,
             'remaining': remaining,
             'fee': fee,
+            'trades': None,
         }
 
     def fetch_order(self, id, symbol=None, params={}):

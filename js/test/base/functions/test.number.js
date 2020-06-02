@@ -25,6 +25,10 @@ assert (toWei ('0.001', 18) === '1000000000000000');
 assert (toWei (0.1, 18) === '100000000000000000');
 assert (toWei (0.01, 18) === '10000000000000000');
 assert (toWei (0.001, 18) === '1000000000000000');
+assert (toWei ('0.3323340739', 18) === '332334073900000000');
+assert (toWei (0.3323340739, 18) === '332334073900000000');
+assert (toWei ('0.009428', 18) === '9428000000000000');
+assert (toWei (0.009428, 18) === '9428000000000000');
 
 // let us test that we get the inverse for all these test
 assert (fromWei ('1000000000000000000', 18) === 1.0);
@@ -43,6 +47,10 @@ assert (fromWei ('1000000000000000', 18) === 0.001);
 assert (fromWei (100000000000000000, 18) === 0.1);
 assert (fromWei (10000000000000000, 18) === 0.01);
 assert (fromWei (1000000000000000, 18) === 0.001);
+assert (fromWei ('332334073900000000', 18) === 0.3323340739);
+assert (fromWei (332334073900000000, 18) === 0.3323340739);
+assert (fromWei ('9428000000000000', 18) === 0.009428);
+assert (fromWei (9428000000000000, 18) === 0.009428);
 
 // ----------------------------------------------------------------------------
 // numberToString
@@ -58,6 +66,7 @@ assert (numberToString (7.9e27) === '7900000000000000000000000000');
 assert (numberToString (-12.345) === '-12.345');
 assert (numberToString (12.345) === '12.345');
 assert (numberToString (0) === '0');
+assert (numberToString (7.35946e21) === '7359460000000000000000');
 // the following line breaks the test
 // see https://github.com/ccxt/ccxt/issues/5744
 // assert (numberToString (0.00000001) === '0.00000001');
@@ -211,6 +220,11 @@ assert (decimalToPrecision ('1.2', ROUND, 0.02, TICK_SIZE) === '1.2');
 assert (decimalToPrecision ('-1.2', ROUND, 0.02, TICK_SIZE) === '-1.2');
 assert (decimalToPrecision ('44', ROUND, 4.4, TICK_SIZE) === '44');
 assert (decimalToPrecision ('-44', ROUND, 4.4, TICK_SIZE) === '-44');
+assert (decimalToPrecision ('44.00000001', ROUND, 4.4, TICK_SIZE) === '44');
+assert (decimalToPrecision ('-44.00000001', ROUND, 4.4, TICK_SIZE) === '-44');
+
+// https://github.com/ccxt/ccxt/issues/6731
+assert (decimalToPrecision ('20', TRUNCATE, 0.00000001, TICK_SIZE) === '20');
 
 // ----------------------------------------------------------------------------
 // testDecimalToPrecisionNegativeNumbers

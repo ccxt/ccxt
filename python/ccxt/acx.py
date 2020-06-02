@@ -134,6 +134,8 @@ class acx(Exchange):
                 'quoteId': quoteId,
                 'precision': precision,
                 'info': market,
+                'active': None,
+                'limits': self.limits,
             })
         return result
 
@@ -304,6 +306,7 @@ class acx(Exchange):
         id = self.safe_string(order, 'id')
         return {
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -318,6 +321,8 @@ class acx(Exchange):
             'trades': None,
             'fee': None,
             'info': order,
+            'cost': None,
+            'average': None,
         }
 
     def fetch_order(self, id, symbol=None, params={}):

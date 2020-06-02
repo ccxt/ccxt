@@ -65,7 +65,6 @@ class coinfloor(Exchange):
             'markets': {
                 'BTC/GBP': {'id': 'XBT/GBP', 'symbol': 'BTC/GBP', 'base': 'BTC', 'quote': 'GBP', 'baseId': 'XBT', 'quoteId': 'GBP', 'precision': {'price': 0, 'amount': 4}},
                 'BTC/EUR': {'id': 'XBT/EUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'XBT', 'quoteId': 'EUR', 'precision': {'price': 0, 'amount': 4}},
-                'ETH/GBP': {'id': 'ETH/GBP', 'symbol': 'ETH/GBP', 'base': 'ETH', 'quote': 'GBP', 'baseId': 'ETH', 'quoteId': 'GBP', 'precision': {'price': 0, 'amount': 4}},
             },
             'exceptions': {
                 'exact': {
@@ -377,7 +376,27 @@ class coinfloor(Exchange):
         else:
             request['price'] = price
             request['amount'] = amount
-        return await getattr(self, method)(self.extend(request, params))
+        #
+        #     {
+        #         "id":31950584,
+        #         "datetime":"2020-05-21 08:38:18",
+        #         "type":1,
+        #         "price":"9100",
+        #         "amount":"0.0026"
+        #     }
+        #
+        response = await getattr(self, method)(self.extend(request, params))
+        timestamp = self.parse8601(self.safe_string(response, 'datetime'))
+        return {
+            'id': self.safe_string(response, 'id'),
+            'clientOrderId': None,
+            'datetime': self.iso8601(timestamp),
+            'timestamp': timestamp,
+            'type': type,
+            'price': self.safe_float(response, 'price'),
+            'remaining': self.safe_float(response, 'amount'),
+            'info': response,
+        }
 
     async def cancel_order(self, id, symbol=None, params={}):
         if symbol is None:
@@ -415,6 +434,7 @@ class coinfloor(Exchange):
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
@@ -423,11 +443,13 @@ class coinfloor(Exchange):
             'type': 'limit',
             'side': side,
             'price': price,
-            'amount': amount,
+            'amount': None,
             'filled': None,
-            'remaining': None,
+            'remaining': amount,
             'cost': cost,
             'fee': None,
+            'average': None,
+            'trades': None,
         }
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):

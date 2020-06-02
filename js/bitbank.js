@@ -313,6 +313,7 @@ module.exports = class bitbank extends Exchange {
         const side = this.safeStringLower (order, 'side');
         return {
             'id': id,
+            'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,

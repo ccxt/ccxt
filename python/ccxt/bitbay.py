@@ -7,11 +7,15 @@ from ccxt.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import OrderImmediatelyFillable
+from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 
 
@@ -62,6 +66,7 @@ class bitbay(Exchange):
                     'https://github.com/BitBayNet/API',
                     'https://docs.bitbay.net/v1.0.1-en/reference',
                 ],
+                'support': 'https://support.bitbay.net',
                 'fees': 'https://bitbay.net/en/fees',
             },
             'api': {
@@ -126,8 +131,60 @@ class bitbay(Exchange):
             },
             'fees': {
                 'trading': {
+                    'maker': 0.0,
+                    'taker': 0.1 / 100,
+                    'percentage': True,
+                    'tierBased': False,
+                },
+                'fiat': {
                     'maker': 0.30 / 100,
                     'taker': 0.43 / 100,
+                    'percentage': True,
+                    'tierBased': True,
+                    'tiers': {
+                        'taker': [
+                            [0.0043, 0],
+                            [0.0042, 1250],
+                            [0.0041, 3750],
+                            [0.0040, 7500],
+                            [0.0039, 10000],
+                            [0.0038, 15000],
+                            [0.0037, 20000],
+                            [0.0036, 25000],
+                            [0.0035, 37500],
+                            [0.0034, 50000],
+                            [0.0033, 75000],
+                            [0.0032, 100000],
+                            [0.0031, 150000],
+                            [0.0030, 200000],
+                            [0.0029, 250000],
+                            [0.0028, 375000],
+                            [0.0027, 500000],
+                            [0.0026, 625000],
+                            [0.0025, 875000],
+                        ],
+                        'maker': [
+                            [0.0030, 0],
+                            [0.0029, 1250],
+                            [0.0028, 3750],
+                            [0.0028, 7500],
+                            [0.0027, 10000],
+                            [0.0026, 15000],
+                            [0.0025, 20000],
+                            [0.0025, 25000],
+                            [0.0024, 37500],
+                            [0.0023, 50000],
+                            [0.0023, 75000],
+                            [0.0022, 100000],
+                            [0.0021, 150000],
+                            [0.0021, 200000],
+                            [0.0020, 250000],
+                            [0.0019, 375000],
+                            [0.0018, 500000],
+                            [0.0018, 625000],
+                            [0.0017, 875000],
+                        ],
+                    },
                 },
                 'funding': {
                     'withdraw': {
@@ -143,6 +200,9 @@ class bitbay(Exchange):
                         'EUR': 1.5,
                     },
                 },
+            },
+            'options': {
+                'fiatCurrencies': ['EUR', 'USD', 'GBP', 'PLN'],
             },
             'exceptions': {
                 '400': ExchangeError,  # At least one parameter wasn't set
@@ -166,11 +226,17 @@ class bitbay(Exchange):
                 'FUNDS_NOT_SUFFICIENT': InsufficientFunds,
                 'OFFER_FUNDS_NOT_EXCEEDING_MINIMUMS': InvalidOrder,
                 'OFFER_NOT_FOUND': OrderNotFound,
+                'OFFER_WOULD_HAVE_BEEN_PARTIALLY_FILLED': OrderImmediatelyFillable,
+                'ACTION_LIMIT_EXCEEDED': RateLimitExceeded,
+                'UNDER_MAINTENANCE': OnMaintenance,
+                'REQUEST_TIMESTAMP_TOO_OLD': InvalidNonce,
+                'PERMISSIONS_NOT_SUFFICIENT': PermissionDenied,
             },
         })
 
     def fetch_markets(self, params={}):
         response = self.v1_01PublicGetTradingTicker(params)
+        fiatCurrencies = self.safe_value(self.options, 'fiatCurrencies', [])
         #
         #     {
         #         status: 'Ok',
@@ -209,6 +275,11 @@ class bitbay(Exchange):
                 'amount': self.safe_integer(first, 'scale'),
                 'price': self.safe_integer(second, 'scale'),
             }
+            fees = self.safe_value(self.fees, 'trading', {})
+            if self.in_array(base, fiatCurrencies) or self.in_array(quote, fiatCurrencies):
+                fees = self.safe_value(self.fees, 'fiat', {})
+            maker = self.safe_float(fees, 'maker')
+            taker = self.safe_float(fees, 'taker')
             # todo: check that the limits have ben interpreted correctly
             # todo: parse the fees page
             result.append({
@@ -220,7 +291,8 @@ class bitbay(Exchange):
                 'quoteId': quoteId,
                 'precision': precision,
                 'active': None,
-                'fee': None,
+                'maker': maker,
+                'taker': taker,
                 'limits': {
                     'amount': {
                         'min': self.safe_float(first, 'minOffer'),
@@ -287,6 +359,7 @@ class bitbay(Exchange):
                 filled = max(0, amount - remaining)
         return {
             'id': self.safe_string(order, 'id'),
+            'clientOrderId': None,
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -895,7 +968,7 @@ class bitbay(Exchange):
             request['limit'] = limit  # default - 10, max - 300
         response = self.v1_01PublicGetTradingTransactionsSymbol(self.extend(request, params))
         items = self.safe_value(response, 'items')
-        return self.parse_trades(items, symbol, since, limit)
+        return self.parse_trades(items, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -909,6 +982,8 @@ class bitbay(Exchange):
         }
         if type == 'limit':
             request['rate'] = price
+            price = float(price)
+        amount = float(amount)
         response = self.v1_01PrivatePostTradingOfferSymbol(self.extend(request, params))
         #
         # unfilled(open order)
@@ -996,14 +1071,15 @@ class bitbay(Exchange):
             'symbol': symbol,
             'type': type,
             'side': side,
-            'price': float(price),
-            'amount': float(amount),
+            'price': price,
+            'amount': amount,
             'cost': cost,
             'filled': filled,
             'remaining': remaining,
             'average': None,
             'fee': None,
             'trades': trades,
+            'clientOrderId': None,
         }
 
     def cancel_order(self, id, symbol=None, params={}):

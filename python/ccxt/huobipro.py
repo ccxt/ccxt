@@ -8,6 +8,7 @@ import hashlib
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
@@ -30,11 +31,12 @@ class huobipro(Exchange):
             'version': 'v1',
             'accounts': None,
             'accountsById': None,
-            'hostname': 'api.huobi.pro',
+            'hostname': 'api.huobi.pro',  # api.testnet.huobi.pro
+            'pro': True,
             'has': {
                 'CORS': False,
                 'fetchTickers': True,
-                'fetchDepositAddress': False,
+                'fetchDepositAddress': True,
                 'fetchOHLCV': True,
                 'fetchOrder': True,
                 'fetchOrders': True,
@@ -60,12 +62,18 @@ class huobipro(Exchange):
                 '1y': '1year',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg',
+                'test': {
+                    'market': 'https://api.testnet.huobi.pro',
+                    'public': 'https://api.testnet.huobi.pro',
+                    'private': 'https://api.testnet.huobi.pro',
+                },
+                'logo': 'https://user-images.githubusercontent.com/1294454/76137448-22748a80-604e-11ea-8069-6e389271911d.jpg',
                 'api': {
                     'market': 'https://{hostname}',
                     'public': 'https://{hostname}',
                     'private': 'https://{hostname}',
-                    'zendesk': 'https://huobiglobal.zendesk.com/hc/en-us/articles',
+                    'v2Public': 'https://{hostname}',
+                    'v2Private': 'https://{hostname}',
                 },
                 'www': 'https://www.huobi.pro',
                 'referral': 'https://www.huobi.co/en-us/topic/invited/?invite_code=rwrd3',
@@ -73,9 +81,20 @@ class huobipro(Exchange):
                 'fees': 'https://www.huobi.pro/about/fee/',
             },
             'api': {
-                'zendesk': {
+                'v2Public': {
                     'get': [
-                        '360000400491-Trade-Limits',
+                        'reference/currencies',
+                    ],
+                },
+                'v2Private': {
+                    'get': [
+                        'account/ledger',
+                        'account/withdraw/quota',
+                        'account/deposit/address',
+                        'reference/transact-fee-rate',
+                    ],
+                    'post': [
+                        'sub-user/management',
                     ],
                 },
                 'market': {
@@ -99,10 +118,6 @@ class huobipro(Exchange):
                     ],
                 },
                 'private': {
-                    # todo add v2 endpoints
-                    # 'GET /v2/account/withdraw/quota
-                    # 'GET /v2/reference/currencies
-                    # 'GET /v2/account/deposit/address
                     'get': [
                         'account/accounts',  # 查询当前用户的所有账户(即account-id)
                         'account/accounts/{id}/balance',  # 查询指定账户的余额
@@ -127,8 +142,6 @@ class huobipro(Exchange):
                         'stable-coin/exchange_rate',
                         'stable-coin/quote',
                     ],
-                    # todo add v2 endpoints
-                    # POST /v2/sub-user/management
                     'post': [
                         'futures/transfer',
                         'order/batch-orders',
@@ -164,11 +177,14 @@ class huobipro(Exchange):
             'exceptions': {
                 'exact': {
                     # err-code
+                    'bad-request': BadRequest,
+                    'api-not-support-temp-addr': PermissionDenied,  # {"status":"error","err-code":"api-not-support-temp-addr","err-msg":"API withdrawal does not support temporary addresses","data":null}
                     'timeout': RequestTimeout,  # {"ts":1571653730865,"status":"error","err-code":"timeout","err-msg":"Request Timeout"}
                     'gateway-internal-error': ExchangeNotAvailable,  # {"status":"error","err-code":"gateway-internal-error","err-msg":"Failed to load data. Try again later.","data":null}
                     'account-frozen-balance-insufficient-error': InsufficientFunds,  # {"status":"error","err-code":"account-frozen-balance-insufficient-error","err-msg":"trade account balance is not enough, left: `0.0027`","data":null}
                     'invalid-amount': InvalidOrder,  # eg "Paramemter `amount` is invalid."
                     'order-limitorder-amount-min-error': InvalidOrder,  # limit order amount error, min: `0.001`
+                    'order-limitorder-amount-max-error': InvalidOrder,  # market order amount error, max: `1000000`
                     'order-marketorder-amount-min-error': InvalidOrder,  # market order amount error, min: `0.01`
                     'order-limitorder-price-min-error': InvalidOrder,  # limit order price error
                     'order-limitorder-price-max-error': InvalidOrder,  # limit order price error
@@ -322,22 +338,61 @@ class huobipro(Exchange):
         return result
 
     def parse_ticker(self, ticker, market=None):
+        #
+        # fetchTicker
+        #
+        #     {
+        #         "amount": 26228.672978342216,
+        #         "open": 9078.95,
+        #         "close": 9146.86,
+        #         "high": 9155.41,
+        #         "id": 209988544334,
+        #         "count": 265846,
+        #         "low": 8988.0,
+        #         "version": 209988544334,
+        #         "ask": [9146.87, 0.156134],
+        #         "vol": 2.3822168242201668E8,
+        #         "bid": [9146.86, 0.080758],
+        #     }
+        #
+        # fetchTickers
+        #     {
+        #         symbol: "bhdht",
+        #         open:  2.3938,
+        #         high:  2.4151,
+        #         low:  2.3323,
+        #         close:  2.3909,
+        #         amount:  628.992,
+        #         vol:  1493.71841095,
+        #         count:  2088,
+        #         bid:  2.3643,
+        #         bidSize:  0.7136,
+        #         ask:  2.4061,
+        #         askSize:  0.4156
+        #     }
+        #
         symbol = None
         if market is not None:
             symbol = market['symbol']
         timestamp = self.safe_integer(ticker, 'ts')
         bid = None
-        ask = None
         bidVolume = None
+        ask = None
         askVolume = None
         if 'bid' in ticker:
             if isinstance(ticker['bid'], list):
                 bid = self.safe_float(ticker['bid'], 0)
                 bidVolume = self.safe_float(ticker['bid'], 1)
+            else:
+                bid = self.safe_float(ticker, 'bid')
+                bidVolume = self.safe_value(ticker, 'bidSize')
         if 'ask' in ticker:
             if isinstance(ticker['ask'], list):
                 ask = self.safe_float(ticker['ask'], 0)
                 askVolume = self.safe_float(ticker['ask'], 1)
+            else:
+                ask = self.safe_float(ticker, 'ask')
+                askVolume = self.safe_value(ticker, 'askSize')
         open = self.safe_float(ticker, 'open')
         close = self.safe_float(ticker, 'close')
         change = None
@@ -384,12 +439,34 @@ class huobipro(Exchange):
             'type': 'step0',
         }
         response = self.marketGetDepth(self.extend(request, params))
+        #
+        #     {
+        #         "status": "ok",
+        #         "ch": "market.btcusdt.depth.step0",
+        #         "ts": 1583474832790,
+        #         "tick": {
+        #             "bids": [
+        #                 [9100.290000000000000000, 0.200000000000000000],
+        #                 [9099.820000000000000000, 0.200000000000000000],
+        #                 [9099.610000000000000000, 0.205000000000000000],
+        #             ],
+        #             "asks": [
+        #                 [9100.640000000000000000, 0.005904000000000000],
+        #                 [9101.010000000000000000, 0.287311000000000000],
+        #                 [9101.030000000000000000, 0.012121000000000000],
+        #             ],
+        #             "ts":1583474832008,
+        #             "version":104999698780
+        #         }
+        #     }
+        #
         if 'tick' in response:
             if not response['tick']:
                 raise ExchangeError(self.id + ' fetchOrderBook() returned empty response: ' + self.json(response))
-            orderbook = self.safe_value(response, 'tick')
-            result = self.parse_order_book(orderbook, orderbook['ts'])
-            result['nonce'] = orderbook['version']
+            tick = self.safe_value(response, 'tick')
+            timestamp = self.safe_integer(tick, 'ts', self.safe_integer(response, 'ts'))
+            result = self.parse_order_book(tick, timestamp)
+            result['nonce'] = self.safe_integer(tick, 'version')
             return result
         raise ExchangeError(self.id + ' fetchOrderBook() returned unrecognized response: ' + self.json(response))
 
@@ -400,7 +477,31 @@ class huobipro(Exchange):
             'symbol': market['id'],
         }
         response = self.marketGetDetailMerged(self.extend(request, params))
-        return self.parse_ticker(response['tick'], market)
+        #
+        #     {
+        #         "status": "ok",
+        #         "ch": "market.btcusdt.detail.merged",
+        #         "ts": 1583494336669,
+        #         "tick": {
+        #             "amount": 26228.672978342216,
+        #             "open": 9078.95,
+        #             "close": 9146.86,
+        #             "high": 9155.41,
+        #             "id": 209988544334,
+        #             "count": 265846,
+        #             "low": 8988.0,
+        #             "version": 209988544334,
+        #             "ask": [9146.87, 0.156134],
+        #             "vol": 2.3822168242201668E8,
+        #             "bid": [9146.86, 0.080758],
+        #         }
+        #     }
+        #
+        ticker = self.parse_ticker(response['tick'], market)
+        timestamp = self.safe_value(response, 'ts')
+        ticker['timestamp'] = timestamp
+        ticker['datetime'] = self.iso8601(timestamp)
+        return ticker
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
@@ -418,9 +519,23 @@ class huobipro(Exchange):
                 ticker['timestamp'] = timestamp
                 ticker['datetime'] = self.iso8601(timestamp)
                 result[symbol] = ticker
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def parse_trade(self, trade, market=None):
+        #
+        # fetchTrades(public)
+        #
+        #     {
+        #         "amount": 0.010411000000000000,
+        #         "trade-id": 102090736910,
+        #         "ts": 1583497692182,
+        #         "id": 10500517034273194594947,
+        #         "price": 9096.050000000000000000,
+        #         "direction": "sell"
+        #     }
+        #
+        # fetchMyTrades(private)
+        #
         symbol = None
         if market is None:
             marketId = self.safe_string(trade, 'symbol')
@@ -458,7 +573,8 @@ class huobipro(Exchange):
                 'cost': feeCost,
                 'currency': feeCurrency,
             }
-        id = self.safe_string(trade, 'id')
+        tradeId = self.safe_string_2(trade, 'trade-id', 'tradeId')
+        id = self.safe_string(trade, 'id', tradeId)
         return {
             'id': id,
             'info': trade,
@@ -499,6 +615,30 @@ class huobipro(Exchange):
         if limit is not None:
             request['size'] = limit
         response = self.marketGetHistoryTrade(self.extend(request, params))
+        #
+        #     {
+        #         "status": "ok",
+        #         "ch": "market.btcusdt.trade.detail",
+        #         "ts": 1583497692365,
+        #         "data": [
+        #             {
+        #                 "id": 105005170342,
+        #                 "ts": 1583497692182,
+        #                 "data": [
+        #                     {
+        #                         "amount": 0.010411000000000000,
+        #                         "trade-id": 102090736910,
+        #                         "ts": 1583497692182,
+        #                         "id": 10500517034273194594947,
+        #                         "price": 9096.050000000000000000,
+        #                         "direction": "sell"
+        #                     }
+        #                 ]
+        #             },
+        #             # ...
+        #         ]
+        #     }
+        #
         data = self.safe_value(response, 'data')
         result = []
         for i in range(0, len(data)):
@@ -824,6 +964,7 @@ class huobipro(Exchange):
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -838,6 +979,7 @@ class huobipro(Exchange):
             'remaining': remaining,
             'status': status,
             'fee': fee,
+            'trades': None,
         }
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -887,6 +1029,8 @@ class huobipro(Exchange):
             'cost': None,
             'trades': None,
             'fee': None,
+            'clientOrderId': None,
+            'average': None,
         }
 
     def cancel_order(self, id, symbol=None, params={}):
@@ -921,83 +1065,49 @@ class huobipro(Exchange):
             'cost': float(self.currency_to_precision(market[key], cost)),
         }
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
-        self.load_markets()
+    def parse_deposit_address(self, depositAddress, currency=None):
+        #
+        #     {
+        #         currency: "eth",
+        #         address: "0xf7292eb9ba7bc50358e27f0e025a4d225a64127b",
+        #         addressTag: "",
+        #         chain: "eth"
+        #     }
+        #
+        address = self.safe_string(depositAddress, 'address')
+        tag = self.safe_string(depositAddress, 'addressTag')
+        currencyId = self.safe_string(depositAddress, 'currency')
+        code = self.safe_currency_code(currencyId)
         self.check_address(address)
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'info': depositAddress,
+        }
+
+    def fetch_deposit_address(self, code, params={}):
+        self.load_markets()
         currency = self.currency(code)
         request = {
-            'address': address,  # only supports existing addresses in your withdraw address list
-            'amount': amount,
-            'currency': currency['id'].lower(),
+            'currency': currency['id'],
         }
-        if tag is not None:
-            request['addr-tag'] = tag  # only for XRP?
-        response = self.privatePostDwWithdrawApiCreate(self.extend(request, params))
-        id = self.safe_string(response, 'data')
-        return {
-            'info': response,
-            'id': id,
-        }
-
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = '/'
-        if api == 'market':
-            url += api
-        elif (api == 'public') or (api == 'private'):
-            url += self.version
-        url += '/' + self.implode_params(path, params)
-        query = self.omit(params, self.extract_params(path))
-        if api == 'private':
-            self.check_required_credentials()
-            timestamp = self.ymdhms(self.milliseconds(), 'T')
-            request = {
-                'SignatureMethod': 'HmacSHA256',
-                'SignatureVersion': '2',
-                'AccessKeyId': self.apiKey,
-                'Timestamp': timestamp,
-            }
-            if method != 'POST':
-                request = self.extend(request, query)
-            request = self.keysort(request)
-            auth = self.urlencode(request)
-            # unfortunately, PHP demands double quotes for the escaped newline symbol
-            # eslint-disable-next-line quotes
-            payload = "\n".join([method, self.hostname, url, auth])
-            signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
-            auth += '&' + self.urlencode({'Signature': signature})
-            url += '?' + auth
-            if method == 'POST':
-                body = self.json(query)
-                headers = {
-                    'Content-Type': 'application/json',
-                }
-            else:
-                headers = {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                }
-        else:
-            if params:
-                url += '?' + self.urlencode(params)
-        url = self.implode_params(self.urls['api'][api], {
-            'hostname': self.hostname,
-        }) + url
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
-
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
-        if response is None:
-            return  # fallback to default error handler
-        if 'status' in response:
-            #
-            #     {"status":"error","err-code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
-            #
-            status = self.safe_string(response, 'status')
-            if status == 'error':
-                code = self.safe_string(response, 'err-code')
-                feedback = self.id + ' ' + body
-                self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
-                message = self.safe_string(response, 'err-msg')
-                self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
-                raise ExchangeError(feedback)
+        response = self.v2PrivateGetAccountDepositAddress(self.extend(request, params))
+        #
+        #     {
+        #         code: 200,
+        #         data: [
+        #             {
+        #                 currency: "eth",
+        #                 address: "0xf7292eb9ba7bc50358e27f0e025a4d225a64127b",
+        #                 addressTag: "",
+        #                 chain: "eth"
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        return self.parse_deposit_address(self.safe_value(data, 0, {}), currency)
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         if limit is None or limit > 100:
@@ -1126,3 +1236,83 @@ class huobipro(Exchange):
             'pre-transfer': 'pending',
         }
         return self.safe_string(statuses, status, status)
+
+    def withdraw(self, code, amount, address, tag=None, params={}):
+        self.load_markets()
+        self.check_address(address)
+        currency = self.currency(code)
+        request = {
+            'address': address,  # only supports existing addresses in your withdraw address list
+            'amount': amount,
+            'currency': currency['id'].lower(),
+        }
+        if tag is not None:
+            request['addr-tag'] = tag  # only for XRP?
+        response = self.privatePostDwWithdrawApiCreate(self.extend(request, params))
+        id = self.safe_string(response, 'data')
+        return {
+            'info': response,
+            'id': id,
+        }
+
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        url = '/'
+        if api == 'market':
+            url += api
+        elif (api == 'public') or (api == 'private'):
+            url += self.version
+        elif (api == 'v2Public') or (api == 'v2Private'):
+            url += 'v2'
+        url += '/' + self.implode_params(path, params)
+        query = self.omit(params, self.extract_params(path))
+        if api == 'private' or api == 'v2Private':
+            self.check_required_credentials()
+            timestamp = self.ymdhms(self.milliseconds(), 'T')
+            request = {
+                'SignatureMethod': 'HmacSHA256',
+                'SignatureVersion': '2',
+                'AccessKeyId': self.apiKey,
+                'Timestamp': timestamp,
+            }
+            if method != 'POST':
+                request = self.extend(request, query)
+            request = self.keysort(request)
+            auth = self.urlencode(request)
+            # unfortunately, PHP demands double quotes for the escaped newline symbol
+            # eslint-disable-next-line quotes
+            payload = "\n".join([method, self.hostname, url, auth])
+            signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
+            auth += '&' + self.urlencode({'Signature': signature})
+            url += '?' + auth
+            if method == 'POST':
+                body = self.json(query)
+                headers = {
+                    'Content-Type': 'application/json',
+                }
+            else:
+                headers = {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                }
+        else:
+            if params:
+                url += '?' + self.urlencode(params)
+        url = self.implode_params(self.urls['api'][api], {
+            'hostname': self.hostname,
+        }) + url
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        if response is None:
+            return  # fallback to default error handler
+        if 'status' in response:
+            #
+            #     {"status":"error","err-code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
+            #
+            status = self.safe_string(response, 'status')
+            if status == 'error':
+                code = self.safe_string(response, 'err-code')
+                feedback = self.id + ' ' + body
+                self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+                message = self.safe_string(response, 'err-msg')
+                self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+                raise ExchangeError(feedback)

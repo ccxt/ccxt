@@ -21,7 +21,7 @@ module.exports = class bittrex extends Exchange {
             // new metainfo interface
             'has': {
                 'CORS': false,
-                'createMarketOrder': false,
+                'createMarketOrder': true,
                 'fetchDepositAddress': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
@@ -63,6 +63,7 @@ module.exports = class bittrex extends Exchange {
                     'https://bittrex.zendesk.com/hc/en-us/articles/115003684371-BITTREX-SERVICE-FEES-AND-WITHDRAWAL-LIMITATIONS',
                     'https://bittrex.zendesk.com/hc/en-us/articles/115000199651-What-fees-does-Bittrex-charge-',
                 ],
+                'referral': 'https://bittrex.com/Account/Register?referralCode=1ZE-G0G-M3B',
             },
             'api': {
                 'v3': {
@@ -215,6 +216,9 @@ module.exports = class bittrex extends Exchange {
                     'INVALID_CURRENCY': ExchangeError,
                     'INVALID_PERMISSION': AuthenticationError,
                     'INSUFFICIENT_FUNDS': InsufficientFunds,
+                    'INVALID_CEILING_MARKET_BUY': InvalidOrder,
+                    'INVALID_FIAT_ACCOUNT': InvalidOrder,
+                    'INVALID_ORDER_TYPE': InvalidOrder,
                     'QUANTITY_NOT_PROVIDED': InvalidOrder,
                     'MIN_TRADE_REQUIREMENT_NOT_MET': InvalidOrder,
                     'ORDER_NOT_OPEN': OrderNotFound,
@@ -259,10 +263,10 @@ module.exports = class bittrex extends Exchange {
                 // see the implementation of fetchClosedOrdersV3 below
                 'fetchClosedOrdersMethod': 'fetch_closed_orders_v3',
                 'fetchClosedOrdersFilterBySince': true,
+                // 'createOrderMethod': 'create_order_v1',
             },
             'commonCurrencies': {
                 'BITS': 'SWIFT',
-                'CPC': 'Capricoin',
             },
         });
     }
@@ -662,6 +666,74 @@ module.exports = class bittrex extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        const uppercaseType = type.toUpperCase ();
+        const isMarket = (uppercaseType === 'MARKET');
+        const isCeilingLimit = (uppercaseType === 'CEILING_LIMIT');
+        const isCeilingMarket = (uppercaseType === 'CEILING_MARKET');
+        const isV3 = isMarket || isCeilingLimit || isCeilingMarket;
+        const defaultMethod = isV3 ? 'create_order_v3' : 'create_order_v1';
+        const method = this.safeValue (this.options, 'createOrderMethod', defaultMethod);
+        return await this[method] (symbol, type, side, amount, price, params);
+    }
+
+    async createOrderV3 (symbol, type, side, amount, price = undefined, params = {}) {
+        // A ceiling order is a market or limit order that allows you to specify
+        // the amount of quote currency you want to spend (or receive, if selling)
+        // instead of the quantity of the market currency (e.g. buy $100 USD of BTC
+        // at the current market BTC price)
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const uppercaseType = type.toUpperCase ();
+        const reverseId = market['baseId'] + '-' + market['quoteId'];
+        const request = {
+            'marketSymbol': reverseId,
+            'direction': side.toUpperCase (),
+            'type': uppercaseType, // LIMIT, MARKET, CEILING_LIMIT, CEILING_MARKET
+            // 'quantity': this.amountToPrecision (symbol, amount), // required for limit orders, excluded for ceiling orders
+            // 'ceiling': this.priceToPrecision (symbol, price), // required for ceiling orders, excluded for non-ceiling orders
+            // 'limit': this.priceToPrecision (symbol, price), // required for limit orders, excluded for market orders
+            // 'timeInForce': 'GOOD_TIL_CANCELLED', // IMMEDIATE_OR_CANCEL, FILL_OR_KILL, POST_ONLY_GOOD_TIL_CANCELLED
+            // 'useAwards': false, // optional
+        };
+        const isCeilingLimit = (uppercaseType === 'CEILING_LIMIT');
+        const isCeilingMarket = (uppercaseType === 'CEILING_MARKET');
+        const isCeilingOrder = isCeilingLimit || isCeilingMarket;
+        if (isCeilingOrder) {
+            request['ceiling'] = this.priceToPrecision (symbol, price);
+            // bittrex only accepts IMMEDIATE_OR_CANCEL or FILL_OR_KILL for ceiling orders
+            request['timeInForce'] = 'IMMEDIATE_OR_CANCEL';
+        } else {
+            request['quantity'] = this.amountToPrecision (symbol, amount);
+            if (uppercaseType === 'LIMIT') {
+                request['limit'] = this.priceToPrecision (symbol, price);
+                request['timeInForce'] = 'GOOD_TIL_CANCELLED';
+            } else {
+                // bittrex does not allow GOOD_TIL_CANCELLED for market orders
+                request['timeInForce'] = 'IMMEDIATE_OR_CANCEL';
+            }
+        }
+        const response = await this.v3PostOrders (this.extend (request, params));
+        //
+        //     {
+        //         id: 'f03d5e98-b5ac-48fb-8647-dd4db828a297',
+        //         marketSymbol: 'BTC-USDT',
+        //         direction: 'SELL',
+        //         type: 'LIMIT',
+        //         quantity: '0.01',
+        //         limit: '6000',
+        //         timeInForce: 'GOOD_TIL_CANCELLED',
+        //         fillQuantity: '0.00000000',
+        //         commission: '0.00000000',
+        //         proceeds: '0.00000000',
+        //         status: 'OPEN',
+        //         createdAt: '2020-03-18T02:37:33.42Z',
+        //         updatedAt: '2020-03-18T02:37:33.42Z'
+        //       }
+        //
+        return this.parseOrderV3 (response, market);
+    }
+
+    async createOrderV1 (symbol, type, side, amount, price = undefined, params = {}) {
         if (type !== 'limit') {
             throw new ExchangeError (this.id + ' allows limit orders only');
         }
@@ -707,7 +779,10 @@ module.exports = class bittrex extends Exchange {
         //         }
         //     }
         //
-        return this.extend (this.parseOrder (response), {
+        const result = this.safeValue (response, 'result', {});
+        return this.extend (this.parseOrder (result), {
+            'id': id,
+            'info': response,
             'status': 'canceled',
         });
     }
@@ -975,6 +1050,7 @@ module.exports = class bittrex extends Exchange {
         }
         return {
             'id': this.safeString (order, 'id'),
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -993,6 +1069,7 @@ module.exports = class bittrex extends Exchange {
                 'currency': feeCurrency,
             },
             'info': order,
+            'trades': undefined,
         };
     }
 
@@ -1117,6 +1194,7 @@ module.exports = class bittrex extends Exchange {
         return {
             'info': order,
             'id': id,
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -1131,6 +1209,7 @@ module.exports = class bittrex extends Exchange {
             'remaining': remaining,
             'status': status,
             'fee': fee,
+            'trades': undefined,
         };
     }
 
@@ -1173,6 +1252,7 @@ module.exports = class bittrex extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'fee': this.safeValue (order, 'fee'),
             'info': order,
+            'takerOrMaker': undefined,
         };
     }
 
@@ -1320,10 +1400,16 @@ module.exports = class bittrex extends Exchange {
             }
         } else if (api === 'v3') {
             url += path;
-            if (Object.keys (params).length) {
-                url += '?' + this.rawencode (params);
+            let hashString = '';
+            if (method === 'POST') {
+                body = this.json (params);
+                hashString = body;
+            } else {
+                if (Object.keys (params).length) {
+                    url += '?' + this.rawencode (params);
+                }
             }
-            const contentHash = this.hash (this.encode (''), 'sha512', 'hex');
+            const contentHash = this.hash (this.encode (hashString), 'sha512', 'hex');
             const timestamp = this.milliseconds ().toString ();
             let auth = timestamp + url + method + contentHash;
             const subaccountId = this.safeValue (this.options, 'subaccountId');
@@ -1339,6 +1425,9 @@ module.exports = class bittrex extends Exchange {
             };
             if (subaccountId !== undefined) {
                 headers['Api-Subaccount-Id'] = subaccountId;
+            }
+            if (method === 'POST') {
+                headers['Content-Type'] = 'application/json';
             }
         } else {
             this.checkRequiredCredentials ();
@@ -1368,8 +1457,16 @@ module.exports = class bittrex extends Exchange {
         //     { success: false, message: "message" }
         //
         if (body[0] === '{') {
+            const feedback = this.id + ' ' + body;
             let success = this.safeValue (response, 'success');
             if (success === undefined) {
+                const code = this.safeString (response, 'code');
+                if (code !== undefined) {
+                    this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+                    if (code !== undefined) {
+                        this.throwBroadlyMatchedException (this.exceptions['broad'], code, feedback);
+                    }
+                }
                 // throw new ExchangeError (this.id + ' malformed response ' + this.json (response));
                 return;
             }
@@ -1379,7 +1476,6 @@ module.exports = class bittrex extends Exchange {
             }
             if (!success) {
                 const message = this.safeString (response, 'message');
-                const feedback = this.id + ' ' + body;
                 if (message === 'APIKEY_INVALID') {
                     if (this.options['hasAlreadyAuthenticatedSuccessfully']) {
                         throw new DDoSProtection (feedback);

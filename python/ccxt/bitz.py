@@ -13,7 +13,9 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import OnMaintenance
 
 
 class bitz(Exchange):
@@ -170,6 +172,7 @@ class bitz(Exchange):
                 # https://github.com/ccxt/ccxt/issues/3881
                 # https://support.bit-z.pro/hc/en-us/articles/360007500654-BOX-BOX-Token-
                 'BOX': 'BOX Token',
+                'LEO': 'LeoCoin',
                 'XRB': 'NANO',
                 'PXC': 'Pixiecoin',
                 'VTC': 'VoteCoin',
@@ -185,7 +188,9 @@ class bitz(Exchange):
                 '-109': AuthenticationError,  # Invalid scretKey
                 '-110': DDoSProtection,  # The number of access requests exceeded
                 '-111': PermissionDenied,  # Current IP is not in the range of trusted IP
-                '-112': ExchangeNotAvailable,  # Service is under maintenance
+                '-112': OnMaintenance,  # Service is under maintenance
+                '-114': RateLimitExceeded,  # The number of daily requests has reached the limit
+                '-117': AuthenticationError,  # The apikey expires
                 '-100015': AuthenticationError,  # Trade password error
                 '-100044': ExchangeError,  # Fail to request data
                 '-100101': ExchangeError,  # Invalid symbol
@@ -632,7 +637,7 @@ class bitz(Exchange):
                 request['to'] = self.sum(since, limit * duration * 1000)
         else:
             if since is not None:
-                raise ExchangeError(self.id + ' fetchOHLCV requires a limit argument if the since argument is specified')
+                raise ArgumentsRequired(self.id + ' fetchOHLCV requires a limit argument if the since argument is specified')
         response = self.marketGetKline(self.extend(request, params))
         #
         #     {   status:    200,
@@ -723,6 +728,7 @@ class bitz(Exchange):
         status = self.parse_order_status(self.safe_string(order, 'status'))
         return {
             'id': id,
+            'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
@@ -738,6 +744,7 @@ class bitz(Exchange):
             'trades': None,
             'fee': None,
             'info': order,
+            'average': None,
         }
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -1061,7 +1068,7 @@ class bitz(Exchange):
                 'type': type,
             }, transactions[i]))
             result.append(transaction)
-        return self.filterByCurrencySinceLimit(result, code, since, limit)
+        return self.filter_by_currency_since_limit(result, code, since, limit)
 
     def parse_transaction_type(self, type):
         types = {

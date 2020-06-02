@@ -494,6 +494,22 @@ class fcoin(Exchange):
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
+        #
+        #     {
+        #         "id": "string",
+        #         "symbol": "string",
+        #         "type": "limit",
+        #         "side": "buy",
+        #         "price": "string",
+        #         "amount": "string",
+        #         "state": "submitted",
+        #         "executed_value": "string",
+        #         "fill_fees": "string",
+        #         "filled_amount": "string",
+        #         "created_at": 0,
+        #         "source": "web"
+        #     }
+        #
         id = self.safe_string(order, 'id')
         side = self.safe_string(order, 'side')
         status = self.parse_order_status(self.safe_string(order, 'state'))
@@ -533,6 +549,7 @@ class fcoin(Exchange):
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,

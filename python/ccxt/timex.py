@@ -57,6 +57,7 @@ class timex(Exchange):
                 'api': 'https://plasma-relay-backend.timex.io',
                 'www': 'https://timex.io',
                 'doc': 'https://docs.timex.io',
+                'referral': 'https://timex.io/?refcode=1x27vNkTbP1uwkCck',
             },
             'api': {
                 'custody': {
@@ -867,7 +868,21 @@ class timex(Exchange):
         #         "active": True,
         #         "withdrawalFee": "50000000000000000",
         #         "purchaseCommissions": []
-        #     },
+        #     }
+        #
+        # https://github.com/ccxt/ccxt/issues/6878
+        #
+        #     {
+        #         "symbol":"XRP",
+        #         "name":"Ripple",
+        #         "address":"0x0dc8882914f3ddeebf4cec6dc20edb99df3def6c",
+        #         "decimals":6,
+        #         "tradeDecimals":16,
+        #         "depositEnabled":true,
+        #         "withdrawalEnabled":true,
+        #         "transferEnabled":true,
+        #         "active":true
+        #     }
         #
         id = self.safe_string(currency, 'symbol')
         code = self.safe_currency_code(id)
@@ -876,19 +891,20 @@ class timex(Exchange):
         active = self.safe_value(currency, 'active')
         # fee = self.safe_float(currency, 'withdrawalFee')
         feeString = self.safe_string(currency, 'withdrawalFee')
-        feeStringLen = len(feeString)
         tradeDecimals = self.safe_integer(currency, 'tradeDecimals')
         fee = None
-        dotIndex = feeStringLen - tradeDecimals
-        if dotIndex > 0:
-            whole = feeString[0:dotIndex]
-            fraction = feeString[-dotIndex:]
-            fee = float(whole + '.' + fraction)
-        else:
-            fraction = '.'
-            for i in range(0, -dotIndex):
-                fraction += '0'
-            fee = float(fraction + feeString)
+        if (feeString is not None) and (tradeDecimals is not None):
+            feeStringLen = len(feeString)
+            dotIndex = feeStringLen - tradeDecimals
+            if dotIndex > 0:
+                whole = feeString[0:dotIndex]
+                fraction = feeString[-dotIndex:]
+                fee = float(whole + '.' + fraction)
+            else:
+                fraction = '.'
+                for i in range(0, -dotIndex):
+                    fraction += '0'
+                fee = float(fraction + feeString)
         return {
             'id': code,
             'code': code,
@@ -1063,7 +1079,7 @@ class timex(Exchange):
             self.safe_float(ohlcv, 'high'),
             self.safe_float(ohlcv, 'low'),
             self.safe_float(ohlcv, 'close'),
-            self.safe_float(ohlcv, 'volumeQuote'),
+            self.safe_float(ohlcv, 'volume'),
         ]
 
     def parse_order(self, order, market=None):
@@ -1125,9 +1141,11 @@ class timex(Exchange):
             numTrades = len(trades)
             if numTrades > 0:
                 lastTradeTimestamp = trades[numTrades - 1]['timestamp']
+        clientOrderId = self.safe_string(order, 'clientOrderId')
         return {
             'info': order,
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,

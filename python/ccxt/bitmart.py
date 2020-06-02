@@ -45,6 +45,7 @@ class bitmart(Exchange):
                 'fetchClosedOrders': True,
                 'fetchCanceledOrders': True,
                 'fetchOrder': True,
+                'signIn': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/61835713-a2662f80-ae85-11e9-9d00-6442919701fd.jpg',
@@ -52,6 +53,7 @@ class bitmart(Exchange):
                 'www': 'https://www.bitmart.com/',
                 'doc': 'https://github.com/bitmartexchange/bitmart-official-api-docs',
                 'referral': 'http://www.bitmart.com/?r=rQCFLh',
+                'fees': 'https://www.bitmart.com/fee/en',
             },
             'requiredCredentials': {
                 'apiKey': True,
@@ -255,30 +257,81 @@ class bitmart(Exchange):
                 'precision': precision,
                 'limits': limits,
                 'info': market,
+                'active': None,
             })
         return result
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = self.milliseconds()
-        marketId = self.safe_string(ticker, 'symbol_id')
+        #
+        # fetchTicker
+        #
+        #     {
+        #         "volume":"6139.8058",
+        #         "ask_1":"0.021856",
+        #         "base_volume":"131.5157",
+        #         "lowest_price":"0.021090",
+        #         "bid_1":"0.021629",
+        #         "highest_price":"0.021929",
+        #         "ask_1_amount":"0.1245",
+        #         "current_price":"0.021635",
+        #         "fluctuation":"+0.0103",
+        #         "symbol_id":"ETH_BTC",
+        #         "url":"https://www.bitmart.com/trade?symbol=ETH_BTC",
+        #         "bid_1_amount":"1.8546"
+        #     }
+        #
+        # fetchTickers
+        #
+        #     {
+        #         "priceChange":"0%",
+        #         "symbolId":1066,
+        #         "website":"https://www.bitmart.com/trade?symbol=1SG_BTC",
+        #         "depthEndPrecision":6,
+        #         "ask_1":"0.000095",
+        #         "anchorId":2,
+        #         "anchorName":"BTC",
+        #         "pair":"1SG_BTC",
+        #         "volume":"0.0",
+        #         "coinId":2029,
+        #         "depthStartPrecision":4,
+        #         "high_24h":"0.000035",
+        #         "low_24h":"0.000035",
+        #         "new_24h":"0.000035",
+        #         "closeTime":1589389249342,
+        #         "bid_1":"0.000035",
+        #         "coinName":"1SG",
+        #         "baseVolume":"0.0",
+        #         "openTime":1589302849342
+        #     }
+        #
+        timestamp = self.safe_integer(ticker, 'closeTime', self.milliseconds())
+        marketId = self.safe_string_2(ticker, 'pair', 'symbol_id')
         symbol = None
         if marketId is not None:
             if marketId in self.markets_by_id:
                 market = self.markets_by_id[marketId]
-                symbol = market['symbol']
             elif marketId is not None:
                 baseId, quoteId = marketId.split('_')
                 base = self.safe_currency_code(baseId)
                 quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
-        last = self.safe_float(ticker, 'current_price')
+        if (symbol is None) and (market is not None):
+            symbol = market['symbol']
+        last = self.safe_float_2(ticker, 'current_price', 'new_24h')
         percentage = self.safe_float(ticker, 'fluctuation')
+        if percentage is None:
+            percentage = self.safe_string(ticker, 'priceChange')
+            if percentage is not None:
+                percentage = percentage.replace('%', '')
+                percentage = float(percentage)
+        else:
+            percentage *= 100
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'highest_price'),
-            'low': self.safe_float(ticker, 'lowest_price'),
+            'high': self.safe_float_2(ticker, 'highest_price', 'high_24h'),
+            'low': self.safe_float_2(ticker, 'lowest_price', 'low_24h'),
             'bid': self.safe_float(ticker, 'bid_1'),
             'bidVolume': self.safe_float(ticker, 'bid_1_amount'),
             'ask': self.safe_float(ticker, 'ask_1'),
@@ -289,17 +342,18 @@ class bitmart(Exchange):
             'last': last,
             'previousClose': None,
             'change': None,
-            'percentage': percentage * 100,
+            'percentage': percentage,
             'average': None,
             'baseVolume': self.safe_float(ticker, 'volume'),
-            'quoteVolume': self.safe_float(ticker, 'base_volume'),
+            'quoteVolume': self.safe_float_2(ticker, 'base_volume', 'baseVolume'),
             'info': ticker,
         }
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
+        market = self.market(symbol)
         request = {
-            'symbol': self.market_id(symbol),
+            'symbol': market['id'],
         }
         response = self.publicGetTicker(self.extend(request, params))
         #
@@ -318,11 +372,36 @@ class bitmart(Exchange):
         #         "bid_1_amount":"134.78"
         #     }
         #
-        return self.parse_ticker(response)
+        return self.parse_ticker(response, market)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
         tickers = self.publicGetTicker(params)
+        #
+        #         [
+        #             {
+        #                 "priceChange":"0%",
+        #                 "symbolId":1066,
+        #                 "website":"https://www.bitmart.com/trade?symbol=1SG_BTC",
+        #                 "depthEndPrecision":6,
+        #                 "ask_1":"0.000095",
+        #                 "anchorId":2,
+        #                 "anchorName":"BTC",
+        #                 "pair":"1SG_BTC",
+        #                 "volume":"0.0",
+        #                 "coinId":2029,
+        #                 "depthStartPrecision":4,
+        #                 "high_24h":"0.000035",
+        #                 "low_24h":"0.000035",
+        #                 "new_24h":"0.000035",
+        #                 "closeTime":1589389249342,
+        #                 "bid_1":"0.000035",
+        #                 "coinName":"1SG",
+        #                 "baseVolume":"0.0",
+        #                 "openTime":1589302849342
+        #             },
+        #         ]
+        #
         result = {}
         for i in range(0, len(tickers)):
             ticker = self.parse_ticker(tickers[i])
@@ -647,6 +726,7 @@ class bitmart(Exchange):
         type = None
         return {
             'id': id,
+            'clientOrderId': None,
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),

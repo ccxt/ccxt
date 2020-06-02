@@ -222,6 +222,7 @@ module.exports = class stronghold extends Exchange {
                 'precision': precision,
                 'info': entry,
                 'limits': limits,
+                'active': undefined,
             };
         }
         return result;
@@ -279,6 +280,7 @@ module.exports = class stronghold extends Exchange {
                 'active': undefined,
                 'name': undefined,
                 'limits': limits,
+                'fee': undefined,
             };
         }
         return result;
@@ -576,6 +578,7 @@ module.exports = class stronghold extends Exchange {
         }
         return {
             'id': id,
+            'clientOrderId': undefined,
             'info': order,
             'symbol': symbol,
             'datetime': datetime,
@@ -591,6 +594,7 @@ module.exports = class stronghold extends Exchange {
             'status': undefined,
             'type': undefined,
             'average': undefined,
+            'fee': undefined,
         };
     }
 

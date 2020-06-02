@@ -60,7 +60,7 @@ class bitmax(Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/66820319-19710880-ef49-11e9-8fbe-16be62a11992.jpg',
                 'api': 'https://bitmax.io',
-                'test': 'https://bitmax-test.io/api',
+                'test': 'https://bitmax-test.io',
                 'www': 'https://bitmax.io',
                 'doc': [
                     'https://github.com/bitmax-exchange/api-doc/blob/master/bitmax-api-doc-v1.2.md',
@@ -129,11 +129,16 @@ class bitmax(Exchange):
                 'exact': {
                     '2100': AuthenticationError,  # {"code":2100,"message":"ApiKeyFailure"}
                     '5002': BadSymbol,  # {"code":5002,"message":"Invalid Symbol"}
+                    '6001': BadSymbol,  # {"code":6001,"message":"Trading is disabled on symbol."}
                     '6010': InsufficientFunds,  # {'code': 6010, 'message': 'Not enough balance.'}
                     '60060': InvalidOrder,  # {'code': 60060, 'message': 'The order is already filled or canceled.'}
                     '600503': InvalidOrder,  # {"code":600503,"message":"Notional is too small."}
                 },
                 'broad': {},
+            },
+            'commonCurrencies': {
+                'BTCBEAR': 'BEAR',
+                'BTCBULL': 'BULL',
             },
         })
 
@@ -683,9 +688,11 @@ class bitmax(Exchange):
             'currency': self.safe_string(order, 'feeAsset'),
         }
         average = self.safe_float(order, 'avgPrice')
+        clientOrderId = id
         return {
             'info': order,
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -1081,7 +1088,7 @@ class bitmax(Exchange):
                 auth += '+' + coid
                 headers['x-auth-coid'] = coid
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
-            headers['x-auth-signature'] = signature
+            headers['x-auth-signature'] = self.decode(signature)
             if method == 'GET':
                 if query:
                     url += '?' + self.urlencode(query)

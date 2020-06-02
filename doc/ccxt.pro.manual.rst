@@ -1,3 +1,5 @@
+`⌂ Home <ccxt.pro>`__
+
 Manual
 ======
 
@@ -52,37 +54,59 @@ The CCXT Pro heavily relies on the transpiler of CCXT for `multilanguge support 
 Exchanges
 =========
 
-The CCXT Pro library currently supports the following 12 cryptocurrency exchange markets and trading APIs:
+The CCXT Pro library currently supports the following 22 cryptocurrency exchange markets and WebSocket trading APIs:
 
-+-------------------------------------------------------------------------+---------------+-------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-|        logo                                                             | id            | name                                                                    | ver | doc                                                                                             | certified                                                            | pro                             |
-+=========================================================================+===============+=========================================================================+=====+=================================================================================================+======================================================================+=================================+
-| `binance <https://www.binance.com/?ref=10205187>`__                     | binance       | `Binance <https://www.binance.com/?ref=10205187>`__                     | \*  | `API <https://binance-docs.github.io/apidocs/spot/en>`__                                        | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | `CCXT Pro <https://ccxt.pro>`__ |
-+-------------------------------------------------------------------------+---------------+-------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `binanceje <https://www.binance.je/?ref=35047921>`__                    | binanceje     | `Binance Jersey <https://www.binance.je/?ref=35047921>`__               | \*  | `API <https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md>`__ |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
-+-------------------------------------------------------------------------+---------------+-------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `binanceus <https://www.binance.us/?ref=35005074>`__                    | binanceus     | `Binance US <https://www.binance.us/?ref=35005074>`__                   | \*  | `API <https://github.com/binance-us/binance-official-api-docs>`__                               |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
-+-------------------------------------------------------------------------+---------------+-------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `bitfinex <https://www.bitfinex.com/?refcode=P61eYxFL>`__               | bitfinex      | `Bitfinex <https://www.bitfinex.com/?refcode=P61eYxFL>`__               | 1   | `API <https://docs.bitfinex.com/v1/docs>`__                                                     | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | `CCXT Pro <https://ccxt.pro>`__ |
-+-------------------------------------------------------------------------+---------------+-------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `bitmex <https://www.bitmex.com/register/rm3C16>`__                     | bitmex        | `BitMEX <https://www.bitmex.com/register/rm3C16>`__                     | 1   | `API <https://www.bitmex.com/app/apiOverview>`__                                                |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
-+-------------------------------------------------------------------------+---------------+-------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `bittrex <https://bittrex.com>`__                                       | bittrex       | `Bittrex <https://bittrex.com>`__                                       | 1.1 | `API <https://bittrex.github.io/api/>`__                                                        | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | `CCXT Pro <https://ccxt.pro>`__ |
-+-------------------------------------------------------------------------+---------------+-------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `coinbaseprime <https://prime.coinbase.com>`__                          | coinbaseprime | `Coinbase Prime <https://prime.coinbase.com>`__                         | \*  | `API <https://docs.prime.coinbase.com>`__                                                       |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
-+-------------------------------------------------------------------------+---------------+-------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `coinbasepro <https://pro.coinbase.com/>`__                             | coinbasepro   | `Coinbase Pro <https://pro.coinbase.com/>`__                            | \*  | `API <https://docs.pro.coinbase.com>`__                                                         |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
-+-------------------------------------------------------------------------+---------------+-------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `gateio <https://www.gate.io/signup/2436035>`__                         | gateio        | `Gate.io <https://www.gate.io/signup/2436035>`__                        | 2   | `API <https://gate.io/api2>`__                                                                  |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
-+-------------------------------------------------------------------------+---------------+-------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `kraken <https://www.kraken.com>`__                                     | kraken        | `Kraken <https://www.kraken.com>`__                                     | 0   | `API <https://www.kraken.com/features/api>`__                                                   | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | `CCXT Pro <https://ccxt.pro>`__ |
-+-------------------------------------------------------------------------+---------------+-------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `kucoin <https://www.kucoin.com/?rcode=E5wkqe>`__                       | kucoin        | `KuCoin <https://www.kucoin.com/?rcode=E5wkqe>`__                       | 2   | `API <https://docs.kucoin.com>`__                                                               |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
-+-------------------------------------------------------------------------+---------------+-------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `poloniex <https://www.poloniex.com/?utm_source=ccxt&utm_medium=web>`__ | poloniex      | `Poloniex <https://www.poloniex.com/?utm_source=ccxt&utm_medium=web>`__ | \*  | `API <https://docs.poloniex.com>`__                                                             | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | `CCXT Pro <https://ccxt.pro>`__ |
-+-------------------------------------------------------------------------+---------------+-------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
++----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
+|        logo                                                                            | id            | name                                                                                   | ver | doc                                                                                             | certified                                                            | pro                             |
++========================================================================================+===============+========================================================================================+=====+=================================================================================================+======================================================================+=================================+
+| `bequant <https://bequant.io>`__                                                       | bequant       | `Bequant <https://bequant.io>`__                                                       | 2   | `API <https://api.bequant.io/>`__                                                               |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
++----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
+| `binance <https://www.binance.com/?ref=10205187>`__                                    | binance       | `Binance <https://www.binance.com/?ref=10205187>`__                                    | \*  | `API <https://binance-docs.github.io/apidocs/spot/en>`__                                        | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | `CCXT Pro <https://ccxt.pro>`__ |
++----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
+| `binanceje <https://www.binance.je/?ref=35047921>`__                                   | binanceje     | `Binance Jersey <https://www.binance.je/?ref=35047921>`__                              | \*  | `API <https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md>`__ |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
++----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
+| `binanceus <https://www.binance.us/?ref=35005074>`__                                   | binanceus     | `Binance US <https://www.binance.us/?ref=35005074>`__                                  | \*  | `API <https://github.com/binance-us/binance-official-api-docs>`__                               |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
++----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
+| `bitfinex <https://www.bitfinex.com/?refcode=P61eYxFL>`__                              | bitfinex      | `Bitfinex <https://www.bitfinex.com/?refcode=P61eYxFL>`__                              | 1   | `API <https://docs.bitfinex.com/v1/docs>`__                                                     | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | `CCXT Pro <https://ccxt.pro>`__ |
++----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
+| `bitmex <https://www.bitmex.com/register/upZpOX>`__                                    | bitmex        | `BitMEX <https://www.bitmex.com/register/upZpOX>`__                                    | 1   | `API <https://www.bitmex.com/app/apiOverview>`__                                                |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
++----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
+| `bitstamp <https://www.bitstamp.net>`__                                                | bitstamp      | `Bitstamp <https://www.bitstamp.net>`__                                                | 2   | `API <https://www.bitstamp.net/api>`__                                                          |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
++----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
+| `bittrex <https://bittrex.com/Account/Register?referralCode=1ZE-G0G-M3B>`__            | bittrex       | `Bittrex <https://bittrex.com/Account/Register?referralCode=1ZE-G0G-M3B>`__            | 1.1 | `API <https://bittrex.github.io/api/>`__                                                        | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | `CCXT Pro <https://ccxt.pro>`__ |
++----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
+| `bitvavo <https://bitvavo.com/?a=24F34952F7>`__                                        | bitvavo       | `Bitvavo <https://bitvavo.com/?a=24F34952F7>`__                                        | 2   | `API <https://docs.bitvavo.com/>`__                                                             | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | `CCXT Pro <https://ccxt.pro>`__ |
++----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
+| `coinbaseprime <https://prime.coinbase.com>`__                                         | coinbaseprime | `Coinbase Prime <https://prime.coinbase.com>`__                                        | \*  | `API <https://docs.prime.coinbase.com>`__                                                       |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
++----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
+| `coinbasepro <https://pro.coinbase.com/>`__                                            | coinbasepro   | `Coinbase Pro <https://pro.coinbase.com/>`__                                           | \*  | `API <https://docs.pro.coinbase.com>`__                                                         |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
++----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
+| `ftx <https://ftx.com/#a=1623029>`__                                                   | ftx           | `FTX <https://ftx.com/#a=1623029>`__                                                   | \*  | `API <https://github.com/ftexchange/ftx>`__                                                     | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | `CCXT Pro <https://ccxt.pro>`__ |
++----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
+| `gateio <https://www.gate.io/signup/2436035>`__                                        | gateio        | `Gate.io <https://www.gate.io/signup/2436035>`__                                       | 2   | `API <https://gate.io/api2>`__                                                                  |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
++----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
+| `hitbtc <https://hitbtc.com/?ref_id=5a5d39a65d466>`__                                  | hitbtc        | `HitBTC <https://hitbtc.com/?ref_id=5a5d39a65d466>`__                                  | 2   | `API <https://api.hitbtc.com>`__                                                                |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
++----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
+| `huobipro <https://www.huobi.co/en-us/topic/invited/?invite_code=rwrd3>`__             | huobipro      | `Huobi Pro <https://www.huobi.co/en-us/topic/invited/?invite_code=rwrd3>`__            | 1   | `API <https://huobiapi.github.io/docs/spot/v1/cn/>`__                                           |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
++----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
+| `huobiru <https://www.huobi.com.ru/invite?invite_code=esc74>`__                        | huobiru       | `Huobi Russia <https://www.huobi.com.ru/invite?invite_code=esc74>`__                   | 1   | `API <https://github.com/cloudapidoc/API_Docs_en>`__                                            |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
++----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
+| `kraken <https://www.kraken.com>`__                                                    | kraken        | `Kraken <https://www.kraken.com>`__                                                    | 0   | `API <https://www.kraken.com/features/api>`__                                                   | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | `CCXT Pro <https://ccxt.pro>`__ |
++----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
+| `kucoin <https://www.kucoin.com/?rcode=E5wkqe>`__                                      | kucoin        | `KuCoin <https://www.kucoin.com/?rcode=E5wkqe>`__                                      | 2   | `API <https://docs.kucoin.com>`__                                                               |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
++----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
+| `okcoin <https://www.okcoin.com/account/register?flag=activity&channelId=600001513>`__ | okcoin        | `OKCoin <https://www.okcoin.com/account/register?flag=activity&channelId=600001513>`__ | 3   | `API <https://www.okcoin.com/docs/en/>`__                                                       |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
++----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
+| `okex <https://www.okex.com/join/1888677>`__                                           | okex          | `OKEX <https://www.okex.com/join/1888677>`__                                           | 3   | `API <https://www.okex.com/docs/en/>`__                                                         |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
++----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
+| `poloniex <https://poloniex.com/signup?c=UBFZJRPJ>`__                                  | poloniex      | `Poloniex <https://poloniex.com/signup?c=UBFZJRPJ>`__                                  | \*  | `API <https://docs.poloniex.com>`__                                                             | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | `CCXT Pro <https://ccxt.pro>`__ |
++----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
+| `upbit <https://upbit.com>`__                                                          | upbit         | `Upbit <https://upbit.com>`__                                                          | 1   | `API <https://docs.upbit.com/docs/%EC%9A%94%EC%B2%AD-%EC%88%98-%EC%A0%9C%ED%95%9C>`__           | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | `CCXT Pro <https://ccxt.pro>`__ |
++----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 
-This list will be updated with new exchanges on a regular basis.
+This is the list of exchanges in CCXT Pro with support for WebSockets APIs. This list will be updated with new exchanges on a regular basis.
+
+Full list of exchanges available in CCXT via REST: `Supported Cryptocurrency Exchange Markets <https://github.com/ccxt/ccxt/#supported-cryptocurrency-exchange-markets>`__.
 
 Usage
 =====
@@ -100,7 +124,7 @@ The best way to understand CCXT Pro is to make sure you grasp the entire CCXT Ma
 
 -  the concepts of public API and private authenticated API
 -  markets, symbols, currency codes and ids
--  unified data structures and formats, orderbooks, trades, orders, candles, …
+-  unified data structures and formats, orderbooks, trades, orders, candles, timeframes, …
 -  exceptions and error mappings
 -  authentication and API keys (for private feeds and calls)
 -  configuration options
@@ -248,8 +272,17 @@ All of that functionality is handled by CCXT Pro for the user. To work with CCXT
 
 Each incoming update says which parts of the data have changed and the receiving side “increments” local state S by merging the update on top of current state S and moves to next local state S’. In terms CCXT Pro that is called *“incremental state”* and the structures involved in the process of storing and updating the cached state are called *“incremental structures”*. CCXT Pro introduces several new base classes to handle the incremental state where necessary.
 
+The incremental structures returned from the unified methods of CCXT Pro is often one of two types:
+
+1. JSON-decoded object (``object`` in JavaScript, ``dict`` in Python, ``array()`` in PHP). This type may be returned from public and private methods like ``watchTicker``, ``watchBalance``, ``watchOrder``, etc.
+2. An array/list of objects (usually sorted in chronological order). This type may be returned from methods like ``watchOHLCV``, ``watchTrades``, ``watchMyTrades``, ``watchOrders``, etc.
+
+In the latter case the CCXT Pro library has to keep a reasonable limit on the number of objects kept in memory. The allowed maximum can be configured by the user upon instantiation or later.
+
 Linking
 -------
+
+See instructions on installing here: `CCXT Pro Install <ccxt.pro.install.md>`__.
 
 The process of including the CCXT Pro library into your script is pretty much the same as with the standard CCXT, the only difference is the name of the actual JavaScript module, Python package, or PHP namespace.
 
@@ -281,7 +314,7 @@ Instantiation
 
 CCXT Pro is designed for async/await style syntax and relies heavily on async primitives such as *promises* and *futures*.
 
-Creating a CCXT Pro exchange instance is pretty much identical to creating a CCXT exchange instance, as shown below.
+Creating a CCXT Pro exchange instance is pretty much identical to creating a CCXT exchange instance.
 
 .. code:: javascript
 
@@ -289,11 +322,23 @@ Creating a CCXT Pro exchange instance is pretty much identical to creating a CCX
    const ccxtpro = require ('ccxt.pro')
    const exchange = new ccxtpro.binance ({ enableRateLimit: true })
 
+The Python implementation of CCXT Pro relies on builtin `asyncio <https://docs.python.org/3/library/asyncio.html>`__ and `Event Loop <https://docs.python.org/3/library/asyncio-eventloop.html>`__ in particular. In Python it is required to supply an asyncio’s event loop instance in the constructor arguments as shown below (identical to ``ccxt.async support``):
+
 .. code:: python
 
    # Python
    import ccxtpro
-   exchange = ccxtpro.kraken({'enableRateLimit': True})
+   import asyncio
+
+   async def main(loop):
+       exchange = ccxtpro.kraken({'enableRateLimit': True, 'asyncio_loop': loop})
+       while True:
+           orderbook = await exchange.watch_order_book('BTC/USD')
+           print(orderbook['asks'][0], orderbook['bids'][0])
+       await exchange.close()
+
+   loop = asyncio.new_event_loop()
+   loop.run_until_complete(main(loop))
 
 In PHP the async primitives are borrowed from `ReactPHP <https://reactphp.org>`__. The PHP implementation of CCXT Pro relies on `Promise <https://github.com/reactphp/promise>`__ and `EventLoop <https://github.com/reactphp/event-loop>`__ in particular. In PHP the user is required to supply a ReactPHP’s event loop instance in the constructor arguments as shown below:
 
@@ -413,6 +458,23 @@ Market Data
 watchOrderBook
 ''''''''''''''
 
+The ``watchOrderBook``\ ’s interface is identical to ```fetchOrderBook`` <https://github.com/ccxt/ccxt/wiki/Manual#order-book>`__. It accepts three arguments:
+
+-  ``symbol`` – string, a unified CCXT symbol, required
+-  ``limit`` – integer, the max number of bids/asks returned, optional
+-  ``params`` – assoc dictionary, optional overrides as described in `Overriding Unified API Params <https://github.com/ccxt/ccxt/wiki/Manual#overriding-unified-api-params>`__
+
+In general, the exchanges can be divided in two categories:
+
+1. the exchanges that support limited orderbooks (streaming just the top part of the stack of orders)
+2. the exchanges that stream full orderbooks only
+
+If the exchange accepts a limiting argument, the ``limit`` argument is sent towards the exchange upon subscribing to the orderbook stream over a WebSocket connection. The exchange will then send only the specified amount of orders which helps reduce the traffic. Some exchanges may only accept certain values of ``limit``, like 10, 25, 50, 100 and so on.
+
+If the underlying exchange does not accept a limiting argument, the limiting is done on the client side.
+
+The ``limit`` argument does not guarantee that the number of bids or asks will always be equal to ``limit``. It designates the upper boundary or the maximum, so at some moment in time there may be less than ``limit`` bids or asks, but never more than ``limit`` bids or asks. This is the case when the exchange does not have enough orders on the orderbook, or when one of the top orders in the orderbook gets matched and removed from the orderbook, leaving less than ``limit`` entries on either bids side or asks side. The free space in the orderbook usually gets quickly filled with new data.
+
 .. code:: javascript
 
    // JavaScript
@@ -451,11 +513,11 @@ watchOrderBook
                echo date('c'), ' ', $symbol, ' ', json_encode(array($orderbook['asks'][0], $orderbook['bids'][0])), "\n";
                $main();
            })->otherwise(function (\Exception $e) use (&$main) {
-               echo get_class ($e) . ' ' . $e->getMessage (). "\n";
+               echo get_class ($e), ' ', $e->getMessage (), "\n";
                $main();
                // stop the loop on exception or leave it commented to retry
                // throw $e;
-           })
+           });
        };
        $loop->futureTick($main);
    }
@@ -501,11 +563,11 @@ watchTicker
                echo date('c'), ' ', json_encode($ticker), "\n";
                $main();
            })->otherwise(function (\Exception $e) use (&$main) {
-               echo get_class ($e) . ' ' . $e->getMessage (). "\n";
+               echo get_class ($e), ' ', $e->getMessage (), "\n";
                $main();
                // stop the loop on exception or leave it commented to retry
                // throw $e;
-           })
+           });
        };
        $loop->futureTick($main);
    }
@@ -551,11 +613,11 @@ watchTickers
                echo date('c'), ' ', json_encode($tickers), "\n";
                $main();
            })->otherwise(function (\Exception $e) use (&$main) {
-               echo get_class ($e) . ' ' . $e->getMessage (). "\n";
+               echo get_class ($e), ' ', $e->getMessage (), "\n";
                $main();
                // stop the loop on exception or leave it commented to retry
                // throw $e;
-           })
+           });
        };
        $loop->futureTick($main);
    }
@@ -603,11 +665,11 @@ watchOHLCV
                    $main();
                }
            )->otherwise(function (\Exception $e) use (&$main) {
-               echo get_class ($e) . ' ' . $e->getMessage (). "\n";
+               echo get_class ($e), ' ', $e->getMessage (), "\n";
                $main();
                // stop the loop on exception or leave it commented to retry
                // throw $e;
-           })
+           });
        };
        $loop->futureTick($main);
    }
@@ -653,11 +715,11 @@ watchTrades
                echo date('c'), ' ', json_encode($trades), "\n";
                $main();
            })->otherwise(function (\Exception $e) use (&$main) {
-               echo get_class ($e) . ' ' . $e->getMessage (). "\n";
+               echo get_class ($e), ' ', $e->getMessage (), "\n";
                $main();
                // stop the loop on exception or leave it commented to retry
                // throw $e;
-           })
+           });
        };
        $loop->futureTick($main);
    }
@@ -718,11 +780,11 @@ watchBalance
                echo date('c'), ' ', json_encode($balance), "\n";
                $main();
            })->otherwise(function (\Exception $e) use (&$main) {
-               echo get_class ($e) . ' ' . $e->getMessage (). "\n";
+               echo get_class ($e), ' ', $e->getMessage (), "\n";
                $main();
                // stop the loop on exception or leave it commented to retry
                // throw $e;
-           })
+           });
        };
        $loop->futureTick($main);
    }
@@ -732,28 +794,28 @@ watchOrders
 
 .. code:: diff
 
-   - work in progress now
+   - this method is a work in progress now (may be unavailable)
 
 watchCreateOrder
 ''''''''''''''''
 
 .. code:: diff
 
-   - work in progress now
+   - this method is a work in progress now (may be unavailable)
 
 watchCancelOrder
 ''''''''''''''''
 
 .. code:: diff
 
-   - work in progress now
+   - this method is a work in progress now (may be unavailable)
 
 watchMyTrades
 '''''''''''''
 
 .. code:: diff
 
-   - work in progress now
+   - this method is a work in progress now (may be unavailable)
 
 .. code:: javascript
 
@@ -778,7 +840,7 @@ watchTransactions
 
 .. code:: diff
 
-   - work in progress now
+   - this method is a work in progress now (may be unavailable)
 
 Error Handling
 --------------

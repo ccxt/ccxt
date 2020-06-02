@@ -365,6 +365,7 @@ class cex(Exchange):
                         'max': None,
                     },
                 },
+                'active': None,
             })
         return result
 
@@ -548,9 +549,44 @@ class cex(Exchange):
         else:
             request['order_type'] = type
         response = self.privatePostPlaceOrderPair(self.extend(request, params))
+        #
+        #     {
+        #         "id": "12978363524",
+        #         "time": 1586610022259,
+        #         "type": "buy",
+        #         "price": "0.033934",
+        #         "amount": "0.10722802",
+        #         "pending": "0.10722802",
+        #         "complete": False
+        #     }
+        #
+        placedAmount = self.safe_float(response, 'amount')
+        remaining = self.safe_float(response, 'pending')
+        timestamp = self.safe_value(response, 'time')
+        complete = self.safe_value(response, 'complete')
+        status = 'closed' if complete else 'open'
+        filled = None
+        if (placedAmount is not None) and (remaining is not None):
+            filled = max(placedAmount - remaining, 0)
         return {
+            'id': self.safe_string(response, 'id'),
             'info': response,
-            'id': response['id'],
+            'clientOrderId': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
+            'type': type,
+            'side': self.safe_string(response, 'type'),
+            'symbol': symbol,
+            'status': status,
+            'price': self.safe_float(response, 'price'),
+            'amount': placedAmount,
+            'cost': None,
+            'average': None,
+            'remaining': remaining,
+            'filled': filled,
+            'fee': None,
+            'trades': None,
         }
 
     def cancel_order(self, id, symbol=None, params={}):
@@ -774,9 +810,12 @@ class cex(Exchange):
                         'currency': market['quote'],
                     },
                     'info': item,
+                    'type': None,
+                    'takerOrMaker': None,
                 })
         return {
             'id': orderId,
+            'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
@@ -792,6 +831,7 @@ class cex(Exchange):
             'trades': trades,
             'fee': fee,
             'info': order,
+            'average': None,
         }
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):

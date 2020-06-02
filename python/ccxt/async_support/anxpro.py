@@ -463,6 +463,7 @@ class anxpro(Exchange):
             'cost': cost,
             'fee': None,
             'info': trade,
+            'takerOrMaker': None,
         }
 
     async def fetch_currencies(self, params={}):
@@ -949,6 +950,7 @@ class anxpro(Exchange):
         cost = executedAverageRate * filled
         return {
             'id': self.safe_string(order, 'orderId'),
+            'clientOrderId': None,
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -964,6 +966,7 @@ class anxpro(Exchange):
             'fee': None,
             'trades': trades,
             'info': order,
+            'average': None,
         }
 
     def parse_order_v2(self, order, market=None):
@@ -1036,6 +1039,7 @@ class anxpro(Exchange):
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -1050,6 +1054,7 @@ class anxpro(Exchange):
             'status': status,
             'fee': fee,
             'trades': trades,
+            'average': None,
         }
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):

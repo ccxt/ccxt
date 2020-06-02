@@ -42,7 +42,7 @@ class bittrex(Exchange):
             # new metainfo interface
             'has': {
                 'CORS': False,
-                'createMarketOrder': False,
+                'createMarketOrder': True,
                 'fetchDepositAddress': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
@@ -84,6 +84,7 @@ class bittrex(Exchange):
                     'https://bittrex.zendesk.com/hc/en-us/articles/115003684371-BITTREX-SERVICE-FEES-AND-WITHDRAWAL-LIMITATIONS',
                     'https://bittrex.zendesk.com/hc/en-us/articles/115000199651-What-fees-does-Bittrex-charge-',
                 ],
+                'referral': 'https://bittrex.com/Account/Register?referralCode=1ZE-G0G-M3B',
             },
             'api': {
                 'v3': {
@@ -236,6 +237,9 @@ class bittrex(Exchange):
                     'INVALID_CURRENCY': ExchangeError,
                     'INVALID_PERMISSION': AuthenticationError,
                     'INSUFFICIENT_FUNDS': InsufficientFunds,
+                    'INVALID_CEILING_MARKET_BUY': InvalidOrder,
+                    'INVALID_FIAT_ACCOUNT': InvalidOrder,
+                    'INVALID_ORDER_TYPE': InvalidOrder,
                     'QUANTITY_NOT_PROVIDED': InvalidOrder,
                     'MIN_TRADE_REQUIREMENT_NOT_MET': InvalidOrder,
                     'ORDER_NOT_OPEN': OrderNotFound,
@@ -280,10 +284,10 @@ class bittrex(Exchange):
                 # see the implementation of fetchClosedOrdersV3 below
                 'fetchClosedOrdersMethod': 'fetch_closed_orders_v3',
                 'fetchClosedOrdersFilterBySince': True,
+                # 'createOrderMethod': 'create_order_v1',
             },
             'commonCurrencies': {
                 'BITS': 'SWIFT',
-                'CPC': 'Capricoin',
             },
         })
 
@@ -647,6 +651,70 @@ class bittrex(Exchange):
         return self.filter_by_symbol(orders, symbol)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        uppercaseType = type.upper()
+        isMarket = (uppercaseType == 'MARKET')
+        isCeilingLimit = (uppercaseType == 'CEILING_LIMIT')
+        isCeilingMarket = (uppercaseType == 'CEILING_MARKET')
+        isV3 = isMarket or isCeilingLimit or isCeilingMarket
+        defaultMethod = 'create_order_v3' if isV3 else 'create_order_v1'
+        method = self.safe_value(self.options, 'createOrderMethod', defaultMethod)
+        return await getattr(self, method)(symbol, type, side, amount, price, params)
+
+    async def create_order_v3(self, symbol, type, side, amount, price=None, params={}):
+        # A ceiling order is a market or limit order that allows you to specify
+        # the amount of quote currency you want to spend(or receive, if selling)
+        # instead of the quantity of the market currency(e.g. buy $100 USD of BTC
+        # at the current market BTC price)
+        await self.load_markets()
+        market = self.market(symbol)
+        uppercaseType = type.upper()
+        reverseId = market['baseId'] + '-' + market['quoteId']
+        request = {
+            'marketSymbol': reverseId,
+            'direction': side.upper(),
+            'type': uppercaseType,  # LIMIT, MARKET, CEILING_LIMIT, CEILING_MARKET
+            # 'quantity': self.amount_to_precision(symbol, amount),  # required for limit orders, excluded for ceiling orders
+            # 'ceiling': self.price_to_precision(symbol, price),  # required for ceiling orders, excluded for non-ceiling orders
+            # 'limit': self.price_to_precision(symbol, price),  # required for limit orders, excluded for market orders
+            # 'timeInForce': 'GOOD_TIL_CANCELLED',  # IMMEDIATE_OR_CANCEL, FILL_OR_KILL, POST_ONLY_GOOD_TIL_CANCELLED
+            # 'useAwards': False,  # optional
+        }
+        isCeilingLimit = (uppercaseType == 'CEILING_LIMIT')
+        isCeilingMarket = (uppercaseType == 'CEILING_MARKET')
+        isCeilingOrder = isCeilingLimit or isCeilingMarket
+        if isCeilingOrder:
+            request['ceiling'] = self.price_to_precision(symbol, price)
+            # bittrex only accepts IMMEDIATE_OR_CANCEL or FILL_OR_KILL for ceiling orders
+            request['timeInForce'] = 'IMMEDIATE_OR_CANCEL'
+        else:
+            request['quantity'] = self.amount_to_precision(symbol, amount)
+            if uppercaseType == 'LIMIT':
+                request['limit'] = self.price_to_precision(symbol, price)
+                request['timeInForce'] = 'GOOD_TIL_CANCELLED'
+            else:
+                # bittrex does not allow GOOD_TIL_CANCELLED for market orders
+                request['timeInForce'] = 'IMMEDIATE_OR_CANCEL'
+        response = await self.v3PostOrders(self.extend(request, params))
+        #
+        #     {
+        #         id: 'f03d5e98-b5ac-48fb-8647-dd4db828a297',
+        #         marketSymbol: 'BTC-USDT',
+        #         direction: 'SELL',
+        #         type: 'LIMIT',
+        #         quantity: '0.01',
+        #         limit: '6000',
+        #         timeInForce: 'GOOD_TIL_CANCELLED',
+        #         fillQuantity: '0.00000000',
+        #         commission: '0.00000000',
+        #         proceeds: '0.00000000',
+        #         status: 'OPEN',
+        #         createdAt: '2020-03-18T02:37:33.42Z',
+        #         updatedAt: '2020-03-18T02:37:33.42Z'
+        #       }
+        #
+        return self.parse_order_v3(response, market)
+
+    async def create_order_v1(self, symbol, type, side, amount, price=None, params={}):
         if type != 'limit':
             raise ExchangeError(self.id + ' allows limit orders only')
         await self.load_markets()
@@ -689,7 +757,10 @@ class bittrex(Exchange):
         #         }
         #     }
         #
-        return self.extend(self.parse_order(response), {
+        result = self.safe_value(response, 'result', {})
+        return self.extend(self.parse_order(result), {
+            'id': id,
+            'info': response,
             'status': 'canceled',
         })
 
@@ -935,6 +1006,7 @@ class bittrex(Exchange):
                 remaining = quantity - fillQuantity
         return {
             'id': self.safe_string(order, 'id'),
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -953,6 +1025,7 @@ class bittrex(Exchange):
                 'currency': feeCurrency,
             },
             'info': order,
+            'trades': None,
         }
 
     def parse_order_v2(self, order, market=None):
@@ -1053,6 +1126,7 @@ class bittrex(Exchange):
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -1067,6 +1141,7 @@ class bittrex(Exchange):
             'remaining': remaining,
             'status': status,
             'fee': fee,
+            'trades': None,
         }
 
     async def fetch_order(self, id, symbol=None, params={}):
@@ -1103,6 +1178,7 @@ class bittrex(Exchange):
             'datetime': self.iso8601(timestamp),
             'fee': self.safe_value(order, 'fee'),
             'info': order,
+            'takerOrMaker': None,
         }
 
     def orders_to_trades(self, orders):
@@ -1228,9 +1304,14 @@ class bittrex(Exchange):
                 url += '?' + self.urlencode(params)
         elif api == 'v3':
             url += path
-            if params:
-                url += '?' + self.rawencode(params)
-            contentHash = self.hash(self.encode(''), 'sha512', 'hex')
+            hashString = ''
+            if method == 'POST':
+                body = self.json(params)
+                hashString = body
+            else:
+                if params:
+                    url += '?' + self.rawencode(params)
+            contentHash = self.hash(self.encode(hashString), 'sha512', 'hex')
             timestamp = str(self.milliseconds())
             auth = timestamp + url + method + contentHash
             subaccountId = self.safe_value(self.options, 'subaccountId')
@@ -1245,6 +1326,8 @@ class bittrex(Exchange):
             }
             if subaccountId is not None:
                 headers['Api-Subaccount-Id'] = subaccountId
+            if method == 'POST':
+                headers['Content-Type'] = 'application/json'
         else:
             self.check_required_credentials()
             url += api + '/'
@@ -1268,8 +1351,14 @@ class bittrex(Exchange):
         #     {success: False, message: "message"}
         #
         if body[0] == '{':
+            feedback = self.id + ' ' + body
             success = self.safe_value(response, 'success')
             if success is None:
+                code = self.safe_string(response, 'code')
+                if code is not None:
+                    self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+                    if code is not None:
+                        self.throw_broadly_matched_exception(self.exceptions['broad'], code, feedback)
                 # raise ExchangeError(self.id + ' malformed response ' + self.json(response))
                 return
             if isinstance(success, basestring):
@@ -1277,7 +1366,6 @@ class bittrex(Exchange):
                 success = True if (success == 'true') else False
             if not success:
                 message = self.safe_string(response, 'message')
-                feedback = self.id + ' ' + body
                 if message == 'APIKEY_INVALID':
                     if self.options['hasAlreadyAuthenticatedSuccessfully']:
                         raise DDoSProtection(feedback)
