@@ -2035,51 +2035,50 @@ module.exports = class binance extends Exchange {
                 throw new InvalidOrder (this.id + ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use this.priceToPrecision (symbol, amount) ' + body);
             }
         }
-        if (body.length > 0) {
-            if (body[0] === '{') {
-                // check success value for wapi endpoints
-                // response in format {'msg': 'The coin does not exist.', 'success': true/false}
-                const success = this.safeValue (response, 'success', true);
-                if (!success) {
-                    const message = this.safeString (response, 'msg');
-                    let parsedMessage = undefined;
-                    if (message !== undefined) {
-                        try {
-                            parsedMessage = JSON.parse (message);
-                        } catch (e) {
-                            // do nothing
-                            parsedMessage = undefined;
-                        }
-                        if (parsedMessage !== undefined) {
-                            response = parsedMessage;
-                        }
-                    }
+        if (response === undefined) {
+            return; // fallback to default error handler
+        }
+        // check success value for wapi endpoints
+        // response in format {'msg': 'The coin does not exist.', 'success': true/false}
+        const success = this.safeValue (response, 'success', true);
+        if (!success) {
+            const message = this.safeString (response, 'msg');
+            let parsedMessage = undefined;
+            if (message !== undefined) {
+                try {
+                    parsedMessage = JSON.parse (message);
+                } catch (e) {
+                    // do nothing
+                    parsedMessage = undefined;
                 }
-                const message = this.safeString (response, 'msg');
-                if (message !== undefined) {
-                    this.throwExactlyMatchedException (this.exceptions, message, this.id + ' ' + message);
-                }
-                // checks against error codes
-                const error = this.safeString (response, 'code');
-                if (error !== undefined) {
-                    // https://github.com/ccxt/ccxt/issues/6501
-                    if (error === '200') {
-                        return;
-                    }
-                    // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
-                    // despite that their message is very confusing, it is raised by Binance
-                    // on a temporary ban, the API key is valid, but disabled for a while
-                    if ((error === '-2015') && this.options['hasAlreadyAuthenticatedSuccessfully']) {
-                        throw new DDoSProtection (this.id + ' temporary banned: ' + body);
-                    }
-                    const feedback = this.id + ' ' + body;
-                    this.throwExactlyMatchedException (this.exceptions, error, feedback);
-                    throw new ExchangeError (feedback);
-                }
-                if (!success) {
-                    throw new ExchangeError (this.id + ' ' + body);
+                if (parsedMessage !== undefined) {
+                    response = parsedMessage;
                 }
             }
+        }
+        const message = this.safeString (response, 'msg');
+        if (message !== undefined) {
+            this.throwExactlyMatchedException (this.exceptions, message, this.id + ' ' + message);
+        }
+        // checks against error codes
+        const error = this.safeString (response, 'code');
+        if (error !== undefined) {
+            // https://github.com/ccxt/ccxt/issues/6501
+            if (error === '200') {
+                return;
+            }
+            // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
+            // despite that their message is very confusing, it is raised by Binance
+            // on a temporary ban, the API key is valid, but disabled for a while
+            if ((error === '-2015') && this.options['hasAlreadyAuthenticatedSuccessfully']) {
+                throw new DDoSProtection (this.id + ' temporary banned: ' + body);
+            }
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions, error, feedback);
+            throw new ExchangeError (feedback);
+        }
+        if (!success) {
+            throw new ExchangeError (this.id + ' ' + body);
         }
     }
 
