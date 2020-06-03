@@ -3,6 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
+const { ArrayCache } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -298,7 +299,12 @@ module.exports = class poloniex extends ccxt.poloniex {
         const symbol = this.safeString (market, 'symbol');
         let orderbookUpdatesCount = 0;
         let tradesCount = 0;
-        const stored = this.safeValue (this.trades, symbol, []);
+        let stored = this.safeValue (this.trades, symbol);
+        if (stored === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            stored = new ArrayCache (limit);
+            this.trades[symbol] = stored;
+        }
         for (let i = 0; i < data.length; i++) {
             const delta = data[i];
             if (delta[0] === 'i') {
@@ -330,11 +336,7 @@ module.exports = class poloniex extends ccxt.poloniex {
                 orderbook['nonce'] = nonce;
             } else if (delta[0] === 't') {
                 const trade = this.handleTrade (client, delta, market);
-                stored.push (trade);
-                const storedLength = stored.length;
-                if (storedLength > this.options['tradesLimit']) {
-                    stored.shift ();
-                }
+                stored.append (trade);
                 tradesCount = this.sum (tradesCount, 1);
             }
         }
@@ -345,11 +347,10 @@ module.exports = class poloniex extends ccxt.poloniex {
             client.resolve (orderbook, messageHash);
         }
         if (tradesCount) {
-            this.trades[symbol] = stored;
             // resolve the trades future
             const messageHash = 'trades:' + marketId;
             // todo: incremental trades
-            client.resolve (this.trades[symbol], messageHash);
+            client.resolve (stored, messageHash);
         }
     }
 

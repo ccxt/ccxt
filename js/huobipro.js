@@ -4,6 +4,7 @@
 
 const ccxt = require ('ccxt');
 const { ExchangeError } = require ('ccxt/js/base/errors');
+const { ArrayCache } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -160,15 +161,15 @@ module.exports = class huobipro extends ccxt.huobipro {
         if (marketId in this.markets_by_id) {
             const market = this.markets_by_id[marketId];
             const symbol = market['symbol'];
-            const array = this.safeValue (this.trades, symbol, []);
+            let array = this.safeValue (this.trades, symbol);
+            if (array === undefined) {
+                const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+                array = new ArrayCache (limit);
+                this.trades[symbol] = array;
+            }
             for (let i = 0; i < data.length; i++) {
                 const trade = this.parseTrade (data[i], market);
-                array.push (trade);
-                const length = array.length;
-                if (length > this.options['tradesLimit']) {
-                    array.shift ();
-                }
-                this.trades[symbol] = array;
+                array.append (trade);
             }
             client.resolve (array, ch);
         }
@@ -237,20 +238,20 @@ module.exports = class huobipro extends ccxt.huobipro {
             const interval = this.safeString (parts, 3);
             const timeframe = this.findTimeframe (interval);
             this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-            const stored = this.safeValue (this.ohlcvs[symbol], timeframe, []);
+            let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+            if (stored === undefined) {
+                const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+                stored = new ArrayCache (limit);
+                this.ohlcvs[symbol][timeframe] = stored;
+            }
             const tick = this.safeValue (message, 'tick');
             const parsed = this.parseOHLCV (tick, market, timeframe, undefined, undefined);
             const length = stored.length;
             if (length && parsed[0] === stored[length - 1][0]) {
                 stored[length - 1] = parsed;
             } else {
-                stored.push (parsed);
-                const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-                if (length >= limit) {
-                    stored.shift ();
-                }
+                stored.append (parsed);
             }
-            this.ohlcvs[symbol][timeframe] = stored;
             client.resolve (stored, ch);
         }
     }

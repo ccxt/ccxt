@@ -504,18 +504,18 @@ module.exports = class binance extends ccxt.binance {
             symbol = market['symbol'];
         }
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        const stored = this.safeValue (this.ohlcvs[symbol], timeframe, []);
+        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+        if (stored === undefined) {
+            const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+            stored = new ArrayCache (limit);
+            this.ohlcvs[symbol][timeframe] = stored;
+        }
         const length = stored.length;
         if (length && (parsed[0] === stored[length - 1][0])) {
             stored[length - 1] = parsed;
         } else {
-            stored.push (parsed);
-            const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            if (length >= limit) {
-                stored.shift ();
-            }
+            stored.append (parsed);
         }
-        this.ohlcvs[symbol][timeframe] = stored;
         client.resolve (stored, messageHash);
     }
 

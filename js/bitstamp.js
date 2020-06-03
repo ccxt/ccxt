@@ -3,6 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
+const { ArrayCache } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -282,13 +283,13 @@ module.exports = class bitstamp extends ccxt.bitstamp {
         const symbol = this.safeString (subscription, 'symbol');
         const market = this.market (symbol);
         const trade = this.parseTrade (data, market);
-        const array = this.safeValue (this.trades, symbol, []);
-        array.push (trade);
-        const length = array.length;
-        if (length > this.options['tradesLimit']) {
-            array.shift ();
+        let array = this.safeValue (this.trades, symbol);
+        if (array === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            array = new ArrayCache (limit);
+            this.trades[symbol] = array;
         }
-        this.trades[symbol] = array;
+        array.append (trade);
         client.resolve (array, channel);
     }
 

@@ -4,6 +4,7 @@
 
 const ccxt = require ('ccxt');
 const { BadSymbol, BadRequest, ExchangeError, NotSupported } = require ('ccxt/js/base/errors');
+const { ArrayCache } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -133,17 +134,17 @@ module.exports = class kraken extends ccxt.kraken {
         const messageHash = name + ':' + wsName;
         const market = this.safeValue (this.options['marketsByWsName'], wsName);
         const symbol = market['symbol'];
-        const stored = this.safeValue (this.trades, symbol, []);
+        let stored = this.safeValue (this.trades, symbol);
+        if (stored === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            stored = new ArrayCache (limit);
+            this.trades[symbol] = stored;
+        }
         const trades = this.safeValue (message, 1, []);
         const parsed = this.parseTrades (trades, market);
         for (let i = 0; i < parsed.length; i++) {
-            stored.push (parsed[i]);
-            const storedLength = stored.length;
-            if (storedLength > this.options['tradesLimit']) {
-                stored.shift ();
-            }
+            stored.append (parsed[i]);
         }
-        this.trades[symbol] = stored;
         client.resolve (stored, messageHash);
     }
 
@@ -199,18 +200,18 @@ module.exports = class kraken extends ccxt.kraken {
                 this.safeFloat (candle, 7),
             ];
             this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-            const stored = this.safeValue (this.ohlcvs[symbol], timeframe, []);
+            let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+            if (stored === undefined) {
+                const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+                stored = new ArrayCache (limit);
+                this.ohlcvs[symbol][timeframe] = stored;
+            }
             const length = stored.length;
             if (length && result[0] === stored[length - 1][0]) {
                 stored[length - 1] = result;
             } else {
-                stored.push (result);
-                const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-                if (length >= limit) {
-                    stored.shift ();
-                }
+                stored.append (result);
             }
-            this.ohlcvs[symbol][timeframe] = stored;
             client.resolve (stored, messageHash);
         }
     }

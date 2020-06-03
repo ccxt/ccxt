@@ -3,6 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
+const { ArrayCache } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -235,25 +236,20 @@ module.exports = class hitbtc extends ccxt.hitbtc {
             const symbol = market['symbol'];
             const messageHash = 'trades:' + marketId;
             const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            const stored = this.safeValue (this.trades, symbol, []);
+            let stored = this.safeValue (this.trades, symbol);
+            if (stored === undefined) {
+                stored = new ArrayCache (tradesLimit);
+                this.trades[symbol] = stored;
+            }
             if (Array.isArray (data)) {
                 const trades = this.parseTrades (data, market);
                 for (let i = 0; i < trades.length; i++) {
-                    stored.push (trades[i]);
-                    const storedLength = stored.length;
-                    if (storedLength > tradesLimit) {
-                        stored.shift ();
-                    }
+                    stored.append (trades[i]);
                 }
             } else {
                 const trade = this.parseTrade (message, market);
-                stored.push (trade);
-                const length = stored.length;
-                if (length > tradesLimit) {
-                    stored.shift ();
-                }
+                stored.append (trade);
             }
-            this.trades[symbol] = stored;
             client.resolve (stored, messageHash);
         }
         return message;
@@ -332,17 +328,17 @@ module.exports = class hitbtc extends ccxt.hitbtc {
                 const candle = data[i];
                 const parsed = this.parseOHLCV (candle, market, timeframe);
                 this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-                const stored = this.safeValue (this.ohlcvs[symbol], timeframe, []);
+                let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+                if (stored === undefined) {
+                    stored = new ArrayCache (limit);
+                    this.ohlcvs[symbol][timeframe] = stored;
+                }
                 const length = stored.length;
                 if (length && parsed[0] === stored[length - 1][0]) {
                     stored[length - 1] = parsed;
                 } else {
-                    stored.push (parsed);
-                    if (length >= limit) {
-                        stored.shift ();
-                    }
+                    stored.append (parsed);
                 }
-                this.ohlcvs[symbol][timeframe] = stored;
                 client.resolve (stored, messageHash);
             }
         }

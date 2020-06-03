@@ -4,6 +4,7 @@
 
 const ccxt = require ('ccxt');
 const { ExchangeError, InvalidNonce } = require ('ccxt/js/base/errors');
+const { ArrayCache } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -203,13 +204,13 @@ module.exports = class kucoin extends ccxt.kucoin {
         const trade = this.parseTrade (data);
         const messageHash = this.safeString (message, 'topic');
         const symbol = trade['symbol'];
-        const array = this.safeValue (this.trades, symbol, []);
-        array.push (trade);
-        const length = array.length;
-        if (length > this.options['tradesLimit']) {
-            array.shift ();
+        let array = this.safeValue (this.trades, symbol);
+        if (array === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            array = new ArrayCache (limit);
+            this.trades[symbol] = array;
         }
-        this.trades[symbol] = array;
+        array.append (trade);
         client.resolve (array, messageHash);
         return message;
     }
