@@ -907,12 +907,26 @@ module.exports = class currencycom extends Exchange {
             // 'origClientOrderId': id,
         };
         if (origClientOrderId === undefined) {
-            request['orderId'] = parseInt (id);
+            request['orderId'] = id;
         } else {
             request['origClientOrderId'] = origClientOrderId;
         }
         const response = await this.privateDeleteOrder (this.extend (request, params));
-        return this.parseOrder (response);
+        //
+        //     {
+        //         "symbol":"ETH/USD",
+        //         "orderId":"00000000-0000-0000-0000-00000024383b",
+        //         "clientOrderId":"00000000-0000-0000-0000-00000024383b",
+        //         "price":"150",
+        //         "origQty":"0.1",
+        //         "executedQty":"0.0",
+        //         "status":"CANCELED",
+        //         "timeInForce":"GTC",
+        //         "type":"LIMIT",
+        //         "side":"BUY"
+        //     }
+        //
+        return this.parseOrder (response, market);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
