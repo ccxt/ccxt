@@ -50,7 +50,7 @@ module.exports = class coinone extends Exchange {
                 // 'fetchTicker': true,         // true
                 'fetchTickers': true,
                 // 'fetchTime': false,
-                // 'fetchTrades': true,         // true
+                'fetchTrades': true,         // true
                 // 'fetchTradingFee': false,
                 // 'fetchTradingFees': false,
                 // 'fetchTradingLimits': false,
@@ -285,7 +285,7 @@ module.exports = class coinone extends Exchange {
             }
         }
         return {
-            'id': undefined,
+            'id': this.safeString (trade, 'id'),
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -306,7 +306,6 @@ module.exports = class coinone extends Exchange {
         const market = this.market (symbol);
         const request = {
             'currency': market['id'],
-            'period': 'hour',
             'format': 'json',
         };
         const response = await this.publicGetTrades (this.extend (request, params));
