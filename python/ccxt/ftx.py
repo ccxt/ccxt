@@ -503,6 +503,10 @@ class ftx(Exchange):
             self.safe_float(ohlcv, 'volume'),
         ]
 
+    def get_market_id(self, symbol, key, params={}):
+        parts = self.get_market_params(symbol, key, params)
+        return self.safe_string(parts, 1, symbol)
+
     def get_market_params(self, symbol, key, params={}):
         market = None
         marketId = None
@@ -997,10 +1001,9 @@ class ftx(Exchange):
             'conditionalOrdersOnly': False,  # cancel conditional orders only
             'limitOrdersOnly': False,  # cancel existing limit orders(non-conditional orders) only
         }
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-            request['market'] = market['id']
+        marketId = self.get_market_id(symbol, 'market', params)
+        if marketId is not None:
+            request['market'] = marketId
         response = self.privateDeleteOrders(self.extend(request, params))
         result = self.safe_value(response, 'result', {})
         #

@@ -516,6 +516,11 @@ class ftx extends Exchange {
         );
     }
 
+    public function get_market_id($symbol, $key, $params = array ()) {
+        $parts = $this->get_market_params($symbol, $key, $params);
+        return $this->safe_string($parts, 1, $symbol);
+    }
+
     public function get_market_params($symbol, $key, $params = array ()) {
         $market = null;
         $marketId = null;
@@ -1035,14 +1040,13 @@ class ftx extends Exchange {
     public function cancel_all_orders($symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
-            // 'market' => $market['id'], // optional
+            // 'market' => market['id'], // optional
             'conditionalOrdersOnly' => false, // cancel conditional orders only
             'limitOrdersOnly' => false, // cancel existing limit orders (non-conditional orders) only
         );
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['market'] = $market['id'];
+        $marketId = $this->get_market_id($symbol, 'market', $params);
+        if ($marketId !== null) {
+            $request['market'] = $marketId;
         }
         $response = $this->privateDeleteOrders (array_merge($request, $params));
         $result = $this->safe_value($response, 'result', array());
