@@ -394,7 +394,6 @@ class bitfinex(Exchange, ccxt.bitfinex):
 
     def handle_authentication_message(self, client, message):
         status = self.safe_string(message, 'status')
-        method = self.safe_string(message, 'event')
         if status == 'OK':
             # we resolve the future here permanently so authentication only happens once
             future = self.safe_value(client.futures, 'authenticated')
@@ -403,6 +402,7 @@ class bitfinex(Exchange, ccxt.bitfinex):
             error = AuthenticationError(self.json(message))
             client.reject(error, 'authenticated')
             # allows further authentication attempts
+            method = self.safe_string(message, 'event')
             if method in client.subscriptions:
                 del client.subscriptions[method]
 
@@ -422,37 +422,49 @@ class bitfinex(Exchange, ccxt.bitfinex):
 
     def handle_orders(self, client, message):
         #
-        # order snapshot(extra level of nesting):
-        # [0,
-        #   'os',
-        #   [[45287766631,
-        #       'ETHUST',
-        #       -0.07,
-        #       -0.07,
-        #       'EXCHANGE LIMIT',
-        #       'ACTIVE',
-        #       210,
-        #       0,
-        #       '2020-05-16T13:17:46Z',
-        #       0,
-        #       0,
-        #       0]]]
+        # order snapshot
         #
-        # order cancel:
-        # [0,
-        #   'oc',
-        #   [45287766631,
-        #     'ETHUST',
-        #     -0.07,
-        #     -0.07,
-        #     'EXCHANGE LIMIT',
-        #     'CANCELED',
-        #     210,
-        #     0,
-        #     '2020-05-16T13:17:46Z',
-        #     0,
-        #     0,
-        #     0]]
+        #     [
+        #         0,
+        #         'os',
+        #         [
+        #             [
+        #                 45287766631,
+        #                 'ETHUST',
+        #                 -0.07,
+        #                 -0.07,
+        #                 'EXCHANGE LIMIT',
+        #                 'ACTIVE',
+        #                 210,
+        #                 0,
+        #                 '2020-05-16T13:17:46Z',
+        #                 0,
+        #                 0,
+        #                 0
+        #             ]
+        #         ]
+        #     ]
+        #
+        # order cancel
+        #
+        #     [
+        #         0,
+        #         'oc',
+        #         [
+        #             45287766631,
+        #             'ETHUST',
+        #             -0.07,
+        #             -0.07,
+        #             'EXCHANGE LIMIT',
+        #             'CANCELED',
+        #             210,
+        #             0,
+        #             '2020-05-16T13:17:46Z',
+        #             0,
+        #             0,
+        #             0,
+        #         ]
+        #     ]
         #
         data = self.safe_value(message, 2, [])
         messageType = self.safe_string(message, 1)

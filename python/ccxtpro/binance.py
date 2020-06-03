@@ -277,7 +277,7 @@ class binance(Exchange, ccxt.binance):
                 client.reject(e, messageHash)
 
     def sign_message(self, client, messageHash, message, params={}):
-        # todo: implement binance signMessage
+        # todo: implement signMessage
         return message
 
     def handle_order_book_subscription(self, client, message, subscription):
@@ -457,7 +457,7 @@ class binance(Exchange, ccxt.binance):
         self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
         stored = self.safe_value(self.ohlcvs[symbol], timeframe, [])
         length = len(stored)
-        if length and parsed[0] == stored[length - 1][0]:
+        if length and (parsed[0] == stored[length - 1][0]):
             stored[length - 1] = parsed
         else:
             stored.append(parsed)
@@ -633,40 +633,42 @@ class binance(Exchange, ccxt.binance):
         return await self.after(future, self.filter_by_symbol_since_limit, symbol, since, limit)
 
     def handle_order(self, client, message):
-        # {
-        #   "e": "executionReport",        # Event type
-        #   "E": 1499405658658,            # Event time
-        #   "s": "ETHBTC",                 # Symbol
-        #   "c": "mUvoqJxFIILMdfAW5iGSOW",  # Client order ID
-        #   "S": "BUY",                    # Side
-        #   "o": "LIMIT",                  # Order type
-        #   "f": "GTC",                    # Time in force
-        #   "q": "1.00000000",             # Order quantity
-        #   "p": "0.10264410",             # Order price
-        #   "P": "0.00000000",             # Stop price
-        #   "F": "0.00000000",             # Iceberg quantity
-        #   "g": -1,                       # OrderListId
-        #   "C": null,                     # Original client order ID; This is the ID of the order being canceled
-        #   "x": "NEW",                    # Current execution type
-        #   "X": "NEW",                    # Current order status
-        #   "r": "NONE",                   # Order reject reason; will be an error code.
-        #   "i": 4293153,                  # Order ID
-        #   "l": "0.00000000",             # Last executed quantity
-        #   "z": "0.00000000",             # Cumulative filled quantity
-        #   "L": "0.00000000",             # Last executed price
-        #   "n": "0",                      # Commission amount
-        #   "N": null,                     # Commission asset
-        #   "T": 1499405658657,            # Transaction time
-        #   "t": -1,                       # Trade ID
-        #   "I": 8641984,                  # Ignore
-        #   "w": True,                     # Is the order on the book?
-        #   "m": False,                    # Is self trade the maker side?
-        #   "M": False,                    # Ignore
-        #   "O": 1499405658657,            # Order creation time
-        #   "Z": "0.00000000",             # Cumulative quote asset transacted quantity
-        #   "Y": "0.00000000"              # Last quote asset transacted quantity(i.e. lastPrice * lastQty),
-        #   "Q": "0.00000000"              # Quote Order Qty
-        # }
+        #
+        #     {
+        #         "e": "executionReport",        # Event type
+        #         "E": 1499405658658,            # Event time
+        #         "s": "ETHBTC",                 # Symbol
+        #         "c": "mUvoqJxFIILMdfAW5iGSOW",  # Client order ID
+        #         "S": "BUY",                    # Side
+        #         "o": "LIMIT",                  # Order type
+        #         "f": "GTC",                    # Time in force
+        #         "q": "1.00000000",             # Order quantity
+        #         "p": "0.10264410",             # Order price
+        #         "P": "0.00000000",             # Stop price
+        #         "F": "0.00000000",             # Iceberg quantity
+        #         "g": -1,                       # OrderListId
+        #         "C": null,                     # Original client order ID; This is the ID of the order being canceled
+        #         "x": "NEW",                    # Current execution type
+        #         "X": "NEW",                    # Current order status
+        #         "r": "NONE",                   # Order reject reason; will be an error code.
+        #         "i": 4293153,                  # Order ID
+        #         "l": "0.00000000",             # Last executed quantity
+        #         "z": "0.00000000",             # Cumulative filled quantity
+        #         "L": "0.00000000",             # Last executed price
+        #         "n": "0",                      # Commission amount
+        #         "N": null,                     # Commission asset
+        #         "T": 1499405658657,            # Transaction time
+        #         "t": -1,                       # Trade ID
+        #         "I": 8641984,                  # Ignore
+        #         "w": True,                     # Is the order on the book?
+        #         "m": False,                    # Is self trade the maker side?
+        #         "M": False,                    # Ignore
+        #         "O": 1499405658657,            # Order creation time
+        #         "Z": "0.00000000",             # Cumulative quote asset transacted quantity
+        #         "Y": "0.00000000"              # Last quote asset transacted quantity(i.e. lastPrice * lastQty),
+        #         "Q": "0.00000000"              # Quote Order Qty
+        #     }
+        #
         messageHash = self.safe_string(message, 'e')
         orderId = self.safe_string(message, 'i')
         marketId = self.safe_string(message, 's')

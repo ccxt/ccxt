@@ -5,11 +5,12 @@ function test_watch_trades($exchange, $symbol) {
     echo __FUNCTION__ . "\n";
 
     $future = new \ccxtpro\Future();
-    
+
     $skipped_exchanges = array(
+        'bitvavo',
         'dsx',
     );
-    
+
     if (in_array($exchange->id, $skipped_exchanges)) {
         echo $exchange->id, " watchTrades() skipped\n";
         $future->resolve(true);

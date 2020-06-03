@@ -431,7 +431,6 @@ class bitfinex extends \ccxt\bitfinex {
 
     public function handle_authentication_message($client, $message) {
         $status = $this->safe_string($message, 'status');
-        $method = $this->safe_string($message, 'event');
         if ($status === 'OK') {
             // we resolve the $future here permanently so authentication only happens once
             $future = $this->safe_value($client->futures, 'authenticated');
@@ -440,6 +439,7 @@ class bitfinex extends \ccxt\bitfinex {
             $error = new AuthenticationError ($this->json($message));
             $client->reject ($error, 'authenticated');
             // allows further authentication attempts
+            $method = $this->safe_string($message, 'event');
             if (is_array($client->subscriptions) && array_key_exists($method, $client->subscriptions)) {
                 unset($client->subscriptions[$method]);
             }
@@ -464,37 +464,49 @@ class bitfinex extends \ccxt\bitfinex {
 
     public function handle_orders($client, $message) {
         //
-        // order snapshot (extra level of nesting):
-        // array( 0,
-        //   'os',
-        //   array( array( 45287766631,
-        //       'ETHUST',
-        //       -0.07,
-        //       -0.07,
-        //       'EXCHANGE LIMIT',
-        //       'ACTIVE',
-        //       210,
-        //       0,
-        //       '2020-05-16T13:17:46Z',
-        //       0,
-        //       0,
-        //       0 ) ) )
+        // order snapshot
         //
-        // order cancel:
-        // array( 0,
-        //   'oc',
-        //   array( 45287766631,
-        //     'ETHUST',
-        //     -0.07,
-        //     -0.07,
-        //     'EXCHANGE LIMIT',
-        //     'CANCELED',
-        //     210,
-        //     0,
-        //     '2020-05-16T13:17:46Z',
-        //     0,
-        //     0,
-        //     0 ) )
+        //     array(
+        //         0,
+        //         'os',
+        //         array(
+        //             array(
+        //                 45287766631,
+        //                 'ETHUST',
+        //                 -0.07,
+        //                 -0.07,
+        //                 'EXCHANGE LIMIT',
+        //                 'ACTIVE',
+        //                 210,
+        //                 0,
+        //                 '2020-05-16T13:17:46Z',
+        //                 0,
+        //                 0,
+        //                 0
+        //             )
+        //         )
+        //     )
+        //
+        // order cancel
+        //
+        //     array(
+        //         0,
+        //         'oc',
+        //         array(
+        //             45287766631,
+        //             'ETHUST',
+        //             -0.07,
+        //             -0.07,
+        //             'EXCHANGE LIMIT',
+        //             'CANCELED',
+        //             210,
+        //             0,
+        //             '2020-05-16T13:17:46Z',
+        //             0,
+        //             0,
+        //             0,
+        //         )
+        //     )
         //
         $data = $this->safe_value($message, 2, array());
         $messageType = $this->safe_string($message, 1);

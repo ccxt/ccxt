@@ -14,11 +14,13 @@ const ccxt        = require ('../../ccxt.pro.js')
     let implemented = 0
     let emulated = 0
 
+    const exchanges = ccxt.exchanges
+        .map (id => new ccxt[id]())
+        .filter (exchange => exchange.has.ws)
+
     log (
         asTable (
-            ccxt.exchanges
-                .map (id => new ccxt[id]())
-                .filter (exchange => exchange.has.ws)
+            exchanges
                 .map (exchange => {
 
                     let result = {};
@@ -64,8 +66,9 @@ const ccxt        = require ('../../ccxt.pro.js')
         )
     )
 
-    log ('Methods:',
-        implemented.toString ().green, 'implemented,',
+    log ('Summary:',
+        exchanges.length.toString ().green, 'exchanges,',
+        implemented.toString ().green, 'methods implemented,',
         emulated.toString ().yellow, 'emulated,',
         missing.toString ().red, 'missing,',
         total.toString (), 'total')

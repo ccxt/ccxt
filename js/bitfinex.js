@@ -422,7 +422,6 @@ module.exports = class bitfinex extends ccxt.bitfinex {
 
     handleAuthenticationMessage (client, message) {
         const status = this.safeString (message, 'status');
-        const method = this.safeString (message, 'event');
         if (status === 'OK') {
             // we resolve the future here permanently so authentication only happens once
             const future = this.safeValue (client.futures, 'authenticated');
@@ -431,6 +430,7 @@ module.exports = class bitfinex extends ccxt.bitfinex {
             const error = new AuthenticationError (this.json (message));
             client.reject (error, 'authenticated');
             // allows further authentication attempts
+            const method = this.safeString (message, 'event');
             if (method in client.subscriptions) {
                 delete client.subscriptions[method];
             }
@@ -455,37 +455,49 @@ module.exports = class bitfinex extends ccxt.bitfinex {
 
     handleOrders (client, message) {
         //
-        // order snapshot (extra level of nesting):
-        // [ 0,
-        //   'os',
-        //   [ [ 45287766631,
-        //       'ETHUST',
-        //       -0.07,
-        //       -0.07,
-        //       'EXCHANGE LIMIT',
-        //       'ACTIVE',
-        //       210,
-        //       0,
-        //       '2020-05-16T13:17:46Z',
-        //       0,
-        //       0,
-        //       0 ] ] ]
+        // order snapshot
         //
-        // order cancel:
-        // [ 0,
-        //   'oc',
-        //   [ 45287766631,
-        //     'ETHUST',
-        //     -0.07,
-        //     -0.07,
-        //     'EXCHANGE LIMIT',
-        //     'CANCELED',
-        //     210,
-        //     0,
-        //     '2020-05-16T13:17:46Z',
-        //     0,
-        //     0,
-        //     0 ] ]
+        //     [
+        //         0,
+        //         'os',
+        //         [
+        //             [
+        //                 45287766631,
+        //                 'ETHUST',
+        //                 -0.07,
+        //                 -0.07,
+        //                 'EXCHANGE LIMIT',
+        //                 'ACTIVE',
+        //                 210,
+        //                 0,
+        //                 '2020-05-16T13:17:46Z',
+        //                 0,
+        //                 0,
+        //                 0
+        //             ]
+        //         ]
+        //     ]
+        //
+        // order cancel
+        //
+        //     [
+        //         0,
+        //         'oc',
+        //         [
+        //             45287766631,
+        //             'ETHUST',
+        //             -0.07,
+        //             -0.07,
+        //             'EXCHANGE LIMIT',
+        //             'CANCELED',
+        //             210,
+        //             0,
+        //             '2020-05-16T13:17:46Z',
+        //             0,
+        //             0,
+        //             0,
+        //         ]
+        //     ]
         //
         const data = this.safeValue (message, 2, []);
         const messageType = this.safeString (message, 1);

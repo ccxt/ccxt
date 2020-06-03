@@ -11,7 +11,7 @@ const ccxt = require ('ccxt')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '0.2.17'
+const version = '0.2.42'
 
 // Exchange.ccxtVersion = version
 
@@ -26,9 +26,9 @@ const exchanges = {
     'bitmex':                  require ('./js/bitmex.js'),
     'bitstamp':                require ('./js/bitstamp.js'),
     'bittrex':                 require ('./js/bittrex.js'),
+    'bitvavo':                 require ('./js/bitvavo.js'),
     'coinbaseprime':           require ('./js/coinbaseprime.js'),
     'coinbasepro':             require ('./js/coinbasepro.js'),
-    'dsx':                     require ('./js/dsx.js'),
     'ftx':                     require ('./js/ftx.js'),
     'gateio':                  require ('./js/gateio.js'),
     'hitbtc':                  require ('./js/hitbtc.js'),
