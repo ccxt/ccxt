@@ -1102,10 +1102,9 @@ class ftx extends Exchange {
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array();
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['market'] = $market['id'];
+        list($market, $marketId) = $this->get_market_params($symbol, 'market', $params);
+        if ($marketId !== null) {
+            $request['market'] = $marketId;
         }
         // support for canceling conditional orders
         // https://github.com/ccxt/ccxt/issues/6669
@@ -1150,10 +1149,9 @@ class ftx extends Exchange {
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array();
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['market'] = $market['id'];
+        list($market, $marketId) = $this->get_market_params($symbol, 'market', $params);
+        if ($marketId !== null) {
+            $request['market'] = $marketId;
         }
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100, max 100

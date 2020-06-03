@@ -1055,10 +1055,9 @@ class ftx(Exchange):
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         request = {}
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-            request['market'] = market['id']
+        market, marketId = self.get_market_params(symbol, 'market', params)
+        if marketId is not None:
+            request['market'] = marketId
         # support for canceling conditional orders
         # https://github.com/ccxt/ccxt/issues/6669
         options = self.safe_value(self.options, 'fetchOpenOrders', {})
@@ -1100,10 +1099,9 @@ class ftx(Exchange):
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         request = {}
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-            request['market'] = market['id']
+        market, marketId = self.get_market_params(symbol, 'market', params)
+        if marketId is not None:
+            request['market'] = marketId
         if limit is not None:
             request['limit'] = limit  # default 100, max 100
         if since is not None:
