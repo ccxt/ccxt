@@ -10,12 +10,13 @@ sys.path.append(root + '/python')
 import ccxt  # noqa: E402
 
 exchange = ccxt.coinone({
-    'verbose': True,  # switch it to False if you don't want the HTTP log
+    'enableRateLimit': True,
+    'verbose': False,  # switch it to False if you don't want the HTTP log
 })
 
-tickers = exchange.fetch_tickers()
-for symbol, ticker in tickers.items():
+def printTicker(symbol, ticker):
     print(
+        str(ticker['timestamp']),
         symbol,
         'high:', str(ticker['high']),
         'low:', str(ticker['low']),
@@ -26,3 +27,15 @@ for symbol, ticker in tickers.items():
         'percentage:', str(ticker['percentage']),
         'average:', str(ticker['average'])
     )
+
+# fetch all
+tickers = exchange.fetch_tickers()
+for symbol, ticker in tickers.items():
+    printTicker(symbol, ticker)
+
+print()
+
+# fetch one by one
+markets = exchange.load_markets()
+for symbol in markets.keys():
+    printTicker(symbol, exchange.fetch_ticker(symbol))

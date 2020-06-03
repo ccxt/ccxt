@@ -43,7 +43,7 @@ module.exports = class coinone extends Exchange {
                 // 'fetchOpenOrders': false,    // good to be true
                 'fetchOrder': true,
                 // 'fetchOrderBook': true,      // true
-                // 'fetchOrderBooks': false,
+                'fetchOrderBooks': false,
                 // 'fetchOrders': false,        // good to be true
                 // 'fetchOrderTrades': false,
                 // 'fetchStatus': 'emulated',
@@ -107,6 +107,11 @@ module.exports = class coinone extends Exchange {
                     'taker': 0.002,
                     'maker': 0.002,
                 },
+            },
+            'precision': {
+                'price': 4,
+                'amount': 4,
+                'cost': 8,
             },
             'exceptions': {
                 '405': OnMaintenance, // {"errorCode":"405","status":"maintenance","result":"error"}
@@ -189,6 +194,7 @@ module.exports = class coinone extends Exchange {
         const response = await this.publicGetTicker (this.extend (request, params));
         const result = {};
         const ids = Object.keys (response);
+        const timestamp = this.safeTimestamp (response, 'timestamp');
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             let symbol = id;
@@ -198,6 +204,7 @@ module.exports = class coinone extends Exchange {
                 symbol = market['symbol'];
                 const ticker = response[id];
                 result[symbol] = this.parseTicker (ticker, market);
+                result[symbol]['timestamp'] = timestamp;
             }
         }
         return result;
@@ -215,7 +222,7 @@ module.exports = class coinone extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        const timestamp = this.milliseconds ();
+        const timestamp = this.safeTimestamp (ticker, 'timestamp');
         const first = this.safeFloat (ticker, 'first');
         const last = this.safeFloat (ticker, 'last');
         let average = undefined;

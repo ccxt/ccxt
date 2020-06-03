@@ -5,11 +5,20 @@ $root = dirname (dirname (dirname (__FILE__)));
 include $root . '/ccxt.php';
 
 $exchange = new \ccxt\coinone (array (
-    'verbose' => true,
+    'enableRateLimit' => true,
+    'verbose' => false,
 ));
 
+// fetch all
 $tickers = $exchange->fetch_tickers();
-
 var_dump ($tickers);
+
+echo "\n";
+
+// fetch one by one
+$markets = $exchange->load_markets();
+foreach ($markets as $symbol => $m) {
+    var_dump($exchange->fetch_ticker($symbol));
+}
 
 ?>
