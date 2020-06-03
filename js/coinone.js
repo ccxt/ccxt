@@ -31,7 +31,7 @@ module.exports = class coinone extends Exchange {
                 // 'fetchBalance': true,        // true
                 // 'fetchBidsAsks': false,
                 // 'fetchClosedOrders': false,  // good to be true
-                // 'fetchCurrencies': false,
+                'fetchCurrencies': false,
                 // 'fetchDepositAddress': false,
                 // 'fetchDeposits': false,
                 // 'fetchFundingFees': false,
@@ -182,7 +182,8 @@ module.exports = class coinone extends Exchange {
             'format': 'json',
         };
         const response = await this.publicGetOrderbook (this.extend (request, params));
-        return this.parseOrderBook (response, undefined, 'bid', 'ask', 'price', 'qty');
+        const timestamp = this.safeTimestamp (response, 'timestamp');
+        return this.parseOrderBook (response, timestamp, 'bid', 'ask', 'price', 'qty');
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
