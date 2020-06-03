@@ -645,9 +645,9 @@ class ftx(Exchange):
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
-        market = self.market(symbol)
+        market, marketId = self.get_market_params(symbol, 'market_name', params)
         request = {
-            'market_name': market['id'],
+            'market_name': marketId,
         }
         if since is not None:
             request['start_time'] = int(since / 1000)

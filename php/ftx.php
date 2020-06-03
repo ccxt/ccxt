@@ -669,9 +669,9 @@ class ftx extends Exchange {
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market($symbol);
+        list($market, $marketId) = $this->get_market_params($symbol, 'market_name', $params);
         $request = array(
-            'market_name' => $market['id'],
+            'market_name' => $marketId,
         );
         if ($since !== null) {
             $request['start_time'] = intval ($since / 1000);
