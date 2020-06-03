@@ -30,7 +30,7 @@ module.exports = class coinone extends Exchange {
                 // 'editOrder': 'emulated',
                 'fetchBalance': true,
                 // 'fetchBidsAsks': false,
-                'fetchClosedOrders': true,  // good to be true, but not sure enough to meet CCXT's semantic requirement
+                'fetchClosedOrders': true,  // good to be true, but an same order can have multiple occurrences in the list
                 'fetchCurrencies': false,
                 // 'fetchDepositAddress': false,
                 // 'fetchDeposits': false,
@@ -40,7 +40,7 @@ module.exports = class coinone extends Exchange {
                 // 'fetchMarkets': true,        // true
                 // 'fetchMyTrades': false,      // good to be true
                 // 'fetchOHLCV': 'emulated',
-                // 'fetchOpenOrders': false,    // good to be true
+                'fetchOpenOrders': true,    // good to be true, but not sure enough to meet CCXT's semantic requirement
                 'fetchOrder': true,
                 // 'fetchOrderBook': true,      // true
                 'fetchOrderBooks': false,
@@ -473,6 +473,58 @@ module.exports = class coinone extends Exchange {
         };
     }
 
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ExchangeError (this.id + ' allows fetching closed orders with a symbol');
+        }
+        const market = this.market (symbol);
+        const request = {
+            'currency': market['id'],
+        };
+        const response = await this.privatePostOrderLimitOrders (this.extend (request, params));
+        const result = [];
+        const limitOrders = this.safeValue (response, 'limitOrders');
+        for (let i = 0; i < limitOrders.length; i++) {
+            const order = limitOrders[i];
+            const timestamp = this.safeTimestamp (order, 'timestamp');
+            let side = this.safeString (order, 'type');
+            let feeCurrency = undefined;
+            if (side.indexOf ('ask') >= 0) {
+                side = 'sell';
+                feeCurrency = market['quote'];
+            } else {
+                side = 'buy';
+                feeCurrency = market['base'];
+            }
+            const amount = this.safeFloat (order, 'qty');
+            result.push ({
+                'id': this.safeString (order, 'orderId'),
+                'clientOrderId': undefined,
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'lastTradeTimestamp': undefined,
+                'status': 'open',
+                'symbol': market['symbol'],
+                'type': 'limit',
+                'side': side,
+                'price': this.safeFloat (order, 'price'),
+                'amount': amount,
+                'filled': 0,            // coinone set amount as same as remaining, different with ordered amount
+                'remaining': amount,    // coinone set amount as same as remaining, different with ordered amount
+                'cost': 0,              // coinone set amount as same as remaining, different with ordered amount
+                'trades': undefined,    // coinone doesn't support fills
+                'fee': {
+                    'currency': feeCurrency,
+                    'rate': this.safeFloat (order, 'feeRate'),
+                    'cost': 0,          // coinone set amount as same as remaining, different with ordered amount
+                },
+                'info': order,
+            });
+        }
+        return result;
+    }
+
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         if (symbol === undefined) {
@@ -497,6 +549,12 @@ module.exports = class coinone extends Exchange {
                 side = 'buy';
                 feeCurrency = market['base'];
             }
+            const price = this.safeFloat (order, 'price');
+            const amount = this.safeFloat (order, 'qty');
+            let cost = undefined;
+            if (price !== undefined && amount !== undefined) {
+                cost = price * amount;
+            }
             result.push ({
                 'id': this.safeString (order, 'orderId'),
                 'clientOrderId': undefined,
@@ -507,16 +565,16 @@ module.exports = class coinone extends Exchange {
                 'symbol': market['symbol'],
                 'type': 'limit',
                 'side': side,
-                'price': this.safeFloat (order, 'price'),
-                'amount': this.safeFloat (order, 'qty'),
-                'filled': undefined,    // couldn't be know by this request
-                'remaining': undefined, // couldn't be know by this request
-                'cost': undefined,      // couldn't be know by this request
+                'price': price,
+                'amount': amount,
+                'filled': amount,    // coinone set amount as same as filled for completed order
+                'remaining': 0,      // amount is always equal to filled
+                'cost': cost,        // couldn't be known by this request
                 'trades': undefined,    // coinone doesn't support fills
                 'fee': {
                     'currency': feeCurrency,
                     'rate': this.safeFloat (order, 'feeRate'),
-                    'cost': undefined,  // couldn't be know by this request???
+                    'cost': this.safeFloat (order, 'fee'),  // couldn't be know by this request???
                 },
                 'info': order,
             });
