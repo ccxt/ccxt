@@ -199,7 +199,13 @@ module.exports = class bitclude extends Exchange {
         const id = this.safeString (trade, 'nr');
         const timestamp = this.safeTimestamp (trade, 'time');
         const type = undefined;
-        const side = this.safeString (trade, 'type'); // todo important
+        let side = this.safeString (trade, 'type');
+        if (side === 'a') {
+            // todo ensure
+            side = 'sell';
+        } else if (side === 'b') {
+            side = 'buy';
+        }
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
         let cost = undefined;
