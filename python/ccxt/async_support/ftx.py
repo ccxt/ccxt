@@ -503,21 +503,23 @@ class ftx(Exchange):
             self.safe_float(ohlcv, 'volume'),
         ]
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        await self.load_markets()
-        request = {
-            'resolution': self.timeframes[timeframe],
-        }
+    def get_market_params(self, symbol, key, params={}):
         market = None
+        marketId = None
         if symbol in self.markets:
             market = self.market(symbol)
-            request['market_name'] = market['id']
+            marketId = market['id']
         else:
-            marketId = self.safe_string(params, 'market_name')
-            if marketId is not None:
-                request['market_name'] = marketId
-            else:
-                request['market_name'] = symbol
+            marketId = self.safe_string(params, key, symbol)
+        return [market, marketId]
+
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        await self.load_markets()
+        market, marketId = self.get_market_params(symbol, 'market_name', params)
+        request = {
+            'resolution': self.timeframes[timeframe],
+            'market_name': marketId,
+        }
         # max 1501 candles, including the current candle when since is not specified
         limit = 1501 if (limit is None) else limit
         if since is None:
@@ -1143,10 +1145,10 @@ class ftx(Exchange):
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
-        market = self.market(symbol)
-        request = {
-            'market': market['id'],
-        }
+        market, marketId = self.get_market_params(symbol, 'market', params)
+        request = {}
+        if marketId is not None:
+            request['market'] = marketId
         if limit is not None:
             request['limit'] = limit
         if since is not None:

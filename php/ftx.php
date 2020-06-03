@@ -516,23 +516,25 @@ class ftx extends Exchange {
         );
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
-        $request = array(
-            'resolution' => $this->timeframes[$timeframe],
-        );
+    public function get_market_params($symbol, $key, $params = array ()) {
         $market = null;
+        $marketId = null;
         if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
             $market = $this->market($symbol);
-            $request['market_name'] = $market['id'];
+            $marketId = $market['id'];
         } else {
-            $marketId = $this->safe_string($params, 'market_name');
-            if ($marketId !== null) {
-                $request['market_name'] = $marketId;
-            } else {
-                $request['market_name'] = $symbol;
-            }
+            $marketId = $this->safe_string($params, $key, $symbol);
         }
+        return array( $market, $marketId );
+    }
+
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        list($market, $marketId) = $this->get_market_params($symbol, 'market_name', $params);
+        $request = array(
+            'resolution' => $this->timeframes[$timeframe],
+            'market_name' => $marketId,
+        );
         // max 1501 candles, including the current candle when $since is not specified
         $limit = ($limit === null) ? 1501 : $limit;
         if ($since === null) {
@@ -1197,10 +1199,11 @@ class ftx extends Exchange {
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'market' => $market['id'],
-        );
+        list($market, $marketId) = $this->get_market_params($symbol, 'market', $params);
+        $request = array();
+        if ($marketId !== null) {
+            $request['market'] = $marketId;
+        }
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
