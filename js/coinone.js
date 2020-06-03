@@ -216,13 +216,18 @@ module.exports = class coinone extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         const timestamp = this.milliseconds ();
+        const first = this.safeFloat (ticker, 'first');
         const last = this.safeFloat (ticker, 'last');
+        let average = undefined;
+        if (first !== undefined && last !== undefined) {
+            average = this.sum (first, last) / 2;
+        }
         const previousClose = this.safeFloat (ticker, 'yesterday_last');
         let change = undefined;
         let percentage = undefined;
         if (last !== undefined && previousClose !== undefined) {
             change = last - previousClose;
-            if (change != 0) {
+            if (change !== 0) {
                 percentage = change / previousClose * 100;
             } else {
                 percentage = 0;
@@ -240,13 +245,13 @@ module.exports = class coinone extends Exchange {
             'ask': undefined,
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeFloat (ticker, 'first'),
+            'open': first,
             'close': last,
             'last': last,
             'previousClose': previousClose,
             'change': change,
             'percentage': percentage,
-            'average': undefined,
+            'average': average,
             'baseVolume': this.safeFloat (ticker, 'volume'),
             'quoteVolume': undefined,
             'info': ticker,

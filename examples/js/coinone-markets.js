@@ -7,8 +7,8 @@ const exchange = new ccxt.coinone({
 })
 
 
-async function main () {
-    const markets = await exchange.load_markets()
+async function main() {
+    const markets = await exchange.loadMarkets()
     log(markets)
     log('\n' + exchange['name'] + ' supports ' + Object.keys(markets).length + ' pairs')
 }
