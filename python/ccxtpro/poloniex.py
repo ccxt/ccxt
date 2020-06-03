@@ -5,6 +5,7 @@
 
 from ccxtpro.base.exchange import Exchange
 import ccxt.async_support as ccxt
+from ccxtpro.base.cache import ArrayCache
 import hashlib
 
 
@@ -281,7 +282,11 @@ class poloniex(Exchange, ccxt.poloniex):
         symbol = self.safe_string(market, 'symbol')
         orderbookUpdatesCount = 0
         tradesCount = 0
-        stored = self.safe_value(self.trades, symbol, [])
+        stored = self.safe_value(self.trades, symbol)
+        if stored is None:
+            limit = self.safe_integer(self.options, 'tradesLimit', 1000)
+            stored = ArrayCache(limit)
+            self.trades[symbol] = stored
         for i in range(0, len(data)):
             delta = data[i]
             if delta[0] == 'i':
@@ -312,9 +317,6 @@ class poloniex(Exchange, ccxt.poloniex):
             elif delta[0] == 't':
                 trade = self.handle_trade(client, delta, market)
                 stored.append(trade)
-                storedLength = len(stored)
-                if storedLength > self.options['tradesLimit']:
-                    stored.pop(0)
                 tradesCount = self.sum(tradesCount, 1)
         if orderbookUpdatesCount:
             # resolve the orderbook future
@@ -322,11 +324,10 @@ class poloniex(Exchange, ccxt.poloniex):
             orderbook = self.orderbooks[symbol]
             client.resolve(orderbook, messageHash)
         if tradesCount:
-            self.trades[symbol] = stored
             # resolve the trades future
             messageHash = 'trades:' + marketId
             # todo: incremental trades
-            client.resolve(self.trades[symbol], messageHash)
+            client.resolve(stored, messageHash)
 
     def handle_account_notifications(self, client, message):
         # not implemented yet

@@ -445,15 +445,15 @@ class bittrex extends \ccxt\bittrex {
         $tradesLength = is_array($trades) ? count($trades) : 0;
         if ($tradesLength > 0) {
             $symbol = $market['symbol'];
-            $stored = $this->safe_value($this->trades, $symbol, array());
-            for ($i = 0; $i < count($trades); $i++) {
-                $stored[] = $trades[$i];
-                $storedLength = is_array($stored) ? count($stored) : 0;
-                if ($storedLength > $this->options['tradesLimit']) {
-                    array_shift($stored);
-                }
+            $stored = $this->safe_value($this->trades, $symbol);
+            if ($stored === null) {
+                $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
+                $stored = new ArrayCache ($limit);
+                $this->trades[$symbol] = $stored;
             }
-            $this->trades[$symbol] = $stored;
+            for ($i = 0; $i < count($trades); $i++) {
+                $stored->append ($trades[$i]);
+            }
             $name = 'trade';
             $messageHash = $name . ':' . $market['symbol'];
             $client->resolve ($stored, $messageHash);

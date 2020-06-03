@@ -385,15 +385,15 @@ class bitmex extends \ccxt\bitmex {
                 $messageHash = $table . ':' . $marketId;
                 $symbol = $market['symbol'];
                 $trades = $this->parse_trades($dataByMarketIds[$marketId], $market);
-                $stored = $this->safe_value($this->trades, $symbol, array());
-                for ($j = 0; $j < count($trades); $j++) {
-                    $stored[] = $trades[$j];
-                    $storedLength = is_array($stored) ? count($stored) : 0;
-                    if ($storedLength > $this->options['tradesLimit']) {
-                        array_shift($stored);
-                    }
+                $stored = $this->safe_value($this->trades, $symbol);
+                if ($stored === null) {
+                    $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
+                    $stored = new ArrayCache ($limit);
+                    $this->trades[$symbol] = $stored;
                 }
-                $this->trades[$symbol] = $stored;
+                for ($j = 0; $j < count($trades); $j++) {
+                    $stored->append ($trades[$j]);
+                }
                 $client->resolve ($stored, $messageHash);
             }
         }
@@ -556,18 +556,18 @@ class bitmex extends \ccxt\bitmex {
                     $this->safe_float($candle, 'volume'),
                 );
                 $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
-                $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe, array());
+                $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
+                if ($stored === null) {
+                    $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
+                    $stored = new ArrayCache ($limit);
+                    $this->ohlcvs[$symbol][$timeframe] = $stored;
+                }
                 $length = is_array($stored) ? count($stored) : 0;
                 if ($length && $result[0] === $stored[$length - 1][0]) {
                     $stored[$length - 1] = $result;
                 } else {
-                    $stored[] = $result;
-                    $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
-                    if ($length >= $limit) {
-                        array_shift($stored);
-                    }
+                    $stored->append ($result);
                 }
-                $this->ohlcvs[$symbol][$timeframe] = $stored;
                 $results[$messageHash] = $stored;
             }
         }

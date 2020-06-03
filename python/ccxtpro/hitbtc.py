@@ -5,6 +5,7 @@
 
 from ccxtpro.base.exchange import Exchange
 import ccxt.async_support as ccxt
+from ccxtpro.base.cache import ArrayCache
 
 
 class hitbtc(Exchange, ccxt.hitbtc):
@@ -220,21 +221,17 @@ class hitbtc(Exchange, ccxt.hitbtc):
             symbol = market['symbol']
             messageHash = 'trades:' + marketId
             tradesLimit = self.safe_integer(self.options, 'tradesLimit', 1000)
-            stored = self.safe_value(self.trades, symbol, [])
+            stored = self.safe_value(self.trades, symbol)
+            if stored is None:
+                stored = ArrayCache(tradesLimit)
+                self.trades[symbol] = stored
             if isinstance(data, list):
                 trades = self.parse_trades(data, market)
                 for i in range(0, len(trades)):
                     stored.append(trades[i])
-                    storedLength = len(stored)
-                    if storedLength > tradesLimit:
-                        stored.pop(0)
             else:
                 trade = self.parse_trade(message, market)
                 stored.append(trade)
-                length = len(stored)
-                if length > tradesLimit:
-                    stored.pop(0)
-            self.trades[symbol] = stored
             client.resolve(stored, messageHash)
         return message
 
@@ -307,15 +304,15 @@ class hitbtc(Exchange, ccxt.hitbtc):
                 candle = data[i]
                 parsed = self.parse_ohlcv(candle, market, timeframe)
                 self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
-                stored = self.safe_value(self.ohlcvs[symbol], timeframe, [])
+                stored = self.safe_value(self.ohlcvs[symbol], timeframe)
+                if stored is None:
+                    stored = ArrayCache(limit)
+                    self.ohlcvs[symbol][timeframe] = stored
                 length = len(stored)
                 if length and parsed[0] == stored[length - 1][0]:
                     stored[length - 1] = parsed
                 else:
                     stored.append(parsed)
-                    if length >= limit:
-                        stored.pop(0)
-                self.ohlcvs[symbol][timeframe] = stored
                 client.resolve(stored, messageHash)
         return message
 

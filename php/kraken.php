@@ -138,17 +138,17 @@ class kraken extends \ccxt\kraken {
         $messageHash = $name . ':' . $wsName;
         $market = $this->safe_value($this->options['marketsByWsName'], $wsName);
         $symbol = $market['symbol'];
-        $stored = $this->safe_value($this->trades, $symbol, array());
+        $stored = $this->safe_value($this->trades, $symbol);
+        if ($stored === null) {
+            $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
+            $stored = new ArrayCache ($limit);
+            $this->trades[$symbol] = $stored;
+        }
         $trades = $this->safe_value($message, 1, array());
         $parsed = $this->parse_trades($trades, $market);
         for ($i = 0; $i < count($parsed); $i++) {
-            $stored[] = $parsed[$i];
-            $storedLength = is_array($stored) ? count($stored) : 0;
-            if ($storedLength > $this->options['tradesLimit']) {
-                array_shift($stored);
-            }
+            $stored->append ($parsed[$i]);
         }
-        $this->trades[$symbol] = $stored;
         $client->resolve ($stored, $messageHash);
     }
 
@@ -204,18 +204,18 @@ class kraken extends \ccxt\kraken {
                 $this->safe_float($candle, 7),
             );
             $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
-            $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe, array());
+            $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
+            if ($stored === null) {
+                $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
+                $stored = new ArrayCache ($limit);
+                $this->ohlcvs[$symbol][$timeframe] = $stored;
+            }
             $length = is_array($stored) ? count($stored) : 0;
             if ($length && $result[0] === $stored[$length - 1][0]) {
                 $stored[$length - 1] = $result;
             } else {
-                $stored[] = $result;
-                $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
-                if ($length >= $limit) {
-                    array_shift($stored);
-                }
+                $stored->append ($result);
             }
-            $this->ohlcvs[$symbol][$timeframe] = $stored;
             $client->resolve ($stored, $messageHash);
         }
     }

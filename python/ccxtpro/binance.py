@@ -455,16 +455,16 @@ class binance(Exchange, ccxt.binance):
             market = self.markets_by_id[marketId]
             symbol = market['symbol']
         self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
-        stored = self.safe_value(self.ohlcvs[symbol], timeframe, [])
+        stored = self.safe_value(self.ohlcvs[symbol], timeframe)
+        if stored is None:
+            limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
+            stored = ArrayCache(limit)
+            self.ohlcvs[symbol][timeframe] = stored
         length = len(stored)
         if length and (parsed[0] == stored[length - 1][0]):
             stored[length - 1] = parsed
         else:
             stored.append(parsed)
-            limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
-            if length >= limit:
-                stored.pop(0)
-        self.ohlcvs[symbol][timeframe] = stored
         client.resolve(stored, messageHash)
 
     async def watch_public(self, messageHash, params={}):

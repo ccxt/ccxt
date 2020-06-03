@@ -91,14 +91,13 @@ class coinbasepro extends \ccxt\coinbasepro {
             // $type = $this->safe_string($message, 'type');
             $type = 'matches';
             $messageHash = $type . ':' . $marketId;
-            $array = $this->safe_value($this->trades, $symbol, $array());
-            $array[] = $trade;
-            $length = is_array($array) ? count($array) : 0;
-            $tradesLimit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            if ($length > $tradesLimit) {
-                array_shift($array);
+            $array = $this->safe_value($this->trades, $symbol);
+            if ($array === null) {
+                $tradesLimit = $this->safe_integer($this->options, 'tradesLimit', 1000);
+                $array = new ArrayCache ($tradesLimit);
+                $this->trades[$symbol] = $array;
             }
-            $this->trades[$symbol] = $array;
+            $array->append ($trade);
             $client->resolve ($array, $messageHash);
         }
         return $message;

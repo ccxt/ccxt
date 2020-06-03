@@ -269,25 +269,20 @@ class ftx extends \ccxt\ftx {
             $symbol = $market['symbol'];
             $messageHash = $this->get_message_hash($message);
             $tradesLimit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $stored = $this->safe_value($this->trades, $symbol, array());
+            $stored = $this->safe_value($this->trades, $symbol);
+            if ($stored === null) {
+                $stored = new ArrayCache ($tradesLimit);
+                $this->trades[$symbol] = $stored;
+            }
             if (gettype($data) === 'array' && count(array_filter(array_keys($data), 'is_string')) == 0) {
                 $trades = $this->parse_trades($data, $market);
                 for ($i = 0; $i < count($trades); $i++) {
-                    $stored[] = $trades[$i];
-                    $storedLength = is_array($stored) ? count($stored) : 0;
-                    if ($storedLength > $tradesLimit) {
-                        array_shift($stored);
-                    }
+                    $stored->append ($trades[$i]);
                 }
             } else {
                 $trade = $this->parse_trade($message, $market);
-                $stored[] = $trade;
-                $length = is_array($stored) ? count($stored) : 0;
-                if ($length > $tradesLimit) {
-                    array_shift($stored);
-                }
+                $stored->append ($trade);
             }
-            $this->trades[$symbol] = $stored;
             $client->resolve ($stored, $messageHash);
         }
         return $message;

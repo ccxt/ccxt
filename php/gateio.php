@@ -262,17 +262,17 @@ class gateio extends \ccxt\gateio {
             $market = $this->markets_by_id[$marketId];
             $symbol = $market['symbol'];
         }
-        $stored = $this->safe_value($this->trades, $symbol, array());
+        $stored = $this->safe_value($this->trades, $symbol);
+        if ($stored === null) {
+            $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
+            $stored = new ArrayCache ($limit);
+            $this->trades[$symbol] = $stored;
+        }
         $trades = $this->safe_value($params, 1, array());
         $parsed = $this->parse_trades($trades, $market);
         for ($i = 0; $i < count($parsed); $i++) {
-            $stored[] = $parsed[$i];
-            $storedLength = is_array($stored) ? count($stored) : 0;
-            if ($storedLength > $this->options['tradesLimit']) {
-                array_shift($stored);
-            }
+            $stored->append ($parsed[$i]);
         }
-        $this->trades[$symbol] = $stored;
         $methodType = $message['method'];
         $messageHash = $methodType . ':' . $marketId;
         $client->resolve ($stored, $messageHash);

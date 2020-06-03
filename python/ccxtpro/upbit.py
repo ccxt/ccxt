@@ -5,6 +5,7 @@
 
 from ccxtpro.base.exchange import Exchange
 import ccxt.async_support as ccxt
+from ccxtpro.base.cache import ArrayCache
 
 
 class upbit(Exchange, ccxt.upbit):
@@ -184,17 +185,15 @@ class upbit(Exchange, ccxt.upbit):
         #   stream_type: 'REALTIME'}
         trade = self.parse_trade(message)
         symbol = trade['symbol']
-        if not (symbol in self.trades):
-            self.trades[symbol] = []
-        trades = self.trades[symbol]
-        trades.append(trade)
-        length = len(trades)
-        if length > self.options['tradesLimit']:
-            trades.pop(0)
-        self.trades[symbol] = trades
+        stored = self.safe_value(self.trades, symbol)
+        if stored is None:
+            limit = self.safe_integer(self.options, 'tradesLimit', 1000)
+            stored = ArrayCache(limit)
+            self.trades[symbol] = stored
+        stored.append(trade)
         marketId = self.safe_string(message, 'code')
         messageHash = 'trade:' + marketId
-        client.resolve(trades, messageHash)
+        client.resolve(stored, messageHash)
 
     def handle_message(self, client, message):
         methods = {

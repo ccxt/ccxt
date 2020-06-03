@@ -5,6 +5,7 @@
 
 from ccxtpro.base.exchange import Exchange
 import ccxt.async_support as ccxt
+from ccxtpro.base.cache import ArrayCache
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InvalidNonce
 
@@ -196,12 +197,12 @@ class kucoin(Exchange, ccxt.kucoin):
         trade = self.parse_trade(data)
         messageHash = self.safe_string(message, 'topic')
         symbol = trade['symbol']
-        array = self.safe_value(self.trades, symbol, [])
+        array = self.safe_value(self.trades, symbol)
+        if array is None:
+            limit = self.safe_integer(self.options, 'tradesLimit', 1000)
+            array = ArrayCache(limit)
+            self.trades[symbol] = array
         array.append(trade)
-        length = len(array)
-        if length > self.options['tradesLimit']:
-            array.pop(0)
-        self.trades[symbol] = array
         client.resolve(array, messageHash)
         return message
 

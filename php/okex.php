@@ -97,13 +97,12 @@ class okex extends \ccxt\okex {
             $symbol = $trade['symbol'];
             $marketId = $this->safe_string($trade['info'], 'instrument_id');
             $messageHash = $table . ':' . $marketId;
-            $stored = $this->safe_value($this->trades, $symbol, array());
-            $stored[] = $trade;
-            $length = is_array($stored) ? count($stored) : 0;
-            if ($length > $tradesLimit) {
-                array_shift($stored);
+            $stored = $this->safe_value($this->trades, $symbol);
+            if ($stored === null) {
+                $stored = new ArrayCache ($tradesLimit);
+                $this->trades[$symbol] = $stored;
             }
-            $this->trades[$symbol] = $stored;
+            $stored->append ($trade);
             $client->resolve ($stored, $messageHash);
         }
         return $message;
@@ -199,18 +198,18 @@ class okex extends \ccxt\okex {
                 $symbol = $market['symbol'];
                 $parsed = $this->parse_ohlcv($candle, $market, $timeframe);
                 $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
-                $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe, array());
+                $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
+                if ($stored === null) {
+                    $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
+                    $stored = new ArrayCache ($limit);
+                    $this->ohlcvs[$symbol][$timeframe] = $stored;
+                }
                 $length = is_array($stored) ? count($stored) : 0;
                 if ($length && $parsed[0] === $stored[$length - 1][0]) {
                     $stored[$length - 1] = $parsed;
                 } else {
-                    $stored[] = $parsed;
-                    $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
-                    if ($length >= $limit) {
-                        array_shift($stored);
-                    }
+                    $stored->append ($parsed);
                 }
-                $this->ohlcvs[$symbol][$timeframe] = $stored;
                 $messageHash = $table . ':' . $marketId;
                 $client->resolve ($stored, $messageHash);
             }

@@ -164,15 +164,15 @@ class huobipro extends \ccxt\huobipro {
         if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
             $market = $this->markets_by_id[$marketId];
             $symbol = $market['symbol'];
-            $array = $this->safe_value($this->trades, $symbol, $array());
+            $array = $this->safe_value($this->trades, $symbol);
+            if ($array === null) {
+                $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
+                $array = new ArrayCache ($limit);
+                $this->trades[$symbol] = $array;
+            }
             for ($i = 0; $i < count($data); $i++) {
                 $trade = $this->parse_trade($data[$i], $market);
-                $array[] = $trade;
-                $length = is_array($array) ? count($array) : 0;
-                if ($length > $this->options['tradesLimit']) {
-                    array_shift($array);
-                }
-                $this->trades[$symbol] = $array;
+                $array->append ($trade);
             }
             $client->resolve ($array, $ch);
         }
@@ -241,20 +241,20 @@ class huobipro extends \ccxt\huobipro {
             $interval = $this->safe_string($parts, 3);
             $timeframe = $this->find_timeframe($interval);
             $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
-            $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe, array());
+            $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
+            if ($stored === null) {
+                $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
+                $stored = new ArrayCache ($limit);
+                $this->ohlcvs[$symbol][$timeframe] = $stored;
+            }
             $tick = $this->safe_value($message, 'tick');
             $parsed = $this->parse_ohlcv($tick, $market, $timeframe, null, null);
             $length = is_array($stored) ? count($stored) : 0;
             if ($length && $parsed[0] === $stored[$length - 1][0]) {
                 $stored[$length - 1] = $parsed;
             } else {
-                $stored[] = $parsed;
-                $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
-                if ($length >= $limit) {
-                    array_shift($stored);
-                }
+                $stored->append ($parsed);
             }
-            $this->ohlcvs[$symbol][$timeframe] = $stored;
             $client->resolve ($stored, $ch);
         }
     }

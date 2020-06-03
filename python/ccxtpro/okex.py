@@ -5,6 +5,7 @@
 
 from ccxtpro.base.exchange import Exchange
 import ccxt.async_support as ccxt
+from ccxtpro.base.cache import ArrayCache
 import hashlib
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -92,12 +93,11 @@ class okex(Exchange, ccxt.okex):
             symbol = trade['symbol']
             marketId = self.safe_string(trade['info'], 'instrument_id')
             messageHash = table + ':' + marketId
-            stored = self.safe_value(self.trades, symbol, [])
+            stored = self.safe_value(self.trades, symbol)
+            if stored is None:
+                stored = ArrayCache(tradesLimit)
+                self.trades[symbol] = stored
             stored.append(trade)
-            length = len(stored)
-            if length > tradesLimit:
-                stored.pop(0)
-            self.trades[symbol] = stored
             client.resolve(stored, messageHash)
         return message
 
@@ -185,16 +185,16 @@ class okex(Exchange, ccxt.okex):
                 symbol = market['symbol']
                 parsed = self.parse_ohlcv(candle, market, timeframe)
                 self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
-                stored = self.safe_value(self.ohlcvs[symbol], timeframe, [])
+                stored = self.safe_value(self.ohlcvs[symbol], timeframe)
+                if stored is None:
+                    limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
+                    stored = ArrayCache(limit)
+                    self.ohlcvs[symbol][timeframe] = stored
                 length = len(stored)
                 if length and parsed[0] == stored[length - 1][0]:
                     stored[length - 1] = parsed
                 else:
                     stored.append(parsed)
-                    limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
-                    if length >= limit:
-                        stored.pop(0)
-                self.ohlcvs[symbol][timeframe] = stored
                 messageHash = table + ':' + marketId
                 client.resolve(stored, messageHash)
 

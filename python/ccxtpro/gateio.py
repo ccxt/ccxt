@@ -5,6 +5,7 @@
 
 from ccxtpro.base.exchange import Exchange
 import ccxt.async_support as ccxt
+from ccxtpro.base.cache import ArrayCache
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
@@ -246,15 +247,15 @@ class gateio(Exchange, ccxt.gateio):
         if marketId in self.markets_by_id:
             market = self.markets_by_id[marketId]
             symbol = market['symbol']
-        stored = self.safe_value(self.trades, symbol, [])
+        stored = self.safe_value(self.trades, symbol)
+        if stored is None:
+            limit = self.safe_integer(self.options, 'tradesLimit', 1000)
+            stored = ArrayCache(limit)
+            self.trades[symbol] = stored
         trades = self.safe_value(params, 1, [])
         parsed = self.parse_trades(trades, market)
         for i in range(0, len(parsed)):
             stored.append(parsed[i])
-            storedLength = len(stored)
-            if storedLength > self.options['tradesLimit']:
-                stored.pop(0)
-        self.trades[symbol] = stored
         methodType = message['method']
         messageHash = methodType + ':' + marketId
         client.resolve(stored, messageHash)

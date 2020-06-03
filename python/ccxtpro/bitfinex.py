@@ -5,6 +5,7 @@
 
 from ccxtpro.base.exchange import Exchange
 import ccxt.async_support as ccxt
+from ccxtpro.base.cache import ArrayCache
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -93,24 +94,20 @@ class bitfinex(Exchange, ccxt.bitfinex):
             market = self.markets_by_id[marketId]
             symbol = market['symbol']
             data = self.safe_value(message, 1)
-            stored = self.safe_value(self.trades, symbol, [])
+            stored = self.safe_value(self.trades, symbol)
+            if stored is None:
+                stored = ArrayCache(tradesLimit)
+                self.trades[symbol] = stored
             if isinstance(data, list):
                 trades = self.parse_trades(data, market)
                 for i in range(0, len(trades)):
                     stored.append(trades[i])
-                    storedLength = len(stored)
-                    if storedLength > tradesLimit:
-                        stored.pop(0)
             else:
                 second = self.safe_string(message, 1)
                 if second != 'tu':
                     return
                 trade = self.parse_trade(message, market)
                 stored.append(trade)
-                length = len(stored)
-                if length > tradesLimit:
-                    stored.pop(0)
-            self.trades[symbol] = stored
             client.resolve(stored, messageHash)
         return message
 

@@ -199,19 +199,16 @@ class upbit extends \ccxt\upbit {
         //   stream_type => 'REALTIME' }
         $trade = $this->parse_trade($message);
         $symbol = $trade['symbol'];
-        if (!(is_array($this->trades) && array_key_exists($symbol, $this->trades))) {
-            $this->trades[$symbol] = array();
+        $stored = $this->safe_value($this->trades, $symbol);
+        if ($stored === null) {
+            $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
+            $stored = new ArrayCache ($limit);
+            $this->trades[$symbol] = $stored;
         }
-        $trades = $this->trades[$symbol];
-        $trades[] = $trade;
-        $length = is_array($trades) ? count($trades) : 0;
-        if ($length > $this->options['tradesLimit']) {
-            array_shift($trades);
-        }
-        $this->trades[$symbol] = $trades;
+        $stored->append ($trade);
         $marketId = $this->safe_string($message, 'code');
         $messageHash = 'trade:' . $marketId;
-        $client->resolve ($trades, $messageHash);
+        $client->resolve ($stored, $messageHash);
     }
 
     public function handle_message($client, $message) {

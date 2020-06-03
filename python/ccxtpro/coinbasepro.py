@@ -5,6 +5,7 @@
 
 from ccxtpro.base.exchange import Exchange
 import ccxt.async_support as ccxt
+from ccxtpro.base.cache import ArrayCache
 
 
 class coinbasepro(Exchange, ccxt.coinbasepro):
@@ -84,13 +85,12 @@ class coinbasepro(Exchange, ccxt.coinbasepro):
             # type = self.safe_string(message, 'type')
             type = 'matches'
             messageHash = type + ':' + marketId
-            array = self.safe_value(self.trades, symbol, [])
+            array = self.safe_value(self.trades, symbol)
+            if array is None:
+                tradesLimit = self.safe_integer(self.options, 'tradesLimit', 1000)
+                array = ArrayCache(tradesLimit)
+                self.trades[symbol] = array
             array.append(trade)
-            length = len(array)
-            tradesLimit = self.safe_integer(self.options, 'tradesLimit', 1000)
-            if length > tradesLimit:
-                array.pop(0)
-            self.trades[symbol] = array
             client.resolve(array, messageHash)
         return message
 

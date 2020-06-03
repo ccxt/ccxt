@@ -5,6 +5,7 @@
 
 from ccxtpro.base.exchange import Exchange
 import ccxt.async_support as ccxt
+from ccxtpro.base.cache import ArrayCache
 import hashlib
 import json
 from ccxt.base.errors import AuthenticationError
@@ -413,13 +414,13 @@ class bittrex(Exchange, ccxt.bittrex):
         tradesLength = len(trades)
         if tradesLength > 0:
             symbol = market['symbol']
-            stored = self.safe_value(self.trades, symbol, [])
+            stored = self.safe_value(self.trades, symbol)
+            if stored is None:
+                limit = self.safe_integer(self.options, 'tradesLimit', 1000)
+                stored = ArrayCache(limit)
+                self.trades[symbol] = stored
             for i in range(0, len(trades)):
                 stored.append(trades[i])
-                storedLength = len(stored)
-                if storedLength > self.options['tradesLimit']:
-                    stored.pop(0)
-            self.trades[symbol] = stored
             name = 'trade'
             messageHash = name + ':' + market['symbol']
             client.resolve(stored, messageHash)

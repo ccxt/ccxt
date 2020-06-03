@@ -5,6 +5,7 @@
 
 from ccxtpro.base.exchange import Exchange
 import ccxt.async_support as ccxt
+from ccxtpro.base.cache import ArrayCache
 from ccxt.base.errors import ExchangeError
 
 
@@ -156,14 +157,14 @@ class huobipro(Exchange, ccxt.huobipro):
         if marketId in self.markets_by_id:
             market = self.markets_by_id[marketId]
             symbol = market['symbol']
-            array = self.safe_value(self.trades, symbol, [])
+            array = self.safe_value(self.trades, symbol)
+            if array is None:
+                limit = self.safe_integer(self.options, 'tradesLimit', 1000)
+                array = ArrayCache(limit)
+                self.trades[symbol] = array
             for i in range(0, len(data)):
                 trade = self.parse_trade(data[i], market)
                 array.append(trade)
-                length = len(array)
-                if length > self.options['tradesLimit']:
-                    array.pop(0)
-                self.trades[symbol] = array
             client.resolve(array, ch)
         return message
 
@@ -225,7 +226,11 @@ class huobipro(Exchange, ccxt.huobipro):
             interval = self.safe_string(parts, 3)
             timeframe = self.find_timeframe(interval)
             self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
-            stored = self.safe_value(self.ohlcvs[symbol], timeframe, [])
+            stored = self.safe_value(self.ohlcvs[symbol], timeframe)
+            if stored is None:
+                limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
+                stored = ArrayCache(limit)
+                self.ohlcvs[symbol][timeframe] = stored
             tick = self.safe_value(message, 'tick')
             parsed = self.parse_ohlcv(tick, market, timeframe, None, None)
             length = len(stored)
@@ -233,10 +238,6 @@ class huobipro(Exchange, ccxt.huobipro):
                 stored[length - 1] = parsed
             else:
                 stored.append(parsed)
-                limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
-                if length >= limit:
-                    stored.pop(0)
-            self.ohlcvs[symbol][timeframe] = stored
             client.resolve(stored, ch)
 
     async def watch_order_book(self, symbol, limit=None, params={}):

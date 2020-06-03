@@ -286,13 +286,13 @@ class bitstamp extends \ccxt\bitstamp {
         $symbol = $this->safe_string($subscription, 'symbol');
         $market = $this->market($symbol);
         $trade = $this->parse_trade($data, $market);
-        $array = $this->safe_value($this->trades, $symbol, $array());
-        $array[] = $trade;
-        $length = is_array($array) ? count($array) : 0;
-        if ($length > $this->options['tradesLimit']) {
-            array_shift($array);
+        $array = $this->safe_value($this->trades, $symbol);
+        if ($array === null) {
+            $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
+            $array = new ArrayCache ($limit);
+            $this->trades[$symbol] = $array;
         }
-        $this->trades[$symbol] = $array;
+        $array->append ($trade);
         $client->resolve ($array, $channel);
     }
 

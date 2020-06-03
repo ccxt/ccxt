@@ -5,6 +5,7 @@
 
 from ccxtpro.base.exchange import Exchange
 import ccxt.async_support as ccxt
+from ccxtpro.base.cache import ArrayCache
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
@@ -134,15 +135,15 @@ class kraken(Exchange, ccxt.kraken):
         messageHash = name + ':' + wsName
         market = self.safe_value(self.options['marketsByWsName'], wsName)
         symbol = market['symbol']
-        stored = self.safe_value(self.trades, symbol, [])
+        stored = self.safe_value(self.trades, symbol)
+        if stored is None:
+            limit = self.safe_integer(self.options, 'tradesLimit', 1000)
+            stored = ArrayCache(limit)
+            self.trades[symbol] = stored
         trades = self.safe_value(message, 1, [])
         parsed = self.parse_trades(trades, market)
         for i in range(0, len(parsed)):
             stored.append(parsed[i])
-            storedLength = len(stored)
-            if storedLength > self.options['tradesLimit']:
-                stored.pop(0)
-        self.trades[symbol] = stored
         client.resolve(stored, messageHash)
 
     def find_timeframe(self, timeframe):
@@ -194,16 +195,16 @@ class kraken(Exchange, ccxt.kraken):
                 self.safe_float(candle, 7),
             ]
             self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
-            stored = self.safe_value(self.ohlcvs[symbol], timeframe, [])
+            stored = self.safe_value(self.ohlcvs[symbol], timeframe)
+            if stored is None:
+                limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
+                stored = ArrayCache(limit)
+                self.ohlcvs[symbol][timeframe] = stored
             length = len(stored)
             if length and result[0] == stored[length - 1][0]:
                 stored[length - 1] = result
             else:
                 stored.append(result)
-                limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
-                if length >= limit:
-                    stored.pop(0)
-            self.ohlcvs[symbol][timeframe] = stored
             client.resolve(stored, messageHash)
 
     def request_id(self):

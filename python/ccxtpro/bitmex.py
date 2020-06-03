@@ -5,6 +5,7 @@
 
 from ccxtpro.base.exchange import Exchange
 import ccxt.async_support as ccxt
+from ccxtpro.base.cache import ArrayCache
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
@@ -378,13 +379,13 @@ class bitmex(Exchange, ccxt.bitmex):
                 messageHash = table + ':' + marketId
                 symbol = market['symbol']
                 trades = self.parse_trades(dataByMarketIds[marketId], market)
-                stored = self.safe_value(self.trades, symbol, [])
+                stored = self.safe_value(self.trades, symbol)
+                if stored is None:
+                    limit = self.safe_integer(self.options, 'tradesLimit', 1000)
+                    stored = ArrayCache(limit)
+                    self.trades[symbol] = stored
                 for j in range(0, len(trades)):
                     stored.append(trades[j])
-                    storedLength = len(stored)
-                    if storedLength > self.options['tradesLimit']:
-                        stored.pop(0)
-                self.trades[symbol] = stored
                 client.resolve(stored, messageHash)
 
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
@@ -537,16 +538,16 @@ class bitmex(Exchange, ccxt.bitmex):
                     self.safe_float(candle, 'volume'),
                 ]
                 self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
-                stored = self.safe_value(self.ohlcvs[symbol], timeframe, [])
+                stored = self.safe_value(self.ohlcvs[symbol], timeframe)
+                if stored is None:
+                    limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
+                    stored = ArrayCache(limit)
+                    self.ohlcvs[symbol][timeframe] = stored
                 length = len(stored)
                 if length and result[0] == stored[length - 1][0]:
                     stored[length - 1] = result
                 else:
                     stored.append(result)
-                    limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
-                    if length >= limit:
-                        stored.pop(0)
-                self.ohlcvs[symbol][timeframe] = stored
                 results[messageHash] = stored
         messageHashes = list(results.keys())
         for i in range(0, len(messageHashes)):

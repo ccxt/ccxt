@@ -98,15 +98,15 @@ class bitfinex extends \ccxt\bitfinex {
             $market = $this->markets_by_id[$marketId];
             $symbol = $market['symbol'];
             $data = $this->safe_value($message, 1);
-            $stored = $this->safe_value($this->trades, $symbol, array());
+            $stored = $this->safe_value($this->trades, $symbol);
+            if ($stored === null) {
+                $stored = new ArrayCache ($tradesLimit);
+                $this->trades[$symbol] = $stored;
+            }
             if (gettype($data) === 'array' && count(array_filter(array_keys($data), 'is_string')) == 0) {
                 $trades = $this->parse_trades($data, $market);
                 for ($i = 0; $i < count($trades); $i++) {
-                    $stored[] = $trades[$i];
-                    $storedLength = is_array($stored) ? count($stored) : 0;
-                    if ($storedLength > $tradesLimit) {
-                        array_shift($stored);
-                    }
+                    $stored->append ($trades[$i]);
                 }
             } else {
                 $second = $this->safe_string($message, 1);
@@ -114,13 +114,8 @@ class bitfinex extends \ccxt\bitfinex {
                     return;
                 }
                 $trade = $this->parse_trade($message, $market);
-                $stored[] = $trade;
-                $length = is_array($stored) ? count($stored) : 0;
-                if ($length > $tradesLimit) {
-                    array_shift($stored);
-                }
+                $stored->append ($trade);
             }
-            $this->trades[$symbol] = $stored;
             $client->resolve ($stored, $messageHash);
         }
         return $message;

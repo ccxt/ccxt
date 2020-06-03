@@ -302,7 +302,12 @@ class poloniex extends \ccxt\poloniex {
         $symbol = $this->safe_string($market, 'symbol');
         $orderbookUpdatesCount = 0;
         $tradesCount = 0;
-        $stored = $this->safe_value($this->trades, $symbol, array());
+        $stored = $this->safe_value($this->trades, $symbol);
+        if ($stored === null) {
+            $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
+            $stored = new ArrayCache ($limit);
+            $this->trades[$symbol] = $stored;
+        }
         for ($i = 0; $i < count($data); $i++) {
             $delta = $data[$i];
             if ($delta[0] === 'i') {
@@ -334,11 +339,7 @@ class poloniex extends \ccxt\poloniex {
                 $orderbook['nonce'] = $nonce;
             } else if ($delta[0] === 't') {
                 $trade = $this->handle_trade($client, $delta, $market);
-                $stored[] = $trade;
-                $storedLength = is_array($stored) ? count($stored) : 0;
-                if ($storedLength > $this->options['tradesLimit']) {
-                    array_shift($stored);
-                }
+                $stored->append ($trade);
                 $tradesCount = $this->sum($tradesCount, 1);
             }
         }
@@ -349,11 +350,10 @@ class poloniex extends \ccxt\poloniex {
             $client->resolve ($orderbook, $messageHash);
         }
         if ($tradesCount) {
-            $this->trades[$symbol] = $stored;
             // resolve the trades future
             $messageHash = 'trades:' . $marketId;
             // todo => incremental trades
-            $client->resolve ($this->trades[$symbol], $messageHash);
+            $client->resolve ($stored, $messageHash);
         }
     }
 

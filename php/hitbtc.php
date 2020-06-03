@@ -239,25 +239,20 @@ class hitbtc extends \ccxt\hitbtc {
             $symbol = $market['symbol'];
             $messageHash = 'trades:' . $marketId;
             $tradesLimit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $stored = $this->safe_value($this->trades, $symbol, array());
+            $stored = $this->safe_value($this->trades, $symbol);
+            if ($stored === null) {
+                $stored = new ArrayCache ($tradesLimit);
+                $this->trades[$symbol] = $stored;
+            }
             if (gettype($data) === 'array' && count(array_filter(array_keys($data), 'is_string')) == 0) {
                 $trades = $this->parse_trades($data, $market);
                 for ($i = 0; $i < count($trades); $i++) {
-                    $stored[] = $trades[$i];
-                    $storedLength = is_array($stored) ? count($stored) : 0;
-                    if ($storedLength > $tradesLimit) {
-                        array_shift($stored);
-                    }
+                    $stored->append ($trades[$i]);
                 }
             } else {
                 $trade = $this->parse_trade($message, $market);
-                $stored[] = $trade;
-                $length = is_array($stored) ? count($stored) : 0;
-                if ($length > $tradesLimit) {
-                    array_shift($stored);
-                }
+                $stored->append ($trade);
             }
-            $this->trades[$symbol] = $stored;
             $client->resolve ($stored, $messageHash);
         }
         return $message;
@@ -336,17 +331,17 @@ class hitbtc extends \ccxt\hitbtc {
                 $candle = $data[$i];
                 $parsed = $this->parse_ohlcv($candle, $market, $timeframe);
                 $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
-                $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe, array());
+                $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
+                if ($stored === null) {
+                    $stored = new ArrayCache ($limit);
+                    $this->ohlcvs[$symbol][$timeframe] = $stored;
+                }
                 $length = is_array($stored) ? count($stored) : 0;
                 if ($length && $parsed[0] === $stored[$length - 1][0]) {
                     $stored[$length - 1] = $parsed;
                 } else {
-                    $stored[] = $parsed;
-                    if ($length >= $limit) {
-                        array_shift($stored);
-                    }
+                    $stored->append ($parsed);
                 }
-                $this->ohlcvs[$symbol][$timeframe] = $stored;
                 $client->resolve ($stored, $messageHash);
             }
         }
