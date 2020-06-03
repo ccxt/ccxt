@@ -32,10 +32,7 @@ module.exports = class currencycom extends Exchange {
                 'fetchTrades': true,
                 'fetchMyTrades': true,
                 'fetchBalance': true,
-                'fetchOrder': true,
-                'fetchOrders': true,
                 'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -880,66 +877,6 @@ module.exports = class currencycom extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const origClientOrderId = this.safeValue (params, 'origClientOrderId');
-        const request = {
-            'symbol': market['id'],
-        };
-        if (origClientOrderId !== undefined) {
-            request['origClientOrderId'] = origClientOrderId;
-        } else {
-            request['orderId'] = id;
-        }
-        const response = await this.privateGetOrder (this.extend (request, params));
-        return this.parseOrder (response, market);
-    }
-
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        if (since !== undefined) {
-            request['startTime'] = since;
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
-        const response = await this.privateGetAllOrders (this.extend (request, params));
-        //
-        //     [
-        //         {
-        //             "symbol": "LTCBTC",
-        //             "orderId": 1,
-        //             "clientOrderId": "myOrder1",
-        //             "price": "0.1",
-        //             "origQty": "1.0",
-        //             "executedQty": "0.0",
-        //             "cummulativeQuoteQty": "0.0",
-        //             "status": "NEW",
-        //             "timeInForce": "GTC",
-        //             "type": "LIMIT",
-        //             "side": "BUY",
-        //             "stopPrice": "0.0",
-        //             "icebergQty": "0.0",
-        //             "time": 1499827319559,
-        //             "updateTime": 1499827319559,
-        //             "isWorking": true
-        //         }
-        //     ]
-        //
-        return this.parseOrders (response, market, since, limit);
-    }
-
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
@@ -955,11 +892,6 @@ module.exports = class currencycom extends Exchange {
         }
         const response = await this.privateGetOpenOrders (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
-    }
-
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const orders = await this.fetchOrders (symbol, since, limit, params);
-        return this.filterBy (orders, 'status', 'closed');
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
