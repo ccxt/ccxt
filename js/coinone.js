@@ -28,9 +28,9 @@ module.exports = class coinone extends Exchange {
                 // 'createOrder': true,         // true
                 // 'deposit': false,
                 // 'editOrder': 'emulated',
-                // 'fetchBalance': true,        // true
+                'fetchBalance': true,
                 // 'fetchBidsAsks': false,
-                // 'fetchClosedOrders': false,  // good to be true
+                'fetchClosedOrders': true,  // good to be true, but not sure enough to meet CCXT's semantic requirement
                 'fetchCurrencies': false,
                 // 'fetchDepositAddress': false,
                 // 'fetchDeposits': false,
@@ -471,6 +471,57 @@ module.exports = class coinone extends Exchange {
             'average': undefined,
             'trades': undefined,
         };
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ExchangeError (this.id + ' allows fetching closed orders with a symbol');
+        }
+        const market = this.market (symbol);
+        const request = {
+            'currency': market['id'],
+        };
+        const response = await this.privatePostOrderCompleteOrders (this.extend (request, params));
+        const result = [];
+        const completOrders = this.safeValue (response, 'completeOrders');
+        for (let i = 0; i < completOrders.length; i++) {
+            const order = completOrders[i];
+            const timestamp = this.safeTimestamp (order, 'timestamp');
+            let side = this.safeString (order, 'type');
+            let feeCurrency = undefined;
+            if (side.indexOf ('ask') >= 0) {
+                side = 'sell';
+                feeCurrency = market['quote'];
+            } else {
+                side = 'buy';
+                feeCurrency = market['base'];
+            }
+            result.push ({
+                'id': this.safeString (order, 'orderId'),
+                'clientOrderId': undefined,
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'lastTradeTimestamp': undefined,
+                'status': 'closed',     // might be 'canceled'
+                'symbol': market['symbol'],
+                'type': 'limit',
+                'side': side,
+                'price': this.safeFloat (order, 'price'),
+                'amount': this.safeFloat (order, 'qty'),
+                'filled': undefined,    // couldn't be know by this request
+                'remaining': undefined, // couldn't be know by this request
+                'cost': undefined,      // couldn't be know by this request
+                'trades': undefined,    // coinone doesn't support fills
+                'fee': {
+                    'currency': feeCurrency,
+                    'rate': this.safeFloat (order, 'feeRate'),
+                    'cost': undefined,  // couldn't be know by this request???
+                },
+                'info': order,
+            });
+        }
+        return result;
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
