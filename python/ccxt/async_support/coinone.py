@@ -113,6 +113,10 @@ class coinone(Exchange):
         baseIds = list(response.keys())
         for i in range(0, len(baseIds)):
             baseId = baseIds[i]
+            ticker = self.safe_value(response, baseId, {})
+            currency = self.safe_value(ticker, 'currency')
+            if currency is None:
+                continue
             base = self.safe_currency_code(baseId)
             result.append({
                 'id': baseId,

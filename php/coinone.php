@@ -110,6 +110,11 @@ class coinone extends Exchange {
         $baseIds = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count($baseIds); $i++) {
             $baseId = $baseIds[$i];
+            $ticker = $this->safe_value($response, $baseId, array());
+            $currency = $this->safe_value($ticker, 'currency');
+            if ($currency === null) {
+                continue;
+            }
             $base = $this->safe_currency_code($baseId);
             $result[] = array(
                 'id' => $baseId,
