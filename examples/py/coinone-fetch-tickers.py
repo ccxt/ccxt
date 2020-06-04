@@ -11,31 +11,18 @@ import ccxt  # noqa: E402
 
 exchange = ccxt.coinone({
     'enableRateLimit': True,
-    'verbose': False,  # switch it to False if you don't want the HTTP log
+    # 'verbose': True,  # uncomment for verbose output
 })
-
-def printTicker(symbol, ticker):
-    print(
-        str(ticker['timestamp']),
-        symbol,
-        'high:', str(ticker['high']),
-        'low:', str(ticker['low']),
-        'prevClose:', str(ticker['previousClose']),
-        'price:', str(ticker['close']),
-        'baseVolume:', str(ticker['baseVolume']),
-        'change:', str(ticker['change']),
-        'percentage:', str(ticker['percentage']),
-        'average:', str(ticker['average'])
-    )
 
 # fetch all
 tickers = exchange.fetch_tickers()
 for symbol, ticker in tickers.items():
-    printTicker(symbol, ticker)
+    print(ticker)
 
-print()
+print("\n")
 
 # fetch one by one
 markets = exchange.load_markets()
 for symbol in markets.keys():
-    printTicker(symbol, exchange.fetch_ticker(symbol))
+    ticker = exchange.fetch_ticker(symbol)
+    print(ticker)
