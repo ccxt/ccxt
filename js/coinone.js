@@ -17,48 +17,20 @@ module.exports = class coinone extends Exchange {
             'rateLimit': 667,
             'version': 'v2',
             'has': {
-                // 'loadMarkets': true,         // true
-                // 'cancelAllOrders': false,
-                // 'cancelOrder': true,         // true
-                // 'cancelOrders': false,
                 'CORS': false,
-                // 'createDepositAddress': false,
-                // 'createLimitOrder': true,    // true
                 'createMarketOrder': false,
-                // 'createOrder': true,         // true
-                // 'deposit': false,
-                // 'editOrder': 'emulated',
-                // 'fetchBalance': true,        // true
-                // 'fetchBidsAsks': false,
-                // 'fetchClosedOrders': false,  // good to be true
+                // 'fetchClosedOrders': false, // not implemented yet
                 'fetchCurrencies': false,
-                // 'fetchDepositAddress': false,
-                // 'fetchDeposits': false,
-                // 'fetchFundingFees': false,
-                // 'fetchL2OrderBook': true,    // true
-                // 'fetchLedger': false,
-                // 'fetchMarkets': true,        // true
-                // 'fetchMyTrades': false,      // good to be true
-                // 'fetchOHLCV': 'emulated',
-                // 'fetchOpenOrders': false,    // good to be true
+                'fetchMarkets': true,
+                // 'fetchMyTrades': false, // not implemented yet
+                // 'fetchOpenOrders': false, // not implemented yet
                 'fetchOrder': true,
-                // 'fetchOrderBook': true,      // true
+                'fetchOrderBook': true,
                 'fetchOrderBooks': false,
-                // 'fetchOrders': false,        // good to be true
-                // 'fetchOrderTrades': false,
-                // 'fetchStatus': 'emulated',
-                // 'fetchTicker': true,         // true
+                // 'fetchOrders': false, // not implemented yet
+                'fetchTicker': true,
                 'fetchTickers': true,
-                // 'fetchTime': false,
-                'fetchTrades': true,         // true
-                // 'fetchTradingFee': false,
-                // 'fetchTradingFees': false,
-                // 'fetchTradingLimits': false,
-                // 'fetchTransactions': false,
-                // 'fetchWithdrawals': false,
-                // 'privateAPI': true,
-                // 'publicAPI': true,
-                // 'withdraw': false,
+                'fetchTrades': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg',
