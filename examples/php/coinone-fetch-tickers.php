@@ -6,7 +6,7 @@ include $root . '/ccxt.php';
 
 $exchange = new \ccxt\coinone (array (
     'enableRateLimit' => true,
-    'verbose' => false,
+    // 'verbose' => true, // uncomment for verbose output
 ));
 
 // fetch all
