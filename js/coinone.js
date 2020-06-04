@@ -133,10 +133,9 @@ module.exports = class coinone extends Exchange {
         const baseIds = Object.keys (response);
         for (let i = 0; i < baseIds.length; i++) {
             const baseId = baseIds[i];
-            const ticker = response[baseId];
             const base = this.safeCurrencyCode (baseId);
             result.push ({
-                'id': id,
+                'id': baseId,
                 'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
