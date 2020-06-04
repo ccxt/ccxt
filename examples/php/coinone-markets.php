@@ -5,7 +5,8 @@ $root = dirname (dirname (dirname (__FILE__)));
 include $root . '/ccxt.php';
 
 $exchange = new \ccxt\coinone (array (
-    'verbose' => true,
+    'enableRateLimit' => true,
+    // 'verbose' => true, // uncomment for verbose output
 ));
 
 $markets = $exchange->load_markets();
