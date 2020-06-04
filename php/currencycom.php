@@ -56,7 +56,7 @@ class currencycom extends Exchange {
                     'private' => 'https://api-adapter.backend.currency.com/api',
                 ),
                 'www' => 'https://www.currency.com',
-                'referral' => 'https://www.currency.com/?ref=10205187',
+                'referral' => 'https://currency.com/trading/signup?c=362jaimv&pid=referral',
                 'doc' => array(
                     'https://currency.com/api',
                 ),
