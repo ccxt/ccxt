@@ -32,6 +32,7 @@ See Also
 
 -  \ `Quadency <https://quadency.com?utm_source=ccxt>`__\   `Quadency <https://quadency.com?utm_source=ccxt>`__ — professional crypto terminal, algo trading, and unified streaming APIs.
 -  \ `TabTrader <https://tab-trader.com/?utm_source=ccxt>`__\   `TabTrader <https://tab-trader.com/?utm_source=ccxt>`__ — trading on all exchanges in one app. Avaliable on `Android <https://play.google.com/store/apps/details?id=com.tabtrader.android&referrer=utm_source%3Dccxt>`__ and `iOS <https://itunes.apple.com/app/apple-store/id1095716562?mt=8>`__.
+-  \ `Currency.com <https://currency.com/?utm_source=ccxt>`__\   `Currency.com <https://currency.com/?utm_source=ccxt>`__ — Award-winning regulated tokenized assets platform with 1500+ available tokens and cryptos.
 
 Certified Cryptocurrency Exchanges
 ----------------------------------
@@ -368,14 +369,14 @@ JavaScript (for use with the ``<script>`` tag):
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
--  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.29.20/dist/ccxt.browser.js
--  unpkg: https://unpkg.com/ccxt@1.29.20/dist/ccxt.browser.js
+-  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.29.21/dist/ccxt.browser.js
+-  unpkg: https://unpkg.com/ccxt@1.29.21/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code:: html
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.29.20/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.29.21/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 
