@@ -444,6 +444,11 @@ module.exports = class coinone extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        // [WARNING] Because of the limited capabilities of Coinone V2 API, you should be noticed below
+        // * The symbol parameter must be given. If not, an exception will occur.
+        // * Always returns the list of the all open orders with the symbol: The since and limit parameters are totally ignored.
+        // * The returned amount might not be same as the ordered amount. If an order is partially filled, the returned amount means the remaining amount.
+        // * For the same reason, the returned amount and remaining are always same, and the returned filled and cost are always zero.
         await this.loadMarkets ();
         if (symbol === undefined) {
             throw new ExchangeError (this.id + ' allows fetching closed orders with a specific symbol');
@@ -496,6 +501,13 @@ module.exports = class coinone extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        // [WARNING] Because of the limited capabilities of Coinone V2 API, you should be noticed below
+        // * The symbol parameter must be given. If not, an exception will occur.
+        // * The since and limit parameters are totally ignored.
+        // * At maximum, 50 closed orders can be returned.
+        // * An returned closed order might be in open status: Because the backing Coinone API returns my trades, a parially-filled but-not-closed order can be returned.
+        // * For the same reason, a same order id can occur muliple times in the returned list.
+        // * For the same reason, the returned amount and filled are always same, and the returned remaining is always zero.
         await this.loadMarkets ();
         if (symbol === undefined) {
             throw new ExchangeError (this.id + ' allows fetching closed orders with a specific symbol');
@@ -553,6 +565,10 @@ module.exports = class coinone extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        // [WARNING] Because of the limited capabilities of Coinone V2 API, you should be noticed below
+        // * The symbol parameter must be given. If not, an exception will occur.
+        // * The since and limit parameters are totally ignored.
+        // * At maximum, 50 of my recent trades can be returned.
         await this.loadMarkets ();
         if (symbol === undefined) {
             throw new ExchangeError (this.id + ' allows fetching my trades with a specific symbol');
