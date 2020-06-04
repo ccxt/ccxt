@@ -235,10 +235,8 @@ module.exports = class coinone extends Exchange {
         let percentage = undefined;
         if (last !== undefined && previousClose !== undefined) {
             change = last - previousClose;
-            if (change !== 0) {
+            if (previousClose !== 0) {
                 percentage = change / previousClose * 100;
-            } else {
-                percentage = 0;
             }
         }
         const symbol = (market !== undefined) ? market['symbol'] : undefined;
