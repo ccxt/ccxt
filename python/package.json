@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.29.16",
+  "version": "1.29.17",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 130+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "dist/ccxt.browser.js",
@@ -517,7 +517,9 @@
     "qTrade",
     "dsxglobal.com",
     "bitvavo.com",
-    "Bitvavo"
+    "Bitvavo",
+    "currency.com",
+    "Currency.com"
   ],
   "collective": {
     "type": "opencollective",
