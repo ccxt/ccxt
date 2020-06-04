@@ -105,8 +105,9 @@ module.exports = class coinone extends Exchange {
         const baseIds = Object.keys (response);
         for (let i = 0; i < baseIds.length; i++) {
             const baseId = baseIds[i];
-            const ticker = this.safeValue (response, baseId);
-            if (ticker === undefined || this.safeValue (ticker, 'currency') === undefined) {
+            const ticker = this.safeValue (response, baseId, {});
+            const currency = this.safeValue (ticker, 'currency');
+            if (currency === undefined) {
                 continue;
             }
             const base = this.safeCurrencyCode (baseId);
