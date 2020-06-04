@@ -13,13 +13,24 @@ module.exports = class coinone extends Exchange {
             'id': 'coinone',
             'name': 'CoinOne',
             'countries': [ 'KR' ], // Korea
+            // 'enableRateLimit': false,
             'rateLimit': 667,
             'version': 'v2',
             'has': {
                 'CORS': false,
                 'createMarketOrder': false,
-                'fetchTickers': true,
+                // 'fetchClosedOrders': false, // not implemented yet
+                'fetchCurrencies': false,
+                'fetchMarkets': true,
+                // 'fetchMyTrades': false, // not implemented yet
+                // 'fetchOpenOrders': false, // not implemented yet
                 'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrderBooks': false,
+                // 'fetchOrders': false, // not implemented yet
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg',
@@ -61,57 +72,18 @@ module.exports = class coinone extends Exchange {
                     ],
                 },
             },
-            'markets': {
-                'BCH/KRW': { 'id': 'bch', 'symbol': 'BCH/KRW', 'base': 'BCH', 'quote': 'KRW', 'baseId': 'bch', 'quoteId': 'krw' },
-                'BTC/KRW': { 'id': 'btc', 'symbol': 'BTC/KRW', 'base': 'BTC', 'quote': 'KRW', 'baseId': 'btc', 'quoteId': 'krw' },
-                'BTG/KRW': { 'id': 'btg', 'symbol': 'BTG/KRW', 'base': 'BTG', 'quote': 'KRW', 'baseId': 'btg', 'quoteId': 'krw' },
-                'ETC/KRW': { 'id': 'etc', 'symbol': 'ETC/KRW', 'base': 'ETC', 'quote': 'KRW', 'baseId': 'etc', 'quoteId': 'krw' },
-                'ETH/KRW': { 'id': 'eth', 'symbol': 'ETH/KRW', 'base': 'ETH', 'quote': 'KRW', 'baseId': 'eth', 'quoteId': 'krw' },
-                'IOTA/KRW': { 'id': 'iota', 'symbol': 'IOTA/KRW', 'base': 'IOTA', 'quote': 'KRW', 'baseId': 'iota', 'quoteId': 'krw' },
-                'LTC/KRW': { 'id': 'ltc', 'symbol': 'LTC/KRW', 'base': 'LTC', 'quote': 'KRW', 'baseId': 'ltc', 'quoteId': 'krw' },
-                'OMG/KRW': { 'id': 'omg', 'symbol': 'OMG/KRW', 'base': 'OMG', 'quote': 'KRW', 'baseId': 'omg', 'quoteId': 'krw' },
-                'QTUM/KRW': { 'id': 'qtum', 'symbol': 'QTUM/KRW', 'base': 'QTUM', 'quote': 'KRW', 'baseId': 'qtum', 'quoteId': 'krw' },
-                'XRP/KRW': { 'id': 'xrp', 'symbol': 'XRP/KRW', 'base': 'XRP', 'quote': 'KRW', 'baseId': 'xrp', 'quoteId': 'krw' },
-                'EOS/KRW': { 'id': 'eos', 'symbol': 'EOS/KRW', 'base': 'EOS', 'quote': 'KRW', 'baseId': 'eos', 'quoteId': 'krw' },
-                'DATA/KRW': { 'id': 'data', 'symbol': 'DATA/KRW', 'base': 'DATA', 'quote': 'KRW', 'baseId': 'data', 'quoteId': 'krw' },
-                'ZIL/KRW': { 'id': 'zil', 'symbol': 'ZIL/KRW', 'base': 'ZIL', 'quote': 'KRW', 'baseId': 'zil', 'quoteId': 'krw' },
-                'KNC/KRW': { 'id': 'knc', 'symbol': 'KNC/KRW', 'base': 'KNC', 'quote': 'KRW', 'baseId': 'knc', 'quoteId': 'krw' },
-                'ZRX/KRW': { 'id': 'zrx', 'symbol': 'ZRX/KRW', 'base': 'ZRX', 'quote': 'KRW', 'baseId': 'zrx', 'quoteId': 'krw' },
-                'LUNA/KRW': { 'id': 'luna', 'symbol': 'LUNA/KRW', 'base': 'LUNA', 'quote': 'KRW', 'baseId': 'luna', 'quoteId': 'krw' },
-                'ATOM/KRW': { 'id': 'atom', 'symbol': 'ATOM/KRW', 'base': 'ATOM', 'quote': 'KRW', 'baseId': 'atom', 'quoteId': 'krw' },
-                'VNT/KRW': { 'id': 'vnt', 'symbol': 'VNT/KRW', 'base': 'VNT', 'quote': 'KRW', 'baseId': 'vnt', 'quoteId': 'krw' },
-            },
             'fees': {
                 'trading': {
-                    'tierBased': true,
+                    'tierBased': false,
                     'percentage': true,
-                    'taker': 0.001,
-                    'maker': 0.001,
-                    'tiers': {
-                        'taker': [
-                            [0, 0.001],
-                            [100000000, 0.0009],
-                            [1000000000, 0.0008],
-                            [5000000000, 0.0007],
-                            [10000000000, 0.0006],
-                            [20000000000, 0.0005],
-                            [30000000000, 0.0004],
-                            [40000000000, 0.0003],
-                            [50000000000, 0.0002],
-                        ],
-                        'maker': [
-                            [0, 0.001],
-                            [100000000, 0.0008],
-                            [1000000000, 0.0006],
-                            [5000000000, 0.0004],
-                            [10000000000, 0.0002],
-                            [20000000000, 0],
-                            [30000000000, 0],
-                            [40000000000, 0],
-                            [50000000000, 0],
-                        ],
-                    },
+                    'taker': 0.002,
+                    'maker': 0.002,
                 },
+            },
+            'precision': {
+                'price': 4,
+                'amount': 4,
+                'cost': 8,
             },
             'exceptions': {
                 '405': OnMaintenance, // {"errorCode":"405","status":"maintenance","result":"error"}
@@ -120,6 +92,31 @@ module.exports = class coinone extends Exchange {
                 '107': BadRequest, // {"errorCode":"107","errorMsg":"Parameter error","result":"error"}
             },
         });
+    }
+
+    async fetchMarkets (params = {}) {
+        const request = {
+            'currency': 'all',
+        };
+        const response = await this.publicGetTicker (request);
+        const result = [];
+        const quoteId = 'krw';
+        const quote = this.safeCurrencyCode (quoteId);
+        const baseIds = Object.keys (response);
+        for (let i = 0; i < baseIds.length; i++) {
+            const baseId = baseIds[i];
+            const base = this.safeCurrencyCode (baseId);
+            result.push ({
+                'id': baseId,
+                'symbol': base + '/' + quote,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': true,
+            });
+        }
+        return result;
     }
 
     async fetchBalance (params = {}) {
@@ -152,7 +149,8 @@ module.exports = class coinone extends Exchange {
             'format': 'json',
         };
         const response = await this.publicGetOrderbook (this.extend (request, params));
-        return this.parseOrderBook (response, undefined, 'bid', 'ask', 'price', 'qty');
+        const timestamp = this.safeTimestamp (response, 'timestamp');
+        return this.parseOrderBook (response, timestamp, 'bid', 'ask', 'price', 'qty');
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -164,6 +162,7 @@ module.exports = class coinone extends Exchange {
         const response = await this.publicGetTicker (this.extend (request, params));
         const result = {};
         const ids = Object.keys (response);
+        const timestamp = this.safeTimestamp (response, 'timestamp');
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             let symbol = id;
@@ -173,6 +172,7 @@ module.exports = class coinone extends Exchange {
                 symbol = market['symbol'];
                 const ticker = response[id];
                 result[symbol] = this.parseTicker (ticker, market);
+                result[symbol]['timestamp'] = timestamp;
             }
         }
         return result;
@@ -190,12 +190,21 @@ module.exports = class coinone extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        const timestamp = this.milliseconds ();
+        const timestamp = this.safeTimestamp (ticker, 'timestamp');
+        const first = this.safeFloat (ticker, 'first');
         const last = this.safeFloat (ticker, 'last');
+        let average = undefined;
+        if (first !== undefined && last !== undefined) {
+            average = this.sum (first, last) / 2;
+        }
         const previousClose = this.safeFloat (ticker, 'yesterday_last');
         let change = undefined;
+        let percentage = undefined;
         if (last !== undefined && previousClose !== undefined) {
-            change = previousClose - last;
+            change = last - previousClose;
+            if (previousClose !== 0) {
+                percentage = change / previousClose * 100;
+            }
         }
         const symbol = (market !== undefined) ? market['symbol'] : undefined;
         return {
@@ -209,13 +218,13 @@ module.exports = class coinone extends Exchange {
             'ask': undefined,
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeFloat (ticker, 'first'),
+            'open': first,
             'close': last,
             'last': last,
             'previousClose': previousClose,
             'change': change,
-            'percentage': undefined,
-            'average': undefined,
+            'percentage': percentage,
+            'average': average,
             'baseVolume': this.safeFloat (ticker, 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
@@ -241,7 +250,7 @@ module.exports = class coinone extends Exchange {
             }
         }
         return {
-            'id': undefined,
+            'id': this.safeString (trade, 'id'),
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -262,7 +271,6 @@ module.exports = class coinone extends Exchange {
         const market = this.market (symbol);
         const request = {
             'currency': market['id'],
-            'period': 'hour',
             'format': 'json',
         };
         const response = await this.publicGetTrades (this.extend (request, params));
