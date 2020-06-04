@@ -129,22 +129,18 @@ module.exports = class coinone extends Exchange {
         const response = await this.publicGetTicker (request);
         const result = [];
         const quoteId = 'krw';
-        const quote = quoteId.toUpperCase ();
-        const currencyIds = Object.keys (response);
-        for (let i = 0; i < currencyIds.length; i++) {
-            const ticker = response[currencyIds[i]];
-            let id = this.safeString (ticker, 'currency');
-            if (id === undefined) {
-                continue;
-            }
-            id = id.toLowerCase ();
-            const base = id.toUpperCase ();
+        const quote = this.safeCurrencyCode (quoteId);
+        const baseIds = Object.keys (response);
+        for (let i = 0; i < baseIds.length; i++) {
+            const baseId = baseIds[i];
+            const ticker = response[baseId];
+            const base = this.safeCurrencyCode (baseId);
             result.push ({
                 'id': id,
                 'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
-                'baseId': id,
+                'baseId': baseId,
                 'quoteId': quoteId,
                 'active': true,
             });
