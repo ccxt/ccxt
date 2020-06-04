@@ -637,7 +637,32 @@ module.exports = class currencycom extends Exchange {
         //         "m":false
         //     }
         //
-        const timestamp = this.safeInteger (trade, 'T', 'time');
+        // createOrder fills (private)
+        //
+        //     {
+        //         "price": "9807.05",
+        //         "qty": "0.01",
+        //         "commission": "0",
+        //         "commissionAsset": "dUSD"
+        //     }
+        //
+        // fetchMyTrades
+        //
+        //     {
+        //         "symbol": "BNBBTC",
+        //         "id": 28457,
+        //         "orderId": 100234,
+        //         "price": "4.00000100",
+        //         "qty": "12.00000000",
+        //         "commission": "10.10000000",
+        //         "commissionAsset": "BNB",
+        //         "time": 1499865549590,
+        //         "isBuyer": true,
+        //         "isMaker": false,
+        //         "isBestMatch": true
+        //     }
+        //
+        const timestamp = this.safeInteger2 (trade, 'T', 'time');
         const price = this.safeFloat2 (trade, 'p', 'price');
         const amount = this.safeFloat2 (trade, 'q', 'qty');
         const id = this.safeString2 (trade, 'a', 'id');
@@ -727,6 +752,29 @@ module.exports = class currencycom extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //
+        //     {
+        //         "symbol": "BTC/USD",
+        //         "orderId": "00000000-0000-0000-0000-0000000c0263",
+        //         "clientOrderId": "00000000-0000-0000-0000-0000000c0263",
+        //         "transactTime": 1589878206426,
+        //         "price": "9825.66210000",
+        //         "origQty": "0.01",
+        //         "executedQty": "0.01",
+        //         "status": "FILLED",
+        //         "timeInForce": "FOK",
+        //         "type": "MARKET",
+        //         "side": "BUY",
+        //         "fills": [
+        //             {
+        //                 "price": "9807.05",
+        //                 "qty": "0.01",
+        //                 "commission": "0",
+        //                 "commissionAsset": "dUSD"
+        //             }
+        //         ]
+        //     }
+        //
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         let symbol = undefined;
         const marketId = this.safeString (order, 'symbol');
@@ -762,23 +810,17 @@ module.exports = class currencycom extends Exchange {
             }
         }
         const id = this.safeString (order, 'orderId');
-        let type = this.safeString (order, 'type');
-        if (type !== undefined) {
-            type = type.toLowerCase ();
-            if (type === 'market') {
-                if (price === 0.0) {
-                    if ((cost !== undefined) && (filled !== undefined)) {
-                        if ((cost > 0) && (filled > 0)) {
-                            price = cost / filled;
-                        }
+        const type = this.safeStringLower (order, 'type');
+        if (type === 'market') {
+            if (price === 0.0) {
+                if ((cost !== undefined) && (filled !== undefined)) {
+                    if ((cost > 0) && (filled > 0)) {
+                        price = cost / filled;
                     }
                 }
             }
         }
-        let side = this.safeString (order, 'side');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
+        const side = this.safeStringLower (order, 'side');
         let fee = undefined;
         let trades = undefined;
         const fills = this.safeValue (order, 'fills');
@@ -861,17 +903,25 @@ module.exports = class currencycom extends Exchange {
         const response = await this.privatePostOrder (this.extend (request, params));
         //
         //     {
-        //         "symbol":"BTC/USD",
-        //         "orderId":"00000000-0000-0000-0000-000000234db0",
-        //         "clientOrderId":"00000000-0000-0000-0000-000000234db0",
-        //         "transactTime":1591058006339,
-        //         "price":"10000.00000000",
-        //         "origQty":"1",
-        //         "executedQty":"0.0",
-        //         "status":"REJECTED",
-        //         "timeInForce":"GTC",
-        //         "type":"LIMIT",
-        //         "side":"SELL",
+        //         "symbol": "BTC/USD",
+        //         "orderId": "00000000-0000-0000-0000-0000000c0263",
+        //         "clientOrderId": "00000000-0000-0000-0000-0000000c0263",
+        //         "transactTime": 1589878206426,
+        //         "price": "9825.66210000",
+        //         "origQty": "0.01",
+        //         "executedQty": "0.01",
+        //         "status": "FILLED",
+        //         "timeInForce": "FOK",
+        //         "type": "MARKET",
+        //         "side": "BUY",
+        //         "fills": [
+        //             {
+        //                 "price": "9807.05",
+        //                 "qty": "0.01",
+        //                 "commission": "0",
+        //                 "commissionAsset": "dUSD"
+        //             }
+        //         ]
         //     }
         //
         return this.parseOrder (response, market);
