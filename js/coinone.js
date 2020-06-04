@@ -22,7 +22,7 @@ module.exports = class coinone extends Exchange {
                 'fetchClosedOrders': true,  // good to be true, but an same order can have multiple occurrences in the list
                 'fetchCurrencies': false,
                 'fetchMarkets': true,
-                // 'fetchMyTrades': false, // not implemented yet
+                'fetchMyTrades': true,
                 'fetchOpenOrders': true,    // good to be true, but not sure enough to meet CCXT's semantic requirement
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -446,7 +446,7 @@ module.exports = class coinone extends Exchange {
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         if (symbol === undefined) {
-            throw new ExchangeError (this.id + ' allows fetching closed orders with a symbol');
+            throw new ExchangeError (this.id + ' allows fetching closed orders with a specific symbol');
         }
         const market = this.market (symbol);
         const request = {
@@ -498,7 +498,7 @@ module.exports = class coinone extends Exchange {
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         if (symbol === undefined) {
-            throw new ExchangeError (this.id + ' allows fetching closed orders with a symbol');
+            throw new ExchangeError (this.id + ' allows fetching closed orders with a specific symbol');
         }
         const market = this.market (symbol);
         const request = {
@@ -539,12 +539,64 @@ module.exports = class coinone extends Exchange {
                 'amount': amount,
                 'filled': amount,    // coinone set amount as same as filled for completed order
                 'remaining': 0,      // amount is always equal to filled
-                'cost': cost,        // couldn't be known by this request
+                'cost': cost,
                 'trades': undefined,    // coinone doesn't support fills
                 'fee': {
                     'currency': feeCurrency,
                     'rate': this.safeFloat (order, 'feeRate'),
-                    'cost': this.safeFloat (order, 'fee'),  // couldn't be know by this request???
+                    'cost': this.safeFloat (order, 'fee'),
+                },
+                'info': order,
+            });
+        }
+        return result;
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ExchangeError (this.id + ' allows fetching my trades with a specific symbol');
+        }
+        const market = this.market (symbol);
+        const request = {
+            'currency': market['id'],
+        };
+        const response = await this.privatePostOrderCompleteOrders (this.extend (request, params));
+        const result = [];
+        const completOrders = this.safeValue (response, 'completeOrders');
+        for (let i = 0; i < completOrders.length; i++) {
+            const order = completOrders[i];
+            const timestamp = this.safeTimestamp (order, 'timestamp');
+            let side = this.safeString (order, 'type');
+            let feeCurrency = undefined;
+            if (side.indexOf ('ask') >= 0) {
+                side = 'sell';
+                feeCurrency = market['quote'];
+            } else {
+                side = 'buy';
+                feeCurrency = market['base'];
+            }
+            const price = this.safeFloat (order, 'price');
+            const amount = this.safeFloat (order, 'qty');
+            let cost = undefined;
+            if (price !== undefined && amount !== undefined) {
+                cost = price * amount;
+            }
+            result.push ({
+                'id': undefined,    // coinone doesn't support trade id
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'symbol': market['symbol'],
+                'order': this.safeString (order, 'orderId'),
+                'type': 'limit',
+                'side': side,
+                'price': price,
+                'amount': amount,
+                'cost': cost,
+                'fee': {
+                    'currency': feeCurrency,
+                    'rate': this.safeFloat (order, 'feeRate'),
+                    'cost': this.safeFloat (order, 'fee'),
                 },
                 'info': order,
             });
