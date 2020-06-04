@@ -2719,8 +2719,8 @@ module.exports = class okex extends Exchange {
         const request = {
             'instrument_id': market['id'],
             // 'order_id': id, // string
-            // 'after': '1', // return the page after the specified page number
-            // 'before': '1', // return the page before the specified page number
+            // 'after': '1', // pagination of data to return records earlier than the requested ledger_id
+            // 'before': '1', // P=pagination of data to return records newer than the requested ledger_id
             // 'limit': limit, // optional, number of results per request, default = maximum = 100
         };
         const defaultType = this.safeString2 (this.options, 'fetchMyTrades', 'defaultType');
