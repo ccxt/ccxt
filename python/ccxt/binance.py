@@ -236,6 +236,7 @@ class binance(Exchange):
                         'balance',
                         'positionMargin/history',
                         'positionRisk',
+                        'positionSide/dual',
                         'userTrades',
                         'income',
                     ],
@@ -323,7 +324,7 @@ class binance(Exchange):
                 'fetchTradesMethod': 'publicGetAggTrades',  # publicGetTrades, publicGetHistoricalTrades
                 'fetchTickersMethod': 'publicGetTicker24hr',
                 'defaultTimeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
-                'defaultType': 'spot',  # 'spot', 'future'
+                'defaultType': 'spot',  # 'spot', 'future', 'margin'
                 'hasAlreadyAuthenticatedSuccessfully': False,
                 'warnOnFetchOpenOrdersWithoutSymbol': True,
                 'recvWindow': 5 * 1000,  # 5 sec, binance default
@@ -370,8 +371,8 @@ class binance(Exchange):
         response = getattr(self, method)(params)
         return self.safe_integer(response, 'serverTime')
 
-    def load_time_difference(self):
-        serverTime = self.fetch_time()
+    def load_time_difference(self, params={}):
+        serverTime = self.fetch_time(params)
         after = self.milliseconds()
         self.options['timeDifference'] = after - serverTime
         return self.options['timeDifference']
@@ -476,7 +477,8 @@ class binance(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
-            filters = self.index_by(market['filters'], 'filterType')
+            filters = self.safe_value(market, 'filters', [])
+            filtersByType = self.index_by(filters, 'filterType')
             precision = {
                 'base': self.safe_integer(market, 'baseAssetPrecision'),
                 'quote': self.safe_integer(market, 'quotePrecision'),
@@ -516,8 +518,8 @@ class binance(Exchange):
                     },
                 },
             }
-            if 'PRICE_FILTER' in filters:
-                filter = filters['PRICE_FILTER']
+            if 'PRICE_FILTER' in filtersByType:
+                filter = self.safe_value(filtersByType, 'PRICE_FILTER', {})
                 # PRICE_FILTER reports zero values for maxPrice
                 # since they updated filter types in November 2018
                 # https://github.com/ccxt/ccxt/issues/4286
@@ -530,22 +532,23 @@ class binance(Exchange):
                 if (maxPrice is not None) and (maxPrice > 0):
                     entry['limits']['price']['max'] = maxPrice
                 entry['precision']['price'] = self.precision_from_string(filter['tickSize'])
-            if 'LOT_SIZE' in filters:
-                filter = self.safe_value(filters, 'LOT_SIZE', {})
+            if 'LOT_SIZE' in filtersByType:
+                filter = self.safe_value(filtersByType, 'LOT_SIZE', {})
                 stepSize = self.safe_string(filter, 'stepSize')
                 entry['precision']['amount'] = self.precision_from_string(stepSize)
                 entry['limits']['amount'] = {
                     'min': self.safe_float(filter, 'minQty'),
                     'max': self.safe_float(filter, 'maxQty'),
                 }
-            if 'MARKET_LOT_SIZE' in filters:
-                filter = self.safe_value(filters, 'MARKET_LOT_SIZE', {})
+            if 'MARKET_LOT_SIZE' in filtersByType:
+                filter = self.safe_value(filtersByType, 'MARKET_LOT_SIZE', {})
                 entry['limits']['market'] = {
                     'min': self.safe_float(filter, 'minQty'),
                     'max': self.safe_float(filter, 'maxQty'),
                 }
-            if 'MIN_NOTIONAL' in filters:
-                entry['limits']['cost']['min'] = self.safe_float(filters['MIN_NOTIONAL'], 'minNotional')
+            if 'MIN_NOTIONAL' in filtersByType:
+                filter = self.safe_value(filtersByType, 'MIN_NOTIONAL', {})
+                entry['limits']['cost']['min'] = self.safe_float(filter, 'minNotional')
             result.append(entry)
         return result
 
@@ -1888,41 +1891,41 @@ class binance(Exchange):
                 raise InvalidOrder(self.id + ' order amount should be evenly divisible by lot size ' + body)
             if body.find('PRICE_FILTER') >= 0:
                 raise InvalidOrder(self.id + ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use self.price_to_precision(symbol, amount) ' + body)
-        if len(body) > 0:
-            if body[0] == '{':
-                # check success value for wapi endpoints
-                # response in format {'msg': 'The coin does not exist.', 'success': True/false}
-                success = self.safe_value(response, 'success', True)
-                if not success:
-                    message = self.safe_string(response, 'msg')
+        if response is None:
+            return  # fallback to default error handler
+        # check success value for wapi endpoints
+        # response in format {'msg': 'The coin does not exist.', 'success': True/false}
+        success = self.safe_value(response, 'success', True)
+        if not success:
+            message = self.safe_string(response, 'msg')
+            parsedMessage = None
+            if message is not None:
+                try:
+                    parsedMessage = json.loads(message)
+                except Exception as e:
+                    # do nothing
                     parsedMessage = None
-                    if message is not None:
-                        try:
-                            parsedMessage = json.loads(message)
-                        except Exception as e:
-                            # do nothing
-                            parsedMessage = None
-                        if parsedMessage is not None:
-                            response = parsedMessage
-                message = self.safe_string(response, 'msg')
-                if message is not None:
-                    self.throw_exactly_matched_exception(self.exceptions, message, self.id + ' ' + message)
-                # checks against error codes
-                error = self.safe_string(response, 'code')
-                if error is not None:
-                    # https://github.com/ccxt/ccxt/issues/6501
-                    if error == '200':
-                        return
-                    # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
-                    # despite that their message is very confusing, it is raised by Binance
-                    # on a temporary ban, the API key is valid, but disabled for a while
-                    if (error == '-2015') and self.options['hasAlreadyAuthenticatedSuccessfully']:
-                        raise DDoSProtection(self.id + ' temporary banned: ' + body)
-                    feedback = self.id + ' ' + body
-                    self.throw_exactly_matched_exception(self.exceptions, error, feedback)
-                    raise ExchangeError(feedback)
-                if not success:
-                    raise ExchangeError(self.id + ' ' + body)
+                if parsedMessage is not None:
+                    response = parsedMessage
+        message = self.safe_string(response, 'msg')
+        if message is not None:
+            self.throw_exactly_matched_exception(self.exceptions, message, self.id + ' ' + message)
+        # checks against error codes
+        error = self.safe_string(response, 'code')
+        if error is not None:
+            # https://github.com/ccxt/ccxt/issues/6501
+            if error == '200':
+                return
+            # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
+            # despite that their message is very confusing, it is raised by Binance
+            # on a temporary ban, the API key is valid, but disabled for a while
+            if (error == '-2015') and self.options['hasAlreadyAuthenticatedSuccessfully']:
+                raise DDoSProtection(self.id + ' temporary banned: ' + body)
+            feedback = self.id + ' ' + body
+            self.throw_exactly_matched_exception(self.exceptions, error, feedback)
+            raise ExchangeError(feedback)
+        if not success:
+            raise ExchangeError(self.id + ' ' + body)
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)

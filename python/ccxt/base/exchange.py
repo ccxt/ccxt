@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.28.78'
+__version__ = '1.29.17'
 
 # -----------------------------------------------------------------------------
 
@@ -214,6 +214,7 @@ class Exchange(object):
     balance = None
     orderbooks = None
     orders = None
+    myTrades = None
     trades = None
     transactions = None
     ohlcvs = None

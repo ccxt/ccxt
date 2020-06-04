@@ -71,7 +71,7 @@ class bybit(Exchange):
                 'test': 'https://api-testnet.bybit.com',
                 'logo': 'https://user-images.githubusercontent.com/51840849/76547799-daff5b80-649e-11ea-87fb-3be9bac08954.jpg',
                 'api': 'https://api.bybit.com',
-                'www': 'https://www.bybit.com/',
+                'www': 'https://www.bybit.com',
                 'doc': [
                     'https://bybit-exchange.github.io/docs/inverse/',
                     'https://bybit-exchange.github.io/docs/linear/',
@@ -307,8 +307,8 @@ class bybit(Exchange):
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
-    def load_time_difference(self):
-        serverTime = self.fetch_time()
+    def load_time_difference(self, params={}):
+        serverTime = self.fetch_time(params)
         after = self.milliseconds()
         self.options['timeDifference'] = after - serverTime
         return self.options['timeDifference']
@@ -367,6 +367,9 @@ class bybit(Exchange):
             linear = (quote in linearQuoteCurrencies)
             inverse = not linear
             symbol = base + '/' + quote
+            baseQuote = base + quote
+            if baseQuote != id:
+                symbol = id
             lotSizeFilter = self.safe_value(market, 'lot_size_filter', {})
             priceFilter = self.safe_value(market, 'price_filter', {})
             precision = {

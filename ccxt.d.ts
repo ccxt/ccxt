@@ -456,6 +456,7 @@ declare module 'ccxt' {
     export class bitstamp extends Exchange {}
     export class bitstamp1 extends Exchange {}
     export class bittrex extends Exchange {}
+    export class bitvavo extends Exchange {}
     export class bitz extends Exchange {}
     export class bl3p extends Exchange {}
     export class bleutrade extends Exchange {}
@@ -488,6 +489,7 @@ declare module 'ccxt' {
     export class coolcoin extends coinegg {}
     export class coss extends Exchange {}
     export class crex24 extends Exchange {}
+    export class currencycom extends Exchange {}
     export class deribit extends Exchange {}
     export class digifinex extends Exchange {}
     export class dsx extends Exchange {}

@@ -23,6 +23,7 @@ class kucoin extends Exchange {
             'comment' => 'Platform 2.0',
             'has' => array(
                 'CORS' => false,
+                'fetchStatus' => true,
                 'fetchTime' => true,
                 'fetchMarkets' => true,
                 'fetchCurrencies' => true,
@@ -235,6 +236,7 @@ class kucoin extends Exchange {
                 'versions' => array(
                     'public' => array(
                         'GET' => array(
+                            'status' => 'v1',
                             'market/orderbook/level{level}' => 'v1',
                             'market/orderbook/level2' => 'v2',
                             'market/orderbook/level2_20' => 'v1',
@@ -256,8 +258,8 @@ class kucoin extends Exchange {
         return $this->milliseconds();
     }
 
-    public function load_time_difference() {
-        $response = $this->publicGetTimestamp ();
+    public function load_time_difference($params = array ()) {
+        $response = $this->publicGetTimestamp ($params);
         $after = $this->milliseconds();
         $kucoinTime = $this->safe_integer($response, 'data');
         $this->options['timeDifference'] = intval ($after - $kucoinTime);
@@ -274,6 +276,29 @@ class kucoin extends Exchange {
         //     }
         //
         return $this->safe_integer($response, 'data');
+    }
+
+    public function fetch_status($params = array ()) {
+        $response = $this->publicGetStatus ($params);
+        //
+        //     {
+        //         "code":"200000",
+        //         "$data":{
+        //             "msg":"",
+        //             "$status":"open"
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $status = $this->safe_value($data, 'status');
+        if ($status !== null) {
+            $status = ($status === 'open') ? 'ok' : 'maintenance';
+            $this->status = array_merge($this->status, array(
+                'status' => $status,
+                'updated' => $this->milliseconds(),
+            ));
+        }
+        return $this->status;
     }
 
     public function fetch_markets($params = array ()) {

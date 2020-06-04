@@ -227,6 +227,7 @@ class binance extends Exchange {
                         'balance',
                         'positionMargin/history',
                         'positionRisk',
+                        'positionSide/dual',
                         'userTrades',
                         'income',
                     ),
@@ -314,7 +315,7 @@ class binance extends Exchange {
                 'fetchTradesMethod' => 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
                 'fetchTickersMethod' => 'publicGetTicker24hr',
                 'defaultTimeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
-                'defaultType' => 'spot', // 'spot', 'future'
+                'defaultType' => 'spot', // 'spot', 'future', 'margin'
                 'hasAlreadyAuthenticatedSuccessfully' => false,
                 'warnOnFetchOpenOrdersWithoutSymbol' => true,
                 'recvWindow' => 5 * 1000, // 5 sec, binance default
@@ -364,8 +365,8 @@ class binance extends Exchange {
         return $this->safe_integer($response, 'serverTime');
     }
 
-    public function load_time_difference() {
-        $serverTime = $this->fetch_time();
+    public function load_time_difference($params = array ()) {
+        $serverTime = $this->fetch_time($params);
         $after = $this->milliseconds();
         $this->options['timeDifference'] = $after - $serverTime;
         return $this->options['timeDifference'];
@@ -473,7 +474,8 @@ class binance extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
-            $filters = $this->index_by($market['filters'], 'filterType');
+            $filters = $this->safe_value($market, 'filters', array());
+            $filtersByType = $this->index_by($filters, 'filterType');
             $precision = array(
                 'base' => $this->safe_integer($market, 'baseAssetPrecision'),
                 'quote' => $this->safe_integer($market, 'quotePrecision'),
@@ -513,8 +515,8 @@ class binance extends Exchange {
                     ),
                 ),
             );
-            if (is_array($filters) && array_key_exists('PRICE_FILTER', $filters)) {
-                $filter = $filters['PRICE_FILTER'];
+            if (is_array($filtersByType) && array_key_exists('PRICE_FILTER', $filtersByType)) {
+                $filter = $this->safe_value($filtersByType, 'PRICE_FILTER', array());
                 // PRICE_FILTER reports zero values for $maxPrice
                 // since they updated $filter types in November 2018
                 // https://github.com/ccxt/ccxt/issues/4286
@@ -529,8 +531,8 @@ class binance extends Exchange {
                 }
                 $entry['precision']['price'] = $this->precision_from_string($filter['tickSize']);
             }
-            if (is_array($filters) && array_key_exists('LOT_SIZE', $filters)) {
-                $filter = $this->safe_value($filters, 'LOT_SIZE', array());
+            if (is_array($filtersByType) && array_key_exists('LOT_SIZE', $filtersByType)) {
+                $filter = $this->safe_value($filtersByType, 'LOT_SIZE', array());
                 $stepSize = $this->safe_string($filter, 'stepSize');
                 $entry['precision']['amount'] = $this->precision_from_string($stepSize);
                 $entry['limits']['amount'] = array(
@@ -538,15 +540,16 @@ class binance extends Exchange {
                     'max' => $this->safe_float($filter, 'maxQty'),
                 );
             }
-            if (is_array($filters) && array_key_exists('MARKET_LOT_SIZE', $filters)) {
-                $filter = $this->safe_value($filters, 'MARKET_LOT_SIZE', array());
+            if (is_array($filtersByType) && array_key_exists('MARKET_LOT_SIZE', $filtersByType)) {
+                $filter = $this->safe_value($filtersByType, 'MARKET_LOT_SIZE', array());
                 $entry['limits']['market'] = array(
                     'min' => $this->safe_float($filter, 'minQty'),
                     'max' => $this->safe_float($filter, 'maxQty'),
                 );
             }
-            if (is_array($filters) && array_key_exists('MIN_NOTIONAL', $filters)) {
-                $entry['limits']['cost']['min'] = $this->safe_float($filters['MIN_NOTIONAL'], 'minNotional');
+            if (is_array($filtersByType) && array_key_exists('MIN_NOTIONAL', $filtersByType)) {
+                $filter = $this->safe_value($filtersByType, 'MIN_NOTIONAL', array());
+                $entry['limits']['cost']['min'] = $this->safe_float($filter, 'minNotional');
             }
             $result[] = $entry;
         }
@@ -2039,51 +2042,50 @@ class binance extends Exchange {
                 throw new InvalidOrder($this->id . ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use $this->price_to_precision(symbol, amount) ' . $body);
             }
         }
-        if (strlen($body) > 0) {
-            if ($body[0] === '{') {
-                // check $success value for wapi endpoints
-                // $response in format array('msg' => 'The coin does not exist.', 'success' => true/false)
-                $success = $this->safe_value($response, 'success', true);
-                if (!$success) {
-                    $message = $this->safe_string($response, 'msg');
+        if ($response === null) {
+            return; // fallback to default $error handler
+        }
+        // check $success value for wapi endpoints
+        // $response in format array('msg' => 'The coin does not exist.', 'success' => true/false)
+        $success = $this->safe_value($response, 'success', true);
+        if (!$success) {
+            $message = $this->safe_string($response, 'msg');
+            $parsedMessage = null;
+            if ($message !== null) {
+                try {
+                    $parsedMessage = json_decode($message, $as_associative_array = true);
+                } catch (Exception $e) {
+                    // do nothing
                     $parsedMessage = null;
-                    if ($message !== null) {
-                        try {
-                            $parsedMessage = json_decode($message, $as_associative_array = true);
-                        } catch (Exception $e) {
-                            // do nothing
-                            $parsedMessage = null;
-                        }
-                        if ($parsedMessage !== null) {
-                            $response = $parsedMessage;
-                        }
-                    }
                 }
-                $message = $this->safe_string($response, 'msg');
-                if ($message !== null) {
-                    $this->throw_exactly_matched_exception($this->exceptions, $message, $this->id . ' ' . $message);
-                }
-                // checks against $error codes
-                $error = $this->safe_string($response, 'code');
-                if ($error !== null) {
-                    // https://github.com/ccxt/ccxt/issues/6501
-                    if ($error === '200') {
-                        return;
-                    }
-                    // a workaround for array("$code":-2015,"msg":"Invalid API-key, IP, or permissions for action.")
-                    // despite that their $message is very confusing, it is raised by Binance
-                    // on a temporary ban, the API key is valid, but disabled for a while
-                    if (($error === '-2015') && $this->options['hasAlreadyAuthenticatedSuccessfully']) {
-                        throw new DDoSProtection($this->id . ' temporary banned => ' . $body);
-                    }
-                    $feedback = $this->id . ' ' . $body;
-                    $this->throw_exactly_matched_exception($this->exceptions, $error, $feedback);
-                    throw new ExchangeError($feedback);
-                }
-                if (!$success) {
-                    throw new ExchangeError($this->id . ' ' . $body);
+                if ($parsedMessage !== null) {
+                    $response = $parsedMessage;
                 }
             }
+        }
+        $message = $this->safe_string($response, 'msg');
+        if ($message !== null) {
+            $this->throw_exactly_matched_exception($this->exceptions, $message, $this->id . ' ' . $message);
+        }
+        // checks against $error codes
+        $error = $this->safe_string($response, 'code');
+        if ($error !== null) {
+            // https://github.com/ccxt/ccxt/issues/6501
+            if ($error === '200') {
+                return;
+            }
+            // a workaround for array("$code":-2015,"msg":"Invalid API-key, IP, or permissions for action.")
+            // despite that their $message is very confusing, it is raised by Binance
+            // on a temporary ban, the API key is valid, but disabled for a while
+            if (($error === '-2015') && $this->options['hasAlreadyAuthenticatedSuccessfully']) {
+                throw new DDoSProtection($this->id . ' temporary banned => ' . $body);
+            }
+            $feedback = $this->id . ' ' . $body;
+            $this->throw_exactly_matched_exception($this->exceptions, $error, $feedback);
+            throw new ExchangeError($feedback);
+        }
+        if (!$success) {
+            throw new ExchangeError($this->id . ' ' . $body);
         }
     }
 

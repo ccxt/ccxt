@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.28.78'
+__version__ = '1.29.17'
 
 # -----------------------------------------------------------------------------
 
@@ -77,6 +77,7 @@ from ccxt.async_support.bitso import bitso                                # noqa
 from ccxt.async_support.bitstamp import bitstamp                          # noqa: F401
 from ccxt.async_support.bitstamp1 import bitstamp1                        # noqa: F401
 from ccxt.async_support.bittrex import bittrex                            # noqa: F401
+from ccxt.async_support.bitvavo import bitvavo                            # noqa: F401
 from ccxt.async_support.bitz import bitz                                  # noqa: F401
 from ccxt.async_support.bl3p import bl3p                                  # noqa: F401
 from ccxt.async_support.bleutrade import bleutrade                        # noqa: F401
@@ -109,6 +110,7 @@ from ccxt.async_support.coinspot import coinspot                          # noqa
 from ccxt.async_support.coolcoin import coolcoin                          # noqa: F401
 from ccxt.async_support.coss import coss                                  # noqa: F401
 from ccxt.async_support.crex24 import crex24                              # noqa: F401
+from ccxt.async_support.currencycom import currencycom                    # noqa: F401
 from ccxt.async_support.deribit import deribit                            # noqa: F401
 from ccxt.async_support.digifinex import digifinex                        # noqa: F401
 from ccxt.async_support.dsx import dsx                                    # noqa: F401
@@ -201,6 +203,7 @@ exchanges = [
     'bitstamp',
     'bitstamp1',
     'bittrex',
+    'bitvavo',
     'bitz',
     'bl3p',
     'bleutrade',
@@ -233,6 +236,7 @@ exchanges = [
     'coolcoin',
     'coss',
     'crex24',
+    'currencycom',
     'deribit',
     'digifinex',
     'dsx',

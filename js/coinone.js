@@ -17,48 +17,20 @@ module.exports = class coinone extends Exchange {
             'rateLimit': 667,
             'version': 'v2',
             'has': {
-                // 'loadMarkets': true,         // true
-                // 'cancelAllOrders': false,
-                // 'cancelOrder': true,         // true
-                // 'cancelOrders': false,
                 'CORS': false,
-                // 'createDepositAddress': false,
-                // 'createLimitOrder': true,    // true
                 'createMarketOrder': false,
-                // 'createOrder': true,         // true
-                // 'deposit': false,
-                // 'editOrder': 'emulated',
-                'fetchBalance': true,
-                // 'fetchBidsAsks': false,
                 'fetchClosedOrders': true,  // good to be true, but an same order can have multiple occurrences in the list
                 'fetchCurrencies': false,
-                // 'fetchDepositAddress': false,
-                // 'fetchDeposits': false,
-                // 'fetchFundingFees': false,
-                // 'fetchL2OrderBook': true,    // true
-                // 'fetchLedger': false,
-                // 'fetchMarkets': true,        // true
-                // 'fetchMyTrades': false,      // good to be true
-                // 'fetchOHLCV': 'emulated',
+                'fetchMarkets': true,
+                // 'fetchMyTrades': false, // not implemented yet
                 'fetchOpenOrders': true,    // good to be true, but not sure enough to meet CCXT's semantic requirement
                 'fetchOrder': true,
-                // 'fetchOrderBook': true,      // true
+                'fetchOrderBook': true,
                 'fetchOrderBooks': false,
-                // 'fetchOrders': false,        // good to be true
-                // 'fetchOrderTrades': false,
-                // 'fetchStatus': 'emulated',
-                // 'fetchTicker': true,         // true
+                // 'fetchOrders': false, // not implemented yet
+                'fetchTicker': true,
                 'fetchTickers': true,
-                // 'fetchTime': false,
-                'fetchTrades': true,         // true
-                // 'fetchTradingFee': false,
-                // 'fetchTradingFees': false,
-                // 'fetchTradingLimits': false,
-                // 'fetchTransactions': false,
-                // 'fetchWithdrawals': false,
-                // 'privateAPI': true,
-                // 'publicAPI': true,
-                // 'withdraw': false,
+                'fetchTrades': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg',
@@ -129,22 +101,17 @@ module.exports = class coinone extends Exchange {
         const response = await this.publicGetTicker (request);
         const result = [];
         const quoteId = 'krw';
-        const quote = quoteId.toUpperCase ();
-        const currencyIds = Object.keys (response);
-        for (let i = 0; i < currencyIds.length; i++) {
-            const ticker = response[currencyIds[i]];
-            let id = this.safeString (ticker, 'currency');
-            if (id === undefined) {
-                continue;
-            }
-            id = id.toLowerCase ();
-            const base = id.toUpperCase ();
+        const quote = this.safeCurrencyCode (quoteId);
+        const baseIds = Object.keys (response);
+        for (let i = 0; i < baseIds.length; i++) {
+            const baseId = baseIds[i];
+            const base = this.safeCurrencyCode (baseId);
             result.push ({
-                'id': id,
+                'id': baseId,
                 'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
-                'baseId': id,
+                'baseId': baseId,
                 'quoteId': quoteId,
                 'active': true,
             });
@@ -235,10 +202,8 @@ module.exports = class coinone extends Exchange {
         let percentage = undefined;
         if (last !== undefined && previousClose !== undefined) {
             change = last - previousClose;
-            if (change !== 0) {
+            if (previousClose !== 0) {
                 percentage = change / previousClose * 100;
-            } else {
-                percentage = 0;
             }
         }
         const symbol = (market !== undefined) ? market['symbol'] : undefined;
