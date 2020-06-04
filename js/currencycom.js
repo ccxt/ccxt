@@ -46,7 +46,7 @@ module.exports = class currencycom extends Exchange {
                 '1w': '1w',
             },
             'urls': {
-                'logo': 'https://currency.com/img/platforms/logo-currency.png',
+                'logo': 'https://user-images.githubusercontent.com/1294454/83718672-36745c00-a63e-11ea-81a9-677b1f789a4d.jpg',
                 'api': {
                     'public': 'https://api-adapter.backend.currency.com/api',
                     'private': 'https://api-adapter.backend.currency.com/api',
