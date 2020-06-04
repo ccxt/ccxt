@@ -371,46 +371,9 @@ module.exports = class coinone extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        //
-        //     {
-        //         "index": "0",
-        //         "orderId": "68665943-1eb5-4e4b-9d76-845fc54f5489",
-        //         "timestamp": "1449037367",
-        //         "price": "444000.0",
-        //         "qty": "0.3456",
-        //         "type": "ask",
-        //         "feeRate": "-0.0015"
-        //     }
-        //
+        // [WARNING] This implementation is only for fetchOrder()
         const info = this.safeValue (order, 'info');
-        const id = this.safeStringUpper (info, 'orderId');
-        const timestamp = this.safeTimestamp (info, 'timestamp');
-        const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        let cost = undefined;
-        let side = this.safeString (info, 'type');
-        if (side.indexOf ('ask') >= 0) {
-            side = 'sell';
-        } else {
-            side = 'buy';
-        }
-        const price = this.safeFloat (info, 'price');
-        const amount = this.safeFloat (info, 'qty');
-        const remaining = this.safeFloat (info, 'remainQty');
-        let filled = undefined;
-        if (amount !== undefined) {
-            if (remaining !== undefined) {
-                filled = amount - remaining;
-            }
-            if (price !== undefined) {
-                cost = price * amount;
-            }
-        }
         const currency = this.safeString (info, 'currency');
-        const fee = {
-            'currency': currency,
-            'cost': this.safeFloat (info, 'fee'),
-            'rate': this.safeFloat (info, 'feeRate'),
-        };
         let symbol = undefined;
         if (market === undefined) {
             const marketId = currency.toLowerCase ();
@@ -421,25 +384,60 @@ module.exports = class coinone extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
+        const id = this.safeStringUpper (info, 'orderId');
+        const timestamp = this.safeTimestamp (info, 'timestamp');
+        let feeCurrency = undefined;
+        let side = this.safeString (info, 'type');
+        if (side.indexOf ('ask') >= 0) {
+            side = 'sell';
+            feeCurrency = market['quote'];
+        } else {
+            side = 'buy';
+            feeCurrency = market['base'];
+        }
+        const price = this.safeFloat (info, 'price');
+        let amount = this.safeFloat (info, 'qty');
+        let remaining = this.safeFloat (info, 'remainQty');
+        let filled = undefined;
+        let status = undefined;
+        const orderStatus = this.safeString (order, 'status');
+        if (orderStatus === 'live') {
+            status = 'open';
+            filled = 0;
+            if (amount > remaining) {
+                amount = remaining;
+                remaining = 0;
+            }
+        } else if (orderStatus === 'partially_filled') {
+            status = 'open';
+            filled = amount - remaining;
+        } else {    // 'filled'
+            status = 'closed';
+            filled = amount - remaining;
+        }
+        const cost = price * filled;
         return {
-            'info': order,
             'id': id,
             'clientOrderId': undefined,
-            'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
+            'status': status,
             'symbol': symbol,
             'type': 'limit',
             'side': side,
             'price': price,
-            'cost': cost,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
-            'status': status,
-            'fee': fee,
-            'average': undefined,
+            'cost': cost,
             'trades': undefined,
+            'fee': {
+                'currency': feeCurrency,
+                'cost': this.safeFloat (info, 'fee'),
+                'rate': this.safeFloat (info, 'feeRate'),
+            },
+            'info': order,
         };
     }
 
