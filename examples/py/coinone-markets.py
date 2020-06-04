@@ -10,7 +10,8 @@ sys.path.append(root + '/python')
 import ccxt  # noqa: E402
 
 exchange = ccxt.coinone({
-    'verbose': True,  # switch it to False if you don't want the HTTP log
+    'enableRateLimit': true,
+    # 'verbose': True,  # uncomment for verbose output
 })
 
 markets = exchange.load_markets()
