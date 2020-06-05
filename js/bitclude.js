@@ -253,6 +253,44 @@ module.exports = class bitclude extends Exchange {
         return this.parseBalance (result);
     }
 
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (type === 'limit') {
+            const request = {
+                'method': 'transactions',
+                'action': side, // "buy" or "sell"
+                'market1': market['baseId'],
+                'market2': market['quoteId'],
+                'amount': this.numberToString (amount), // amount in base currency todo check
+                'rate': this.numberToString (price), // todo check
+            };
+            const response = await this.privateGet (this.extend (request, params));
+            const order = this.safeValue (response, 'actions');
+            const orderId = this.safeString (order, 'order');
+            const timestamp = this.milliseconds ();
+            return {
+                'id': orderId,
+                'clientOrderId': undefined,
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'lastTradeTimestamp': undefined,
+                'status': undefined, // todo idk maybe open
+                'symbol': market['symbol'],
+                'type': type,
+                'side': side,
+                'price': price,
+                'amount': amount,
+                'filled': undefined,
+                'remaining': undefined,
+                'cost': undefined,
+                'fee': undefined,
+                'trades': undefined,
+                'info': response,
+            };
+        }
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const request = '/' + this.implodeParams (path, params);
         let url = this.urls['api'][api] + request;
