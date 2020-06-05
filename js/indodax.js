@@ -162,7 +162,6 @@ module.exports = class indodax extends Exchange {
                 'timeDifference': 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
             },
-
         });
     }
 
@@ -556,6 +555,7 @@ module.exports = class indodax extends Exchange {
             body = this.urlencode (this.extend ({
                 'method': path,
                 'timestamp': this.nonce (),
+                'recvWindow': this.options['recvWindow'],
             }, params));
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
