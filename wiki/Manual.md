@@ -1429,7 +1429,7 @@ if ($exchange->has['fetchMyTrades']) {
 
 The user supplies a page number or an *initial "cursor"* value. The exchange returns a page of results and the *next "cursor"* value, to proceed from. Most of exchanges that implement this type of pagination will either return the next cursor within the response itself or will return the next cursor values within HTTP response headers.
 
-See an example implementation here: https://github.com/ccxt/ccxt/blob/master/examples/py/gdax-fetch-my-trades-pagination.py
+See an example implementation here: https://github.com/ccxt/ccxt/blob/master/examples/py/coinbasepro-fetch-my-trades-pagination.py
 
 Upon each iteration of the loop the user has to take the next cursor and put it into the overrided params for the next query (on the following iteration):
 
