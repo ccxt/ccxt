@@ -926,7 +926,7 @@ class ftx extends Exchange {
         );
         $clientOrderId = $this->safe_string_2($params, 'clientId', 'clientOrderId');
         if ($clientOrderId !== null) {
-            $params['clientId'] = $clientOrderId;
+            $request['clientId'] = $clientOrderId;
             $params = $this->omit($params, array( 'clientId', 'clientOrderId' ));
         }
         $priceToPrecision = null;
