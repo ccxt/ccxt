@@ -890,7 +890,7 @@ class ftx(Exchange):
         }
         clientOrderId = self.safe_string_2(params, 'clientId', 'clientOrderId')
         if clientOrderId is not None:
-            params['clientId'] = clientOrderId
+            request['clientId'] = clientOrderId
             params = self.omit(params, ['clientId', 'clientOrderId'])
         priceToPrecision = None
         if price is not None:
