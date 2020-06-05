@@ -102,6 +102,7 @@ class ftx(Exchange):
                         'lt/redemptions',
                         'subaccounts',
                         'subaccounts/{nickname}/balances',
+                        'otc/quotes/{quoteId}',
                     ],
                     'post': [
                         'account/leverage',
@@ -113,6 +114,8 @@ class ftx(Exchange):
                         'subaccounts',
                         'subaccounts/update_name',
                         'subaccounts/transfer',
+                        'otc/quotes/{quote_id}/accept',
+                        'otc/quotes',
                     ],
                     'delete': [
                         'orders/{order_id}',

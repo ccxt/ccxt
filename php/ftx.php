@@ -98,6 +98,7 @@ class ftx extends Exchange {
                         'lt/redemptions',
                         'subaccounts',
                         'subaccounts/{nickname}/balances',
+                        'otc/quotes/{quoteId}',
                     ),
                     'post' => array(
                         'account/leverage',
@@ -109,6 +110,8 @@ class ftx extends Exchange {
                         'subaccounts',
                         'subaccounts/update_name',
                         'subaccounts/transfer',
+                        'otc/quotes/{quote_id}/accept',
+                        'otc/quotes',
                     ),
                     'delete' => array(
                         'orders/{order_id}',
