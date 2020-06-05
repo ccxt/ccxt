@@ -95,6 +95,7 @@ class mercado(Exchange):
                 'BCH/BRL': {'id': 'BRLBCH', 'symbol': 'BCH/BRL', 'base': 'BCH', 'quote': 'BRL', 'precision': {'amount': 8, 'price': 5}, 'suffix': 'BCash'},
                 'XRP/BRL': {'id': 'BRLXRP', 'symbol': 'XRP/BRL', 'base': 'XRP', 'quote': 'BRL', 'precision': {'amount': 8, 'price': 5}, 'suffix': 'Ripple'},
                 'ETH/BRL': {'id': 'BRLETH', 'symbol': 'ETH/BRL', 'base': 'ETH', 'quote': 'BRL', 'precision': {'amount': 8, 'price': 5}, 'suffix': 'Ethereum'},
+                'USDC/BRL': {'id': 'BRLUSDC', 'symbol': 'USDC/BRL', 'base': 'USDC', 'quote': 'BRL', 'precision': {'amount': 8, 'price': 5}, 'suffix': 'USDC'},
             },
             'fees': {
                 'trading': {

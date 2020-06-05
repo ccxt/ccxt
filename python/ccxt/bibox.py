@@ -19,6 +19,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -125,6 +126,7 @@ class bibox(Exchange):
                 '2068': InvalidOrder,  # The number of orders can not be less than
                 '2085': InvalidOrder,  # Order quantity is too small
                 '3012': AuthenticationError,  # invalid apiKey
+                '3016': BadSymbol,  # Trading pair error
                 '3024': PermissionDenied,  # wrong apikey permissions
                 '3025': AuthenticationError,  # signature failed
                 '4000': ExchangeNotAvailable,  # current network is unstable
