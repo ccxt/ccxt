@@ -96,6 +96,7 @@ module.exports = class ftx extends Exchange {
                         'lt/redemptions',
                         'subaccounts',
                         'subaccounts/{nickname}/balances',
+                        'otc/quotes/{quoteId}',
                     ],
                     'post': [
                         'account/leverage',
@@ -107,6 +108,8 @@ module.exports = class ftx extends Exchange {
                         'subaccounts',
                         'subaccounts/update_name',
                         'subaccounts/transfer',
+                        'otc/quotes/{quote_id}/accept',
+                        'otc/quotes',
                     ],
                     'delete': [
                         'orders/{order_id}',
@@ -514,12 +517,29 @@ module.exports = class ftx extends Exchange {
         ];
     }
 
+    getMarketId (symbol, key, params = {}) {
+        const parts = this.getMarketParams (symbol, key, params);
+        return this.safeString (parts, 1, symbol);
+    }
+
+    getMarketParams (symbol, key, params = {}) {
+        let market = undefined;
+        let marketId = undefined;
+        if (symbol in this.markets) {
+            market = this.market (symbol);
+            marketId = market['id'];
+        } else {
+            marketId = this.safeString (params, key, symbol);
+        }
+        return [ market, marketId ];
+    }
+
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const [ market, marketId ] = this.getMarketParams (symbol, 'market_name', params);
         const request = {
-            'market_name': market['id'],
             'resolution': this.timeframes[timeframe],
+            'market_name': marketId,
         };
         // max 1501 candles, including the current candle when since is not specified
         limit = (limit === undefined) ? 1501 : limit;
@@ -655,9 +675,9 @@ module.exports = class ftx extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const [ market, marketId ] = this.getMarketParams (symbol, 'market_name', params);
         const request = {
-            'market_name': market['id'],
+            'market_name': marketId,
         };
         if (since !== undefined) {
             request['start_time'] = parseInt (since / 1000);
@@ -905,6 +925,11 @@ module.exports = class ftx extends Exchange {
             // 'postOnly': false, // optional, default is false, limit or market orders only
             // 'clientId': 'abcdef0123456789', // string, optional, client order id, limit or market orders only
         };
+        const clientOrderId = this.safeString2 (params, 'clientId', 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['clientId'] = clientOrderId;
+            params = this.omit (params, [ 'clientId', 'clientOrderId' ]);
+        }
         let priceToPrecision = undefined;
         if (price !== undefined) {
             priceToPrecision = parseFloat (this.priceToPrecision (symbol, price));
@@ -991,10 +1016,17 @@ module.exports = class ftx extends Exchange {
         const defaultMethod = this.safeString (options, 'method', 'privateDeleteOrdersOrderId');
         let method = this.safeString (params, 'method', defaultMethod);
         const type = this.safeValue (params, 'type');
-        if ((type === 'stop') || (type === 'trailingStop') || (type === 'takeProfit')) {
-            method = 'privateDeleteConditionalOrdersOrderId';
+        const clientOrderId = this.safeValue2 (params, 'client_order_id', 'clientOrderId');
+        if (clientOrderId === undefined) {
+            request['order_id'] = parseInt (id);
+            if ((type === 'stop') || (type === 'trailingStop') || (type === 'takeProfit')) {
+                method = 'privateDeleteConditionalOrdersOrderId';
+            }
+        } else {
+            request['client_order_id'] = clientOrderId;
+            method = 'privateDeleteOrdersByClientIdClientOrderId';
         }
-        const query = this.omit (params, [ 'method', 'type' ]);
+        const query = this.omit (params, [ 'method', 'type', 'client_order_id', 'clientOrderId' ]);
         const response = await this[method] (this.extend (request, query));
         //
         //     {
@@ -1013,10 +1045,9 @@ module.exports = class ftx extends Exchange {
             'conditionalOrdersOnly': false, // cancel conditional orders only
             'limitOrdersOnly': false, // cancel existing limit orders (non-conditional orders) only
         };
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['market'] = market['id'];
+        const marketId = this.getMarketId (symbol, 'market', params);
+        if (marketId !== undefined) {
+            request['market'] = marketId;
         }
         const response = await this.privateDeleteOrders (this.extend (request, params));
         const result = this.safeValue (response, 'result', {});
@@ -1031,10 +1062,17 @@ module.exports = class ftx extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {
-            'order_id': id,
-        };
-        const response = await this.privateGetOrdersOrderId (this.extend (request, params));
+        const request = {};
+        const clientOrderId = this.safeValue2 (params, 'client_order_id', 'clientOrderId');
+        let method = 'privateGetOrdersOrderId';
+        if (clientOrderId === undefined) {
+            request['order_id'] = id;
+        } else {
+            request['client_order_id'] = clientOrderId;
+            params = this.omit (params, [ 'client_order_id', 'clientOrderId']);
+            method = 'privateGetOrdersByClientIdClientOrderId';
+        }
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -1065,10 +1103,9 @@ module.exports = class ftx extends Exchange {
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['market'] = market['id'];
+        const [ market, marketId ] = this.getMarketParams (symbol, 'market', params);
+        if (marketId !== undefined) {
+            request['market'] = marketId;
         }
         // support for canceling conditional orders
         // https://github.com/ccxt/ccxt/issues/6669
@@ -1113,10 +1150,9 @@ module.exports = class ftx extends Exchange {
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['market'] = market['id'];
+        const [ market, marketId ] = this.getMarketParams (symbol, 'market', params);
+        if (marketId !== undefined) {
+            request['market'] = marketId;
         }
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
@@ -1166,10 +1202,11 @@ module.exports = class ftx extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'market': market['id'],
-        };
+        const [ market, marketId ] = this.getMarketParams (symbol, 'market', params);
+        const request = {};
+        if (marketId !== undefined) {
+            request['market'] = marketId;
+        }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
@@ -1215,6 +1252,9 @@ module.exports = class ftx extends Exchange {
             // 'password': 'string', // optional withdrawal password if it is required for your account
             // 'code': '192837', // optional 2fa code if it is required for your account
         };
+        if (this.password !== undefined) {
+            request['password'] = this.password;
+        }
         if (tag !== undefined) {
             request['tag'] = tag;
         }
@@ -1316,6 +1356,7 @@ module.exports = class ftx extends Exchange {
         const address = this.safeString (transaction, 'address');
         const tag = this.safeString (transaction, 'tag');
         const fee = this.safeFloat (transaction, 'fee');
+        const type = ('confirmations' in transaction) ? 'deposit' : 'withdrawal';
         return {
             'info': transaction,
             'id': id,
@@ -1323,12 +1364,12 @@ module.exports = class ftx extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'addressFrom': undefined,
-            'address': undefined,
+            'address': address,
             'addressTo': address,
             'tagFrom': undefined,
             'tag': tag,
-            'tagTo': undefined,
-            'type': undefined,
+            'tagTo': tag,
+            'type': type,
             'amount': amount,
             'currency': code,
             'status': status,

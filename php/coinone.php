@@ -18,13 +18,24 @@ class coinone extends Exchange {
             'id' => 'coinone',
             'name' => 'CoinOne',
             'countries' => array( 'KR' ), // Korea
+            // 'enableRateLimit' => false,
             'rateLimit' => 667,
             'version' => 'v2',
             'has' => array(
                 'CORS' => false,
                 'createMarketOrder' => false,
-                'fetchTickers' => true,
+                // 'fetchClosedOrders' => false, // not implemented yet
+                'fetchCurrencies' => false,
+                'fetchMarkets' => true,
+                // 'fetchMyTrades' => false, // not implemented yet
+                // 'fetchOpenOrders' => false, // not implemented yet
                 'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchOrderBooks' => false,
+                // 'fetchOrders' => false, // not implemented yet
+                'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTrades' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg',
@@ -66,57 +77,18 @@ class coinone extends Exchange {
                     ),
                 ),
             ),
-            'markets' => array(
-                'BCH/KRW' => array( 'id' => 'bch', 'symbol' => 'BCH/KRW', 'base' => 'BCH', 'quote' => 'KRW', 'baseId' => 'bch', 'quoteId' => 'krw' ),
-                'BTC/KRW' => array( 'id' => 'btc', 'symbol' => 'BTC/KRW', 'base' => 'BTC', 'quote' => 'KRW', 'baseId' => 'btc', 'quoteId' => 'krw' ),
-                'BTG/KRW' => array( 'id' => 'btg', 'symbol' => 'BTG/KRW', 'base' => 'BTG', 'quote' => 'KRW', 'baseId' => 'btg', 'quoteId' => 'krw' ),
-                'ETC/KRW' => array( 'id' => 'etc', 'symbol' => 'ETC/KRW', 'base' => 'ETC', 'quote' => 'KRW', 'baseId' => 'etc', 'quoteId' => 'krw' ),
-                'ETH/KRW' => array( 'id' => 'eth', 'symbol' => 'ETH/KRW', 'base' => 'ETH', 'quote' => 'KRW', 'baseId' => 'eth', 'quoteId' => 'krw' ),
-                'IOTA/KRW' => array( 'id' => 'iota', 'symbol' => 'IOTA/KRW', 'base' => 'IOTA', 'quote' => 'KRW', 'baseId' => 'iota', 'quoteId' => 'krw' ),
-                'LTC/KRW' => array( 'id' => 'ltc', 'symbol' => 'LTC/KRW', 'base' => 'LTC', 'quote' => 'KRW', 'baseId' => 'ltc', 'quoteId' => 'krw' ),
-                'OMG/KRW' => array( 'id' => 'omg', 'symbol' => 'OMG/KRW', 'base' => 'OMG', 'quote' => 'KRW', 'baseId' => 'omg', 'quoteId' => 'krw' ),
-                'QTUM/KRW' => array( 'id' => 'qtum', 'symbol' => 'QTUM/KRW', 'base' => 'QTUM', 'quote' => 'KRW', 'baseId' => 'qtum', 'quoteId' => 'krw' ),
-                'XRP/KRW' => array( 'id' => 'xrp', 'symbol' => 'XRP/KRW', 'base' => 'XRP', 'quote' => 'KRW', 'baseId' => 'xrp', 'quoteId' => 'krw' ),
-                'EOS/KRW' => array( 'id' => 'eos', 'symbol' => 'EOS/KRW', 'base' => 'EOS', 'quote' => 'KRW', 'baseId' => 'eos', 'quoteId' => 'krw' ),
-                'DATA/KRW' => array( 'id' => 'data', 'symbol' => 'DATA/KRW', 'base' => 'DATA', 'quote' => 'KRW', 'baseId' => 'data', 'quoteId' => 'krw' ),
-                'ZIL/KRW' => array( 'id' => 'zil', 'symbol' => 'ZIL/KRW', 'base' => 'ZIL', 'quote' => 'KRW', 'baseId' => 'zil', 'quoteId' => 'krw' ),
-                'KNC/KRW' => array( 'id' => 'knc', 'symbol' => 'KNC/KRW', 'base' => 'KNC', 'quote' => 'KRW', 'baseId' => 'knc', 'quoteId' => 'krw' ),
-                'ZRX/KRW' => array( 'id' => 'zrx', 'symbol' => 'ZRX/KRW', 'base' => 'ZRX', 'quote' => 'KRW', 'baseId' => 'zrx', 'quoteId' => 'krw' ),
-                'LUNA/KRW' => array( 'id' => 'luna', 'symbol' => 'LUNA/KRW', 'base' => 'LUNA', 'quote' => 'KRW', 'baseId' => 'luna', 'quoteId' => 'krw' ),
-                'ATOM/KRW' => array( 'id' => 'atom', 'symbol' => 'ATOM/KRW', 'base' => 'ATOM', 'quote' => 'KRW', 'baseId' => 'atom', 'quoteId' => 'krw' ),
-                'VNT/KRW' => array( 'id' => 'vnt', 'symbol' => 'VNT/KRW', 'base' => 'VNT', 'quote' => 'KRW', 'baseId' => 'vnt', 'quoteId' => 'krw' ),
-            ),
             'fees' => array(
                 'trading' => array(
-                    'tierBased' => true,
+                    'tierBased' => false,
                     'percentage' => true,
-                    'taker' => 0.001,
-                    'maker' => 0.001,
-                    'tiers' => array(
-                        'taker' => [
-                            [0, 0.001],
-                            [100000000, 0.0009],
-                            [1000000000, 0.0008],
-                            [5000000000, 0.0007],
-                            [10000000000, 0.0006],
-                            [20000000000, 0.0005],
-                            [30000000000, 0.0004],
-                            [40000000000, 0.0003],
-                            [50000000000, 0.0002],
-                        ],
-                        'maker' => [
-                            [0, 0.001],
-                            [100000000, 0.0008],
-                            [1000000000, 0.0006],
-                            [5000000000, 0.0004],
-                            [10000000000, 0.0002],
-                            [20000000000, 0],
-                            [30000000000, 0],
-                            [40000000000, 0],
-                            [50000000000, 0],
-                        ],
-                    ),
+                    'taker' => 0.002,
+                    'maker' => 0.002,
                 ),
+            ),
+            'precision' => array(
+                'price' => 4,
+                'amount' => 4,
+                'cost' => 8,
             ),
             'exceptions' => array(
                 '405' => '\\ccxt\\OnMaintenance', // array("errorCode":"405","status":"maintenance","result":"error")
@@ -125,6 +97,36 @@ class coinone extends Exchange {
                 '107' => '\\ccxt\\BadRequest', // array("errorCode":"107","errorMsg":"Parameter error","result":"error")
             ),
         ));
+    }
+
+    public function fetch_markets($params = array ()) {
+        $request = array(
+            'currency' => 'all',
+        );
+        $response = $this->publicGetTicker ($request);
+        $result = array();
+        $quoteId = 'krw';
+        $quote = $this->safe_currency_code($quoteId);
+        $baseIds = is_array($response) ? array_keys($response) : array();
+        for ($i = 0; $i < count($baseIds); $i++) {
+            $baseId = $baseIds[$i];
+            $ticker = $this->safe_value($response, $baseId, array());
+            $currency = $this->safe_value($ticker, 'currency');
+            if ($currency === null) {
+                continue;
+            }
+            $base = $this->safe_currency_code($baseId);
+            $result[] = array(
+                'id' => $baseId,
+                'symbol' => $base . '/' . $quote,
+                'base' => $base,
+                'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
+                'active' => true,
+            );
+        }
+        return $result;
     }
 
     public function fetch_balance($params = array ()) {
@@ -157,7 +159,8 @@ class coinone extends Exchange {
             'format' => 'json',
         );
         $response = $this->publicGetOrderbook (array_merge($request, $params));
-        return $this->parse_order_book($response, null, 'bid', 'ask', 'price', 'qty');
+        $timestamp = $this->safe_timestamp($response, 'timestamp');
+        return $this->parse_order_book($response, $timestamp, 'bid', 'ask', 'price', 'qty');
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -169,6 +172,7 @@ class coinone extends Exchange {
         $response = $this->publicGetTicker (array_merge($request, $params));
         $result = array();
         $ids = is_array($response) ? array_keys($response) : array();
+        $timestamp = $this->safe_timestamp($response, 'timestamp');
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
             $symbol = $id;
@@ -178,6 +182,7 @@ class coinone extends Exchange {
                 $symbol = $market['symbol'];
                 $ticker = $response[$id];
                 $result[$symbol] = $this->parse_ticker($ticker, $market);
+                $result[$symbol]['timestamp'] = $timestamp;
             }
         }
         return $result;
@@ -195,12 +200,21 @@ class coinone extends Exchange {
     }
 
     public function parse_ticker($ticker, $market = null) {
-        $timestamp = $this->milliseconds();
+        $timestamp = $this->safe_timestamp($ticker, 'timestamp');
+        $first = $this->safe_float($ticker, 'first');
         $last = $this->safe_float($ticker, 'last');
+        $average = null;
+        if ($first !== null && $last !== null) {
+            $average = $this->sum($first, $last) / 2;
+        }
         $previousClose = $this->safe_float($ticker, 'yesterday_last');
         $change = null;
+        $percentage = null;
         if ($last !== null && $previousClose !== null) {
-            $change = $previousClose - $last;
+            $change = $last - $previousClose;
+            if ($previousClose !== 0) {
+                $percentage = $change / $previousClose * 100;
+            }
         }
         $symbol = ($market !== null) ? $market['symbol'] : null;
         return array(
@@ -214,13 +228,13 @@ class coinone extends Exchange {
             'ask' => null,
             'askVolume' => null,
             'vwap' => null,
-            'open' => $this->safe_float($ticker, 'first'),
+            'open' => $first,
             'close' => $last,
             'last' => $last,
             'previousClose' => $previousClose,
             'change' => $change,
-            'percentage' => null,
-            'average' => null,
+            'percentage' => $percentage,
+            'average' => $average,
             'baseVolume' => $this->safe_float($ticker, 'volume'),
             'quoteVolume' => null,
             'info' => $ticker,
@@ -246,7 +260,7 @@ class coinone extends Exchange {
             }
         }
         return array(
-            'id' => null,
+            'id' => $this->safe_string($trade, 'id'),
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -267,7 +281,6 @@ class coinone extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'currency' => $market['id'],
-            'period' => 'hour',
             'format' => 'json',
         );
         $response = $this->publicGetTrades (array_merge($request, $params));

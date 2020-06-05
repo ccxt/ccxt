@@ -35,7 +35,7 @@ use kornrunner\Solidity;
 use Elliptic\EC;
 use BN\BN;
 
-$version = '1.27.89';
+$version = '1.29.27';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -54,7 +54,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.27.89';
+    const VERSION = '1.29.27';
 
     public static $exchanges = array(
         '_1btcxe',
@@ -84,6 +84,7 @@ class Exchange {
         'bitstamp',
         'bitstamp1',
         'bittrex',
+        'bitvavo',
         'bitz',
         'bl3p',
         'bleutrade',
@@ -116,6 +117,7 @@ class Exchange {
         'coolcoin',
         'coss',
         'crex24',
+        'currencycom',
         'deribit',
         'digifinex',
         'dsx',
@@ -159,6 +161,7 @@ class Exchange {
         'paymium',
         'poloniex',
         'probit',
+        'qtrade',
         'rightbtc',
         'southxchange',
         'stex',
@@ -677,12 +680,12 @@ class Exchange {
         }
         return $time;
     }
-    
-    public static function rfc2616($timestamp) {	
-        if (!$timestamp) {	
-            $timestamp = $this->milliseconds();	
-        }	
-        return gmdate('D, d M Y H:i:s T', (int) round($timestamp / 1000));	
+
+    public static function rfc2616($timestamp) {
+        if (!$timestamp) {
+            $timestamp = $this->milliseconds();
+        }
+        return gmdate('D, d M Y H:i:s T', (int) round($timestamp / 1000));
     }
 
     public static function dmy($timestamp, $infix = '-') {
@@ -860,6 +863,7 @@ class Exchange {
         $this->fees = array('trading' => array(), 'funding' => array());
         $this->precision = array();
         $this->orders = array();
+        $this->myTrades = null;
         $this->trades = array();
         $this->transactions = array();
         $this->ohlcvs = array();
@@ -1757,7 +1761,6 @@ class Exchange {
 
     public function filter_by_since_limit($array, $since = null, $limit = null, $key = 'timestamp', $tail = false) {
         $result = array();
-        $array = array_values($array);
         $since_is_set = isset($since);
         if ($since_is_set) {
             foreach ($array as $entry) {
@@ -1882,19 +1885,18 @@ class Exchange {
     }
 
     public function filter_by_value_since_limit($array, $field, $value = null, $since = null, $limit = null, $key = 'timestamp', $tail = false) {
-        $array = array_values($array);
         $valueIsSet = isset($value);
         $sinceIsSet = isset($since);
-        $array = array_filter($array, function ($element) use ($valueIsSet, $value, $sinceIsSet, $since, $field, $key) {
-            return ($valueIsSet ? ($element[$field] === $value) : true) &&
-                    ($sinceIsSet ? ($element[$key] >= $since) : true);
-        });
-        if (isset($limit)) {
-            return ($tail && !$sinceIsSet) ?
-                array_slice($array, -$limit) :
-                array_slice($array, 0, $limit);
+        $result = array();
+        foreach ($array as $k => $v) {
+            if (($valueIsSet ? ($v[$field] === $value) : true) && ($sinceIsSet ? ($v[$key] >= $since) : true)) {
+                $result[] = $v;
+            }
         }
-        return $array;
+        if (isset($limit)) {
+            return ($tail && !$sinceIsSet) ? array_slice($result, -$limit) : array_slice($result, 0, $limit);
+        }
+        return $result;
     }
 
     public function filter_by_symbol_since_limit($array, $symbol = null, $since = null, $limit = null) {

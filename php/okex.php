@@ -440,7 +440,7 @@ class okex extends Exchange {
                     '33005' => '\\ccxt\\ExchangeError', // array( "code" => 33005, "message" => "repayment amount must exceed 0" )
                     '33006' => '\\ccxt\\ExchangeError', // array( "code" => 33006, "message" => "loan order not found" )
                     '33007' => '\\ccxt\\ExchangeError', // array( "code" => 33007, "message" => "status not found" )
-                    '33008' => '\\ccxt\\ExchangeError', // array( "code" => 33008, "message" => "loan amount cannot exceed the maximum limit" )
+                    '33008' => '\\ccxt\\InsufficientFunds', // array( "code" => 33008, "message" => "loan amount cannot exceed the maximum limit" )
                     '33009' => '\\ccxt\\ExchangeError', // array( "code" => 33009, "message" => "user ID is blank" )
                     '33010' => '\\ccxt\\ExchangeError', // array( "code" => 33010, "message" => "you cannot cancel an order during session 2 of call auction" )
                     '33011' => '\\ccxt\\ExchangeError', // array( "code" => 33011, "message" => "no new market data" )
@@ -1796,6 +1796,11 @@ class okex extends Exchange {
             // 'client_oid' => 'abcdef1234567890', // [a-z0-9]array(1,32)
             // 'order_type' => '0', // 0 => Normal limit order (Unfilled and 0 represent normal limit order) 1 => Post only 2 => Fill Or Kill 3 => Immediatel Or Cancel
         );
+        $clientOrderId = $this->safe_string_2($params, 'client_oid', 'clientOrderId');
+        if ($clientOrderId !== null) {
+            $request['client_oid'] = $clientOrderId;
+            $params = $this->omit($params, array( 'client_oid', 'clientOrderId' ));
+        }
         $method = null;
         if ($market['futures'] || $market['swap']) {
             $size = $market['futures'] ? $this->number_to_string($amount) : $this->amount_to_precision($symbol, $amount);
@@ -1862,7 +1867,11 @@ class okex extends Exchange {
         }
         $this->load_markets();
         $market = $this->market($symbol);
-        $type = $market['type'];
+        $defaultType = $this->safe_string_2($this->options, 'cancelOrder', 'defaultType', $market['type']);
+        $type = $this->safe_string($params, 'type', $defaultType);
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . " cancelOrder requires a $type parameter (one of 'spot', 'margin', 'futures', 'swap').");
+        }
         $method = $type . 'PostCancelOrder';
         $request = array(
             'instrument_id' => $market['id'],
@@ -1872,15 +1881,15 @@ class okex extends Exchange {
         } else {
             $method .= 's';
         }
-        $clientOid = $this->safe_string($params, 'client_oid');
-        if ($clientOid !== null) {
+        $clientOrderId = $this->safe_string_2($params, 'client_oid', 'clientOrderId');
+        if ($clientOrderId !== null) {
             $method .= 'ClientOid';
-            $request['client_oid'] = $clientOid;
+            $request['client_oid'] = $clientOrderId;
         } else {
             $method .= 'OrderId';
             $request['order_id'] = $id;
         }
-        $query = $this->omit($params, 'type');
+        $query = $this->omit($params, array( 'type', 'client_oid', 'clientOrderId' ));
         $response = $this->$method (array_merge($request, $query));
         $result = (is_array($response) && array_key_exists('result', $response)) ? $response : $this->safe_value($response, $market['id'], array());
         //
@@ -2164,7 +2173,11 @@ class okex extends Exchange {
         }
         $this->load_markets();
         $market = $this->market($symbol);
-        $type = $market['type'];
+        $defaultType = $this->safe_string_2($this->options, 'fetchOrder', 'defaultType', $market['type']);
+        $type = $this->safe_string($params, 'type', $defaultType);
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . " fetchOrder requires a $type parameter (one of 'spot', 'margin', 'futures', 'swap').");
+        }
         $request = array(
             'instrument_id' => $market['id'],
             // '-2' => failed,
@@ -2712,8 +2725,8 @@ class okex extends Exchange {
         $request = array(
             'instrument_id' => $market['id'],
             // 'order_id' => id, // string
-            // 'after' => '1', // return the page after the specified page number
-            // 'before' => '1', // return the page before the specified page number
+            // 'after' => '1', // pagination of data to return records earlier than the requested ledger_id
+            // 'before' => '1', // P=pagination of data to return records newer than the requested ledger_id
             // 'limit' => $limit, // optional, number of results per $request, default = maximum = 100
         );
         $defaultType = $this->safe_string_2($this->options, 'fetchMyTrades', 'defaultType');

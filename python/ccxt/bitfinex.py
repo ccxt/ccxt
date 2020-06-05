@@ -508,7 +508,7 @@ class bitfinex(Exchange):
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
-                'price': market['price_precision'],
+                'price': self.safe_integer(market, 'price_precision'),
                 'amount': None,
             }
             limits = {
@@ -918,16 +918,20 @@ class bitfinex(Exchange):
         }
 
     def fetch_transactions(self, code=None, since=None, limit=None, params={}):
-        if code is None:
-            raise ArgumentsRequired(self.id + ' fetchTransactions() requires a currency `code` argument')
         self.load_markets()
-        currency = self.currency(code)
-        request = {
-            'currency': currency['id'],
-        }
+        currencyId = self.safe_string(params, 'currency')
+        query = self.omit(params, 'currency')
+        currency = None
+        if currencyId is None:
+            if code is None:
+                raise ArgumentsRequired(self.id + ' fetchTransactions() requires a currency `code` argument or a `currency` parameter')
+            else:
+                currency = self.currency(code)
+                currencyId = currency['id']
+        query['currency'] = currencyId
         if since is not None:
-            request['since'] = int(since / 1000)
-        response = self.privatePostHistoryMovements(self.extend(request, params))
+            query['since'] = int(since / 1000)
+        response = self.privatePostHistoryMovements(self.extend(query, params))
         #
         #     [
         #         {

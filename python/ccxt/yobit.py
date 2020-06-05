@@ -160,6 +160,7 @@ class yobit(Exchange):
                 'REP': 'Republicoin',
                 'RUR': 'RUB',
                 'TTC': 'TittieCoin',
+                'VOL': 'VolumeCoin',
                 'XIN': 'XINCoin',
             },
             'options': {

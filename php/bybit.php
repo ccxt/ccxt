@@ -63,7 +63,7 @@ class bybit extends Exchange {
                 'test' => 'https://api-testnet.bybit.com',
                 'logo' => 'https://user-images.githubusercontent.com/51840849/76547799-daff5b80-649e-11ea-87fb-3be9bac08954.jpg',
                 'api' => 'https://api.bybit.com',
-                'www' => 'https://www.bybit.com/',
+                'www' => 'https://www.bybit.com',
                 'doc' => array(
                     'https://bybit-exchange.github.io/docs/inverse/',
                     'https://bybit-exchange.github.io/docs/linear/',
@@ -301,8 +301,8 @@ class bybit extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function load_time_difference() {
-        $serverTime = $this->fetch_time();
+    public function load_time_difference($params = array ()) {
+        $serverTime = $this->fetch_time($params);
         $after = $this->milliseconds();
         $this->options['timeDifference'] = $after - $serverTime;
         return $this->options['timeDifference'];
@@ -364,6 +364,10 @@ class bybit extends Exchange {
             $linear = (is_array($linearQuoteCurrencies) && array_key_exists($quote, $linearQuoteCurrencies));
             $inverse = !$linear;
             $symbol = $base . '/' . $quote;
+            $baseQuote = $base . $quote;
+            if ($baseQuote !== $id) {
+                $symbol = $id;
+            }
             $lotSizeFilter = $this->safe_value($market, 'lot_size_filter', array());
             $priceFilter = $this->safe_value($market, 'price_filter', array());
             $precision = array(

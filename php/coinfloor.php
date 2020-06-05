@@ -403,7 +403,27 @@ class coinfloor extends Exchange {
             $request['price'] = $price;
             $request['amount'] = $amount;
         }
-        return $this->$method (array_merge($request, $params));
+        //
+        //     {
+        //         "id":31950584,
+        //         "datetime":"2020-05-21 08:38:18",
+        //         "$type":1,
+        //         "$price":"9100",
+        //         "$amount":"0.0026"
+        //     }
+        //
+        $response = $this->$method (array_merge($request, $params));
+        $timestamp = $this->parse8601($this->safe_string($response, 'datetime'));
+        return array(
+            'id' => $this->safe_string($response, 'id'),
+            'clientOrderId' => null,
+            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => $timestamp,
+            'type' => $type,
+            'price' => $this->safe_float($response, 'price'),
+            'remaining' => $this->safe_float($response, 'amount'),
+            'info' => $response,
+        );
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
@@ -458,9 +478,9 @@ class coinfloor extends Exchange {
             'type' => 'limit',
             'side' => $side,
             'price' => $price,
-            'amount' => $amount,
+            'amount' => null,
             'filled' => null,
-            'remaining' => null,
+            'remaining' => $amount,
             'cost' => $cost,
             'fee' => null,
             'average' => null,

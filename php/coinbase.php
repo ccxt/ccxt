@@ -733,13 +733,17 @@ class coinbase extends Exchange {
 
     public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
         $request = $this->prepare_account_request_with_currency_code($code, $limit, $params);
         $query = $this->omit($params, ['account_id', 'accountId']);
         // for pagination use parameter 'starting_after'
         // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
         // eg => instance.last_json_response.pagination.next_starting_after
         $response = $this->privateGetAccountsAccountIdTransactions (array_merge($request, $query));
-        return $this->parse_ledger($response['data'], null, $since, $limit);
+        return $this->parse_ledger($response['data'], $currency, $since, $limit);
     }
 
     public function parse_ledger_entry_status($status) {

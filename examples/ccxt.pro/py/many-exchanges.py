@@ -3,6 +3,7 @@
 import asyncio
 import ccxtpro
 
+
 async def loop(exchange_id, symbol):
     exchange = getattr(ccxtpro, exchange_id)({'enableRateLimit': True})
     while True:

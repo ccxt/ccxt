@@ -4,7 +4,8 @@
 
 const Exchange = require ('./base/Exchange');
 const { BadSymbol, PermissionDenied, ExchangeError, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, RequestTimeout, AuthenticationError } = require ('./base/errors');
-const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
+const { TRUNCATE, DECIMAL_PLACES, TICK_SIZE } = require ('./base/functions/number');
+
 // ---------------------------------------------------------------------------
 
 module.exports = class hitbtc extends Exchange {
@@ -74,473 +75,67 @@ module.exports = class hitbtc extends Exchange {
                         'currency/{currency}', // Get currency info
                         'ticker', // Ticker list for all symbols
                         'ticker/{symbol}', // Ticker for symbol
+                        'trades',
                         'trades/{symbol}', // Trades
+                        'orderbook',
                         'orderbook/{symbol}', // Orderbook
+                        'candles',
                         'candles/{symbol}', // Candles
                     ],
                 },
                 'private': {
                     'get': [
+                        'trading/balance', // Get trading balance
                         'order', // List your current open orders
                         'order/{clientOrderId}', // Get a single order by clientOrderId
-                        'trading/balance', // Get trading balance
                         'trading/fee/all', // Get trading fee rate
                         'trading/fee/{symbol}', // Get trading fee rate
-                        'history/trades', // Get historical trades
                         'history/order', // Get historical orders
-                        'history/order/{id}/trades', // Get historical trades by specified order
+                        'history/trades', // Get historical trades
+                        'history/order/{orderId}/trades', // Get historical trades by specified order
                         'account/balance', // Get main acccount balance
+                        'account/crypto/address/{currency}', // Get deposit crypro address
+                        'account/crypto/is-mine/{address}',
                         'account/transactions', // Get account transactions
                         'account/transactions/{id}', // Get account transaction by id
-                        'account/crypto/address/{currency}', // Get deposit crypro address
+                        'sub-acc',
+                        'sub-acc/acl',
+                        'sub-acc/balance/{subAccountUserID}',
+                        'sub-acc/deposit-address/{subAccountUserId}/{currency}',
                     ],
                     'post': [
                         'order', // Create new order
-                        'account/crypto/withdraw', // Withdraw crypro
                         'account/crypto/address/{currency}', // Create new deposit crypro address
+                        'account/crypto/withdraw', // Withdraw crypro
+                        'account/crypto/transfer-convert',
                         'account/transfer', // Transfer amount to trading
+                        'sub-acc/freeze',
+                        'sub-acc/activate',
+                        'sub-acc/transfer',
                     ],
                     'put': [
                         'order/{clientOrderId}', // Create new order
                         'account/crypto/withdraw/{id}', // Commit withdraw crypro
+                        'sub-acc/acl/{subAccountUserId}',
                     ],
                     'delete': [
                         'order', // Cancel all open orders
                         'order/{clientOrderId}', // Cancel order
                         'account/crypto/withdraw/{id}', // Rollback withdraw crypro
                     ],
+                    // outdated?
                     'patch': [
                         'order/{clientOrderId}', // Cancel Replace order
                     ],
                 },
             },
+            'precisionMode': TICK_SIZE,
             'fees': {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
                     'maker': 0.1 / 100,
                     'taker': 0.2 / 100,
-                },
-                'funding': {
-                    'tierBased': false,
-                    'percentage': false,
-                    'withdraw': {
-                        'BTC': 0.001,
-                        'BCC': 0.0018,
-                        'ETH': 0.00958,
-                        'BCH': 0.0018,
-                        'USDT': 100,
-                        'DASH': 0.03,
-                        'BTG': 0.0005,
-                        'XRP': 0.509,
-                        'LTC': 0.003,
-                        'ZEC': 0.0001,
-                        'XMR': 0.09,
-                        '1ST': 0.84,
-                        'ADX': 5.7,
-                        'AE': 6.7,
-                        'AEON': 0.01006,
-                        'AIR': 565,
-                        'AMM': 14,
-                        'AMP': 342,
-                        'ANT': 6.7,
-                        'ARDR': 1,
-                        'ARN': 18.5,
-                        'ART': 26,
-                        'ATB': 0.0004,
-                        'ATL': 27,
-                        'ATM': 504,
-                        'ATS': 860,
-                        'AVT': 1.9,
-                        'BAS': 113,
-                        'BCN': 0.1,
-                        'BET': 124,
-                        'BKB': 46,
-                        'BMC': 32,
-                        'BMT': 100,
-                        'BNT': 2.57,
-                        'BQX': 4.7,
-                        'BTCA': 351.21,
-                        'BTM': 40,
-                        'BTX': 0.04,
-                        'BUS': 0.004,
-                        'CAPP': 97,
-                        'CCT': 6,
-                        'CDT': 100,
-                        'CDX': 30,
-                        'CFI': 61,
-                        'CL': 13.85,
-                        'CLD': 0.88,
-                        'CND': 574,
-                        'CNX': 0.04,
-                        'COSS': 65,
-                        'CPAY': 5.487,
-                        'CSNO': 16,
-                        'CTR': 15,
-                        'CTX': 146,
-                        'CVC': 8.46,
-                        'DATA': 12.949,
-                        'DBIX': 0.0168,
-                        'DCN': 1280,
-                        'DCT': 0.02,
-                        'DDF': 342,
-                        'DENT': 1000,
-                        'DGB': 0.4,
-                        'DGD': 0.01,
-                        'DICE': 0.32,
-                        'DLT': 0.26,
-                        'DNT': 0.21,
-                        'DOGE': 2,
-                        'DOV': 34,
-                        'DRPU': 24,
-                        'DRT': 240,
-                        'DSH': 0.017,
-                        'EBET': 84,
-                        'EBTC': 20,
-                        'EBTCOLD': 6.6,
-                        'ECAT': 14,
-                        'EDG': 2,
-                        'EDO': 2.9,
-                        'EKO': 1136.36,
-                        'ELE': 0.00172,
-                        'ELM': 0.004,
-                        'EMC': 0.03,
-                        'MGO': 14,
-                        'ENJ': 163,
-                        'EOS': 1.5,
-                        'ERO': 34,
-                        'ETBS': 15,
-                        'ETC': 0.002,
-                        'ETP': 0.004,
-                        'EVX': 5.4,
-                        'EXN': 456,
-                        'FCN': 0.000005,
-                        'FRD': 65,
-                        'FUEL': 123.00105,
-                        'FUN': 202.9598309,
-                        'FYN': 1.849,
-                        'FYP': 66.13,
-                        'GAME': 0.004,
-                        'GNO': 0.0034,
-                        'GUP': 4,
-                        'GVT': 1.2,
-                        'HSR': 0.04,
-                        'HAC': 144,
-                        'HDG': 7,
-                        'HGT': 1082,
-                        'HPC': 0.4,
-                        'HVN': 120,
-                        'ICN': 0.55,
-                        'ICO': 34,
-                        'ICOS': 0.35,
-                        'IND': 76,
-                        'INDI': 790,
-                        'ITS': 15.0012,
-                        'IXT': 11,
-                        'KBR': 143,
-                        'KICK': 112,
-                        'KMD': 4,
-                        'LA': 41,
-                        'LEND': 388,
-                        'LAT': 1.44,
-                        'LIFE': 13000,
-                        'LRC': 27,
-                        'LSK': 0.3,
-                        'LOC': 11.076,
-                        'LUN': 0.34,
-                        'MAID': 5,
-                        'MANA': 143,
-                        'MCAP': 5.44,
-                        'MIPS': 43,
-                        'MNE': 1.33,
-                        'MSP': 121,
-                        'MCO': 0.357,
-                        'MTH': 92,
-                        'MYB': 3.9,
-                        'NDC': 165,
-                        'NEBL': 0.04,
-                        'NET': 3.96,
-                        'NTO': 998,
-                        'NGC': 2.368,
-                        'NXC': 13.39,
-                        'NXT': 3,
-                        'OAX': 15,
-                        'ODN': 0.004,
-                        'OMG': 2,
-                        'OPT': 335,
-                        'ORME': 2.8,
-                        'OTN': 0.57,
-                        'PAY': 3.1,
-                        'PIX': 96,
-                        'PLBT': 0.33,
-                        'PLR': 114,
-                        'PLU': 0.87,
-                        'POE': 784,
-                        'POLL': 3.5,
-                        'PPT': 2,
-                        'PRE': 32,
-                        'PRG': 39,
-                        'PRO': 41,
-                        'PRS': 60,
-                        'PTOY': 0.5,
-                        'QAU': 63,
-                        'QCN': 0.03,
-                        'QTUM': 0.04,
-                        'QVT': 64,
-                        'REP': 0.02,
-                        'RKC': 15,
-                        'RLC': 1.21,
-                        'RVT': 14,
-                        'SC': 30,
-                        'SAN': 2.24,
-                        'SBD': 0.03,
-                        'SCL': 2.6,
-                        'SISA': 1640,
-                        'SKIN': 407,
-                        'SWFTC': 352.94,
-                        'SMART': 0.4,
-                        'SMS': 0.0375,
-                        'SNC': 36,
-                        'SNGLS': 4,
-                        'SNM': 48,
-                        'SNT': 233,
-                        'STAR': 0.144,
-                        'STORM': 153.19,
-                        'STEEM': 0.01,
-                        'STRAT': 0.01,
-                        'SPF': 14.4,
-                        'STU': 14,
-                        'STX': 11,
-                        'SUB': 17,
-                        'SUR': 3,
-                        'SWT': 0.51,
-                        'TAAS': 0.91,
-                        'TBT': 2.37,
-                        'TFL': 15,
-                        'TIME': 0.03,
-                        'TIX': 7.1,
-                        'TKN': 1,
-                        'TGT': 173,
-                        'TKR': 84,
-                        'TNT': 90,
-                        'TRST': 1.6,
-                        'TRX': 270,
-                        'UET': 480,
-                        'UGT': 15,
-                        'UTT': 3,
-                        'VEN': 14,
-                        'VERI': 0.037,
-                        'VIB': 50,
-                        'VIBE': 145,
-                        'VOISE': 618,
-                        'WEALTH': 0.0168,
-                        'WINGS': 2.4,
-                        'WTC': 0.75,
-                        'WRC': 48,
-                        'XAUR': 3.23,
-                        'XDN': 0.01,
-                        'XEM': 15,
-                        'XUC': 0.9,
-                        'YOYOW': 140,
-                        'ZAP': 24,
-                        'ZRX': 23,
-                        'ZSC': 191,
-                    },
-                    'deposit': {
-                        'BTC': 0,
-                        'ETH': 0,
-                        'BCH': 0,
-                        'USDT': 0,
-                        'BTG': 0,
-                        'LTC': 0,
-                        'ZEC': 0,
-                        'XMR': 0,
-                        '1ST': 0,
-                        'ADX': 0,
-                        'AE': 0,
-                        'AEON': 0,
-                        'AIR': 0,
-                        'AMP': 0,
-                        'ANT': 0,
-                        'ARDR': 0,
-                        'ARN': 0,
-                        'ART': 0,
-                        'ATB': 0,
-                        'ATL': 0,
-                        'ATM': 0,
-                        'ATS': 0,
-                        'AVT': 0,
-                        'BAS': 0,
-                        'BCN': 0,
-                        'BET': 0,
-                        'BKB': 0,
-                        'BMC': 0,
-                        'BMT': 0,
-                        'BNT': 0,
-                        'BQX': 0,
-                        'BTM': 0,
-                        'BTX': 0,
-                        'BUS': 0,
-                        'CCT': 0,
-                        'CDT': 0,
-                        'CDX': 0,
-                        'CFI': 0,
-                        'CLD': 0,
-                        'CND': 0,
-                        'CNX': 0,
-                        'COSS': 0,
-                        'CSNO': 0,
-                        'CTR': 0,
-                        'CTX': 0,
-                        'CVC': 0,
-                        'DBIX': 0,
-                        'DCN': 0,
-                        'DCT': 0,
-                        'DDF': 0,
-                        'DENT': 0,
-                        'DGB': 0,
-                        'DGD': 0,
-                        'DICE': 0,
-                        'DLT': 0,
-                        'DNT': 0,
-                        'DOGE': 0,
-                        'DOV': 0,
-                        'DRPU': 0,
-                        'DRT': 0,
-                        'DSH': 0,
-                        'EBET': 0,
-                        'EBTC': 0,
-                        'EBTCOLD': 0,
-                        'ECAT': 0,
-                        'EDG': 0,
-                        'EDO': 0,
-                        'ELE': 0,
-                        'ELM': 0,
-                        'EMC': 0,
-                        'EMGO': 0,
-                        'ENJ': 0,
-                        'EOS': 0,
-                        'ERO': 0,
-                        'ETBS': 0,
-                        'ETC': 0,
-                        'ETP': 0,
-                        'EVX': 0,
-                        'EXN': 0,
-                        'FRD': 0,
-                        'FUEL': 0,
-                        'FUN': 0,
-                        'FYN': 0,
-                        'FYP': 0,
-                        'GNO': 0,
-                        'GUP': 0,
-                        'GVT': 0,
-                        'HAC': 0,
-                        'HDG': 0,
-                        'HGT': 0,
-                        'HPC': 0,
-                        'HVN': 0,
-                        'ICN': 0,
-                        'ICO': 0,
-                        'ICOS': 0,
-                        'IND': 0,
-                        'INDI': 0,
-                        'ITS': 0,
-                        'IXT': 0,
-                        'KBR': 0,
-                        'KICK': 0,
-                        'LA': 0,
-                        'LAT': 0,
-                        'LIFE': 0,
-                        'LRC': 0,
-                        'LSK': 0,
-                        'LUN': 0,
-                        'MAID': 0,
-                        'MANA': 0,
-                        'MCAP': 0,
-                        'MIPS': 0,
-                        'MNE': 0,
-                        'MSP': 0,
-                        'MTH': 0,
-                        'MYB': 0,
-                        'NDC': 0,
-                        'NEBL': 0,
-                        'NET': 0,
-                        'NTO': 0,
-                        'NXC': 0,
-                        'NXT': 0,
-                        'OAX': 0,
-                        'ODN': 0,
-                        'OMG': 0,
-                        'OPT': 0,
-                        'ORME': 0,
-                        'OTN': 0,
-                        'PAY': 0,
-                        'PIX': 0,
-                        'PLBT': 0,
-                        'PLR': 0,
-                        'PLU': 0,
-                        'POE': 0,
-                        'POLL': 0,
-                        'PPT': 0,
-                        'PRE': 0,
-                        'PRG': 0,
-                        'PRO': 0,
-                        'PRS': 0,
-                        'PTOY': 0,
-                        'QAU': 0,
-                        'QCN': 0,
-                        'QTUM': 0,
-                        'QVT': 0,
-                        'REP': 0,
-                        'RKC': 0,
-                        'RVT': 0,
-                        'SAN': 0,
-                        'SBD': 0,
-                        'SCL': 0,
-                        'SISA': 0,
-                        'SKIN': 0,
-                        'SMART': 0,
-                        'SMS': 0,
-                        'SNC': 0,
-                        'SNGLS': 0,
-                        'SNM': 0,
-                        'SNT': 0,
-                        'STEEM': 0,
-                        'STRAT': 0,
-                        'STU': 0,
-                        'STX': 0,
-                        'SUB': 0,
-                        'SUR': 0,
-                        'SWT': 0,
-                        'TAAS': 0,
-                        'TBT': 0,
-                        'TFL': 0,
-                        'TIME': 0,
-                        'TIX': 0,
-                        'TKN': 0,
-                        'TKR': 0,
-                        'TNT': 0,
-                        'TRST': 0,
-                        'TRX': 0,
-                        'UET': 0,
-                        'UGT': 0,
-                        'VEN': 0,
-                        'VERI': 0,
-                        'VIB': 0,
-                        'VIBE': 0,
-                        'VOISE': 0,
-                        'WEALTH': 0,
-                        'WINGS': 0,
-                        'WTC': 0,
-                        'XAUR': 0,
-                        'XDN': 0,
-                        'XEM': 0,
-                        'XUC': 0,
-                        'YOYOW': 0,
-                        'ZAP': 0,
-                        'ZRX': 0,
-                        'ZSC': 0,
-                    },
                 },
             },
             'options': {
@@ -569,7 +164,7 @@ module.exports = class hitbtc extends Exchange {
                 '2011': InvalidOrder, // "Quantity too low"
                 '2020': InvalidOrder, // "Price not a valid number"
                 '20002': OrderNotFound, // canceling non-existent order
-                '20001': InsufficientFunds,
+                '20001': InsufficientFunds, // {"error":{"code":20001,"message":"Insufficient funds","description":"Check that the funds are sufficient, given commissions"}}
             },
         });
     }
@@ -580,6 +175,20 @@ module.exports = class hitbtc extends Exchange {
 
     async fetchMarkets (params = {}) {
         const response = await this.publicGetSymbol (params);
+        //
+        //     [
+        //         {
+        //             "id":"BCNBTC",
+        //             "baseCurrency":"BCN",
+        //             "quoteCurrency":"BTC",
+        //             "quantityIncrement":"100",
+        //             "tickSize":"0.00000000001",
+        //             "takeLiquidityRate":"0.002",
+        //             "provideLiquidityRate":"0.001",
+        //             "feeCurrency":"BTC"
+        //         }
+        //     ]
+        //
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
@@ -592,13 +201,13 @@ module.exports = class hitbtc extends Exchange {
             const lot = this.safeFloat (market, 'quantityIncrement');
             const step = this.safeFloat (market, 'tickSize');
             const precision = {
-                'price': this.precisionFromString (market['tickSize']),
-                // FIXME: for lots > 1 the following line returns 0
-                // 'amount': this.precisionFromString (market['quantityIncrement']),
-                'amount': -1 * parseInt (Math.log10 (lot)),
+                'price': step,
+                'amount': lot,
             };
             const taker = this.safeFloat (market, 'takeLiquidityRate');
             const maker = this.safeFloat (market, 'provideLiquidityRate');
+            const feeCurrencyId = this.safeString (market, 'feeCurrency');
+            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             result.push (this.extend (this.fees['trading'], {
                 'info': market,
                 'id': id,
@@ -611,6 +220,7 @@ module.exports = class hitbtc extends Exchange {
                 'taker': taker,
                 'maker': maker,
                 'precision': precision,
+                'feeCurrency': feeCurrencyCode,
                 'limits': {
                     'amount': {
                         'min': lot,
@@ -632,6 +242,23 @@ module.exports = class hitbtc extends Exchange {
 
     async fetchCurrencies (params = {}) {
         const response = await this.publicGetCurrency (params);
+        //
+        //     [
+        //         {
+        //             "id":"DDF",
+        //             "fullName":"DDF",
+        //             "crypto":true,
+        //             "payinEnabled":false,
+        //             "payinPaymentId":false,
+        //             "payinConfirmations":20,
+        //             "payoutEnabled":true,
+        //             "payoutIsPaymentId":false,
+        //             "transferEnabled":true,
+        //             "delisted":false,
+        //             "payoutFee":"646.000000000000"
+        //         }
+        //     ]
+        //
         const result = {};
         for (let i = 0; i < response.length; i++) {
             const currency = response[i];
@@ -874,26 +501,23 @@ module.exports = class hitbtc extends Exchange {
         if (marketId !== undefined) {
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
             } else {
                 symbol = marketId;
             }
         }
-        if (symbol === undefined) {
-            if (market !== undefined) {
-                symbol = market['symbol'];
-            }
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
         }
         let fee = undefined;
         const feeCost = this.safeFloat (trade, 'fee');
         if (feeCost !== undefined) {
-            const feeCurrency = market ? market['quote'] : undefined;
+            const feeCurrencyCode = market ? market['feeCurrency'] : undefined;
             fee = {
                 'cost': feeCost,
-                'currency': feeCurrency,
+                'currency': feeCurrencyCode,
             };
         }
-        // we use clientOrderId as the order id with HitBTC intentionally
+        // we use clientOrderId as the order id with this exchange intentionally
         // because most of their endpoints will require clientOrderId
         // explained here: https://github.com/ccxt/ccxt/issues/5674
         const orderId = this.safeString (trade, 'clientOrderId');
@@ -1065,7 +689,7 @@ module.exports = class hitbtc extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        // we use clientOrderId as the order id with HitBTC intentionally
+        // we use clientOrderId as the order id with this exchange intentionally
         // because most of their endpoints will require clientOrderId
         // explained here: https://github.com/ccxt/ccxt/issues/5674
         // their max accepted length is 32 characters
@@ -1098,7 +722,7 @@ module.exports = class hitbtc extends Exchange {
 
     async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets ();
-        // we use clientOrderId as the order id with HitBTC intentionally
+        // we use clientOrderId as the order id with this exchange intentionally
         // because most of their endpoints will require clientOrderId
         // explained here: https://github.com/ccxt/ccxt/issues/5674
         // their max accepted length is 32 characters
@@ -1124,7 +748,7 @@ module.exports = class hitbtc extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        // we use clientOrderId as the order id with HitBTC intentionally
+        // we use clientOrderId as the order id with this exchange intentionally
         // because most of their endpoints will require clientOrderId
         // explained here: https://github.com/ccxt/ccxt/issues/5674
         const request = {
@@ -1187,7 +811,7 @@ module.exports = class hitbtc extends Exchange {
         const amount = this.safeFloat (order, 'quantity');
         const filled = this.safeFloat (order, 'cumQuantity');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        // we use clientOrderId as the order id with HitBTC intentionally
+        // we use clientOrderId as the order id with this exchange intentionally
         // because most of their endpoints will require clientOrderId
         // explained here: https://github.com/ccxt/ccxt/issues/5674
         const id = this.safeString (order, 'clientOrderId');
@@ -1269,7 +893,7 @@ module.exports = class hitbtc extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        // we use clientOrderId as the order id with HitBTC intentionally
+        // we use clientOrderId as the order id with this exchange intentionally
         // because most of their endpoints will require clientOrderId
         // explained here: https://github.com/ccxt/ccxt/issues/5674
         const request = {
@@ -1285,7 +909,7 @@ module.exports = class hitbtc extends Exchange {
 
     async fetchOpenOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        // we use clientOrderId as the order id with HitBTC intentionally
+        // we use clientOrderId as the order id with this exchange intentionally
         // because most of their endpoints will require clientOrderId
         // explained here: https://github.com/ccxt/ccxt/issues/5674
         const request = {
@@ -1396,9 +1020,9 @@ module.exports = class hitbtc extends Exchange {
             market = this.market (symbol);
         }
         const request = {
-            'id': id,
+            'orderId': id,
         };
-        const response = await this.privateGetHistoryOrderIdTrades (this.extend (request, params));
+        const response = await this.privateGetHistoryOrderOrderIdTrades (this.extend (request, params));
         const numOrders = response.length;
         if (numOrders > 0) {
             return this.parseTrades (response, market, since, limit);

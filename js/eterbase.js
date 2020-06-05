@@ -7,12 +7,13 @@ const { ArgumentsRequired, InvalidOrder, ExchangeError, BadRequest } = require (
 const { TRUNCATE } = require ('./base/functions/number');
 
 // ----------------------------------------------------------------------------
+
 module.exports = class eterbase extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'eterbase',
             'name': 'Eterbase',
-            'countries': [ 'SK' ],
+            'countries': [ 'SK' ], // Slovakia
             'rateLimit': 500,
             'version': 'v1',
             'certified': true,
@@ -39,7 +40,7 @@ module.exports = class eterbase extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'withdraw': false,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -52,7 +53,6 @@ module.exports = class eterbase extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/82067900-faeb0f80-96d9-11ea-9f22-0071cfcb9871.jpg',
-                'base': 'https://api.eterbase.exchange',
                 'api': 'https://api.eterbase.exchange',
                 'www': 'https://www.eterbase.com',
                 'doc': 'https://developers.eterbase.exchange',
@@ -102,8 +102,8 @@ module.exports = class eterbase extends Exchange {
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
-                    'taker': 0.09,
-                    'maker': 0.09,
+                    'taker': 0.35 / 100,
+                    'maker': 0.35 / 100,
                 },
             },
             'requiredCredentials': {
@@ -166,12 +166,6 @@ module.exports = class eterbase extends Exchange {
             result.push (market);
         }
         return result;
-    }
-
-    findMarket (id) {
-        // need to pass identifier as string
-        const idString = id.toString ();
-        return super.findMarket (idString);
     }
 
     parseMarket (market) {
@@ -351,7 +345,7 @@ module.exports = class eterbase extends Exchange {
         //         "high":0.0,
         //     }
         //
-        const marketId = this.safeInteger (ticker, 'marketId');
+        const marketId = this.safeString (ticker, 'marketId');
         if (marketId in this.markets_by_id) {
             market = this.markets_by_id[marketId];
         }
@@ -364,7 +358,7 @@ module.exports = class eterbase extends Exchange {
         const baseVolume = this.safeFloat (ticker, 'volumeBase');
         const quoteVolume = this.safeFloat (ticker, 'volume');
         let vwap = undefined;
-        if ((quoteVolume !== undefined) && (baseVolume !== undefined) && (baseVolume > 0)) {
+        if ((quoteVolume !== undefined) && (baseVolume !== undefined) && baseVolume) {
             vwap = quoteVolume / baseVolume;
         }
         const percentage = this.safeFloat (ticker, 'change');
@@ -814,7 +808,6 @@ module.exports = class eterbase extends Exchange {
             filled = Math.max (0, amount - remaining);
         }
         const cost = this.safeFloat (order, 'cost');
-        // Math.round (price * filled, market.precision.cost);
         if (type === 'market') {
             if (price === 0.0) {
                 if ((cost !== undefined) && (filled !== undefined)) {
@@ -827,12 +820,13 @@ module.exports = class eterbase extends Exchange {
         let average = undefined;
         if (cost !== undefined) {
             if (filled) {
-                average = Math.round (cost / filled, market.precision.qty);
+                average = cost / filled;
             }
         }
         return {
             'info': order,
             'id': id,
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -1121,15 +1115,13 @@ module.exports = class eterbase extends Exchange {
             const hasBody = (method === 'POST') || (method === 'PUT') || (method === 'PATCH');
             // const date = 'Mon, 30 Sep 2019 13:57:23 GMT';
             const date = this.rfc2616 (this.milliseconds ());
-            const urlBaselength = this.urls['base'].length - 0;
-            const urlPath = url.slice (urlBaselength);
             let headersCSV = 'date' + ' ' + 'request-line';
-            let message = 'date' + ':' + ' ' + date + "\n" + method + ' ' + urlPath + ' HTTP/1.1'; // eslint-disable-line quotes
+            let message = 'date' + ':' + ' ' + date + "\n" + method + ' ' + request + ' HTTP/1.1'; // eslint-disable-line quotes
             let digest = '';
             if (hasBody) {
                 digest = 'SHA-256=' + this.hash (payload, 'sha256', 'base64');
-                message = message + "\ndigest" + ':' + ' ' + digest;  // eslint-disable-line quotes
-                headersCSV = headersCSV + ' ' + 'digest';
+                message += "\ndigest" + ':' + ' ' + digest;  // eslint-disable-line quotes
+                headersCSV += ' ' + 'digest';
             }
             const signature64 = this.hmac (this.encode (message), this.encode (this.secret), 'sha256', 'base64');
             const signature = this.decode (signature64);
@@ -1140,7 +1132,7 @@ module.exports = class eterbase extends Exchange {
                 'Content-Type': 'application/json',
             };
             if (hasBody) {
-                httpHeaders = this.extend (httpHeaders, { 'Digest': digest });
+                httpHeaders['Digest'] = digest;
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': httpHeaders };

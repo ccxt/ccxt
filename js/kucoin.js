@@ -20,6 +20,7 @@ module.exports = class kucoin extends Exchange {
             'comment': 'Platform 2.0',
             'has': {
                 'CORS': false,
+                'fetchStatus': true,
                 'fetchTime': true,
                 'fetchMarkets': true,
                 'fetchCurrencies': true,
@@ -232,6 +233,7 @@ module.exports = class kucoin extends Exchange {
                 'versions': {
                     'public': {
                         'GET': {
+                            'status': 'v1',
                             'market/orderbook/level{level}': 'v1',
                             'market/orderbook/level2': 'v2',
                             'market/orderbook/level2_20': 'v1',
@@ -253,8 +255,8 @@ module.exports = class kucoin extends Exchange {
         return this.milliseconds ();
     }
 
-    async loadTimeDifference () {
-        const response = await this.publicGetTimestamp ();
+    async loadTimeDifference (params = {}) {
+        const response = await this.publicGetTimestamp (params);
         const after = this.milliseconds ();
         const kucoinTime = this.safeInteger (response, 'data');
         this.options['timeDifference'] = parseInt (after - kucoinTime);
@@ -271,6 +273,29 @@ module.exports = class kucoin extends Exchange {
         //     }
         //
         return this.safeInteger (response, 'data');
+    }
+
+    async fetchStatus (params = {}) {
+        const response = await this.publicGetStatus (params);
+        //
+        //     {
+        //         "code":"200000",
+        //         "data":{
+        //             "msg":"",
+        //             "status":"open"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        let status = this.safeValue (data, 'status');
+        if (status !== undefined) {
+            status = (status === 'open') ? 'ok' : 'maintenance';
+            this.status = this.extend (this.status, {
+                'status': status,
+                'updated': this.milliseconds (),
+            });
+        }
+        return this.status;
     }
 
     async fetchMarkets (params = {}) {
@@ -686,7 +711,7 @@ module.exports = class kucoin extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         const level = this.safeInteger (params, 'level', 2);
         let levelLimit = level.toString ();
-        if (level === '2') {
+        if (levelLimit === '2') {
             if (limit !== undefined) {
                 if ((limit !== 20) && (limit !== 100)) {
                     throw new ExchangeError (this.id + ' fetchOrderBook limit argument must be undefined, 20 or 100');
@@ -753,9 +778,10 @@ module.exports = class kucoin extends Exchange {
         await this.loadMarkets ();
         const marketId = this.marketId (symbol);
         // required param, cannot be used twice
-        const clientOid = this.uuid ();
+        const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId', this.uuid ());
+        params = this.omit (params, [ 'clientOid', 'clientOrderId' ]);
         const request = {
-            'clientOid': clientOid,
+            'clientOid': clientOrderId,
             'side': side,
             'symbol': marketId,
             'type': type,
@@ -795,7 +821,7 @@ module.exports = class kucoin extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'fee': undefined,
             'status': 'open',
-            'clientOrderId': clientOid,
+            'clientOrderId': clientOrderId,
             'info': data,
         };
         if (!this.safeValue (params, 'quoteAmount')) {
