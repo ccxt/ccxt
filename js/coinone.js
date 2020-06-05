@@ -19,11 +19,10 @@ module.exports = class coinone extends Exchange {
             'has': {
                 'CORS': false,
                 'createMarketOrder': false,
-                'fetchClosedOrders': true,  // good to be true, but an same order can have multiple occurrences in the list
                 'fetchCurrencies': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
-                'fetchOpenOrders': true,    // good to be true, but not sure enough to meet CCXT's semantic requirement
+                'fetchOpenOrders': true, // good to be true, but not sure enough to meet CCXT's semantic requirement
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
