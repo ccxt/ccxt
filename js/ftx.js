@@ -924,7 +924,7 @@ module.exports = class ftx extends Exchange {
         };
         const clientOrderId = this.safeString2 (params, 'clientId', 'clientOrderId');
         if (clientOrderId !== undefined) {
-            params['clientId'] = clientOrderId;
+            request['clientId'] = clientOrderId;
             params = this.omit (params, [ 'clientId', 'clientOrderId' ]);
         }
         let priceToPrecision = undefined;
