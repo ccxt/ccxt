@@ -234,9 +234,11 @@ module.exports = class bitclude extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        params['method'] = 'account';
-        params['action'] = 'info';
-        const response = await this.privateGet (params);
+        const request = {
+            'method': 'account',
+            'action': 'info',
+        };
+        const response = await this.privateGet (this.extend (request, params));
         const result = {
             'info': response,
         };
