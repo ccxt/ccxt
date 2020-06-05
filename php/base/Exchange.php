@@ -33,6 +33,7 @@ namespace ccxt;
 use kornrunner\Keccak;
 use kornrunner\Solidity;
 use Elliptic\EC;
+use Elliptic\EdDSA;
 use BN\BN;
 
 $version = '1.28.60';
@@ -55,6 +56,10 @@ const PAD_WITH_ZERO = 1;
 class Exchange {
 
     const VERSION = '1.28.60';
+
+    private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+    private static $base58_encoder = null;
+    private static $base58_decoder = null;
 
     public static $exchanges = array(
         '_1btcxe',
@@ -1243,7 +1248,7 @@ class Exchange {
         return json_decode($json_string, $as_associative_array);
     }
 
-    public function print() {
+/*    public function print() {
         $args = func_get_args();
         if (is_array($args)) {
             $array = array();
@@ -1252,7 +1257,7 @@ class Exchange {
             }
             echo implode(' ', $array), "\n";
         }
-    }
+    }*/
 
     public function fetch($url, $method = 'GET', $headers = null, $body = null) {
         if ($this->enableRateLimit) {
@@ -2796,18 +2801,14 @@ class Exchange {
         return str_pad((string) $otp, 6, '0', STR_PAD_LEFT);
     }
 
-    public static function pack_byte ($n) {
-        return pack('C', $n);
-    }
-
     public static function number_to_be($n, $padding) {
         $n = new BN ($n);
-        return array_reduce(array_map('static::pack_byte', $n->toArray('little', $padding)), function ($a, $b) { return $a . $b; });
+        return array_reduce(array_map('chr', $n->toArray('be', $padding)), 'static::binary_concat');
     }
 
     public static function number_to_le($n, $padding) {
         $n = new BN ($n);
-        return array_reduce(array_map('static::pack_byte', $n->toArray('little', $padding)), function ($a, $b) { return $b . $a; });
+        return array_reduce(array_map('chr', $n->toArray('le', $padding)), 'static::binary_concat');
     }
 
     public static function integer_divide($a, $b) {
@@ -2820,5 +2821,50 @@ class Exchange {
 
     public static function integer_pow($a, $b) {
         return (new BN ($a))->pow (new BN ($b));
+    }
+
+    public static function base58_to_binary($s) {
+        if (!static::$base58_decoder) {
+            static::$base58_decoder = array();
+            static::$base58_encoder = array();
+            for ($i = 0; $i < strlen(static::$base58_alphabet); $i++) {
+                $bigNum = new BN($i);
+                static::$base58_decoder[static::$base58_alphabet[$i]] = $bigNum;
+                static::$base58_encoder[$i] = static::$base58_alphabet[$i];
+            }
+        }
+        $result = new BN(0);
+        $base = new BN(58);
+        for ($i = 0; $i < strlen($s); $i++) {
+            $result->imul($base);
+            $result->iadd(static::$base58_decoder[$s[$i]]);
+        }
+        return static::number_to_be($result, 0);
+    }
+
+    public static function binary_to_base58($b) {
+        if (!static::$base58_encoder) {
+            static::$base58_decoder = array();
+            static::$base58_encoder = array();
+            for ($i = 0; $i < strlen(static::$base58_alphabet); $i++) {
+                $bigNum = new BN($i);
+                static::$base58_decoder[static::$base58_alphabet[$i]] = $bigNum;
+                static::$base58_encoder[$i] = static::$base58_alphabet[$i];
+            }
+        }
+        // convert binary to decimal
+        $result = new BN(0);
+        $fromBase = new BN (0x100);
+        $string = array();
+        foreach (str_split($b) as $c) {
+            $result->imul($fromBase);
+            $result->iadd(new BN(ord($c)));
+        }
+        while (!$result->isZero()) {
+            $next_character = $result->modn(58);
+            $result->idivn(58);
+            $string[] = static::$base58_encoder[$next_character];
+        }
+        return implode('', array_reverse($string));
     }
 }
