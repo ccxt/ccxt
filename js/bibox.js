@@ -368,7 +368,7 @@ module.exports = class bibox extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         return [
-            ohlcv['time'],
+            this.safeInteger (ohlcv, 'time'),
             this.safeFloat (ohlcv, 'open'),
             this.safeFloat (ohlcv, 'high'),
             this.safeFloat (ohlcv, 'low'),
