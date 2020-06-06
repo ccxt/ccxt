@@ -832,9 +832,8 @@ class bitmex(Exchange):
         }
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
-        timestamp = self.parse8601(self.safe_string(ohlcv, 'timestamp'))
         return [
-            timestamp,
+            self.parse8601(self.safe_string(ohlcv, 'timestamp')),
             self.safe_float(ohlcv, 'open'),
             self.safe_float(ohlcv, 'high'),
             self.safe_float(ohlcv, 'low'),

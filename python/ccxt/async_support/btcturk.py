@@ -224,9 +224,8 @@ class btcturk(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1d', since=None, limit=None):
-        timestamp = self.parse8601(self.safe_string(ohlcv, 'Time'))
         return [
-            timestamp,
+            self.parse8601(self.safe_string(ohlcv, 'Time')),
             self.safe_float(ohlcv, 'Open'),
             self.safe_float(ohlcv, 'High'),
             self.safe_float(ohlcv, 'Low'),

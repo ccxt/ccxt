@@ -631,14 +631,13 @@ class bittrex extends Exchange {
     }
 
     public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1d', $since = null, $limit = null) {
-        $timestamp = $this->parse8601($ohlcv['T'] . '+00:00');
         return [
-            $timestamp,
-            $ohlcv['O'],
-            $ohlcv['H'],
-            $ohlcv['L'],
-            $ohlcv['C'],
-            $ohlcv['V'],
+            $this->parse8601($ohlcv['T'] . '+00:00'),
+            $this->safe_float($ohlcv, 'O'),
+            $this->safe_float($ohlcv, 'H'),
+            $this->safe_float($ohlcv, 'L'),
+            $this->safe_float($ohlcv, 'C'),
+            $this->safe_float($ohlcv, 'V'),
         ];
     }
 

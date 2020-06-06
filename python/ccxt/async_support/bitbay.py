@@ -827,7 +827,7 @@ class bitbay(Exchange):
         #     }
         # ]
         return [
-            int(ohlcv[0]),
+            self.safe_integer(ohlcv, 0),
             self.safe_float(ohlcv[1], 'o'),
             self.safe_float(ohlcv[1], 'h'),
             self.safe_float(ohlcv[1], 'l'),

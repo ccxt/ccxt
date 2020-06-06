@@ -844,7 +844,7 @@ class bitbay extends Exchange {
         //     }
         // )
         return [
-            intval ($ohlcv[0]),
+            $this->safe_integer($ohlcv, 0),
             $this->safe_float($ohlcv[1], 'o'),
             $this->safe_float($ohlcv[1], 'h'),
             $this->safe_float($ohlcv[1], 'l'),

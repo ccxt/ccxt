@@ -616,14 +616,13 @@ class bittrex(Exchange):
         raise ExchangeError(self.id + ' fetchTrades() returned None response')
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1d', since=None, limit=None):
-        timestamp = self.parse8601(ohlcv['T'] + '+00:00')
         return [
-            timestamp,
-            ohlcv['O'],
-            ohlcv['H'],
-            ohlcv['L'],
-            ohlcv['C'],
-            ohlcv['V'],
+            self.parse8601(ohlcv['T'] + '+00:00'),
+            self.safe_float(ohlcv, 'O'),
+            self.safe_float(ohlcv, 'H'),
+            self.safe_float(ohlcv, 'L'),
+            self.safe_float(ohlcv, 'C'),
+            self.safe_float(ohlcv, 'V'),
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):

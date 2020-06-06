@@ -324,9 +324,8 @@ class bleutrade(Exchange):
         }
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1d', since=None, limit=None):
-        timestamp = self.parse8601(ohlcv['TimeStamp'] + '+00:00')
         return [
-            timestamp,
+            self.parse8601(ohlcv['TimeStamp'] + '+00:00'),
             self.safe_float(ohlcv, 'Open'),
             self.safe_float(ohlcv, 'High'),
             self.safe_float(ohlcv, 'Low'),
