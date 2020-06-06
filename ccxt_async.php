@@ -57,7 +57,9 @@ require_once PATH_TO_CCXT_ORIG_BASE . 'errors.php';
 require_once PATH_TO_CCXT_ORIG_BASE . 'Exchange.php';
 require_once PATH_TO_CCXT_ASYNC_BASE . 'Exchange.php';
 
-require_once __DIR__ . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
+$autoloadFile = __DIR__ . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
+if (file_exists($autoloadFile))
+    require_once $autoloadFile;
 
 spl_autoload_register (function ($class_name) {
     if (strpos($class_name, 'ccxt_async') !== false) {
