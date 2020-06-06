@@ -879,9 +879,8 @@ module.exports = class bitmex extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
-        const timestamp = this.parse8601 (this.safeString (ohlcv, 'timestamp'));
         return [
-            timestamp,
+            this.parse8601 (this.safeString (ohlcv, 'timestamp')),
             this.safeFloat (ohlcv, 'open'),
             this.safeFloat (ohlcv, 'high'),
             this.safeFloat (ohlcv, 'low'),
