@@ -1163,7 +1163,7 @@ $loop = \React\EventLoop\Factory::create();
 
 ```
 
-See further examples in the `examples/php` directory; look for files ending in `-async.php`. Also, make sure you have installed the required dependencies using `composer require recoil/recoil clue/buzz-react react/event-loop clue/reactphp-http-proxy`
+See further examples in the `examples/php` directory; look for files ending in `-async.php`. Also, make sure you have installed the required dependencies using `composer require recoil/recoil clue/buzz-react react/event-loop recoil/react`
 
 
 ## Returned JSON Objects
