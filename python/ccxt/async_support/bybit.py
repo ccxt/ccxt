@@ -930,11 +930,11 @@ class bybit(Exchange):
             'Rejected': 'rejected',  # order is triggered but failed upon being placed
             'New': 'open',
             'PartiallyFilled': 'open',
-            'Filled': 'filled',
+            'Filled': 'closed',
             'Cancelled': 'canceled',
             'PendingCancel': 'canceling',  # the engine has received the cancellation but there is no guarantee that it will be successful
             # conditional orders
-            'Active': 'closed',  # order is triggered and placed successfully
+            'Active': 'open',  # order is triggered and placed successfully
             'Untriggered': 'open',  # order waits to be triggered
             'Triggered': 'closed',  # order is triggered
             # 'Cancelled': 'canceled',  # order is cancelled
