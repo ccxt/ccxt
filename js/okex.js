@@ -1328,13 +1328,13 @@ module.exports = class okex extends Exchange {
             }
             return [
                 timestamp, // timestamp
-                parseFloat (ohlcv[1]),            // Open
-                parseFloat (ohlcv[2]),            // High
-                parseFloat (ohlcv[3]),            // Low
-                parseFloat (ohlcv[4]),            // Close
-                // parseFloat (ohlcv[5]),         // Quote Volume
-                // parseFloat (ohlcv[6]),         // Base Volume
-                parseFloat (ohlcv[volumeIndex]),  // Volume, okex will return base volume in the 7th element for future markets
+                this.safeFloat (ohlcv, 1),            // Open
+                this.safeFloat (ohlcv, 2),            // High
+                this.safeFloat (ohlcv, 3),            // Low
+                this.safeFloat (ohlcv, 4),            // Close
+                // this.safeFloat (ohlcv, 5),         // Quote Volume
+                // this.safeFloat (ohlcv, 6),         // Base Volume
+                this.safeFloat (ohlcv, volumeIndex),  // Volume, okex will return base volume in the 7th element for future markets
             ];
         } else {
             return [
