@@ -24,7 +24,7 @@ Current feature list:
 
 
 
-| [![Bitvavo](https://user-images.githubusercontent.com/1294454/83935828-ff30b700-a7c5-11ea-8f4a-e0791993d273.png)](https://bitvavo.com) |
+| [![Bitvavo – Trade The Future](https://user-images.githubusercontent.com/1294454/83935828-ff30b700-a7c5-11ea-8f4a-e0791993d273.png)](https://bitvavo.com) |
 |:-:|
 | [![CCXT Pro – A JavaScript / Python / PHP cryptocurrency exchange trading WebSocket API for professionals](https://user-images.githubusercontent.com/1294454/83935830-0061e400-a7c6-11ea-8215-92983a611531.png)](https://ccxt.pro) **[A JavaScript / Python / PHP cryptocurrency exchange trading WebSocket API for professionals](https://ccxt.pro)**|
 
