@@ -577,14 +577,14 @@ class whitebit extends Exchange {
     }
 
     public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
-        return [
-            $ohlcv[0] * 1000, // timestamp
-            floatval ($ohlcv[1]), // open
-            floatval ($ohlcv[3]), // high
-            floatval ($ohlcv[4]), // low
-            floatval ($ohlcv[2]), // close
-            floatval ($ohlcv[5]), // volume
-        ];
+        return array(
+            $this->safe_timestamp($ohlcv, 0), // timestamp
+            $this->safe_float($ohlcv, 1), // open
+            $this->safe_float($ohlcv, 3), // high
+            $this->safe_float($ohlcv, 4), // low
+            $this->safe_float($ohlcv, 2), // close
+            $this->safe_float($ohlcv, 5), // volume
+        );
     }
 
     public function fetch_status($params = array ()) {
