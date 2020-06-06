@@ -842,7 +842,7 @@ module.exports = class bitbay extends Exchange {
         //     }
         // ]
         return [
-            parseInt (ohlcv[0]),
+            this.safeInteger (ohlcv, 0),
             this.safeFloat (ohlcv[1], 'o'),
             this.safeFloat (ohlcv[1], 'h'),
             this.safeFloat (ohlcv[1], 'l'),
