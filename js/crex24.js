@@ -577,16 +577,18 @@ module.exports = class crex24 extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
-        // { timestamp: '2019-09-21T10:36:00Z',
-        //     open: 0.02152,
-        //     high: 0.02156,
-        //     low: 0.02152,
-        //     close: 0.02156,
-        //     volume: 0.01741259 }
-        const date = this.safeString (ohlcv, 'timestamp');
-        const timestamp = this.parse8601 (date);
+        //
+        //     {
+        //         timestamp: '2019-09-21T10:36:00Z',
+        //         open: 0.02152,
+        //         high: 0.02156,
+        //         low: 0.02152,
+        //         close: 0.02156,
+        //         volume: 0.01741259
+        //     }
+        //
         return [
-            timestamp,
+            this.parse8601 (this.safeString (ohlcv, 'timestamp')),
             this.safeFloat (ohlcv, 'open'),
             this.safeFloat (ohlcv, 'high'),
             this.safeFloat (ohlcv, 'low'),
