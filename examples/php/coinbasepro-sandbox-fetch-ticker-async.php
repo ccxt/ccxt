@@ -2,17 +2,18 @@
 
 $root = dirname (dirname (dirname (__FILE__)));
 
-include $root . '/ccxt_async.php';
+include $root . '/ccxt.php';
 
 date_default_timezone_set ('UTC');
 
 $loop = \React\EventLoop\Factory::create();
+$kernel = \Recoil\React\ReactKernel::create($loop);
 
 echo "CCXT v." . \ccxt\Exchange::VERSION . "\n";
 
-\Recoil\React\ReactKernel::start(function() use ($loop) {
+$kernel->execute(function() use ($loop, $kernel) {
 
-    $exchange = new \ccxt_async\coinbasepro ($loop, array(
+    $exchange = new \ccxt_async\coinbasepro ($loop, $kernel, array(
         'enableRateLimit' => true,
     ));
 
@@ -65,3 +66,5 @@ echo "CCXT v." . \ccxt\Exchange::VERSION . "\n";
         exit ();
     }
 }, $loop);
+
+$kernel->run();

@@ -40,6 +40,7 @@ use Generator;
 use Psr\Http\Message\ResponseInterface;
 use React\EventLoop\LoopInterface;
 use React\Socket\Connector;
+use Recoil\React\ReactKernel;
 use Recoil\Recoil;
 
 // handle CCXT namespace constants
@@ -56,15 +57,18 @@ class Exchange extends \ccxt\Exchange {
     const VERSION = '1.28.94';
 
     /** @var Browser $browser */
-    protected $browser;
+    public $browser;
     /** @var LoopInterface $loop */
-    protected $loop;
+    public $loop;
+    /** @var ReactKernel $kernel */
+    public $kernel;
 
-    public function __construct(LoopInterface $loop, $options = array())
+    public function __construct(LoopInterface $loop, ReactKernel $kernel, $options = array())
     {
         parent::__construct($options);
 
         $this->loop = $loop;
+        $this->kernel = $kernel;
     }
 
     // this method is experimental

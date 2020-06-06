@@ -1,17 +1,15 @@
 <?php
 
-use Recoil\React\ReactKernel;
-
 $root = dirname (dirname (dirname (__FILE__)));
 
-include $root . '/ccxt_async.php';
+include $root . '/ccxt.php';
 
 date_default_timezone_set ('UTC');
 
 $loop = \React\EventLoop\Factory::create();
-$kernel = ReactKernel::create($loop);
+$kernel = \Recoil\React\ReactKernel::create($loop);
 
-$exchange = new \ccxt_async\binance ($loop, array (
+$exchange = new \ccxt_async\binance ($loop, $kernel, array (
     //'verbose' => true,
     'timeout' => 30000,
 ));

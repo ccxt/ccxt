@@ -585,7 +585,7 @@ class Transpiler {
 
     // ------------------------------------------------------------------------
 
-    createPHPClassDeclaration (className, baseClass) {
+    createPHPClassDeclaration (className, baseClass, async = false) {
         return 'class ' + className + ' extends ' + baseClass + ' {'
     }
 
@@ -637,7 +637,7 @@ class Transpiler {
                 })
         }
 
-        header.push ("\n" + this.createPHPClassDeclaration (className, baseClass))
+        header.push ("\n" + this.createPHPClassDeclaration (className, baseClass, async))
 
         const footer =[
             "}\n",

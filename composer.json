@@ -228,7 +228,7 @@
             "ccxt\\" : "php/",
             "ccxt_async\\": "php/async/"
         },
-        "files": [ "ccxt.php", "ccxt_async.php" ]
+        "files": [ "ccxt.php" ]
     },
     "require": {
         "php": ">=5.4.0",

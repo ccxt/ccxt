@@ -1151,16 +1151,16 @@ In the PHP5-compatible version all API methods are synchronous, but with PHP7 th
 ```PHP
 # PHP
 <?php
-include 'ccxt_async.php';
+include 'ccxt.php';
 
 $loop = \React\EventLoop\Factory::create();
-
-\Recoil\React\ReactKernel::start(function() use ($loop) {
-    $poloniex = new \ccxt_async\poloniex($loop);
+$kernel = \Recoil\React\ReactKernel::create($loop);
+$kernel->execute(function() use ($loop, $kernel) {
+    $poloniex = new \ccxt_async\poloniex($loop, $kernel);
     $result = yield $poloniex->fetch_ticker('ETH/BTC');
     var_dump($result);
 }, $loop);
-
+$kernel->run();
 ```
 
 See further examples in the `examples/php` directory; look for files ending in `-async.php`. Also, make sure you have installed the required dependencies using `composer require recoil/recoil clue/buzz-react react/event-loop recoil/react`

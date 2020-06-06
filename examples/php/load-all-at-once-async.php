@@ -5,7 +5,7 @@ use Recoil\Recoil;
 
 $root = dirname (dirname (dirname (__FILE__)));
 
-include $root . '/ccxt_async.php';
+include $root . '/ccxt.php';
 
 date_default_timezone_set ('UTC');
 
@@ -39,18 +39,21 @@ function loadMarkets($exchange) {
 }
 
 $loop = \React\EventLoop\Factory::create();
-ReactKernel::start(function() use ($loop) {
+$kernel = \Recoil\React\ReactKernel::create($loop);
+
+$kernel->execute(function() use ($loop, $kernel) {
     $exchanges = \ccxt\Exchange::$exchanges;
 
     $yields = [];
 
     foreach ($exchanges as $exchange) {
-        if ($exchange != 'latoken') continue;
         $id = "\\ccxt_async\\".$exchange;
-        $exchange = new $id($loop);
+        $exchange = new $id($loop, $kernel);
 
         $yields[] = loadMarkets($exchange);
     }
     yield $yields;
 
 }, $loop);
+
+$kernel->run();
