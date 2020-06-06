@@ -225,9 +225,10 @@
     }],
     "autoload": {
         "psr-4": {
-            "ccxt\\" : "php/"
+            "ccxt\\" : "php/",
+            "ccxt_async\\": "php/async/"
         },
-        "files": [ "ccxt.php" ]
+        "files": [ "ccxt.php", "ccxt_async.php" ]
     },
     "require": {
         "php": ">=5.4.0",
