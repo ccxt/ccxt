@@ -61,6 +61,7 @@ for (const id of require ('../exchanges.json').ids) {
     files.push (`python/ccxt/${id}.py`)
     files.push (`python/ccxt/async_support/${id}.py`)
     files.push (`php/${id}.php`)
+    files.push (`php/async/${id}.php`)
 }
 
 // Filter untracked files (otherwise "git update-index" would fail)
