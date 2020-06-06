@@ -566,16 +566,18 @@ class crex24(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
-        # {timestamp: '2019-09-21T10:36:00Z',
-        #     open: 0.02152,
-        #     high: 0.02156,
-        #     low: 0.02152,
-        #     close: 0.02156,
-        #     volume: 0.01741259}
-        date = self.safe_string(ohlcv, 'timestamp')
-        timestamp = self.parse8601(date)
+        #
+        #     {
+        #         timestamp: '2019-09-21T10:36:00Z',
+        #         open: 0.02152,
+        #         high: 0.02156,
+        #         low: 0.02152,
+        #         close: 0.02156,
+        #         volume: 0.01741259
+        #     }
+        #
         return [
-            timestamp,
+            self.parse8601(self.safe_string(ohlcv, 'timestamp')),
             self.safe_float(ohlcv, 'open'),
             self.safe_float(ohlcv, 'high'),
             self.safe_float(ohlcv, 'low'),
