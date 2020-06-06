@@ -619,12 +619,12 @@ module.exports = class digifinex extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         return [
-            ohlcv[0] * 1000, // timestamp
-            ohlcv[5], // open
-            ohlcv[3], // high
-            ohlcv[4], // low
-            ohlcv[2], // close
-            ohlcv[1], // volume
+            this.safeTimestamp (ohlcv, 0),
+            this.safeFloat (ohlcv, 5), // open
+            this.safeFloat (ohlcv, 3), // high
+            this.safeFloat (ohlcv, 4), // low
+            this.safeFloat (ohlcv, 2), // close
+            this.safeFloat (ohlcv, 1), // volume
         ];
     }
 
