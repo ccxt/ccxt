@@ -900,7 +900,7 @@ class Transpiler {
             phpAsync.push('');
             if (keyword) {
                 phpAsync.push('    public function ' + method + '(' + phpArgs + ') : Generator {');
-                // phpAsync.push('        yield;'); Probably not needed -- all async functions use yields already
+                phpAsync.push('        yield;');
             } else {
                 phpAsync.push('    public function ' + method + '(' + phpArgs + ') {');
             }

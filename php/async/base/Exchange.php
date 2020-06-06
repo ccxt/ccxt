@@ -31,10 +31,6 @@ SOFTWARE.
 namespace ccxt_async;
 
 use Clue\React\Buzz\Browser;
-use kornrunner\Keccak;
-use kornrunner\Solidity;
-use Elliptic\EC;
-use BN\BN;
 use \ccxt\NotSupported;
 use \ccxt\ExchangeNotAvailable;
 use \ccxt\ExchangeError;
@@ -43,9 +39,15 @@ use \ccxt\RequestTimeout;
 use Generator;
 use Psr\Http\Message\ResponseInterface;
 use React\EventLoop\LoopInterface;
-use React\HttpClient\Response;
 use React\Socket\Connector;
 use Recoil\Recoil;
+
+// handle CCXT namespace constants
+foreach (get_defined_constants(true)['user'] as $const => $val) {
+    if (strpos($const, 'ccxt\\') === 0) {
+        define(str_replace('ccxt\\', '', $const), $val);
+    }
+}
 
 $version = '1.28.94';
 
@@ -64,7 +66,7 @@ class Exchange extends \ccxt\Exchange {
 
         $this->loop = $loop;
     }
-    
+
     // this method is experimental
     public function throttle() {
         $now = $this->milliseconds();
@@ -176,10 +178,12 @@ class Exchange extends \ccxt\Exchange {
             $this->last_response_headers = $response->getHeaders();
         }
 
+        $result = (string)$response->getBody();
+
         $json_response = null;
 
-        if ($this->is_json_encoded_object($response->getBody())) {
-            $json_response = $this->parse_json($response->getBody());
+        if ($this->is_json_encoded_object($result)) {
+            $json_response = $this->parse_json($result);
 
             if ($this->enableLastJsonResponse) {
                 $this->last_json_response = $json_response;
@@ -188,7 +192,6 @@ class Exchange extends \ccxt\Exchange {
 
         $error_reason = $response->getReasonPhrase();
         $http_status_code = $response->getStatusCode();
-        $result = $response->getBody();
 
         if ($this->verbose) {
             $function = array($this, 'print');
@@ -261,7 +264,7 @@ class Exchange extends \ccxt\Exchange {
         }
         $currencies = null;
         if (array_key_exists('fetchCurrencies', $this->has) && $this->has['fetchCurrencies']) {
-            $currencies = $this->fetch_currencies();
+            $currencies = yield $this->fetch_currencies();
         }
         $markets = yield $this->fetch_markets($params);
         return $this->set_markets($markets, $currencies);

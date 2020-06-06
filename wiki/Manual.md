@@ -1146,7 +1146,25 @@ async def print_poloniex_ethbtc_ticker():
 asyncio.get_event_loop().run_until_complete(print_poloniex_ethbtc_ticker())
 ```
 
-In PHP all API methods are synchronous.
+In the PHP5-compatible version all API methods are synchronous, but with PHP7 the ccxt library optionally supports asynchronous concurrency mode using the 'yield' syntax (very similar to async/await in Python). The asynchronous PHP version uses the [RecoilPHP](https://github.com/recoilphp/recoil), [ReactPHP](https://reactphp.org/) and [clue/reactphp-buzz](https://github.com/clue/reactphp-buzz) libraries. In async mode you have all the same properties and methods, but most API methods should be called with 'yield' keyword, in an overall ReactPHP/RecoilPHP wrapper. If you want to use async mode, you should use the  `ccxt_async` namespace, like in the following example:
+
+```PHP
+# PHP
+<?php
+include 'ccxt_async.php';
+
+$loop = \React\EventLoop\Factory::create();
+
+\Recoil\React\ReactKernel::start(function() use ($loop) {
+    $poloniex = new \ccxt_async\poloniex($loop);
+    $result = yield $poloniex->fetch_ticker('ETH/BTC');
+    var_dump($result);
+}, $loop);
+
+```
+
+See further examples in the `examples/php` directory; look for files ending in `-async.php`. Also, make sure you have installed the required dependencies using `composer require recoil/recoil clue/buzz-react react/event-loop clue/reactphp-http-proxy`
+
 
 ## Returned JSON Objects
 
