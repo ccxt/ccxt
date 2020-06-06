@@ -333,12 +333,12 @@ module.exports = class coss extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         return [
-            parseInt (ohlcv[0]),   // timestamp
-            parseFloat (ohlcv[1]), // Open
-            parseFloat (ohlcv[2]), // High
-            parseFloat (ohlcv[3]), // Low
-            parseFloat (ohlcv[4]), // Close
-            parseFloat (ohlcv[5]), // base Volume
+            this.safeInteger (ohlcv, 0),   // timestamp
+            this.safeFloat (ohlcv, 1), // Open
+            this.safeFloat (ohlcv, 2), // High
+            this.safeFloat (ohlcv, 3), // Low
+            this.safeFloat (ohlcv, 4), // Close
+            this.safeFloat (ohlcv, 5), // base Volume
         ];
     }
 
