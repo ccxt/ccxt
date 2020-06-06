@@ -325,12 +325,12 @@ class coss(Exchange):
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return [
-            int(ohlcv[0]),   # timestamp
-            float(ohlcv[1]),  # Open
-            float(ohlcv[2]),  # High
-            float(ohlcv[3]),  # Low
-            float(ohlcv[4]),  # Close
-            float(ohlcv[5]),  # base Volume
+            self.safe_integer(ohlcv, 0),   # timestamp
+            self.safe_float(ohlcv, 1),  # Open
+            self.safe_float(ohlcv, 2),  # High
+            self.safe_float(ohlcv, 3),  # Low
+            self.safe_float(ohlcv, 4),  # Close
+            self.safe_float(ohlcv, 5),  # base Volume
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):

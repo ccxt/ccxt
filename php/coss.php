@@ -334,14 +334,14 @@ class coss extends Exchange {
     }
 
     public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
-        return [
-            intval ($ohlcv[0]),   // timestamp
-            floatval ($ohlcv[1]), // Open
-            floatval ($ohlcv[2]), // High
-            floatval ($ohlcv[3]), // Low
-            floatval ($ohlcv[4]), // Close
-            floatval ($ohlcv[5]), // base Volume
-        ];
+        return array(
+            $this->safe_integer($ohlcv, 0),   // timestamp
+            $this->safe_float($ohlcv, 1), // Open
+            $this->safe_float($ohlcv, 2), // High
+            $this->safe_float($ohlcv, 3), // Low
+            $this->safe_float($ohlcv, 4), // Close
+            $this->safe_float($ohlcv, 5), // base Volume
+        );
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
