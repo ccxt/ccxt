@@ -231,12 +231,12 @@ module.exports = class bitbank extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '5m', since = undefined, limit = undefined) {
         return [
-            ohlcv[5],
-            parseFloat (ohlcv[0]),
-            parseFloat (ohlcv[1]),
-            parseFloat (ohlcv[2]),
-            parseFloat (ohlcv[3]),
-            parseFloat (ohlcv[4]),
+            this.safeInteger (ohlcv, 5),
+            this.safeFloat (ohlcv, 0),
+            this.safeFloat (ohlcv, 1),
+            this.safeFloat (ohlcv, 2),
+            this.safeFloat (ohlcv, 3),
+            this.safeFloat (ohlcv, 4),
         ];
     }
 
