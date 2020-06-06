@@ -41,6 +41,10 @@ use \ccxt\ExchangeError;
 use \ccxt\DDoSProtection;
 use \ccxt\RequestTimeout;
 use Generator;
+use Psr\Http\Message\ResponseInterface;
+use React\EventLoop\LoopInterface;
+use React\HttpClient\Response;
+use React\Socket\Connector;
 use Recoil\Recoil;
 
 $version = '1.28.94';
@@ -49,11 +53,18 @@ class Exchange extends \ccxt\Exchange {
 
     const VERSION = '1.28.94';
 
-    /** @var Browser */
-    private $_browser;
+    /** @var Browser $browser */
+    protected $browser;
+    /** @var LoopInterface $loop */
+    protected $loop;
 
+    public function __construct(LoopInterface $loop, $options = array())
+    {
+        parent::__construct($options);
 
-
+        $this->loop = $loop;
+    }
+    
     // this method is experimental
     public function throttle() {
         $now = $this->milliseconds();
@@ -66,11 +77,11 @@ class Exchange extends \ccxt\Exchange {
 
     public function fetch2($path, $api = 'public', $method = 'GET', $params = array(), $headers = null, $body = null) : Generator {
         $request = $this->sign($path, $api, $method, $params, $headers, $body);
-        yield $this->fetch($request['url'], $request['method'], $request['headers'], $request['body']);
+        return yield $this->fetch($request['url'], $request['method'], $request['headers'], $request['body']);
     }
 
     public function request($path, $api = 'public', $method = 'GET', $params = array(), $headers = null, $body = null) : Generator {
-        yield $this->fetch2($path, $api, $method, $params, $headers, $body);
+        return yield $this->fetch2($path, $api, $method, $params, $headers, $body);
     }
 
     public function fetch($url, $method = 'GET', $headers = null, $body = null) : Generator {
@@ -79,18 +90,19 @@ class Exchange extends \ccxt\Exchange {
         }
 
         $headers = array_merge($this->headers, $headers ? $headers : array());
+        if (!$headers) {
+            $headers = array();
+        }
 
         if (strlen($this->proxy)) {
             $headers['Origin'] = $this->origin;
         }
 
-        if (!$headers) {
-            $headers = array();
-        } elseif (is_array($headers)) {
-            $tmp = $headers;
-            $headers = array();
-            foreach ($tmp as $key => $value) {
-                $headers[] = $key . ': ' . $value;
+        if ($this->userAgent) {
+            if (gettype($this->userAgent) == 'string') {
+                $headers['User-Agent'] = $this->userAgent;
+            } elseif ((gettype($this->userAgent) == 'array') && array_key_exists('User-Agent', $this->userAgent)) {
+                $headers['User-Agent'] = $this->userAgent['User-Agent'];
             }
         }
 
@@ -100,61 +112,28 @@ class Exchange extends \ccxt\Exchange {
 
         $verbose_headers = $headers;
 
-        // https://github.com/ccxt/ccxt/issues/5914
-        if ($this->curl) {
-            if ($this->curl_close) {
-                curl_close($this->curl); // we properly close the curl channel here to save cookies
-                $this->curl = curl_init();
-            } else if ($this->curl_reset) {
-                curl_reset($this->curl); // this is the default
+        if (!$this->browser) {
+            $connectorOptions = [
+                'tls' => array(
+                    'verify_peer' => false,
+                    'verify_peer_name' => false
+                ),
+            ];
+            if ($this->timeout) {
+                $connectorOptions['timeout'] = $this->timeout;
             }
-        } else {
-            $this->curl = curl_init();
-        }
 
-        curl_setopt($this->curl, CURLOPT_URL, $url);
-
-        if ($this->timeout) {
-            curl_setopt($this->curl, CURLOPT_CONNECTTIMEOUT_MS, (int) ($this->timeout));
-            curl_setopt($this->curl, CURLOPT_TIMEOUT_MS, (int) ($this->timeout));
-        }
-
-        curl_setopt($this->curl, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($this->curl, CURLOPT_SSL_VERIFYPEER, false);
-
-        if ($this->userAgent) {
-            if (gettype($this->userAgent) == 'string') {
-                curl_setopt($this->curl, CURLOPT_USERAGENT, $this->userAgent);
-                $verbose_headers = array_merge($verbose_headers, array('User-Agent' => $this->userAgent));
-            } elseif ((gettype($this->userAgent) == 'array') && array_key_exists('User-Agent', $this->userAgent)) {
-                curl_setopt($this->curl, CURLOPT_USERAGENT, $this->userAgent['User-Agent']);
-                $verbose_headers = array_merge($verbose_headers, $this->userAgent);
+            if ($this->proxy) {
+                $proxyClass = 'Clue\\React\\HttpProxy\\ProxyConnector';
+                if (!class_exists($proxyClass)) {
+                    throw new NotSupported('Using proxies for async PHP requires installing the clue/reactphp-http-proxy library (by eg running "composer require clue/reactphp-http-proxy"');
+                }
+                $proxy = new \Clue\React\HttpProxy\ProxyConnector($this->proxy, new Connector($this->loop, $connectorOptions));
+                $connectorOptions['tcp'] = $proxy;
             }
-        }
 
-        curl_setopt($this->curl, CURLOPT_ENCODING, '');
-
-        if ($method == 'GET') {
-            curl_setopt($this->curl, CURLOPT_HTTPGET, true);
-        } elseif ($method == 'POST') {
-            curl_setopt($this->curl, CURLOPT_POST, true);
-            curl_setopt($this->curl, CURLOPT_POSTFIELDS, $body);
-        } elseif ($method == 'PUT') {
-            curl_setopt($this->curl, CURLOPT_CUSTOMREQUEST, 'PUT');
-            curl_setopt($this->curl, CURLOPT_POSTFIELDS, $body);
-            $headers[] = 'X-HTTP-Method-Override: PUT';
-        } elseif ($method == 'PATCH') {
-            curl_setopt($this->curl, CURLOPT_CUSTOMREQUEST, 'PATCH');
-            curl_setopt($this->curl, CURLOPT_POSTFIELDS, $body);
-        } elseif ($method === 'DELETE') {
-            curl_setopt($this->curl, CURLOPT_CUSTOMREQUEST, 'DELETE');
-            curl_setopt($this->curl, CURLOPT_POSTFIELDS, $body);
-
-            $headers[] = 'X-HTTP-Method-Override: DELETE';
-        }
-
-        if ($headers) {
-            curl_setopt($this->curl, CURLOPT_HTTPHEADER, $headers);
+            $connector = new Connector($this->loop, $connectorOptions);
+            $this->browser = new Browser($this->loop);
         }
 
         if ($this->verbose) {
@@ -162,99 +141,61 @@ class Exchange extends \ccxt\Exchange {
             $function('Request:', $method, $url, $verbose_headers, $body);
         }
 
-        // we probably only need to set it once on startup
-        if ($this->curlopt_interface) {
-            curl_setopt($this->curl, CURLOPT_INTERFACE, $this->curlopt_interface);
-        }
-
-        /*
-
-        // this is currently not integrated, reserved for future
-        if ($this->proxy) {
-            curl_setopt ($this->curl, CURLOPT_PROXY, $this->proxy);
-        }
-
-        */
-
-        curl_setopt($this->curl, CURLOPT_FOLLOWLOCATION, true);
-        curl_setopt($this->curl, CURLOPT_FAILONERROR, false);
-
-        $response_headers = array();
-        $http_status_text = '';
-
-        // this function is called by curl for each header received
-        curl_setopt($this->curl, CURLOPT_HEADERFUNCTION,
-            function ($curl, $header) use (&$response_headers, &$http_status_text) {
-                $length = strlen($header);
-                $tuple = explode(':', $header, 2);
-                if (count($tuple) !== 2) { // ignore invalid headers
-                    // if it's a "GET https://example.com/path 200 OK" line
-                    // try to parse the "OK" HTTP status string
-                    if (substr($header, 0, 4) === 'HTTP') {
-                        $parts = explode(' ', $header);
-                        if (count($parts) === 3) {
-                            $http_status_text = trim($parts[2]);
-                        }
-                    }
-                    return $length;
-                }
-                $key = strtolower(trim($tuple[0]));
-                $value = trim($tuple[1]);
-                if (!array_key_exists($key, $response_headers)) {
-                    $response_headers[$key] = array($value);
-                } else {
-                    $response_headers[$key][] = $value;
-                }
-                return $length;
-            }
-        );
-
-        // user-defined cURL options (if any)
-        if (!empty($this->curl_options)) {
-            curl_setopt_array($this->curl, $this->curl_options);
-        }
-
-        $result = curl_exec($this->curl);
-
         $this->lastRestRequestTimestamp = $this->milliseconds();
 
+        try {
+            /** @var ResponseInterface $response */
+            $response = NULL;
+            if ($method == 'GET') {
+                $response = yield $this->browser->get($url, $headers);
+            } elseif ($method == 'POST') {
+                $response = yield $this->browser->post($url, $headers, $body);
+            } elseif ($method == 'PUT') {
+                $response = yield $this->browser->put($url, $headers, $body);
+            } elseif ($method == 'PATCH') {
+                $response = yield $this->browser->patch($url, $headers, $body);
+            } elseif ($method === 'DELETE') {
+                $response = yield $this->browser->delete($url, $headers, $body);
+            }
+        } catch (\RuntimeException $e) {
+            if (strpos($e->getMessage(), 'timed out') !== false) { //operation timed out. Currently not way to determine this easily https://github.com/clue/reactphp-buzz/issues/146
+                throw new RequestTimeout(implode(' ', array($url, $method, 28, $e->getMessage()))); //28 for compatibility with the CURL error code for timeout
+            }
+
+            // all sorts of SSL problems, accessibility
+            throw new ExchangeNotAvailable(implode(' ', array($url, $method, $e->getCode(), $e->getMessage())));
+        }
+
+        $http_status_text = '';
+
         if ($this->enableLastHttpResponse) {
-            $this->last_http_response = $result;
+            $this->last_http_response = $response;
         }
 
         if ($this->enableLastResponseHeaders) {
-            $this->last_response_headers = $response_headers;
+            $this->last_response_headers = $response->getHeaders();
         }
 
         $json_response = null;
 
-        if ($this->is_json_encoded_object($result)) {
-            $json_response = $this->parse_json($result);
+        if ($this->is_json_encoded_object($response->getBody())) {
+            $json_response = $this->parse_json($response->getBody());
 
             if ($this->enableLastJsonResponse) {
                 $this->last_json_response = $json_response;
             }
         }
 
-        $curl_errno = curl_errno($this->curl);
-        $curl_error = curl_error($this->curl);
-        $http_status_code = curl_getinfo($this->curl, CURLINFO_HTTP_CODE);
+        $error_reason = $response->getReasonPhrase();
+        $http_status_code = $response->getStatusCode();
+        $result = $response->getBody();
 
         if ($this->verbose) {
             $function = array($this, 'print');
-            $function('Response:', $method, $url, $http_status_code, $curl_error, $response_headers, $result);
+            $function('Response:', $method, $url, $http_status_code, $error_reason, $response->getHeaders(), $result);
         }
 
-        $this->handle_errors($http_status_code, $http_status_text, $url, $method, $response_headers, $result ? $result : null, $json_response, $headers, $body);
-
-        if ($result === false) {
-            if ($curl_errno == 28) { // CURLE_OPERATION_TIMEDOUT
-                throw new RequestTimeout(implode(' ', array($url, $method, $curl_errno, $curl_error)));
-            }
-
-            // all sorts of SSL problems, accessibility
-            throw new ExchangeNotAvailable(implode(' ', array($url, $method, $curl_errno, $curl_error)));
-        }
+        $this->handle_errors($http_status_code, $http_status_text, $url, $method, $response->getHeaders(), $result, $json_response, $headers, $body);
 
         $string_code = (string) $http_status_code;
 
@@ -306,11 +247,12 @@ class Exchange extends \ccxt\Exchange {
         return isset($json_response) ? $json_response : $result;
     }
 
-    public function loadMarkets($reload = false, $params = array()) {
-        return $this->load_markets($reload, $params);
+    public function loadMarkets($reload = false, $params = array()) : Generator {
+        return yield $this->load_markets($reload, $params);
     }
 
-    public function load_markets($reload = false, $params = array()) {
+    public function load_markets($reload = false, $params = array()) : Generator {
+        yield;
         if (!$reload && $this->markets) {
             if (!$this->markets_by_id) {
                 return $this->set_markets($this->markets);
@@ -321,84 +263,86 @@ class Exchange extends \ccxt\Exchange {
         if (array_key_exists('fetchCurrencies', $this->has) && $this->has['fetchCurrencies']) {
             $currencies = $this->fetch_currencies();
         }
-        $markets = $this->fetch_markets($params);
+        $markets = yield $this->fetch_markets($params);
         return $this->set_markets($markets, $currencies);
     }
 
-    public function loadAccounts($reload = false, $params = array()) {
-        return $this->load_accounts($reload, $params);
+    public function loadAccounts($reload = false, $params = array()) : Generator {
+        return yield $this->load_accounts($reload, $params);
     }
 
-    public function load_accounts($reload = false, $params = array()) {
+    public function load_accounts($reload = false, $params = array()) : Generator {
         if ($reload) {
-            $this->accounts = $this->fetch_accounts($params);
+            $this->accounts = yield $this->fetch_accounts($params);
         } else {
             if ($this->accounts) {
+                yield;
                 return $this->accounts;
             } else {
-                $this->accounts = $this->fetch_accounts($params);
+                $this->accounts = yield $this->fetch_accounts($params);
             }
         }
         $this->accountsById = static::index_by($this->accounts, 'id');
         return $this->accounts;
     }
 
-    public function fetch_l2_order_book($symbol, $limit = null, $params = array()) {
-        $orderbook = $this->fetch_order_book($symbol, $limit, $params);
+    public function fetch_l2_order_book($symbol, $limit = null, $params = array()) : Generator {
+        $orderbook = yield $this->fetch_order_book($symbol, $limit, $params);
         return array_merge($orderbook, array(
             'bids' => $this->sort_by($this->aggregate($orderbook['bids']), 0, true),
             'asks' => $this->sort_by($this->aggregate($orderbook['asks']), 0),
         ));
     }
 
-    public function fetchL2OrderBook($symbol, $limit = null, $params = array()) {
-        return $this->fetch_l2_order_book($symbol, $limit, $params);
+    public function fetchL2OrderBook($symbol, $limit = null, $params = array()) : Generator {
+        return yield $this->fetch_l2_order_book($symbol, $limit, $params);
     }
 
-    public function fetch_partial_balance($part, $params = array()) {
-        $balance = $this->fetch_balance($params);
+    public function fetch_partial_balance($part, $params = array()) : Generator {
+        $balance = yield $this->fetch_balance($params);
         return $balance[$part];
     }
 
-    public function fetch_free_balance($params = array()) {
-        return $this->fetch_partial_balance('free', $params);
+    public function fetch_free_balance($params = array()) : Generator {
+        return yield $this->fetch_partial_balance('free', $params);
     }
 
-    public function fetch_used_balance($params = array()) {
-        return $this->fetch_partial_balance('used', $params);
+    public function fetch_used_balance($params = array()) : Generator {
+        return yield $this->fetch_partial_balance('used', $params);
     }
 
-    public function fetch_total_balance($params = array()) {
-        return $this->fetch_partial_balance('total', $params);
+    public function fetch_total_balance($params = array()) : Generator {
+        return yield $this->fetch_partial_balance('total', $params);
     }
 
-    public function fetchFreeBalance($params = array()) {
-        return $this->fetch_free_balance($params);
+    public function fetchFreeBalance($params = array()) : Generator {
+        return yield $this->fetch_free_balance($params);
     }
 
-    public function fetchUsedBalance($params = array()) {
-        return $this->fetch_used_balance($params);
+    public function fetchUsedBalance($params = array()) : Generator {
+        return yield $this->fetch_used_balance($params);
     }
 
-    public function fetchTotalBalance($params = array()) {
-        return $this->fetch_total_balance($params);
+    public function fetchTotalBalance($params = array()) : Generator {
+        return yield $this->fetch_total_balance($params);
     }
 
-    public function fetch_trading_fees($params = array()) {
+    public function fetch_trading_fees($params = array()) : Generator {
         throw new NotSupported($this->id . ' fetch_trading_fees not supported yet');
     }
 
-    public function fetch_trading_fee($symbol, $params = array()) {
+    public function fetch_trading_fee($symbol, $params = array()) : Generator {
         if (!$this->has['fetchTradingFees']) {
             throw new NotSupported($this->id . ' fetch_trading_fee not supported yet');
         }
         return $this->fetch_trading_fees($params);
     }
 
-    public function load_trading_limits($symbols = null, $reload = false, $params = array()) {
+    public function load_trading_limits($symbols = null, $reload = false, $params = array()) : Generator {
+        yield;
         if ($this->has['fetchTradingLimits']) {
             if ($reload || !(is_array($this->options) && array_key_exists('limitsLoaded', $this->options))) {
-                $response = $this->fetch_trading_limits($symbols);
+                $response = yield $this->fetch_trading_limits($symbols);
                 // $limits = $response['limits'];
                 // $keys = is_array ($limits) ? array_keys ($limits) : array ();
                 for ($i = 0; $i < count($symbols); $i++) {
@@ -411,124 +355,125 @@ class Exchange extends \ccxt\Exchange {
         return $this->markets;
     }
 
-    public function fetch_bids_asks($symbols, $params = array()) { // stub
+    public function fetch_bids_asks($symbols, $params = array()) : Generator { // stub
         throw new NotSupported($this->id . ' API does not allow to fetch all prices at once with a single call to fetch_bids_asks () for now');
     }
 
-    public function fetchBidsAsks($symbols, $params = array()) {
+    public function fetchBidsAsks($symbols, $params = array()) : Generator {
         return $this->fetch_bids_asks($symbols, $params);
     }
 
-    public function fetch_ticker($symbol, $params = array()) { // stub
+    public function fetch_ticker($symbol, $params = array()) : Generator { // stub
         throw new NotSupported($this->id . ' fetchTicker not supported yet');
     }
 
-    public function fetch_tickers($symbols, $params = array()) { // stub
+    public function fetch_tickers($symbols, $params = array()) : Generator { // stub
         throw new NotSupported($this->id . ' API does not allow to fetch all tickers at once with a single call to fetch_tickers () for now');
     }
 
-    public function fetchTickers($symbols = null, $params = array()) {
-        return $this->fetch_tickers($symbols, $params);
+    public function fetchTickers($symbols = null, $params = array()) : Generator {
+        return yield $this->fetch_tickers($symbols, $params);
     }
 
-    public function fetch_order_status($id, $symbol = null, $params = array()) {
-        $order = $this->fetch_order($id, $symbol, $params);
+    public function fetch_order_status($id, $symbol = null, $params = array()) : Generator {
+        $order = yield $this->fetch_order($id, $symbol, $params);
         return $order['status'];
     }
 
     public function fetchOrderStatus($id, $market = null) {
-        return $this->fetch_order_status($id);
+        return yield $this->fetch_order_status($id);
     }
 
-    public function fetch_order($id, $symbol = null, $params = array()) {
+    public function fetch_order($id, $symbol = null, $params = array()) : Generator {
         throw new NotSupported($this->id . ' fetch_order() not supported yet');
     }
 
-    public function fetchOrder($id, $symbol = null, $params = array()) {
-        return $this->fetch_order($id, $symbol, $params);
+    public function fetchOrder($id, $symbol = null, $params = array()) : Generator {
+        return yield $this->fetch_order($id, $symbol, $params);
     }
 
     public function fetch_unified_order($order, $params = array ()) {
-        return $this->fetch_order($this->safe_value($order, 'id'), $this->safe_value($order, 'symbol'), $params);
+        return yield $this->fetch_order($this->safe_value($order, 'id'), $this->safe_value($order, 'symbol'), $params);
     }
 
     public function fetchUnifiedOrder($order, $params = array ()) {
-        return $this->fetch_unified_order($order, $params);
+        return yield $this->fetch_unified_order($order, $params);
     }
 
-    public function fetch_order_trades($id, $symbol = null, $params = array()) {
+    public function fetch_order_trades($id, $symbol = null, $params = array()) : Generator {
         throw new NotSupported($this->id . ' fetch_order_trades() not supported yet');
     }
 
-    public function fetchOrderTrades($id, $symbol = null, $params = array()) {
-        return $this->fetch_order_trades($id, $symbol, $params);
+    public function fetchOrderTrades($id, $symbol = null, $params = array()) : Generator {
+        return yield $this->fetch_order_trades($id, $symbol, $params);
     }
 
-    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array()) {
+    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array()) : Generator {
         throw new NotSupported($this->id . ' fetch_orders() not supported yet');
     }
 
-    public function fetchOrders($symbol = null, $since = null, $limit = null, $params = array()) {
-        return $this->fetch_orders($symbol, $since, $limit, $params);
+    public function fetchOrders($symbol = null, $since = null, $limit = null, $params = array()) : Generator {
+        return yield $this->fetch_orders($symbol, $since, $limit, $params);
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array()) : Generator {
         throw new NotSupported($this->id . ' fetch_open_orders() not supported yet');
     }
 
-    public function fetchOpenOrders($symbol = null, $since = null, $limit = null, $params = array()) {
-        return $this->fetch_open_orders($symbol, $since, $limit, $params);
+    public function fetchOpenOrders($symbol = null, $since = null, $limit = null, $params = array()) : Generator {
+        return yield $this->fetch_open_orders($symbol, $since, $limit, $params);
     }
 
-    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array()) {
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array()) : Generator {
         throw new NotSupported($this->id . ' fetch_closed_orders() not supported yet');
     }
 
-    public function fetchClosedOrders($symbol = null, $since = null, $limit = null, $params = array()) {
-        return $this->fetch_closed_orders($symbol, $since, $limit, $params);
+    public function fetchClosedOrders($symbol = null, $since = null, $limit = null, $params = array()) : Generator {
+        return yield $this->fetch_closed_orders($symbol, $since, $limit, $params);
     }
 
-    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array()) {
+    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array()) : Generator {
         throw new NotSupported($this->id . ' fetch_my_trades() not supported yet');
     }
 
-    public function fetchMyTrades($symbol = null, $since = null, $limit = null, $params = array()) {
-        return $this->fetch_my_trades($symbol, $since, $limit, $params);
+    public function fetchMyTrades($symbol = null, $since = null, $limit = null, $params = array()) : Generator {
+        return yield $this->fetch_my_trades($symbol, $since, $limit, $params);
     }
 
-    public function fetchTransactions($code = null, $since = null, $limit = null, $params = array()) {
-        return $this->fetch_transactions($code, $since, $limit, $params);
+    public function fetchTransactions($code = null, $since = null, $limit = null, $params = array()) : Generator {
+        return yield $this->fetch_transactions($code, $since, $limit, $params);
     }
 
-    public function fetch_transactions($code = null, $since = null, $limit = null, $params = array()) {
+    public function fetch_transactions($code = null, $since = null, $limit = null, $params = array()) : Generator {
         throw new NotSupported($this->id . ' fetch_transactions() not supported yet');
     }
 
-    public function fetchDeposits($code = null, $since = null, $limit = null, $params = array()) {
-        return $this->fetch_deposits($code, $since, $limit, $params);
+    public function fetchDeposits($code = null, $since = null, $limit = null, $params = array()) : Generator {
+        return yield $this->fetch_deposits($code, $since, $limit, $params);
     }
 
-    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array()) {
+    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array()) : Generator {
         throw new NotSupported($this->id . ' fetch_deposits() not supported yet');
     }
 
-    public function fetchWithdrawals($code = null, $since = null, $limit = null, $params = array()) {
-        return $this->fetch_withdrawals($code, $since, $limit, $params);
+    public function fetchWithdrawals($code = null, $since = null, $limit = null, $params = array()) : Generator {
+        return yield $this->fetch_withdrawals($code, $since, $limit, $params);
     }
 
-    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array()) {
+    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array()) : Generator {
         throw new NotSupported($this->id . ' fetch_withdrawals() not supported yet');
     }
 
-    public function fetchDepositAddress($code, $params = array()) {
-        return $this->fetch_deposit_address($code, $params);
+    public function fetchDepositAddress($code, $params = array()) : Generator {
+        return yield $this->fetch_deposit_address($code, $params);
     }
 
-    public function fetch_deposit_address($code, $params = array()) {
+    public function fetch_deposit_address($code, $params = array()) : Generator {
         throw new NotSupported($this->id . ' fetch_deposit_address() not supported yet');
     }
 
-    public function fetch_markets($params = array()) {
+    public function fetch_markets($params = array()) : Generator {
+        yield; //done as a generator despite not needing it, to keep consistency that all fetch_ methods are generators
         // markets are returned as a list
         // currencies are returned as a dict
         // this is for historical reasons
@@ -536,11 +481,12 @@ class Exchange extends \ccxt\Exchange {
         return $this->markets ? array_values($this->markets) : array();
     }
 
-    public function fetchMarkets($params = array()) {
-        return $this->fetch_markets($params);
+    public function fetchMarkets($params = array()) : Generator {
+        return yield $this->fetch_markets($params);
     }
 
-    public function fetch_currencies($params = array()) {
+    public function fetch_currencies($params = array()) : Generator {
+        yield; //done as a generator despite not needing it, to keep consistency that all fetch_ methods are generators
         // markets are returned as a list
         // currencies are returned as a dict
         // this is for historical reasons
@@ -548,46 +494,46 @@ class Exchange extends \ccxt\Exchange {
         return $this->currencies ? $this->currencies : array();
     }
 
-    public function fetchCurrencies($params = array()) {
-        return $this->fetch_currencies();
+    public function fetchCurrencies($params = array()) : Generator {
+        return yield $this->fetch_currencies();
     }
 
-    public function fetchBalance($params = array()) {
-        return $this->fetch_balance($params);
+    public function fetchBalance($params = array()) : Generator {
+        return yield $this->fetch_balance($params);
     }
 
-    public function fetch_balance($params = array()) {
+    public function fetch_balance($params = array()) : Generator {
         throw new NotSupported($this->id . ' fetch_balance() not supported yet');
     }
 
-    public function fetchOrderBook($symbol, $limit = null, $params = array()) {
-        return $this->fetch_order_book($symbol, $limit, $params);
+    public function fetchOrderBook($symbol, $limit = null, $params = array()) : Generator {
+        return yield $this->fetch_order_book($symbol, $limit, $params);
     }
 
-    public function fetchTicker($symbol, $params = array()) {
-        return $this->fetch_ticker($symbol, $params);
+    public function fetchTicker($symbol, $params = array()) : Generator {
+        return yield $this->fetch_ticker($symbol, $params);
     }
 
-    public function fetchTrades($symbol, $since = null, $limit = null, $params = array()) {
-        return $this->fetch_trades($symbol, $since, $limit, $params);
+    public function fetchTrades($symbol, $since = null, $limit = null, $params = array()) : Generator {
+        return yield $this->fetch_trades($symbol, $since, $limit, $params);
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array()) {
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array()) : Generator {
         if (!$this->has['fetchTrades']) {
             throw new NotSupported($this->$id . ' fetch_ohlcv() not supported yet');
         }
-        $this->load_markets();
-        $trades = $this->fetch_trades($symbol, $since, $limit, $params);
+        yield $this->load_markets();
+        $trades = yield $this->fetch_trades($symbol, $since, $limit, $params);
         return $this->build_ohlcv($trades, $timeframe, $since, $limit);
     }
 
-    public function fetchStatus($params = array()) {
-        return $this->fetch_status($params);
+    public function fetchStatus($params = array()) : Generator {
+        return yield $this->fetch_status($params);
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()) : Generator {
         if ($this->has['fetchTime']) {
-            $time = $this->fetch_time($params);
+            $time = yield $this->fetch_time($params);
             $this->status = array_merge($this->status, array(
                 'updated' => $time,
             ));
@@ -595,116 +541,116 @@ class Exchange extends \ccxt\Exchange {
         return $this->status;
     }
 
-    public function fetchOHLCV($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array()) {
-        return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, $params);
+    public function fetchOHLCV($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array()) : Generator {
+        return yield $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, $params);
     }
 
-    public function edit_limit_buy_order($id, $symbol, $amount, $price, $params = array()) {
-        return $this->edit_limit_order($id, $symbol, 'buy', $amount, $price, $params);
+    public function edit_limit_buy_order($id, $symbol, $amount, $price, $params = array()) : Generator {
+        return yield $this->edit_limit_order($id, $symbol, 'buy', $amount, $price, $params);
     }
 
-    public function edit_limit_sell_order($id, $symbol, $amount, $price, $params = array()) {
-        return $this->edit_limit_order($id, $symbol, 'sell', $amount, $price, $params);
+    public function edit_limit_sell_order($id, $symbol, $amount, $price, $params = array()) : Generator {
+        return yield $this->edit_limit_order($id, $symbol, 'sell', $amount, $price, $params);
     }
 
-    public function edit_limit_order($id, $symbol, $side, $amount, $price, $params = array()) {
-        return $this->edit_order($id, $symbol, 'limit', $side, $amount, $price, $params);
+    public function edit_limit_order($id, $symbol, $side, $amount, $price, $params = array()) : Generator {
+        return yield $this->edit_order($id, $symbol, 'limit', $side, $amount, $price, $params);
     }
 
-    public function cancel_order($id, $symbol = null, $params = array()) {
+    public function cancel_order($id, $symbol = null, $params = array()) : Generator {
         throw new NotSupported($this->id . ' cancel_order() not supported or not supported yet');
     }
 
-    public function edit_order($id, $symbol, $type, $side, $amount, $price, $params = array()) {
+    public function edit_order($id, $symbol, $type, $side, $amount, $price, $params = array()) : Generator {
         if (!$this->enableRateLimit) {
             throw new ExchangeError($this->id . ' edit_order() requires enableRateLimit = true');
         }
-        $this->cancel_order($id, $symbol, $params);
-        return $this->create_order($symbol, $type, $side, $amount, $price, $params);
+        yield $this->cancel_order($id, $symbol, $params);
+        return yield $this->create_order($symbol, $type, $side, $amount, $price, $params);
     }
 
-    public function cancelOrder($id, $symbol = null, $params = array()) {
-        return $this->cancel_order($id, $symbol, $params);
+    public function cancelOrder($id, $symbol = null, $params = array()) : Generator {
+        return yield $this->cancel_order($id, $symbol, $params);
     }
 
     public function cancel_unified_order($order, $params = array ()) {
-        return $this->cancel_order($this->safe_value($order, 'id'), $this->safe_value($order, 'symbol'), $params);
+        return yield $this->cancel_order($this->safe_value($order, 'id'), $this->safe_value($order, 'symbol'), $params);
     }
 
     public function cancelUnifiedOrder($order, $params = array ()) {
-        return $this->cancel_unified_order($order, $params);
+        return yield $this->cancel_unified_order($order, $params);
     }
 
-    public function editLimitBuyOrder($id, $symbol, $amount, $price, $params = array()) {
-        return $this->edit_limit_buy_order($id, $symbol, $amount, $price, $params);
+    public function editLimitBuyOrder($id, $symbol, $amount, $price, $params = array()) : Generator {
+        return yield $this->edit_limit_buy_order($id, $symbol, $amount, $price, $params);
     }
 
-    public function editLimitSellOrder($id, $symbol, $amount, $price, $params = array()) {
-        return $this->edit_limit_sell_order($id, $symbol, $amount, $price, $params);
+    public function editLimitSellOrder($id, $symbol, $amount, $price, $params = array()) : Generator {
+        return yield $this->edit_limit_sell_order($id, $symbol, $amount, $price, $params);
     }
 
-    public function editLimitOrder($id, $symbol, $side, $amount, $price, $params = array()) {
-        return $this->edit_limit_order($id, $symbol, $side, $amount, $price, $params);
+    public function editLimitOrder($id, $symbol, $side, $amount, $price, $params = array()) : Generator {
+        return yield $this->edit_limit_order($id, $symbol, $side, $amount, $price, $params);
     }
 
-    public function editOrder($id, $symbol, $type, $side, $amount, $price, $params = array()) {
-        return $this->edit_order($id, $symbol, $type, $side, $amount, $price, $params);
+    public function editOrder($id, $symbol, $type, $side, $amount, $price, $params = array()) : Generator {
+        return yield $this->edit_order($id, $symbol, $type, $side, $amount, $price, $params);
     }
 
-    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array()) : Generator {
         throw new NotSupported($this->id . ' create_order() not supported yet');
     }
 
-    public function create_limit_order($symbol, $side, $amount, $price, $params = array()) {
-        return $this->create_order($symbol, 'limit', $side, $amount, $price, $params);
+    public function create_limit_order($symbol, $side, $amount, $price, $params = array()) : Generator {
+        return yield $this->create_order($symbol, 'limit', $side, $amount, $price, $params);
     }
 
-    public function create_market_order($symbol, $side, $amount, $price = null, $params = array()) {
-        return $this->create_order($symbol, 'market', $side, $amount, $price, $params);
+    public function create_market_order($symbol, $side, $amount, $price = null, $params = array()) : Generator {
+        return yield $this->create_order($symbol, 'market', $side, $amount, $price, $params);
     }
 
-    public function create_limit_buy_order($symbol, $amount, $price, $params = array()) {
-        return $this->create_order($symbol, 'limit', 'buy', $amount, $price, $params);
+    public function create_limit_buy_order($symbol, $amount, $price, $params = array()) : Generator {
+        return yield $this->create_order($symbol, 'limit', 'buy', $amount, $price, $params);
     }
 
-    public function create_limit_sell_order($symbol, $amount, $price, $params = array()) {
-        return $this->create_order($symbol, 'limit', 'sell', $amount, $price, $params);
+    public function create_limit_sell_order($symbol, $amount, $price, $params = array()) : Generator {
+        return yield $this->create_order($symbol, 'limit', 'sell', $amount, $price, $params);
     }
 
-    public function create_market_buy_order($symbol, $amount, $params = array()) {
-        return $this->create_order($symbol, 'market', 'buy', $amount, null, $params);
+    public function create_market_buy_order($symbol, $amount, $params = array()) : Generator {
+        return yield $this->create_order($symbol, 'market', 'buy', $amount, null, $params);
     }
 
-    public function create_market_sell_order($symbol, $amount, $params = array()) {
-        return $this->create_order($symbol, 'market', 'sell', $amount, null, $params);
+    public function create_market_sell_order($symbol, $amount, $params = array()) : Generator {
+        return yield $this->create_order($symbol, 'market', 'sell', $amount, null, $params);
     }
 
-    public function createOrder($symbol, $type, $side, $amount, $price = null, $params = array()) {
-        return $this->create_order($symbol, $type, $side, $amount, $price, $params);
+    public function createOrder($symbol, $type, $side, $amount, $price = null, $params = array()) : Generator {
+        return yield $this->create_order($symbol, $type, $side, $amount, $price, $params);
     }
 
-    public function createLimitOrder($symbol, $side, $amount, $price, $params = array()) {
-        return $this->create_limit_order($symbol, $side, $amount, $price, $params);
+    public function createLimitOrder($symbol, $side, $amount, $price, $params = array()) : Generator {
+        return yield $this->create_limit_order($symbol, $side, $amount, $price, $params);
     }
 
-    public function createMarketOrder($symbol, $side, $amount, $price = null, $params = array()) {
-        return $this->create_market_order($symbol, $side, $amount, $price, $params);
+    public function createMarketOrder($symbol, $side, $amount, $price = null, $params = array()) : Generator {
+        return yield $this->create_market_order($symbol, $side, $amount, $price, $params);
     }
 
-    public function createLimitBuyOrder($symbol, $amount, $price, $params = array()) {
-        return $this->create_limit_buy_order($symbol, $amount, $price, $params);
+    public function createLimitBuyOrder($symbol, $amount, $price, $params = array()) : Generator {
+        return yield $this->create_limit_buy_order($symbol, $amount, $price, $params);
     }
 
-    public function createLimitSellOrder($symbol, $amount, $price, $params = array()) {
-        return $this->create_limit_sell_order($symbol, $amount, $price, $params);
+    public function createLimitSellOrder($symbol, $amount, $price, $params = array()) : Generator {
+        return yield $this->create_limit_sell_order($symbol, $amount, $price, $params);
     }
 
-    public function createMarketBuyOrder($symbol, $amount, $params = array()) {
-        return $this->create_market_buy_order($symbol, $amount, $params);
+    public function createMarketBuyOrder($symbol, $amount, $params = array()) : Generator {
+        return yield $this->create_market_buy_order($symbol, $amount, $params);
     }
 
-    public function createMarketSellOrder($symbol, $amount, $params = array()) {
-        return $this->create_market_sell_order($symbol, $amount, $params);
+    public function createMarketSellOrder($symbol, $amount, $params = array()) : Generator {
+        return yield $this->create_market_sell_order($symbol, $amount, $params);
     }
 
     public function __call($function, $params) {
@@ -712,24 +658,11 @@ class Exchange extends \ccxt\Exchange {
             $partial = $this->defined_rest_api[$function];
             $entry = $partial[3];
             $partial[3] = $params ? $params[0] : $params;
-            return call_user_func_array(array($this, $entry), $partial);
+            return yield call_user_func_array(array($this, $entry), $partial);
         } else {
             /* handle errors */
             throw new ExchangeError($function . ' method not found, try underscore_notation instead of camelCase for the method being called');
         }
     }
 
-    public function __sleep() {
-        $return = array_keys(array_filter(get_object_vars($this), function ($var) {
-            return !(is_object($var) || is_resource($var) || is_callable($var));
-        }));
-        return $return;
-    }
-
-    public function __wakeup() {
-        $this->curl = curl_init();
-        if ($this->api) {
-            $this->define_rest_api($this->api, 'request');
-        }
-    }
 }
