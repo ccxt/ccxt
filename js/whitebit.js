@@ -575,12 +575,12 @@ module.exports = class whitebit extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         return [
-            ohlcv[0] * 1000, // timestamp
-            parseFloat (ohlcv[1]), // open
-            parseFloat (ohlcv[3]), // high
-            parseFloat (ohlcv[4]), // low
-            parseFloat (ohlcv[2]), // close
-            parseFloat (ohlcv[5]), // volume
+            this.safeTimestamp (ohlcv, 0), // timestamp
+            this.safeFloat (ohlcv, 1), // open
+            this.safeFloat (ohlcv, 3), // high
+            this.safeFloat (ohlcv, 4), // low
+            this.safeFloat (ohlcv, 2), // close
+            this.safeFloat (ohlcv, 5), // volume
         ];
     }
 
