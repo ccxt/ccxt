@@ -625,7 +625,6 @@ module.exports = class bittrex extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1d', since = undefined, limit = undefined) {
-        const timestamp = ;
         return [
             this.parse8601 (ohlcv['T'] + '+00:00'),
             this.safeFloat (ohlcv, 'O'),
