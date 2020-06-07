@@ -137,6 +137,8 @@ module.exports = class bitmax extends Exchange {
                 'exact': {
                     // TODO: fix error code mapping
                     '2100': AuthenticationError, // {"code":2100,"message":"ApiKeyFailure"}
+                    '300001': InvalidOrder, // {"code":300001,"message":"Price is too low from market price.","reason":"INVALID_PRICE","accountId":"cshrHKLZCjlZ2ejqkmvIHHtPmLYqdnda","ac":"CASH","action":"place-order","status":"Err","info":{"symbol":"BTC/USDT"}}
+                    '300011': InsufficientFunds, // {"code":300011,"message":"Not Enough Account Balance","reason":"INVALID_BALANCE","accountId":"cshrHKLZCjlZ2ejqkmvIHHtPmLYqdnda","ac":"CASH","action":"place-order","status":"Err","info":{"symbol":"BTC/USDT"}}
                     '5002': BadSymbol, // {"code":5002,"message":"Invalid Symbol"}
                     '6001': BadSymbol, // {"code":6001,"message":"Trading is disabled on symbol."}
                     '6010': InsufficientFunds, // {'code': 6010, 'message': 'Not enough balance.'}
@@ -480,13 +482,13 @@ module.exports = class bitmax extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         await this.loadAccounts ();
-        const defaultAccountCategory = this.safeValue (this.options, 'account-category', 'cash');
+        const defaultAccountCategory = this.safeString (this.options, 'account-category', 'cash');
         const options = this.safeValue (this.options, 'fetchBalance', {});
-        let accountCategory = this.safeValue (options, 'account-category', defaultAccountCategory);
+        let accountCategory = this.safeString (options, 'account-category', defaultAccountCategory);
         accountCategory = this.safeString (params, 'account-category', accountCategory);
         params = this.omit (params, 'account-category');
         const account = this.safeValue (this.accounts, 0, {});
-        const accountGroup = this.safeValue (account, 'id');
+        const accountGroup = this.safeString (account, 'id');
         const request = {
             'account-group': accountGroup,
         };
@@ -993,43 +995,64 @@ module.exports = class bitmax extends Exchange {
         await this.loadMarkets ();
         await this.loadAccounts ();
         const market = this.market (symbol);
+        const defaultAccountCategory = this.safeString (this.options, 'account-category', 'cash');
+        const options = this.safeValue (this.options, 'fetchBalance', {});
+        let accountCategory = this.safeString (options, 'account-category', defaultAccountCategory);
+        accountCategory = this.safeString (params, 'account-category', accountCategory);
+        params = this.omit (params, 'account-category');
+        const account = this.safeValue (this.accounts, 0, {});
+        const accountGroup = this.safeValue (account, 'id');
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'id');
         const request = {
-            'id': this.coid (), // optional, a unique identifier of length 32
-            // 'time': this.milliseconds (), // milliseconds since UNIX epoch in UTC, this is filled in the private section of the sign() method below
+            'account-group': accountGroup,
+            'account-category': accountCategory,
             'symbol': market['id'],
-            'orderPrice': this.priceToPrecision (symbol, price || 0), // optional, limit price of the order. This field is required for limit orders and stop limit orders
-            'stopPrice': this.priceToPrecision (symbol, this.safeValue (params, 'stopPrice', 0.0)), // optional, stopPrice of the order. This field is required for stop_market orders and stop limit orders
+            'time': this.milliseconds (),
             'orderQty': this.amountToPrecision (symbol, amount),
-            'orderType': type, // order type, you shall specify one of the following: "limit", "market", "stop_market", "stop_limit"
+            'orderType': type, // "limit", "market", "stop_market", "stop_limit"
             'side': side, // "buy" or "sell"
-            'postOnly': this.safeValue (params, 'postOnly', false), // optional, if true, the order will either be posted to the limit order book or be cancelled, i.e. the order cannot take liquidity, default is false
-            'timeInForce': this.safeString (params, 'timeInForce', 'GTC'), // optional, supports "GTC" good-till-canceled, "IOC" immediate-or-cancel, and "FOK" for fill-or-kill
+            // 'orderPrice': this.priceToPrecision (symbol, price),
+            // 'stopPrice': this.priceToPrecision (symbol, stopPrice), // required for stop orders
+            // 'postOnly': 'false', // 'false', 'true'
+            // 'timeInForce': 'GTC', // GTC, IOC, FOK
+            // 'respInst': 'ACK', // ACK, 'ACCEPT, DONE
         };
+        if (clientOrderId !== undefined) {
+            request['id'] = clientOrderId;
+        }
         if ((type === 'limit') || (type === 'stop_limit')) {
             request['orderPrice'] = this.priceToPrecision (symbol, price);
         }
-        const method = 'privatePost' + this.getAccount (params) + 'Order';
-        const response = await this[method] (this.extend (request, params));
+        if ((type === 'stop_limit') || (type === 'stop_market')) {
+            const stopPrice = this.safeFloat (params, 'stopPrice');
+            if (stopPrice === undefined) {
+                throw new InvalidOrder (this.id + ' createOrder requires a stopPrice parameter for ' + type + ' orders');
+            } else {
+                request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
+                params = this.omit (params, 'stopPrice');
+            }
+        }
+        const response = await this.accountGroupPostAccountCategoryOrder (this.extend (request, params));
         //
-        // {
-        //  'code': 0,
-        //  'data': {
-        //              'ac': 'CASH',
-        //              'accountId': 'hongyu.wang',
-        //              'action': 'place-order',
-        //              'info': {
-        //                   'id': 'JhAAjOoTY6EINXC8QcOL18HoXw89FU0u',
-        //                   'orderId': 'a170d000346b5450276356oXw89FU0u',
-        //                   'orderType': 'Limit',
-        //                   'symbol': 'BTMX/USDT',
-        //                   'timestamp': 1584037640014
-        //                  },
-        //              'status': 'Ack'
-        //          }
-        // }
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "ac": "MARGIN",
+        //             "accountId": "cshQtyfq8XLAA9kcf19h8bXHbAwwoqDo",
+        //             "action": "place-order",
+        //             "info": {
+        //                 "id": "16e607e2b83a8bXHbAwwoqDo55c166fa",
+        //                 "orderId": "16e85b4d9b9a8bXHbAwwoqDoc3d66830",
+        //                 "orderType": "Market",
+        //                 "symbol": "BTC/USDT",
+        //                 "timestamp": 1573576916201
+        //             },
+        //             "status": "Ack"
+        //         }
+        //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const info = this.extend (this.safeValue (data, 'info'), { 'status': undefined });
+        const info = this.safeValue (data, 'info', {});
         return this.parseOrder (info, market);
     }
 
@@ -1437,9 +1460,10 @@ module.exports = class bitmax extends Exchange {
             return; // fallback to default error handler
         }
         //
-        //     {"code":2100,"message":"ApiKeyFailure"}
         //     {'code': 6010, 'message': 'Not enough balance.'}
         //     {'code': 60060, 'message': 'The order is already filled or canceled.'}
+        //     {"code":2100,"message":"ApiKeyFailure"}
+        //     {"code":300001,"message":"Price is too low from market price.","reason":"INVALID_PRICE","accountId":"cshrHKLZCjlZ2ejqkmvIHHtPmLYqdnda","ac":"CASH","action":"place-order","status":"Err","info":{"symbol":"BTC/USDT"}}
         //
         const code = this.safeString (response, 'code');
         const message = this.safeString (response, 'message');
