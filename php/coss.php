@@ -334,6 +334,16 @@ class coss extends Exchange {
     }
 
     public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+        //
+        //     array(
+        //         1545138960000,
+        //         "0.02705000",
+        //         "0.02705000",
+        //         "0.02705000",
+        //         "0.02705000",
+        //         "0.00000000"
+        //     )
+        //
         return array(
             $this->safe_integer($ohlcv, 0),   // timestamp
             $this->safe_float($ohlcv, 1), // Open
@@ -353,25 +363,25 @@ class coss extends Exchange {
         );
         $response = $this->engineGetCs (array_merge($request, $params));
         //
-        //     {       tt =>   "1m",
-        //         $symbol =>   "ETH_BTC",
-        //       nextTime =>    1545138960000,
-        //         series => array( array(  1545138960000,
-        //                     "0.02705000",
-        //                     "0.02705000",
-        //                     "0.02705000",
-        //                     "0.02705000",
-        //                     "0.00000000"    ),
-        //                   ...
-        //                   array(  1545168900000,
-        //                     "0.02684000",
-        //                     "0.02684000",
-        //                     "0.02684000",
-        //                     "0.02684000",
-        //                     "0.00000000"    )  ),
-        //          $limit =>    500                    }
+        //     {
+        //         tt => "1m",
+        //         $symbol => "ETH_BTC",
+        //         nextTime => 1545138960000,
+        //         $series => array(
+        //             array(
+        //                 1545138960000,
+        //                 "0.02705000",
+        //                 "0.02705000",
+        //                 "0.02705000",
+        //                 "0.02705000",
+        //                 "0.00000000"
+        //             ),
+        //         ),
+        //         $limit => 500
+        //     }
         //
-        return $this->parse_ohlcvs($response['series'], $market, $timeframe, $since, $limit);
+        $series = $this->safe_value($response, 'series', array());
+        return $this->parse_ohlcvs($series, $market);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
