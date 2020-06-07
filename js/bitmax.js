@@ -484,13 +484,21 @@ module.exports = class bitmax extends Exchange {
         const options = this.safeValue (this.options, 'fetchBalance', {});
         let accountCategory = this.safeValue (options, 'account-category', defaultAccountCategory);
         accountCategory = this.safeString (params, 'account-category', accountCategory);
+        params = this.omit (params, 'account-category');
         const account = this.safeValue (this.accounts, 0, {});
         const accountGroup = this.safeValue (account, 'id');
         const request = {
-            'account-category': accountCategory,
             'account-group': accountGroup,
         };
-        const response = await this.accountGroupGetAccountCategoryBalance (this.extend (request, params));
+        let method = 'accountGroupGetCashBalance';
+        if (accountCategory === 'margin') {
+            method = 'accountGroupGetMarginBalance';
+        } else if (accountCategory === 'futures') {
+            method = 'accountGroupGetFuturesCollateralBalance';
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        // cash
         //
         //     {
         //         'code': 0,
@@ -498,8 +506,37 @@ module.exports = class bitmax extends Exchange {
         //             {
         //                 'asset': 'BCHSV',
         //                 'totalBalance': '64.298000048',
-        //                 'availableBalance': '64.298000048'
+        //                 'availableBalance': '64.298000048',
         //             },
+        //         ]
+        //     }
+        //
+        // margin
+        //
+        //     {
+        //         'code': 0,
+        //         'data': [
+        //             {
+        //                 'asset': 'BCHSV',
+        //                 'totalBalance': '64.298000048',
+        //                 'availableBalance': '64.298000048',
+        //                 'borrowed': '0',
+        //                 'interest': '0',
+        //             },
+        //         ]
+        //     }
+        //
+        // futures
+        //
+        //     {
+        //         "code":0,
+        //         "data":[
+        //             {"asset":"BTC","totalBalance":"0","availableBalance":"0","maxTransferrable":"0","priceInUSDT":"9456.59"},
+        //             {"asset":"ETH","totalBalance":"0","availableBalance":"0","maxTransferrable":"0","priceInUSDT":"235.95"},
+        //             {"asset":"USDT","totalBalance":"0","availableBalance":"0","maxTransferrable":"0","priceInUSDT":"1"},
+        //             {"asset":"USDC","totalBalance":"0","availableBalance":"0","maxTransferrable":"0","priceInUSDT":"1.00035"},
+        //             {"asset":"PAX","totalBalance":"0","availableBalance":"0","maxTransferrable":"0","priceInUSDT":"1.00045"},
+        //             {"asset":"USDTR","totalBalance":"0","availableBalance":"0","maxTransferrable":"0","priceInUSDT":"1"}
         //         ]
         //     }
         //
