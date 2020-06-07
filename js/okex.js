@@ -192,7 +192,7 @@ module.exports = class okex extends ccxt.okex {
                 const candle = this.safeValue (data[i], 'candle');
                 const market = this.markets_by_id[marketId];
                 const symbol = market['symbol'];
-                const parsed = this.parseOHLCV (candle, market, timeframe);
+                const parsed = this.parseOHLCV (candle, market);
                 this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
                 let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
                 if (stored === undefined) {
