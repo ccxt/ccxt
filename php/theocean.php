@@ -201,9 +201,8 @@ class theocean extends Exchange {
             'baseTokenAddress' => $market['baseId'],
             'quoteTokenAddress' => $market['quoteId'],
             'interval' => $this->timeframes[$timeframe],
+            'startTime' => intval ($since),
         );
-        $since = intval ($since);
-        $request['startTime'] = $since;
         $response = $this->publicGetCandlesticks (array_merge($request, $params));
         //
         //   array(
@@ -226,7 +225,7 @@ class theocean extends Exchange {
         //     }
         //   )
         //
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($response, $market);
     }
 
     public function fetch_balance_by_code($code, $params = array ()) {

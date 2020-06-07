@@ -201,9 +201,8 @@ class theocean(Exchange):
             'baseTokenAddress': market['baseId'],
             'quoteTokenAddress': market['quoteId'],
             'interval': self.timeframes[timeframe],
+            'startTime': int(since),
         }
-        since = int(since)
-        request['startTime'] = since
         response = await self.publicGetCandlesticks(self.extend(request, params))
         #
         #   [
@@ -226,7 +225,7 @@ class theocean(Exchange):
         #     }
         #   ]
         #
-        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+        return self.parse_ohlcvs(response, market)
 
     async def fetch_balance_by_code(self, code, params={}):
         if not self.walletAddress or (self.walletAddress.find('0x') != 0):
