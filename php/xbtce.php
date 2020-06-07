@@ -291,7 +291,7 @@ class xbtce extends Exchange {
         //         'timestamp' => $since,
         //         'count' => $limit,
         //     ), $params));
-        //     return $this->parse_ohlcvs($response['Bars'], $market, $timeframe, $since, $limit);
+        //     return $this->parse_ohlcvs($response['Bars'], $market);
         throw new NotSupported($this->id . ' fetchOHLCV is disabled by the exchange');
     }
 

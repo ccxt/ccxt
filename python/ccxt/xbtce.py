@@ -271,7 +271,7 @@ class xbtce(Exchange):
         #         'timestamp': since,
         #         'count': limit,
         #     }, params))
-        #     return self.parse_ohlcvs(response['Bars'], market, timeframe, since, limit)
+        #     return self.parse_ohlcvs(response['Bars'], market)
         raise NotSupported(self.id + ' fetchOHLCV is disabled by the exchange')
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
