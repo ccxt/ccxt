@@ -643,8 +643,18 @@ class kucoin(Exchange):
             request['startAt'] = int(int(math.floor(since / 1000)))
         request['endAt'] = int(int(math.floor(endAt / 1000)))
         response = await self.publicGetMarketCandles(self.extend(request, params))
-        responseData = self.safe_value(response, 'data', [])
-        return self.parse_ohlcvs(responseData, market, timeframe, since, limit)
+        #
+        #     {
+        #         "code":"200000",
+        #         "data":[
+        #             ["1591517700","0.025078","0.025069","0.025084","0.025064","18.9883256","0.4761861079404"],
+        #             ["1591516800","0.025089","0.025079","0.025089","0.02506","99.4716622","2.494143499081"],
+        #             ["1591515900","0.025079","0.02509","0.025091","0.025068","59.83701271","1.50060885172798"],
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        return self.parse_ohlcvs(data, market)
 
     async def create_deposit_address(self, code, params={}):
         await self.load_markets()

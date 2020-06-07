@@ -604,6 +604,18 @@ class kraken(Exchange):
         return self.parse_ticker(ticker, market)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+        #
+        #     [
+        #         1591475640,
+        #         "0.02500",
+        #         "0.02500",
+        #         "0.02500",
+        #         "0.02500",
+        #         "0.02500",
+        #         "9.12201000",
+        #         5
+        #     ]
+        #
         return [
             self.safe_timestamp(ohlcv, 0),
             self.safe_float(ohlcv, 1),
@@ -623,8 +635,22 @@ class kraken(Exchange):
         if since is not None:
             request['since'] = int((since - 1) / 1000)
         response = self.publicGetOHLC(self.extend(request, params))
-        ohlcvs = response['result'][market['id']]
-        return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
+        #
+        #     {
+        #         "error":[],
+        #         "result":{
+        #             "XETHXXBT":[
+        #                 [1591475580,"0.02499","0.02499","0.02499","0.02499","0.00000","0.00000000",0],
+        #                 [1591475640,"0.02500","0.02500","0.02500","0.02500","0.02500","9.12201000",5],
+        #                 [1591475700,"0.02499","0.02499","0.02499","0.02499","0.02499","1.28681415",2],
+        #                 [1591475760,"0.02499","0.02499","0.02499","0.02499","0.02499","0.08800000",1],
+        #             ],
+        #             "last":1591517580
+        #         }
+        #     }
+        result = self.safe_value(response, 'result', {})
+        ohlcvs = self.safe_value(result, market['id'], [])
+        return self.parse_ohlcvs(ohlcvs, market)
 
     def parse_ledger_entry_type(self, type):
         types = {

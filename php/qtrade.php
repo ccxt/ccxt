@@ -305,7 +305,7 @@ class qtrade extends Exchange {
         //         "market_volume":"0.08465047"
         //     }
         //
-        $result = array(
+        return array(
             $this->parse8601($this->safe_string($ohlcv, 'time')),
             $this->safe_float($ohlcv, 'open'),
             $this->safe_float($ohlcv, 'high'),
@@ -313,7 +313,6 @@ class qtrade extends Exchange {
             $this->safe_float($ohlcv, 'close'),
             $this->safe_float($ohlcv, 'market_volume'),
         );
-        return $result;
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {
@@ -337,7 +336,7 @@ class qtrade extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $ohlcvs = $this->safe_value($data, 'slices', array());
-        return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($ohlcvs, $market);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
