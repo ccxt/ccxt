@@ -650,7 +650,9 @@ class bybit extends Exchange {
 
     public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
         //
-        //     array(
+        // inverse perpetual BTC/USD
+        //
+        //     {
         //         symbol => 'BTCUSD',
         //         interval => '1',
         //         open_time => 1583952540,
@@ -660,7 +662,9 @@ class bybit extends Exchange {
         //         close => '7763.5',
         //         volume => '1259766',
         //         turnover => '162.32773718999994'
-        //     ),
+        //     }
+        //
+        // linear perpetual BTC/USDT
         //
         //     {
         //         "id":143536,
@@ -757,7 +761,7 @@ class bybit extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($result, $market);
     }
 
     public function parse_trade($trade, $market = null) {

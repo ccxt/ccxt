@@ -639,6 +639,8 @@ class bybit(Exchange):
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         #
+        # inverse perpetual BTC/USD
+        #
         #     {
         #         symbol: 'BTCUSD',
         #         interval: '1',
@@ -649,7 +651,9 @@ class bybit(Exchange):
         #         close: '7763.5',
         #         volume: '1259766',
         #         turnover: '162.32773718999994'
-        #     },
+        #     }
+        #
+        # linear perpetual BTC/USDT
         #
         #     {
         #         "id":143536,
@@ -742,7 +746,7 @@ class bybit(Exchange):
         #     }
         #
         result = self.safe_value(response, 'result', {})
-        return self.parse_ohlcvs(result, market, timeframe, since, limit)
+        return self.parse_ohlcvs(result, market)
 
     def parse_trade(self, trade, market=None):
         #
