@@ -300,7 +300,7 @@ module.exports = class acx extends Exchange {
             request['timestamp'] = parseInt (since / 1000);
         }
         const response = await this.publicGetK (this.extend (request, params));
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        return this.parseOHLCVs (response, market);
     }
 
     parseOrderStatus (status) {
