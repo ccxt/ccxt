@@ -11,8 +11,8 @@ module.exports = class cryptomarket extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'cryptomarket',
             'name': 'CryptoMarket',
-            'countries': [ 'AR', 'BR', 'CL', 'MXN', 'EU'],  // countries sorted acending
-            'rateLimit': 6000, // in mliseconds
+            'countries': [ 'AR', 'BR', 'CL', 'EU', 'MXN' ],  // countries sorted acending
+            'rateLimit': 6000, // in miliseconds
             'version': 'v2',
             'has': {
                 'CORS': true,
@@ -76,7 +76,6 @@ module.exports = class cryptomarket extends Exchange {
                     'post': [
                         'orders/cancel',
                         'orders/create',
-                        'orders/instant/create',
                         'request/deposit',
                         'request/withdrawal',
                         'transfer',
@@ -185,7 +184,7 @@ module.exports = class cryptomarket extends Exchange {
         //               'price': '47.85'}],
         //    'id': 'O614553',
         //    'market': 'XLMCLP',
-        //    'price': '0', // 0 if a market order, else it has value
+        //    'price': '0', // 0 if a market order, else  (limit or stop-limit) it has value
         //    'side': 'sell',
         //    'status': 'filled',
         //    'stop': None,
@@ -214,44 +213,29 @@ module.exports = class cryptomarket extends Exchange {
         const filled = this.safeFloat (amountDict, 'executed');
         const remaining = amount - filled;
         const price = this.safeFloat (order, 'avg_execution_price');
-        const type = this.safeString (order, 'type');
+        const type = this.safeString (order, 'type'); // can be 'market', 'limit' and 'stop-limit'
         const side = this.safeString (order, 'side');
         const fee = this.safeFloat (order, 'fee');
         const created_at = this.safeString (order, 'created_at');
-        //
-        const fills = this.safeValue (order, 'fills');
-        let lastTradeTimestamp = undefined;
-        let cost = 0.0;
-        if (fills !== undefined) {
-            const arrLength = fills.length;
-            const lastTradeDate = this.safeString (fills[arrLength - 1], 'date');
-            lastTradeTimestamp = this.parse8601 (lastTradeDate);
-            if (side === 'buy') {
-                for (let i = 0; i < arrLength; i++) {
-                    const fill = this.safeFloat (fills[i], 'amount');
-                    const fillingPrice = this.safeFloat (fills[i], 'price');
-                    // the fill amount is in base currency
-                    cost += fill * fillingPrice;
-                }
-            } else { // side === 'sell'
-                for (let i = 0; i < arrLength; i++) {
-                    const fill = this.safeFloat (fills[i], 'amount');
-                    // the fill amount is in quote currency
-                    cost += fill;
-                }
-            }
-        }
         if (market === undefined) {
             const marketId = this.safeString (order, 'market');
             market = this.safeValue (this.markets_by_id, marketId);
         }
         let symbol = undefined;
-        let feeBase = undefined;
+        let feeCurrency = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
-            feeBase = market['base'];
+            if (side === 'buy') {
+                feeCurrency = market['base'];
+            } else { // side === "sell"
+                feeCurrency = market['quote'];
+            }
         }
-        // const updated_at = this.safeString (order, 'updated_at');
+        const fills = this.safeValue (order, 'fills');
+        const trades = this.parseTrades (fills, market, undefined, undefined);
+        const tradesLenght = trades.length;
+        const lastTradeTimestamp = this.safeInteger (trades[tradesLenght - 1], 'timestamp');
+        const cost = filled * price;
         return {
             'id': id,
             'clientOrderId': undefined,
@@ -267,24 +251,32 @@ module.exports = class cryptomarket extends Exchange {
             'filled': filled,
             'remaining': remaining,
             'cost': cost,
-            'trades': undefined,
-            'fee': { 'currency': feeBase, 'cost': fee },
+            'trades': trades,
+            'fee': { 'currency': feeCurrency, 'cost': fee },
             'info': order,
         };
     }
 
     parseTrade (trade, market = undefined) {
-        //       {
-        //         "amount": "0.0876",
-        //         "market": "ETHCLP",
-        //         "market_taker": "buy",
-        //         "price": "169600",
-        //         "timestamp": "2020-03-09T19:10:38"
-        //       }
+        // if it is a trade from fetch trades
+        // {
+        //     "amount": "0.0876",
+        //     "market": "ETHCLP",
+        //     "market_taker": "buy",
+        //     "price": "169600",
+        //     "timestamp": "2020-03-09T19:10:38"
+        // }
+        // if it is a fill from an order
+        // {
+        //     'amount': '47.85',
+        //     'date': '2020-02-26T20:56:42',
+        //     'fee': '0.325',
+        //     'price': '47.85'
+        // }
         const amount = this.safeFloat (trade, 'amount');
         const price = this.safeFloat (trade, 'price');
         const side = this.safeString (trade, 'market_taker');
-        let datetime = this.safeString (trade, 'timestamp');
+        let datetime = this.safeString2 (trade, 'timestamp', 'date');
         const timestamp = this.parse8601 (datetime);
         datetime = this.iso8601 (timestamp);
         if (market === undefined) {
@@ -295,10 +287,12 @@ module.exports = class cryptomarket extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        // let cost = 0.0;
-        // if (amount !== undefined && price !== undefined) {
-        //     cost = amount * price; // what about fee?
-        // }
+        const fee = this.safeFloat (trade, 'fee');
+        // we only know if is taker if it has the 'market_taker' field.
+        let takerOrMaker = undefined;
+        if (side !== undefined) {
+            takerOrMaker = 'taker';
+        }
         return {
             'info': trade,
             'id': undefined,
@@ -311,9 +305,9 @@ module.exports = class cryptomarket extends Exchange {
             'price': price,
             'amount': amount,
             'cost': undefined,
-            'takerOrMaker': 'taker',
+            'takerOrMaker': takerOrMaker,
             'fee': {
-                'cost': undefined,
+                'cost': fee,
                 'currency': undefined,
                 'rate': undefined,
             },
@@ -398,14 +392,16 @@ module.exports = class cryptomarket extends Exchange {
             'market': marketId,
         };
         const response = await this.publicGetTicker (request);
-        const ticker = response['data'][0];
+        const data = this.safeValue (response, 'data');
+        const ticker = data[0];
         return this.parseTicker (ticker);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.publicGetTicker ();
-        const tickers = response['data'];
+        const data = this.safeValue (response, 'data');
+        const tickers = data;
         const result = {};
         for (let i = 0; i < tickers.length; i++) {
             const ticker = this.parseTicker (tickers[i]);
@@ -447,17 +443,35 @@ module.exports = class cryptomarket extends Exchange {
                 'limit': limit,
             });
         }
-        const asks = await this.publicGetBook (asksrequest);
+        const asks = await this.publicGetBook (asksrequest); // first call to api
         const askList = this.safeValue (asks, 'data');
-        // will automatically delay
-        await this.sleep (this.rateLimit);
-        const bids = await this.publicGetBook (bidsrequest);
+        await this.sleep (this.rateLimit); // delaying for safety
+        const bids = await this.publicGetBook (bidsrequest); // second call to api
         const bidList = this.safeValue (bids, 'data');
-        const book = {
-            'asks': askList,
-            'bids': bidList,
+        const result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': undefined,
+            'datetime': undefined,
+            'nonce': undefined,
         };
-        return this.parseOrderBook (book, undefined, 'bids', 'asks', 'price', 'amount');
+        for (let i = 0; i < askList.length; i++) {
+            const price = this.safeFloat (askList[i], 'price');
+            const amount = this.safeFloat (askList[i], 'amount');
+            const datetime = this.safeFloat (askList[i], 'timestamp');
+            const timestamp = this.parse8601 (datetime);
+            result['asks'].push ([price, amount, timestamp]);
+        }
+        for (let i = 0; i < bidList.length; i++) {
+            const price = this.safeFloat (bidList[i], 'price');
+            const amount = this.safeFloat (bidList[i], 'amount');
+            const datetime = this.safeFloat (bidList[i], 'timestamp');
+            const timestamp = this.parse8601 (datetime);
+            result['bids'].push ([price, amount, timestamp]);
+        }
+        result['bids'] = this.sortBy (result['bids'], 0, true);
+        result['asks'] = this.sortBy (result['asks'], 0);
+        return result;
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
@@ -537,25 +551,23 @@ module.exports = class cryptomarket extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        // {
-        //     "status": "success",
-        //     "data": [
-        //        {
-        //           "available": "120347",
-        //           "wallet": "CLP",
-        //           "balance": "120347"
-        //        },
-        //        {
-        //           "available": "10.3399",
-        //           "wallet": "ETH",
-        //           "balance": "11.3399"
-        //        }
-        //     ]
-        //  }
+        // [
+        //     {
+        //         "available": "120347",
+        //         "wallet": "CLP",
+        //         "balance": "120347"
+        //     },
+        //     {
+        //         "available": "10.3399",
+        //         "wallet": "ETH",
+        //         "balance": "11.3399"
+        //     }
+        // ]
         const response = await this.privateGetBalance (params);
+        const data = this.safeValue (response, 'data');
         const result = { 'info': response };
-        for (let i = 0; i < response['data'].length; i++) {
-            const balance = response['data'][i];
+        for (let i = 0; i < data.length; i++) {
+            const balance = data[i];
             const currencyId = this.safeString (balance, 'wallet');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -568,7 +580,6 @@ module.exports = class cryptomarket extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        // if params have override type stop-limit, then also needs the stop argument (second price, for stop)
         const marketId = this.marketId (symbol);
         const request = {
             'market': marketId,
@@ -578,7 +589,8 @@ module.exports = class cryptomarket extends Exchange {
             'side': side,
         };
         const response = await this.privatePostOrdersCreate (this.extend (request, params));
-        return this.parseOrder (response['data']);
+        const data = this.safeValue (response, 'data');
+        return this.parseOrder (data);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -587,7 +599,8 @@ module.exports = class cryptomarket extends Exchange {
             'id': id,
         };
         const response = await this.privatePostOrdersCancel (request);
-        return this.parseOrder (response['data']);
+        const data = this.safeValue (response, 'data');
+        return this.parseOrder (data);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -596,7 +609,8 @@ module.exports = class cryptomarket extends Exchange {
             'id': id,
         };
         const response = await this.privateGetOrdersStatus (request);
-        return this.parseOrder (response['data']);
+        const data = this.safeValue (response, 'data');
+        return this.parseOrder (data);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -611,7 +625,8 @@ module.exports = class cryptomarket extends Exchange {
             });
         }
         const response = await this.privateGetOrdersActive (this.extend (request, params));
-        return this.parseOrders (response['data']);
+        const data = this.safeValue (response, 'data');
+        return this.parseOrders (data);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -626,7 +641,8 @@ module.exports = class cryptomarket extends Exchange {
             });
         }
         const response = await this.privateGetOrdersExecuted (this.extend (request, params));
-        return this.parseOrders (response['data']);
+        const data = this.safeValue (response, 'data');
+        return this.parseOrders (data);
     }
 
     parseTransaction (transaction, currency = undefined) {
@@ -636,14 +652,14 @@ module.exports = class cryptomarket extends Exchange {
         //     "date": "2020-05-03T21:50:47",
         //     "currency": "XLM",
         //     "fee_amount": "0",
-        //     "fee_percent": "0.00+0.00%", // ?
+        //     "fee_percent": "0.00+0.00%",
         //     "amount": "1",
         //     "balance": "92",
-        //     "hash": null, // ?
+        //     "hash": null,
         //     "address": "GDMXNQBJMS3FYI4PFSYCCB4XODQMNMTKPQ5HIKOUWBOWJ2P3CF6WASBE",
         //     "memo": "25767435",
-        //     "blocks": 0, // ?
-        //     "penalty": "0" // ?
+        //     "blocks": 0,
+        //     "penalty": "0"
         // }
         const id = this.safeString (transaction, 'id');
         const typeInt = this.safeInteger (transaction, 'type');
@@ -658,12 +674,9 @@ module.exports = class cryptomarket extends Exchange {
             currency = this.safeString (transaction, 'currency');
         }
         const fee_amount = this.safeFloat (transaction, 'fee_amount');
-        // const fee_percent = this.safeString (transaction, 'fee_percent');
         const amount = this.safeFloat (transaction, 'amount');
-        // const hash = this.safeString (transaction, 'hash');
         const address = this.safeString (transaction, 'address');
         const memo = this.safeString (transaction, 'memo');
-        const curr = this.safeString (transaction, 'currency');
         return {
             'info': transaction,
             'id': id,
@@ -678,14 +691,14 @@ module.exports = class cryptomarket extends Exchange {
             'tagTo': memo,
             'type': type,
             'amount': amount,
-            'currency': curr,
-            'status': 'ok', // TODO
+            'currency': currency,
+            'status': 'ok',
             'updated': undefined,
             'comment': undefined,
             'fee': {
-                'currency': undefined,   // TODO
+                'currency': currency,
                 'cost': fee_amount,
-                'rate': undefined, // TODO
+                'rate': undefined,
             },
         };
     }
@@ -697,7 +710,8 @@ module.exports = class cryptomarket extends Exchange {
             'limit': limit,
         };
         const response = await this.privateGetTransactions (this.extend (request, params));
-        return this.parseTransactions (response['data'], undefined, since, limit);
+        const data = this.safeValue (response, 'data');
+        return this.parseTransactions (data, code, since, limit);
     }
 
     nonce () {
