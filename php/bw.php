@@ -562,6 +562,24 @@ class bw extends Exchange {
     }
 
     public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+        //
+        //     array(
+        //         "K",
+        //         "305",
+        //         "eth_btc",
+        //         "1591511280",
+        //         "0.02504",
+        //         "0.02504",
+        //         "0.02504",
+        //         "0.02504",
+        //         "0.0123",
+        //         "0",
+        //         "285740.17",
+        //         "1M",
+        //         "false",
+        //         "0.000308"
+        //     )
+        //
         return array(
             $this->safe_timestamp($ohlcv, 3),
             $this->safe_float($ohlcv, 4),
@@ -584,9 +602,18 @@ class bw extends Exchange {
             $request['dataSize'] = $limit;
         }
         $response = $this->publicGetApiDataV1Klines (array_merge($request, $params));
+        //
+        //     {
+        //         "datas":[
+        //             ["K","305","eth_btc","1591511280","0.02504","0.02504","0.02504","0.02504","0.0123","0","285740.17","1M","false","0.000308"],
+        //             ["K","305","eth_btc","1591511220","0.02504","0.02504","0.02504","0.02504","0.0006","0","285740.17","1M","false","0.00001502"],
+        //             ["K","305","eth_btc","1591511100","0.02505","0.02505","0.02504","0.02504","0.0012","-0.0399","285740.17","1M","false","0.00003005"],
+        //         ],
+        //         "resMsg":array("code":"1","method":null,"message":"success !")
+        //     }
+        //
         $data = $this->safe_value($response, 'datas', array());
-        $ohlcvs = $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
-        return $this->sort_by($ohlcvs, 0);
+        return $this->parse_ohlcvs($data, $market);
     }
 
     public function fetch_balance($params = array ()) {

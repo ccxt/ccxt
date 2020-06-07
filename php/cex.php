@@ -400,6 +400,16 @@ class cex extends Exchange {
     }
 
     public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+        //
+        //     array(
+        //         1591403940,
+        //         0.024972,
+        //         0.024972,
+        //         0.024969,
+        //         0.024969,
+        //         0.49999900
+        //     )
+        //
         return array(
             $this->safe_timestamp($ohlcv, 0),
             $this->safe_float($ohlcv, 1),
@@ -429,8 +439,15 @@ class cex extends Exchange {
         );
         try {
             $response = $this->publicGetOhlcvHdYyyymmddPair (array_merge($request, $params));
+            //
+            //     {
+            //         "time":20200606,
+            //         "data1m":"[[1591403940,0.024972,0.024972,0.024969,0.024969,0.49999900]]",
+            //     }
+            //
             $key = 'data' . $this->timeframes[$timeframe];
-            $ohlcvs = json_decode($response[$key], $as_associative_array = true);
+            $data = $this->safe_string($response, $key);
+            $ohlcvs = json_decode($data, $as_associative_array = true);
             return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
         } catch (Exception $e) {
             if ($e instanceof NullResponse) {

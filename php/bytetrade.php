@@ -437,6 +437,16 @@ class bytetrade extends Exchange {
     }
 
     public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+        //
+        //     array(
+        //         1591505760000,
+        //         "242.7",
+        //         "242.76",
+        //         "242.69",
+        //         "242.76",
+        //         "0.1892"
+        //     )
+        //
         return array(
             $this->safe_integer($ohlcv, 0),
             $this->safe_float($ohlcv, 1),
@@ -461,7 +471,14 @@ class bytetrade extends Exchange {
             $request['limit'] = $limit;
         }
         $response = $this->marketGetKlines (array_merge($request, $params));
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        //
+        //     [
+        //         [1591505760000,"242.7","242.76","242.69","242.76","0.1892"],
+        //         [1591505820000,"242.77","242.83","242.7","242.72","0.6378"],
+        //         [1591505880000,"242.72","242.73","242.61","242.72","0.4141"],
+        //     ]
+        //
+        return $this->parse_ohlcvs($response, $market);
     }
 
     public function parse_trade($trade, $market = null) {
