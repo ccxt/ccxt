@@ -622,6 +622,16 @@ class digifinex extends Exchange {
     }
 
     public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+        //
+        //     array(
+        //         1556712900,
+        //         2205.899,
+        //         0.029967,
+        //         0.02997,
+        //         0.029871,
+        //         0.029927
+        //     )
+        //
         return array(
             $this->safe_timestamp($ohlcv, 0),
             $this->safe_float($ohlcv, 5), // open
@@ -665,7 +675,7 @@ class digifinex extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($data, $market);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

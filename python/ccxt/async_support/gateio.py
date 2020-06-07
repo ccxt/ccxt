@@ -401,7 +401,7 @@ class gateio(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        return self.parse_ohlcvs(data, market, timeframe, since, limit)
+        return self.parse_ohlcvs(data, market)
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()

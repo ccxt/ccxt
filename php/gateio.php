@@ -409,7 +409,7 @@ class gateio extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($data, $market);
     }
 
     public function parse_ticker($ticker, $market = null) {

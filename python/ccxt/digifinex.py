@@ -604,6 +604,16 @@ class digifinex(Exchange):
         return self.parse_trades(data, market, since, limit)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+        #
+        #     [
+        #         1556712900,
+        #         2205.899,
+        #         0.029967,
+        #         0.02997,
+        #         0.029871,
+        #         0.029927
+        #     ]
+        #
         return [
             self.safe_timestamp(ohlcv, 0),
             self.safe_float(ohlcv, 5),  # open
@@ -644,7 +654,7 @@ class digifinex(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        return self.parse_ohlcvs(data, market, timeframe, since, limit)
+        return self.parse_ohlcvs(data, market)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

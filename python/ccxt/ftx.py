@@ -564,7 +564,7 @@ class ftx(Exchange):
         #     }
         #
         result = self.safe_value(response, 'result', [])
-        return self.parse_ohlcvs(result, market, timeframe, since, limit)
+        return self.parse_ohlcvs(result, market)
 
     def parse_trade(self, trade, market=None):
         #

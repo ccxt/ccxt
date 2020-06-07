@@ -358,6 +358,17 @@ class hitbtc(Exchange):
         return self.parse_balance(result)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1d', since=None, limit=None):
+        #
+        #     {
+        #         "timestamp":"2015-08-20T19:01:00.000Z",
+        #         "open":"0.006",
+        #         "close":"0.006",
+        #         "min":"0.006",
+        #         "max":"0.006",
+        #         "volume":"0.003",
+        #         "volumeQuote":"0.000018"
+        #     }
+        #
         return [
             self.parse8601(self.safe_string(ohlcv, 'timestamp')),
             self.safe_float(ohlcv, 'open'),
@@ -379,7 +390,14 @@ class hitbtc(Exchange):
         if limit is not None:
             request['limit'] = limit
         response = await self.publicGetCandlesSymbol(self.extend(request, params))
-        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+        #
+        #     [
+        #         {"timestamp":"2015-08-20T19:01:00.000Z","open":"0.006","close":"0.006","min":"0.006","max":"0.006","volume":"0.003","volumeQuote":"0.000018"},
+        #         {"timestamp":"2015-08-20T19:03:00.000Z","open":"0.006","close":"0.006","min":"0.006","max":"0.006","volume":"0.013","volumeQuote":"0.000078"},
+        #         {"timestamp":"2015-08-20T19:06:00.000Z","open":"0.0055","close":"0.005","min":"0.005","max":"0.0055","volume":"0.003","volumeQuote":"0.0000155"},
+        #     ]
+        #
+        return self.parse_ohlcvs(response, market)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
