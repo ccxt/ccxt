@@ -189,9 +189,8 @@ module.exports = class theocean extends Exchange {
             'baseTokenAddress': market['baseId'],
             'quoteTokenAddress': market['quoteId'],
             'interval': this.timeframes[timeframe],
+            'startTime': parseInt (since),
         };
-        since = parseInt (since);
-        request['startTime'] = since;
         const response = await this.publicGetCandlesticks (this.extend (request, params));
         //
         //   [
@@ -214,7 +213,7 @@ module.exports = class theocean extends Exchange {
         //     }
         //   ]
         //
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        return this.parseOHLCVs (response, market);
     }
 
     async fetchBalanceByCode (code, params = {}) {
