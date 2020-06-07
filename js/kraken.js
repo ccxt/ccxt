@@ -618,6 +618,18 @@ module.exports = class kraken extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        //
+        //     [
+        //         1591475640,
+        //         "0.02500",
+        //         "0.02500",
+        //         "0.02500",
+        //         "0.02500",
+        //         "0.02500",
+        //         "9.12201000",
+        //         5
+        //     ]
+        //
         return [
             this.safeTimestamp (ohlcv, 0),
             this.safeFloat (ohlcv, 1),
@@ -639,8 +651,22 @@ module.exports = class kraken extends Exchange {
             request['since'] = parseInt ((since - 1) / 1000);
         }
         const response = await this.publicGetOHLC (this.extend (request, params));
-        const ohlcvs = response['result'][market['id']];
-        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
+        //
+        //     {
+        //         "error":[],
+        //         "result":{
+        //             "XETHXXBT":[
+        //                 [1591475580,"0.02499","0.02499","0.02499","0.02499","0.00000","0.00000000",0],
+        //                 [1591475640,"0.02500","0.02500","0.02500","0.02500","0.02500","9.12201000",5],
+        //                 [1591475700,"0.02499","0.02499","0.02499","0.02499","0.02499","1.28681415",2],
+        //                 [1591475760,"0.02499","0.02499","0.02499","0.02499","0.02499","0.08800000",1],
+        //             ],
+        //             "last":1591517580
+        //         }
+        //     }
+        const result = this.safeValue (response, 'result', {});
+        const ohlcvs = this.safeValue (result, market['id'], []);
+        return this.parseOHLCVs (ohlcvs, market);
     }
 
     parseLedgerEntryType (type) {
