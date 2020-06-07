@@ -714,7 +714,7 @@ class bitvavo(Exchange):
         #         [1590383520000,"8090.3","8092.7","8090.3","8092.5","0.04001286"],
         #     ]
         #
-        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+        return self.parse_ohlcvs(response, market)
 
     async def fetch_balance(self, params={}):
         await self.load_markets()

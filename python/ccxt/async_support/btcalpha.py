@@ -225,6 +225,16 @@ class btcalpha(Exchange):
         return self.parse_trades(trades, market, since, limit)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='5m', since=None, limit=None):
+        #
+        #     {
+        #         "time":1591296000,
+        #         "open":0.024746,
+        #         "close":0.024728,
+        #         "low":0.024728,
+        #         "high":0.024753,
+        #         "volume":16.624
+        #     }
+        #
         return [
             self.safe_timestamp(ohlcv, 'time'),
             self.safe_float(ohlcv, 'open'),
@@ -246,7 +256,14 @@ class btcalpha(Exchange):
         if since is not None:
             request['since'] = int(since / 1000)
         response = await self.publicGetChartsPairTypeChart(self.extend(request, params))
-        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+        #
+        #     [
+        #         {"time":1591296000,"open":0.024746,"close":0.024728,"low":0.024728,"high":0.024753,"volume":16.624},
+        #         {"time":1591295700,"open":0.024718,"close":0.02475,"low":0.024711,"high":0.02475,"volume":31.645},
+        #         {"time":1591295400,"open":0.024721,"close":0.024717,"low":0.024711,"high":0.02473,"volume":65.071}
+        #     ]
+        #
+        return self.parse_ohlcvs(response, market)
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
