@@ -26,6 +26,7 @@ module.exports = class bitmax extends Exchange {
                 'fetchOHLCV': true,
                 'fetchTrades': true,
                 'fetchAccounts': true,
+                'fetchBalance': true,
                 'fetchMyTrades': false,
                 'fetchOrder': true,
                 'fetchOrders': true,
@@ -83,28 +84,23 @@ module.exports = class bitmax extends Exchange {
                         'futures/funding-rates',
                     ],
                 },
-                'private': {
+                'accountGroup': {
                     'get': [
+                        '{account-category}/balance',
                         'cash/balance',
-                        'cash/order/hist/current',
-                        'cash/order/open',
-                        'cash/order/status',
-                        'futures/balance',
-                        'futures/order/hist/current',
-                        'futures/order/open',
-                        'futures/order/status',
                         'margin/balance',
-                        'margin/order/hist/current',
-                        'margin/order/open',
-                        'margin/order/status',
                         'margin/risk',
+                        'transfer',
+                        'futures/collateral-balance',
+                        'futures/position',
+                        'futures/risk',
+                        'futures/funding-payments',
+                        '{account-category}/order/open',
+                        '{account-category}/order/status',
+                        '{account-category}/order/hist/current',
                         'order/hist',
-                        'transaction',
-                        'info',
-                        'wallet/deposit/address',
                     ],
                     'post': [
-                        'margin/risk',
                         'futures/transfer/deposit',
                         'futures/transfer/withdraw',
                         '{account-category}/order',
@@ -114,6 +110,13 @@ module.exports = class bitmax extends Exchange {
                         '{account-category}/order',
                         '{account-category}/order/all',
                         '{account-category}/order/batch',
+                    ],
+                },
+                'private': {
+                    'get': [
+                        'info',
+                        'wallet/transactions',
+                        'wallet/deposit/address', // not documented
                     ],
                 },
             },
@@ -127,9 +130,8 @@ module.exports = class bitmax extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'options': {
-                'account': 'cash', // 'cash'/'margin'/'futures'
-                'accountGroup': undefined,
-                'parseOrderToPrecision': false,
+                'account-category': 'cash', // 'cash'/'margin'/'futures'
+                'account-group': undefined,
             },
             'exceptions': {
                 'exact': {
@@ -441,7 +443,7 @@ module.exports = class bitmax extends Exchange {
     }
 
     async fetchAccounts (params = {}) {
-        let accountGroup = this.safeString (this.options, 'accountGroup');
+        let accountGroup = this.safeString (this.options, 'account-group');
         let response = undefined;
         if (accountGroup === undefined) {
             response = await this.privateGetInfo (params);
@@ -463,7 +465,7 @@ module.exports = class bitmax extends Exchange {
             //
             const data = this.safeValue (response, 'data', {});
             accountGroup = this.safeString (data, 'accountGroup');
-            this.options['accountGroup'] = accountGroup;
+            this.options['account-group'] = accountGroup;
         }
         return [
             {
@@ -478,20 +480,28 @@ module.exports = class bitmax extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         await this.loadAccounts ();
-        const method = 'privateGet' + this.getAccount (params) + 'Balance';
-        const response = await this[method] (params);
+        const defaultAccountCategory = this.safeValue (this.options, 'account-category', 'cash');
+        const options = this.safeValue (this.options, 'fetchBalance', {});
+        let accountCategory = this.safeValue (options, 'account-category', defaultAccountCategory);
+        accountCategory = this.safeString (params, 'account-category', accountCategory);
+        const account = this.safeValue (this.accounts, 0, {});
+        const accountGroup = this.safeValue (account, 'id');
+        const request = {
+            'account-category': accountCategory,
+            'account-group': accountGroup,
+        };
+        const response = await this.accountGroupGetAccountCategoryBalance (this.extend (request, params));
         //
-        // {
-        //    'code': 0,
-        //    'data':
-        //        [
-        //            {
-        //                'asset': 'BCHSV',
-        //                'totalBalance': '64.298000048',
-        //                'availableBalance': '64.298000048'
-        //            },
+        //     {
+        //         'code': 0,
+        //         'data': [
+        //             {
+        //                 'asset': 'BCHSV',
+        //                 'totalBalance': '64.298000048',
+        //                 'availableBalance': '64.298000048'
+        //             },
         //         ]
-        // }
+        //     }
         //
         const result = { 'info': response };
         const balances = this.safeValue (response, 'data', []);
@@ -501,7 +511,6 @@ module.exports = class bitmax extends Exchange {
             const account = this.account ();
             account['free'] = this.safeFloat (balance, 'availableBalance');
             account['total'] = this.safeFloat (balance, 'totalBalance');
-            account['used'] = account['total'] - account['free'];
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -751,7 +760,7 @@ module.exports = class bitmax extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parseOHLCVs (data, market, timeframe, since, limit);
+        return this.parseOHLCVs (data, market);
     }
 
     parseTrade (trade, market = undefined) {
@@ -1350,34 +1359,30 @@ module.exports = class bitmax extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = '/api/pro/' + this.version + '/' + this.implodeParams (path, params);
-        const query = this.omit (params, this.extractParams (path));
+        let url = '';
+        let query = params;
+        if (api === 'accountGroup') {
+            url += this.implodeParams ('/{account-group}', params);
+            query = this.omit (params, 'account-group');
+        }
+        const request = this.implodeParams (path, query);
+        url += '/api/pro/' + this.version + '/' + request;
+        query = this.omit (query, this.extractParams (path));
         if (api === 'public') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
         } else {
             this.checkRequiredCredentials ();
-            if (!this.safeValue (params, 'isCommonApi', false)) {
-                let accountGroup = this.safeString (this.options, 'accountGroup');
-                if (accountGroup === undefined) {
-                    if (this.accounts !== undefined) {
-                        accountGroup = this.accounts[0]['id'];
-                    }
-                }
-                if (accountGroup !== undefined) {
-                    url = '/' + accountGroup + url;
-                }
-            }
-            query['time'] = this.milliseconds ().toString ();
-            const auth = query['time'] + '+' + path.replace ('/{orderId}', ''); // fix sign error
+            const timestamp = this.milliseconds ().toString ();
+            const auth = timestamp + '+' + request;
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
             headers = {
                 'x-auth-key': this.apiKey,
-                'x-auth-timestamp': query['time'],
+                'x-auth-timestamp': timestamp,
+                'x-auth-signature': this.decode (signature),
                 'Content-Type': 'application/json',
             };
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
-            headers['x-auth-signature'] = this.decode (signature);
             if (method === 'GET') {
                 if (Object.keys (query).length) {
                     url += '?' + this.urlencode (query);
