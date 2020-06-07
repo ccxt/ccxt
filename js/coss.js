@@ -332,6 +332,16 @@ module.exports = class coss extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        //
+        //     [
+        //         1545138960000,
+        //         "0.02705000",
+        //         "0.02705000",
+        //         "0.02705000",
+        //         "0.02705000",
+        //         "0.00000000"
+        //     ]
+        //
         return [
             this.safeInteger (ohlcv, 0),   // timestamp
             this.safeFloat (ohlcv, 1), // Open
@@ -351,25 +361,25 @@ module.exports = class coss extends Exchange {
         };
         const response = await this.engineGetCs (this.extend (request, params));
         //
-        //     {       tt:   "1m",
-        //         symbol:   "ETH_BTC",
-        //       nextTime:    1545138960000,
-        //         series: [ [  1545138960000,
-        //                     "0.02705000",
-        //                     "0.02705000",
-        //                     "0.02705000",
-        //                     "0.02705000",
-        //                     "0.00000000"    ],
-        //                   ...
-        //                   [  1545168900000,
-        //                     "0.02684000",
-        //                     "0.02684000",
-        //                     "0.02684000",
-        //                     "0.02684000",
-        //                     "0.00000000"    ]  ],
-        //          limit:    500                    }
+        //     {
+        //         tt: "1m",
+        //         symbol: "ETH_BTC",
+        //         nextTime: 1545138960000,
+        //         series: [
+        //             [
+        //                 1545138960000,
+        //                 "0.02705000",
+        //                 "0.02705000",
+        //                 "0.02705000",
+        //                 "0.02705000",
+        //                 "0.00000000"
+        //             ],
+        //         ],
+        //         limit: 500
+        //     }
         //
-        return this.parseOHLCVs (response['series'], market, timeframe, since, limit);
+        const series = this.safeValue (response, 'series', []);
+        return this.parseOHLCVs (series, market);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
