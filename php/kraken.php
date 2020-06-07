@@ -47,6 +47,7 @@ class kraken extends Exchange {
                 'fetchLedgerEntry' => true,
                 'fetchLedger' => true,
                 'fetchOrderTrades' => 'emulated',
+                'fetchTime' => true,
             ),
             'marketsByAltname' => array(),
             'timeframes' => array(
@@ -1518,6 +1519,22 @@ class kraken extends Exchange {
         //                   status => "Success"                                                       } ) }
         //
         return $this->parse_transactions_by_type('deposit', $response['result'], $code, $since, $limit);
+    }
+
+    public function fetch_time($params = array ()) {
+        // https://www.kraken.com/en-us/features/api#get-server-time
+        $response = $this->publicGetTime ($params);
+        //
+        //    {
+        //        "error" => array(),
+        //        "$result" => {
+        //            "unixtime" => 1591502873,
+        //            "rfc1123" => "Sun,  7 Jun 20 04:07:53 +0000"
+        //        }
+        //    }
+        //
+        $result = $this->safe_value($response, 'result', array());
+        return $this->safe_timestamp($result, 'unixtime');
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
