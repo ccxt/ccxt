@@ -56,19 +56,17 @@ class Exchange extends \ccxt\Exchange {
 
     const VERSION = '1.28.94';
 
-    /** @var Browser $browser */
-    public $browser;
-    /** @var LoopInterface $loop */
-    public $loop;
-    /** @var ReactKernel $kernel */
-    public $kernel;
-
-    public function __construct(LoopInterface $loop, ReactKernel $kernel, $options = array())
+    public function __construct($options = array())
     {
-        parent::__construct($options);
+        /** @var LoopInterface $loop Populated by $options */
+        $this->loop = NULL;
+        /** @var ReactKernel $kernel Populated by $options */
+        $this->kernel = NULL;
 
-        $this->loop = $loop;
-        $this->kernel = $kernel;
+        /** @var Browser $browser */
+        $this->browser = NULL;
+
+        parent::__construct($options);
     }
 
     // this method is experimental
@@ -660,7 +658,7 @@ class Exchange extends \ccxt\Exchange {
         return yield $this->create_market_sell_order($symbol, $amount, $params);
     }
 
-    public function __call($function, $params) {
+    public function __call($function, $params) : Generator {
         if (array_key_exists($function, $this->defined_rest_api)) {
             $partial = $this->defined_rest_api[$function];
             $entry = $partial[3];

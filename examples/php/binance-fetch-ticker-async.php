@@ -9,7 +9,9 @@ date_default_timezone_set ('UTC');
 $loop = \React\EventLoop\Factory::create();
 $kernel = \Recoil\React\ReactKernel::create($loop);
 
-$exchange = new \ccxt_async\binance ($loop, $kernel, array (
+$exchange = new \ccxt_async\binance (array (
+    'loop' => $loop,
+    'kernel' => $kernel,
     //'verbose' => true,
     'timeout' => 30000,
 ));

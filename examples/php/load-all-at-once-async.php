@@ -48,7 +48,7 @@ $kernel->execute(function() use ($loop, $kernel) {
 
     foreach ($exchanges as $exchange) {
         $id = "\\ccxt_async\\".$exchange;
-        $exchange = new $id($loop, $kernel);
+        $exchange = new $id(array('loop' => $loop, 'kernel' => $kernel));
 
         $yields[] = loadMarkets($exchange);
     }

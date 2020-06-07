@@ -1146,7 +1146,9 @@ async def print_poloniex_ethbtc_ticker():
 asyncio.get_event_loop().run_until_complete(print_poloniex_ethbtc_ticker())
 ```
 
-In the PHP 5-compatible version all API methods are synchronous, but with PHP 7.1+ the CCXT library optionally supports asynchronous concurrency mode using the 'yield' syntax (very similar to async/await in Python). The asynchronous PHP version uses the [RecoilPHP](https://github.com/recoilphp/recoil), [ReactPHP](https://reactphp.org/) and [clue/reactphp-buzz](https://github.com/clue/reactphp-buzz) libraries. In async mode you have all the same properties and methods, but most API methods should be called with 'yield' keyword, in an overall ReactPHP/RecoilPHP wrapper. If you want to use async mode, you should use the  `ccxt_async` namespace, like in the following example:
+In the PHP 5-compatible version all API methods are synchronous, but with PHP 7.1+ the CCXT library optionally supports asynchronous concurrency mode using the 'yield' syntax (very similar to async/await in Python). The asynchronous PHP version uses the [RecoilPHP](https://github.com/recoilphp/recoil), [ReactPHP](https://reactphp.org/) and [clue/reactphp-buzz](https://github.com/clue/reactphp-buzz) libraries. In async mode you have all the same properties and methods, but any API method that has a return type declared as 'Generator' should be decorated with the 'yield' keyword, your script should be in a ReactPHP/RecoilPHP wrapper, and all exchange constructors need to be passed the loop and kernel instances from the wrapper. 
+
+To use the async version of the library, use the `ccxt_async` namespace, as in the following example:
 
 ```PHP
 # PHP
@@ -1156,15 +1158,14 @@ include 'ccxt.php';
 $loop = \React\EventLoop\Factory::create();
 $kernel = \Recoil\React\ReactKernel::create($loop);
 $kernel->execute(function() use ($loop, $kernel) {
-    $poloniex = new \ccxt_async\poloniex($loop, $kernel);
+    $poloniex = new \ccxt_async\poloniex(array('loop' => $loop, 'kernel' => $kernel));
     $result = yield $poloniex->fetch_ticker('ETH/BTC');
     var_dump($result);
 }, $loop);
 $kernel->run();
 ```
 
-See further examples in the `examples/php` directory; look for files ending in `-async.php`. Also, make sure you have installed the required dependencies using `composer require recoil/recoil clue/buzz-react react/event-loop recoil/react`. Lastly, [this article](https://sergeyzhuk.me/2018/10/26/from-promise-to-coroutines/) provides a good introduction to the methods used here.
-
+See further examples in the `examples/php` directory; look for files ending in `-async.php`. Also, make sure you have installed the required dependencies using `composer require recoil/recoil clue/buzz-react react/event-loop recoil/react`. Lastly, [this article](https://sergeyzhuk.me/2018/10/26/from-promise-to-coroutines/) provides a good introduction to the methods used here. While syntactically the change is simple (i.e., just using a 'yield' keyword before relevant methods), concurrency has significant implications for the overall design of your code.
 
 ## Returned JSON Objects
 

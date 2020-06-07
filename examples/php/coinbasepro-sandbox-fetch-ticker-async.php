@@ -13,7 +13,9 @@ echo "CCXT v." . \ccxt\Exchange::VERSION . "\n";
 
 $kernel->execute(function() use ($loop, $kernel) {
 
-    $exchange = new \ccxt_async\coinbasepro ($loop, $kernel, array(
+    $exchange = new \ccxt_async\coinbasepro (array(
+        'loop' => $loop,
+        'kernel' => $kernel,
         'enableRateLimit' => true,
     ));
 
