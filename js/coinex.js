@@ -348,6 +348,18 @@ module.exports = class coinex extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '5m', since = undefined, limit = undefined) {
+        //
+        //     [
+        //         1591484400,
+        //         "0.02505349",
+        //         "0.02506988",
+        //         "0.02507000",
+        //         "0.02505304",
+        //         "343.19716223",
+        //         "8.6021323866383196",
+        //         "ETHBTC"
+        //     ]
+        //
         return [
             this.safeTimestamp (ohlcv, 0),
             this.safeFloat (ohlcv, 1),
@@ -366,7 +378,19 @@ module.exports = class coinex extends Exchange {
             'type': this.timeframes[timeframe],
         };
         const response = await this.publicGetMarketKline (this.extend (request, params));
-        return this.parseOHLCVs (response['data'], market, timeframe, since, limit);
+        //
+        //     {
+        //         "code": 0,
+        //         "data": [
+        //             [1591484400, "0.02505349", "0.02506988", "0.02507000", "0.02505304", "343.19716223", "8.6021323866383196", "ETHBTC"],
+        //             [1591484700, "0.02506990", "0.02508109", "0.02508109", "0.02506979", "91.59841581", "2.2972047780447000", "ETHBTC"],
+        //             [1591485000, "0.02508106", "0.02507996", "0.02508106", "0.02507500", "65.15307697", "1.6340597822306000", "ETHBTC"],
+        //         ],
+        //         "message": "OK"
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOHLCVs (data, market);
     }
 
     async fetchBalance (params = {}) {
