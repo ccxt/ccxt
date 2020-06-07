@@ -256,7 +256,7 @@ module.exports = class btcturk extends Exchange {
             request['last'] = limit;
         }
         const response = await this.publicGetOhlcdata (this.extend (request, params));
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        return this.parseOHLCVs (response, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
