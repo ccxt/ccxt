@@ -342,6 +342,16 @@ class kkex extends Exchange {
     }
 
     public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+        //
+        //     array(
+        //         "1521072000000",
+        //         "0.000002",
+        //         "0.00003",
+        //         "0.000002",
+        //         "0.00003",
+        //         "3.106889"
+        //     )
+        //
         return array(
             $this->safe_integer($ohlcv, 0),
             $this->safe_float($ohlcv, 1),
@@ -387,7 +397,7 @@ class kkex extends Exchange {
         //         )
         //     )
         //
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($response, $market);
     }
 
     public function parse_order_status($status) {

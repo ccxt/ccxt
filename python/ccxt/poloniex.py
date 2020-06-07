@@ -221,6 +221,18 @@ class poloniex(Exchange):
         }
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='5m', since=None, limit=None):
+        #
+        #     {
+        #         "date":1590913773,
+        #         "high":0.02491611,
+        #         "low":0.02491611,
+        #         "open":0.02491611,
+        #         "close":0.02491611,
+        #         "volume":0,
+        #         "quoteVolume":0,
+        #         "weightedAverage":0.02491611
+        #     }
+        #
         return [
             self.safe_timestamp(ohlcv, 'date'),
             self.safe_float(ohlcv, 'open'),
@@ -249,7 +261,14 @@ class poloniex(Exchange):
                 end = self.sum(request['start'], limit * self.parse_timeframe(timeframe))
                 request['end'] = end
         response = self.publicGetReturnChartData(self.extend(request, params))
-        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+        #
+        #     [
+        #         {"date":1590913773,"high":0.02491611,"low":0.02491611,"open":0.02491611,"close":0.02491611,"volume":0,"quoteVolume":0,"weightedAverage":0.02491611},
+        #         {"date":1590913800,"high":0.02495324,"low":0.02489501,"open":0.02491797,"close":0.02493693,"volume":0.0927415,"quoteVolume":3.7227869,"weightedAverage":0.02491185},
+        #         {"date":1590914100,"high":0.02498596,"low":0.02488503,"open":0.02493033,"close":0.02497896,"volume":0.21196348,"quoteVolume":8.50291888,"weightedAverage":0.02492832},
+        #     ]
+        #
+        return self.parse_ohlcvs(response, market)
 
     def fetch_markets(self, params={}):
         markets = self.publicGetReturnTicker(params)

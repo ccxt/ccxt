@@ -213,6 +213,18 @@ class poloniex extends Exchange {
     }
 
     public function parse_ohlcv($ohlcv, $market = null, $timeframe = '5m', $since = null, $limit = null) {
+        //
+        //     {
+        //         "date":1590913773,
+        //         "high":0.02491611,
+        //         "low":0.02491611,
+        //         "open":0.02491611,
+        //         "close":0.02491611,
+        //         "volume":0,
+        //         "quoteVolume":0,
+        //         "weightedAverage":0.02491611
+        //     }
+        //
         return array(
             $this->safe_timestamp($ohlcv, 'date'),
             $this->safe_float($ohlcv, 'open'),
@@ -245,7 +257,14 @@ class poloniex extends Exchange {
             }
         }
         $response = $this->publicGetReturnChartData (array_merge($request, $params));
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        //
+        //     array(
+        //         array("date":1590913773,"high":0.02491611,"low":0.02491611,"open":0.02491611,"close":0.02491611,"volume":0,"quoteVolume":0,"weightedAverage":0.02491611),
+        //         array("date":1590913800,"high":0.02495324,"low":0.02489501,"open":0.02491797,"close":0.02493693,"volume":0.0927415,"quoteVolume":3.7227869,"weightedAverage":0.02491185),
+        //         array("date":1590914100,"high":0.02498596,"low":0.02488503,"open":0.02493033,"close":0.02497896,"volume":0.21196348,"quoteVolume":8.50291888,"weightedAverage":0.02492832),
+        //     )
+        //
+        return $this->parse_ohlcvs($response, $market);
     }
 
     public function fetch_markets($params = array ()) {

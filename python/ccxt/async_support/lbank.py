@@ -307,6 +307,16 @@ class lbank(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+        #
+        #     [
+        #         1590969600,
+        #         0.02451657,
+        #         0.02452675,
+        #         0.02443701,
+        #         0.02447814,
+        #         238.38210000
+        #     ]
+        #
         return [
             self.safe_timestamp(ohlcv, 0),
             self.safe_float(ohlcv, 1),
@@ -330,7 +340,14 @@ class lbank(Exchange):
             'time': int(since / 1000),
         }
         response = await self.publicGetKline(self.extend(request, params))
-        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+        #
+        #     [
+        #         [1590969600,0.02451657,0.02452675,0.02443701,0.02447814,238.38210000],
+        #         [1590969660,0.02447814,0.02449883,0.02443209,0.02445973,212.40270000],
+        #         [1590969720,0.02445973,0.02452067,0.02445909,0.02446151,266.16920000],
+        #     ]
+        #
+        return self.parse_ohlcvs(response, market)
 
     async def fetch_balance(self, params={}):
         await self.load_markets()

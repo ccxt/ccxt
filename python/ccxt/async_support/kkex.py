@@ -317,6 +317,16 @@ class kkex(Exchange):
         raise OrderNotFound(self.id + ' order ' + id + ' not found')
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+        #
+        #     [
+        #         "1521072000000",
+        #         "0.000002",
+        #         "0.00003",
+        #         "0.000002",
+        #         "0.00003",
+        #         "3.106889"
+        #     ]
+        #
         return [
             self.safe_integer(ohlcv, 0),
             self.safe_float(ohlcv, 1),
@@ -359,7 +369,7 @@ class kkex(Exchange):
         #         ]
         #     ]
         #
-        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+        return self.parse_ohlcvs(response, market)
 
     def parse_order_status(self, status):
         statuses = {
