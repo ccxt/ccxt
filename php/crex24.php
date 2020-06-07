@@ -617,7 +617,19 @@ class crex24 extends Exchange {
             $request['limit'] = $limit; // Accepted values => 1 - 1000. If the parameter is not specified, the number of results is limited to 100
         }
         $response = $this->publicGetOhlcv (array_merge($request, $params));
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        //
+        //     array(
+        //         {
+        //             "timestamp" => "2020-06-06T17:36:00Z",
+        //             "open" => 0.025,
+        //             "high" => 0.025,
+        //             "low" => 0.02499,
+        //             "close" => 0.02499,
+        //             "volume" => 0.00643127
+        //         }
+        //     )
+        //
+        return $this->parse_ohlcvs($response, $market);
     }
 
     public function parse_order_status($status) {

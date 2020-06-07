@@ -491,6 +491,16 @@ class coinbasepro extends Exchange {
     }
 
     public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+        //
+        //     array(
+        //         1591514160,
+        //         0.02507,
+        //         0.02507,
+        //         0.02507,
+        //         0.02507,
+        //         0.02816506
+        //     )
+        //
         return array(
             $this->safe_timestamp($ohlcv, 0),
             $this->safe_float($ohlcv, 3),
@@ -518,7 +528,14 @@ class coinbasepro extends Exchange {
             $request['end'] = $this->iso8601($this->sum(($limit - 1) * $granularity * 1000, $since));
         }
         $response = $this->publicGetProductsIdCandles (array_merge($request, $params));
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        //
+        //     [
+        //         [1591514160,0.02507,0.02507,0.02507,0.02507,0.02816506],
+        //         [1591514100,0.02507,0.02507,0.02507,0.02507,1.63830323],
+        //         [1591514040,0.02505,0.02507,0.02505,0.02507,0.19918178]
+        //     ]
+        //
+        return $this->parse_ohlcvs($response, $market);
     }
 
     public function fetch_time($params = array ()) {

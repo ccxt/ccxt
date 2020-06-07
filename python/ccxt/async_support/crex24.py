@@ -595,7 +595,19 @@ class crex24(Exchange):
         if limit is not None:
             request['limit'] = limit  # Accepted values: 1 - 1000. If the parameter is not specified, the number of results is limited to 100
         response = await self.publicGetOhlcv(self.extend(request, params))
-        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+        #
+        #     [
+        #         {
+        #             "timestamp": "2020-06-06T17:36:00Z",
+        #             "open": 0.025,
+        #             "high": 0.025,
+        #             "low": 0.02499,
+        #             "close": 0.02499,
+        #             "volume": 0.00643127
+        #         }
+        #     ]
+        #
+        return self.parse_ohlcvs(response, market)
 
     def parse_order_status(self, status):
         statuses = {
