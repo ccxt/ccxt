@@ -631,6 +631,17 @@ class bittrex extends Exchange {
     }
 
     public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1d', $since = null, $limit = null) {
+        //
+        //     {
+        //         "O":0.02249509,
+        //         "H":0.02249509,
+        //         "L":0.02249509,
+        //         "C":0.02249509,
+        //         "V":0.72452427,
+        //         "T":"2020-05-28T06:17:00",
+        //         "BV":0.01629823
+        //     }
+        //
         return [
             $this->parse8601($ohlcv['T'] . '+00:00'),
             $this->safe_float($ohlcv, 'O'),
@@ -649,11 +660,20 @@ class bittrex extends Exchange {
             'marketName' => $market['id'],
         );
         $response = $this->v2GetMarketGetTicks (array_merge($request, $params));
-        if (is_array($response) && array_key_exists('result', $response)) {
-            if ($response['result']) {
-                return $this->parse_ohlcvs($response['result'], $market, $timeframe, $since, $limit);
-            }
-        }
+        //
+        //     {
+        //         "success":true,
+        //         "message":"",
+        //         "$result":array(
+        //             array("O":0.02249509,"H":0.02249509,"L":0.02249509,"C":0.02249509,"V":0.72452427,"T":"2020-05-28T06:17:00","BV":0.01629823),
+        //             array("O":0.02249509,"H":0.02249509,"L":0.02249509,"C":0.02249509,"V":0.0,"T":"2020-05-28T06:18:00","BV":0.0),
+        //             array("O":0.02251987,"H":0.02251987,"L":0.02251987,"C":0.02251987,"V":1.66344206,"T":"2020-05-28T06:19:00","BV":0.03746049),
+        //         ),
+        //         "explanation":null
+        //     }
+        //
+        $result = $this->safe_value($response, 'result', array());
+        return $this->parse_ohlcvs($result, $market);
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {

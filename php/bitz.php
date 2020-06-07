@@ -622,13 +622,15 @@ class bitz extends Exchange {
 
     public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
         //
-        //      {     time => "1535973420000",
-        //            open => "0.03975084",
-        //            high => "0.03975084",
-        //             low => "0.03967700",
-        //           close => "0.03967700",
-        //          volume => "12.4733",
-        //        datetime => "2018-09-03 19:17:00" }
+        //     {
+        //         time => "1535973420000",
+        //         open => "0.03975084",
+        //         high => "0.03975084",
+        //         low => "0.03967700",
+        //         close => "0.03967700",
+        //         volume => "12.4733",
+        //         datetime => "2018-09-03 19:17:00"
+        //     }
         //
         return array(
             $this->safe_integer($ohlcv, 'time'),
@@ -660,36 +662,28 @@ class bitz extends Exchange {
         }
         $response = $this->marketGetKline (array_merge($request, $params));
         //
-        //     {    status =>    200,
-        //             msg =>   "",
-        //            data => {       $bars => array( array(     time => "1535973420000",
-        //                                        open => "0.03975084",
-        //                                        high => "0.03975084",
-        //                                         low => "0.03967700",
-        //                                       close => "0.03967700",
-        //                                      volume => "12.4733",
-        //                                    datetime => "2018-09-03 19:17:00" ),
-        //                                  array(     time => "1535955480000",
-        //                                        open => "0.04009900",
-        //                                        high => "0.04016745",
-        //                                         low => "0.04009900",
-        //                                       close => "0.04012074",
-        //                                      volume => "74.4803",
-        //                                    datetime => "2018-09-03 14:18:00" }  ),
-        //                    resolution =>   "1min",
-        //                        $symbol =>   "eth_btc",
-        //                          from =>   "1535973420000",
-        //                            to =>   "1535955480000",
-        //                          size =>    300                                    ),
-        //            time =>    1535973435,
-        //       microtime =>   "0.56462100 1535973435",
-        //          source =>   "api"                                                    }
+        //     {
+        //         status => 200,
+        //         msg => "",
+        //         $data => array(
+        //             $bars => array(
+        //                 array( time => "1535973420000", open => "0.03975084", high => "0.03975084", low => "0.03967700", close => "0.03967700", volume => "12.4733", datetime => "2018-09-03 19:17:00" ),
+        //                 array( time => "1535955480000", open => "0.04009900", high => "0.04016745", low => "0.04009900", close => "0.04012074", volume => "74.4803", datetime => "2018-09-03 14:18:00" ),
+        //             ),
+        //             resolution => "1min",
+        //             $symbol => "eth_btc",
+        //             from => "1535973420000",
+        //             to => "1535955480000",
+        //             size => 300
+        //         ),
+        //         time => 1535973435,
+        //         microtime => "0.56462100 1535973435",
+        //         source => "api"
+        //     }
         //
-        $bars = $this->safe_value($response['data'], 'bars', null);
-        if ($bars === null) {
-            return array();
-        }
-        return $this->parse_ohlcvs($bars, $market, $timeframe, $since, $limit);
+        $data = $this->safe_value($response, 'data', array());
+        $bars = $this->safe_value($data, 'bars', array());
+        return $this->parse_ohlcvs($bars, $market);
     }
 
     public function parse_order_status($status) {
