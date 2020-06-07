@@ -638,7 +638,7 @@ module.exports = class dsx extends Exchange {
         //     }
         //
         const candles = this.safeValue (response, market['id'], []);
-        return this.parseOHLCVs (candles, market, timeframe, since, limit);
+        return this.parseOHLCVs (candles, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
