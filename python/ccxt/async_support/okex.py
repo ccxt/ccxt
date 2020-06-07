@@ -1314,7 +1314,7 @@ class okex(Exchange):
         if isinstance(ohlcv, list):
             numElements = len(ohlcv)
             volumeIndex = 6 if (numElements > 6) else 5
-            timestamp = ohlcv[0]
+            timestamp = self.safe_value(ohlcv, 0)
             if isinstance(timestamp, basestring):
                 timestamp = self.parse8601(timestamp)
             return [

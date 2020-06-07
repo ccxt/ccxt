@@ -1328,7 +1328,7 @@ class okex extends Exchange {
         if (gettype($ohlcv) === 'array' && count(array_filter(array_keys($ohlcv), 'is_string')) == 0) {
             $numElements = is_array($ohlcv) ? count($ohlcv) : 0;
             $volumeIndex = ($numElements > 6) ? 6 : 5;
-            $timestamp = $ohlcv[0];
+            $timestamp = $this->safe_value($ohlcv, 0);
             if (gettype($timestamp) === 'string') {
                 $timestamp = $this->parse8601($timestamp);
             }
