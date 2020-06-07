@@ -661,7 +661,14 @@ class bitfinex2(bitfinex):
             'limit': limit,
         }
         response = await self.publicGetCandlesTradeTimeframeSymbolHist(self.extend(request, params))
-        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+        #
+        #     [
+        #         [1591503840000,0.025069,0.025068,0.025069,0.025068,1.97828998],
+        #         [1591504500000,0.025065,0.025065,0.025065,0.025065,1.0164],
+        #         [1591504620000,0.025062,0.025062,0.025062,0.025062,0.5],
+        #     ]
+        #
+        return self.parse_ohlcvs(response, market)
 
     def parse_order_status(self, status):
         if status is None:

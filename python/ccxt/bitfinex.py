@@ -854,6 +854,16 @@ class bitfinex(Exchange):
         return self.parse_order(response)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+        #
+        #     [
+        #         1457539800000,
+        #         0.02594,
+        #         0.02594,
+        #         0.02594,
+        #         0.02594,
+        #         0.1
+        #     ]
+        #
         return [
             self.safe_integer(ohlcv, 0),
             self.safe_float(ohlcv, 1),
@@ -878,7 +888,14 @@ class bitfinex(Exchange):
         if since is not None:
             request['start'] = since
         response = self.v2GetCandlesTradeTimeframeSymbolHist(self.extend(request, params))
-        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+        #
+        #     [
+        #         [1457539800000,0.02594,0.02594,0.02594,0.02594,0.1],
+        #         [1457547300000,0.02577,0.02577,0.02577,0.02577,0.01],
+        #         [1457550240000,0.0255,0.0253,0.0255,0.0252,3.2640000000000002],
+        #     ]
+        #
+        return self.parse_ohlcvs(response, market)
 
     def get_currency_name(self, code):
         # todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
