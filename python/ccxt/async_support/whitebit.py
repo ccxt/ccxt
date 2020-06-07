@@ -553,10 +553,32 @@ class whitebit(Exchange):
         if limit is not None:
             request['limit'] = limit  # default == max == 500
         response = await self.publicV1GetKline(self.extend(request, params))
-        result = self.safe_value(response, 'result')
-        return self.parse_ohlcvs(result, market, timeframe, since, limit)
+        #
+        #     {
+        #         "success":true,
+        #         "message":"",
+        #         "result":[
+        #             [1591488000,"0.025025","0.025025","0.025029","0.025023","6.181","0.154686629"],
+        #             [1591488060,"0.025028","0.025033","0.025035","0.025026","8.067","0.201921167"],
+        #             [1591488120,"0.025034","0.02505","0.02505","0.025034","20.089","0.503114696"],
+        #         ]
+        #     }
+        #
+        result = self.safe_value(response, 'result', [])
+        return self.parse_ohlcvs(result, market)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+        #
+        #     [
+        #         1591488000,
+        #         "0.025025",
+        #         "0.025025",
+        #         "0.025029",
+        #         "0.025023",
+        #         "6.181",
+        #         "0.154686629"
+        #     ]
+        #
         return [
             self.safe_timestamp(ohlcv, 0),  # timestamp
             self.safe_float(ohlcv, 1),  # open
