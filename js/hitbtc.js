@@ -326,7 +326,7 @@ module.exports = class hitbtc extends ccxt.hitbtc {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             for (let i = 0; i < data.length; i++) {
                 const candle = data[i];
-                const parsed = this.parseOHLCV (candle, market, timeframe);
+                const parsed = this.parseOHLCV (candle, market);
                 this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
                 let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
                 if (stored === undefined) {
