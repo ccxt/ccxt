@@ -1322,7 +1322,7 @@ module.exports = class okex extends Exchange {
         if (Array.isArray (ohlcv)) {
             const numElements = ohlcv.length;
             const volumeIndex = (numElements > 6) ? 6 : 5;
-            let timestamp = ohlcv[0];
+            let timestamp = this.safeValue (ohlcv, 0);
             if (typeof timestamp === 'string') {
                 timestamp = this.parse8601 (timestamp);
             }
