@@ -381,6 +381,17 @@ class bitforex(Exchange):
         }
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+        #
+        #     {
+        #         "close":0.02505143,
+        #         "currencyVol":0,
+        #         "high":0.02506422,
+        #         "low":0.02505143,
+        #         "open":0.02506095,
+        #         "time":1591508940000,
+        #         "vol":51.1869
+        #     }
+        #
         return [
             self.safe_integer(ohlcv, 'time'),
             self.safe_float(ohlcv, 'open'),
@@ -400,8 +411,19 @@ class bitforex(Exchange):
         if limit is not None:
             request['size'] = limit  # default 1, max 600
         response = self.publicGetApiV1MarketKline(self.extend(request, params))
-        ohlcvs = self.safe_value(response, 'data', [])
-        return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
+        #
+        #     {
+        #         "data":[
+        #             {"close":0.02505143,"currencyVol":0,"high":0.02506422,"low":0.02505143,"open":0.02506095,"time":1591508940000,"vol":51.1869},
+        #             {"close":0.02503914,"currencyVol":0,"high":0.02506687,"low":0.02503914,"open":0.02505358,"time":1591509000000,"vol":9.1082},
+        #             {"close":0.02505172,"currencyVol":0,"high":0.02507466,"low":0.02503895,"open":0.02506371,"time":1591509060000,"vol":63.7431},
+        #         ],
+        #         "success":true,
+        #         "time":1591509427131
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        return self.parse_ohlcvs(data, market)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
