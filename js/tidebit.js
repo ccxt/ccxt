@@ -295,8 +295,18 @@ module.exports = class tidebit extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        //
+        //     [
+        //         1498530360,
+        //         2700.0,
+        //         2700.0,
+        //         2700.0,
+        //         2700.0,
+        //         0.01
+        //     ]
+        //
         return [
-            this.asfeTimestamp (ohlcv, 0),
+            this.safeTimestamp (ohlcv, 0),
             this.safeFloat (ohlcv, 1),
             this.safeFloat (ohlcv, 2),
             this.safeFloat (ohlcv, 3),
@@ -322,6 +332,13 @@ module.exports = class tidebit extends Exchange {
             request['timestamp'] = 1800000;
         }
         const response = await this.publicGetK (this.extend (request, params));
+        //
+        //     [
+        //         [1498530360,2700.0,2700.0,2700.0,2700.0,0.01],
+        //         [1498530420,2700.0,2700.0,2700.0,2700.0,0],
+        //         [1498530480,2700.0,2700.0,2700.0,2700.0,0],
+        //     ]
+        //
         if (response === 'null') {
             return [];
         }
