@@ -458,14 +458,14 @@ module.exports = class cryptomarket extends Exchange {
         for (let i = 0; i < askList.length; i++) {
             const price = this.safeFloat (askList[i], 'price');
             const amount = this.safeFloat (askList[i], 'amount');
-            const datetime = this.safeFloat (askList[i], 'timestamp');
+            const datetime = this.safeString (askList[i], 'timestamp');
             const timestamp = this.parse8601 (datetime);
             result['asks'].push ([price, amount, timestamp]);
         }
         for (let i = 0; i < bidList.length; i++) {
             const price = this.safeFloat (bidList[i], 'price');
             const amount = this.safeFloat (bidList[i], 'amount');
-            const datetime = this.safeFloat (bidList[i], 'timestamp');
+            const datetime = this.safeString (bidList[i], 'timestamp');
             const timestamp = this.parse8601 (datetime);
             result['bids'].push ([price, amount, timestamp]);
         }
