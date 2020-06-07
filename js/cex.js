@@ -394,6 +394,16 @@ module.exports = class cex extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        //
+        //     [
+        //         1591403940,
+        //         0.024972,
+        //         0.024972,
+        //         0.024969,
+        //         0.024969,
+        //         0.49999900
+        //     ]
+        //
         return [
             this.safeTimestamp (ohlcv, 0),
             this.safeFloat (ohlcv, 1),
@@ -423,8 +433,15 @@ module.exports = class cex extends Exchange {
         };
         try {
             const response = await this.publicGetOhlcvHdYyyymmddPair (this.extend (request, params));
+            //
+            //     {
+            //         "time":20200606,
+            //         "data1m":"[[1591403940,0.024972,0.024972,0.024969,0.024969,0.49999900]]",
+            //     }
+            //
             const key = 'data' + this.timeframes[timeframe];
-            const ohlcvs = JSON.parse (response[key]);
+            const data = this.safeString (response, key);
+            const ohlcvs = JSON.parse (data);
             return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
         } catch (e) {
             if (e instanceof NullResponse) {
