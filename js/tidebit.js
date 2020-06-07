@@ -342,7 +342,7 @@ module.exports = class tidebit extends Exchange {
         if (response === 'null') {
             return [];
         }
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        return this.parseOHLCVs (response, market);
     }
 
     parseOrderStatus (status) {
