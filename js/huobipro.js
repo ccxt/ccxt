@@ -245,7 +245,7 @@ module.exports = class huobipro extends ccxt.huobipro {
                 this.ohlcvs[symbol][timeframe] = stored;
             }
             const tick = this.safeValue (message, 'tick');
-            const parsed = this.parseOHLCV (tick, market, timeframe, undefined, undefined);
+            const parsed = this.parseOHLCV (tick, market);
             const length = stored.length;
             if (length && parsed[0] === stored[length - 1][0]) {
                 stored[length - 1] = parsed;
