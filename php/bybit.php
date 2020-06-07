@@ -823,13 +823,6 @@ class bybit extends Exchange {
                 $symbol = $market['symbol'];
                 $base = $market['base'];
             }
-            // if private $trade
-            if (is_array($trade) && array_key_exists('exec_fee', $trade)) {
-                if ($market['inverse']) {
-                    $amount = $this->safe_float($trade, 'exec_value');
-                    $cost = $this->safe_float($trade, 'exec_qty');
-                }
-            }
         }
         if ($cost === null) {
             if ($amount !== null) {
@@ -1047,24 +1040,13 @@ class bybit extends Exchange {
         $id = $this->safe_string($order, 'order_id');
         $price = $this->safe_float($order, 'price');
         $average = $this->safe_float($order, 'average_price');
-        $amount = null;
-        $cost = null;
-        $filled = null;
-        $remaining = null;
+        $amount = $this->safe_float($order, 'qty');
+        $cost = $this->safe_float($order, 'cum_exec_value');
+        $filled = $this->safe_float($order, 'cum_exec_qty');
+        $remaining = $this->safe_float($order, 'leaves_qty');
         if ($market !== null) {
             $symbol = $market['symbol'];
             $base = $market['base'];
-            if ($market['inverse']) {
-                $cost = $this->safe_float($order, 'cum_exec_qty');
-                $filled = $this->safe_float($order, 'cum_exec_value');
-                $remaining = $this->safe_float($order, 'leaves_value');
-                $amount = $this->sum($filled, $remaining);
-            } else {
-                $amount = $this->safe_float($order, 'qty');
-                $cost = $this->safe_float($order, 'cum_exec_value');
-                $filled = $this->safe_float($order, 'cum_exec_qty');
-                $remaining = $this->safe_float($order, 'leaves_qty');
-            }
         }
         $lastTradeTimestamp = $this->safe_timestamp($order, 'last_exec_time');
         if ($lastTradeTimestamp === 0) {

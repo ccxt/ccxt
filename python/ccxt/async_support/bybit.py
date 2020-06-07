@@ -805,11 +805,6 @@ class bybit(Exchange):
             if symbol is None:
                 symbol = market['symbol']
                 base = market['base']
-            # if private trade
-            if 'exec_fee' in trade:
-                if market['inverse']:
-                    amount = self.safe_float(trade, 'exec_value')
-                    cost = self.safe_float(trade, 'exec_qty')
         if cost is None:
             if amount is not None:
                 if price is not None:
@@ -1012,23 +1007,13 @@ class bybit(Exchange):
         id = self.safe_string(order, 'order_id')
         price = self.safe_float(order, 'price')
         average = self.safe_float(order, 'average_price')
-        amount = None
-        cost = None
-        filled = None
-        remaining = None
+        amount = self.safe_float(order, 'qty')
+        cost = self.safe_float(order, 'cum_exec_value')
+        filled = self.safe_float(order, 'cum_exec_qty')
+        remaining = self.safe_float(order, 'leaves_qty')
         if market is not None:
             symbol = market['symbol']
             base = market['base']
-            if market['inverse']:
-                cost = self.safe_float(order, 'cum_exec_qty')
-                filled = self.safe_float(order, 'cum_exec_value')
-                remaining = self.safe_float(order, 'leaves_value')
-                amount = self.sum(filled, remaining)
-            else:
-                amount = self.safe_float(order, 'qty')
-                cost = self.safe_float(order, 'cum_exec_value')
-                filled = self.safe_float(order, 'cum_exec_qty')
-                remaining = self.safe_float(order, 'leaves_qty')
         lastTradeTimestamp = self.safe_timestamp(order, 'last_exec_time')
         if lastTradeTimestamp == 0:
             lastTradeTimestamp = None
