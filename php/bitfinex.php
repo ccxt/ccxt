@@ -777,7 +777,7 @@ class bitfinex extends Exchange {
     public function edit_order($id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         $this->load_markets();
         $order = array(
-            'order_id' => $id,
+            'order_id' => intval ($id),
         );
         if ($price !== null) {
             $order['price'] = $this->price_to_precision($symbol, $price);

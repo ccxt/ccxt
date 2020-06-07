@@ -748,7 +748,7 @@ class bitfinex(Exchange):
     def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
         self.load_markets()
         order = {
-            'order_id': id,
+            'order_id': int(id),
         }
         if price is not None:
             order['price'] = self.price_to_precision(symbol, price)
