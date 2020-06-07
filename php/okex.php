@@ -1332,16 +1332,16 @@ class okex extends Exchange {
             if (gettype($timestamp) === 'string') {
                 $timestamp = $this->parse8601($timestamp);
             }
-            return [
+            return array(
                 $timestamp, // $timestamp
-                floatval ($ohlcv[1]),            // Open
-                floatval ($ohlcv[2]),            // High
-                floatval ($ohlcv[3]),            // Low
-                floatval ($ohlcv[4]),            // Close
-                // floatval ($ohlcv[5]),         // Quote Volume
-                // floatval ($ohlcv[6]),         // Base Volume
-                floatval ($ohlcv[$volumeIndex]),  // Volume, okex will return base volume in the 7th element for future markets
-            ];
+                $this->safe_float($ohlcv, 1),            // Open
+                $this->safe_float($ohlcv, 2),            // High
+                $this->safe_float($ohlcv, 3),            // Low
+                $this->safe_float($ohlcv, 4),            // Close
+                // $this->safe_float($ohlcv, 5),         // Quote Volume
+                // $this->safe_float($ohlcv, 6),         // Base Volume
+                $this->safe_float($ohlcv, $volumeIndex),  // Volume, okex will return base volume in the 7th element for future markets
+            );
         } else {
             return array(
                 $this->parse8601($this->safe_string($ohlcv, 'time')),

@@ -62,6 +62,7 @@ class kraken(Exchange):
                 'fetchLedgerEntry': True,
                 'fetchLedger': True,
                 'fetchOrderTrades': 'emulated',
+                'fetchTime': True,
             },
             'marketsByAltname': {},
             'timeframes': {
@@ -1407,6 +1408,21 @@ class kraken(Exchange):
         #                   status: "Success"                                                       }]}
         #
         return self.parse_transactions_by_type('deposit', response['result'], code, since, limit)
+
+    async def fetch_time(self, params={}):
+        # https://www.kraken.com/en-us/features/api#get-server-time
+        response = await self.publicGetTime(params)
+        #
+        #    {
+        #        "error": [],
+        #        "result": {
+        #            "unixtime": 1591502873,
+        #            "rfc1123": "Sun,  7 Jun 20 04:07:53 +0000"
+        #        }
+        #    }
+        #
+        result = self.safe_value(response, 'result', {})
+        return self.safe_timestamp(result, 'unixtime')
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         # https://www.kraken.com/en-us/help/api#withdraw-status

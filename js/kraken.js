@@ -37,6 +37,7 @@ module.exports = class kraken extends Exchange {
                 'fetchLedgerEntry': true,
                 'fetchLedger': true,
                 'fetchOrderTrades': 'emulated',
+                'fetchTime': true,
             },
             'marketsByAltname': {},
             'timeframes': {
@@ -1508,6 +1509,22 @@ module.exports = class kraken extends Exchange {
         //                   status: "Success"                                                       } ] }
         //
         return this.parseTransactionsByType ('deposit', response['result'], code, since, limit);
+    }
+
+    async fetchTime (params = {}) {
+        // https://www.kraken.com/en-us/features/api#get-server-time
+        const response = await this.publicGetTime (params);
+        //
+        //    {
+        //        "error": [],
+        //        "result": {
+        //            "unixtime": 1591502873,
+        //            "rfc1123": "Sun,  7 Jun 20 04:07:53 +0000"
+        //        }
+        //    }
+        //
+        const result = this.safeValue (response, 'result', {});
+        return this.safeTimestamp (result, 'unixtime');
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {

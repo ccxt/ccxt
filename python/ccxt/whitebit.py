@@ -558,12 +558,12 @@ class whitebit(Exchange):
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return [
-            ohlcv[0] * 1000,  # timestamp
-            float(ohlcv[1]),  # open
-            float(ohlcv[3]),  # high
-            float(ohlcv[4]),  # low
-            float(ohlcv[2]),  # close
-            float(ohlcv[5]),  # volume
+            self.safe_timestamp(ohlcv, 0),  # timestamp
+            self.safe_float(ohlcv, 1),  # open
+            self.safe_float(ohlcv, 3),  # high
+            self.safe_float(ohlcv, 4),  # low
+            self.safe_float(ohlcv, 2),  # close
+            self.safe_float(ohlcv, 5),  # volume
         ]
 
     def fetch_status(self, params={}):

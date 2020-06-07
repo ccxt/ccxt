@@ -1319,13 +1319,13 @@ class okex(Exchange):
                 timestamp = self.parse8601(timestamp)
             return [
                 timestamp,  # timestamp
-                float(ohlcv[1]),            # Open
-                float(ohlcv[2]),            # High
-                float(ohlcv[3]),            # Low
-                float(ohlcv[4]),            # Close
-                # float(ohlcv[5]),         # Quote Volume
-                # float(ohlcv[6]),         # Base Volume
-                float(ohlcv[volumeIndex]),  # Volume, okex will return base volume in the 7th element for future markets
+                self.safe_float(ohlcv, 1),            # Open
+                self.safe_float(ohlcv, 2),            # High
+                self.safe_float(ohlcv, 3),            # Low
+                self.safe_float(ohlcv, 4),            # Close
+                # self.safe_float(ohlcv, 5),         # Quote Volume
+                # self.safe_float(ohlcv, 6),         # Base Volume
+                self.safe_float(ohlcv, volumeIndex),  # Volume, okex will return base volume in the 7th element for future markets
             ]
         else:
             return [
