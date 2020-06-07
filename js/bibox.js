@@ -367,6 +367,16 @@ module.exports = class bibox extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        //
+        //     {
+        //         "time":1591448220000,
+        //         "open":"0.02507029",
+        //         "high":"0.02507029",
+        //         "low":"0.02506349",
+        //         "close":"0.02506349",
+        //         "vol":"5.92000000"
+        //     }
+        //
         return [
             this.safeInteger (ohlcv, 'time'),
             this.safeFloat (ohlcv, 'open'),
@@ -387,7 +397,18 @@ module.exports = class bibox extends Exchange {
             'size': limit,
         };
         const response = await this.publicGetMdata (this.extend (request, params));
-        return this.parseOHLCVs (response['result'], market, timeframe, since, limit);
+        //
+        //     {
+        //         "result":[
+        //             {"time":1591448220000,"open":"0.02507029","high":"0.02507029","low":"0.02506349","close":"0.02506349","vol":"5.92000000"},
+        //             {"time":1591448280000,"open":"0.02506449","high":"0.02506975","low":"0.02506108","close":"0.02506843","vol":"5.72000000"},
+        //             {"time":1591448340000,"open":"0.02506698","high":"0.02506698","low":"0.02506452","close":"0.02506519","vol":"4.86000000"},
+        //         ],
+        //         "cmd":"kline",
+        //         "ver":"1.1"
+        //     }
+        //
+        return this.parseOHLCVs (response['result'], market);
     }
 
     async fetchCurrencies (params = {}) {
