@@ -647,6 +647,8 @@ module.exports = class bybit extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         //
+        // inverse perpetual BTC/USD
+        //
         //     {
         //         symbol: 'BTCUSD',
         //         interval: '1',
@@ -657,7 +659,9 @@ module.exports = class bybit extends Exchange {
         //         close: '7763.5',
         //         volume: '1259766',
         //         turnover: '162.32773718999994'
-        //     },
+        //     }
+        //
+        // linear perpetual BTC/USDT
         //
         //     {
         //         "id":143536,
@@ -754,7 +758,7 @@ module.exports = class bybit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        return this.parseOHLCVs (result, market, timeframe, since, limit);
+        return this.parseOHLCVs (result, market);
     }
 
     parseTrade (trade, market = undefined) {
