@@ -232,7 +232,7 @@ class huobipro(Exchange, ccxt.huobipro):
                 stored = ArrayCache(limit)
                 self.ohlcvs[symbol][timeframe] = stored
             tick = self.safe_value(message, 'tick')
-            parsed = self.parse_ohlcv(tick, market, timeframe, None, None)
+            parsed = self.parse_ohlcv(tick, market)
             length = len(stored)
             if length and parsed[0] == stored[length - 1][0]:
                 stored[length - 1] = parsed

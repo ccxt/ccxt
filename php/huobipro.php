@@ -248,7 +248,7 @@ class huobipro extends \ccxt\huobipro {
                 $this->ohlcvs[$symbol][$timeframe] = $stored;
             }
             $tick = $this->safe_value($message, 'tick');
-            $parsed = $this->parse_ohlcv($tick, $market, $timeframe, null, null);
+            $parsed = $this->parse_ohlcv($tick, $market);
             $length = is_array($stored) ? count($stored) : 0;
             if ($length && $parsed[0] === $stored[$length - 1][0]) {
                 $stored[$length - 1] = $parsed;

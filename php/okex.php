@@ -196,7 +196,7 @@ class okex extends \ccxt\okex {
                 $candle = $this->safe_value($data[$i], 'candle');
                 $market = $this->markets_by_id[$marketId];
                 $symbol = $market['symbol'];
-                $parsed = $this->parse_ohlcv($candle, $market, $timeframe);
+                $parsed = $this->parse_ohlcv($candle, $market);
                 $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
                 $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
                 if ($stored === null) {

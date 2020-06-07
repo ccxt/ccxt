@@ -302,7 +302,7 @@ class hitbtc(Exchange, ccxt.hitbtc):
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
             for i in range(0, len(data)):
                 candle = data[i]
-                parsed = self.parse_ohlcv(candle, market, timeframe)
+                parsed = self.parse_ohlcv(candle, market)
                 self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
                 stored = self.safe_value(self.ohlcvs[symbol], timeframe)
                 if stored is None:

@@ -183,7 +183,7 @@ class okex(Exchange, ccxt.okex):
                 candle = self.safe_value(data[i], 'candle')
                 market = self.markets_by_id[marketId]
                 symbol = market['symbol']
-                parsed = self.parse_ohlcv(candle, market, timeframe)
+                parsed = self.parse_ohlcv(candle, market)
                 self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
                 stored = self.safe_value(self.ohlcvs[symbol], timeframe)
                 if stored is None:

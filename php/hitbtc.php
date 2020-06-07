@@ -329,7 +329,7 @@ class hitbtc extends \ccxt\hitbtc {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             for ($i = 0; $i < count($data); $i++) {
                 $candle = $data[$i];
-                $parsed = $this->parse_ohlcv($candle, $market, $timeframe);
+                $parsed = $this->parse_ohlcv($candle, $market);
                 $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
                 $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
                 if ($stored === null) {
