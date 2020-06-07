@@ -338,6 +338,16 @@ module.exports = class kkex extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        //
+        //     [
+        //         "1521072000000",
+        //         "0.000002",
+        //         "0.00003",
+        //         "0.000002",
+        //         "0.00003",
+        //         "3.106889"
+        //     ]
+        //
         return [
             this.safeInteger (ohlcv, 0),
             this.safeFloat (ohlcv, 1),
@@ -383,7 +393,7 @@ module.exports = class kkex extends Exchange {
         //         ]
         //     ]
         //
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        return this.parseOHLCVs (response, market);
     }
 
     parseOrderStatus (status) {
