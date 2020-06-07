@@ -208,6 +208,18 @@ module.exports = class poloniex extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '5m', since = undefined, limit = undefined) {
+        //
+        //     {
+        //         "date":1590913773,
+        //         "high":0.02491611,
+        //         "low":0.02491611,
+        //         "open":0.02491611,
+        //         "close":0.02491611,
+        //         "volume":0,
+        //         "quoteVolume":0,
+        //         "weightedAverage":0.02491611
+        //     }
+        //
         return [
             this.safeTimestamp (ohlcv, 'date'),
             this.safeFloat (ohlcv, 'open'),
@@ -240,7 +252,14 @@ module.exports = class poloniex extends Exchange {
             }
         }
         const response = await this.publicGetReturnChartData (this.extend (request, params));
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        //
+        //     [
+        //         {"date":1590913773,"high":0.02491611,"low":0.02491611,"open":0.02491611,"close":0.02491611,"volume":0,"quoteVolume":0,"weightedAverage":0.02491611},
+        //         {"date":1590913800,"high":0.02495324,"low":0.02489501,"open":0.02491797,"close":0.02493693,"volume":0.0927415,"quoteVolume":3.7227869,"weightedAverage":0.02491185},
+        //         {"date":1590914100,"high":0.02498596,"low":0.02488503,"open":0.02493033,"close":0.02497896,"volume":0.21196348,"quoteVolume":8.50291888,"weightedAverage":0.02492832},
+        //     ]
+        //
+        return this.parseOHLCVs (response, market);
     }
 
     async fetchMarkets (params = {}) {
