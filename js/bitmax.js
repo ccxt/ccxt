@@ -36,7 +36,6 @@ module.exports = class bitmax extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrderTrades': false,
                 'fetchClosedOrders': true,
-                'fetchTransactions': false,
                 'fetchDepositAddress': true,
             },
             'timeframes': {
