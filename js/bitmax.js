@@ -210,11 +210,6 @@ module.exports = class bitmax extends Exchange {
         });
     }
 
-    getValidAccounts () {
-        // Bitmax sub-account
-        return ['cash', 'margin', 'futures'];
-    }
-
     getAccount (params = {}) {
         // get current or provided bitmax sub-account
         const account = this.safeValue (params, 'account', this.options['account']);
