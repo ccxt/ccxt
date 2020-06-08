@@ -32,6 +32,8 @@ module.exports = class bitmax extends Exchange {
                 'cancelAllOrders': true,
                 'fetchDepositAddress': true,
                 'fetchTransactions': true,
+                'fetchDeposts': true,
+                'fetchWithdrawals': true,
                 'fetchMyTrades': false,
                 'fetchOrder': true,
                 'fetchOrders': true,
@@ -1501,6 +1503,20 @@ module.exports = class bitmax extends Exchange {
         return this.extend (result, {
             'info': response,
         });
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'txType': 'deposit',
+        };
+        return await this.fetchTransactions (code, since, limit, this.extend (request, params));
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'txType': 'withdrawal',
+        };
+        return await this.fetchTransactions (code, since, limit, this.extend (request, params));
     }
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
