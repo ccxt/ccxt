@@ -1051,7 +1051,7 @@ Methods For Markets And Currencies
    etheur1 = exchange.markets['ETH/EUR']      # get market structure by symbol
    etheur2 = exchange.market ('ETH/EUR')      # same result in a slightly different way
 
-   etheurId = exchange.market_id ('BTC/USD')  # get market id by symbol
+   etheurId = exchange.market_id ('ETH/EUR')  # get market id by symbol
 
    symbols = exchange.symbols                 # get a list of symbols
    symbols2 = list (exchange.markets.keys ()) # same as previous line
