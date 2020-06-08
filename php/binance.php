@@ -1457,7 +1457,7 @@ class binance extends Exchange {
         if ($origClientOrderId === null) {
             $request['orderId'] = intval ($id);
         } else {
-            $request['origClientOrderId'] = intval ($origClientOrderId);
+            $request['origClientOrderId'] = $origClientOrderId;
         }
         $method = 'privateDeleteOrder';
         if ($type === 'future') {

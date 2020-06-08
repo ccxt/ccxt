@@ -1364,7 +1364,7 @@ class binance(Exchange):
         if origClientOrderId is None:
             request['orderId'] = int(id)
         else:
-            request['origClientOrderId'] = int(origClientOrderId)
+            request['origClientOrderId'] = origClientOrderId
         method = 'privateDeleteOrder'
         if type == 'future':
             method = 'fapiPrivateDeleteOrder'
