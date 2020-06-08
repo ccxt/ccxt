@@ -1400,14 +1400,6 @@ module.exports = class bitmax extends Exchange {
         return response;
     }
 
-    coid () {
-        const uuid = this.uuid ();
-        const parts = uuid.split ('-');
-        const clientOrderId = parts.join ('');
-        const coid = clientOrderId.slice (0, 32);
-        return coid;
-    }
-
     parseDepositAddress (depositAddress, currency = undefined) {
         //
         //     {
