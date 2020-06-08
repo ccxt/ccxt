@@ -31,6 +31,7 @@ module.exports = class bitmax extends Exchange {
                 'cancelOrder': true,
                 'cancelAllOrders': true,
                 'fetchDepositAddress': true,
+                'fetchTransactions': true,
                 'fetchMyTrades': false,
                 'fetchOrder': true,
                 'fetchOrders': true,
@@ -1500,6 +1501,123 @@ module.exports = class bitmax extends Exchange {
         return this.extend (result, {
             'info': response,
         });
+    }
+
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            // 'asset': currency['id'],
+            // 'page': 1,
+            // 'pageSize': 20,
+            // 'startTs': this.milliseconds (),
+            // 'endTs': this.milliseconds (),
+            // 'txType': undefned, // deposit, withdrawal
+        };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['asset'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['startTs'] = since;
+        }
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
+        }
+        const response = await this.privateGetWalletTransactions (this.extend (request, params));
+        //
+        //     {
+        //         code: 0,
+        //         data: {
+        //             data: [
+        //                 {
+        //                     requestId: "wuzd1Ojsqtz4bCA3UXwtUnnJDmU8PiyB",
+        //                     time: 1591606166000,
+        //                     asset: "USDT",
+        //                     transactionType: "deposit",
+        //                     amount: "25",
+        //                     commission: "0",
+        //                     networkTransactionId: "0xbc4eabdce92f14dbcc01d799a5f8ca1f02f4a3a804b6350ea202be4d3c738fce",
+        //                     status: "pending",
+        //                     numConfirmed: 8,
+        //                     numConfirmations: 20,
+        //                     destAddress: { address: "0xe7c70b4e73b6b450ee46c3b5c0f5fb127ca55722" }
+        //                 }
+        //             ],
+        //             page: 1,
+        //             pageSize: 20,
+        //             hasNext: false
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const transactions = this.safeValue (data, 'data', []);
+        return this.parseTransactions (transactions, currency, since, limit);
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            'reviewing': 'pending',
+            'pending': 'pending',
+            'confirmed': 'ok',
+            'rejected': 'rejected',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        //     {
+        //         requestId: "wuzd1Ojsqtz4bCA3UXwtUnnJDmU8PiyB",
+        //         time: 1591606166000,
+        //         asset: "USDT",
+        //         transactionType: "deposit",
+        //         amount: "25",
+        //         commission: "0",
+        //         networkTransactionId: "0xbc4eabdce92f14dbcc01d799a5f8ca1f02f4a3a804b6350ea202be4d3c738fce",
+        //         status: "pending",
+        //         numConfirmed: 8,
+        //         numConfirmations: 20,
+        //         destAddress: {
+        //             address: "0xe7c70b4e73b6b450ee46c3b5c0f5fb127ca55722",
+        //             destTag: "..." // for currencies that have it
+        //         }
+        //     }
+        //
+        const id = this.safeString (transaction, 'requestId');
+        const amount = this.safeFloat (transaction, 'amount');
+        const destAddress = this.safeValue (transaction, 'destAddress', {});
+        const address = this.safeString (destAddress, 'address');
+        const tag = this.safeString (destAddress, 'destTag');
+        const txid = this.safeString (transaction, 'networkTransactionId');
+        const type = this.safeString (transaction, 'transactionType');
+        const timestamp = this.safeInteger (transaction, 'time');
+        const currencyId = this.safeString (transaction, 'asset');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        const feeCost = this.safeFloat (transaction, 'commission');
+        return {
+            'info': transaction,
+            'id': id,
+            'currency': code,
+            'amount': amount,
+            'address': address,
+            'addressTo': address,
+            'addressFrom': undefined,
+            'tag': tag,
+            'tagTo': tag,
+            'tagFrom': undefined,
+            'status': status,
+            'type': type,
+            'updated': undefined,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fee': {
+                'currency': code,
+                'cost': feeCost,
+            },
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
