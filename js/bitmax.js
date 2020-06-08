@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFunds, InvalidOrder, BadSymbol } = require ('./base/errors');
+const { ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFunds, InvalidOrder, BadSymbol, PermissionDenied, BadRequest } = require ('./base/errors');
 const { ROUND, TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -135,15 +135,67 @@ module.exports = class bitmax extends Exchange {
             },
             'exceptions': {
                 'exact': {
-                    // TODO: fix error code mapping
+                    // not documented
+                    '1900': BadRequest, // {"code":1900,"message":"Invalid Http Request Input"}
                     '2100': AuthenticationError, // {"code":2100,"message":"ApiKeyFailure"}
-                    '300001': InvalidOrder, // {"code":300001,"message":"Price is too low from market price.","reason":"INVALID_PRICE","accountId":"cshrHKLZCjlZ2ejqkmvIHHtPmLYqdnda","ac":"CASH","action":"place-order","status":"Err","info":{"symbol":"BTC/USDT"}}
-                    '300011': InsufficientFunds, // {"code":300011,"message":"Not Enough Account Balance","reason":"INVALID_BALANCE","accountId":"cshrHKLZCjlZ2ejqkmvIHHtPmLYqdnda","ac":"CASH","action":"place-order","status":"Err","info":{"symbol":"BTC/USDT"}}
                     '5002': BadSymbol, // {"code":5002,"message":"Invalid Symbol"}
                     '6001': BadSymbol, // {"code":6001,"message":"Trading is disabled on symbol."}
                     '6010': InsufficientFunds, // {'code': 6010, 'message': 'Not enough balance.'}
                     '60060': InvalidOrder, // { 'code': 60060, 'message': 'The order is already filled or canceled.' }
                     '600503': InvalidOrder, // {"code":600503,"message":"Notional is too small."}
+                    // documented
+                    '100001': BadRequest, // INVALID_HTTP_INPUT Http request is invalid
+                    '100002': BadRequest, // DATA_NOT_AVAILABLE Some required data is missing
+                    '100003': BadRequest, // KEY_CONFLICT The same key exists already
+                    '100004': BadRequest, // INVALID_REQUEST_DATA The HTTP request contains invalid field or argument
+                    '100005': BadRequest, // INVALID_WS_REQUEST_DATA Websocket request contains invalid field or argument
+                    '100006': BadRequest, // INVALID_ARGUMENT The arugment is invalid
+                    '100007': BadRequest, // ENCRYPTION_ERROR Something wrong with data encryption
+                    '100008': BadSymbol, // SYMBOL_ERROR Symbol does not exist or not valid for the request
+                    '100009': AuthenticationError, // AUTHORIZATION_NEEDED Authorization is require for the API access or request
+                    '100010': BadRequest, // INVALID_OPERATION The action is invalid or not allowed for the account
+                    '100011': BadRequest, // INVALID_TIMESTAMP Not a valid timestamp
+                    '100012': BadRequest, // INVALID_STR_FORMAT String format does not
+                    '100013': BadRequest, // INVALID_NUM_FORMAT Invalid number input
+                    '100101': ExchangeError, // UNKNOWN_ERROR Some unknown error
+                    '150001': BadRequest, // INVALID_JSON_FORMAT Require a valid json object
+                    '200001': AuthenticationError, // AUTHENTICATION_FAILED Authorization failed
+                    '200002': ExchangeError, // TOO_MANY_ATTEMPTS Tried and failed too many times
+                    '200003': ExchangeError, // ACCOUNT_NOT_FOUND Account not exist
+                    '200004': ExchangeError, // ACCOUNT_NOT_SETUP Account not setup properly
+                    '200005': ExchangeError, // ACCOUNT_ALREADY_EXIST Account already exist
+                    '200006': ExchangeError, // ACCOUNT_ERROR Some error related with error
+                    '200007': ExchangeError, // CODE_NOT_FOUND
+                    '200008': ExchangeError, // CODE_EXPIRED Code expired
+                    '200009': ExchangeError, // CODE_MISMATCH Code does not match
+                    '200010': AuthenticationError, // PASSWORD_ERROR Wrong assword
+                    '200011': ExchangeError, // CODE_GEN_FAILED Do not generate required code promptly
+                    '200012': ExchangeError, // FAKE_COKE_VERIFY
+                    '200013': ExchangeError, // SECURITY_ALERT Provide security alert message
+                    '200014': PermissionDenied, // RESTRICTED_ACCOUNT Account is restricted for certain activity, such as trading, or withdraw.
+                    '200015': PermissionDenied, // PERMISSION_DENIED No enough permission for the operation
+                    '300001': InvalidOrder, // INVALID_PRICE Order price is invalid
+                    '300002': InvalidOrder, // INVALID_QTY Order size is invalid
+                    '300003': InvalidOrder, // INVALID_SIDE Order side is invalid
+                    '300004': InvalidOrder, // INVALID_NOTIONAL Notional is too small or too large
+                    '300005': InvalidOrder, // INVALID_TYPE Order typs is invalid
+                    '300006': InvalidOrder, // INVALID_ORDER_ID Order id is invalid
+                    '300007': InvalidOrder, // INVALID_TIME_IN_FORCE Time In Force in order request is invalid
+                    '300008': InvalidOrder, // INVALID_ORDER_PARAMETER Some order parameter is invalid
+                    '300009': InvalidOrder, // TRADING_VIOLATION Trading violation on account or asset
+                    '300011': InsufficientFunds, // INVALID_BALANCE No enough account or asset balance for the trading
+                    '300012': BadSymbol, // INVALID_PRODUCT Not a valid product supported by exchange
+                    '300013': InvalidOrder, // INVALID_BATCH_ORDER Some or all orders are invalid in batch order request
+                    '300020': InvalidOrder, // TRADING_RESTRICTED There is some trading restriction on account or asset
+                    '300021': InvalidOrder, // TRADING_DISABLED Trading is disabled on account or asset
+                    '300031': InvalidOrder, // NO_MARKET_PRICE No market price for market type order trading
+                    '310001': InsufficientFunds, // INVALID_MARGIN_BALANCE No enough margin balance
+                    '310002': InvalidOrder, // INVALID_MARGIN_ACCOUNT Not a valid account for margin trading
+                    '310003': InvalidOrder, // MARGIN_TOO_RISKY Leverage is too high
+                    '310004': BadSymbol, // INVALID_MARGIN_ASSET This asset does not support margin trading
+                    '310005': InvalidOrder, // INVALID_REFERENCE_PRICE There is no valid reference price
+                    '510001': ExchangeError, // SERVER_ERROR Something wrong with server.
+                    '900001': ExchangeError, // HUMAN_CHALLENGE Human change do not pass
                 },
                 'broad': {},
             },
@@ -1019,6 +1071,7 @@ module.exports = class bitmax extends Exchange {
         };
         if (clientOrderId !== undefined) {
             request['id'] = clientOrderId;
+            params = this.omit (params, [ 'clientOrderId', 'id' ]);
         }
         if ((type === 'limit') || (type === 'stop_limit')) {
             request['orderPrice'] = this.priceToPrecision (symbol, price);
@@ -1287,35 +1340,48 @@ module.exports = class bitmax extends Exchange {
         await this.loadMarkets ();
         await this.loadAccounts ();
         const market = this.market (symbol);
+        const defaultAccountCategory = this.safeString (this.options, 'account-category', 'cash');
+        const options = this.safeValue (this.options, 'fetchBalance', {});
+        let accountCategory = this.safeString (options, 'account-category', defaultAccountCategory);
+        accountCategory = this.safeString (params, 'account-category', accountCategory);
+        params = this.omit (params, 'account-category');
+        const account = this.safeValue (this.accounts, 0, {});
+        const accountGroup = this.safeValue (account, 'id');
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'id');
         const request = {
+            'account-group': accountGroup,
+            'account-category': accountCategory,
             'symbol': market['id'],
-            'id': this.coid (), // optional
-            'orderId': id,
-            // 'time': this.milliseconds (), // this is filled in the private section of the sign() method below
+            // 'time': this.milliseconds ().toString (),
         };
-        const method = 'privateDelete' + this.getAccount (params) + 'Order';
-        const response = await this[method] (this.extend (request, params));
+        if (clientOrderId === undefined) {
+            request['orderId'] = id;
+        } else {
+            request['id'] = clientOrderId;
+            params = this.omit (params, [ 'clientOrderId', 'id' ]);
+        }
+        const response = await this.accountGroupDeleteAccountCategoryOrder (this.extend (request, params));
         //
-        // {
-        //    'code': 0,
-        //    'data':
-        //        {
-        //            'accountId': 'test1@xxxxx.io',
-        //            'ac': 'CASH',
-        //            'action': 'cancel-order',
-        //            'status': 'Ack',
-        //            'info': {
-        //                'symbol': 'BTC/USDT',
-        //                'orderType': '',
-        //                'timestamp': 1583868590663,
-        //                'id': 'de4f5a7c5df2433cbe427da14d8f84d5',
-        //                'orderId': 'a170c5136edb8418641348575f38457'}
-        //        }
-        // }
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "accountId": "cshQtyfq8XLAA9kcf19h8bXHbAwwoqDo",
+        //             "ac": "CASH",
+        //             "action": "cancel-order",
+        //             "status": "Ack",
+        //             "info": {
+        //                 "id":        "wv8QGquoeamhssvQBeHOHGQCGlcBjj23",
+        //                 "orderId":   "16e6198afb4s8bXHbAwwoqDo2ebc19dc",
+        //                 "orderType": "", // could be empty
+        //                 "symbol":    "ETH/USDT",
+        //                 "timestamp":  1573594877822
+        //             }
+        //         }
+        //     }
         //
-        const order = this.safeValue (this.safeValue (response, 'data', {}), 'info', {});
-        order['status'] = undefined;
-        return this.parseOrder (order);
+        const data = this.safeValue (response, 'data', {});
+        const info = this.safeValue (data, 'info', {});
+        return this.parseOrder (info, market);
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
@@ -1441,13 +1507,13 @@ module.exports = class bitmax extends Exchange {
                 'x-auth-key': this.apiKey,
                 'x-auth-timestamp': timestamp,
                 'x-auth-signature': this.decode (signature),
-                'Content-Type': 'application/json',
             };
-            if (method === 'GET') {
+            if ((method === 'GET') || (method === 'DELETE')) {
                 if (Object.keys (query).length) {
                     url += '?' + this.urlencode (query);
                 }
             } else {
+                headers['Content-Type'] = 'application/json';
                 body = this.json (query);
             }
         }
