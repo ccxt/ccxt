@@ -1206,7 +1206,7 @@ module.exports = class bitmax extends Exchange {
         const accountGroup = this.safeValue (account, 'id');
         const request = {
             'account-group': accountGroup,
-            'account-category': accountCategory
+            'account-category': accountCategory,
         };
         const response = await this.accountGroupGetAccountCategoryOrderOpen (this.extend (request, params));
         //
