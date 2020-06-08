@@ -12,6 +12,11 @@ use \ccxt\ArgumentsRequired;
 class bitmax extends Exchange {
 
     public function describe() {
+        // There are cash/margin/futures accounts for each bitmax user.
+        // You could provide it when call the api => params = array('account' => 'cash'/'margin'/'futures');
+        // or you can set in advance by calling setAccount(account), where account is one of 'cash'/'margin'/'futures'.
+        // e.g.  bitmax.createOrder('BTC-PERP', 'limit', 'buy', 0.01, 7125, params = array('account':'futures'))
+        // or bitmax.setAccount('futures')
         return $this->deep_extend(parent::describe (), array(
             'id' => 'bitmax',
             'name' => 'BitMax',
@@ -26,9 +31,9 @@ class bitmax extends Exchange {
                 'fetchOHLCV' => true,
                 'fetchMyTrades' => false,
                 'fetchOrder' => true,
-                'fetchOrders' => false,
+                'fetchOrders' => true,
                 'fetchOpenOrders' => true,
-                'fetchOrderTrades' => true,
+                'fetchOrderTrades' => false,
                 'fetchClosedOrders' => true,
                 'fetchTransactions' => false,
                 'fetchCurrencies' => true,
@@ -54,73 +59,92 @@ class bitmax extends Exchange {
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/66820319-19710880-ef49-11e9-8fbe-16be62a11992.jpg',
                 'api' => 'https://bitmax.io',
-                'test' => 'https://bitmax-test.io',
+                'test' => 'https://bitmax-test.io/api',
                 'www' => 'https://bitmax.io',
                 'doc' => array(
-                    'https://github.com/bitmax-exchange/api-doc/blob/master/bitmax-api-doc-v1.2.md',
+                    'https://bitmax-exchange.github.io/bitmax-pro-api/#rest-apis',
                 ),
                 'fees' => 'https://bitmax.io/#/feeRate/tradeRate',
-                'referral' => 'https://bitmax.io/#/register?inviteCode=EL6BXBQM',
+                'referral' => 'https://bitmax.io/#/register?inviteCode=T6J9R0EB',
             ),
             'api' => array(
                 'public' => array(
                     'get' => array(
                         'assets',
-                        'depth',
-                        'fees',
-                        'quote',
-                        'depth',
-                        'trades',
-                        'products',
-                        'ticker/24hr',
                         'barhist',
                         'barhist/info',
+                        'cash/assets',
+                        'cash/products',
+                        'depth',
+                        'fees',
+                        'futures/collateral',
+                        'futures/contracts',
+                        'depth',
+                        'margin/assets',
+                        'margin/products',
                         'margin/ref-price',
+                        'trades',
+                        'products',
+                        'ticker',
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'deposit',
-                        'user/info',
-                        'balance',
-                        'order/batch',
-                        'order/open',
-                        'order',
-                        'order/history',
-                        'order/{coid}',
-                        'order/fills/{coid}',
-                        'transaction',
+                        'cash/balance',
+                        'cash/order/hist/current',
+                        'cash/order/open',
+                        'cash/order/status',
+                        'futures/balance',
+                        'futures/order/hist/current',
+                        'futures/order/open',
+                        'futures/order/status',
                         'margin/balance',
+                        'margin/order/hist/current',
                         'margin/order/open',
-                        'margin/order',
+                        'margin/order/status',
+                        'margin/risk',
+                        'order/hist',
+                        'transaction',
+                        'info',
+                        'wallet/deposit/address',
                     ),
                     'post' => array(
+                        'cash/order',
+                        'cash/order/batch',
+                        'futures/order',
+                        'futures/order/batch',
                         'margin/order',
-                        'order',
-                        'order/batch',
+                        'margin/order/batch',
                     ),
                     'delete' => array(
+                        'cash/order',
+                        'cash/order/all',
+                        'cash/order/batch',
                         'margin/order',
-                        'order',
-                        'order/all',
-                        'order/batch',
+                        'margin/order/all',
+                        'margin/order/batch',
+                        'futures/order',
+                        'futures/order/all',
+                        'futures/order/batch',
                     ),
                 ),
             ),
             'fees' => array(
                 'trading' => array(
-                    'tierBased' => false,
+                    'tierBased' => true,
                     'percentage' => true,
                     'taker' => 0.001,
                     'maker' => 0.001,
                 ),
             ),
             'options' => array(
+                'account' => 'cash', // 'cash'/'margin'/'futures'
                 'accountGroup' => null,
                 'parseOrderToPrecision' => false,
             ),
             'exceptions' => array(
                 'exact' => array(
+                    // TODO => fix error code mapping
                     '2100' => '\\ccxt\\AuthenticationError', // array("code":2100,"message":"ApiKeyFailure")
                     '5002' => '\\ccxt\\BadSymbol', // array("code":5002,"message":"Invalid Symbol")
                     '6001' => '\\ccxt\\BadSymbol', // array("code":6001,"message":"Trading is disabled on symbol.")
@@ -137,24 +161,56 @@ class bitmax extends Exchange {
         ));
     }
 
+    public function get_valid_accounts() {
+        // Bitmax sub-account
+        return ['cash', 'margin', 'futures'];
+    }
+
+    public function get_account($params = array ()) {
+        // get current or provided bitmax sub-$account
+        $account = $this->safe_value($params, 'account', $this->options['account']);
+        return strtolower($account).capitalize ();
+    }
+
+    public function set_account($account) {
+        // set default bitmax sub-$account
+        $validAccounts = $this->get_valid_accounts();
+        if (is_array($validAccounts) && array_key_exists($account, $validAccounts)) {
+            $this->options['account'] = $account;
+        }
+    }
+
+    public function get_futures_collateral($params = array ()) {
+        // futures collateral
+        $response = $this->publicGetFuturesCollateral ($params);
+        return $this->safe_value($response, 'data', array());
+    }
+
     public function fetch_currencies($params = array ()) {
         $response = $this->publicGetAssets ($params);
         //
-        //     array(
-        //         array(
-        //           "assetCode" : "LTO",
-        //           "assetName" : "LTO",
-        //           "precisionScale" : 9,
-        //           "nativeScale" : 3,
-        //           "withdrawalFee" : 5.0,
-        //           "minWithdrawalAmt" : 10.0,
-        //           "$status" : "Normal"
-        //         ),
-        //     )
+        // {
+        //    "$code" => 0,
+        //    "data" => array(
+        //        {
+        //            "assetCode" => "ONG",
+        //            "assetName" => "ONG",
+        //            "precisionScale" => 9,
+        //            "nativeScale" => 3,
+        //            "withdrawalFee" => "1.0",
+        //            "minWithdrawalAmt" => "2.0",
+        //            "$status" => "Normal"
+        //        }
+        //    )
+        // }
         //
         $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $currency = $response[$i];
+        if ($this->safe_value($response, 'code', -1) !== 0) {
+            return $result;
+        }
+        $records = $this->safe_value($response, 'data', array());
+        for ($i = 0; $i < count($records); $i++) {
+            $currency = $records[$i];
             $id = $this->safe_string($currency, 'assetCode');
             // todo => will need to rethink the fees
             // to add support for multiple withdrawal/deposit methods and
@@ -171,6 +227,7 @@ class bitmax extends Exchange {
                 'type' => null,
                 'name' => $this->safe_string($currency, 'assetName'),
                 'active' => $active,
+                // Todo => tiered $fee make $fee calculation complicated now. To provide separate $fee related method.
                 'fee' => $fee,
                 'precision' => $precision,
                 'limits' => array(
@@ -199,39 +256,41 @@ class bitmax extends Exchange {
     public function fetch_markets($params = array ()) {
         $response = $this->publicGetProducts ($params);
         //
-        //     array(
-        //         array(
-        //             "$symbol" : "BCH/USDT",
-        //             "domain" : "USDS",
-        //             "baseAsset" : "BCH",
-        //             "quoteAsset" : "USDT",
-        //             "priceScale" : 2,
-        //             "qtyScale" : 3,
-        //             "notionalScale" : 9,
-        //             "minQty" : "0.000000001",
-        //             "maxQty" : "1000000000",
-        //             "minNotional" : "5",
-        //             "maxNotional" : "200000",
-        //             "$status" : "Normal",
-        //             "miningStatus" : "",
-        //             "marginTradable" : true,
-        //             "commissionType" : "Quote",
-        //             "commissionReserveRate" : 0.0010000000
-        //         ),
-        //     )
+        // {
+        //    "code" => 0,
+        //    "data" => array(
+        //        {
+        //            "$symbol" => "DAD/USDT",
+        //            "baseAsset" => "DAD",
+        //            "quoteAsset" => "USDT",
+        //            "$status" => "Normal",
+        //            "minNotional" => "5",
+        //            "maxNotional" => "50000",
+        //            "marginTradable" => False,
+        //            "commissionType" => "Quote",
+        //            "commissionReserveRate" => "0.001",
+        //            "tickSize" => "0.00001",
+        //            "lotSize" => "1"
+        //        }
+        //    )
+        // }
         //
         $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $market = $response[$i];
+        if ($this->safe_value($response, 'code', -1) !== 0) {
+            return $result;
+        }
+        $records = $this->safe_value($response, 'data', array());
+        for ($i = 0; $i < count($records); $i++) {
+            $market = $records[$i];
             $id = $this->safe_string($market, 'symbol');
             $baseId = $this->safe_string($market, 'baseAsset');
             $quoteId = $this->safe_string($market, 'quoteAsset');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
+            $symbol = $id; // $base . '/' . $quote;
             $precision = array(
-                'amount' => $this->safe_integer($market, 'qtyScale'),
-                'price' => $this->safe_integer($market, 'notionalScale'),
+                'amount' => $this->precision_from_string($this->safe_string($market, 'lotSize')),
+                'price' => $this->precision_from_string($this->safe_string($market, 'tickSize')),
             );
             $status = $this->safe_string($market, 'status');
             $active = ($status === 'Normal');
@@ -247,10 +306,13 @@ class bitmax extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => $this->safe_float($market, 'minQty'),
-                        'max' => $this->safe_float($market, 'maxQty'),
+                        'min' => $this->safe_float($market, 'lotSize'),
+                        'max' => null,
                     ),
-                    'price' => array( 'min' => null, 'max' => null ),
+                    'price' => array(
+                        'min' => $this->safe_float($market, 'tickSize'),
+                        'max' => null,
+                    ),
                     'cost' => array(
                         'min' => $this->safe_float($market, 'minNotional'),
                         'max' => $this->safe_float($market, 'maxNotional'),
@@ -262,6 +324,7 @@ class bitmax extends Exchange {
     }
 
     public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
+        // TODO => fee calculation here is incorrect, we need to support tiered fee calculation.
         $market = $this->markets[$symbol];
         $key = 'quote';
         $rate = $market[$takerOrMaker];
@@ -284,22 +347,39 @@ class bitmax extends Exchange {
 
     public function fetch_accounts($params = array ()) {
         $accountGroup = $this->safe_string($this->options, 'accountGroup');
-        $response = null;
+        $records = null;
         if ($accountGroup === null) {
-            $response = $this->privateGetUserInfo ($params);
+            $response = $this->privateGetInfo ($params);
             //
-            //     {
-            //         "$accountGroup" => 5
-            //     }
+            // {
+            //    'code' => 0,
+            //    'data':
+            //        {
+            //            'email' => 'xxxcc@gmail.com',
+            //            'accountGroup' => 5,
+            //            'viewPermission' => True,
+            //            'tradePermission' => True,
+            //            'transferPermission' => True,
+            //            'withdrawPermission' => True,
+            //            'cashAccount' => ['xxxxxxxxxxxxxxxxxxxxxxxxxx'],
+            //            'marginAccount' => ['yyyyyyyyyyyyyyyyyyyyyyyyy'],
+            //            'futuresAccount' => ['zzzzzzzzzzzzzzzzzzzzzzzzz'],
+            //            'userUID' => 'U123456789'
+            //        }
+            // }
             //
-            $accountGroup = $this->safe_string($response, 'accountGroup');
+            if ($response['code'] === 0) {
+                $records = $response['data'];
+                $accountGroup = $this->safe_string($records, 'accountGroup');
+                $this->options['accountGroup'] = $accountGroup;
+            }
         }
         return array(
             array(
                 'id' => $accountGroup,
                 'type' => null,
                 'currency' => null,
-                'info' => $response,
+                'info' => $records,
             ),
         );
     }
@@ -307,33 +387,30 @@ class bitmax extends Exchange {
     public function fetch_balance($params = array ()) {
         $this->load_markets();
         $this->load_accounts();
-        $response = $this->privateGetBalance ($params);
+        $method = 'privateGet' . $this->get_account($params) . 'Balance';
+        $response = $this->$method ($params);
         //
-        //     {
-        //         "$code" => 0,
-        //         "status" => "success", // this field will be deprecated soon
-        //         "email" => "foo@bar.com", // this field will be deprecated soon
-        //         "data" => array(
-        //             array(
-        //                 "assetCode" => "TSC",
-        //                 "assetName" => "Ethereum",
-        //                 "totalAmount" => "20.03", // total $balance amount
-        //                 "availableAmount" => "20.03", // $balance amount available to trade
-        //                 "inOrderAmount" => "0.000", // in order amount
-        //                 "btcValue" => "70.81"     // the current BTC value of the $balance, may be missing
-        //             ),
+        // {
+        //    'code' => 0,
+        //    'data':
+        //        array(
+        //            array(
+        //                'asset' => 'BCHSV',
+        //                'totalBalance' => '64.298000048',
+        //                'availableBalance' => '64.298000048'
+        //            ),
         //         )
-        //     }
+        // }
         //
         $result = array( 'info' => $response );
         $balances = $this->safe_value($response, 'data', array());
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
-            $code = $this->safe_currency_code($this->safe_string($balance, 'assetCode'));
+            $code = $this->safe_currency_code($this->safe_string($balance, 'asset'));
             $account = $this->account();
-            $account['free'] = $this->safe_float($balance, 'availableAmount');
-            $account['used'] = $this->safe_float($balance, 'inOrderAmount');
-            $account['total'] = $this->safe_float($balance, 'totalAmount');
+            $account['free'] = $this->safe_float($balance, 'availableBalance');
+            $account['total'] = $this->safe_float($balance, 'totalBalance');
+            $account['used'] = $account['total'] - $account['free'];
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -350,41 +427,61 @@ class bitmax extends Exchange {
         }
         $response = $this->publicGetDepth (array_merge($request, $params));
         //
-        //     {
-        //         "m":"depth",
-        //         "ts":1570866464777,
-        //         "seqnum":5124140078,
-        //         "s":"ETH/USDT",
-        //         "asks":[
-        //             ["183.57","5.92"],
-        //             ["183.6","10.185"]
-        //         ],
-        //         "bids":[
-        //             ["183.54","0.16"],
-        //             ["183.53","10.8"],
-        //         ]
-        //     }
+        // {
+        //    "code" => 0,
+        //    "$data" => {
+        //        "m" => "depth-snapshot",
+        //        "$symbol" => "BTC/USDT",
+        //        "$data" => {
+        //            "ts" => 1583558793465,
+        //            "seqnum" => 8273359781,
+        //            "asks" => array(
+        //                array(
+        //                    "9082.73",
+        //                    "1.31752"
+        //                ),
+        //                array(
+        //                    "9082.76",
+        //                    "0.00342"
+        //                )
+        //            ),
+        //            "bids" => array(
+        //                array(
+        //                    "5532.27",
+        //                    "0.00606"
+        //                ),
+        //                array(
+        //                    "4858.54",
+        //                    "0.02789"
+        //                )
+        //            )
+        //        }
+        //    }
+        // }
         //
-        $timestamp = $this->safe_integer($response, 'ts');
-        $result = $this->parse_order_book($response, $timestamp);
-        $result['nonce'] = $this->safe_integer($response, 'seqnum');
+        $data = $this->safe_value($response, 'data', array());
+        $records = $this->safe_value($data, 'data', array());
+        $timestamp = $this->safe_integer($records, 'ts');
+        $result = $this->parse_order_book($records, $timestamp);
+        $result['nonce'] = $this->safe_integer($records, 'seqnum');
         return $result;
     }
 
     public function parse_ticker($ticker, $market = null) {
         //
-        //     {
-        //         "$symbol":"BCH/USDT",
-        //         "interval":"1d",
-        //         "barStartTime":1570866600000,
-        //         "openPrice":"225.16",
-        //         "closePrice":"224.05",
-        //         "highPrice":"226.08",
-        //         "lowPrice":"218.92",
-        //         "volume":"8607.036"
-        //     }
+        // {
+        //    'symbol' => 'BTC/USDT',
+        //    'open' => '8086.63',
+        //    'close' => '7846.16',
+        //    'high' => '7846.16',
+        //    'low' => '7846.16',
+        //    'volume' => '8100.10864',
+        //    'ask' => ['7847.7', '0.52882'],
+        //    'bid' => ['7846.87', '3.9718']
+        // }
         //
-        $timestamp = $this->safe_integer($ticker, 'barStartTime');
+        $timestamp = $this->milliseconds();
+        $timestamp = $timestamp - fmod($timestamp, 60000);
         $symbol = null;
         $marketId = $this->safe_string($ticker, 'symbol');
         if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
@@ -398,19 +495,21 @@ class bitmax extends Exchange {
         if (($symbol === null) && ($market !== null)) {
             $symbol = $market['symbol'];
         }
-        $last = $this->safe_float($ticker, 'closePrice');
+        $last = $this->safe_float($ticker, 'close');
+        $bid = $this->safe_value($ticker, 'bid', [null, null]);
+        $ask = $this->safe_value($ticker, 'ask', [null, null]);
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'highPrice'),
-            'low' => $this->safe_float($ticker, 'lowPrice'),
-            'bid' => null,
-            'bidVolume' => null,
-            'ask' => null,
-            'askVolume' => null,
+            'high' => $this->safe_float($ticker, 'high'),
+            'low' => $this->safe_float($ticker, 'low'),
+            'bid' => $bid[0],
+            'bidVolume' => $bid[1],
+            'ask' => $ask[0],
+            'askVolume' => $ask[1],
             'vwap' => null,
-            'open' => $this->safe_float($ticker, 'openPrice'),
+            'open' => $this->safe_float($ticker, 'open'),
             'close' => $last,
             'last' => $last,
             'previousClose' => null, // previous day close
@@ -437,34 +536,61 @@ class bitmax extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->publicGetTicker24hr (array_merge($request, $params));
-        return $this->parse_ticker($response, $market);
+        $response = $this->publicGetTicker (array_merge($request, $params));
+        //
+        // {
+        //    'code' => 0,
+        //    'data':
+        //        {
+        //            'symbol' => 'BTC/USDT',
+        //            'open' => '8086.63',
+        //            'close' => '7846.16',
+        //            'high' => '7846.16',
+        //            'low' => '7846.16',
+        //            'volume' => '8100.10864',
+        //            'ask' => ['7847.7', '0.52882'],
+        //            'bid' => ['7846.87', '3.9718']
+        //        }
+        // }
+        //
+        return $this->parse_ticker($this->safe_value($response, 'data', array()), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->publicGetTicker24hr ($params);
-        return $this->parse_tickers($response, $symbols);
+        $request = array();
+        if ($symbols !== null && strlen($symbols) > 0) {
+            $symbol = $this->market($symbols[0])['id'];
+            for ($i = 1; $i < count($symbols); $i++) {
+                $market = $this->market($symbols[$i]);
+                $symbol = $symbol . ',' . $market['id'];
+            }
+        }
+        $response = $this->publicGetTicker (array_merge($request, $params));
+        $tickers = $this->safe_value($response, 'data', array());
+        return $this->parse_tickers($tickers, $symbols);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcvRecord, $market = null, $timeframe = '1m', $since = null, $limit = null) {
         //
-        //     {
-        //         "m":"bar",
-        //         "s":"ETH/BTC",
-        //         "ba":"ETH",
-        //         "qa":"BTC",
-        //         "i":"1",
-        //         "t":1570867020000,
-        //         "o":"0.022023",
-        //         "c":"0.022018",
-        //         "h":"0.022023",
-        //         "l":"0.022018",
-        //         "v":"2.510",
-        //     }
+        // {
+        //    'm' => 'bar',
+        //    's' => 'BTC/USDT',
+        //    'data':
+        //        {
+        //            'i' => '1',
+        //            'ts' => 1583901000000,
+        //            'o' => '7924.98',
+        //            'c' => '7926.80',
+        //            'h' => '7926.80',
+        //            'l' => '7924.98',
+        //            'v' => '0.32144'
+        //        }
+        // }
         //
+        $ohlcv = $this->safe_value($ohlcvRecord, 'data', array());
         return array(
-            $this->safe_integer($ohlcv, 't'),
+            $this->safe_integer($ohlcv, 'ts'),
             $this->safe_float($ohlcv, 'o'),
             $this->safe_float($ohlcv, 'h'),
             $this->safe_float($ohlcv, 'l'),
@@ -493,7 +619,7 @@ class bitmax extends Exchange {
             $request['from'] = $request['to'] - $limit * $duration * 1000 - 1;
         }
         $response = $this->publicGetBarhist (array_merge($request, $params));
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($this->safe_value($response, 'data', array()), $market, $timeframe, $since, $limit);
     }
 
     public function parse_trade($trade, $market = null) {
@@ -503,48 +629,47 @@ class bitmax extends Exchange {
         //     {
         //         "p" => "13.75", // $price
         //         "q" => "6.68", // quantity
-        //         "t" => 1528988084944, // $timestamp
+        //         "ts" => 1528988084944, // $timestamp
         //         "bm" => False, // if true, the buyer is the $market maker, we only use this field to "define the $side" of a public $trade
         //     }
         //
-        // private fetchOrderTrades
+        // privateGetCashOrderStatus / privateGetMarginOrderStatus / privateGetFuturesOrderStatus
         //
-        //     {
-        //         "ap" => "0.029062965", // average filled $price
-        //         "bb" => "36851.981", // $base asset total balance
-        //         "bc" => "0", // if possitive, this is the BTMX commission charged by reverse mining, if negative, this is the mining output of the current fill.
-        //         "bpb" => "36851.981", // $base asset pending balance
-        //         "btmxBal" => "0.0", // optional, the BTMX balance of the current account. This field is only available when bc is non-zero.
-        //         "cat" => "CASH", // account category => CASH/MARGIN
-        //         "coid" => "41g6wtPRFrJXgg6YxjqI6Qoog139Dmoi", // client order id, (needed to cancel order)
-        //         "ei" => "NULL_VAL", // execution instruction
-        //         "errorCode" => "NULL_VAL", // if the order is rejected, this field explains why
-        //         "execId" => "12562285", // for each user, this is a strictly increasing long integer (represented as string)
-        //         "f" => "78.074", // filled quantity, this is the aggregated quantity executed by all past fills
-        //         "fa" => "BTC", // $fee asset
-        //         "$fee" => "0.000693608", // $fee
-        //         'lp' => "0.029064", // last $price, the $price executed by the last fill
-        //         "l" => "11.932", // last quantity, the quantity executed by the last fill
-        //         "m" => "order", // message $type
-        //         "orderType" => "Limit", // Limit, Market, StopLimit, StopMarket
-        //         "p" => "0.029066", // limit $price, only available for limit and stop limit orders
-        //         "q" => "100.000", // order quantity
-        //         "qb" => "98878.642957097", // $quote asset total balance
-        //         "qpb" => "98877.967247508", // $quote asset pending balance
-        //         "s" => "ETH/BTC", // $symbol
-        //         "$side" => "Buy", // $side
-        //         "status" => "PartiallyFilled", // order status
-        //         "t" => 1561131458389, // $timestamp
-        //     }
+        // {
+        //    'seqNum' => 4208248561,
+        //    'orderId' => 'r170adcc717eU123456789bbtmabc3P',
+        //    'symbol' => 'BTMX/USDT',
+        //    'orderType' => 'Limit',
+        //    'lastExecTime' => 1583463823205,
+        //    'price' => '0.06043',
+        //    'orderQty' => '100',
+        //    'side' => 'Buy',
+        //    'status' => 'Filled',
+        //    'avgPx' => '0.06043',
+        //    'cumFilledQty' => '100',
+        //    'stopPrice' => '',
+        //    'errorCode' => '',
+        //    'cumFee' => '0.006043',
+        //    'feeAsset' => 'USDT',
+        //    'execInst' => 'NULL_VAL'
+        // }
         //
-        $timestamp = $this->safe_integer($trade, 't');
-        $price = $this->safe_float($trade, 'p');
-        $amount = $this->safe_float($trade, 'q');
+        $timestamp = $this->safe_integer($trade, 'ts');
+        $price = $this->safe_float($trade, 'price') || $this->safe_float($trade, 'p');
+        $amount = $this->safe_float($trade, 'orderQty') || $this->safe_float($trade, 'q');
         $cost = null;
         if (($price !== null) && ($amount !== null)) {
             $cost = $price * $amount;
         }
         $buyerIsMaker = $this->safe_value($trade, 'bm');
+        $makerOrTaker = null;
+        if ($buyerIsMaker !== null) {
+            if ($buyerIsMaker) {
+                $makerOrTaker = 'maker';
+            } else {
+                $makerOrTaker = 'taker';
+            }
+        }
         $symbol = null;
         $marketId = $this->safe_string($trade, 's');
         if ($marketId !== null) {
@@ -562,16 +687,16 @@ class bitmax extends Exchange {
             $symbol = $market['symbol'];
         }
         $fee = null;
-        $feeCost = $this->safe_float($trade, 'fee');
+        $feeCost = $this->safe_float($trade, 'cumFee');
         if ($feeCost !== null) {
-            $feeCurrencyId = $this->safe_string($trade, 'fa');
+            $feeCurrencyId = $this->safe_string($trade, 'feeAsset');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $fee = array(
                 'cost' => $feeCost,
                 'currency' => $feeCurrencyCode,
             );
         }
-        $orderId = $this->safe_string($trade, 'coid');
+        $orderId = $this->safe_string($trade, 'orderId');
         $side = $this->safe_string_lower($trade, 'side');
         if (($side === null) && ($buyerIsMaker !== null)) {
             $side = $buyerIsMaker ? 'buy' : 'sell';
@@ -585,7 +710,7 @@ class bitmax extends Exchange {
             'id' => null,
             'order' => $orderId,
             'type' => $type,
-            'takerOrMaker' => null,
+            'takerOrMaker' => $makerOrTaker,
             'side' => $side,
             'price' => $price,
             'amount' => $amount,
@@ -605,20 +730,22 @@ class bitmax extends Exchange {
         }
         $response = $this->publicGetTrades (array_merge($request, $params));
         //
-        //     {
-        //         "m" => "marketTrades", // message type
-        //         "s" => "ETH/BTC", // $symbol
-        //         "$trades" => array(
-        //             array(
-        //                 "p" => "13.75", // price
-        //                 "q" => "6.68", // quantity
-        //                 "t" => 1528988084944, // timestamp
-        //                 "bm" => False, // if true, the buyer is the $market maker
-        //             ),
-        //         )
+        //    {
+        //        'code' => 0,
+        //        'data':
+        //            {
+        //                'm' => 'trades',
+        //                'symbol' => 'BTC/USDT',
+        //                'data' => [array('p' => '7812.61',
+        //                        'q' => '0.01998',
+        //                        'ts' => 1583760687790,
+        //                        'bm' => False, # if True, the buyer is the $market maker
+        //                        'seqnum' => 72057603463162642)]
+        //              }
         //     }
         //
-        $trades = $this->safe_value($response, 'trades', array());
+        $records = $this->safe_value($response, 'data', array());
+        $trades = $this->safe_value($records, 'data', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
@@ -638,40 +765,35 @@ class bitmax extends Exchange {
         //
         // createOrder
         //
-        //     {
-        //         "coid" => "xxx...xxx",
-        //         "action" => "new",
-        //         "success" => true  // success = true means the $order has been submitted to the matching engine.
-        //     }
+        // {
+        //    'symbol' => 'BTC/USDT',
+        //    'orderType' => 'Limit',
+        //    'action' => 'new',
+        //    'timestamp' => 1583812256973,
+        //    'id' => '0e602eb4337d4aebbe3c438f6cc41aee',
+        //    'orderId' => 'a170c29124378418641348f6cc41aee'
+        // }
         //
         // fetchOrder, fetchOpenOrders, fetchClosedOrders
         //
-        //     {
-        //         "accountCategory" => "CASH",
-        //         "accountId" => "cshKAhmTHQNUKhR1pQyrDOdotE3Tsnz4",
-        //         "avgPrice" => "0.000000000",
-        //         "baseAsset" => "ETH",
-        //         "btmxCommission" => "0.000000000",
-        //         "coid" => "41g6wtPRFrJXgg6Y7vpIkcCyWhgcK0cF", // the unique identifier, you will need, this value to cancel this $order
-        //         "errorCode" => "NULL_VAL",
-        //         "execId" => "12452288",
-        //         "execInst" => "NULL_VAL",
-        //         "$fee" => "0.000000000", // cumulative $fee paid for this $order
-        //         "feeAsset" => "", // the asset
-        //         "filledQty" => "0.000000000", // $filled quantity
-        //         "notional" => "0.000000000",
-        //         "orderPrice" => "0.310000000", // only available for limit and stop limit orders
-        //         "orderQty" => "1.000000000",
-        //         "orderType" => "StopLimit",
-        //         "quoteAsset" => "BTC",
-        //         "$side" => "Buy",
-        //         "$status" => "PendingNew",
-        //         "stopPrice" => "0.300000000", // only available for stop $market and stop limit orders
-        //         "$symbol" => "ETH/BTC",
-        //         "time" => 1566091628227, // The last execution time of the $order
-        //         "sendingTime" => 1566091503547, // The sending time of the $order
-        //         "userId" => "supEQeSJQllKkxYSgLOoVk7hJAX59WSz"
-        //     }
+        // {
+        //    'avgPx' => '9126.75',
+        //    'cumFee' => '0.002738025',
+        //    'cumFilledQty' => '0.0005',
+        //    'errorCode' => '',
+        //    'execInst' => 'NULL_VAL',
+        //    'feeAsset' => 'USDT',
+        //    'lastExecTime' => 1583443804918,
+        //    'orderId' => 'r170ac9b032cU9490877774sbtcpeAAb',
+        //    'orderQty' => '0.0005',
+        //    'orderType' => 'Market',
+        //    'price' => '8853',
+        //    'seqNum' => 4204789616,
+        //    'side' => 'Sell',
+        //    'status' => 'Filled',
+        //    'stopPrice' => '',
+        //    'symbol' => 'BTC-PERP'
+        // }
         //
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $marketId = $this->safe_string($order, 'symbol');
@@ -689,27 +811,20 @@ class bitmax extends Exchange {
         if (($symbol === null) && ($market !== null)) {
             $symbol = $market['symbol'];
         }
-        $timestamp = $this->safe_integer($order, 'sendingTime');
-        $price = $this->safe_float($order, 'orderPrice');
+        $timestamp = $this->safe_integer($order, 'lastExecTime') || $this->safe_integer($order, 'timestamp');
+        $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'orderQty');
-        $filled = $this->safe_float($order, 'filledQty');
-        $remaining = null;
-        $cost = $this->safe_float($order, 'cummulativeQuoteQty');
-        if ($filled !== null) {
-            if ($amount !== null) {
-                $remaining = $amount - $filled;
-                if ($this->options['parseOrderToPrecision']) {
-                    $remaining = floatval ($this->amount_to_precision($symbol, $remaining));
-                }
-                $remaining = max ($remaining, 0.0);
-            }
-            if ($price !== null) {
-                if ($cost === null) {
-                    $cost = $price * $filled;
-                }
-            }
+        $avgFillPx = $this->safe_float($order, 'avgPx');
+        $filled = $this->safe_float($order, 'cumFilledQty');
+        $remaining = ($amount || 0) - ($filled || 0);
+        if ($remaining < 0) {
+            $remaining = 0;
         }
-        $id = $this->safe_string($order, 'coid');
+        if ($symbol !== null) {
+            $remaining = $this->amount_to_precision($symbol, $remaining);
+        }
+        $cost = ($avgFillPx || 0) * ($filled || 0);
+        $id = $this->safe_string($order, 'orderId');
         $type = $this->safe_string($order, 'orderType');
         if ($type !== null) {
             $type = strtolower($type);
@@ -725,10 +840,9 @@ class bitmax extends Exchange {
         }
         $side = $this->safe_string_lower($order, 'side');
         $fee = array(
-            'cost' => $this->safe_float($order, 'fee'),
+            'cost' => $this->safe_float($order, 'cumFee'),
             'currency' => $this->safe_string($order, 'feeAsset'),
         );
-        $average = $this->safe_float($order, 'avgPrice');
         $clientOrderId = $id;
         return array(
             'info' => $order,
@@ -743,7 +857,7 @@ class bitmax extends Exchange {
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
-            'average' => $average,
+            'average' => $avgFillPx,
             'filled' => $filled,
             'remaining' => $remaining,
             'status' => $status,
@@ -757,35 +871,43 @@ class bitmax extends Exchange {
         $this->load_accounts();
         $market = $this->market($symbol);
         $request = array(
-            'coid' => $this->coid(), // a unique identifier of length 32
-            // 'time' => $this->milliseconds(), // milliseconds since UNIX epoch in UTC, this is filled in the private section of the sign() method below
+            'id' => $this->coid(), // optional, a unique identifier of length 32
+            // 'time' => $this->milliseconds(), // milliseconds since UNIX epoch in UTC, this is filled in the private section of the sign() $method below
             'symbol' => $market['id'],
-            // 'orderPrice' => $this->price_to_precision($symbol, $price), // optional, limit $price of the order. This field is required for limit orders and stop limit orders
-            // 'stopPrice' => '15.7', // optional, stopPrice of the order. This field is required for stop_market orders and stop limit orders
+            'orderPrice' => $this->price_to_precision($symbol, $price || 0), // optional, limit $price of the order. This field is required for limit orders and stop limit orders
+            'stopPrice' => $this->price_to_precision($symbol, $this->safe_value($params, 'stopPrice', 0.0)), // optional, stopPrice of the order. This field is required for stop_market orders and stop limit orders
             'orderQty' => $this->amount_to_precision($symbol, $amount),
             'orderType' => $type, // order $type, you shall specify one of the following => "limit", "$market", "stop_market", "stop_limit"
             'side' => $side, // "buy" or "sell"
-            // 'postOnly' => true, // optional, if true, the order will either be posted to the limit order book or be cancelled, i.e. the order cannot take liquidity, default is false
-            // 'timeInForce' => 'GTC', // optional, supports "GTC" good-till-canceled and "IOC" immediate-or-cancel
+            'postOnly' => $this->safe_value($params, 'postOnly', false), // optional, if true, the order will either be posted to the limit order book or be cancelled, i.e. the order cannot take liquidity, default is false
+            'timeInForce' => $this->safe_string($params, 'timeInForce', 'GTC'), // optional, supports "GTC" good-till-canceled, "IOC" immediate-or-cancel, and "FOK" for fill-or-kill
         );
         if (($type === 'limit') || ($type === 'stop_limit')) {
             $request['orderPrice'] = $this->price_to_precision($symbol, $price);
         }
-        $response = $this->privatePostOrder (array_merge($request, $params));
+        $method = 'privatePost' . $this->get_account($params) . 'Order';
+        $response = $this->$method (array_merge($request, $params));
         //
-        //     {
-        //         "code" => 0,
-        //         "email" => "foo@bar.com", // this field will be deprecated soon
-        //         "status" => "success", // this field will be deprecated soon
-        //         "$data" => {
-        //             "coid" => "xxx...xxx",
-        //             "action" => "new",
-        //             "success" => true, // success = true means the order has been submitted to the matching engine
-        //         }
-        //     }
+        // {
+        //  'code' => 0,
+        //  'data' => {
+        //              'ac' => 'CASH',
+        //              'accountId' => 'hongyu.wang',
+        //              'action' => 'place-order',
+        //              'info' => array(
+        //                   'id' => 'JhAAjOoTY6EINXC8QcOL18HoXw89FU0u',
+        //                   'orderId' => 'a170d000346b5450276356oXw89FU0u',
+        //                   'orderType' => 'Limit',
+        //                   'symbol' => 'BTMX/USDT',
+        //                   'timestamp' => 1584037640014
+        //                  ),
+        //              'status' => 'Ack'
+        //          }
+        // }
         //
         $data = $this->safe_value($response, 'data', array());
-        return $this->parse_order($data, $market);
+        $info = array_merge($this->safe_value($data, 'info'), array( 'status' => null ));
+        return $this->parse_order($info, $market);
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
@@ -796,149 +918,57 @@ class bitmax extends Exchange {
             $market = $this->market($symbol);
         }
         $request = array(
-            'coid' => $id,
+            'orderId' => $id,
         );
-        $response = $this->privateGetOrderCoid (array_merge($request, $params));
+        $accounts = null;
+        if (is_array($params) && array_key_exists('account', $params)) {
+            $accounts = array( $this->safe_value($params, 'account') );
+        } else {
+            $accounts = $this->get_valid_accounts();
+        }
+        $response = null;
+        for ($i = 0; $i < count($accounts); $i++) {
+            if ($response === null) {
+                try {
+                    $account = $this->get_account(array( 'account' => $accounts[$i] ));
+                    $method = 'privateGet' . $account . 'OrderStatus';
+                    $response = $this->$method (array_merge($request, $params));
+                } catch (Exception $error) {
+                    // log $error
+                    $response = null;
+                }
+            }
+        }
         //
-        //     {
-        //         'code' => 0,
-        //         'status' => 'success', // this field will be deprecated soon
-        //         'email' => 'foo@bar.com', // this field will be deprecated soon
-        //         "$data" => {
-        //             "accountCategory" => "CASH",
-        //             "accountId" => "cshKAhmTHQNUKhR1pQyrDOdotE3Tsnz4",
-        //             "avgPrice" => "0.000000000",
-        //             "baseAsset" => "ETH",
-        //             "btmxCommission" => "0.000000000",
-        //             "coid" => "41g6wtPRFrJXgg6Y7vpIkcCyWhgcK0cF", // the unique identifier, you will need, this value to cancel this order
-        //             "errorCode" => "NULL_VAL",
-        //             "execId" => "12452288",
-        //             "execInst" => "NULL_VAL",
-        //             "fee" => "0.000000000", // cumulative fee paid for this order
-        //             "feeAsset" => "", // the asset
-        //             "filledQty" => "0.000000000", // filled quantity
-        //             "notional" => "0.000000000",
-        //             "orderPrice" => "0.310000000", // only available for limit and stop limit orders
-        //             "orderQty" => "1.000000000",
-        //             "orderType" => "StopLimit",
-        //             "quoteAsset" => "BTC",
-        //             "side" => "Buy",
-        //             "status" => "PendingNew",
-        //             "stopPrice" => "0.300000000", // only available for stop $market and stop limit orders
-        //             "$symbol" => "ETH/BTC",
-        //             "time" => 1566091628227, // The last execution time of the order
-        //             "sendingTime" => 1566091503547, // The sending time of the order
-        //             "userId" => "supEQeSJQllKkxYSgLOoVk7hJAX59WSz"
-        //         }
-        //     }
+        //  {
+        //      'code' => 0,
+        //      'accountId' => 'ABCDEFGHIJKLMNOPQRSTUVWXYZABC',
+        //      'ac' => 'CASH',
+        //      'data' => {
+        //          'seqNum' => 4208248561,
+        //          'orderId' => 'r170adcc717eU123456789bbtmabc3P',
+        //          'symbol' => 'BTMX/USDT',
+        //          'orderType' => 'Limit',
+        //          'lastExecTime' => 1583463823205,
+        //          'price' => '0.06043',
+        //          'orderQty' => '100',
+        //          'side' => 'Buy',
+        //          'status' => 'Filled',
+        //          'avgPx' => '0.06043',
+        //          'cumFilledQty' => '100',
+        //          'stopPrice' => '',
+        //          'errorCode' => '',
+        //          'cumFee' => '0.006043',
+        //          'feeAsset' => 'USDT',
+        //          'execInst' => 'NULL_VAL'
+        //          }
+        // }
         //
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_order($data, $market);
     }
 
-    public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
-        $this->load_accounts();
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-        }
-        $request = array(
-            'coid' => $id,
-        );
-        $response = $this->privateGetOrderFillsCoid (array_merge($request, $params));
-        //
-        //     {
-        //         'code' => 0,
-        //         'status' => 'success', // this field will be deprecated soon
-        //         'email' => 'foo@bar.com', // this field will be deprecated soon
-        //         "$data" => array(
-        //             array(
-        //                 "ap" => "0.029062965", // average filled price
-        //                 "bb" => "36851.981", // base asset total balance
-        //                 "bc" => "0", // if possitive, this is the BTMX commission charged by reverse mining, if negative, this is the mining output of the current fill.
-        //                 "bpb" => "36851.981", // base asset pending balance
-        //                 "btmxBal" => "0.0", // optional, the BTMX balance of the current account. This field is only available when bc is non-zero.
-        //                 "cat" => "CASH", // account category => CASH/MARGIN
-        //                 "coid" => "41g6wtPRFrJXgg6YxjqI6Qoog139Dmoi", // client order $id, (needed to cancel order)
-        //                 "ei" => "NULL_VAL", // execution instruction
-        //                 "errorCode" => "NULL_VAL", // if the order is rejected, this field explains why
-        //                 "execId" => "12562285", // for each user, this is a strictly increasing long integer (represented as string)
-        //                 "f" => "78.074", // filled quantity, this is the aggregated quantity executed by all past fills
-        //                 "fa" => "BTC", // fee asset
-        //                 "fee" => "0.000693608", // fee
-        //                 'lp' => "0.029064", // last price, the price executed by the last fill
-        //                 "l" => "11.932", // last quantity, the quantity executed by the last fill
-        //                 "m" => "order", // message type
-        //                 "orderType" => "Limit", // Limit, Market, StopLimit, StopMarket
-        //                 "p" => "0.029066", // $limit price, only available for $limit and stop $limit orders
-        //                 "q" => "100.000", // order quantity
-        //                 "qb" => "98878.642957097", // quote asset total balance
-        //                 "qpb" => "98877.967247508", // quote asset pending balance
-        //                 "s" => "ETH/BTC", // $symbol
-        //                 "side" => "Buy", // side
-        //                 "status" => "PartiallyFilled", // order status
-        //                 "t" => 1561131458389, // timestamp
-        //             ),
-        //         )
-        //     }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        return $this->parse_trades($data, $market, $since, $limit);
-    }
-
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
-        $this->load_accounts();
-        $market = null;
-        $request = array(
-            // 'side' => 'buy', // or 'sell', optional
-        );
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
-        }
-        $response = $this->privateGetOrderOpen (array_merge($request, $params));
-        //
-        //     {
-        //         'code' => 0,
-        //         'status' => 'success', // this field will be deprecated soon
-        //         'email' => 'foo@bar.com', // this field will be deprecated soon
-        //         "$data" => array(
-        //             array(
-        //                 "accountCategory" => "CASH",
-        //                 "accountId" => "cshKAhmTHQNUKhR1pQyrDOdotE3Tsnz4",
-        //                 "avgPrice" => "0.000000000",
-        //                 "baseAsset" => "ETH",
-        //                 "btmxCommission" => "0.000000000",
-        //                 "coid" => "41g6wtPRFrJXgg6Y7vpIkcCyWhgcK0cF", // the unique identifier, you will need, this value to cancel this order
-        //                 "errorCode" => "NULL_VAL",
-        //                 "execId" => "12452288",
-        //                 "execInst" => "NULL_VAL",
-        //                 "fee" => "0.000000000", // cumulative fee paid for this order
-        //                 "feeAsset" => "", // the asset
-        //                 "filledQty" => "0.000000000", // filled quantity
-        //                 "notional" => "0.000000000",
-        //                 "orderPrice" => "0.310000000", // only available for $limit and stop $limit orders
-        //                 "orderQty" => "1.000000000",
-        //                 "orderType" => "StopLimit",
-        //                 "quoteAsset" => "BTC",
-        //                 "side" => "Buy",
-        //                 "status" => "PendingNew",
-        //                 "stopPrice" => "0.300000000", // only available for stop $market and stop $limit orders
-        //                 "$symbol" => "ETH/BTC",
-        //                 "time" => 1566091628227, // The last execution time of the order
-        //                 "sendingTime" => 1566091503547, // The sending time of the order
-        //                 "userId" => "supEQeSJQllKkxYSgLOoVk7hJAX59WSz"
-        //             ),
-        //         )
-        //     }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        return $this->parse_orders($data, $market, $since, $limit);
-    }
-
-    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $this->load_accounts();
         $market = null;
@@ -963,47 +993,141 @@ class bitmax extends Exchange {
         if ($limit !== null) {
             $request['n'] = $limit; // default 15, max 50
         }
-        $response = $this->privateGetOrderHistory (array_merge($request, $params));
+        $request['executedOnly'] = $this->safe_value($params, 'executedOnly', false);
+        $method = 'privateGet' . $this->get_account($params) . 'OrderHistCurrent';
+        $response = $this->$method (array_merge($request, $params));
         //
-        //     {
-        //         'code' => 0,
-        //         'status' => 'success', // this field will be deprecated soon
-        //         'email' => 'foo@bar.com', // this field will be deprecated soon
-        //         'data' => {
-        //             'page' => 1,
-        //             'pageSize' => 20,
-        //             'limit' => 500,
-        //             'hasNext' => False,
-        //             'data' => array(
-        //                 array(
-        //                     'time' => 1566091429000, // The last execution time of the order (This timestamp is in second level resolution)
-        //                     'coid' => 'QgQIMJhPFrYfUf60ZTihmseTqhzzwOCx',
-        //                     'execId' => '331',
-        //                     'symbol' => 'BTMX/USDT',
-        //                     'orderType' => 'Market',
-        //                     'baseAsset' => 'BTMX',
-        //                     'quoteAsset' => 'USDT',
-        //                     'side' => 'Buy',
-        //                     'stopPrice' => '0.000000000', // only meaningful for stop $market and stop $limit $orders
-        //                     'orderPrice' => '0.123000000', // only meaningful for $limit and stop $limit $orders
-        //                     'orderQty' => '9229.409000000',
-        //                     'filledQty' => '9229.409000000',
-        //                     'avgPrice' => '0.095500000',
-        //                     'fee' => '0.352563424',
-        //                     'feeAsset' => 'USDT',
-        //                     'btmxCommission' => '0.000000000',
-        //                     'status' => 'Filled',
-        //                     'notional' => '881.408559500',
-        //                     'userId' => '5DNEppWy33SayHjFQpgQUTjwNMSjEhD3',
-        //                     'accountId' => 'ACPHERRWRIA3VQADMEAB2ZTLYAXNM3PJ',
-        //                     'accountCategory' => 'CASH',
-        //                     'errorCode' => 'NULL_VAL',
-        //                     'execInst' => 'NULL_VAL',
-        //                     "sendingTime" => 1566091382736, // The sending time of the order
-        //                ),
-        //             )
-        //         }
-        //     }
+        // {
+        //    'code' => 0,
+        //    'accountId' => 'test1@xxxxx.io',
+        //    'ac' => 'CASH',
+        //    'data' => [
+        //        array(
+        //            'seqNum' => 30181890,
+        //            'orderId' => 'a170c4f6cae084186413483b0e984fe',
+        //            'symbol' => 'BTC/USDT',
+        //            'orderType' => 'Limit',
+        //            'lastExecTime' => 1583852473185,
+        //            'price' => '8500',
+        //            'orderQty' => '0.01',
+        //            'side' => 'Buy',
+        //            'status' => 'Filled',
+        //            'avgPx' => '8032.04',
+        //            'cumFilledQty' => '0.01',
+        //            'stopPrice' => '',
+        //            'errorCode' => '',
+        //            'cumFee' => '0.065862728',
+        //            'feeAsset' => 'USDT',
+        //            'execInst' => 'NULL_VAL'
+        //        )]
+        // }
+        //
+        $orders = $this->safe_value($response, 'data', array());
+        return $this->parse_orders($orders, $market, $since, $limit);
+    }
+
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $this->load_accounts();
+        $market = null;
+        $request = array(
+            // 'symbol' => 'symbol'  optional
+        );
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        $method = 'privateGet' . $this->get_account($params) . 'OrderOpen';
+        $response = $this->$method (array_merge($request, $params));
+        //
+        // {
+        //    'code' => 0,
+        //    'accountId' => 'MPXFNEYEJIJ93CREXT3LTCIDIJPCFNIX',
+        //    'ac' => 'CASH',
+        //    'data':
+        //        [array(
+        //            'seqNum' => 4305977824,
+        //            'orderId' => 'a170c9e191a7U9490877774397007e73',
+        //            'symbol' => 'BTMX/USDT',
+        //            'orderType' => 'Limit',
+        //            'lastExecTime' => 1583934968446,
+        //            'price' => '0.045',
+        //            'orderQty' => '200',
+        //            'side' => 'Buy',
+        //            'status' => 'New',
+        //            'avgPx' => '0',
+        //            'cumFilledQty' => '0',
+        //            'stopPrice' => '',
+        //            'errorCode' => '',
+        //            'cumFee' => '0',
+        //            'feeAsset' => 'USDT',
+        //            'execInst' => 'NULL_VAL'
+        //        )]
+        // }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_orders($data, $market, $since, $limit);
+    }
+
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $this->load_accounts();
+        $market = null;
+        $request = array(
+            // 'symbol' => 'ETH/BTC', // optional
+            // 'category' => 'CASH'/'MARGIN'/"FUTURES', // optional, string
+            // 'orderType' => 'Market', // optional, string
+            // 'page' => 1, // optional, integer type, starts at 1
+            // 'pageSize' => 100, // optional, integer type
+            // 'side' => 'buy', // or 'sell', optional, case insensitive.
+            // 'startTime' => 1566091628227, // optional, integer milliseconds $since UNIX epoch representing the start of the range
+            // 'endTime' => 1566091628227, // optional, integer milliseconds $since UNIX epoch representing the end of the range
+            // 'status' => 'Filled', // optional, can only be one of "Filled", "Canceled", "Rejected"
+        );
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        if ($limit !== null) {
+            $request['n'] = $limit; // default 15, max 50
+        }
+        $response = $this->privateGetOrderHist (array_merge($request, $params));
+        //
+        // {
+        //    'code' => 0,
+        //    'data':
+        //        {
+        //            'page' => 1,
+        //            'pageSize' => 20,
+        //            'limit' => 500,
+        //            'hasNext' => True,
+        //            'data' => array(
+        //                {
+        //                    'ac' => 'CASH',
+        //                    'accountId' => 'ABCDEFGHIJKLMOPQRSTUVWXYZABC',
+        //                    'avgPx' => '0',
+        //                    'cumFee' => '0',
+        //                    'cumQty' => '0',
+        //                    'errorCode' => 'NULL_VAL',
+        //                    'feeAsset' => 'USDT',
+        //                    'lastExecTime' => 1583894311925,
+        //                    'orderId' => 'r170c77528bdU9490877774bbtcu9DwL',
+        //                    'orderQty' => '0.001', 'orderType' => 'Limit',
+        //                    'price' => '7912.88',
+        //                    'sendingTime' => 1583894310880,
+        //                    'seqNum' => 4297339552,
+        //                    'side' => 'Buy',
+        //                    'status' => 'Canceled',
+        //                    'stopPrice' => '',
+        //                    'symbol' => 'BTC/USDT',
+        //                    'execInst' => 'NULL_VAL'
+        //                }
+        //            )
+        //        }
+        // }
         //
         $data = $this->safe_value($response, 'data', array());
         $orders = $this->safe_value($data, 'data', array());
@@ -1019,24 +1143,32 @@ class bitmax extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
-            'coid' => $this->coid(),
-            'origCoid' => $id,
-            // 'time' => $this->milliseconds(), // this is filled in the private section of the sign() method below
+            'id' => $this->coid(), // optional
+            'orderId' => $id,
+            // 'time' => $this->milliseconds(), // this is filled in the private section of the sign() $method below
         );
-        $response = $this->privateDeleteOrder (array_merge($request, $params));
+        $method = 'privateDelete' . $this->get_account($params) . 'Order';
+        $response = $this->$method (array_merge($request, $params));
         //
-        //     {
-        //         'code' => 0,
-        //         'status' => 'success', // this field will be deprecated soon
-        //         'email' => 'foo@bar.com', // this field will be deprecated soon
-        //         'data' => {
-        //             'action' => 'cancel',
-        //             'coid' => 'gaSRTi3o3Yo4PaXpVK0NSLP47vmJuLea',
-        //             'success' => True,
-        //         }
-        //     }
+        // {
+        //    'code' => 0,
+        //    'data':
+        //        {
+        //            'accountId' => 'test1@xxxxx.io',
+        //            'ac' => 'CASH',
+        //            'action' => 'cancel-order',
+        //            'status' => 'Ack',
+        //            'info' => {
+        //                'symbol' => 'BTC/USDT',
+        //                'orderType' => '',
+        //                'timestamp' => 1583868590663,
+        //                'id' => 'de4f5a7c5df2433cbe427da14d8f84d5',
+        //                'orderId' => 'a170c5136edb8418641348575f38457'}
+        //        }
+        // }
         //
-        $order = $this->safe_value($response, 'data', array());
+        $order = $this->safe_value($this->safe_value($response, 'data', array()), 'info', array());
+        $order['status'] = null;
         return $this->parse_order($order);
     }
 
@@ -1044,18 +1176,40 @@ class bitmax extends Exchange {
         $this->load_markets();
         $this->load_accounts();
         $request = array(
-            // 'side' => 'buy', // optional string field (case-insensitive), either "buy" or "sell"
         );
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id']; // optional
         }
-        $response = $this->privateDeleteOrderAll (array_merge($request, $params));
+        $method = 'privateDelete' . $this->get_account($params) . 'OrderAll';
+        $response = $this->$method (array_merge($request, $params));
         //
-        //     ?
+        // {
+        //    'code' => 0,
+        //    'data':
+        //        {
+        //            'accountId' => 'test1@dengpan.io',
+        //            'ac' => 'CASH',
+        //            'action' => 'cancel-all',
+        //            'status' => 'Ack',
+        //            'info':
+        //                {
+        //                    'symbol' => '',
+        //                    'orderType' => 'NULL_VAL',
+        //                    'timestamp' => 1584057856765,
+        //                    'id' => '',
+        //                    'orderId' => ''
+        //                }
+        //             }
+        //    }
+        // }
         //
-        return $response;
+        $order = $this->safe_value($this->safe_value($response, 'data', array()), 'info', array());
+        $order['status'] = null;
+        $order['orderType'] = null;
+        $order['symbol'] = $symbol;
+        return $this->parse_order($order);
     }
 
     public function coid() {
@@ -1073,44 +1227,39 @@ class bitmax extends Exchange {
         $request = array(
             'requestId' => $this->coid(),
             // 'time' => $this->milliseconds(), // this is filled in the private section of the sign() method below
-            'assetCode' => $currency['id'],
+            'asset' => $currency['id'],
+            'isCommonApi' => true, // not from $request
         );
-        // note => it is highly recommended to use V2 version of this route,
-        // especially for assets with multiple block chains such as USDT.
-        $response = $this->privateGetDeposit (array_merge($request, $params));
+        $response = $this->privateGetWalletDepositAddress (array_merge($request, $params));
         //
-        // v1
         //
-        //     {
-        //         "data" => array(
-        //             "$address" => "0x26a3CB49578F07000575405a57888681249c35Fd"
-        //         ),
-        //         "email" => "igor.kroitor@gmial.com",
-        //         "status" => "success",
-        //     }
+        // {
+        //    'code' => 0,
+        //    'data':
+        //        {
+        //            'asset' => 'BTC',
+        //            'assetName' => 'Bitcoin',
+        //            'address':
+        //                array(
+        //                    {
+        //                        'address' => '3P5e8M6nQaGPB6zYJ447uGJKCJN2ZkEDLB',
+        //                        'destTag' => '',
+        //                        'tagType' => '',
+        //                        'tagId' => '',
+        //                        'chainName' => 'Bitcoin',
+        //                        'numConfirmations' => 3,
+        //                        'withdrawalFee' => 0.0005,
+        //                        'nativeScale' => 8,
+        //                        'tips' => array()
+        //                    }
+        //                )
+        //        }
+        // }
         //
-        // v2
-        //
-        //     {
-        //         "$code" => 0,
-        //         "data" => array(
-        //             {
-        //                 "asset" => "XRP",
-        //                 "blockChain" => "Ripple",
-        //                 "$addressData" => {
-        //                     "$address" => "rpinhtY4p35bPmVXPbfWRUtZ1w1K1gYShB",
-        //                     "destTag" => "54301"
-        //                 }
-        //             }
-        //         ),
-        //         "email" => "xxx@xxx.com",
-        //         "status" => "success" // the $request has been submitted to the server
-        //     }
-        //
-        $addressData = $this->safe_value($response, 'data');
+        $data = $this->safe_value($response, 'data', array());
+        $addressData = $this->safe_value($data, 'address', array());
         if (gettype($addressData) === 'array' && count(array_filter(array_keys($addressData), 'is_string')) == 0) {
-            $firstElement = $this->safe_value($addressData, 0, array());
-            $addressData = $this->safe_value($firstElement, 'addressData', array());
+            $addressData = $this->safe_value($addressData, 0, array());
         }
         $address = $this->safe_string($addressData, 'address');
         $tag = $this->safe_string($addressData, 'destTag');
@@ -1124,7 +1273,7 @@ class bitmax extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = '/api/' . $this->version . '/' . $this->implode_params($path, $params);
+        $url = '/api/pro/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
             if ($query) {
@@ -1132,27 +1281,24 @@ class bitmax extends Exchange {
             }
         } else {
             $this->check_required_credentials();
-            $accountGroup = $this->safe_string($this->options, 'accountGroup');
-            if ($accountGroup === null) {
-                if ($this->accounts !== null) {
-                    $accountGroup = $this->accounts[0]['id'];
+            if (!$this->safe_value($params, 'isCommonApi', false)) {
+                $accountGroup = $this->safe_string($this->options, 'accountGroup');
+                if ($accountGroup === null) {
+                    if ($this->accounts !== null) {
+                        $accountGroup = $this->accounts[0]['id'];
+                    }
+                }
+                if ($accountGroup !== null) {
+                    $url = '/' . $accountGroup . $url;
                 }
             }
-            if ($accountGroup !== null) {
-                $url = '/' . $accountGroup . $url;
-            }
-            $coid = $this->safe_string($query, 'coid');
             $query['time'] = (string) $this->milliseconds();
-            $auth = $query['time'] . '+' . str_replace('/{$coid}', '', $path); // fix sign error
+            $auth = $query['time'] . '+' . str_replace('/{orderId}', '', $path); // fix sign error
             $headers = array(
                 'x-$auth-key' => $this->apiKey,
                 'x-$auth-timestamp' => $query['time'],
                 'Content-Type' => 'application/json',
             );
-            if ($coid !== null) {
-                $auth .= '+' . $coid;
-                $headers['x-$auth-coid'] = $coid;
-            }
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64');
             $headers['x-$auth-signature'] = $this->decode($signature);
             if ($method === 'GET') {
