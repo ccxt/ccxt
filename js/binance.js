@@ -1441,7 +1441,7 @@ module.exports = class binance extends Exchange {
         const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', market['type']);
         const type = this.safeString (params, 'type', defaultType);
         // https://github.com/ccxt/ccxt/issues/6507
-        const origClientOrderId = this.safeValue (params, 'origClientOrderId');
+        const origClientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
         const request = {
             'symbol': market['id'],
             // 'orderId': parseInt (id),
@@ -1458,7 +1458,7 @@ module.exports = class binance extends Exchange {
         } else if (type === 'margin') {
             method = 'sapiDeleteMarginOrder';
         }
-        const query = this.omit (params, 'type');
+        const query = this.omit (params, [ 'type', 'origClientOrderId', 'clientOrderId' ]);
         const response = await this[method] (this.extend (request, query));
         return this.parseOrder (response);
     }
