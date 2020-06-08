@@ -927,35 +927,34 @@ module.exports = class bitmax extends Exchange {
         //
         // createOrder
         //
-        // {
-        //    'symbol': 'BTC/USDT',
-        //    'orderType': 'Limit',
-        //    'action': 'new',
-        //    'timestamp': 1583812256973,
-        //    'id': '0e602eb4337d4aebbe3c438f6cc41aee',
-        //    'orderId': 'a170c29124378418641348f6cc41aee'
-        // }
+        //     {
+        //         "id": "16e607e2b83a8bXHbAwwoqDo55c166fa",
+        //         "orderId": "16e85b4d9b9a8bXHbAwwoqDoc3d66830",
+        //         "orderType": "Market",
+        //         "symbol": "BTC/USDT",
+        //         "timestamp": 1573576916201
+        //     }
         //
         // fetchOrder, fetchOpenOrders, fetchClosedOrders
         //
-        // {
-        //    'avgPx': '9126.75',
-        //    'cumFee': '0.002738025',
-        //    'cumFilledQty': '0.0005',
-        //    'errorCode': '',
-        //    'execInst': 'NULL_VAL',
-        //    'feeAsset': 'USDT',
-        //    'lastExecTime': 1583443804918,
-        //    'orderId': 'r170ac9b032cU9490877774sbtcpeAAb',
-        //    'orderQty': '0.0005',
-        //    'orderType': 'Market',
-        //    'price': '8853',
-        //    'seqNum': 4204789616,
-        //    'side': 'Sell',
-        //    'status': 'Filled',
-        //    'stopPrice': '',
-        //    'symbol': 'BTC-PERP'
-        // }
+        //     {
+        //         "symbol":       "BTC/USDT",
+        //         "price":        "8131.22",
+        //         "orderQty":     "0.00082",
+        //         "orderType":    "Market",
+        //         "avgPx":        "7392.02",
+        //         "cumFee":       "0.005152238",
+        //         "cumFilledQty": "0.00082",
+        //         "errorCode":    "",
+        //         "feeAsset":     "USDT",
+        //         "lastExecTime": 1575953151764,
+        //         "orderId":      "a16eee20b6750866943712zWEDdAjt3",
+        //         "seqNum":       2623469,
+        //         "side":         "Buy",
+        //         "status":       "Filled",
+        //         "stopPrice":    "",
+        //         "execInst":     "NULL_VAL"
+        //     }
         //
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const marketId = this.safeString (order, 'symbol');
@@ -973,53 +972,47 @@ module.exports = class bitmax extends Exchange {
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
-        const timestamp = this.safeInteger (order, 'lastExecTime') || this.safeInteger (order, 'timestamp');
-        let price = this.safeFloat (order, 'price');
+        const timestamp = this.safeInteger (order, 'timestamp');
+        const lastTradeTimestamp = this.safeInteger (order, 'lastExecTime');
+        const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'orderQty');
-        const avgFillPx = this.safeFloat (order, 'avgPx');
+        const average = this.safeFloat (order, 'avgPx');
         const filled = this.safeFloat (order, 'cumFilledQty');
-        let remaining = (amount || 0) - (filled || 0);
-        if (remaining < 0) {
-            remaining = 0;
+        let remaining = undefined;
+        if ((amount !== undefined) && (filled !== undefined)) {
+            remaining = Math.max (0, amount - filled);
         }
-        if (symbol !== undefined) {
-            remaining = this.amountToPrecision (symbol, remaining);
+        let cost = undefined;
+        if ((average !== undefined) && (filled !== undefined)) {
+            cost = average * filled;
         }
-        const cost = (avgFillPx || 0) * (filled || 0);
         const id = this.safeString (order, 'orderId');
-        let type = this.safeString (order, 'orderType');
-        if (type !== undefined) {
-            type = type.toLowerCase ();
-            if (type === 'market') {
-                if (price === 0.0) {
-                    if ((cost !== undefined) && (filled !== undefined)) {
-                        if ((cost > 0) && (filled > 0)) {
-                            price = cost / filled;
-                        }
-                    }
-                }
-            }
-        }
+        const type = this.safeStringLower (order, 'orderType');
         const side = this.safeStringLower (order, 'side');
-        const fee = {
-            'cost': this.safeFloat (order, 'cumFee'),
-            'currency': this.safeString (order, 'feeAsset'),
-        };
-        const clientOrderId = id;
+        const feeCost = this.safeFloat (order, 'cumFee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            const feeCurrencyId = this.safeString (order, 'feeAsset');
+            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            };
+        }
         return {
             'info': order,
             'id': id,
-            'clientOrderId': clientOrderId,
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
+            'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
             'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'average': avgFillPx,
+            'average': average,
             'filled': filled,
             'remaining': remaining,
             'status': status,
