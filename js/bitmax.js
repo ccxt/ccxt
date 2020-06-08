@@ -30,13 +30,13 @@ module.exports = class bitmax extends Exchange {
                 'createOrder': true,
                 'cancelOrder': true,
                 'cancelAllOrders': true,
+                'fetchDepositAddress': true,
                 'fetchMyTrades': false,
                 'fetchOrder': true,
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchOrderTrades': false,
                 'fetchClosedOrders': true,
-                'fetchDepositAddress': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -1099,59 +1099,48 @@ module.exports = class bitmax extends Exchange {
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         await this.loadAccounts ();
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-        }
+        const defaultAccountCategory = this.safeString (this.options, 'account-category', 'cash');
+        const options = this.safeValue (this.options, 'createOrder', {});
+        let accountCategory = this.safeString (options, 'account-category', defaultAccountCategory);
+        accountCategory = this.safeString (params, 'account-category', accountCategory);
+        params = this.omit (params, 'account-category');
+        const account = this.safeValue (this.accounts, 0, {});
+        const accountGroup = this.safeValue (account, 'id');
         const request = {
+            'account-group': accountGroup,
+            'account-category': accountCategory,
             'orderId': id,
         };
-        let accounts = undefined;
-        if ('account' in params) {
-            accounts = [ this.safeValue (params, 'account') ];
-        } else {
-            accounts = this.getValidAccounts ();
-        }
-        let response = undefined;
-        for (let i = 0; i < accounts.length; i++) {
-            if (response === undefined) {
-                try {
-                    const account = this.getAccount ({ 'account': accounts[i] });
-                    const method = 'privateGet' + account + 'OrderStatus';
-                    response = await this[method] (this.extend (request, params));
-                } catch (error) {
-                    // log error
-                    response = undefined;
-                }
-            }
-        }
+        const response = await this.accountGroupGetAccountCategoryOrderStatus (this.extend (request, params));
         //
-        //  {
-        //      'code': 0,
-        //      'accountId': 'ABCDEFGHIJKLMNOPQRSTUVWXYZABC',
-        //      'ac': 'CASH',
-        //      'data': {
-        //          'seqNum': 4208248561,
-        //          'orderId': 'r170adcc717eU123456789bbtmabc3P',
-        //          'symbol': 'BTMX/USDT',
-        //          'orderType': 'Limit',
-        //          'lastExecTime': 1583463823205,
-        //          'price': '0.06043',
-        //          'orderQty': '100',
-        //          'side': 'Buy',
-        //          'status': 'Filled',
-        //          'avgPx': '0.06043',
-        //          'cumFilledQty': '100',
-        //          'stopPrice': '',
-        //          'errorCode': '',
-        //          'cumFee': '0.006043',
-        //          'feeAsset': 'USDT',
-        //          'execInst': 'NULL_VAL'
-        //          }
-        // }
+        //     {
+        //         "code": 0,
+        //         "accountCategory": "CASH",
+        //         "accountId": "cshQtyfq8XLAA9kcf19h8bXHbAwwoqDo",
+        //         "data": [
+        //             {
+        //                 "symbol":       "BTC/USDT",
+        //                 "price":        "8131.22",
+        //                 "orderQty":     "0.00082",
+        //                 "orderType":    "Market",
+        //                 "avgPx":        "7392.02",
+        //                 "cumFee":       "0.005152238",
+        //                 "cumFilledQty": "0.00082",
+        //                 "errorCode":    "",
+        //                 "feeAsset":     "USDT",
+        //                 "lastExecTime": 1575953151764,
+        //                 "orderId":      "a16eee20b6750866943712zWEDdAjt3",
+        //                 "seqNum":       2623469,
+        //                 "side":         "Buy",
+        //                 "status":       "Filled",
+        //                 "stopPrice":    "",
+        //                 "execInst":     "NULL_VAL"
+        //             }
+        //         ]
+        //     }
         //
         const data = this.safeValue (response, 'data', {});
-        return this.parseOrder (data, market);
+        return this.parseOrder (data);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1421,56 +1410,96 @@ module.exports = class bitmax extends Exchange {
         return coid;
     }
 
-    async fetchDepositAddress (code, params = {}) {
-        await this.loadMarkets ();
-        await this.loadAccounts ();
-        const currency = this.currency (code);
-        const request = {
-            'requestId': this.coid (),
-            // 'time': this.milliseconds (), // this is filled in the private section of the sign() method below
-            'asset': currency['id'],
-            'isCommonApi': true, // not from request
-        };
-        const response = await this.privateGetWalletDepositAddress (this.extend (request, params));
+    parseDepositAddress (depositAddress, currency = undefined) {
         //
+        //     {
+        //         address: "0xe7c70b4e73b6b450ee46c3b5c0f5fb127ca55722",
+        //         destTag: "",
+        //         tagType: "",
+        //         tagId: "",
+        //         chainName: "ERC20",
+        //         numConfirmations: 20,
+        //         withdrawalFee: 1,
+        //         nativeScale: 4,
+        //         tips: []
+        //     }
         //
-        // {
-        //    'code': 0,
-        //    'data':
-        //        {
-        //            'asset': 'BTC',
-        //            'assetName': 'Bitcoin',
-        //            'address':
-        //                [
-        //                    {
-        //                        'address': '3P5e8M6nQaGPB6zYJ447uGJKCJN2ZkEDLB',
-        //                        'destTag': '',
-        //                        'tagType': '',
-        //                        'tagId': '',
-        //                        'chainName': 'Bitcoin',
-        //                        'numConfirmations': 3,
-        //                        'withdrawalFee': 0.0005,
-        //                        'nativeScale': 8,
-        //                        'tips': []
-        //                    }
-        //                ]
-        //        }
-        // }
-        //
-        const data = this.safeValue (response, 'data', {});
-        let addressData = this.safeValue (data, 'address', []);
-        if (Array.isArray (addressData)) {
-            addressData = this.safeValue (addressData, 0, {});
-        }
-        const address = this.safeString (addressData, 'address');
-        const tag = this.safeString (addressData, 'destTag');
+        const address = this.safeString (depositAddress, 'address');
+        const tagId = this.safeString (depositAddress, 'tagId');
+        const tag = this.safeString (depositAddress, tagId);
         this.checkAddress (address);
+        const code = (currency === undefined) ? undefined : currency['code'];
         return {
             'currency': code,
             'address': address,
             'tag': tag,
-            'info': response,
+            'info': depositAddress,
         };
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        await this.loadAccounts ();
+        const currency = this.currency (code);
+        const chainName = this.safeString (params, 'chainName');
+        params = this.omit (params, 'chainName');
+        const request = {
+            'asset': currency['id'],
+        };
+        const response = await this.privateGetWalletDepositAddress (this.extend (request, params));
+        //
+        //     {
+        //         "code":0,
+        //         "data":{
+        //             "asset":"USDT",
+        //             "assetName":"Tether",
+        //             "address":[
+        //                 {
+        //                     "address":"1N22odLHXnLPCjC8kwBJPTayarr9RtPod6",
+        //                     "destTag":"",
+        //                     "tagType":"",
+        //                     "tagId":"",
+        //                     "chainName":"Omni",
+        //                     "numConfirmations":3,
+        //                     "withdrawalFee":4.7,
+        //                     "nativeScale":4,
+        //                     "tips":[]
+        //                 },
+        //                 {
+        //                     "address":"0xe7c70b4e73b6b450ee46c3b5c0f5fb127ca55722",
+        //                     "destTag":"",
+        //                     "tagType":"",
+        //                     "tagId":"",
+        //                     "chainName":"ERC20",
+        //                     "numConfirmations":20,
+        //                     "withdrawalFee":1.0,
+        //                     "nativeScale":4,
+        //                     "tips":[]
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const addresses = this.safeValue (data, 'address', []);
+        const numAddresses = addresses.length;
+        let address = undefined;
+        if (numAddresses > 1) {
+            const addressesByChainName = this.indexBy (addresses, 'chainName');
+            if (chainName === undefined) {
+                const chainNames = Object.keys (addressesByChainName);
+                const chains = chainNames.join (', ');
+                throw new ArgumentsRequired (this.id + ' fetchDepositAddress returned more than one address, a chainName parameter is required, one of ' + chains);
+            }
+            address = this.safeValue (addressesByChainName, chainName, {});
+        } else {
+            // first address
+            address = this.safeValue (addresses, 0, {});
+        }
+        const result = this.parseDepositAddress (address, currency);
+        return this.extend (result, {
+            'info': response,
+        });
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
