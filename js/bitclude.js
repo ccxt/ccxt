@@ -40,7 +40,7 @@ module.exports = class bitclude extends Exchange {
                 'fetchFundingFees': false,
                 'fetchMyTrades': false,
                 'fetchOHLCV': false,
-                'fetchOpenOrders': false,
+                'fetchOpenOrders': true,
                 'fetchOrder': false,
                 'fetchOrderBook': true,
                 'fetchOrders': false,
@@ -291,6 +291,62 @@ module.exports = class bitclude extends Exchange {
                 'info': response,
             };
         }
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'method': 'account',
+            'action': 'activeoffers',
+        };
+        const response = await this.privateGet (this.extend (request, params));
+        const result = this.safeValue (response, 'offers', []);
+        let orders = this.parseOrders (result, undefined, since, limit);
+        if (symbol !== undefined) {
+            orders = this.filterBy (orders, 'symbol', symbol);
+        }
+        return orders;
+    }
+
+    parseOrder (order, market = undefined) {
+        const status = 'open'; // hardcoded shit
+        let side = this.safeString (order, 'offertype');
+        if (side === 'ask') {
+            // todo ensure
+            side = 'sell';
+        } else if (side === 'bid') {
+            side = 'buy';
+        }
+        let symbol = undefined;
+        if (market === undefined) {
+            const baseId = this.safeString (order, 'currency1');
+            const quoteId = this.safeString (order, 'currency2');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            symbol = (base + '/' + quote);
+        } else {
+            symbol = market['symbol'];
+        }
+        const timestamp = this.safeTimestamp (order, 'timeopen');
+        return {
+            'info': order,
+            'id': this.safeString (order, 'nr'),
+            'clientOrderId': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'symbol': symbol,
+            'type': undefined, // todo: limit I guess
+            'side': side,
+            'price': this.safeFloat (order, 'price'),
+            'amount': this.safeFloat (order, 'amount'),
+            'remaining': undefined,
+            'filled': undefined,
+            'status': status,
+            'fee': undefined,
+            'cost': undefined,
+            'trades': undefined,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
