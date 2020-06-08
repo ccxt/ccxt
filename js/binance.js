@@ -1450,7 +1450,7 @@ module.exports = class binance extends Exchange {
         if (origClientOrderId === undefined) {
             request['orderId'] = parseInt (id);
         } else {
-            request['origClientOrderId'] = parseInt (origClientOrderId);
+            request['origClientOrderId'] = origClientOrderId;
         }
         let method = 'privateDeleteOrder';
         if (type === 'future') {
