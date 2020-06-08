@@ -1448,7 +1448,7 @@ class binance extends Exchange {
         $defaultType = $this->safe_string_2($this->options, 'fetchOpenOrders', 'defaultType', $market['type']);
         $type = $this->safe_string($params, 'type', $defaultType);
         // https://github.com/ccxt/ccxt/issues/6507
-        $origClientOrderId = $this->safe_value($params, 'origClientOrderId');
+        $origClientOrderId = $this->safe_value_2($params, 'origClientOrderId', 'clientOrderId');
         $request = array(
             'symbol' => $market['id'],
             // 'orderId' => intval ($id),
@@ -1457,7 +1457,7 @@ class binance extends Exchange {
         if ($origClientOrderId === null) {
             $request['orderId'] = intval ($id);
         } else {
-            $request['origClientOrderId'] = $origClientOrderId;
+            $request['origClientOrderId'] = intval ($origClientOrderId);
         }
         $method = 'privateDeleteOrder';
         if ($type === 'future') {
@@ -1465,7 +1465,7 @@ class binance extends Exchange {
         } else if ($type === 'margin') {
             $method = 'sapiDeleteMarginOrder';
         }
-        $query = $this->omit($params, 'type');
+        $query = $this->omit($params, array( 'type', 'origClientOrderId', 'clientOrderId' ));
         $response = $this->$method (array_merge($request, $query));
         return $this->parse_order($response);
     }

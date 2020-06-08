@@ -1355,7 +1355,7 @@ class binance(Exchange):
         defaultType = self.safe_string_2(self.options, 'fetchOpenOrders', 'defaultType', market['type'])
         type = self.safe_string(params, 'type', defaultType)
         # https://github.com/ccxt/ccxt/issues/6507
-        origClientOrderId = self.safe_value(params, 'origClientOrderId')
+        origClientOrderId = self.safe_value_2(params, 'origClientOrderId', 'clientOrderId')
         request = {
             'symbol': market['id'],
             # 'orderId': int(id),
@@ -1364,13 +1364,13 @@ class binance(Exchange):
         if origClientOrderId is None:
             request['orderId'] = int(id)
         else:
-            request['origClientOrderId'] = origClientOrderId
+            request['origClientOrderId'] = int(origClientOrderId)
         method = 'privateDeleteOrder'
         if type == 'future':
             method = 'fapiPrivateDeleteOrder'
         elif type == 'margin':
             method = 'sapiDeleteMarginOrder'
-        query = self.omit(params, 'type')
+        query = self.omit(params, ['type', 'origClientOrderId', 'clientOrderId'])
         response = await getattr(self, method)(self.extend(request, query))
         return self.parse_order(response)
 
