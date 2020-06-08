@@ -34,11 +34,9 @@ module.exports = class bitmax extends Exchange {
                 'fetchTransactions': true,
                 'fetchDeposts': true,
                 'fetchWithdrawals': true,
-                'fetchMyTrades': false,
                 'fetchOrder': true,
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
-                'fetchOrderTrades': false,
                 'fetchClosedOrders': true,
             },
             'timeframes': {
@@ -1196,40 +1194,47 @@ module.exports = class bitmax extends Exchange {
         await this.loadMarkets ();
         await this.loadAccounts ();
         let market = undefined;
-        const request = {
-            // 'symbol': 'symbol'  optional
-        };
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['symbol'] = market['id'];
         }
-        const method = 'privateGet' + this.getAccount (params) + 'OrderOpen';
-        const response = await this[method] (this.extend (request, params));
+        const defaultAccountCategory = this.safeString (this.options, 'account-category', 'cash');
+        const options = this.safeValue (this.options, 'createOrder', {});
+        let accountCategory = this.safeString (options, 'account-category', defaultAccountCategory);
+        accountCategory = this.safeString (params, 'account-category', accountCategory);
+        params = this.omit (params, 'account-category');
+        const account = this.safeValue (this.accounts, 0, {});
+        const accountGroup = this.safeValue (account, 'id');
+        const request = {
+            'account-group': accountGroup,
+            'account-category': accountCategory
+        };
+        const response = await this.accountGroupGetAccountCategoryOrderOpen (this.extend (request, params));
         //
-        // {
-        //    'code': 0,
-        //    'accountId': 'MPXFNEYEJIJ93CREXT3LTCIDIJPCFNIX',
-        //    'ac': 'CASH',
-        //    'data':
-        //        [{
-        //            'seqNum': 4305977824,
-        //            'orderId': 'a170c9e191a7U9490877774397007e73',
-        //            'symbol': 'BTMX/USDT',
-        //            'orderType': 'Limit',
-        //            'lastExecTime': 1583934968446,
-        //            'price': '0.045',
-        //            'orderQty': '200',
-        //            'side': 'Buy',
-        //            'status': 'New',
-        //            'avgPx': '0',
-        //            'cumFilledQty': '0',
-        //            'stopPrice': '',
-        //            'errorCode': '',
-        //            'cumFee': '0',
-        //            'feeAsset': 'USDT',
-        //            'execInst': 'NULL_VAL'
-        //        }]
-        // }
+        //     {
+        //         "ac": "CASH",
+        //         "accountId": "cshQtyfq8XLAA9kcf19h8bXHbAwwoqDo",
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "avgPx": "0",         // Average filled price of the order
+        //                 "cumFee": "0",       // cumulative fee paid for this order
+        //                 "cumFilledQty": "0", // cumulative filled quantity
+        //                 "errorCode": "",     // error code; could be empty
+        //                 "feeAsset": "USDT",  // fee asset
+        //                 "lastExecTime": 1576019723550, //  The last execution time of the order
+        //                 "orderId": "s16ef21882ea0866943712034f36d83", // server provided orderId
+        //                 "orderQty": "0.0083",  // order quantity
+        //                 "orderType": "Limit",  // order type
+        //                 "price": "7105",       // order price
+        //                 "seqNum": 8193258,     // sequence number
+        //                 "side": "Buy",         // order side
+        //                 "status": "New",       // order status on matching engine
+        //                 "stopPrice": "",       // only available for stop market and stop limit orders; otherwise empty
+        //                 "symbol": "BTC/USDT",
+        //                 "execInst": "NULL_VAL" // execution instruction
+        //             },
+        //         ]
+        //     }
         //
         const data = this.safeValue (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
