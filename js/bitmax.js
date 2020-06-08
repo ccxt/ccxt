@@ -27,6 +27,9 @@ module.exports = class bitmax extends Exchange {
                 'fetchTrades': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
+                'createOrder': true,
+                'cancelOrder': true,
+                'cancelAllOrders': true,
                 'fetchMyTrades': false,
                 'fetchOrder': true,
                 'fetchOrders': true,
@@ -34,7 +37,6 @@ module.exports = class bitmax extends Exchange {
                 'fetchOrderTrades': false,
                 'fetchClosedOrders': true,
                 'fetchTransactions': false,
-                'cancelAllOrders': true,
                 'fetchDepositAddress': true,
             },
             'timeframes': {
@@ -215,20 +217,6 @@ module.exports = class bitmax extends Exchange {
         // get current or provided bitmax sub-account
         const account = this.safeValue (params, 'account', this.options['account']);
         return account.toLowerCase ().capitalize ();
-    }
-
-    setAccount (account) {
-        // set default bitmax sub-account
-        const validAccounts = this.getValidAccounts ();
-        if (account in validAccounts) {
-            this.options['account'] = account;
-        }
-    }
-
-    getFuturesCollateral (params = {}) {
-        // futures collateral
-        const response = this.publicGetFuturesCollateral (params);
-        return this.safeValue (response, 'data', []);
     }
 
     async fetchCurrencies (params = {}) {
@@ -1048,7 +1036,7 @@ module.exports = class bitmax extends Exchange {
         await this.loadAccounts ();
         const market = this.market (symbol);
         const defaultAccountCategory = this.safeString (this.options, 'account-category', 'cash');
-        const options = this.safeValue (this.options, 'fetchBalance', {});
+        const options = this.safeValue (this.options, 'createOrder', {});
         let accountCategory = this.safeString (options, 'account-category', defaultAccountCategory);
         accountCategory = this.safeString (params, 'account-category', accountCategory);
         params = this.omit (params, 'account-category');
@@ -1341,7 +1329,7 @@ module.exports = class bitmax extends Exchange {
         await this.loadAccounts ();
         const market = this.market (symbol);
         const defaultAccountCategory = this.safeString (this.options, 'account-category', 'cash');
-        const options = this.safeValue (this.options, 'fetchBalance', {});
+        const options = this.safeValue (this.options, 'cancelOrder', {});
         let accountCategory = this.safeString (options, 'account-category', defaultAccountCategory);
         accountCategory = this.safeString (params, 'account-category', accountCategory);
         params = this.omit (params, 'account-category');
@@ -1352,7 +1340,7 @@ module.exports = class bitmax extends Exchange {
             'account-group': accountGroup,
             'account-category': accountCategory,
             'symbol': market['id'],
-            // 'time': this.milliseconds ().toString (),
+            'time': this.milliseconds (),
         };
         if (clientOrderId === undefined) {
             request['orderId'] = id;
@@ -1387,41 +1375,43 @@ module.exports = class bitmax extends Exchange {
     async cancelAllOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
         await this.loadAccounts ();
+        const defaultAccountCategory = this.safeString (this.options, 'account-category', 'cash');
+        const options = this.safeValue (this.options, 'cancelAllOrders', {});
+        let accountCategory = this.safeString (options, 'account-category', defaultAccountCategory);
+        accountCategory = this.safeString (params, 'account-category', accountCategory);
+        params = this.omit (params, 'account-category');
+        const account = this.safeValue (this.accounts, 0, {});
+        const accountGroup = this.safeValue (account, 'id');
         const request = {
+            'account-group': accountGroup,
+            'account-category': accountCategory,
+            'time': this.milliseconds (),
         };
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['symbol'] = market['id']; // optional
+            request['symbol'] = market['id'];
         }
-        const method = 'privateDelete' + this.getAccount (params) + 'OrderAll';
-        const response = await this[method] (this.extend (request, params));
+        const response = await this.accountGroupDeleteAccountCategoryOrderAll (this.extend (request, params));
         //
-        // {
-        //    'code': 0,
-        //    'data':
-        //        {
-        //            'accountId': 'test1@dengpan.io',
-        //            'ac': 'CASH',
-        //            'action': 'cancel-all',
-        //            'status': 'Ack',
-        //            'info':
-        //                {
-        //                    'symbol': '',
-        //                    'orderType': 'NULL_VAL',
-        //                    'timestamp': 1584057856765,
-        //                    'id': '',
-        //                    'orderId': ''
-        //                }
-        //             }
-        //    }
-        // }
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "ac": "CASH",
+        //             "accountId": "cshQtyfq8XLAA9kcf19h8bXHbAwwoqDo",
+        //             "action": "cancel-all",
+        //             "info": {
+        //                 "id":  "2bmYvi7lyTrneMzpcJcf2D7Pe9V1P9wy",
+        //                 "orderId": "",
+        //                 "orderType": "NULL_VAL",
+        //                 "symbol": "",
+        //                 "timestamp": 1574118495462
+        //             },
+        //             "status": "Ack"
+        //         }
+        //     }
         //
-        const order = this.safeValue (this.safeValue (response, 'data', {}), 'info', {});
-        order['status'] = undefined;
-        order['orderType'] = undefined;
-        order['symbol'] = symbol;
-        return this.parseOrder (order);
+        return response;
     }
 
     coid () {
