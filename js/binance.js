@@ -1232,46 +1232,77 @@ module.exports = class binance extends Exchange {
         if (clientOrderId !== undefined) {
             request['newClientOrderId'] = clientOrderId;
         }
-        const quoteOrderQty = this.safeValue (this.options, 'quoteOrderQty', false);
-        if (uppercaseType === 'MARKET' && quoteOrderQty) {
-            const quoteOrderQty = this.safeFloat (params, 'quoteOrderQty');
-            const precision = market['precision']['price'];
-            if (quoteOrderQty !== undefined) {
-                request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQty, TRUNCATE, precision, this.precisionMode);
-                params = this.omit (params, 'quoteOrderQty');
-            } else if (price !== undefined) {
-                request['quoteOrderQty'] = this.decimalToPrecision (amount * price, TRUNCATE, precision, this.precisionMode);
-            } else {
-                request['quantity'] = this.amountToPrecision (symbol, amount);
-            }
-        } else {
-            request['quantity'] = this.amountToPrecision (symbol, amount);
-        }
         if (market['spot']) {
             request['newOrderRespType'] = this.safeValue (this.options['newOrderRespType'], type, 'RESULT'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         }
+        // additional required fields depending on the order type
         let timeInForceIsRequired = false;
         let priceIsRequired = false;
         let stopPriceIsRequired = false;
-        if (uppercaseType === 'LIMIT') {
+        let quantityIsRequired = false;
+        //
+        // spot/margin
+        //
+        //     LIMIT                timeInForce, quantity, price
+        //     MARKET               quantity or quoteOrderQty
+        //     STOP_LOSS            quantity, stopPrice
+        //     STOP_LOSS_LIMIT      timeInForce, quantity, price, stopPrice
+        //     TAKE_PROFIT          quantity, stopPrice
+        //     TAKE_PROFIT_LIMIT    timeInForce, quantity, price, stopPrice
+        //     LIMIT_MAKER          quantity, price
+        //
+        // futures
+        //
+        //     LIMIT                timeInForce, quantity, price
+        //     MARKET               quantity
+        //     STOP/TAKE_PROFIT     quantity, price, stopPrice
+        //     STOP_MARKET          stopPrice
+        //     TAKE_PROFIT_MARKET   stopPrice
+        //     TRAILING_STOP_MARKET callbackRate
+        //
+        if (uppercaseType === 'MARKET') {
+            const quoteOrderQty = this.safeValue (this.options, 'quoteOrderQty', false);
+            if (quoteOrderQty) {
+                const quoteOrderQty = this.safeFloat (params, 'quoteOrderQty');
+                const precision = market['precision']['price'];
+                if (quoteOrderQty !== undefined) {
+                    request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQty, TRUNCATE, precision, this.precisionMode);
+                    params = this.omit (params, 'quoteOrderQty');
+                } else if (price !== undefined) {
+                    request['quoteOrderQty'] = this.decimalToPrecision (amount * price, TRUNCATE, precision, this.precisionMode);
+                } else {
+                    quantityIsRequired = true;
+                }
+            } else {
+                quantityIsRequired = true;
+            }
+        } else if (uppercaseType === 'LIMIT') {
             priceIsRequired = true;
             timeInForceIsRequired = true;
+            quantityIsRequired = true;
         } else if ((uppercaseType === 'STOP_LOSS') || (uppercaseType === 'TAKE_PROFIT')) {
             stopPriceIsRequired = true;
+            quantityIsRequired = true;
             if (market['future']) {
                 priceIsRequired = true;
             }
         } else if ((uppercaseType === 'STOP_LOSS_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
+            quantityIsRequired = true;
             stopPriceIsRequired = true;
             priceIsRequired = true;
             timeInForceIsRequired = true;
         } else if (uppercaseType === 'LIMIT_MAKER') {
             priceIsRequired = true;
+            quantityIsRequired = true;
         } else if (uppercaseType === 'STOP') {
+            quantityIsRequired = true;
             stopPriceIsRequired = true;
             priceIsRequired = true;
         } else if ((uppercaseType === 'STOP_MARKET') || (uppercaseType === 'TAKE_PROFIT_MARKET')) {
             stopPriceIsRequired = true;
+        }
+        if (quantityIsRequired) {
+            request['quantity'] = this.amountToPrecision (symbol, amount);
         }
         if (priceIsRequired) {
             if (price === undefined) {
