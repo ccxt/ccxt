@@ -1277,7 +1277,7 @@ class binance extends Exchange {
         } else if ($uppercaseType === 'STOP') {
             $stopPriceIsRequired = true;
             $priceIsRequired = true;
-        } else if ($uppercaseType === 'STOP_MARKET') {
+        } else if (($uppercaseType === 'STOP_MARKET') || ($uppercaseType === 'TAKE_PROFIT_MARKET')) {
             $stopPriceIsRequired = true;
         }
         if ($priceIsRequired) {
