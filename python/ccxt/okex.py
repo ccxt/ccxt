@@ -2898,6 +2898,9 @@ class okex(Exchange):
         #         },
         #     ]
         #
+        responseLength = len(response)
+        if responseLength < 1:
+            return []
         isArray = isinstance(response[0], list)
         isMargin = (type == 'margin')
         entries = response[0] if (isMargin and isArray) else response

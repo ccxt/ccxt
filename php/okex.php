@@ -3018,6 +3018,10 @@ class okex extends Exchange {
         //         ),
         //     )
         //
+        $responseLength = is_array($response) ? count($response) : 0;
+        if ($responseLength < 1) {
+            return array();
+        }
         $isArray = gettype($response[0]) === 'array' && count(array_filter(array_keys($response[0]), 'is_string')) == 0;
         $isMargin = ($type === 'margin');
         $entries = ($isMargin && $isArray) ? $response[0] : $response;
