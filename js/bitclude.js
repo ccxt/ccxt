@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { DECIMAL_PLACES } = require ('./base/functions/number');
-const { ExchangeError, InvalidOrder, BadRequest, InsufficientFunds, OrderNotFound } = require ('./base/errors');
+const { ExchangeError, InvalidOrder, BadRequest, InsufficientFunds, OrderNotFound, ArgumentsRequired } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -347,6 +347,30 @@ module.exports = class bitclude extends Exchange {
             'cost': undefined,
             'trades': undefined,
         };
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        const side_in_params = ('side' in params);
+        if (!side_in_params) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder requires a `side` parameter (sell or buy)');
+        }
+        const side = (params['side'] === 'buy') ? 'bid' : 'ask';
+        params = this.omit (params, [ 'side', 'currency' ]);
+        const request = {
+            'method': 'transactions',
+            'action': 'cancel',
+            'order': parseInt (id),
+            'typ': side,
+        };
+        return await this.privateGet (this.extend (request, params));
+    }
+
+    cancelUnifiedOrder (order, params = {}) {
+        // https://github.com/ccxt/ccxt/issues/6838
+        const request = {
+            'side': order['side'],
+        };
+        return this.cancelOrder (order['id'], undefined, this.extend (request, params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
