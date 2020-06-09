@@ -1205,7 +1205,7 @@ class binance(Exchange):
         elif uppercaseType == 'STOP':
             stopPriceIsRequired = True
             priceIsRequired = True
-        elif uppercaseType == 'STOP_MARKET':
+        elif (uppercaseType == 'STOP_MARKET') or (uppercaseType == 'TAKE_PROFIT_MARKET'):
             stopPriceIsRequired = True
         if priceIsRequired:
             if price is None:
