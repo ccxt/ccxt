@@ -3012,6 +3012,10 @@ module.exports = class okex extends Exchange {
         //         },
         //     ]
         //
+        const responseLength = response.length;
+        if (responseLength < 1) {
+            return [];
+        }
         const isArray = Array.isArray (response[0]);
         const isMargin = (type === 'margin');
         const entries = (isMargin && isArray) ? response[0] : response;
