@@ -1598,6 +1598,8 @@ class bybit(Exchange):
         method = 'privateLinearGetTradeExecutionList' if (marketType == 'linear') else 'privateGetExecutionList'
         response = await getattr(self, method)(self.extend(request, params))
         #
+        # inverse
+        #
         #     {
         #         "ret_code": 0,
         #         "ret_msg": "OK",
@@ -1637,8 +1639,48 @@ class bybit(Exchange):
         #         "rate_limit": 120
         #     }
         #
+        # linear
+        #
+        #     {
+        #         "ret_code":0,
+        #         "ret_msg":"OK",
+        #         "ext_code":"",
+        #         "ext_info":"",
+        #         "result":{
+        #             "current_page":1,
+        #             "data":[
+        #                 {
+        #                     "order_id":"b59418ec-14d4-4ef9-b9f4-721d5d576974",
+        #                     "order_link_id":"",
+        #                     "side":"Sell",
+        #                     "symbol":"BTCUSDT",
+        #                     "exec_id":"0327284d-faec-5191-bd89-acc5b4fafda9",
+        #                     "price":0.5,
+        #                     "order_price":0.5,
+        #                     "order_qty":0.01,
+        #                     "order_type":"Market",
+        #                     "fee_rate":0.00075,
+        #                     "exec_price":9709.5,
+        #                     "exec_type":"Trade",
+        #                     "exec_qty":0.01,
+        #                     "exec_fee":0.07282125,
+        #                     "exec_value":97.095,
+        #                     "leaves_qty":0,
+        #                     "closed_size":0.01,
+        #                     "last_liquidity_ind":"RemovedLiquidity",
+        #                     "trade_time":1591648052,
+        #                     "trade_time_ms":1591648052861
+        #                 }
+        #             ]
+        #         },
+        #         "time_now":"1591736501.979264",
+        #         "rate_limit_status":119,
+        #         "rate_limit_reset_ms":1591736501974,
+        #         "rate_limit":120
+        #     }
+        #
         result = self.safe_value(response, 'result', {})
-        trades = self.safe_value(result, 'trade_list', [])
+        trades = self.safe_value_2(result, 'trade_list', 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
