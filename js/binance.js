@@ -220,6 +220,7 @@ module.exports = class binance extends Exchange {
                         'balance',
                         'positionMargin/history',
                         'positionRisk',
+                        'positionSide/dual',
                         'userTrades',
                         'income',
                     ],
@@ -785,6 +786,22 @@ module.exports = class binance extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        //
+        //     [
+        //         1591478520000,
+        //         "0.02501300",
+        //         "0.02501800",
+        //         "0.02500000",
+        //         "0.02500000",
+        //         "22.19000000",
+        //         1591478579999,
+        //         "0.55490906",
+        //         40,
+        //         "10.92900000",
+        //         "0.27336462",
+        //         "0"
+        //     ]
+        //
         return [
             this.safeInteger (ohlcv, 0),
             this.safeFloat (ohlcv, 1),
@@ -810,7 +827,14 @@ module.exports = class binance extends Exchange {
         }
         const method = market['spot'] ? 'publicGetKlines' : 'fapiPublicGetKlines';
         const response = await this[method] (this.extend (request, params));
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        //
+        //     [
+        //         [1591478520000,"0.02501300","0.02501800","0.02500000","0.02500000","22.19000000",1591478579999,"0.55490906",40,"10.92900000","0.27336462","0"],
+        //         [1591478580000,"0.02499600","0.02500900","0.02499400","0.02500300","21.34700000",1591478639999,"0.53370468",24,"7.53800000","0.18850725","0"],
+        //         [1591478640000,"0.02500800","0.02501100","0.02500300","0.02500800","154.14200000",1591478699999,"3.85405839",97,"5.32300000","0.13312641","0"],
+        //     ]
+        //
+        return this.parseOHLCVs (response, market);
     }
 
     parseTrade (trade, market = undefined) {
@@ -1417,7 +1441,7 @@ module.exports = class binance extends Exchange {
         const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', market['type']);
         const type = this.safeString (params, 'type', defaultType);
         // https://github.com/ccxt/ccxt/issues/6507
-        const origClientOrderId = this.safeValue (params, 'origClientOrderId');
+        const origClientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
         const request = {
             'symbol': market['id'],
             // 'orderId': parseInt (id),
@@ -1434,7 +1458,7 @@ module.exports = class binance extends Exchange {
         } else if (type === 'margin') {
             method = 'sapiDeleteMarginOrder';
         }
-        const query = this.omit (params, 'type');
+        const query = this.omit (params, [ 'type', 'origClientOrderId', 'clientOrderId' ]);
         const response = await this[method] (this.extend (request, query));
         return this.parseOrder (response);
     }
@@ -2034,51 +2058,50 @@ module.exports = class binance extends Exchange {
                 throw new InvalidOrder (this.id + ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use this.priceToPrecision (symbol, amount) ' + body);
             }
         }
-        if (body.length > 0) {
-            if (body[0] === '{') {
-                // check success value for wapi endpoints
-                // response in format {'msg': 'The coin does not exist.', 'success': true/false}
-                const success = this.safeValue (response, 'success', true);
-                if (!success) {
-                    const message = this.safeString (response, 'msg');
-                    let parsedMessage = undefined;
-                    if (message !== undefined) {
-                        try {
-                            parsedMessage = JSON.parse (message);
-                        } catch (e) {
-                            // do nothing
-                            parsedMessage = undefined;
-                        }
-                        if (parsedMessage !== undefined) {
-                            response = parsedMessage;
-                        }
-                    }
+        if (response === undefined) {
+            return; // fallback to default error handler
+        }
+        // check success value for wapi endpoints
+        // response in format {'msg': 'The coin does not exist.', 'success': true/false}
+        const success = this.safeValue (response, 'success', true);
+        if (!success) {
+            const message = this.safeString (response, 'msg');
+            let parsedMessage = undefined;
+            if (message !== undefined) {
+                try {
+                    parsedMessage = JSON.parse (message);
+                } catch (e) {
+                    // do nothing
+                    parsedMessage = undefined;
                 }
-                const message = this.safeString (response, 'msg');
-                if (message !== undefined) {
-                    this.throwExactlyMatchedException (this.exceptions, message, this.id + ' ' + message);
-                }
-                // checks against error codes
-                const error = this.safeString (response, 'code');
-                if (error !== undefined) {
-                    // https://github.com/ccxt/ccxt/issues/6501
-                    if (error === '200') {
-                        return;
-                    }
-                    // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
-                    // despite that their message is very confusing, it is raised by Binance
-                    // on a temporary ban, the API key is valid, but disabled for a while
-                    if ((error === '-2015') && this.options['hasAlreadyAuthenticatedSuccessfully']) {
-                        throw new DDoSProtection (this.id + ' temporary banned: ' + body);
-                    }
-                    const feedback = this.id + ' ' + body;
-                    this.throwExactlyMatchedException (this.exceptions, error, feedback);
-                    throw new ExchangeError (feedback);
-                }
-                if (!success) {
-                    throw new ExchangeError (this.id + ' ' + body);
+                if (parsedMessage !== undefined) {
+                    response = parsedMessage;
                 }
             }
+        }
+        const message = this.safeString (response, 'msg');
+        if (message !== undefined) {
+            this.throwExactlyMatchedException (this.exceptions, message, this.id + ' ' + message);
+        }
+        // checks against error codes
+        const error = this.safeString (response, 'code');
+        if (error !== undefined) {
+            // https://github.com/ccxt/ccxt/issues/6501
+            if (error === '200') {
+                return;
+            }
+            // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
+            // despite that their message is very confusing, it is raised by Binance
+            // on a temporary ban, the API key is valid, but disabled for a while
+            if ((error === '-2015') && this.options['hasAlreadyAuthenticatedSuccessfully']) {
+                throw new DDoSProtection (this.id + ' temporary banned: ' + body);
+            }
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions, error, feedback);
+            throw new ExchangeError (feedback);
+        }
+        if (!success) {
+            throw new ExchangeError (this.id + ' ' + body);
         }
     }
 

@@ -650,7 +650,9 @@ class bybit extends Exchange {
 
     public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
         //
-        //     array(
+        // inverse perpetual BTC/USD
+        //
+        //     {
         //         symbol => 'BTCUSD',
         //         interval => '1',
         //         open_time => 1583952540,
@@ -660,7 +662,9 @@ class bybit extends Exchange {
         //         close => '7763.5',
         //         volume => '1259766',
         //         turnover => '162.32773718999994'
-        //     ),
+        //     }
+        //
+        // linear perpetual BTC/USDT
         //
         //     {
         //         "id":143536,
@@ -757,7 +761,7 @@ class bybit extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($result, $market);
     }
 
     public function parse_trade($trade, $market = null) {
@@ -818,13 +822,6 @@ class bybit extends Exchange {
             if ($symbol === null) {
                 $symbol = $market['symbol'];
                 $base = $market['base'];
-            }
-            // if private $trade
-            if (is_array($trade) && array_key_exists('exec_fee', $trade)) {
-                if ($market['inverse']) {
-                    $amount = $this->safe_float($trade, 'exec_value');
-                    $cost = $this->safe_float($trade, 'exec_qty');
-                }
             }
         }
         if ($cost === null) {
@@ -963,11 +960,11 @@ class bybit extends Exchange {
             'Rejected' => 'rejected', // order is triggered but failed upon being placed
             'New' => 'open',
             'PartiallyFilled' => 'open',
-            'Filled' => 'filled',
+            'Filled' => 'closed',
             'Cancelled' => 'canceled',
             'PendingCancel' => 'canceling', // the engine has received the cancellation but there is no guarantee that it will be successful
             // conditional orders
-            'Active' => 'closed', // order is triggered and placed successfully
+            'Active' => 'open', // order is triggered and placed successfully
             'Untriggered' => 'open', // order waits to be triggered
             'Triggered' => 'closed', // order is triggered
             // 'Cancelled' => 'canceled', // order is cancelled
@@ -1043,24 +1040,13 @@ class bybit extends Exchange {
         $id = $this->safe_string($order, 'order_id');
         $price = $this->safe_float($order, 'price');
         $average = $this->safe_float($order, 'average_price');
-        $amount = null;
-        $cost = null;
-        $filled = null;
-        $remaining = null;
+        $amount = $this->safe_float($order, 'qty');
+        $cost = $this->safe_float($order, 'cum_exec_value');
+        $filled = $this->safe_float($order, 'cum_exec_qty');
+        $remaining = $this->safe_float($order, 'leaves_qty');
         if ($market !== null) {
             $symbol = $market['symbol'];
             $base = $market['base'];
-            if ($market['inverse']) {
-                $cost = $this->safe_float($order, 'cum_exec_qty');
-                $filled = $this->safe_float($order, 'cum_exec_value');
-                $remaining = $this->safe_float($order, 'leaves_value');
-                $amount = $this->sum($filled, $remaining);
-            } else {
-                $amount = $this->safe_float($order, 'qty');
-                $cost = $this->safe_float($order, 'cum_exec_value');
-                $filled = $this->safe_float($order, 'cum_exec_qty');
-                $remaining = $this->safe_float($order, 'leaves_qty');
-            }
         }
         $lastTradeTimestamp = $this->safe_timestamp($order, 'last_exec_time');
         if ($lastTradeTimestamp === 0) {

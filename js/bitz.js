@@ -619,13 +619,15 @@ module.exports = class bitz extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         //
-        //      {     time: "1535973420000",
-        //            open: "0.03975084",
-        //            high: "0.03975084",
-        //             low: "0.03967700",
-        //           close: "0.03967700",
-        //          volume: "12.4733",
-        //        datetime: "2018-09-03 19:17:00" }
+        //     {
+        //         time: "1535973420000",
+        //         open: "0.03975084",
+        //         high: "0.03975084",
+        //         low: "0.03967700",
+        //         close: "0.03967700",
+        //         volume: "12.4733",
+        //         datetime: "2018-09-03 19:17:00"
+        //     }
         //
         return [
             this.safeInteger (ohlcv, 'time'),
@@ -657,36 +659,28 @@ module.exports = class bitz extends Exchange {
         }
         const response = await this.marketGetKline (this.extend (request, params));
         //
-        //     {    status:    200,
-        //             msg:   "",
-        //            data: {       bars: [ {     time: "1535973420000",
-        //                                        open: "0.03975084",
-        //                                        high: "0.03975084",
-        //                                         low: "0.03967700",
-        //                                       close: "0.03967700",
-        //                                      volume: "12.4733",
-        //                                    datetime: "2018-09-03 19:17:00" },
-        //                                  {     time: "1535955480000",
-        //                                        open: "0.04009900",
-        //                                        high: "0.04016745",
-        //                                         low: "0.04009900",
-        //                                       close: "0.04012074",
-        //                                      volume: "74.4803",
-        //                                    datetime: "2018-09-03 14:18:00" }  ],
-        //                    resolution:   "1min",
-        //                        symbol:   "eth_btc",
-        //                          from:   "1535973420000",
-        //                            to:   "1535955480000",
-        //                          size:    300                                    },
-        //            time:    1535973435,
-        //       microtime:   "0.56462100 1535973435",
-        //          source:   "api"                                                    }
+        //     {
+        //         status: 200,
+        //         msg: "",
+        //         data: {
+        //             bars: [
+        //                 { time: "1535973420000", open: "0.03975084", high: "0.03975084", low: "0.03967700", close: "0.03967700", volume: "12.4733", datetime: "2018-09-03 19:17:00" },
+        //                 { time: "1535955480000", open: "0.04009900", high: "0.04016745", low: "0.04009900", close: "0.04012074", volume: "74.4803", datetime: "2018-09-03 14:18:00" },
+        //             ],
+        //             resolution: "1min",
+        //             symbol: "eth_btc",
+        //             from: "1535973420000",
+        //             to: "1535955480000",
+        //             size: 300
+        //         },
+        //         time: 1535973435,
+        //         microtime: "0.56462100 1535973435",
+        //         source: "api"
+        //     }
         //
-        const bars = this.safeValue (response['data'], 'bars', undefined);
-        if (bars === undefined) {
-            return [];
-        }
-        return this.parseOHLCVs (bars, market, timeframe, since, limit);
+        const data = this.safeValue (response, 'data', {});
+        const bars = this.safeValue (data, 'bars', []);
+        return this.parseOHLCVs (bars, market);
     }
 
     parseOrderStatus (status) {

@@ -102,6 +102,7 @@ class ftx(Exchange):
                         'lt/redemptions',
                         'subaccounts',
                         'subaccounts/{nickname}/balances',
+                        'otc/quotes/{quoteId}',
                     ],
                     'post': [
                         'account/leverage',
@@ -113,6 +114,8 @@ class ftx(Exchange):
                         'subaccounts',
                         'subaccounts/update_name',
                         'subaccounts/transfer',
+                        'otc/quotes/{quote_id}/accept',
+                        'otc/quotes',
                     ],
                     'delete': [
                         'orders/{order_id}',
@@ -503,21 +506,27 @@ class ftx(Exchange):
             self.safe_float(ohlcv, 'volume'),
         ]
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        await self.load_markets()
-        request = {
-            'resolution': self.timeframes[timeframe],
-        }
+    def get_market_id(self, symbol, key, params={}):
+        parts = self.get_market_params(symbol, key, params)
+        return self.safe_string(parts, 1, symbol)
+
+    def get_market_params(self, symbol, key, params={}):
         market = None
+        marketId = None
         if symbol in self.markets:
             market = self.market(symbol)
-            request['market_name'] = market['id']
+            marketId = market['id']
         else:
-            marketId = self.safe_string(params, 'market_name')
-            if marketId is not None:
-                request['market_name'] = marketId
-            else:
-                request['market_name'] = symbol
+            marketId = self.safe_string(params, key, symbol)
+        return [market, marketId]
+
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        await self.load_markets()
+        market, marketId = self.get_market_params(symbol, 'market_name', params)
+        request = {
+            'resolution': self.timeframes[timeframe],
+            'market_name': marketId,
+        }
         # max 1501 candles, including the current candle when since is not specified
         limit = 1501 if (limit is None) else limit
         if since is None:
@@ -555,7 +564,7 @@ class ftx(Exchange):
         #     }
         #
         result = self.safe_value(response, 'result', [])
-        return self.parse_ohlcvs(result, market, timeframe, since, limit)
+        return self.parse_ohlcvs(result, market)
 
     def parse_trade(self, trade, market=None):
         #
@@ -643,9 +652,9 @@ class ftx(Exchange):
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
-        market = self.market(symbol)
+        market, marketId = self.get_market_params(symbol, 'market_name', params)
         request = {
-            'market_name': market['id'],
+            'market_name': marketId,
         }
         if since is not None:
             request['start_time'] = int(since / 1000)
@@ -884,7 +893,7 @@ class ftx(Exchange):
         }
         clientOrderId = self.safe_string_2(params, 'clientId', 'clientOrderId')
         if clientOrderId is not None:
-            params['clientId'] = clientOrderId
+            request['clientId'] = clientOrderId
             params = self.omit(params, ['clientId', 'clientOrderId'])
         priceToPrecision = None
         if price is not None:
@@ -995,10 +1004,9 @@ class ftx(Exchange):
             'conditionalOrdersOnly': False,  # cancel conditional orders only
             'limitOrdersOnly': False,  # cancel existing limit orders(non-conditional orders) only
         }
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-            request['market'] = market['id']
+        marketId = self.get_market_id(symbol, 'market', params)
+        if marketId is not None:
+            request['market'] = marketId
         response = await self.privateDeleteOrders(self.extend(request, params))
         result = self.safe_value(response, 'result', {})
         #
@@ -1050,10 +1058,9 @@ class ftx(Exchange):
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         request = {}
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-            request['market'] = market['id']
+        market, marketId = self.get_market_params(symbol, 'market', params)
+        if marketId is not None:
+            request['market'] = marketId
         # support for canceling conditional orders
         # https://github.com/ccxt/ccxt/issues/6669
         options = self.safe_value(self.options, 'fetchOpenOrders', {})
@@ -1095,10 +1102,9 @@ class ftx(Exchange):
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         request = {}
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-            request['market'] = market['id']
+        market, marketId = self.get_market_params(symbol, 'market', params)
+        if marketId is not None:
+            request['market'] = marketId
         if limit is not None:
             request['limit'] = limit  # default 100, max 100
         if since is not None:
@@ -1143,10 +1149,10 @@ class ftx(Exchange):
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
-        market = self.market(symbol)
-        request = {
-            'market': market['id'],
-        }
+        market, marketId = self.get_market_params(symbol, 'market', params)
+        request = {}
+        if marketId is not None:
+            request['market'] = marketId
         if limit is not None:
             request['limit'] = limit
         if since is not None:

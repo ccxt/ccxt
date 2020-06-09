@@ -351,7 +351,7 @@ module.exports = class rightbtc extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '5m', since = undefined, limit = undefined) {
         return [
-            parseInt (ohlcv[0]),
+            this.safeInteger (ohlcv, 0),
             parseFloat (ohlcv[2]) / 1e8,
             parseFloat (ohlcv[3]) / 1e8,
             parseFloat (ohlcv[4]) / 1e8,
@@ -368,7 +368,8 @@ module.exports = class rightbtc extends Exchange {
             'timeSymbol': this.timeframes[timeframe],
         };
         const response = await this.publicGetCandlestickTimeSymbolTradingPair (this.extend (request, params));
-        return this.parseOHLCVs (response['result'], market, timeframe, since, limit);
+        const result = this.safeValue (response, 'result', []);
+        return this.parseOHLCVs (result, market);
     }
 
     async fetchBalance (params = {}) {

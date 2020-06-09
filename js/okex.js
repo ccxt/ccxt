@@ -1322,19 +1322,19 @@ module.exports = class okex extends Exchange {
         if (Array.isArray (ohlcv)) {
             const numElements = ohlcv.length;
             const volumeIndex = (numElements > 6) ? 6 : 5;
-            let timestamp = ohlcv[0];
+            let timestamp = this.safeValue (ohlcv, 0);
             if (typeof timestamp === 'string') {
                 timestamp = this.parse8601 (timestamp);
             }
             return [
                 timestamp, // timestamp
-                parseFloat (ohlcv[1]),            // Open
-                parseFloat (ohlcv[2]),            // High
-                parseFloat (ohlcv[3]),            // Low
-                parseFloat (ohlcv[4]),            // Close
-                // parseFloat (ohlcv[5]),         // Quote Volume
-                // parseFloat (ohlcv[6]),         // Base Volume
-                parseFloat (ohlcv[volumeIndex]),  // Volume, okex will return base volume in the 7th element for future markets
+                this.safeFloat (ohlcv, 1),            // Open
+                this.safeFloat (ohlcv, 2),            // High
+                this.safeFloat (ohlcv, 3),            // Low
+                this.safeFloat (ohlcv, 4),            // Close
+                // this.safeFloat (ohlcv, 5),         // Quote Volume
+                // this.safeFloat (ohlcv, 6),         // Base Volume
+                this.safeFloat (ohlcv, volumeIndex),  // Volume, okex will return base volume in the 7th element for future markets
             ];
         } else {
             return [
@@ -1373,39 +1373,49 @@ module.exports = class okex extends Exchange {
         //
         // spot markets
         //
-        //     [ {  close: "0.02683401",
-        //           high: "0.02683401",
-        //            low: "0.02683401",
-        //           open: "0.02683401",
-        //           time: "2018-12-17T23:47:00.000Z",
-        //         volume: "0"                         },
-        //       ...
-        //       {  close: "0.02684545",
-        //           high: "0.02685084",
-        //            low: "0.02683312",
-        //           open: "0.02683894",
-        //           time: "2018-12-17T20:28:00.000Z",
-        //         volume: "101.457222"                }  ]
+        //     [
+        //         {
+        //             close: "0.02683401",
+        //             high: "0.02683401",
+        //             low: "0.02683401",
+        //             open: "0.02683401",
+        //             time: "2018-12-17T23:47:00.000Z",
+        //             volume: "0"
+        //         },
+        //         {
+        //             close: "0.02684545",
+        //             high: "0.02685084",
+        //             low: "0.02683312",
+        //             open: "0.02683894",
+        //             time: "2018-12-17T20:28:00.000Z",
+        //             volume: "101.457222"
+        //         }
+        //     ]
         //
         // futures
         //
-        //     [ [ 1545090660000,
-        //         0.3171,
-        //         0.3174,
-        //         0.3171,
-        //         0.3173,
-        //         1648,
-        //         51930.38579450868 ],
-        //       ...
-        //       [ 1545072720000,
-        //         0.3159,
-        //         0.3161,
-        //         0.3144,
-        //         0.3149,
-        //         22886,
-        //         725179.26172331 ]    ]
+        //     [
+        //         [
+        //             1545090660000,
+        //             0.3171,
+        //             0.3174,
+        //             0.3171,
+        //             0.3173,
+        //             1648,
+        //             51930.38579450868
+        //         ],
+        //         [
+        //             1545072720000,
+        //             0.3159,
+        //             0.3161,
+        //             0.3144,
+        //             0.3149,
+        //             22886,
+        //             725179.26172331
+        //         ]
+        //     ]
         //
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        return this.parseOHLCVs (response, market);
     }
 
     parseAccountBalance (response) {
@@ -2719,8 +2729,8 @@ module.exports = class okex extends Exchange {
         const request = {
             'instrument_id': market['id'],
             // 'order_id': id, // string
-            // 'after': '1', // return the page after the specified page number
-            // 'before': '1', // return the page before the specified page number
+            // 'after': '1', // pagination of data to return records earlier than the requested ledger_id
+            // 'before': '1', // P=pagination of data to return records newer than the requested ledger_id
             // 'limit': limit, // optional, number of results per request, default = maximum = 100
         };
         const defaultType = this.safeString2 (this.options, 'fetchMyTrades', 'defaultType');

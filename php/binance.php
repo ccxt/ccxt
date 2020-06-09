@@ -227,6 +227,7 @@ class binance extends Exchange {
                         'balance',
                         'positionMargin/history',
                         'positionRisk',
+                        'positionSide/dual',
                         'userTrades',
                         'income',
                     ),
@@ -792,6 +793,22 @@ class binance extends Exchange {
     }
 
     public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+        //
+        //     array(
+        //         1591478520000,
+        //         "0.02501300",
+        //         "0.02501800",
+        //         "0.02500000",
+        //         "0.02500000",
+        //         "22.19000000",
+        //         1591478579999,
+        //         "0.55490906",
+        //         40,
+        //         "10.92900000",
+        //         "0.27336462",
+        //         "0"
+        //     )
+        //
         return array(
             $this->safe_integer($ohlcv, 0),
             $this->safe_float($ohlcv, 1),
@@ -817,7 +834,14 @@ class binance extends Exchange {
         }
         $method = $market['spot'] ? 'publicGetKlines' : 'fapiPublicGetKlines';
         $response = $this->$method (array_merge($request, $params));
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        //
+        //     [
+        //         [1591478520000,"0.02501300","0.02501800","0.02500000","0.02500000","22.19000000",1591478579999,"0.55490906",40,"10.92900000","0.27336462","0"],
+        //         [1591478580000,"0.02499600","0.02500900","0.02499400","0.02500300","21.34700000",1591478639999,"0.53370468",24,"7.53800000","0.18850725","0"],
+        //         [1591478640000,"0.02500800","0.02501100","0.02500300","0.02500800","154.14200000",1591478699999,"3.85405839",97,"5.32300000","0.13312641","0"],
+        //     ]
+        //
+        return $this->parse_ohlcvs($response, $market);
     }
 
     public function parse_trade($trade, $market = null) {
@@ -1424,7 +1448,7 @@ class binance extends Exchange {
         $defaultType = $this->safe_string_2($this->options, 'fetchOpenOrders', 'defaultType', $market['type']);
         $type = $this->safe_string($params, 'type', $defaultType);
         // https://github.com/ccxt/ccxt/issues/6507
-        $origClientOrderId = $this->safe_value($params, 'origClientOrderId');
+        $origClientOrderId = $this->safe_value_2($params, 'origClientOrderId', 'clientOrderId');
         $request = array(
             'symbol' => $market['id'],
             // 'orderId' => intval ($id),
@@ -1441,7 +1465,7 @@ class binance extends Exchange {
         } else if ($type === 'margin') {
             $method = 'sapiDeleteMarginOrder';
         }
-        $query = $this->omit($params, 'type');
+        $query = $this->omit($params, array( 'type', 'origClientOrderId', 'clientOrderId' ));
         $response = $this->$method (array_merge($request, $query));
         return $this->parse_order($response);
     }
@@ -2041,51 +2065,50 @@ class binance extends Exchange {
                 throw new InvalidOrder($this->id . ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use $this->price_to_precision(symbol, amount) ' . $body);
             }
         }
-        if (strlen($body) > 0) {
-            if ($body[0] === '{') {
-                // check $success value for wapi endpoints
-                // $response in format array('msg' => 'The coin does not exist.', 'success' => true/false)
-                $success = $this->safe_value($response, 'success', true);
-                if (!$success) {
-                    $message = $this->safe_string($response, 'msg');
+        if ($response === null) {
+            return; // fallback to default $error handler
+        }
+        // check $success value for wapi endpoints
+        // $response in format array('msg' => 'The coin does not exist.', 'success' => true/false)
+        $success = $this->safe_value($response, 'success', true);
+        if (!$success) {
+            $message = $this->safe_string($response, 'msg');
+            $parsedMessage = null;
+            if ($message !== null) {
+                try {
+                    $parsedMessage = json_decode($message, $as_associative_array = true);
+                } catch (Exception $e) {
+                    // do nothing
                     $parsedMessage = null;
-                    if ($message !== null) {
-                        try {
-                            $parsedMessage = json_decode($message, $as_associative_array = true);
-                        } catch (Exception $e) {
-                            // do nothing
-                            $parsedMessage = null;
-                        }
-                        if ($parsedMessage !== null) {
-                            $response = $parsedMessage;
-                        }
-                    }
                 }
-                $message = $this->safe_string($response, 'msg');
-                if ($message !== null) {
-                    $this->throw_exactly_matched_exception($this->exceptions, $message, $this->id . ' ' . $message);
-                }
-                // checks against $error codes
-                $error = $this->safe_string($response, 'code');
-                if ($error !== null) {
-                    // https://github.com/ccxt/ccxt/issues/6501
-                    if ($error === '200') {
-                        return;
-                    }
-                    // a workaround for array("$code":-2015,"msg":"Invalid API-key, IP, or permissions for action.")
-                    // despite that their $message is very confusing, it is raised by Binance
-                    // on a temporary ban, the API key is valid, but disabled for a while
-                    if (($error === '-2015') && $this->options['hasAlreadyAuthenticatedSuccessfully']) {
-                        throw new DDoSProtection($this->id . ' temporary banned => ' . $body);
-                    }
-                    $feedback = $this->id . ' ' . $body;
-                    $this->throw_exactly_matched_exception($this->exceptions, $error, $feedback);
-                    throw new ExchangeError($feedback);
-                }
-                if (!$success) {
-                    throw new ExchangeError($this->id . ' ' . $body);
+                if ($parsedMessage !== null) {
+                    $response = $parsedMessage;
                 }
             }
+        }
+        $message = $this->safe_string($response, 'msg');
+        if ($message !== null) {
+            $this->throw_exactly_matched_exception($this->exceptions, $message, $this->id . ' ' . $message);
+        }
+        // checks against $error codes
+        $error = $this->safe_string($response, 'code');
+        if ($error !== null) {
+            // https://github.com/ccxt/ccxt/issues/6501
+            if ($error === '200') {
+                return;
+            }
+            // a workaround for array("$code":-2015,"msg":"Invalid API-key, IP, or permissions for action.")
+            // despite that their $message is very confusing, it is raised by Binance
+            // on a temporary ban, the API key is valid, but disabled for a while
+            if (($error === '-2015') && $this->options['hasAlreadyAuthenticatedSuccessfully']) {
+                throw new DDoSProtection($this->id . ' temporary banned => ' . $body);
+            }
+            $feedback = $this->id . ' ' . $body;
+            $this->throw_exactly_matched_exception($this->exceptions, $error, $feedback);
+            throw new ExchangeError($feedback);
+        }
+        if (!$success) {
+            throw new ExchangeError($this->id . ' ' . $body);
         }
     }
 

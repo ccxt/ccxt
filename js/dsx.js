@@ -34,13 +34,13 @@ module.exports = class dsx extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/76909626-cb2bb100-68bc-11ea-99e0-28ba54f04792.jpg',
                 'api': {
-                    'public': 'https://dsx.uk/mapi', // market data
-                    'private': 'https://dsx.uk/tapi', // trading
-                    'dwapi': 'https://dsx.uk/dwapi', // deposit/withdraw
+                    'public': 'https://dsxglobal.com/mapi', // market data
+                    'private': 'https://dsxglobal.com/tapi', // trading
+                    'dwapi': 'https://dsxglobal.com/dwapi', // deposit/withdraw
                 },
-                'www': 'https://dsx.uk',
+                'www': 'https://dsxglobal.com',
                 'doc': [
-                    'https://dsx.uk/developers/publicApi',
+                    'https://dsxglobal.com/developers/publicApi',
                 ],
             },
             'fees': {
@@ -638,7 +638,7 @@ module.exports = class dsx extends Exchange {
         //     }
         //
         const candles = this.safeValue (response, market['id'], []);
-        return this.parseOHLCVs (candles, market, timeframe, since, limit);
+        return this.parseOHLCVs (candles, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

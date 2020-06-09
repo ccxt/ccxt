@@ -236,6 +236,7 @@ class binance(Exchange):
                         'balance',
                         'positionMargin/history',
                         'positionRisk',
+                        'positionSide/dual',
                         'userTrades',
                         'income',
                     ],
@@ -769,6 +770,22 @@ class binance(Exchange):
         return self.parse_tickers(response, symbols)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+        #
+        #     [
+        #         1591478520000,
+        #         "0.02501300",
+        #         "0.02501800",
+        #         "0.02500000",
+        #         "0.02500000",
+        #         "22.19000000",
+        #         1591478579999,
+        #         "0.55490906",
+        #         40,
+        #         "10.92900000",
+        #         "0.27336462",
+        #         "0"
+        #     ]
+        #
         return [
             self.safe_integer(ohlcv, 0),
             self.safe_float(ohlcv, 1),
@@ -791,7 +808,14 @@ class binance(Exchange):
             request['limit'] = limit  # default == max == 500
         method = 'publicGetKlines' if market['spot'] else 'fapiPublicGetKlines'
         response = await getattr(self, method)(self.extend(request, params))
-        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+        #
+        #     [
+        #         [1591478520000,"0.02501300","0.02501800","0.02500000","0.02500000","22.19000000",1591478579999,"0.55490906",40,"10.92900000","0.27336462","0"],
+        #         [1591478580000,"0.02499600","0.02500900","0.02499400","0.02500300","21.34700000",1591478639999,"0.53370468",24,"7.53800000","0.18850725","0"],
+        #         [1591478640000,"0.02500800","0.02501100","0.02500300","0.02500800","154.14200000",1591478699999,"3.85405839",97,"5.32300000","0.13312641","0"],
+        #     ]
+        #
+        return self.parse_ohlcvs(response, market)
 
     def parse_trade(self, trade, market=None):
         if 'isDustTrade' in trade:
@@ -1331,7 +1355,7 @@ class binance(Exchange):
         defaultType = self.safe_string_2(self.options, 'fetchOpenOrders', 'defaultType', market['type'])
         type = self.safe_string(params, 'type', defaultType)
         # https://github.com/ccxt/ccxt/issues/6507
-        origClientOrderId = self.safe_value(params, 'origClientOrderId')
+        origClientOrderId = self.safe_value_2(params, 'origClientOrderId', 'clientOrderId')
         request = {
             'symbol': market['id'],
             # 'orderId': int(id),
@@ -1346,7 +1370,7 @@ class binance(Exchange):
             method = 'fapiPrivateDeleteOrder'
         elif type == 'margin':
             method = 'sapiDeleteMarginOrder'
-        query = self.omit(params, 'type')
+        query = self.omit(params, ['type', 'origClientOrderId', 'clientOrderId'])
         response = await getattr(self, method)(self.extend(request, query))
         return self.parse_order(response)
 
@@ -1890,41 +1914,41 @@ class binance(Exchange):
                 raise InvalidOrder(self.id + ' order amount should be evenly divisible by lot size ' + body)
             if body.find('PRICE_FILTER') >= 0:
                 raise InvalidOrder(self.id + ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use self.price_to_precision(symbol, amount) ' + body)
-        if len(body) > 0:
-            if body[0] == '{':
-                # check success value for wapi endpoints
-                # response in format {'msg': 'The coin does not exist.', 'success': True/false}
-                success = self.safe_value(response, 'success', True)
-                if not success:
-                    message = self.safe_string(response, 'msg')
+        if response is None:
+            return  # fallback to default error handler
+        # check success value for wapi endpoints
+        # response in format {'msg': 'The coin does not exist.', 'success': True/false}
+        success = self.safe_value(response, 'success', True)
+        if not success:
+            message = self.safe_string(response, 'msg')
+            parsedMessage = None
+            if message is not None:
+                try:
+                    parsedMessage = json.loads(message)
+                except Exception as e:
+                    # do nothing
                     parsedMessage = None
-                    if message is not None:
-                        try:
-                            parsedMessage = json.loads(message)
-                        except Exception as e:
-                            # do nothing
-                            parsedMessage = None
-                        if parsedMessage is not None:
-                            response = parsedMessage
-                message = self.safe_string(response, 'msg')
-                if message is not None:
-                    self.throw_exactly_matched_exception(self.exceptions, message, self.id + ' ' + message)
-                # checks against error codes
-                error = self.safe_string(response, 'code')
-                if error is not None:
-                    # https://github.com/ccxt/ccxt/issues/6501
-                    if error == '200':
-                        return
-                    # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
-                    # despite that their message is very confusing, it is raised by Binance
-                    # on a temporary ban, the API key is valid, but disabled for a while
-                    if (error == '-2015') and self.options['hasAlreadyAuthenticatedSuccessfully']:
-                        raise DDoSProtection(self.id + ' temporary banned: ' + body)
-                    feedback = self.id + ' ' + body
-                    self.throw_exactly_matched_exception(self.exceptions, error, feedback)
-                    raise ExchangeError(feedback)
-                if not success:
-                    raise ExchangeError(self.id + ' ' + body)
+                if parsedMessage is not None:
+                    response = parsedMessage
+        message = self.safe_string(response, 'msg')
+        if message is not None:
+            self.throw_exactly_matched_exception(self.exceptions, message, self.id + ' ' + message)
+        # checks against error codes
+        error = self.safe_string(response, 'code')
+        if error is not None:
+            # https://github.com/ccxt/ccxt/issues/6501
+            if error == '200':
+                return
+            # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
+            # despite that their message is very confusing, it is raised by Binance
+            # on a temporary ban, the API key is valid, but disabled for a while
+            if (error == '-2015') and self.options['hasAlreadyAuthenticatedSuccessfully']:
+                raise DDoSProtection(self.id + ' temporary banned: ' + body)
+            feedback = self.id + ' ' + body
+            self.throw_exactly_matched_exception(self.exceptions, error, feedback)
+            raise ExchangeError(feedback)
+        if not success:
+            raise ExchangeError(self.id + ' ' + body)
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = await self.fetch2(path, api, method, params, headers, body)

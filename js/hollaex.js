@@ -597,7 +597,7 @@ module.exports = class hollaex extends Exchange {
         //         },
         //     ]
         //
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        return this.parseOHLCVs (response, market);
     }
 
     parseOHLCV (response, market = undefined, timeframe = '1h', since = undefined, limit = undefined) {

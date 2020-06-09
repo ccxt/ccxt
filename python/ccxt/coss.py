@@ -324,13 +324,23 @@ class coss(Exchange):
         return self.parse_balance(result)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+        #
+        #     [
+        #         1545138960000,
+        #         "0.02705000",
+        #         "0.02705000",
+        #         "0.02705000",
+        #         "0.02705000",
+        #         "0.00000000"
+        #     ]
+        #
         return [
-            int(ohlcv[0]),   # timestamp
-            float(ohlcv[1]),  # Open
-            float(ohlcv[2]),  # High
-            float(ohlcv[3]),  # Low
-            float(ohlcv[4]),  # Close
-            float(ohlcv[5]),  # base Volume
+            self.safe_integer(ohlcv, 0),   # timestamp
+            self.safe_float(ohlcv, 1),  # Open
+            self.safe_float(ohlcv, 2),  # High
+            self.safe_float(ohlcv, 3),  # Low
+            self.safe_float(ohlcv, 4),  # Close
+            self.safe_float(ohlcv, 5),  # base Volume
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -342,25 +352,25 @@ class coss(Exchange):
         }
         response = self.engineGetCs(self.extend(request, params))
         #
-        #     {      tt:   "1m",
-        #         symbol:   "ETH_BTC",
-        #       nextTime:    1545138960000,
-        #         series: [[ 1545138960000,
-        #                     "0.02705000",
-        #                     "0.02705000",
-        #                     "0.02705000",
-        #                     "0.02705000",
-        #                     "0.00000000"    ],
-        #                   ...
-        #                   [ 1545168900000,
-        #                     "0.02684000",
-        #                     "0.02684000",
-        #                     "0.02684000",
-        #                     "0.02684000",
-        #                     "0.00000000"    ]  ],
-        #          limit:    500                    }
+        #     {
+        #         tt: "1m",
+        #         symbol: "ETH_BTC",
+        #         nextTime: 1545138960000,
+        #         series: [
+        #             [
+        #                 1545138960000,
+        #                 "0.02705000",
+        #                 "0.02705000",
+        #                 "0.02705000",
+        #                 "0.02705000",
+        #                 "0.00000000"
+        #             ],
+        #         ],
+        #         limit: 500
+        #     }
         #
-        return self.parse_ohlcvs(response['series'], market, timeframe, since, limit)
+        series = self.safe_value(response, 'series', [])
+        return self.parse_ohlcvs(series, market)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()

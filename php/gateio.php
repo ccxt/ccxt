@@ -372,14 +372,14 @@ class gateio extends Exchange {
 
     public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
         // they return array( Timestamp, Volume, Close, High, Low, Open )
-        return [
-            intval ($ohlcv[0]),   // t
-            floatval ($ohlcv[5]), // o
-            floatval ($ohlcv[3]), // h
-            floatval ($ohlcv[4]), // l
-            floatval ($ohlcv[2]), // c
-            floatval ($ohlcv[1]), // v
-        ];
+        return array(
+            $this->safe_integer($ohlcv, 0), // t
+            $this->safe_float($ohlcv, 5), // o
+            $this->safe_float($ohlcv, 3), // h
+            $this->safe_float($ohlcv, 4), // l
+            $this->safe_float($ohlcv, 2), // c
+            $this->safe_float($ohlcv, 1), // v
+        );
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
@@ -409,7 +409,7 @@ class gateio extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($data, $market);
     }
 
     public function parse_ticker($ticker, $market = null) {

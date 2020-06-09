@@ -681,6 +681,18 @@ module.exports = class huobipro extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        //
+        //     {
+        //         "amount":1.2082,
+        //         "open":0.025096,
+        //         "close":0.025095,
+        //         "high":0.025096,
+        //         "id":1591515300,
+        //         "count":6,
+        //         "low":0.025095,
+        //         "vol":0.0303205097
+        //     }
+        //
         return [
             this.safeTimestamp (ohlcv, 'id'),
             this.safeFloat (ohlcv, 'open'),
@@ -702,7 +714,20 @@ module.exports = class huobipro extends Exchange {
             request['size'] = limit;
         }
         const response = await this.marketGetHistoryKline (this.extend (request, params));
-        return this.parseOHLCVs (response['data'], market, timeframe, since, limit);
+        //
+        //     {
+        //         "status":"ok",
+        //         "ch":"market.ethbtc.kline.1min",
+        //         "ts":1591515374371,
+        //         "data":[
+        //             {"amount":0.0,"open":0.025095,"close":0.025095,"high":0.025095,"id":1591515360,"count":0,"low":0.025095,"vol":0.0},
+        //             {"amount":1.2082,"open":0.025096,"close":0.025095,"high":0.025096,"id":1591515300,"count":6,"low":0.025095,"vol":0.0303205097},
+        //             {"amount":0.0648,"open":0.025096,"close":0.025096,"high":0.025096,"id":1591515240,"count":2,"low":0.025096,"vol":0.0016262208},
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOHLCVs (data, market);
     }
 
     async fetchAccounts (params = {}) {

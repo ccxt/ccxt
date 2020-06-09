@@ -422,7 +422,7 @@ module.exports = class timex extends Exchange {
         //         },
         //     ]
         //
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        return this.parseOHLCVs (response, market);
     }
 
     async fetchBalance (params = {}) {

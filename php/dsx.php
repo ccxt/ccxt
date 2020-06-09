@@ -37,13 +37,13 @@ class dsx extends Exchange {
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/51840849/76909626-cb2bb100-68bc-11ea-99e0-28ba54f04792.jpg',
                 'api' => array(
-                    'public' => 'https://dsx.uk/mapi', // market data
-                    'private' => 'https://dsx.uk/tapi', // trading
-                    'dwapi' => 'https://dsx.uk/dwapi', // deposit/withdraw
+                    'public' => 'https://dsxglobal.com/mapi', // market data
+                    'private' => 'https://dsxglobal.com/tapi', // trading
+                    'dwapi' => 'https://dsxglobal.com/dwapi', // deposit/withdraw
                 ),
-                'www' => 'https://dsx.uk',
+                'www' => 'https://dsxglobal.com',
                 'doc' => array(
-                    'https://dsx.uk/developers/publicApi',
+                    'https://dsxglobal.com/developers/publicApi',
                 ),
             ),
             'fees' => array(
@@ -641,7 +641,7 @@ class dsx extends Exchange {
         //     }
         //
         $candles = $this->safe_value($response, $market['id'], array());
-        return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($candles, $market);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

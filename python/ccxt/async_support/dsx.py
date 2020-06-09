@@ -52,13 +52,13 @@ class dsx(Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/76909626-cb2bb100-68bc-11ea-99e0-28ba54f04792.jpg',
                 'api': {
-                    'public': 'https://dsx.uk/mapi',  # market data
-                    'private': 'https://dsx.uk/tapi',  # trading
-                    'dwapi': 'https://dsx.uk/dwapi',  # deposit/withdraw
+                    'public': 'https://dsxglobal.com/mapi',  # market data
+                    'private': 'https://dsxglobal.com/tapi',  # trading
+                    'dwapi': 'https://dsxglobal.com/dwapi',  # deposit/withdraw
                 },
-                'www': 'https://dsx.uk',
+                'www': 'https://dsxglobal.com',
                 'doc': [
-                    'https://dsx.uk/developers/publicApi',
+                    'https://dsxglobal.com/developers/publicApi',
                 ],
             },
             'fees': {
@@ -609,7 +609,7 @@ class dsx(Exchange):
         #     }
         #
         candles = self.safe_value(response, market['id'], [])
-        return self.parse_ohlcvs(candles, market, timeframe, since, limit)
+        return self.parse_ohlcvs(candles, market)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()

@@ -777,7 +777,7 @@ class bitfinex extends Exchange {
     public function edit_order($id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         $this->load_markets();
         $order = array(
-            'order_id' => $id,
+            'order_id' => intval ($id),
         );
         if ($price !== null) {
             $order['price'] = $this->price_to_precision($symbol, $price);
@@ -907,6 +907,16 @@ class bitfinex extends Exchange {
     }
 
     public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+        //
+        //     array(
+        //         1457539800000,
+        //         0.02594,
+        //         0.02594,
+        //         0.02594,
+        //         0.02594,
+        //         0.1
+        //     )
+        //
         return array(
             $this->safe_integer($ohlcv, 0),
             $this->safe_float($ohlcv, 1),
@@ -934,7 +944,14 @@ class bitfinex extends Exchange {
             $request['start'] = $since;
         }
         $response = $this->v2GetCandlesTradeTimeframeSymbolHist (array_merge($request, $params));
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        //
+        //     [
+        //         [1457539800000,0.02594,0.02594,0.02594,0.02594,0.1],
+        //         [1457547300000,0.02577,0.02577,0.02577,0.02577,0.01],
+        //         [1457550240000,0.0255,0.0253,0.0255,0.0252,3.2640000000000002],
+        //     ]
+        //
+        return $this->parse_ohlcvs($response, $market);
     }
 
     public function get_currency_name($code) {

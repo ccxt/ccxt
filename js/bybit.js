@@ -647,6 +647,8 @@ module.exports = class bybit extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         //
+        // inverse perpetual BTC/USD
+        //
         //     {
         //         symbol: 'BTCUSD',
         //         interval: '1',
@@ -657,7 +659,9 @@ module.exports = class bybit extends Exchange {
         //         close: '7763.5',
         //         volume: '1259766',
         //         turnover: '162.32773718999994'
-        //     },
+        //     }
+        //
+        // linear perpetual BTC/USDT
         //
         //     {
         //         "id":143536,
@@ -754,7 +758,7 @@ module.exports = class bybit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        return this.parseOHLCVs (result, market, timeframe, since, limit);
+        return this.parseOHLCVs (result, market);
     }
 
     parseTrade (trade, market = undefined) {
@@ -803,7 +807,7 @@ module.exports = class bybit extends Exchange {
         let symbol = undefined;
         let base = undefined;
         const marketId = this.safeString (trade, 'symbol');
-        let amount = this.safeFloat2 (trade, 'qty', 'exec_qty');
+        const amount = this.safeFloat2 (trade, 'qty', 'exec_qty');
         let cost = this.safeFloat (trade, 'exec_value');
         const price = this.safeFloat2 (trade, 'price', 'exec_price');
         if (marketId in this.markets_by_id) {
@@ -815,13 +819,6 @@ module.exports = class bybit extends Exchange {
             if (symbol === undefined) {
                 symbol = market['symbol'];
                 base = market['base'];
-            }
-            // if private trade
-            if ('exec_fee' in trade) {
-                if (market['inverse']) {
-                    amount = this.safeFloat (trade, 'exec_value');
-                    cost = this.safeFloat (trade, 'exec_qty');
-                }
             }
         }
         if (cost === undefined) {
@@ -960,11 +957,11 @@ module.exports = class bybit extends Exchange {
             'Rejected': 'rejected', // order is triggered but failed upon being placed
             'New': 'open',
             'PartiallyFilled': 'open',
-            'Filled': 'filled',
+            'Filled': 'closed',
             'Cancelled': 'canceled',
             'PendingCancel': 'canceling', // the engine has received the cancellation but there is no guarantee that it will be successful
             // conditional orders
-            'Active': 'closed', // order is triggered and placed successfully
+            'Active': 'open', // order is triggered and placed successfully
             'Untriggered': 'open', // order waits to be triggered
             'Triggered': 'closed', // order is triggered
             // 'Cancelled': 'canceled', // order is cancelled
@@ -1040,24 +1037,13 @@ module.exports = class bybit extends Exchange {
         const id = this.safeString (order, 'order_id');
         const price = this.safeFloat (order, 'price');
         const average = this.safeFloat (order, 'average_price');
-        let amount = undefined;
-        let cost = undefined;
-        let filled = undefined;
-        let remaining = undefined;
+        const amount = this.safeFloat (order, 'qty');
+        let cost = this.safeFloat (order, 'cum_exec_value');
+        let filled = this.safeFloat (order, 'cum_exec_qty');
+        let remaining = this.safeFloat (order, 'leaves_qty');
         if (market !== undefined) {
             symbol = market['symbol'];
             base = market['base'];
-            if (market['inverse']) {
-                cost = this.safeFloat (order, 'cum_exec_qty');
-                filled = this.safeFloat (order, 'cum_exec_value');
-                remaining = this.safeFloat (order, 'leaves_value');
-                amount = this.sum (filled, remaining);
-            } else {
-                amount = this.safeFloat (order, 'qty');
-                cost = this.safeFloat (order, 'cum_exec_value');
-                filled = this.safeFloat (order, 'cum_exec_qty');
-                remaining = this.safeFloat (order, 'leaves_qty');
-            }
         }
         let lastTradeTimestamp = this.safeTimestamp (order, 'last_exec_time');
         if (lastTradeTimestamp === 0) {

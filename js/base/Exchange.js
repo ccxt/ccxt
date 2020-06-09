@@ -744,23 +744,23 @@ module.exports = class Exchange {
         throw new NotSupported (this.id + ' fetchBidsAsks not supported yet')
     }
 
-    async fetchOHLCVC (symbol, timeframe = '1m', since = undefined, limits = undefined, params = {}) {
+    async fetchOHLCVC (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         if (!this.has['fetchTrades']) {
             throw new NotSupported (this.id + ' fetchOHLCV() not supported yet')
         }
         await this.loadMarkets ()
-        const trades = await this.fetchTrades (symbol, since, limits, params)
-        const ohlcvc = buildOHLCVC (trades, timeframe, since, limits)
+        const trades = await this.fetchTrades (symbol, since, limit, params)
+        const ohlcvc = buildOHLCVC (trades, timeframe, since, limit)
         return ohlcvc
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limits = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         if (!this.has['fetchTrades']) {
             throw new NotSupported (this.id + ' fetchOHLCV() not supported yet')
         }
         await this.loadMarkets ()
-        const trades = await this.fetchTrades (symbol, since, limits, params)
-        const ohlcvc = buildOHLCVC (trades, timeframe, since, limits)
+        const trades = await this.fetchTrades (symbol, since, limit, params)
+        const ohlcvc = buildOHLCVC (trades, timeframe, since, limit)
         return ohlcvc.map ((c) => c.slice (0, -1))
     }
 
@@ -897,8 +897,9 @@ module.exports = class Exchange {
     }
 
     commonCurrencyCode (currency) {
-        if (!this.substituteCommonCurrencyCodes)
+        if (!this.substituteCommonCurrencyCodes) {
             return currency
+        }
         return this.safeString (this.commonCurrencies, currency, currency)
     }
 

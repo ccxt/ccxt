@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.29.6'
+__version__ = '1.29.56'
 
 # -----------------------------------------------------------------------------
 
@@ -111,6 +111,7 @@ except ImportError:
 class Exchange(object):
     """Base exchange class"""
     id = None
+    name = None
     version = None
     certified = False
     pro = False
@@ -153,6 +154,7 @@ class Exchange(object):
         },
     }
     ids = None
+    urls = None
     api = None
     parseJsonResponse = True
     proxy = ''

@@ -621,14 +621,14 @@ class kucoin extends Exchange {
         //         "0.000945",               // quote volume
         //     )
         //
-        return [
-            intval ($ohlcv[0]) * 1000,
-            floatval ($ohlcv[1]),
-            floatval ($ohlcv[3]),
-            floatval ($ohlcv[4]),
-            floatval ($ohlcv[2]),
-            floatval ($ohlcv[5]),
-        ];
+        return array(
+            $this->safe_timestamp($ohlcv, 0),
+            $this->safe_float($ohlcv, 1),
+            $this->safe_float($ohlcv, 3),
+            $this->safe_float($ohlcv, 4),
+            $this->safe_float($ohlcv, 2),
+            $this->safe_float($ohlcv, 5),
+        );
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '15m', $since = null, $limit = null, $params = array ()) {
@@ -646,8 +646,8 @@ class kucoin extends Exchange {
             if ($limit === null) {
                 // https://docs.kucoin.com/#get-klines
                 // https://docs.kucoin.com/#details
-                // For each query, the system would return at most 1500 pieces of data.
-                // To obtain more data, please page the data by time.
+                // For each query, the system would return at most 1500 pieces of $data->
+                // To obtain more $data, please page the $data by time.
                 $limit = $this->safe_integer($this->options, 'fetchOHLCVLimit', 1500);
             }
             $endAt = $this->sum($since, $limit * $duration);
@@ -657,8 +657,18 @@ class kucoin extends Exchange {
         }
         $request['endAt'] = intval ((int) floor($endAt / 1000));
         $response = $this->publicGetMarketCandles (array_merge($request, $params));
-        $responseData = $this->safe_value($response, 'data', array());
-        return $this->parse_ohlcvs($responseData, $market, $timeframe, $since, $limit);
+        //
+        //     {
+        //         "code":"200000",
+        //         "$data":[
+        //             ["1591517700","0.025078","0.025069","0.025084","0.025064","18.9883256","0.4761861079404"],
+        //             ["1591516800","0.025089","0.025079","0.025089","0.02506","99.4716622","2.494143499081"],
+        //             ["1591515900","0.025079","0.02509","0.025091","0.025068","59.83701271","1.50060885172798"],
+        //         ]
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_ohlcvs($data, $market);
     }
 
     public function create_deposit_address($code, $params = array ()) {

@@ -433,13 +433,23 @@ module.exports = class bytetrade extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        //
+        //     [
+        //         1591505760000,
+        //         "242.7",
+        //         "242.76",
+        //         "242.69",
+        //         "242.76",
+        //         "0.1892"
+        //     ]
+        //
         return [
-            ohlcv[0],
-            parseFloat (ohlcv[1]),
-            parseFloat (ohlcv[2]),
-            parseFloat (ohlcv[3]),
-            parseFloat (ohlcv[4]),
-            parseFloat (ohlcv[5]),
+            this.safeInteger (ohlcv, 0),
+            this.safeFloat (ohlcv, 1),
+            this.safeFloat (ohlcv, 2),
+            this.safeFloat (ohlcv, 3),
+            this.safeFloat (ohlcv, 4),
+            this.safeFloat (ohlcv, 5),
         ];
     }
 
@@ -457,7 +467,14 @@ module.exports = class bytetrade extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.marketGetKlines (this.extend (request, params));
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        //
+        //     [
+        //         [1591505760000,"242.7","242.76","242.69","242.76","0.1892"],
+        //         [1591505820000,"242.77","242.83","242.7","242.72","0.6378"],
+        //         [1591505880000,"242.72","242.73","242.61","242.72","0.4141"],
+        //     ]
+        //
+        return this.parseOHLCVs (response, market);
     }
 
     parseTrade (trade, market = undefined) {

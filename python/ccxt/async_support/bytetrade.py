@@ -417,13 +417,23 @@ class bytetrade(Exchange):
         return self.parse_tickers(rawTickers, symbols)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+        #
+        #     [
+        #         1591505760000,
+        #         "242.7",
+        #         "242.76",
+        #         "242.69",
+        #         "242.76",
+        #         "0.1892"
+        #     ]
+        #
         return [
-            ohlcv[0],
-            float(ohlcv[1]),
-            float(ohlcv[2]),
-            float(ohlcv[3]),
-            float(ohlcv[4]),
-            float(ohlcv[5]),
+            self.safe_integer(ohlcv, 0),
+            self.safe_float(ohlcv, 1),
+            self.safe_float(ohlcv, 2),
+            self.safe_float(ohlcv, 3),
+            self.safe_float(ohlcv, 4),
+            self.safe_float(ohlcv, 5),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -438,7 +448,14 @@ class bytetrade(Exchange):
         if limit is not None:
             request['limit'] = limit
         response = await self.marketGetKlines(self.extend(request, params))
-        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+        #
+        #     [
+        #         [1591505760000,"242.7","242.76","242.69","242.76","0.1892"],
+        #         [1591505820000,"242.77","242.83","242.7","242.72","0.6378"],
+        #         [1591505880000,"242.72","242.73","242.61","242.72","0.4141"],
+        #     ]
+        #
+        return self.parse_ohlcvs(response, market)
 
     def parse_trade(self, trade, market=None):
         timestamp = self.safe_integer(trade, 'timestamp')

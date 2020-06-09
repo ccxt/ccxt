@@ -784,7 +784,7 @@ class hbtc(Exchange):
         #         [1587906360000,"0.1761","0.1848","0.1761","0.1848","53",0,"9.7944",1,"0","0"],
         #     ]
         #
-        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+        return self.parse_ohlcvs(response, market)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()

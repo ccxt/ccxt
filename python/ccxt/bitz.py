@@ -606,13 +606,15 @@ class bitz(Exchange):
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         #
-        #      {    time: "1535973420000",
-        #            open: "0.03975084",
-        #            high: "0.03975084",
-        #             low: "0.03967700",
-        #           close: "0.03967700",
-        #          volume: "12.4733",
-        #        datetime: "2018-09-03 19:17:00"}
+        #     {
+        #         time: "1535973420000",
+        #         open: "0.03975084",
+        #         high: "0.03975084",
+        #         low: "0.03967700",
+        #         close: "0.03967700",
+        #         volume: "12.4733",
+        #         datetime: "2018-09-03 19:17:00"
+        #     }
         #
         return [
             self.safe_integer(ohlcv, 'time'),
@@ -640,35 +642,28 @@ class bitz(Exchange):
                 raise ArgumentsRequired(self.id + ' fetchOHLCV requires a limit argument if the since argument is specified')
         response = self.marketGetKline(self.extend(request, params))
         #
-        #     {   status:    200,
-        #             msg:   "",
-        #            data: {      bars: [{    time: "1535973420000",
-        #                                        open: "0.03975084",
-        #                                        high: "0.03975084",
-        #                                         low: "0.03967700",
-        #                                       close: "0.03967700",
-        #                                      volume: "12.4733",
-        #                                    datetime: "2018-09-03 19:17:00"},
-        #                                  {    time: "1535955480000",
-        #                                        open: "0.04009900",
-        #                                        high: "0.04016745",
-        #                                         low: "0.04009900",
-        #                                       close: "0.04012074",
-        #                                      volume: "74.4803",
-        #                                    datetime: "2018-09-03 14:18:00"}  ],
-        #                    resolution:   "1min",
-        #                        symbol:   "eth_btc",
-        #                          from:   "1535973420000",
-        #                            to:   "1535955480000",
-        #                          size:    300                                    },
-        #            time:    1535973435,
-        #       microtime:   "0.56462100 1535973435",
-        #          source:   "api"                                                    }
+        #     {
+        #         status: 200,
+        #         msg: "",
+        #         data: {
+        #             bars: [
+        #                 {time: "1535973420000", open: "0.03975084", high: "0.03975084", low: "0.03967700", close: "0.03967700", volume: "12.4733", datetime: "2018-09-03 19:17:00"},
+        #                 {time: "1535955480000", open: "0.04009900", high: "0.04016745", low: "0.04009900", close: "0.04012074", volume: "74.4803", datetime: "2018-09-03 14:18:00"},
+        #             ],
+        #             resolution: "1min",
+        #             symbol: "eth_btc",
+        #             from: "1535973420000",
+        #             to: "1535955480000",
+        #             size: 300
+        #         },
+        #         time: 1535973435,
+        #         microtime: "0.56462100 1535973435",
+        #         source: "api"
+        #     }
         #
-        bars = self.safe_value(response['data'], 'bars', None)
-        if bars is None:
-            return []
-        return self.parse_ohlcvs(bars, market, timeframe, since, limit)
+        data = self.safe_value(response, 'data', {})
+        bars = self.safe_value(data, 'bars', [])
+        return self.parse_ohlcvs(bars, market)
 
     def parse_order_status(self, status):
         statuses = {

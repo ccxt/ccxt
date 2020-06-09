@@ -633,7 +633,7 @@ class eterbase extends Exchange {
         //         array("time":1588808400000,"open":0.022044,"high":0.022044,"low":0.022044,"close":0.022044,"volume":3.9615545499999993),
         //     )
         //
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($response, $market);
     }
 
     public function fetch_balance($params = array ()) {

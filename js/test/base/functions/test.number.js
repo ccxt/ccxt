@@ -199,6 +199,7 @@ assert (decimalToPrecision ('3210', TRUNCATE, 1110, TICK_SIZE) === '2220');
 assert (decimalToPrecision ('165', ROUND, 110, TICK_SIZE) === '220');
 assert (decimalToPrecision ('0.000123456789', ROUND, 0.00000012, TICK_SIZE) === '0.00012348');
 assert (decimalToPrecision ('0.000123456789', TRUNCATE, 0.00000012, TICK_SIZE) === '0.00012336');
+assert (decimalToPrecision ('0.000273398', ROUND, 1e-7, TICK_SIZE) === '0.0002734');
 
 assert (decimalToPrecision ('0.01', ROUND, 0.0001, TICK_SIZE, PAD_WITH_ZERO) === '0.0100');
 assert (decimalToPrecision ('0.01', TRUNCATE, 0.0001, TICK_SIZE, PAD_WITH_ZERO) === '0.0100');

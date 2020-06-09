@@ -832,9 +832,25 @@ class bitmex(Exchange):
         }
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
-        timestamp = self.parse8601(self.safe_string(ohlcv, 'timestamp'))
+        #
+        #     {
+        #         "timestamp":"2015-09-25T13:38:00.000Z",
+        #         "symbol":"XBTUSD",
+        #         "open":237.45,
+        #         "high":237.45,
+        #         "low":237.45,
+        #         "close":237.45,
+        #         "trades":0,
+        #         "volume":0,
+        #         "vwap":null,
+        #         "lastSize":null,
+        #         "turnover":0,
+        #         "homeNotional":0,
+        #         "foreignNotional":0
+        #     }
+        #
         return [
-            timestamp,
+            self.parse8601(self.safe_string(ohlcv, 'timestamp')),
             self.safe_float(ohlcv, 'open'),
             self.safe_float(ohlcv, 'high'),
             self.safe_float(ohlcv, 'low'),
@@ -873,7 +889,14 @@ class bitmex(Exchange):
             ymdhms = self.ymdhms(timestamp)
             request['startTime'] = ymdhms  # starting date filter for results
         response = self.publicGetTradeBucketed(self.extend(request, params))
-        result = self.parse_ohlcvs(response, market, timeframe, since, limit)
+        #
+        #     [
+        #         {"timestamp":"2015-09-25T13:38:00.000Z","symbol":"XBTUSD","open":237.45,"high":237.45,"low":237.45,"close":237.45,"trades":0,"volume":0,"vwap":null,"lastSize":null,"turnover":0,"homeNotional":0,"foreignNotional":0},
+        #         {"timestamp":"2015-09-25T13:39:00.000Z","symbol":"XBTUSD","open":237.45,"high":237.45,"low":237.45,"close":237.45,"trades":0,"volume":0,"vwap":null,"lastSize":null,"turnover":0,"homeNotional":0,"foreignNotional":0},
+        #         {"timestamp":"2015-09-25T13:40:00.000Z","symbol":"XBTUSD","open":237.45,"high":237.45,"low":237.45,"close":237.45,"trades":0,"volume":0,"vwap":null,"lastSize":null,"turnover":0,"homeNotional":0,"foreignNotional":0}
+        #     ]
+        #
+        result = self.parse_ohlcvs(response, market)
         if fetchOHLCVOpenTimestamp:
             # bitmex returns the candle's close timestamp - https://github.com/ccxt/ccxt/issues/4446
             # we can emulate the open timestamp by shifting all the timestamps one place

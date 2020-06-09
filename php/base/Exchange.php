@@ -36,7 +36,7 @@ use Elliptic\EC;
 use Elliptic\EC\Signature;
 use BN\BN;
 
-$version = '1.29.6';
+$version = '1.29.56';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.29.6';
+    const VERSION = '1.29.56';
 
     public static $exchanges = array(
         '_1btcxe',
@@ -118,6 +118,7 @@ class Exchange {
         'coolcoin',
         'coss',
         'crex24',
+        'currencycom',
         'deribit',
         'digifinex',
         'dsx',

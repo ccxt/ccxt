@@ -238,9 +238,8 @@ module.exports = class btcturk extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1d', since = undefined, limit = undefined) {
-        const timestamp = this.parse8601 (this.safeString (ohlcv, 'Time'));
         return [
-            timestamp,
+            this.parse8601 (this.safeString (ohlcv, 'Time')),
             this.safeFloat (ohlcv, 'Open'),
             this.safeFloat (ohlcv, 'High'),
             this.safeFloat (ohlcv, 'Low'),
@@ -257,7 +256,7 @@ module.exports = class btcturk extends Exchange {
             request['last'] = limit;
         }
         const response = await this.publicGetOhlcdata (this.extend (request, params));
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        return this.parseOHLCVs (response, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

@@ -639,6 +639,8 @@ class bybit(Exchange):
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         #
+        # inverse perpetual BTC/USD
+        #
         #     {
         #         symbol: 'BTCUSD',
         #         interval: '1',
@@ -649,7 +651,9 @@ class bybit(Exchange):
         #         close: '7763.5',
         #         volume: '1259766',
         #         turnover: '162.32773718999994'
-        #     },
+        #     }
+        #
+        # linear perpetual BTC/USDT
         #
         #     {
         #         "id":143536,
@@ -742,7 +746,7 @@ class bybit(Exchange):
         #     }
         #
         result = self.safe_value(response, 'result', {})
-        return self.parse_ohlcvs(result, market, timeframe, since, limit)
+        return self.parse_ohlcvs(result, market)
 
     def parse_trade(self, trade, market=None):
         #
@@ -801,11 +805,6 @@ class bybit(Exchange):
             if symbol is None:
                 symbol = market['symbol']
                 base = market['base']
-            # if private trade
-            if 'exec_fee' in trade:
-                if market['inverse']:
-                    amount = self.safe_float(trade, 'exec_value')
-                    cost = self.safe_float(trade, 'exec_qty')
         if cost is None:
             if amount is not None:
                 if price is not None:
@@ -930,11 +929,11 @@ class bybit(Exchange):
             'Rejected': 'rejected',  # order is triggered but failed upon being placed
             'New': 'open',
             'PartiallyFilled': 'open',
-            'Filled': 'filled',
+            'Filled': 'closed',
             'Cancelled': 'canceled',
             'PendingCancel': 'canceling',  # the engine has received the cancellation but there is no guarantee that it will be successful
             # conditional orders
-            'Active': 'closed',  # order is triggered and placed successfully
+            'Active': 'open',  # order is triggered and placed successfully
             'Untriggered': 'open',  # order waits to be triggered
             'Triggered': 'closed',  # order is triggered
             # 'Cancelled': 'canceled',  # order is cancelled
@@ -1008,23 +1007,13 @@ class bybit(Exchange):
         id = self.safe_string(order, 'order_id')
         price = self.safe_float(order, 'price')
         average = self.safe_float(order, 'average_price')
-        amount = None
-        cost = None
-        filled = None
-        remaining = None
+        amount = self.safe_float(order, 'qty')
+        cost = self.safe_float(order, 'cum_exec_value')
+        filled = self.safe_float(order, 'cum_exec_qty')
+        remaining = self.safe_float(order, 'leaves_qty')
         if market is not None:
             symbol = market['symbol']
             base = market['base']
-            if market['inverse']:
-                cost = self.safe_float(order, 'cum_exec_qty')
-                filled = self.safe_float(order, 'cum_exec_value')
-                remaining = self.safe_float(order, 'leaves_value')
-                amount = self.sum(filled, remaining)
-            else:
-                amount = self.safe_float(order, 'qty')
-                cost = self.safe_float(order, 'cum_exec_value')
-                filled = self.safe_float(order, 'cum_exec_qty')
-                remaining = self.safe_float(order, 'leaves_qty')
         lastTradeTimestamp = self.safe_timestamp(order, 'last_exec_time')
         if lastTradeTimestamp == 0:
             lastTradeTimestamp = None

@@ -360,7 +360,7 @@ module.exports = class btcmarkets extends Exchange {
         //     }
         //
         const ticks = this.safeValue (response, 'ticks', []);
-        return this.parseOHLCVs (ticks, market, timeframe, since, limit);
+        return this.parseOHLCVs (ticks, market);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

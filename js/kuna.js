@@ -146,7 +146,7 @@ module.exports = class kuna extends acx {
                 'ask': 'sell',
                 'bid': 'buy',
             };
-            side = this.safeString (sideMap, side);
+            side = this.safeString (sideMap, side, side);
         }
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'volume');

@@ -616,14 +616,24 @@ class bittrex(Exchange):
         raise ExchangeError(self.id + ' fetchTrades() returned None response')
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1d', since=None, limit=None):
-        timestamp = self.parse8601(ohlcv['T'] + '+00:00')
+        #
+        #     {
+        #         "O":0.02249509,
+        #         "H":0.02249509,
+        #         "L":0.02249509,
+        #         "C":0.02249509,
+        #         "V":0.72452427,
+        #         "T":"2020-05-28T06:17:00",
+        #         "BV":0.01629823
+        #     }
+        #
         return [
-            timestamp,
-            ohlcv['O'],
-            ohlcv['H'],
-            ohlcv['L'],
-            ohlcv['C'],
-            ohlcv['V'],
+            self.parse8601(ohlcv['T'] + '+00:00'),
+            self.safe_float(ohlcv, 'O'),
+            self.safe_float(ohlcv, 'H'),
+            self.safe_float(ohlcv, 'L'),
+            self.safe_float(ohlcv, 'C'),
+            self.safe_float(ohlcv, 'V'),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -634,9 +644,20 @@ class bittrex(Exchange):
             'marketName': market['id'],
         }
         response = await self.v2GetMarketGetTicks(self.extend(request, params))
-        if 'result' in response:
-            if response['result']:
-                return self.parse_ohlcvs(response['result'], market, timeframe, since, limit)
+        #
+        #     {
+        #         "success":true,
+        #         "message":"",
+        #         "result":[
+        #             {"O":0.02249509,"H":0.02249509,"L":0.02249509,"C":0.02249509,"V":0.72452427,"T":"2020-05-28T06:17:00","BV":0.01629823},
+        #             {"O":0.02249509,"H":0.02249509,"L":0.02249509,"C":0.02249509,"V":0.0,"T":"2020-05-28T06:18:00","BV":0.0},
+        #             {"O":0.02251987,"H":0.02251987,"L":0.02251987,"C":0.02251987,"V":1.66344206,"T":"2020-05-28T06:19:00","BV":0.03746049},
+        #         ],
+        #         "explanation":null
+        #     }
+        #
+        result = self.safe_value(response, 'result', [])
+        return self.parse_ohlcvs(result, market)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()

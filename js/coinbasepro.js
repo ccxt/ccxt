@@ -486,13 +486,23 @@ module.exports = class coinbasepro extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        //
+        //     [
+        //         1591514160,
+        //         0.02507,
+        //         0.02507,
+        //         0.02507,
+        //         0.02507,
+        //         0.02816506
+        //     ]
+        //
         return [
-            ohlcv[0] * 1000,
-            ohlcv[3],
-            ohlcv[2],
-            ohlcv[1],
-            ohlcv[4],
-            ohlcv[5],
+            this.safeTimestamp (ohlcv, 0),
+            this.safeFloat (ohlcv, 3),
+            this.safeFloat (ohlcv, 2),
+            this.safeFloat (ohlcv, 1),
+            this.safeFloat (ohlcv, 4),
+            this.safeFloat (ohlcv, 5),
         ];
     }
 
@@ -513,7 +523,14 @@ module.exports = class coinbasepro extends Exchange {
             request['end'] = this.iso8601 (this.sum ((limit - 1) * granularity * 1000, since));
         }
         const response = await this.publicGetProductsIdCandles (this.extend (request, params));
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        //
+        //     [
+        //         [1591514160,0.02507,0.02507,0.02507,0.02507,0.02816506],
+        //         [1591514100,0.02507,0.02507,0.02507,0.02507,1.63830323],
+        //         [1591514040,0.02505,0.02507,0.02505,0.02507,0.19918178]
+        //     ]
+        //
+        return this.parseOHLCVs (response, market);
     }
 
     async fetchTime (params = {}) {

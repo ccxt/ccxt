@@ -357,6 +357,17 @@ module.exports = class hitbtc extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1d', since = undefined, limit = undefined) {
+        //
+        //     {
+        //         "timestamp":"2015-08-20T19:01:00.000Z",
+        //         "open":"0.006",
+        //         "close":"0.006",
+        //         "min":"0.006",
+        //         "max":"0.006",
+        //         "volume":"0.003",
+        //         "volumeQuote":"0.000018"
+        //     }
+        //
         return [
             this.parse8601 (this.safeString (ohlcv, 'timestamp')),
             this.safeFloat (ohlcv, 'open'),
@@ -381,7 +392,14 @@ module.exports = class hitbtc extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.publicGetCandlesSymbol (this.extend (request, params));
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        //
+        //     [
+        //         {"timestamp":"2015-08-20T19:01:00.000Z","open":"0.006","close":"0.006","min":"0.006","max":"0.006","volume":"0.003","volumeQuote":"0.000018"},
+        //         {"timestamp":"2015-08-20T19:03:00.000Z","open":"0.006","close":"0.006","min":"0.006","max":"0.006","volume":"0.013","volumeQuote":"0.000078"},
+        //         {"timestamp":"2015-08-20T19:06:00.000Z","open":"0.0055","close":"0.005","min":"0.005","max":"0.0055","volume":"0.003","volumeQuote":"0.0000155"},
+        //     ]
+        //
+        return this.parseOHLCVs (response, market);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
