@@ -1171,42 +1171,72 @@ class binance(Exchange):
         }
         if clientOrderId is not None:
             request['newClientOrderId'] = clientOrderId
-        quoteOrderQty = self.safe_value(self.options, 'quoteOrderQty', False)
-        if uppercaseType == 'MARKET' and quoteOrderQty:
-            quoteOrderQty = self.safe_float(params, 'quoteOrderQty')
-            precision = market['precision']['price']
-            if quoteOrderQty is not None:
-                request['quoteOrderQty'] = self.decimal_to_precision(quoteOrderQty, TRUNCATE, precision, self.precisionMode)
-                params = self.omit(params, 'quoteOrderQty')
-            elif price is not None:
-                request['quoteOrderQty'] = self.decimal_to_precision(amount * price, TRUNCATE, precision, self.precisionMode)
-            else:
-                request['quantity'] = self.amount_to_precision(symbol, amount)
-        else:
-            request['quantity'] = self.amount_to_precision(symbol, amount)
         if market['spot']:
             request['newOrderRespType'] = self.safe_value(self.options['newOrderRespType'], type, 'RESULT')  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+        # additional required fields depending on the order type
         timeInForceIsRequired = False
         priceIsRequired = False
         stopPriceIsRequired = False
-        if uppercaseType == 'LIMIT':
+        quantityIsRequired = False
+        #
+        # spot/margin
+        #
+        #     LIMIT                timeInForce, quantity, price
+        #     MARKET               quantity or quoteOrderQty
+        #     STOP_LOSS            quantity, stopPrice
+        #     STOP_LOSS_LIMIT      timeInForce, quantity, price, stopPrice
+        #     TAKE_PROFIT          quantity, stopPrice
+        #     TAKE_PROFIT_LIMIT    timeInForce, quantity, price, stopPrice
+        #     LIMIT_MAKER          quantity, price
+        #
+        # futures
+        #
+        #     LIMIT                timeInForce, quantity, price
+        #     MARKET               quantity
+        #     STOP/TAKE_PROFIT     quantity, price, stopPrice
+        #     STOP_MARKET          stopPrice
+        #     TAKE_PROFIT_MARKET   stopPrice
+        #     TRAILING_STOP_MARKET callbackRate
+        #
+        if uppercaseType == 'MARKET':
+            quoteOrderQty = self.safe_value(self.options, 'quoteOrderQty', False)
+            if quoteOrderQty:
+                quoteOrderQty = self.safe_float(params, 'quoteOrderQty')
+                precision = market['precision']['price']
+                if quoteOrderQty is not None:
+                    request['quoteOrderQty'] = self.decimal_to_precision(quoteOrderQty, TRUNCATE, precision, self.precisionMode)
+                    params = self.omit(params, 'quoteOrderQty')
+                elif price is not None:
+                    request['quoteOrderQty'] = self.decimal_to_precision(amount * price, TRUNCATE, precision, self.precisionMode)
+                else:
+                    quantityIsRequired = True
+            else:
+                quantityIsRequired = True
+        elif uppercaseType == 'LIMIT':
             priceIsRequired = True
             timeInForceIsRequired = True
+            quantityIsRequired = True
         elif (uppercaseType == 'STOP_LOSS') or (uppercaseType == 'TAKE_PROFIT'):
             stopPriceIsRequired = True
+            quantityIsRequired = True
             if market['future']:
                 priceIsRequired = True
         elif (uppercaseType == 'STOP_LOSS_LIMIT') or (uppercaseType == 'TAKE_PROFIT_LIMIT'):
+            quantityIsRequired = True
             stopPriceIsRequired = True
             priceIsRequired = True
             timeInForceIsRequired = True
         elif uppercaseType == 'LIMIT_MAKER':
             priceIsRequired = True
+            quantityIsRequired = True
         elif uppercaseType == 'STOP':
+            quantityIsRequired = True
             stopPriceIsRequired = True
             priceIsRequired = True
         elif (uppercaseType == 'STOP_MARKET') or (uppercaseType == 'TAKE_PROFIT_MARKET'):
             stopPriceIsRequired = True
+        if quantityIsRequired:
+            request['quantity'] = self.amount_to_precision(symbol, amount)
         if priceIsRequired:
             if price is None:
                 raise InvalidOrder(self.id + ' createOrder method requires a price argument for a ' + type + ' order')
