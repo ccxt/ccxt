@@ -385,39 +385,37 @@ module.exports = class coinone extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        await this.loadMarkets ();
-        let result = undefined;
-        let market = undefined;
         if (symbol === undefined) {
-            if (id in this.orders) {
-                market = this.market (this.orders[id]['symbol']);
-            } else {
-                throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument for order ids missing in the .orders cache (the order was created with a different instance of this class or within a different run of this code).');
-            }
-        } else {
-            market = this.market (symbol);
+            throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
         }
-        try {
-            const request = {
-                'order_id': id,
-                'currency': market['id'],
-            };
-            const response = await this.privatePostOrderOrderInfo (this.extend (request, params));
-            result = this.parseOrder (response);
-            this.orders[id] = result;
-        } catch (e) {
-            if (e instanceof OrderNotFound) {
-                if (id in this.orders) {
-                    this.orders[id]['status'] = 'canceled';
-                    result = this.orders[id];
-                } else {
-                    throw e;
-                }
-            } else {
-                throw e;
-            }
-        }
-        return result;
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'order_id': id,
+            'currency': market['id'],
+        };
+        const response = await this.privatePostOrderOrderInfo (this.extend (request, params));
+        //
+        //     {
+        //         "result": "success",
+        //         "errorCode": "0",
+        //         "status": "live",
+        //         "info": {
+        //             "orderId": "32FF744B-D501-423A-8BA1-05BB6BE7814A",
+        //             "currency": "BTC",
+        //             "type": "bid",
+        //             "price": "2922000.0",
+        //             "qty": "115.4950",
+        //             "remainQty": "45.4950",
+        //             "feeRate": "0.0003",
+        //             "fee": "0",
+        //             "timestamp": "1499340941"
+        //         }
+        //     }
+        //
+        const info = this.safeValue (response, 'info', {});
+        info['status'] = this.safeString (info, 'status');
+        return this.parseOrder (info, market);
     }
 
     parseOrderStatus (status) {
