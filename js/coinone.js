@@ -555,59 +555,37 @@ module.exports = class coinone extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        // [WARNING] Because of the limited capabilities of Coinone V2 API, you should be noticed below
-        // * The symbol parameter must be given. If not, an exception will occur.
-        // * The since and limit parameters are totally ignored.
-        // * At maximum, 50 of my recent trades can be returned.
-        await this.loadMarkets ();
         if (symbol === undefined) {
-            throw new ExchangeError (this.id + ' allows fetching my trades with a specific symbol');
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
         }
+        await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'currency': market['id'],
         };
         const response = await this.privatePostOrderCompleteOrders (this.extend (request, params));
-        const result = [];
-        const completOrders = this.safeValue (response, 'completeOrders');
-        for (let i = 0; i < completOrders.length; i++) {
-            const order = completOrders[i];
-            const timestamp = this.safeTimestamp (order, 'timestamp');
-            let side = this.safeString (order, 'type');
-            let feeCurrency = undefined;
-            if (side.indexOf ('ask') >= 0) {
-                side = 'sell';
-                feeCurrency = market['quote'];
-            } else {
-                side = 'buy';
-                feeCurrency = market['base'];
-            }
-            const price = this.safeFloat (order, 'price');
-            const amount = this.safeFloat (order, 'qty');
-            let cost = undefined;
-            if (price !== undefined && amount !== undefined) {
-                cost = price * amount;
-            }
-            result.push ({
-                'id': undefined,    // coinone doesn't support trade id
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-                'symbol': market['symbol'],
-                'order': this.safeString (order, 'orderId'),
-                'type': 'limit',
-                'side': side,
-                'price': price,
-                'amount': amount,
-                'cost': cost,
-                'fee': {
-                    'currency': feeCurrency,
-                    'rate': this.safeFloat (order, 'feeRate'),
-                    'cost': this.safeFloat (order, 'fee'),
-                },
-                'info': order,
-            });
-        }
-        return result;
+        //
+        // despite the name of the endpoint it returns trades which may have a duplicate orderId
+        // https://github.com/ccxt/ccxt/pull/7067
+        //
+        //     {
+        //         "result": "success",
+        //         "errorCode": "0",
+        //         "completeOrders": [
+        //             {
+        //                 "timestamp": "1416561032",
+        //                 "price": "419000.0",
+        //                 "type": "bid",
+        //                 "qty": "0.001",
+        //                 "feeRate": "-0.0015",
+        //                 "fee": "-0.0000015",
+        //                 "orderId": "E84A1AC2-8088-4FA0-B093-A3BCDB9B3C85"
+        //             }
+        //         ]
+        //     }
+        //
+        const completeOrders = this.safeValue (response, 'completeOrders', []);
+        return this.parseTrades (completeOrders, market, since, limit);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
