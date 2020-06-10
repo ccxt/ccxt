@@ -606,6 +606,7 @@ module.exports = class coinone extends Exchange {
             // eslint-disable-next-line quotes
             throw new ArgumentsRequired (this.id + " cancelOrder requires {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument.");
         }
+        await this.loadMarkets ();
         const request = {
             'order_id': id,
             'price': price,
