@@ -899,7 +899,7 @@ module.exports = class currencycom extends Exchange {
             request['timeInForce'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel, 'FOK' = Fill Or Kill
         } else if (uppercaseType === 'STOP') {
             request['price'] = this.priceToPrecision (symbol, price);
-        };
+        }
         const response = await this.privatePostOrder (this.extend (request, params));
         //
         //     {
