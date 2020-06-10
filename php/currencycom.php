@@ -115,23 +115,28 @@ class currencycom extends Exchange {
                 ),
             ),
             'exceptions' => array(
-                'FIELD_VALIDATION_ERROR Cancel is available only for LIMIT order' => '\\ccxt\\InvalidOrder',
-                'API key does not exist' => '\\ccxt\\AuthenticationError',
-                'Order would trigger immediately.' => '\\ccxt\\InvalidOrder',
-                'Account has insufficient balance for requested action.' => '\\ccxt\\InsufficientFunds',
-                'Rest API trading is not enabled.' => '\\ccxt\\ExchangeNotAvailable',
-                '-1000' => '\\ccxt\\ExchangeNotAvailable', // array("code":-1000,"msg":"An unknown error occured while processing the request.")
-                '-1013' => '\\ccxt\\InvalidOrder', // createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
-                '-1021' => '\\ccxt\\InvalidNonce', // 'your time is ahead of server'
-                '-1022' => '\\ccxt\\AuthenticationError', // array("code":-1022,"msg":"Signature for this request is not valid.")
-                '-1100' => '\\ccxt\\InvalidOrder', // createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
-                '-1104' => '\\ccxt\\ExchangeError', // Not all sent parameters were read, read 8 parameters but was sent 9
-                '-1128' => '\\ccxt\\ExchangeError', // array("code":-1128,"msg":"Combination of optional parameters invalid.")
-                '-2010' => '\\ccxt\\ExchangeError', // generic error code for createOrder -> 'Account has insufficient balance for requested action.', array("code":-2010,"msg":"Rest API trading is not enabled."), etc...
-                '-2011' => '\\ccxt\\OrderNotFound', // cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
-                '-2013' => '\\ccxt\\OrderNotFound', // fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'
-                '-2014' => '\\ccxt\\AuthenticationError', // array( "code":-2014, "msg" => "API-key format invalid." )
-                '-2015' => '\\ccxt\\AuthenticationError', // "Invalid API-key, IP, or permissions for action."
+                'broad' => array(
+                    'FIELD_VALIDATION_ERROR Cancel is available only for LIMIT order' => '\\ccxt\\InvalidOrder',
+                    'API key does not exist' => '\\ccxt\\AuthenticationError',
+                    'Order would trigger immediately.' => '\\ccxt\\InvalidOrder',
+                    'Account has insufficient balance for requested action.' => '\\ccxt\\InsufficientFunds',
+                    'Rest API trading is not enabled.' => '\\ccxt\\ExchangeNotAvailable',
+                ),
+                'exact' => array(
+                    '-1000' => '\\ccxt\\ExchangeNotAvailable', // array("code":-1000,"msg":"An unknown error occured while processing the request.")
+                    '-1013' => '\\ccxt\\InvalidOrder', // createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
+                    '-1021' => '\\ccxt\\InvalidNonce', // 'your time is ahead of server'
+                    '-1022' => '\\ccxt\\AuthenticationError', // array("code":-1022,"msg":"Signature for this request is not valid.")
+                    '-1100' => '\\ccxt\\InvalidOrder', // createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
+                    '-1104' => '\\ccxt\\ExchangeError', // Not all sent parameters were read, read 8 parameters but was sent 9
+                    '-1025' => '\\ccxt\\AuthenticationError', // array("code":-1025,"msg":"Invalid API-key, IP, or permissions for action")
+                    '-1128' => '\\ccxt\\BadRequest', // array("code":-1128,"msg":"Combination of optional parameters invalid.")
+                    '-2010' => '\\ccxt\\ExchangeError', // generic error code for createOrder -> 'Account has insufficient balance for requested action.', array("code":-2010,"msg":"Rest API trading is not enabled."), etc...
+                    '-2011' => '\\ccxt\\OrderNotFound', // cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
+                    '-2013' => '\\ccxt\\OrderNotFound', // fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'
+                    '-2014' => '\\ccxt\\AuthenticationError', // array( "code":-2014, "msg" => "API-key format invalid." )
+                    '-2015' => '\\ccxt\\AuthenticationError', // "Invalid API-key, IP, or permissions for action."
+                ),
             ),
         ));
     }
@@ -1048,14 +1053,14 @@ class currencycom extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
-        if (($code === 418) || ($code === 429)) {
-            throw new DDoSProtection($this->id . ' ' . (string) $code . ' ' . $reason . ' ' . $body);
+    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+        if (($httpCode === 418) || ($httpCode === 429)) {
+            throw new DDoSProtection($this->id . ' ' . (string) $httpCode . ' ' . $reason . ' ' . $body);
         }
-        // error $response in a form => array( "$code" => -1013, "msg" => "Invalid quantity." )
+        // error $response in a form => array( "code" => -1013, "msg" => "Invalid quantity." )
         // following block cointains legacy checks against $message patterns in "msg" property
-        // will switch "$code" checks eventually, when we know all of them
-        if ($code >= 400) {
+        // will switch "code" checks eventually, when we know all of them
+        if ($httpCode >= 400) {
             if (mb_strpos($body, 'Price * QTY is zero or less') !== false) {
                 throw new InvalidOrder($this->id . ' order cost = amount * price is zero or less ' . $body);
             }
@@ -1069,32 +1074,16 @@ class currencycom extends Exchange {
         if ($response === null) {
             return; // fallback to default error handler
         }
-        // check $success value for wapi endpoints
-        // $response in format array('msg' => 'The coin does not exist.', 'success' => true/false)
-        $success = $this->safe_value($response, 'success', true);
-        if (!$success) {
+        //
+        //     array("code":-1128,"msg":"Combination of optional parameters invalid.")
+        //
+        $errorCode = $this->safe_string($response, 'code');
+        if (($errorCode !== null) && ($errorCode !== '0')) {
+            $feedback = $this->id . ' ' . $this->json($response);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
             $message = $this->safe_string($response, 'msg');
-            $parsedMessage = null;
-            if ($message !== null) {
-                try {
-                    $parsedMessage = json_decode($message, $as_associative_array = true);
-                } catch (Exception $e) {
-                    // do nothing
-                    $parsedMessage = null;
-                }
-                if ($parsedMessage !== null) {
-                    $response = $parsedMessage;
-                }
-            }
-        }
-        $exceptions = $this->exceptions;
-        $message = $this->safe_string($response, 'msg');
-        if (is_array($exceptions) && array_key_exists($message, $exceptions)) {
-            $ExceptionClass = $exceptions[$message];
-            throw new $ExceptionClass($this->id . ' ' . $message);
-        }
-        if (!$success) {
-            throw new ExchangeError($this->id . ' ' . $body);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
+            throw new ExchangeError($feedback);
         }
     }
 }

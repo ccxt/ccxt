@@ -5,10 +5,10 @@
 
 from ccxt.async_support.base.exchange import Exchange
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -122,23 +122,28 @@ class currencycom(Exchange):
                 },
             },
             'exceptions': {
-                'FIELD_VALIDATION_ERROR Cancel is available only for LIMIT order': InvalidOrder,
-                'API key does not exist': AuthenticationError,
-                'Order would trigger immediately.': InvalidOrder,
-                'Account has insufficient balance for requested action.': InsufficientFunds,
-                'Rest API trading is not enabled.': ExchangeNotAvailable,
-                '-1000': ExchangeNotAvailable,  # {"code":-1000,"msg":"An unknown error occured while processing the request."}
-                '-1013': InvalidOrder,  # createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
-                '-1021': InvalidNonce,  # 'your time is ahead of server'
-                '-1022': AuthenticationError,  # {"code":-1022,"msg":"Signature for self request is not valid."}
-                '-1100': InvalidOrder,  # createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
-                '-1104': ExchangeError,  # Not all sent parameters were read, read 8 parameters but was sent 9
-                '-1128': ExchangeError,  # {"code":-1128,"msg":"Combination of optional parameters invalid."}
-                '-2010': ExchangeError,  # generic error code for createOrder -> 'Account has insufficient balance for requested action.', {"code":-2010,"msg":"Rest API trading is not enabled."}, etc...
-                '-2011': OrderNotFound,  # cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
-                '-2013': OrderNotFound,  # fetchOrder(1, 'BTC/USDT') -> 'Order does not exist'
-                '-2014': AuthenticationError,  # {"code":-2014, "msg": "API-key format invalid."}
-                '-2015': AuthenticationError,  # "Invalid API-key, IP, or permissions for action."
+                'broad': {
+                    'FIELD_VALIDATION_ERROR Cancel is available only for LIMIT order': InvalidOrder,
+                    'API key does not exist': AuthenticationError,
+                    'Order would trigger immediately.': InvalidOrder,
+                    'Account has insufficient balance for requested action.': InsufficientFunds,
+                    'Rest API trading is not enabled.': ExchangeNotAvailable,
+                },
+                'exact': {
+                    '-1000': ExchangeNotAvailable,  # {"code":-1000,"msg":"An unknown error occured while processing the request."}
+                    '-1013': InvalidOrder,  # createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
+                    '-1021': InvalidNonce,  # 'your time is ahead of server'
+                    '-1022': AuthenticationError,  # {"code":-1022,"msg":"Signature for self request is not valid."}
+                    '-1100': InvalidOrder,  # createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
+                    '-1104': ExchangeError,  # Not all sent parameters were read, read 8 parameters but was sent 9
+                    '-1025': AuthenticationError,  # {"code":-1025,"msg":"Invalid API-key, IP, or permissions for action"}
+                    '-1128': BadRequest,  # {"code":-1128,"msg":"Combination of optional parameters invalid."}
+                    '-2010': ExchangeError,  # generic error code for createOrder -> 'Account has insufficient balance for requested action.', {"code":-2010,"msg":"Rest API trading is not enabled."}, etc...
+                    '-2011': OrderNotFound,  # cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
+                    '-2013': OrderNotFound,  # fetchOrder(1, 'BTC/USDT') -> 'Order does not exist'
+                    '-2014': AuthenticationError,  # {"code":-2014, "msg": "API-key format invalid."}
+                    '-2015': AuthenticationError,  # "Invalid API-key, IP, or permissions for action."
+                },
             },
         })
 
@@ -973,13 +978,13 @@ class currencycom(Exchange):
                 url += '?' + self.urlencode(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
-        if (code == 418) or (code == 429):
-            raise DDoSProtection(self.id + ' ' + str(code) + ' ' + reason + ' ' + body)
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        if (httpCode == 418) or (httpCode == 429):
+            raise DDoSProtection(self.id + ' ' + str(httpCode) + ' ' + reason + ' ' + body)
         # error response in a form: {"code": -1013, "msg": "Invalid quantity."}
         # following block cointains legacy checks against message patterns in "msg" property
         # will switch "code" checks eventually, when we know all of them
-        if code >= 400:
+        if httpCode >= 400:
             if body.find('Price * QTY is zero or less') >= 0:
                 raise InvalidOrder(self.id + ' order cost = amount * price is zero or less ' + body)
             if body.find('LOT_SIZE') >= 0:
@@ -988,24 +993,13 @@ class currencycom(Exchange):
                 raise InvalidOrder(self.id + ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use self.price_to_precision(symbol, amount) ' + body)
         if response is None:
             return  # fallback to default error handler
-        # check success value for wapi endpoints
-        # response in format {'msg': 'The coin does not exist.', 'success': True/false}
-        success = self.safe_value(response, 'success', True)
-        if not success:
+        #
+        #     {"code":-1128,"msg":"Combination of optional parameters invalid."}
+        #
+        errorCode = self.safe_string(response, 'code')
+        if (errorCode is not None) and (errorCode != '0'):
+            feedback = self.id + ' ' + self.json(response)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             message = self.safe_string(response, 'msg')
-            parsedMessage = None
-            if message is not None:
-                try:
-                    parsedMessage = json.loads(message)
-                except Exception as e:
-                    # do nothing
-                    parsedMessage = None
-                if parsedMessage is not None:
-                    response = parsedMessage
-        exceptions = self.exceptions
-        message = self.safe_string(response, 'msg')
-        if message in exceptions:
-            ExceptionClass = exceptions[message]
-            raise ExceptionClass(self.id + ' ' + message)
-        if not success:
-            raise ExchangeError(self.id + ' ' + body)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
+            raise ExchangeError(feedback)
