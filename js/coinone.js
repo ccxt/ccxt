@@ -282,7 +282,6 @@ module.exports = class coinone extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets ();
         if (type !== 'limit') {
             throw new ExchangeError (this.id + ' allows limit orders only');
         }
@@ -294,10 +293,7 @@ module.exports = class coinone extends Exchange {
         };
         const method = 'privatePostOrder' + this.capitalize (type) + this.capitalize (side);
         const response = await this[method] (this.extend (request, params));
-        let id = this.safeString (response, 'orderId');
-        if (id !== undefined) {
-            id = id.toUpperCase ();
-        }
+        let id = this.safeStringUpper (response, 'orderId');
         const timestamp = this.milliseconds ();
         const cost = price * amount;
         const order = {
