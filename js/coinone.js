@@ -325,7 +325,24 @@ module.exports = class coinone extends Exchange {
             'format': 'json',
         };
         const response = await this.publicGetTrades (this.extend (request, params));
-        return this.parseTrades (response['completeOrders'], market, since, limit);
+        //
+        //     {
+        //         "result": "success",
+        //         "errorCode": "0",
+        //         "timestamp": "1416895635",
+        //         "currency": "btc",
+        //         "completeOrders": [
+        //             {
+        //                 "timestamp": "1416893212",
+        //                 "price": "420000.0",
+        //                 "qty": "0.1",
+        //                 "is_ask": "1"
+        //             }
+        //         ]
+        //     }
+        //
+        const completeOrders = this.safeValue (response, 'completeOrders', []);
+        return this.parseTrades (completeOrders, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
