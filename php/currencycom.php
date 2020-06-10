@@ -111,6 +111,7 @@ class currencycom extends Exchange {
                 'newOrderRespType' => array(
                     'market' => 'FULL', // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
                     'limit' => 'RESULT', // we change it from 'ACK' by default to 'RESULT'
+                    'stop' => 'RESULT',
                 ),
             ),
             'exceptions' => array(
@@ -898,11 +899,10 @@ class currencycom extends Exchange {
             // 'guaranteedStopLoss' => '54.321',
         );
         if ($uppercaseType === 'LIMIT') {
-            if ($price === null) {
-                throw new InvalidOrder($this->id . ' createOrder method requires a $price argument for a ' . $type . ' order');
-            }
             $request['price'] = $this->price_to_precision($symbol, $price);
             $request['timeInForce'] = $this->options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel, 'FOK' = Fill Or Kill
+        } else if ($uppercaseType === 'STOP') {
+            $request['price'] = $this->price_to_precision($symbol, $price);
         }
         $response = $this->privatePostOrder (array_merge($request, $params));
         //

@@ -118,6 +118,7 @@ class currencycom(Exchange):
                 'newOrderRespType': {
                     'market': 'FULL',  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
                     'limit': 'RESULT',  # we change it from 'ACK' by default to 'RESULT'
+                    'stop': 'RESULT',
                 },
             },
             'exceptions': {
@@ -838,10 +839,10 @@ class currencycom(Exchange):
             # 'guaranteedStopLoss': '54.321',
         }
         if uppercaseType == 'LIMIT':
-            if price is None:
-                raise InvalidOrder(self.id + ' createOrder method requires a price argument for a ' + type + ' order')
             request['price'] = self.price_to_precision(symbol, price)
             request['timeInForce'] = self.options['defaultTimeInForce']  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel, 'FOK' = Fill Or Kill
+        elif uppercaseType == 'STOP':
+            request['price'] = self.price_to_precision(symbol, price)
         response = self.privatePostOrder(self.extend(request, params))
         #
         #     {
