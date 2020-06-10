@@ -1306,6 +1306,10 @@ class binance extends Exchange {
             $stopPriceIsRequired = true;
             $priceIsRequired = true;
         } else if (($uppercaseType === 'STOP_MARKET') || ($uppercaseType === 'TAKE_PROFIT_MARKET')) {
+            $closePosition = $this->safe_value($params, 'closePosition');
+            if ($closePosition === null) {
+                $quantityIsRequired = true;
+            }
             $stopPriceIsRequired = true;
         }
         if ($quantityIsRequired) {

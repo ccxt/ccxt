@@ -1234,6 +1234,9 @@ class binance(Exchange):
             stopPriceIsRequired = True
             priceIsRequired = True
         elif (uppercaseType == 'STOP_MARKET') or (uppercaseType == 'TAKE_PROFIT_MARKET'):
+            closePosition = self.safe_value(params, 'closePosition')
+            if closePosition is None:
+                quantityIsRequired = True
             stopPriceIsRequired = True
         if quantityIsRequired:
             request['quantity'] = self.amount_to_precision(symbol, amount)
