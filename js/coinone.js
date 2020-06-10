@@ -428,73 +428,118 @@ module.exports = class coinone extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        // [WARNING] This implementation is only for fetchOrder()
-        const info = this.safeValue (order, 'info');
-        const currency = this.safeString (info, 'currency');
+        //
+        // createOrder
+        //
+        //     {
+        //         "result": "success",
+        //         "errorCode": "0",
+        //         "orderId": "8a82c561-40b4-4cb3-9bc0-9ac9ffc1d63b"
+        //     }
+        //
+        // fetchOrder
+        //
+        //     {
+        //         "status": "live", // injected in fetchOrder
+        //         "orderId": "32FF744B-D501-423A-8BA1-05BB6BE7814A",
+        //         "currency": "BTC",
+        //         "type": "bid",
+        //         "price": "2922000.0",
+        //         "qty": "115.4950",
+        //         "remainQty": "45.4950",
+        //         "feeRate": "0.0003",
+        //         "fee": "0",
+        //         "timestamp": "1499340941"
+        //     }
+        //
+        // fetchOpenOrders
+        //
+        //     {
+        //         "index": "0",
+        //         "orderId": "68665943-1eb5-4e4b-9d76-845fc54f5489",
+        //         "timestamp": "1449037367",
+        //         "price": "444000.0",
+        //         "qty": "0.3456",
+        //         "type": "ask",
+        //         "feeRate": "-0.0015"
+        //     }
+        //
+        const id = this.safeString (order, 'orderId');
+        const price = this.safeFloat (order, 'price');
+        const timestamp = this.safeTimestamp (order, 'timestamp');
+        let side = this.safeString (order, 'type');
+        if (side === 'ask') {
+            side = 'sell';
+        } else if (side === 'bid') {
+            side = 'buy';
+        }
+        const remaining = this.safeFloat (order, 'remainQty');
+        let filled = undefined;
+        const amount = this.safeFloat (order, 'qty');
+        let status = this.safeString (order, 'status');
+        // https://github.com/ccxt/ccxt/pull/7067
+        if (status === 'live') {
+            if ((remaining !== undefined) && (amount !== undefined)) {
+                if (remaining < amount) {
+                    status = 'canceled';
+                }
+            }
+        }
+        if ((remaining !== undefined) && (amount !== undefined)) {
+            filled = Math.max (amount - remaining);
+        }
+        status = this.parseOrderStatus (status);
+        let cost = undefined;
+        if ((price !== undefined) && (filled !== undefined)) {
+            cost = price * filled;
+        }
         let symbol = undefined;
-        if (market === undefined) {
-            const marketId = currency.toLowerCase ();
+        let base = undefined;
+        let quote = undefined;
+        const marketId = this.safeStringLower (order, 'currency');
+        if (marketId !== undefined) {
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
+            } else {
+                base = this.safeCurrencyCode (marketId);
+                quote = 'KRW';
+                symbol = base + '/' + quote;
             }
         }
-        if (market !== undefined) {
+        if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
+            base = market['base'];
+            quote = market['quote'];
         }
-        const id = this.safeStringUpper (info, 'orderId');
-        const timestamp = this.safeTimestamp (info, 'timestamp');
-        let feeCurrency = undefined;
-        let side = this.safeString (info, 'type');
-        if (side.indexOf ('ask') >= 0) {
-            side = 'sell';
-            feeCurrency = market['quote'];
-        } else {
-            side = 'buy';
-            feeCurrency = market['base'];
+        let fee = undefined;
+        const feeCost = this.safeFloat (order, 'fee');
+        if (feeCost !== undefined) {
+            const feeCurrencyCode = (side === 'sell') ? quote : base;
+            fee = {
+                'cost': feeCost,
+                'rate': this.safeFloat (order, 'feeRate'),
+                'currency': feeCurrencyCode,
+            };
         }
-        const price = this.safeFloat (info, 'price');
-        let amount = this.safeFloat (info, 'qty');
-        let remaining = this.safeFloat (info, 'remainQty');
-        let filled = undefined;
-        let status = undefined;
-        const orderStatus = this.safeString (order, 'status');
-        if (orderStatus === 'live') {
-            status = 'open';
-            filled = 0;
-            if (amount > remaining) {
-                amount = remaining;
-                remaining = 0;
-            }
-        } else if (orderStatus === 'partially_filled') {
-            status = 'open';
-            filled = amount - remaining;
-        } else {    // 'filled'
-            status = 'closed';
-            filled = amount - remaining;
-        }
-        const cost = price * filled;
         return {
+            'info': order,
             'id': id,
             'clientOrderId': undefined,
-            'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'status': status,
             'symbol': symbol,
             'type': 'limit',
             'side': side,
             'price': price,
+            'cost': cost,
+            'average': undefined,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
-            'cost': cost,
+            'remaining': amount,
+            'status': status,
+            'fee': fee,
             'trades': undefined,
-            'fee': {
-                'currency': feeCurrency,
-                'cost': this.safeFloat (info, 'fee'),
-                'rate': this.safeFloat (info, 'feeRate'),
-            },
-            'info': order,
         };
     }
 
