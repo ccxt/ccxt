@@ -10,7 +10,6 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
-from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import OnMaintenance
 
@@ -28,18 +27,18 @@ class coinone(Exchange):
             'has': {
                 'CORS': False,
                 'createMarketOrder': False,
-                # 'fetchClosedOrders': False,  # not implemented yet
                 'fetchCurrencies': False,
                 'fetchMarkets': True,
-                # 'fetchMyTrades': False,  # not implemented yet
-                # 'fetchOpenOrders': False,  # not implemented yet
+                'fetchMyTrades': True,
+                'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
-                'fetchOrderBooks': False,
-                # 'fetchOrders': False,  # not implemented yet
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                # https://github.com/ccxt/ccxt/pull/7067
+                # the endpoint that should return closed orders actually returns trades
+                'fetchClosedOrders': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg',
@@ -96,7 +95,7 @@ class coinone(Exchange):
             },
             'exceptions': {
                 '405': OnMaintenance,  # {"errorCode":"405","status":"maintenance","result":"error"}
-                '104': OrderNotFound,
+                '104': OrderNotFound,  # {"errorCode":"104","errorMsg":"Order id is not exist","result":"error"}
                 '108': BadSymbol,  # {"errorCode":"108","errorMsg":"Unknown CryptoCurrency","result":"error"}
                 '107': BadRequest,  # {"errorCode":"107","errorMsg":"Parameter error","result":"error"}
             },
@@ -231,26 +230,69 @@ class coinone(Exchange):
         }
 
     def parse_trade(self, trade, market=None):
+        #
+        # fetchTrades(public)
+        #
+        #     {
+        #         "timestamp": "1416893212",
+        #         "price": "420000.0",
+        #         "qty": "0.1",
+        #         "is_ask": "1"
+        #     }
+        #
+        # fetchMyTrades(private)
+        #
+        #     {
+        #         "timestamp": "1416561032",
+        #         "price": "419000.0",
+        #         "type": "bid",
+        #         "qty": "0.001",
+        #         "feeRate": "-0.0015",
+        #         "fee": "-0.0000015",
+        #         "orderId": "E84A1AC2-8088-4FA0-B093-A3BCDB9B3C85"
+        #     }
+        #
         timestamp = self.safe_timestamp(trade, 'timestamp')
         symbol = market['symbol'] if (market is not None) else None
         is_ask = self.safe_string(trade, 'is_ask')
-        side = None
-        if is_ask == '1':
-            side = 'sell'
-        elif is_ask == '0':
-            side = 'buy'
+        side = self.safe_string(trade, 'type')
+        if is_ask is not None:
+            if is_ask == '1':
+                side = 'sell'
+            elif is_ask == '0':
+                side = 'buy'
+        else:
+            if side == 'ask':
+                side = 'sell'
+            elif side == 'bid':
+                side = 'buy'
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'qty')
         cost = None
         if price is not None:
             if amount is not None:
                 cost = price * amount
+        orderId = self.safe_string(trade, 'orderId')
+        feeCost = self.safe_float(trade, 'fee')
+        fee = None
+        if feeCost is not None:
+            feeCost = abs(feeCost)
+            feeRate = self.safe_float(trade, 'feeRate')
+            feeRate = abs(feeRate)
+            feeCurrencyCode = None
+            if market is not None:
+                feeCurrencyCode = market['quote'] if (side == 'sell') else market['base']
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+                'rate': feeRate,
+            }
         return {
             'id': self.safe_string(trade, 'id'),
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'order': None,
+            'order': orderId,
             'symbol': symbol,
             'type': None,
             'side': side,
@@ -258,7 +300,7 @@ class coinone(Exchange):
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': None,
+            'fee': fee,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -269,10 +311,26 @@ class coinone(Exchange):
             'format': 'json',
         }
         response = self.publicGetTrades(self.extend(request, params))
-        return self.parse_trades(response['completeOrders'], market, since, limit)
+        #
+        #     {
+        #         "result": "success",
+        #         "errorCode": "0",
+        #         "timestamp": "1416895635",
+        #         "currency": "btc",
+        #         "completeOrders": [
+        #             {
+        #                 "timestamp": "1416893212",
+        #                 "price": "420000.0",
+        #                 "qty": "0.1",
+        #                 "is_ask": "1"
+        #             }
+        #         ]
+        #     }
+        #
+        completeOrders = self.safe_value(response, 'completeOrders', [])
+        return self.parse_trades(completeOrders, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
-        self.load_markets()
         if type != 'limit':
             raise ExchangeError(self.id + ' allows limit orders only')
         self.load_markets()
@@ -283,63 +341,46 @@ class coinone(Exchange):
         }
         method = 'privatePostOrder' + self.capitalize(type) + self.capitalize(side)
         response = getattr(self, method)(self.extend(request, params))
-        id = self.safe_string(response, 'orderId')
-        if id is not None:
-            id = id.upper()
-        timestamp = self.milliseconds()
-        cost = price * amount
-        order = {
-            'info': response,
-            'id': id,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': None,
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'price': price,
-            'cost': cost,
-            'average': None,
-            'amount': amount,
-            'filled': None,
-            'remaining': amount,
-            'status': 'open',
-            'fee': None,
-            'clientOrderId': None,
-            'trades': None,
-        }
-        self.orders[id] = order
-        return order
+        #
+        #     {
+        #         "result": "success",
+        #         "errorCode": "0",
+        #         "orderId": "8a82c561-40b4-4cb3-9bc0-9ac9ffc1d63b"
+        #     }
+        #
+        return self.parse_order(response)
 
     def fetch_order(self, id, symbol=None, params={}):
-        self.load_markets()
-        result = None
-        market = None
         if symbol is None:
-            if id in self.orders:
-                market = self.market(self.orders[id]['symbol'])
-            else:
-                raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument for order ids missing in the .orders cache(the order was created with a different instance of self class or within a different run of self code).')
-        else:
-            market = self.market(symbol)
-        try:
-            request = {
-                'order_id': id,
-                'currency': market['id'],
-            }
-            response = self.privatePostOrderOrderInfo(self.extend(request, params))
-            result = self.parse_order(response)
-            self.orders[id] = result
-        except Exception as e:
-            if isinstance(e, OrderNotFound):
-                if id in self.orders:
-                    self.orders[id]['status'] = 'canceled'
-                    result = self.orders[id]
-                else:
-                    raise e
-            else:
-                raise e
-        return result
+            raise ArgumentsRequired(self.id + ' fetchOrder requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'order_id': id,
+            'currency': market['id'],
+        }
+        response = self.privatePostOrderOrderInfo(self.extend(request, params))
+        #
+        #     {
+        #         "result": "success",
+        #         "errorCode": "0",
+        #         "status": "live",
+        #         "info": {
+        #             "orderId": "32FF744B-D501-423A-8BA1-05BB6BE7814A",
+        #             "currency": "BTC",
+        #             "type": "bid",
+        #             "price": "2922000.0",
+        #             "qty": "115.4950",
+        #             "remainQty": "45.4950",
+        #             "feeRate": "0.0003",
+        #             "fee": "0",
+        #             "timestamp": "1499340941"
+        #         }
+        #     }
+        #
+        info = self.safe_value(response, 'info', {})
+        info['status'] = self.safe_string(info, 'status')
+        return self.parse_order(info, market)
 
     def parse_order_status(self, status):
         statuses = {
@@ -351,6 +392,31 @@ class coinone(Exchange):
 
     def parse_order(self, order, market=None):
         #
+        # createOrder
+        #
+        #     {
+        #         "result": "success",
+        #         "errorCode": "0",
+        #         "orderId": "8a82c561-40b4-4cb3-9bc0-9ac9ffc1d63b"
+        #     }
+        #
+        # fetchOrder
+        #
+        #     {
+        #         "status": "live",  # injected in fetchOrder
+        #         "orderId": "32FF744B-D501-423A-8BA1-05BB6BE7814A",
+        #         "currency": "BTC",
+        #         "type": "bid",
+        #         "price": "2922000.0",
+        #         "qty": "115.4950",
+        #         "remainQty": "45.4950",
+        #         "feeRate": "0.0003",
+        #         "fee": "0",
+        #         "timestamp": "1499340941"
+        #     }
+        #
+        # fetchOpenOrders
+        #
         #     {
         #         "index": "0",
         #         "orderId": "68665943-1eb5-4e4b-9d76-845fc54f5489",
@@ -361,38 +427,53 @@ class coinone(Exchange):
         #         "feeRate": "-0.0015"
         #     }
         #
-        info = self.safe_value(order, 'info')
-        id = self.safe_string_upper(info, 'orderId')
-        timestamp = self.safe_timestamp(info, 'timestamp')
-        status = self.parse_order_status(self.safe_string(order, 'status'))
-        cost = None
-        side = self.safe_string(info, 'type')
-        if side.find('ask') >= 0:
+        id = self.safe_string(order, 'orderId')
+        price = self.safe_float(order, 'price')
+        timestamp = self.safe_timestamp(order, 'timestamp')
+        side = self.safe_string(order, 'type')
+        if side == 'ask':
             side = 'sell'
-        else:
+        elif side == 'bid':
             side = 'buy'
-        price = self.safe_float(info, 'price')
-        amount = self.safe_float(info, 'qty')
-        remaining = self.safe_float(info, 'remainQty')
+        remaining = self.safe_float(order, 'remainQty')
         filled = None
-        if amount is not None:
-            if remaining is not None:
-                filled = amount - remaining
-            if price is not None:
-                cost = price * amount
-        currency = self.safe_string(info, 'currency')
-        fee = {
-            'currency': currency,
-            'cost': self.safe_float(info, 'fee'),
-            'rate': self.safe_float(info, 'feeRate'),
-        }
+        amount = self.safe_float(order, 'qty')
+        status = self.safe_string(order, 'status')
+        # https://github.com/ccxt/ccxt/pull/7067
+        if status == 'live':
+            if (remaining is not None) and (amount is not None):
+                if remaining < amount:
+                    status = 'canceled'
+        if (remaining is not None) and (amount is not None):
+            filled = max(amount - remaining)
+        status = self.parse_order_status(status)
+        cost = None
+        if (price is not None) and (filled is not None):
+            cost = price * filled
         symbol = None
-        if market is None:
-            marketId = currency.lower()
+        base = None
+        quote = None
+        marketId = self.safe_string_lower(order, 'currency')
+        if marketId is not None:
             if marketId in self.markets_by_id:
                 market = self.markets_by_id[marketId]
-        if market is not None:
+            else:
+                base = self.safe_currency_code(marketId)
+                quote = 'KRW'
+                symbol = base + '/' + quote
+        if (symbol is None) and (market is not None):
             symbol = market['symbol']
+            base = market['base']
+            quote = market['quote']
+        fee = None
+        feeCost = self.safe_float(order, 'fee')
+        if feeCost is not None:
+            feeCurrencyCode = quote if (side == 'sell') else base
+            fee = {
+                'cost': feeCost,
+                'rate': self.safe_float(order, 'feeRate'),
+                'currency': feeCurrencyCode,
+            }
         return {
             'info': order,
             'id': id,
@@ -405,51 +486,104 @@ class coinone(Exchange):
             'side': side,
             'price': price,
             'cost': cost,
+            'average': None,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': amount,
             'status': status,
             'fee': fee,
-            'average': None,
             'trades': None,
         }
 
-    def cancel_order(self, id, symbol=None, params={}):
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        # The returned amount might not be same as the ordered amount. If an order is partially filled, the returned amount means the remaining amount.
+        # For the same reason, the returned amount and remaining are always same, and the returned filled and cost are always zero.
+        if symbol is None:
+            raise ExchangeError(self.id + ' allows fetching closed orders with a specific symbol')
         self.load_markets()
-        order = self.safe_value(self.orders, id)
-        amount = None
-        price = None
-        side = None
-        if order is None:
-            if symbol is None:
-                # eslint-disable-next-line quotes
-                raise InvalidOrder(self.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of self class earlier. The `symbol` argument is missing. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.")
-            price = self.safe_float(params, 'price')
-            if price is None:
-                # eslint-disable-next-line quotes
-                raise InvalidOrder(self.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of self class earlier. The `price` parameter is missing. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.")
-            amount = self.safe_float(params, 'qty')
-            if amount is None:
-                # eslint-disable-next-line quotes
-                raise InvalidOrder(self.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of self class earlier. The `qty`(amount) parameter is missing. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.")
-            side = self.safe_float(params, 'is_ask')
-            if side is None:
-                # eslint-disable-next-line quotes
-                raise InvalidOrder(self.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of self class earlier. The `is_ask`(side) parameter is missing. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.")
-        else:
-            price = order['price']
-            amount = order['amount']
-            side = 0 if (order['side'] == 'buy') else 1
-            symbol = order['symbol']
+        market = self.market(symbol)
+        request = {
+            'currency': market['id'],
+        }
+        response = self.privatePostOrderLimitOrders(self.extend(request, params))
+        #
+        #     {
+        #         "result": "success",
+        #         "errorCode": "0",
+        #         "limitOrders": [
+        #             {
+        #                 "index": "0",
+        #                 "orderId": "68665943-1eb5-4e4b-9d76-845fc54f5489",
+        #                 "timestamp": "1449037367",
+        #                 "price": "444000.0",
+        #                 "qty": "0.3456",
+        #                 "type": "ask",
+        #                 "feeRate": "-0.0015"
+        #             }
+        #         ]
+        #     }
+        #
+        limitOrders = self.safe_value(response, 'limitOrders', [])
+        return self.parse_orders(limitOrders, market, since, limit)
+
+    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'currency': market['id'],
+        }
+        response = self.privatePostOrderCompleteOrders(self.extend(request, params))
+        #
+        # despite the name of the endpoint it returns trades which may have a duplicate orderId
+        # https://github.com/ccxt/ccxt/pull/7067
+        #
+        #     {
+        #         "result": "success",
+        #         "errorCode": "0",
+        #         "completeOrders": [
+        #             {
+        #                 "timestamp": "1416561032",
+        #                 "price": "419000.0",
+        #                 "type": "bid",
+        #                 "qty": "0.001",
+        #                 "feeRate": "-0.0015",
+        #                 "fee": "-0.0000015",
+        #                 "orderId": "E84A1AC2-8088-4FA0-B093-A3BCDB9B3C85"
+        #             }
+        #         ]
+        #     }
+        #
+        completeOrders = self.safe_value(response, 'completeOrders', [])
+        return self.parse_trades(completeOrders, market, since, limit)
+
+    def cancel_order(self, id, symbol=None, params={}):
+        if symbol is None:
+            # eslint-disable-next-line quotes
+            raise ArgumentsRequired(self.id + " cancelOrder requires a symbol argument. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.")
+        price = self.safe_float(params, 'price')
+        qty = self.safe_float(params, 'qty')
+        isAsk = self.safe_integer(params, 'is_ask')
+        if (price is None) or (qty is None) or (isAsk is None):
+            # eslint-disable-next-line quotes
+            raise ArgumentsRequired(self.id + " cancelOrder requires {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument.")
+        self.load_markets()
         request = {
             'order_id': id,
             'price': price,
-            'qty': amount,
-            'is_ask': side,
+            'qty': qty,
+            'is_ask': isAsk,
             'currency': self.market_id(symbol),
         }
-        self.orders[id]['status'] = 'canceled'
-        return self.privatePostOrderCancel(self.extend(request, params))
+        response = self.privatePostOrderCancel(self.extend(request, params))
+        #
+        #     {
+        #         "result": "success",
+        #         "errorCode": "0"
+        #     }
+        #
+        return response
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = self.implode_params(path, params)
@@ -472,7 +606,7 @@ class coinone(Exchange):
             secret = self.secret.upper()
             signature = self.hmac(payload, self.encode(secret), hashlib.sha512)
             headers = {
-                'content-type': 'application/json',
+                'Content-Type': 'application/json',
                 'X-COINONE-PAYLOAD': payload,
                 'X-COINONE-SIGNATURE': signature,
             }
