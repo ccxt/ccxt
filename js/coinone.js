@@ -236,14 +236,44 @@ module.exports = class coinone extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        // fetchTrades (public)
+        //
+        //     {
+        //         "timestamp": "1416893212",
+        //         "price": "420000.0",
+        //         "qty": "0.1",
+        //         "is_ask": "1"
+        //     }
+        //
+        // fetchMyTrades (private)
+        //
+        //     {
+        //         "timestamp": "1416561032",
+        //         "price": "419000.0",
+        //         "type": "bid",
+        //         "qty": "0.001",
+        //         "feeRate": "-0.0015",
+        //         "fee": "-0.0000015",
+        //         "orderId": "E84A1AC2-8088-4FA0-B093-A3BCDB9B3C85"
+        //     }
+        //
         const timestamp = this.safeTimestamp (trade, 'timestamp');
         const symbol = (market !== undefined) ? market['symbol'] : undefined;
         const is_ask = this.safeString (trade, 'is_ask');
-        let side = undefined;
-        if (is_ask === '1') {
-            side = 'sell';
-        } else if (is_ask === '0') {
-            side = 'buy';
+        let side = this.safeString (trade, 'type');
+        if (is_ask !== undefined) {
+            if (is_ask === '1') {
+                side = 'sell';
+            } else if (is_ask === '0') {
+                side = 'buy';
+            }
+        } else {
+            if (side === 'ask') {
+                side = 'sell';
+            } else if (side === 'bid') {
+                side = 'buy';
+            }
         }
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'qty');
@@ -253,12 +283,29 @@ module.exports = class coinone extends Exchange {
                 cost = price * amount;
             }
         }
+        const orderId = this.safeString (trade, 'orderId');
+        let feeCost = this.safeFloat (trade, 'fee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            feeCost = Math.abs (feeCost);
+            let feeRate = this.safeFloat (trade, 'feeRate');
+            feeRate = Math.abs (feeRate);
+            let feeCurrencyCode = undefined;
+            if (market !== undefined) {
+                feeCurrencyCode = (side === 'sell') ? market['quote'] : market['base'];
+            }
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+                'rate': feeRate,
+            };
+        }
         return {
             'id': this.safeString (trade, 'id'),
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'order': undefined,
+            'order': orderId,
             'symbol': symbol,
             'type': undefined,
             'side': side,
@@ -266,7 +313,7 @@ module.exports = class coinone extends Exchange {
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': undefined,
+            'fee': fee,
         };
     }
 
