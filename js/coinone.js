@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { BadSymbol, BadRequest, ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound, OnMaintenance } = require ('./base/errors');
+const { BadSymbol, BadRequest, ExchangeError, ArgumentsRequired, OrderNotFound, OnMaintenance } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -22,14 +22,15 @@ module.exports = class coinone extends Exchange {
                 'fetchCurrencies': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
-                'fetchOpenOrders': true, // good to be true, but not sure enough to meet CCXT's semantic requirement
+                'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrderBooks': false,
-                // 'fetchOrders': false, // not implemented yet
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                // https://github.com/ccxt/ccxt/pull/7067
+                // the endpoint that should return closed orders actually returns trades
+                'fetchClosedOrders': false,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg',
@@ -86,7 +87,7 @@ module.exports = class coinone extends Exchange {
             },
             'exceptions': {
                 '405': OnMaintenance, // {"errorCode":"405","status":"maintenance","result":"error"}
-                '104': OrderNotFound,
+                '104': OrderNotFound, // {"errorCode":"104","errorMsg":"Order id is not exist","result":"error"}
                 '108': BadSymbol, // {"errorCode":"108","errorMsg":"Unknown CryptoCurrency","result":"error"}
                 '107': BadRequest, // {"errorCode":"107","errorMsg":"Parameter error","result":"error"}
             },
@@ -357,31 +358,14 @@ module.exports = class coinone extends Exchange {
         };
         const method = 'privatePostOrder' + this.capitalize (type) + this.capitalize (side);
         const response = await this[method] (this.extend (request, params));
-        const id = this.safeStringUpper (response, 'orderId');
-        const timestamp = this.milliseconds ();
-        const cost = price * amount;
-        const order = {
-            'info': response,
-            'id': id,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'price': price,
-            'cost': cost,
-            'average': undefined,
-            'amount': amount,
-            'filled': undefined,
-            'remaining': amount,
-            'status': 'open',
-            'fee': undefined,
-            'clientOrderId': undefined,
-            'trades': undefined,
-        };
-        this.orders[id] = order;
-        return order;
+        //
+        //     {
+        //         "result": "success",
+        //         "errorCode": "0",
+        //         "orderId": "8a82c561-40b4-4cb3-9bc0-9ac9ffc1d63b"
+        //     }
+        //
+        return this.parseOrder (response);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -611,46 +595,32 @@ module.exports = class coinone extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        await this.loadMarkets ();
-        const order = this.safeValue (this.orders, id);
-        let amount = undefined;
-        let price = undefined;
-        let side = undefined;
-        if (order === undefined) {
-            if (symbol === undefined) {
-                // eslint-disable-next-line quotes
-                throw new InvalidOrder (this.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of this class earlier. The `symbol` argument is missing. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.");
-            }
-            price = this.safeFloat (params, 'price');
-            if (price === undefined) {
-                // eslint-disable-next-line quotes
-                throw new InvalidOrder (this.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of this class earlier. The `price` parameter is missing. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.");
-            }
-            amount = this.safeFloat (params, 'qty');
-            if (amount === undefined) {
-                // eslint-disable-next-line quotes
-                throw new InvalidOrder (this.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of this class earlier. The `qty` (amount) parameter is missing. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.");
-            }
-            side = this.safeFloat (params, 'is_ask');
-            if (side === undefined) {
-                // eslint-disable-next-line quotes
-                throw new InvalidOrder (this.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of this class earlier. The `is_ask` (side) parameter is missing. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.");
-            }
-        } else {
-            price = order['price'];
-            amount = order['amount'];
-            side = (order['side'] === 'buy') ? 0 : 1;
-            symbol = order['symbol'];
+        if (symbol === undefined) {
+            // eslint-disable-next-line quotes
+            throw new ArgumentsRequired (this.id + " cancelOrder requires a symbol argument. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.");
+        }
+        const price = this.safeFloat (params, 'price');
+        const qty = this.safeFloat (params, 'qty');
+        const isAsk = this.safeInteger (params, 'is_ask');
+        if ((price === undefined) || (qty === undefined) || (isAsk === undefined)) {
+            // eslint-disable-next-line quotes
+            throw new ArgumentsRequired (this.id + " cancelOrder requires {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument.");
         }
         const request = {
             'order_id': id,
             'price': price,
-            'qty': amount,
-            'is_ask': side,
+            'qty': qty,
+            'is_ask': isAsk,
             'currency': this.marketId (symbol),
         };
-        this.orders[id]['status'] = 'canceled';
-        return await this.privatePostOrderCancel (this.extend (request, params));
+        const response = await this.privatePostOrderCancel (this.extend (request, params));
+        //
+        //     {
+        //         "result": "success",
+        //         "errorCode": "0"
+        //     }
+        //
+        return response;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -675,7 +645,7 @@ module.exports = class coinone extends Exchange {
             const secret = this.secret.toUpperCase ();
             const signature = this.hmac (payload, this.encode (secret), 'sha512');
             headers = {
-                'content-type': 'application/json',
+                'Content-Type': 'application/json',
                 'X-COINONE-PAYLOAD': payload,
                 'X-COINONE-SIGNATURE': signature,
             };
