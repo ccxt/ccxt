@@ -510,46 +510,25 @@ module.exports = class coinone extends Exchange {
             'currency': market['id'],
         };
         const response = await this.privatePostOrderLimitOrders (this.extend (request, params));
-        const result = [];
-        const limitOrders = this.safeValue (response, 'limitOrders');
-        for (let i = 0; i < limitOrders.length; i++) {
-            const order = limitOrders[i];
-            const timestamp = this.safeTimestamp (order, 'timestamp');
-            let side = this.safeString (order, 'type');
-            let feeCurrency = undefined;
-            if (side.indexOf ('ask') >= 0) {
-                side = 'sell';
-                feeCurrency = market['quote'];
-            } else {
-                side = 'buy';
-                feeCurrency = market['base'];
-            }
-            const amount = this.safeFloat (order, 'qty');
-            result.push ({
-                'id': this.safeString (order, 'orderId'),
-                'clientOrderId': undefined,
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-                'lastTradeTimestamp': undefined,
-                'status': 'open',
-                'symbol': market['symbol'],
-                'type': 'limit',
-                'side': side,
-                'price': this.safeFloat (order, 'price'),
-                'amount': amount,
-                'filled': 0,            // coinone set amount as same as remaining, different with ordered amount
-                'remaining': amount,    // coinone set amount as same as remaining, different with ordered amount
-                'cost': 0,              // coinone set amount as same as remaining, different with ordered amount
-                'trades': undefined,    // coinone doesn't support fills
-                'fee': {
-                    'currency': feeCurrency,
-                    'rate': this.safeFloat (order, 'feeRate'),
-                    'cost': 0,          // coinone set amount as same as remaining, different with ordered amount
-                },
-                'info': order,
-            });
-        }
-        return result;
+        //
+        //     {
+        //         "result": "success",
+        //         "errorCode": "0",
+        //         "limitOrders": [
+        //             {
+        //                 "index": "0",
+        //                 "orderId": "68665943-1eb5-4e4b-9d76-845fc54f5489",
+        //                 "timestamp": "1449037367",
+        //                 "price": "444000.0",
+        //                 "qty": "0.3456",
+        //                 "type": "ask",
+        //                 "feeRate": "-0.0015"
+        //             }
+        //         ]
+        //     }
+        //
+        const limitOrders = this.safeValue (response, 'limitOrders', []);
+        return this.parseOrders (limitOrders, market, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
