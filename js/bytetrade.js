@@ -943,7 +943,7 @@ module.exports = class bytetrade extends Exchange {
         }
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const amountTruncate = this.decimalToPrecision (amount, TRUNCATE, currency['info']['transferPrecision'], DECIMAL_PLACES, NO_PADDING);
+        const amountTruncate = this.decimalToPrecision (amount, TRUNCATE, currency['info']['basePrecision'] - currency['info']['transferPrecision'], DECIMAL_PLACES, NO_PADDING);
         const amountChain = this.toWei (amountTruncate, currency['precision']['amount']);
         const assetType = parseInt (currency['id']);
         const now = this.milliseconds ();
@@ -1224,7 +1224,7 @@ module.exports = class bytetrade extends Exchange {
         const feeAmount = '300000000000000';
         const currency = this.currency (code);
         const coinId = currency['id'];
-        const amountTruncate = this.decimalToPrecision (amount, TRUNCATE, currency['info']['transferPrecision'], DECIMAL_PLACES, NO_PADDING);
+        const amountTruncate = this.decimalToPrecision (amount, TRUNCATE, currency['info']['basePrecision'] - currency['info']['transferPrecision'], DECIMAL_PLACES, NO_PADDING);
         const amountChain = this.toWei (amountTruncate, currency['info']['externalPrecision']);
         const eightBytes = this.integerPow ('2', '64');
         let assetFee = 0;
