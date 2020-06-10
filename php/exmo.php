@@ -1335,15 +1335,15 @@ class exmo extends Exchange {
             }
             $lastTradeTimestamp = $trades[$numTransactions - 1]['timestamp'];
         }
+        $status = $this->safe_string($order, 'status'); // in case we need to redefine it for canceled orders
         $remaining = null;
         if ($amount !== null) {
             $remaining = $amount - $filled;
-        }
-        $status = $this->safe_string($order, 'status'); // in case we need to redefine it for canceled orders
-        if ($filled >= $amount) {
-            $status = 'closed';
-        } else {
-            $status = 'open';
+            if ($filled >= $amount) {
+                $status = 'closed';
+            } else {
+                $status = 'open';
+            }
         }
         if ($market === null) {
             $market = $this->get_market_from_trades($trades);

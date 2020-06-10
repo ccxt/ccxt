@@ -1258,14 +1258,14 @@ class exmo(Exchange):
                 feeCost = self.sum(feeCost, trade['fee']['cost'])
                 trades.append(trade)
             lastTradeTimestamp = trades[numTransactions - 1]['timestamp']
+        status = self.safe_string(order, 'status')  # in case we need to redefine it for canceled orders
         remaining = None
         if amount is not None:
             remaining = amount - filled
-        status = self.safe_string(order, 'status')  # in case we need to redefine it for canceled orders
-        if filled >= amount:
-            status = 'closed'
-        else:
-            status = 'open'
+            if filled >= amount:
+                status = 'closed'
+            else:
+                status = 'open'
         if market is None:
             market = self.get_market_from_trades(trades)
         feeCurrency = None
