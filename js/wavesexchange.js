@@ -20,6 +20,7 @@ module.exports = class wavesexchange extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
+                'fetchClosedOrders': true,
                 'fetchMyTrades': true,
                 'fetchTrades': true,
                 'fetchBalance': true,
@@ -229,6 +230,7 @@ module.exports = class wavesexchange extends Exchange {
                 'createOrderDefaultExpiry': 2419200000, // 60 * 60 * 24 * 28 * 1000
                 'wavesAddress': undefined,
             },
+            'requiresEddsa': true,
         });
     }
 
@@ -321,7 +323,7 @@ module.exports = class wavesexchange extends Exchange {
                 'amount': this.safeInteger (amountPrecision, 'decimals'),
                 'price': this.safeInteger (pricePricision, 'decimals'),
             };
-            if ((symbol in result)) {
+            if (symbol in result) {
                 // determine which symbol is "fake news"
                 const entry = result[symbol];
                 const entryCount = (entry['baseId'] in quotes) + (entry['quoteId'] in quotes);
@@ -763,6 +765,19 @@ module.exports = class wavesexchange extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        await this.getAccessToken ();
+        const market = this.market (symbol);
+        const address = await this.getWavesAddress ();
+        const request = {
+            'address': address,
+            'closedOnly': true,
+        };
+        const response = await this.forwardGetMatcherOrdersAddress (request);
+        return this.parseOrders (response, market, since, limit);
+    }
+
     parseOrderStatus (status) {
         const statuses = {
             'Cancelled': 'canceled',
@@ -1023,7 +1038,6 @@ module.exports = class wavesexchange extends Exchange {
         //         matcherFee: 0.003,
         //         signature: '3SFyrcqzou2ddZyNisnLYaGhLt5qRjKxH8Nw3s4T5U7CEKGX9DDo8dS27RgThPVGbYF1rYET1FwrWoQ2UFZ6SMTR',
         //         matcherFeeAssetId: null } } }
-        const symbol = this.safeString (market, 'symbol');
         const data = this.safeValue (trade, 'data');
         const datetime = this.safeString (data, 'timestamp');
         const timestamp = this.parse8601 (datetime);
@@ -1038,6 +1052,13 @@ module.exports = class wavesexchange extends Exchange {
             order = order1;
         } else {
             order = order2;
+        }
+        let symbol = undefined;
+        const assetPair = this.safeValue (order, 'assetPair');
+        if (assetPair !== undefined) {
+            symbol = this.getSymbolFromAssetPair (assetPair);
+        } else if (market !== undefined) {
+            symbol = market['symbol'];
         }
         const side = this.safeString (order, 'orderType');
         const orderId = this.safeString (order, 'id');
