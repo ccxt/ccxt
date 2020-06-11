@@ -18,6 +18,13 @@ module.exports = class wavesexchange extends Exchange {
             'pro': false,
             'has': {
                 'fetchOrderBook': true,
+                'fetchOrders': true,
+                'fetchOpenOrders': true,
+                'fetchMyTrades': true,
+                'fetchTrades': true,
+                'fetchBalance': true,
+                'createOrder': true,
+                'cancelOrder': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -526,8 +533,7 @@ module.exports = class wavesexchange extends Exchange {
         const request = this.extend ({
             'code': code,
         }, params);
-        const response = await this.privateGetDepositAddressesCode (request);
-        return response;
+        return await this.privateGetDepositAddressesCode (request);
     }
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -968,56 +974,6 @@ module.exports = class wavesexchange extends Exchange {
             'priceAsset': market['quoteId'],
         };
         const response = await this.publicGetTransactionsExchange (request);
-        // { __type: 'list',
-        //   isLastPage: false,
-        //   lastCursor: 'MjAyMC0wNi0wOVQxOTozMjo1MC45MDRaOjo5UnFiVEdqdnI4YUJGRnVuZUY2bnBvaktRSkFCRUZBZDFzcE5GR1o4djlhVTo6ZGVzYw==',
-        //   data:
-        //    [
-        //             { __type: 'transaction',
-        //                 data:
-        //                 { id: '9RqbTGjvr8aBFFuneF6npojKQJABEFAd1spNFGZ8v9aU',
-        //                     timestamp: '2020-06-09T19:32:50.904Z',
-        //                     height: 2099681,
-        //                     type: 7,
-        //                     version: 2,
-        //                     proofs:
-        //                     [ '5asJuKsEKpXV61mq7JuHC4ndQDmeTX5toFWYCNL3yFJwpTANLhgVUnPjdGw7nfJoZfUeimAj9jFmvM6Bw1Ng5ZkK' ],
-        //                         fee: 0.003,
-        //                     sender: '3PEjHv3JGjcWNpYEEkif2w8NXV4kbhnoGgu',
-        //                     senderPublicKey: '9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5',
-        //                     buyMatcherFee: 0.00299999,
-        //                     sellMatcherFee: 0.00299999,
-        //                     price: 0.00011942,
-        //                     amount: 28.14444817,
-        //                     order1:
-        //                     { id: 'Ep9kpFiE7Bnrqy25ourKQ6Pm4NfaBxGs35RT4nYSuHB',
-        //                         senderPublicKey: '8hJheLKw2MFtRLmutxj5BGSfNmDrUMFGC4dciGuzscnB',
-        //                         matcherPublicKey: '9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5',
-        //                         assetPair: [Object],
-        //                         orderType: 'buy',
-        //                         price: 0.00011942,
-        //                         sender: '3P7m7XGnHd7QmV7V9av2vZ2NMRWSxjP4ZHv',
-        //                         amount: 28.14449129,
-        //                         timestamp: '2020-06-09T19:32:50.894Z',
-        //                         expiration: '2020-06-10T12:29:30.894Z',
-        //                         matcherFee: 0.003,
-        //                         signature: '58WkWMM6phN7cz2oThtkQS5ZNNmk1f51Q4i8fZMmRd3tQSjib2MFD66xXzZ7KVZYMYs3eTCsLiBPtyrgS3wFgevL',
-        //                         matcherFeeAssetId: null },
-        //                     order2:
-        //                     { id: '2VCRHac9K3Bpm9py7GiA4hg1FWe7hJNP9YsqSuWXp3K9',
-        //                         senderPublicKey: 'Au6avw8iaNj8e3F9Gwj2BR3CWNkwvADT3xvJnSocWjZV',
-        //                         matcherPublicKey: '9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5',
-        //                         assetPair: [Object],
-        //                         orderType: 'sell',
-        //                         price: 0.00011942,
-        //                         sender: '3PQznCuKfvsUeF5Jtja6cVmDeGkXes3Xbfk',
-        //                         amount: 28.14449129,
-        //                         timestamp: '2020-06-09T19:32:50.892Z',
-        //                         expiration: '2020-06-10T12:29:30.892Z',
-        //                         matcherFee: 0.003,
-        //                         signature: '61kzfUFrtLTLQk1X1CRru1JsadpFLCqrHbnbvhPSsLoLBB1oE2GtBDXua344AYiZq9urGb3cZTgj2hyYkzeNvUDH',
-        //                         matcherFeeAssetId: null } } }
-        //    ]
         const data = this.safeValue (response, 'data');
         return this.parseTrades (data, market, since, limit);
     }
