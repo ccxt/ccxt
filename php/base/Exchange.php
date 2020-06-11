@@ -1251,7 +1251,7 @@ class Exchange {
         return json_decode($json_string, $as_associative_array);
     }
 
-/*    public function print() {
+    public function print() {
         $args = func_get_args();
         if (is_array($args)) {
             $array = array();
@@ -1260,7 +1260,7 @@ class Exchange {
             }
             echo implode(' ', $array), "\n";
         }
-    }*/
+    }
 
     public function fetch($url, $method = 'GET', $headers = null, $body = null) {
         if ($this->enableRateLimit) {
