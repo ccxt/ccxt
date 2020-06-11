@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.29.69",
+  "version": "1.29.70",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 130+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "dist/ccxt.browser.js",
@@ -26,7 +26,6 @@
     "git-ignore-generated-files": "node build/git-ignore-generated-files",
     "git-unignore-generated-files": "node build/git-ignore-generated-files --unignore",
     "update-badges": "node build/update-badges",
-    "convert-md-2-rst": "bash build/convert-md-2-rst",
     "transpile": "node build/transpile",
     "vss": "node build/vss",
     "lint": "eslint",
