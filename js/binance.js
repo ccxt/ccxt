@@ -123,6 +123,7 @@ module.exports = class binance extends Exchange {
                         'sub-account/margin/account',
                         'sub-account/margin/accountSummary',
                         'sub-account/status',
+                        'sub-account/transfer/subUserHistory',
                         // lending endpoints
                         'lending/daily/product/list',
                         'lending/daily/userLeftQuota',
