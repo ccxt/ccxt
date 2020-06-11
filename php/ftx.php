@@ -98,6 +98,7 @@ class ftx extends Exchange {
                         'lt/redemptions',
                         'subaccounts',
                         'subaccounts/{nickname}/balances',
+                        'otc/quotes/{quoteId}',
                     ),
                     'post' => array(
                         'account/leverage',
@@ -109,6 +110,8 @@ class ftx extends Exchange {
                         'subaccounts',
                         'subaccounts/update_name',
                         'subaccounts/transfer',
+                        'otc/quotes/{quote_id}/accept',
+                        'otc/quotes',
                     ),
                     'delete' => array(
                         'orders/{order_id}',
@@ -516,12 +519,29 @@ class ftx extends Exchange {
         );
     }
 
+    public function get_market_id($symbol, $key, $params = array ()) {
+        $parts = $this->get_market_params($symbol, $key, $params);
+        return $this->safe_string($parts, 1, $symbol);
+    }
+
+    public function get_market_params($symbol, $key, $params = array ()) {
+        $market = null;
+        $marketId = null;
+        if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
+            $market = $this->market($symbol);
+            $marketId = $market['id'];
+        } else {
+            $marketId = $this->safe_string($params, $key, $symbol);
+        }
+        return array( $market, $marketId );
+    }
+
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market($symbol);
+        list($market, $marketId) = $this->get_market_params($symbol, 'market_name', $params);
         $request = array(
-            'market_name' => $market['id'],
             'resolution' => $this->timeframes[$timeframe],
+            'market_name' => $marketId,
         );
         // max 1501 candles, including the current candle when $since is not specified
         $limit = ($limit === null) ? 1501 : $limit;
@@ -561,7 +581,7 @@ class ftx extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($result, $market);
     }
 
     public function parse_trade($trade, $market = null) {
@@ -657,9 +677,9 @@ class ftx extends Exchange {
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market($symbol);
+        list($market, $marketId) = $this->get_market_params($symbol, 'market_name', $params);
         $request = array(
-            'market_name' => $market['id'],
+            'market_name' => $marketId,
         );
         if ($since !== null) {
             $request['start_time'] = intval ($since / 1000);
@@ -907,6 +927,11 @@ class ftx extends Exchange {
             // 'postOnly' => false, // optional, default is false, limit or $market orders only
             // 'clientId' => 'abcdef0123456789', // string, optional, client order id, limit or $market orders only
         );
+        $clientOrderId = $this->safe_string_2($params, 'clientId', 'clientOrderId');
+        if ($clientOrderId !== null) {
+            $request['clientId'] = $clientOrderId;
+            $params = $this->omit($params, array( 'clientId', 'clientOrderId' ));
+        }
         $priceToPrecision = null;
         if ($price !== null) {
             $priceToPrecision = floatval ($this->price_to_precision($symbol, $price));
@@ -993,10 +1018,17 @@ class ftx extends Exchange {
         $defaultMethod = $this->safe_string($options, 'method', 'privateDeleteOrdersOrderId');
         $method = $this->safe_string($params, 'method', $defaultMethod);
         $type = $this->safe_value($params, 'type');
-        if (($type === 'stop') || ($type === 'trailingStop') || ($type === 'takeProfit')) {
-            $method = 'privateDeleteConditionalOrdersOrderId';
+        $clientOrderId = $this->safe_value_2($params, 'client_order_id', 'clientOrderId');
+        if ($clientOrderId === null) {
+            $request['order_id'] = intval ($id);
+            if (($type === 'stop') || ($type === 'trailingStop') || ($type === 'takeProfit')) {
+                $method = 'privateDeleteConditionalOrdersOrderId';
+            }
+        } else {
+            $request['client_order_id'] = $clientOrderId;
+            $method = 'privateDeleteOrdersByClientIdClientOrderId';
         }
-        $query = $this->omit($params, array( 'method', 'type' ));
+        $query = $this->omit($params, array( 'method', 'type', 'client_order_id', 'clientOrderId' ));
         $response = $this->$method (array_merge($request, $query));
         //
         //     {
@@ -1011,14 +1043,13 @@ class ftx extends Exchange {
     public function cancel_all_orders($symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
-            // 'market' => $market['id'], // optional
+            // 'market' => market['id'], // optional
             'conditionalOrdersOnly' => false, // cancel conditional orders only
             'limitOrdersOnly' => false, // cancel existing limit orders (non-conditional orders) only
         );
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['market'] = $market['id'];
+        $marketId = $this->get_market_id($symbol, 'market', $params);
+        if ($marketId !== null) {
+            $request['market'] = $marketId;
         }
         $response = $this->privateDeleteOrders (array_merge($request, $params));
         $result = $this->safe_value($response, 'result', array());
@@ -1033,10 +1064,17 @@ class ftx extends Exchange {
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $request = array(
-            'order_id' => $id,
-        );
-        $response = $this->privateGetOrdersOrderId (array_merge($request, $params));
+        $request = array();
+        $clientOrderId = $this->safe_value_2($params, 'client_order_id', 'clientOrderId');
+        $method = 'privateGetOrdersOrderId';
+        if ($clientOrderId === null) {
+            $request['order_id'] = $id;
+        } else {
+            $request['client_order_id'] = $clientOrderId;
+            $params = $this->omit($params, [ 'client_order_id', 'clientOrderId']);
+            $method = 'privateGetOrdersByClientIdClientOrderId';
+        }
+        $response = $this->$method (array_merge($request, $params));
         //
         //     {
         //         "success" => true,
@@ -1067,10 +1105,9 @@ class ftx extends Exchange {
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array();
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['market'] = $market['id'];
+        list($market, $marketId) = $this->get_market_params($symbol, 'market', $params);
+        if ($marketId !== null) {
+            $request['market'] = $marketId;
         }
         // support for canceling conditional orders
         // https://github.com/ccxt/ccxt/issues/6669
@@ -1115,10 +1152,9 @@ class ftx extends Exchange {
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array();
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['market'] = $market['id'];
+        list($market, $marketId) = $this->get_market_params($symbol, 'market', $params);
+        if ($marketId !== null) {
+            $request['market'] = $marketId;
         }
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100, max 100
@@ -1168,10 +1204,11 @@ class ftx extends Exchange {
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'market' => $market['id'],
-        );
+        list($market, $marketId) = $this->get_market_params($symbol, 'market', $params);
+        $request = array();
+        if ($marketId !== null) {
+            $request['market'] = $marketId;
+        }
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
@@ -1217,6 +1254,9 @@ class ftx extends Exchange {
             // 'password' => 'string', // optional withdrawal password if it is required for your account
             // 'code' => '192837', // optional 2fa $code if it is required for your account
         );
+        if ($this->password !== null) {
+            $request['password'] = $this->password;
+        }
         if ($tag !== null) {
             $request['tag'] = $tag;
         }
@@ -1318,6 +1358,7 @@ class ftx extends Exchange {
         $address = $this->safe_string($transaction, 'address');
         $tag = $this->safe_string($transaction, 'tag');
         $fee = $this->safe_float($transaction, 'fee');
+        $type = (is_array($transaction) && array_key_exists('confirmations', $transaction)) ? 'deposit' : 'withdrawal';
         return array(
             'info' => $transaction,
             'id' => $id,
@@ -1325,12 +1366,12 @@ class ftx extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'addressFrom' => null,
-            'address' => null,
+            'address' => $address,
             'addressTo' => $address,
             'tagFrom' => null,
             'tag' => $tag,
-            'tagTo' => null,
-            'type' => null,
+            'tagTo' => $tag,
+            'type' => $type,
             'amount' => $amount,
             'currency' => $code,
             'status' => $status,

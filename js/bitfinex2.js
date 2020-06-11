@@ -690,7 +690,14 @@ module.exports = class bitfinex2 extends bitfinex {
             'limit': limit,
         };
         const response = await this.publicGetCandlesTradeTimeframeSymbolHist (this.extend (request, params));
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        //
+        //     [
+        //         [1591503840000,0.025069,0.025068,0.025069,0.025068,1.97828998],
+        //         [1591504500000,0.025065,0.025065,0.025065,0.025065,1.0164],
+        //         [1591504620000,0.025062,0.025062,0.025062,0.025062,0.5],
+        //     ]
+        //
+        return this.parseOHLCVs (response, market);
     }
 
     parseOrderStatus (status) {
@@ -1068,14 +1075,19 @@ module.exports = class bitfinex2 extends bitfinex {
             id = undefined;
             status = 'failed';
         }
+        const tag = this.safeString (data, 3);
         return {
             'info': transaction,
             'id': id,
             'txid': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'addressFrom': undefined,
             'address': undefined, // this is actually the tag for XRP transfers (the address is missing)
-            'tag': this.safeString (data, 3), // refix it properly for the tag from description
+            'addressTo': undefined,
+            'tagFrom': undefined,
+            'tag': tag, // refix it properly for the tag from description
+            'tagTo': tag,
             'type': 'withdrawal',
             'amount': amount,
             'currency': code,

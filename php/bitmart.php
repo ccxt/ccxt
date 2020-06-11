@@ -306,7 +306,7 @@ class bitmart extends Exchange {
         //     }
         //
         $timestamp = $this->safe_integer($ticker, 'closeTime', $this->milliseconds());
-        $marketId = $this->safe_string($ticker, 'pair');
+        $marketId = $this->safe_string_2($ticker, 'pair', 'symbol_id');
         $symbol = null;
         if ($marketId !== null) {
             if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
@@ -626,6 +626,16 @@ class bitmart extends Exchange {
     }
 
     public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+        //
+        //     {
+        //         "timestamp":1525761000000,
+        //         "open_price":"0.010130",
+        //         "highest_price":"0.010130",
+        //         "lowest_price":"0.010130",
+        //         "current_price":"0.010130",
+        //         "volume":"0.000000"
+        //     }
+        //
         return array(
             $this->safe_integer($ohlcv, 'timestamp'),
             $this->safe_float($ohlcv, 'open_price'),
@@ -669,7 +679,7 @@ class bitmart extends Exchange {
         //         }
         //     )
         //
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($response, $market);
     }
 
     public function fetch_balance($params = array ()) {

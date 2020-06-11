@@ -305,15 +305,14 @@ class qtrade extends Exchange {
         //         "market_volume":"0.08465047"
         //     }
         //
-        $result = array(
+        return array(
             $this->parse8601($this->safe_string($ohlcv, 'time')),
             $this->safe_float($ohlcv, 'open'),
             $this->safe_float($ohlcv, 'high'),
             $this->safe_float($ohlcv, 'low'),
             $this->safe_float($ohlcv, 'close'),
-            $this->safe_float($ohlcv, 'volume'),
+            $this->safe_float($ohlcv, 'market_volume'),
         );
-        return $result;
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {
@@ -337,7 +336,7 @@ class qtrade extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $ohlcvs = $this->safe_value($data, 'slices', array());
-        return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($ohlcvs, $market);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -736,6 +735,7 @@ class qtrade extends Exchange {
             $code = $this->safe_currency_code($currencyId);
             $account = (is_array($result) && array_key_exists($code, $result)) ? $result[$code] : $this->account();
             $account['free'] = $this->safe_float($balance, 'balance');
+            $account['used'] = 0;
             $result[$code] = $account;
         }
         $balances = $this->safe_value($data, 'order_balances', array());

@@ -645,8 +645,8 @@ module.exports = class bigone extends Exchange {
         //         ]
         //     }
         //
-        const ohlcvs = this.safeValue (response, 'data', []);
-        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOHLCVs (data, market);
     }
 
     async fetchBalance (params = {}) {
@@ -1071,6 +1071,24 @@ module.exports = class bigone extends Exchange {
         //         "txid": "0x4643bb6b393ac20a6175c713175734a72517c63d6f73a3ca90a15356f2e967da0",
         //     }
         //
+        // withdraw
+        //
+        //     {
+        //         "id":1077391,
+        //         "customer_id":1082679,
+        //         "amount":"21.9000000000000000",
+        //         "txid":"",
+        //         "is_internal":false,
+        //         "kind":"on_chain",
+        //         "state":"PENDING",
+        //         "inserted_at":"2020-06-03T00:50:57+00:00",
+        //         "updated_at":"2020-06-03T00:50:57+00:00",
+        //         "memo":"",
+        //         "target_address":"rDYtYT3dBeuw376rvHqoZBKW3UmvguoBAf",
+        //         "fee":"0.1000000000000000",
+        //         "asset_symbol":"XRP"
+        //     }
+        //
         const currencyId = this.safeString (transaction, 'asset_symbol');
         const code = this.safeCurrencyCode (currencyId);
         const id = this.safeInteger (transaction, 'id');
@@ -1204,35 +1222,25 @@ module.exports = class bigone extends Exchange {
         //     {
         //         "code":0,
         //         "message":"",
-        //         "data":[
-        //             {
-        //                 "id":1,
-        //                 "customer_id":7,
-        //                 "asset_uuid":"50293b12-5be8-4f5b-b31d-d43cdd5ccc29",
-        //                 "amount":"100",
-        //                 "recipient":null,
-        //                 "state":"PENDING",
-        //                 "is_internal":true,
-        //                 "note":"asdsadsad",
-        //                 "kind":"on_chain",
-        //                 "txid":"asdasdasdsadsadsad",
-        //                 "confirms":5,
-        //                 "inserted_at":null,
-        //                 "updated_at":null,
-        //                 "completed_at":null,
-        //                 "commision":null,
-        //                 "explain":""
-        //             }
-        //         ]
+        //         "data":{
+        //             "id":1077391,
+        //             "customer_id":1082679,
+        //             "amount":"21.9000000000000000",
+        //             "txid":"",
+        //             "is_internal":false,
+        //             "kind":"on_chain",
+        //             "state":"PENDING",
+        //             "inserted_at":"2020-06-03T00:50:57+00:00",
+        //             "updated_at":"2020-06-03T00:50:57+00:00",
+        //             "memo":"",
+        //             "target_address":"rDYtYT3dBeuw376rvHqoZBKW3UmvguoBAf",
+        //             "fee":"0.1000000000000000",
+        //             "asset_symbol":"XRP"
+        //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
-        const dataLength = data.length;
-        if (dataLength < 1) {
-            throw new ExchangeError (this.id + ' withdraw() returned an empty response');
-        }
-        const transaction = data[0];
-        return this.parseTransaction (transaction, currency);
+        const data = this.safeValue (response, 'data', {});
+        return this.parseTransaction (data, currency);
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

@@ -28,7 +28,7 @@ class indodax extends Exchange {
                 'fetchCurrencies' => false,
                 'withdraw' => true,
             ),
-            'version' => '1.8', // as of 9 April 2018
+            'version' => '2.0', // as of 9 April 2018
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/37443283-2fddd0e4-281c-11e8-9741-b4f1419001b5.jpg',
                 'api' => array(
@@ -42,6 +42,8 @@ class indodax extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
+                        'server_time',
+                        'pairs',
                         '{pair}/ticker',
                         '{pair}/trades',
                         '{pair}/depth',
@@ -157,7 +159,35 @@ class indodax extends Exchange {
                     'Minimum order' => '\\ccxt\\InvalidOrder',
                 ),
             ),
+            // exchange-specific options
+            'options' => array(
+                'recvWindow' => 5 * 1000, // default 5 sec
+                'timeDifference' => 0, // the difference between system clock and exchange clock
+                'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
+            ),
         ));
+    }
+
+    public function nonce() {
+        return $this->milliseconds() - $this->options['timeDifference'];
+    }
+
+    public function fetch_time($params = array ()) {
+        $response = $this->publicGetServerTime ($params);
+        //
+        //     {
+        //         "timezone" => "UTC",
+        //         "server_time" => 1571205969552
+        //     }
+        //
+        return $this->safe_integer($response, 'server_time');
+    }
+
+    public function load_time_difference($params = array ()) {
+        $serverTime = $this->fetch_time($params);
+        $after = $this->milliseconds();
+        $this->options['timeDifference'] = $after - $serverTime;
+        return $this->options['timeDifference'];
     }
 
     public function fetch_balance($params = array ()) {
@@ -527,7 +557,8 @@ class indodax extends Exchange {
             $this->check_required_credentials();
             $body = $this->urlencode(array_merge(array(
                 'method' => $path,
-                'nonce' => $this->nonce(),
+                'timestamp' => $this->nonce(),
+                'recvWindow' => $this->options['recvWindow'],
             ), $params));
             $headers = array(
                 'Content-Type' => 'application/x-www-form-urlencoded',

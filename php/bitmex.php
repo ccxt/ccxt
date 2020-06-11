@@ -34,6 +34,9 @@ class bitmex extends Exchange {
                 'fetchMyTrades' => true,
                 'fetchLedger' => true,
                 'fetchTransactions' => 'emulated',
+                'createOrder' => true,
+                'cancelOrder' => true,
+                'cancelAllOrders' => true,
             ),
             'timeframes' => array(
                 '1m' => '1m',
@@ -880,9 +883,25 @@ class bitmex extends Exchange {
     }
 
     public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
-        $timestamp = $this->parse8601($this->safe_string($ohlcv, 'timestamp'));
+        //
+        //     {
+        //         "timestamp":"2015-09-25T13:38:00.000Z",
+        //         "symbol":"XBTUSD",
+        //         "open":237.45,
+        //         "high":237.45,
+        //         "low":237.45,
+        //         "close":237.45,
+        //         "trades":0,
+        //         "volume":0,
+        //         "vwap":null,
+        //         "lastSize":null,
+        //         "turnover":0,
+        //         "homeNotional":0,
+        //         "foreignNotional":0
+        //     }
+        //
         return array(
-            $timestamp,
+            $this->parse8601($this->safe_string($ohlcv, 'timestamp')),
             $this->safe_float($ohlcv, 'open'),
             $this->safe_float($ohlcv, 'high'),
             $this->safe_float($ohlcv, 'low'),
@@ -925,7 +944,14 @@ class bitmex extends Exchange {
             $request['startTime'] = $ymdhms; // starting date $filter for results
         }
         $response = $this->publicGetTradeBucketed (array_merge($request, $params));
-        $result = $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        //
+        //     array(
+        //         array("$timestamp":"2015-09-25T13:38:00.000Z","$symbol":"XBTUSD","open":237.45,"high":237.45,"low":237.45,"close":237.45,"trades":0,"volume":0,"vwap":null,"lastSize":null,"turnover":0,"homeNotional":0,"foreignNotional":0),
+        //         array("$timestamp":"2015-09-25T13:39:00.000Z","$symbol":"XBTUSD","open":237.45,"high":237.45,"low":237.45,"close":237.45,"trades":0,"volume":0,"vwap":null,"lastSize":null,"turnover":0,"homeNotional":0,"foreignNotional":0),
+        //         array("$timestamp":"2015-09-25T13:40:00.000Z","$symbol":"XBTUSD","open":237.45,"high":237.45,"low":237.45,"close":237.45,"trades":0,"volume":0,"vwap":null,"lastSize":null,"turnover":0,"homeNotional":0,"foreignNotional":0)
+        //     )
+        //
+        $result = $this->parse_ohlcvs($response, $market);
         if ($fetchOHLCVOpenTimestamp) {
             // bitmex returns the candle's close $timestamp - https://github.com/ccxt/ccxt/issues/4446
             // we can emulate the open $timestamp by shifting all the timestamps one place
@@ -1193,6 +1219,11 @@ class bitmex extends Exchange {
         if ($price !== null) {
             $request['price'] = $price;
         }
+        $clientOrderId = $this->safe_string_2($params, 'clOrdID', 'clientOrderId');
+        if ($clientOrderId !== null) {
+            $request['clOrdID'] = $clientOrderId;
+            $params = $this->omit($params, array( 'clOrdID', 'clientOrderId' ));
+        }
         $response = $this->privatePostOrder (array_merge($request, $params));
         $order = $this->parse_order($response);
         $id = $this->safe_string($order, 'id');
@@ -1202,9 +1233,16 @@ class bitmex extends Exchange {
 
     public function edit_order($id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         $this->load_markets();
-        $request = array(
-            'orderID' => $id,
-        );
+        $request = array();
+        $origClOrdID = $this->safe_string_2($params, 'origClOrdID', 'clientOrderId');
+        if ($origClOrdID !== null) {
+            $request['origClOrdID'] = $origClOrdID;
+            $clientOrderId = $this->safe_string($params, 'clOrdID', 'clientOrderId');
+            if ($clientOrderId !== null) {
+                $request['clOrdID'] = $clientOrderId;
+            }
+            $params = $this->omit($params, array( 'origClOrdID', 'clOrdID', 'clientOrderId' ));
+        }
         if ($amount !== null) {
             $request['orderQty'] = $amount;
         }
@@ -1220,15 +1258,16 @@ class bitmex extends Exchange {
     public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         // https://github.com/ccxt/ccxt/issues/6507
-        $clOrdID = $this->safe_value($params, 'clOrdID');
+        $clientOrderId = $this->safe_string_2($params, 'clOrdID', 'clientOrderId');
         $request = array();
-        if ($clOrdID === null) {
+        if ($clientOrderId === null) {
             $request['orderID'] = $id;
         } else {
-            $request['clOrdID'] = $clOrdID;
+            $request['clOrdID'] = $clientOrderId;
+            $params = $this->omit($params, array( 'clOrdID', 'clientOrderId' ));
         }
         $response = $this->privateDeleteOrder (array_merge($request, $params));
-        $order = $response[0];
+        $order = $this->safe_value($response, 0, array());
         $error = $this->safe_string($order, 'error');
         if ($error !== null) {
             if (mb_strpos($error, 'Unable to cancel $order due to existing state') !== false) {
@@ -1238,6 +1277,57 @@ class bitmex extends Exchange {
         $order = $this->parse_order($order);
         $this->orders[$order['id']] = $order;
         return array_merge(array( 'info' => $response ), $order);
+    }
+
+    public function cancel_all_orders($symbol = null, $params = array ()) {
+        $this->load_markets();
+        $request = array();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        $response = $this->privateDeleteOrderAll (array_merge($request, $params));
+        //
+        //     array(
+        //         {
+        //             "orderID" => "string",
+        //             "clOrdID" => "string",
+        //             "clOrdLinkID" => "string",
+        //             "account" => 0,
+        //             "$symbol" => "string",
+        //             "side" => "string",
+        //             "simpleOrderQty" => 0,
+        //             "orderQty" => 0,
+        //             "price" => 0,
+        //             "displayQty" => 0,
+        //             "stopPx" => 0,
+        //             "pegOffsetValue" => 0,
+        //             "pegPriceType" => "string",
+        //             "currency" => "string",
+        //             "settlCurrency" => "string",
+        //             "ordType" => "string",
+        //             "timeInForce" => "string",
+        //             "execInst" => "string",
+        //             "contingencyType" => "string",
+        //             "exDestination" => "string",
+        //             "ordStatus" => "string",
+        //             "triggered" => "string",
+        //             "workingIndicator" => true,
+        //             "ordRejReason" => "string",
+        //             "simpleLeavesQty" => 0,
+        //             "leavesQty" => 0,
+        //             "simpleCumQty" => 0,
+        //             "cumQty" => 0,
+        //             "avgPx" => 0,
+        //             "multiLegReportingType" => "string",
+        //             "text" => "string",
+        //             "transactTime" => "2020-06-01T09:36:35.290Z",
+        //             "timestamp" => "2020-06-01T09:36:35.290Z"
+        //         }
+        //     )
+        //
+        return $this->parse_orders($response, $market);
     }
 
     public function is_fiat($currency) {

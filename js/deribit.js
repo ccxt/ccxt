@@ -815,7 +815,7 @@ module.exports = class deribit extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         const ohlcvs = this.convertTradingViewToOHLCV (result, 'ticks', 'open', 'high', 'low', 'close', 'volume', true);
-        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
+        return this.parseOHLCVs (ohlcvs, market);
     }
 
     parseTrade (trade, market = undefined) {

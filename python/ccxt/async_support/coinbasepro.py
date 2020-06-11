@@ -484,13 +484,23 @@ class coinbasepro(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+        #
+        #     [
+        #         1591514160,
+        #         0.02507,
+        #         0.02507,
+        #         0.02507,
+        #         0.02507,
+        #         0.02816506
+        #     ]
+        #
         return [
-            ohlcv[0] * 1000,
-            ohlcv[3],
-            ohlcv[2],
-            ohlcv[1],
-            ohlcv[4],
-            ohlcv[5],
+            self.safe_timestamp(ohlcv, 0),
+            self.safe_float(ohlcv, 3),
+            self.safe_float(ohlcv, 2),
+            self.safe_float(ohlcv, 1),
+            self.safe_float(ohlcv, 4),
+            self.safe_float(ohlcv, 5),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -508,7 +518,14 @@ class coinbasepro(Exchange):
                 limit = 300  # max = 300
             request['end'] = self.iso8601(self.sum((limit - 1) * granularity * 1000, since))
         response = await self.publicGetProductsIdCandles(self.extend(request, params))
-        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+        #
+        #     [
+        #         [1591514160,0.02507,0.02507,0.02507,0.02507,0.02816506],
+        #         [1591514100,0.02507,0.02507,0.02507,0.02507,1.63830323],
+        #         [1591514040,0.02505,0.02507,0.02505,0.02507,0.19918178]
+        #     ]
+        #
+        return self.parse_ohlcvs(response, market)
 
     async def fetch_time(self, params={}):
         response = await self.publicGetTime(params)

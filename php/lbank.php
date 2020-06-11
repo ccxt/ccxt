@@ -327,14 +327,24 @@ class lbank extends Exchange {
     }
 
     public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
-        return [
-            $ohlcv[0] * 1000,
-            $ohlcv[1],
-            $ohlcv[2],
-            $ohlcv[3],
-            $ohlcv[4],
-            $ohlcv[5],
-        ];
+        //
+        //     array(
+        //         1590969600,
+        //         0.02451657,
+        //         0.02452675,
+        //         0.02443701,
+        //         0.02447814,
+        //         238.38210000
+        //     )
+        //
+        return array(
+            $this->safe_timestamp($ohlcv, 0),
+            $this->safe_float($ohlcv, 1),
+            $this->safe_float($ohlcv, 2),
+            $this->safe_float($ohlcv, 3),
+            $this->safe_float($ohlcv, 4),
+            $this->safe_float($ohlcv, 5),
+        );
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '5m', $since = null, $limit = 1000, $params = array ()) {
@@ -353,7 +363,14 @@ class lbank extends Exchange {
             'time' => intval ($since / 1000),
         );
         $response = $this->publicGetKline (array_merge($request, $params));
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        //
+        //     [
+        //         [1590969600,0.02451657,0.02452675,0.02443701,0.02447814,238.38210000],
+        //         [1590969660,0.02447814,0.02449883,0.02443209,0.02445973,212.40270000],
+        //         [1590969720,0.02445973,0.02452067,0.02445909,0.02446151,266.16920000],
+        //     ]
+        //
+        return $this->parse_ohlcvs($response, $market);
     }
 
     public function fetch_balance($params = array ()) {

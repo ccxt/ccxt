@@ -451,6 +451,7 @@ module.exports = class exmo extends Exchange {
                     '50054': InsufficientFunds,
                     '50304': OrderNotFound, // "Order was not found '123456789'" (fetching order trades for an order that does not have trades yet)
                     '50173': OrderNotFound, // "Order with id X was not found." (cancelling non-existent, closed and cancelled order)
+                    '50277': InvalidOrder,
                     '50319': InvalidOrder, // Price by order is less than permissible minimum for this pair
                     '50321': InvalidOrder, // Price by order is more than permissible maximum for this pair
                 },
@@ -722,7 +723,7 @@ module.exports = class exmo extends Exchange {
         //     }
         //
         const candles = this.safeValue (response, 'candles', []);
-        return this.parseOHLCVs (candles, market, timeframe, since, limit);
+        return this.parseOHLCVs (candles, market);
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '5m', since = undefined, limit = undefined) {
@@ -1328,15 +1329,15 @@ module.exports = class exmo extends Exchange {
             }
             lastTradeTimestamp = trades[numTransactions - 1]['timestamp'];
         }
+        let status = this.safeString (order, 'status'); // in case we need to redefine it for canceled orders
         let remaining = undefined;
         if (amount !== undefined) {
             remaining = amount - filled;
-        }
-        let status = this.safeString (order, 'status'); // in case we need to redefine it for canceled orders
-        if (filled >= amount) {
-            status = 'closed';
-        } else {
-            status = 'open';
+            if (filled >= amount) {
+                status = 'closed';
+            } else {
+                status = 'open';
+            }
         }
         if (market === undefined) {
             market = this.getMarketFromTrades (trades);

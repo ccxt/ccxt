@@ -59,7 +59,7 @@ module.exports = class poloniex extends Exchange {
                 'www': 'https://www.poloniex.com',
                 'doc': 'https://docs.poloniex.com',
                 'fees': 'https://poloniex.com/fees',
-                'referral': 'https://www.poloniex.com/?utm_source=ccxt&utm_medium=web',
+                'referral': 'https://poloniex.com/signup?c=UBFZJRPJ',
             },
             'api': {
                 'public': {
@@ -150,6 +150,17 @@ module.exports = class poloniex extends Exchange {
                 'STR': 'XLM',
                 'SOC': 'SOCC',
                 'XAP': 'API Coin',
+                // this is not documented in the API docs for Poloniex
+                // https://github.com/ccxt/ccxt/issues/7084
+                // when the user calls withdraw ('USDT', amount, address, tag, params)
+                // with params = { 'currencyToWithdrawAs': 'USDTTRON' }
+                // or params = { 'currencyToWithdrawAs': 'USDTETH' }
+                // fetchWithdrawals ('USDT') returns the corresponding withdrawals
+                // with a USDTTRON or a USDTETH currency id, respectfully
+                // therefore we have map them back to the original code USDT
+                // otherwise the returned withdrawals are filtered out
+                'USDTTRON': 'USDT',
+                'USDTETH': 'USDT',
             },
             'options': {
                 'limits': {
@@ -208,6 +219,18 @@ module.exports = class poloniex extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '5m', since = undefined, limit = undefined) {
+        //
+        //     {
+        //         "date":1590913773,
+        //         "high":0.02491611,
+        //         "low":0.02491611,
+        //         "open":0.02491611,
+        //         "close":0.02491611,
+        //         "volume":0,
+        //         "quoteVolume":0,
+        //         "weightedAverage":0.02491611
+        //     }
+        //
         return [
             this.safeTimestamp (ohlcv, 'date'),
             this.safeFloat (ohlcv, 'open'),
@@ -240,7 +263,14 @@ module.exports = class poloniex extends Exchange {
             }
         }
         const response = await this.publicGetReturnChartData (this.extend (request, params));
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        //
+        //     [
+        //         {"date":1590913773,"high":0.02491611,"low":0.02491611,"open":0.02491611,"close":0.02491611,"volume":0,"quoteVolume":0,"weightedAverage":0.02491611},
+        //         {"date":1590913800,"high":0.02495324,"low":0.02489501,"open":0.02491797,"close":0.02493693,"volume":0.0927415,"quoteVolume":3.7227869,"weightedAverage":0.02491185},
+        //         {"date":1590914100,"high":0.02498596,"low":0.02488503,"open":0.02493033,"close":0.02497896,"volume":0.21196348,"quoteVolume":8.50291888,"weightedAverage":0.02492832},
+        //     ]
+        //
+        return this.parseOHLCVs (response, market);
     }
 
     async fetchMarkets (params = {}) {
@@ -1229,10 +1259,17 @@ module.exports = class poloniex extends Exchange {
             'amount': amount,
             'address': address,
         };
-        if (tag) {
+        if (tag !== undefined) {
             request['paymentId'] = tag;
         }
         const response = await this.privatePostWithdraw (this.extend (request, params));
+        //
+        //     {
+        //         response: 'Withdrew 1.00000000 USDT.',
+        //         email2FA: false,
+        //         withdrawalNumber: 13449869
+        //     }
+        //
         return {
             'info': response,
             'id': this.safeString (response, 'withdrawalNumber'),
@@ -1253,44 +1290,75 @@ module.exports = class poloniex extends Exchange {
         }
         const response = await this.privatePostReturnDepositsWithdrawals (this.extend (request, params));
         //
-        //     {    deposits: [ {      currency: "BTC",
-        //                              address: "1MEtiqJWru53FhhHrfJPPvd2tC3TPDVcmW",
-        //                               amount: "0.01063000",
-        //                        confirmations:  1,
-        //                                 txid: "952b0e1888d6d491591facc0d37b5ebec540ac1efb241fdbc22bcc20d1822fb6",
-        //                            timestamp:  1507916888,
-        //                               status: "COMPLETE"                                                          },
-        //                      {      currency: "ETH",
-        //                              address: "0x20108ba20b65c04d82909e91df06618107460197",
-        //                               amount: "4.00000000",
-        //                        confirmations:  38,
-        //                                 txid: "0x4be260073491fe63935e9e0da42bd71138fdeb803732f41501015a2d46eb479d",
-        //                            timestamp:  1525060430,
-        //                               status: "COMPLETE"                                                            }  ],
-        //       withdrawals: [ { withdrawalNumber:  8224394,
-        //                                currency: "EMC2",
-        //                                 address: "EYEKyCrqTNmVCpdDV8w49XvSKRP9N3EUyF",
-        //                                  amount: "63.10796020",
-        //                                     fee: "0.01000000",
-        //                               timestamp:  1510819838,
-        //                                  status: "COMPLETE: d37354f9d02cb24d98c8c4fc17aa42f475530b5727effdf668ee5a43ce667fd6",
-        //                               ipAddress: "5.220.220.200"                                                               },
-        //                      { withdrawalNumber:  9290444,
-        //                                currency: "ETH",
-        //                                 address: "0x191015ff2e75261d50433fbd05bd57e942336149",
-        //                                  amount: "0.15500000",
-        //                                     fee: "0.00500000",
-        //                               timestamp:  1514099289,
-        //                                  status: "COMPLETE: 0x12d444493b4bca668992021fd9e54b5292b8e71d9927af1f076f554e4bea5b2d",
-        //                               ipAddress: "5.228.227.214"                                                                 },
-        //                      { withdrawalNumber:  11518260,
-        //                                currency: "BTC",
-        //                                 address: "8JoDXAmE1GY2LRK8jD1gmAmgRPq54kXJ4t",
-        //                                  amount: "0.20000000",
-        //                                     fee: "0.00050000",
-        //                               timestamp:  1527918155,
-        //                                  status: "COMPLETE: 1864f4ebb277d90b0b1ff53259b36b97fa1990edc7ad2be47c5e0ab41916b5ff",
-        //                               ipAddress: "211.8.195.26"                                                                }    ] }
+        //     {
+        //         "adjustments":[],
+        //         "deposits":[
+        //             {
+        //                 currency: "BTC",
+        //                 address: "1MEtiqJWru53FhhHrfJPPvd2tC3TPDVcmW",
+        //                 amount: "0.01063000",
+        //                 confirmations:  1,
+        //                 txid: "952b0e1888d6d491591facc0d37b5ebec540ac1efb241fdbc22bcc20d1822fb6",
+        //                 timestamp:  1507916888,
+        //                 status: "COMPLETE"
+        //             },
+        //             {
+        //                 currency: "ETH",
+        //                 address: "0x20108ba20b65c04d82909e91df06618107460197",
+        //                 amount: "4.00000000",
+        //                 confirmations: 38,
+        //                 txid: "0x4be260073491fe63935e9e0da42bd71138fdeb803732f41501015a2d46eb479d",
+        //                 timestamp: 1525060430,
+        //                 status: "COMPLETE"
+        //             }
+        //         ],
+        //         "withdrawals":[
+        //             {
+        //                 "withdrawalNumber":13449869,
+        //                 "currency":"USDTTRON", // not documented in API docs, see commonCurrencies in describe()
+        //                 "address":"TXGaqPW23JdRWhsVwS2mRsGsegbdnAd3Rw",
+        //                 "amount":"1.00000000",
+        //                 "fee":"0.00000000",
+        //                 "timestamp":1591573420,
+        //                 "status":"COMPLETE: dadf427224b3d44b38a2c13caa4395e4666152556ca0b2f67dbd86a95655150f",
+        //                 "ipAddress":"74.116.3.247",
+        //                 "canCancel":0,
+        //                 "canResendEmail":0,
+        //                 "paymentID":null,
+        //                 "scope":"crypto"
+        //             },
+        //             {
+        //                 withdrawalNumber: 8224394,
+        //                 currency: "EMC2",
+        //                 address: "EYEKyCrqTNmVCpdDV8w49XvSKRP9N3EUyF",
+        //                 amount: "63.10796020",
+        //                 fee: "0.01000000",
+        //                 timestamp: 1510819838,
+        //                 status: "COMPLETE: d37354f9d02cb24d98c8c4fc17aa42f475530b5727effdf668ee5a43ce667fd6",
+        //                 ipAddress: "5.220.220.200"
+        //             },
+        //             {
+        //                 withdrawalNumber: 9290444,
+        //                 currency: "ETH",
+        //                 address: "0x191015ff2e75261d50433fbd05bd57e942336149",
+        //                 amount: "0.15500000",
+        //                 fee: "0.00500000",
+        //                 timestamp: 1514099289,
+        //                 status: "COMPLETE: 0x12d444493b4bca668992021fd9e54b5292b8e71d9927af1f076f554e4bea5b2d",
+        //                 ipAddress: "5.228.227.214"
+        //             },
+        //             {
+        //                 withdrawalNumber: 11518260,
+        //                 currency: "BTC",
+        //                 address: "8JoDXAmE1GY2LRK8jD1gmAmgRPq54kXJ4t",
+        //                 amount: "0.20000000",
+        //                 fee: "0.00050000",
+        //                 timestamp: 1527918155,
+        //                 status: "COMPLETE: 1864f4ebb277d90b0b1ff53259b36b97fa1990edc7ad2be47c5e0ab41916b5ff",
+        //                 ipAddress: "211.8.195.26"
+        //             }
+        //         ]
+        //     }
         //
         return response;
     }
@@ -1298,46 +1366,38 @@ module.exports = class poloniex extends Exchange {
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.fetchTransactionsHelper (code, since, limit, params);
-        for (let i = 0; i < response['deposits'].length; i++) {
-            response['deposits'][i]['type'] = 'deposit';
-        }
-        for (let i = 0; i < response['withdrawals'].length; i++) {
-            response['withdrawals'][i]['type'] = 'withdrawal';
-        }
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const withdrawals = this.parseTransactions (response['withdrawals'], currency, since, limit);
-        const deposits = this.parseTransactions (response['deposits'], currency, since, limit);
-        const transactions = this.arrayConcat (deposits, withdrawals);
+        const withdrawals = this.safeValue (response, 'withdrawals', []);
+        const deposits = this.safeValue (response, 'deposits', []);
+        const withdrawalTransactions = this.parseTransactions (withdrawals, currency, since, limit);
+        const depositTransactions = this.parseTransactions (deposits, currency, since, limit);
+        const transactions = this.arrayConcat (depositTransactions, withdrawalTransactions);
         return this.filterByCurrencySinceLimit (this.sortBy (transactions, 'timestamp'), code, since, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         const response = await this.fetchTransactionsHelper (code, since, limit, params);
-        for (let i = 0; i < response['withdrawals'].length; i++) {
-            response['withdrawals'][i]['type'] = 'withdrawal';
-        }
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const withdrawals = this.parseTransactions (response['withdrawals'], currency, since, limit);
-        return this.filterByCurrencySinceLimit (withdrawals, code, since, limit);
+        const withdrawals = this.safeValue (response, 'withdrawals', []);
+        const transactions = this.parseTransactions (withdrawals, currency, since, limit);
+        return this.filterByCurrencySinceLimit (transactions, code, since, limit);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         const response = await this.fetchTransactionsHelper (code, since, limit, params);
-        for (let i = 0; i < response['deposits'].length; i++) {
-            response['deposits'][i]['type'] = 'deposit';
-        }
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const deposits = this.parseTransactions (response['deposits'], currency, since, limit);
-        return this.filterByCurrencySinceLimit (deposits, code, since, limit);
+        const deposits = this.safeValue (response, 'deposits', []);
+        const transactions = this.parseTransactions (deposits, currency, since, limit);
+        return this.filterByCurrencySinceLimit (transactions, code, since, limit);
     }
 
     parseTransactionStatus (status) {
@@ -1394,15 +1454,14 @@ module.exports = class poloniex extends Exchange {
             }
             status = this.parseTransactionStatus (status);
         }
-        const type = this.safeString (transaction, 'type');
+        const defaultType = ('withdrawalNumber' in transaction) ? 'withdrawal' : 'deposit';
+        const type = this.safeString (transaction, 'type', defaultType);
         const id = this.safeString2 (transaction, 'withdrawalNumber', 'depositNumber');
         let amount = this.safeFloat (transaction, 'amount');
         const address = this.safeString (transaction, 'address');
-        let feeCost = this.safeFloat (transaction, 'fee');
-        if (feeCost === undefined) {
-            // according to https://poloniex.com/fees/
-            feeCost = 0; // FIXME: remove hardcoded value that may change any time
-        }
+        const tag = this.safeString (transaction, 'paymentID');
+        // according to https://poloniex.com/fees/
+        const feeCost = this.safeFloat (transaction, 'fee', 0);
         if (type === 'withdrawal') {
             // poloniex withdrawal amount includes the fee
             amount = amount - feeCost;
@@ -1413,7 +1472,7 @@ module.exports = class poloniex extends Exchange {
             'currency': code,
             'amount': amount,
             'address': address,
-            'tag': undefined,
+            'tag': tag,
             'status': status,
             'type': type,
             'updated': undefined,

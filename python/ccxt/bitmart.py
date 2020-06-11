@@ -305,7 +305,7 @@ class bitmart(Exchange):
         #     }
         #
         timestamp = self.safe_integer(ticker, 'closeTime', self.milliseconds())
-        marketId = self.safe_string(ticker, 'pair')
+        marketId = self.safe_string_2(ticker, 'pair', 'symbol_id')
         symbol = None
         if marketId is not None:
             if marketId in self.markets_by_id:
@@ -599,6 +599,16 @@ class bitmart(Exchange):
         return self.fetch_my_trades(symbol, since, limit, self.extend(request, params))
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+        #
+        #     {
+        #         "timestamp":1525761000000,
+        #         "open_price":"0.010130",
+        #         "highest_price":"0.010130",
+        #         "lowest_price":"0.010130",
+        #         "current_price":"0.010130",
+        #         "volume":"0.000000"
+        #     }
+        #
         return [
             self.safe_integer(ohlcv, 'timestamp'),
             self.safe_float(ohlcv, 'open_price'),
@@ -639,7 +649,7 @@ class bitmart(Exchange):
         #         }
         #     ]
         #
-        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+        return self.parse_ohlcvs(response, market)
 
     def fetch_balance(self, params={}):
         self.load_markets()

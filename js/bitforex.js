@@ -381,6 +381,17 @@ module.exports = class bitforex extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        //
+        //     {
+        //         "close":0.02505143,
+        //         "currencyVol":0,
+        //         "high":0.02506422,
+        //         "low":0.02505143,
+        //         "open":0.02506095,
+        //         "time":1591508940000,
+        //         "vol":51.1869
+        //     }
+        //
         return [
             this.safeInteger (ohlcv, 'time'),
             this.safeFloat (ohlcv, 'open'),
@@ -402,8 +413,19 @@ module.exports = class bitforex extends Exchange {
             request['size'] = limit; // default 1, max 600
         }
         const response = await this.publicGetApiV1MarketKline (this.extend (request, params));
-        const ohlcvs = this.safeValue (response, 'data', []);
-        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
+        //
+        //     {
+        //         "data":[
+        //             {"close":0.02505143,"currencyVol":0,"high":0.02506422,"low":0.02505143,"open":0.02506095,"time":1591508940000,"vol":51.1869},
+        //             {"close":0.02503914,"currencyVol":0,"high":0.02506687,"low":0.02503914,"open":0.02505358,"time":1591509000000,"vol":9.1082},
+        //             {"close":0.02505172,"currencyVol":0,"high":0.02507466,"low":0.02503895,"open":0.02506371,"time":1591509060000,"vol":63.7431},
+        //         ],
+        //         "success":true,
+        //         "time":1591509427131
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOHLCVs (data, market);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

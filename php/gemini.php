@@ -277,8 +277,16 @@ class gemini extends Exchange {
         for ($i = 0; $i < count($response); $i++) {
             $id = $response[$i];
             $market = $id;
-            $baseId = mb_substr($id, 0, 3 - 0);
-            $quoteId = mb_substr($id, 3, 6 - 3);
+            $idLength = strlen($id) - 0;
+            $baseId = null;
+            $quoteId = null;
+            if ($idLength === 7) {
+                $baseId = mb_substr($id, 0, 4 - 0);
+                $quoteId = mb_substr($id, 4, 7 - 4);
+            } else {
+                $baseId = mb_substr($id, 0, 3 - 0);
+                $quoteId = mb_substr($id, 3, 6 - 3);
+            }
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
@@ -711,6 +719,13 @@ class gemini extends Exchange {
             'symbol' => $market['id'],
         );
         $response = $this->publicGetV2CandlesSymbolTimeframe (array_merge($request, $params));
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        //
+        //     [
+        //         [1591515000000,0.02509,0.02509,0.02509,0.02509,0],
+        //         [1591514700000,0.02503,0.02509,0.02503,0.02509,44.6405],
+        //         [1591514400000,0.02503,0.02503,0.02503,0.02503,0],
+        //     ]
+        //
+        return $this->parse_ohlcvs($response, $market);
     }
 }

@@ -95,6 +95,7 @@ class mercado(Exchange):
                 'BCH/BRL': {'id': 'BRLBCH', 'symbol': 'BCH/BRL', 'base': 'BCH', 'quote': 'BRL', 'precision': {'amount': 8, 'price': 5}, 'suffix': 'BCash'},
                 'XRP/BRL': {'id': 'BRLXRP', 'symbol': 'XRP/BRL', 'base': 'XRP', 'quote': 'BRL', 'precision': {'amount': 8, 'price': 5}, 'suffix': 'Ripple'},
                 'ETH/BRL': {'id': 'BRLETH', 'symbol': 'ETH/BRL', 'base': 'ETH', 'quote': 'BRL', 'precision': {'amount': 8, 'price': 5}, 'suffix': 'Ethereum'},
+                'USDC/BRL': {'id': 'BRLUSDC', 'symbol': 'USDC/BRL', 'base': 'USDC', 'quote': 'BRL', 'precision': {'amount': 8, 'price': 5}, 'suffix': 'USDC'},
             },
             'fees': {
                 'trading': {
@@ -422,7 +423,7 @@ class mercado(Exchange):
             request['from'] = request['to'] - (limit * self.parse_timeframe(timeframe))
         response = await self.v4PublicGetCoinCandle(self.extend(request, params))
         candles = self.safe_value(response, 'candles', [])
-        return self.parse_ohlcvs(candles, market, timeframe, since, limit)
+        return self.parse_ohlcvs(candles, market)
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:

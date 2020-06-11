@@ -273,8 +273,16 @@ module.exports = class gemini extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const id = response[i];
             const market = id;
-            const baseId = id.slice (0, 3);
-            const quoteId = id.slice (3, 6);
+            const idLength = id.length - 0;
+            let baseId = undefined;
+            let quoteId = undefined;
+            if (idLength === 7) {
+                baseId = id.slice (0, 4);
+                quoteId = id.slice (4, 7);
+            } else {
+                baseId = id.slice (0, 3);
+                quoteId = id.slice (3, 6);
+            }
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
@@ -707,6 +715,13 @@ module.exports = class gemini extends Exchange {
             'symbol': market['id'],
         };
         const response = await this.publicGetV2CandlesSymbolTimeframe (this.extend (request, params));
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        //
+        //     [
+        //         [1591515000000,0.02509,0.02509,0.02509,0.02509,0],
+        //         [1591514700000,0.02503,0.02509,0.02503,0.02509,44.6405],
+        //         [1591514400000,0.02503,0.02503,0.02503,0.02503,0],
+        //     ]
+        //
+        return this.parseOHLCVs (response, market);
     }
 };

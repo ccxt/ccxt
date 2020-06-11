@@ -46,7 +46,7 @@ class eterbase(Exchange):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
-                'withdraw': False,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '1',
@@ -353,7 +353,7 @@ class eterbase(Exchange):
         baseVolume = self.safe_float(ticker, 'volumeBase')
         quoteVolume = self.safe_float(ticker, 'volume')
         vwap = None
-        if (quoteVolume is not None) and (baseVolume is not None) and (baseVolume > 0):
+        if (quoteVolume is not None) and (baseVolume is not None) and baseVolume:
             vwap = quoteVolume / baseVolume
         percentage = self.safe_float(ticker, 'change')
         result = {
@@ -607,7 +607,7 @@ class eterbase(Exchange):
         #         {"time":1588808400000,"open":0.022044,"high":0.022044,"low":0.022044,"close":0.022044,"volume":3.9615545499999993},
         #     ]
         #
-        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+        return self.parse_ohlcvs(response, market)
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
@@ -774,7 +774,6 @@ class eterbase(Exchange):
         if (amount is not None) and (remaining is not None):
             filled = max(0, amount - remaining)
         cost = self.safe_float(order, 'cost')
-        # int(round(price * filled, market.precision.cost))
         if type == 'market':
             if price == 0.0:
                 if (cost is not None) and (filled is not None):
@@ -783,10 +782,11 @@ class eterbase(Exchange):
         average = None
         if cost is not None:
             if filled:
-                average = int(round(cost / filled, market.precision.qty))
+                average = cost / filled
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,

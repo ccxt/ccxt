@@ -367,12 +367,12 @@ class gateio(Exchange):
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         # they return [Timestamp, Volume, Close, High, Low, Open]
         return [
-            int(ohlcv[0]),   # t
-            float(ohlcv[5]),  # o
-            float(ohlcv[3]),  # h
-            float(ohlcv[4]),  # l
-            float(ohlcv[2]),  # c
-            float(ohlcv[1]),  # v
+            self.safe_integer(ohlcv, 0),  # t
+            self.safe_float(ohlcv, 5),  # o
+            self.safe_float(ohlcv, 3),  # h
+            self.safe_float(ohlcv, 4),  # l
+            self.safe_float(ohlcv, 2),  # c
+            self.safe_float(ohlcv, 1),  # v
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -401,7 +401,7 @@ class gateio(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        return self.parse_ohlcvs(data, market, timeframe, since, limit)
+        return self.parse_ohlcvs(data, market)
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()

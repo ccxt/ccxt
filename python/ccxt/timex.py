@@ -423,7 +423,7 @@ class timex(Exchange):
         #         },
         #     ]
         #
-        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+        return self.parse_ohlcvs(response, market)
 
     def fetch_balance(self, params={}):
         self.load_markets()

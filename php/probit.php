@@ -791,11 +791,24 @@ class probit extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data');
-        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_ohlcvs($data, $market);
     }
 
     public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+        //
+        //     {
+        //         "market_id":"ETH-BTC",
+        //         "open":"0.02811",
+        //         "close":"0.02811",
+        //         "low":"0.02811",
+        //         "high":"0.02811",
+        //         "base_volume":"0.0005",
+        //         "quote_volume":"0.000014055",
+        //         "start_time":"2018-11-30T18:19:00.000Z",
+        //         "end_time":"2018-11-30T18:20:00.000Z"
+        //     }
+        //
         return array(
             $this->parse8601($this->safe_string($ohlcv, 'start_time')),
             $this->safe_float($ohlcv, 'open'),

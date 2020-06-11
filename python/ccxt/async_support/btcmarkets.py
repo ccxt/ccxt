@@ -347,7 +347,7 @@ class btcmarkets(Exchange):
         #     }
         #
         ticks = self.safe_value(response, 'ticks', [])
-        return self.parse_ohlcvs(ticks, market, timeframe, since, limit)
+        return self.parse_ohlcvs(ticks, market)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()

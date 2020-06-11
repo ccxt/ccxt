@@ -572,19 +572,41 @@ class whitebit extends Exchange {
             $request['limit'] = $limit; // default == max == 500
         }
         $response = $this->publicV1GetKline (array_merge($request, $params));
-        $result = $this->safe_value($response, 'result');
-        return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
+        //
+        //     {
+        //         "success":true,
+        //         "message":"",
+        //         "$result":[
+        //             [1591488000,"0.025025","0.025025","0.025029","0.025023","6.181","0.154686629"],
+        //             [1591488060,"0.025028","0.025033","0.025035","0.025026","8.067","0.201921167"],
+        //             [1591488120,"0.025034","0.02505","0.02505","0.025034","20.089","0.503114696"],
+        //         ]
+        //     }
+        //
+        $result = $this->safe_value($response, 'result', array());
+        return $this->parse_ohlcvs($result, $market);
     }
 
     public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
-        return [
-            $ohlcv[0] * 1000, // timestamp
-            floatval ($ohlcv[1]), // open
-            floatval ($ohlcv[3]), // high
-            floatval ($ohlcv[4]), // low
-            floatval ($ohlcv[2]), // close
-            floatval ($ohlcv[5]), // volume
-        ];
+        //
+        //     array(
+        //         1591488000,
+        //         "0.025025",
+        //         "0.025025",
+        //         "0.025029",
+        //         "0.025023",
+        //         "6.181",
+        //         "0.154686629"
+        //     )
+        //
+        return array(
+            $this->safe_timestamp($ohlcv, 0), // timestamp
+            $this->safe_float($ohlcv, 1), // open
+            $this->safe_float($ohlcv, 3), // high
+            $this->safe_float($ohlcv, 4), // low
+            $this->safe_float($ohlcv, 2), // close
+            $this->safe_float($ohlcv, 5), // volume
+        );
     }
 
     public function fetch_status($params = array ()) {

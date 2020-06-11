@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.28.60'
+__version__ = '1.29.67'
 
 # ----------------------------------------------------------------------------
 
@@ -95,6 +95,7 @@ from ccxt.bitso import bitso                                # noqa: F401
 from ccxt.bitstamp import bitstamp                          # noqa: F401
 from ccxt.bitstamp1 import bitstamp1                        # noqa: F401
 from ccxt.bittrex import bittrex                            # noqa: F401
+from ccxt.bitvavo import bitvavo                            # noqa: F401
 from ccxt.bitz import bitz                                  # noqa: F401
 from ccxt.bl3p import bl3p                                  # noqa: F401
 from ccxt.bleutrade import bleutrade                        # noqa: F401
@@ -127,6 +128,7 @@ from ccxt.coinspot import coinspot                          # noqa: F401
 from ccxt.coolcoin import coolcoin                          # noqa: F401
 from ccxt.coss import coss                                  # noqa: F401
 from ccxt.crex24 import crex24                              # noqa: F401
+from ccxt.currencycom import currencycom                    # noqa: F401
 from ccxt.deribit import deribit                            # noqa: F401
 from ccxt.digifinex import digifinex                        # noqa: F401
 from ccxt.dsx import dsx                                    # noqa: F401
@@ -219,6 +221,7 @@ exchanges = [
     'bitstamp',
     'bitstamp1',
     'bittrex',
+    'bitvavo',
     'bitz',
     'bl3p',
     'bleutrade',
@@ -251,6 +254,7 @@ exchanges = [
     'coolcoin',
     'coss',
     'crex24',
+    'currencycom',
     'deribit',
     'digifinex',
     'dsx',

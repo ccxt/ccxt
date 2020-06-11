@@ -471,6 +471,7 @@ class exmo(Exchange):
                     '50054': InsufficientFunds,
                     '50304': OrderNotFound,  # "Order was not found '123456789'"(fetching order trades for an order that does not have trades yet)
                     '50173': OrderNotFound,  # "Order with id X was not found."(cancelling non-existent, closed and cancelled order)
+                    '50277': InvalidOrder,
                     '50319': InvalidOrder,  # Price by order is less than permissible minimum for self pair
                     '50321': InvalidOrder,  # Price by order is more than permissible maximum for self pair
                 },
@@ -717,7 +718,7 @@ class exmo(Exchange):
         #     }
         #
         candles = self.safe_value(response, 'candles', [])
-        return self.parse_ohlcvs(candles, market, timeframe, since, limit)
+        return self.parse_ohlcvs(candles, market)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='5m', since=None, limit=None):
         #
@@ -1257,14 +1258,14 @@ class exmo(Exchange):
                 feeCost = self.sum(feeCost, trade['fee']['cost'])
                 trades.append(trade)
             lastTradeTimestamp = trades[numTransactions - 1]['timestamp']
+        status = self.safe_string(order, 'status')  # in case we need to redefine it for canceled orders
         remaining = None
         if amount is not None:
             remaining = amount - filled
-        status = self.safe_string(order, 'status')  # in case we need to redefine it for canceled orders
-        if filled >= amount:
-            status = 'closed'
-        else:
-            status = 'open'
+            if filled >= amount:
+                status = 'closed'
+            else:
+                status = 'open'
         if market is None:
             market = self.get_market_from_trades(trades)
         feeCurrency = None

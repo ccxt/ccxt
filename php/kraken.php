@@ -47,6 +47,7 @@ class kraken extends Exchange {
                 'fetchLedgerEntry' => true,
                 'fetchLedger' => true,
                 'fetchOrderTrades' => 'emulated',
+                'fetchTime' => true,
             ),
             'marketsByAltname' => array(),
             'timeframes' => array(
@@ -627,14 +628,26 @@ class kraken extends Exchange {
     }
 
     public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
-        return [
-            $ohlcv[0] * 1000,
-            floatval ($ohlcv[1]),
-            floatval ($ohlcv[2]),
-            floatval ($ohlcv[3]),
-            floatval ($ohlcv[4]),
-            floatval ($ohlcv[6]),
-        ];
+        //
+        //     array(
+        //         1591475640,
+        //         "0.02500",
+        //         "0.02500",
+        //         "0.02500",
+        //         "0.02500",
+        //         "0.02500",
+        //         "9.12201000",
+        //         5
+        //     )
+        //
+        return array(
+            $this->safe_timestamp($ohlcv, 0),
+            $this->safe_float($ohlcv, 1),
+            $this->safe_float($ohlcv, 2),
+            $this->safe_float($ohlcv, 3),
+            $this->safe_float($ohlcv, 4),
+            $this->safe_float($ohlcv, 6),
+        );
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
@@ -648,8 +661,22 @@ class kraken extends Exchange {
             $request['since'] = intval (($since - 1) / 1000);
         }
         $response = $this->publicGetOHLC (array_merge($request, $params));
-        $ohlcvs = $response['result'][$market['id']];
-        return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
+        //
+        //     {
+        //         "error":array(),
+        //         "$result":{
+        //             "XETHXXBT":[
+        //                 [1591475580,"0.02499","0.02499","0.02499","0.02499","0.00000","0.00000000",0],
+        //                 [1591475640,"0.02500","0.02500","0.02500","0.02500","0.02500","9.12201000",5],
+        //                 [1591475700,"0.02499","0.02499","0.02499","0.02499","0.02499","1.28681415",2],
+        //                 [1591475760,"0.02499","0.02499","0.02499","0.02499","0.02499","0.08800000",1],
+        //             ],
+        //             "last":1591517580
+        //         }
+        //     }
+        $result = $this->safe_value($response, 'result', array());
+        $ohlcvs = $this->safe_value($result, $market['id'], array());
+        return $this->parse_ohlcvs($ohlcvs, $market);
     }
 
     public function parse_ledger_entry_type($type) {
@@ -1153,6 +1180,7 @@ class kraken extends Exchange {
             $order = array_merge(array( 'id' => $id ), $orders[$id]);
             $result[] = array_merge($this->parse_order($order, $market), $params);
         }
+        $result = $this->sort_by($result, 'timestamp');
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
     }
 
@@ -1517,6 +1545,22 @@ class kraken extends Exchange {
         //                   status => "Success"                                                       } ) }
         //
         return $this->parse_transactions_by_type('deposit', $response['result'], $code, $since, $limit);
+    }
+
+    public function fetch_time($params = array ()) {
+        // https://www.kraken.com/en-us/features/api#get-server-time
+        $response = $this->publicGetTime ($params);
+        //
+        //    {
+        //        "error" => array(),
+        //        "$result" => {
+        //            "unixtime" => 1591502873,
+        //            "rfc1123" => "Sun,  7 Jun 20 04:07:53 +0000"
+        //        }
+        //    }
+        //
+        $result = $this->safe_value($response, 'result', array());
+        return $this->safe_timestamp($result, 'unixtime');
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {

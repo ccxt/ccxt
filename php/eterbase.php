@@ -43,7 +43,7 @@ class eterbase extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
-                'withdraw' => false,
+                'withdraw' => true,
             ),
             'timeframes' => array(
                 '1m' => '1',
@@ -361,7 +361,7 @@ class eterbase extends Exchange {
         $baseVolume = $this->safe_float($ticker, 'volumeBase');
         $quoteVolume = $this->safe_float($ticker, 'volume');
         $vwap = null;
-        if (($quoteVolume !== null) && ($baseVolume !== null) && ($baseVolume > 0)) {
+        if (($quoteVolume !== null) && ($baseVolume !== null) && $baseVolume) {
             $vwap = $quoteVolume / $baseVolume;
         }
         $percentage = $this->safe_float($ticker, 'change');
@@ -633,7 +633,7 @@ class eterbase extends Exchange {
         //         array("time":1588808400000,"open":0.022044,"high":0.022044,"low":0.022044,"close":0.022044,"volume":3.9615545499999993),
         //     )
         //
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($response, $market);
     }
 
     public function fetch_balance($params = array ()) {
@@ -811,7 +811,6 @@ class eterbase extends Exchange {
             $filled = max (0, $amount - $remaining);
         }
         $cost = $this->safe_float($order, 'cost');
-        // (int) round($price * $filled, $market->precision.cost);
         if ($type === 'market') {
             if ($price === 0.0) {
                 if (($cost !== null) && ($filled !== null)) {
@@ -824,12 +823,13 @@ class eterbase extends Exchange {
         $average = null;
         if ($cost !== null) {
             if ($filled) {
-                $average = (int) round($cost / $filled, $market->precision.qty);
+                $average = $cost / $filled;
             }
         }
         return array(
             'info' => $order,
             'id' => $id,
+            'clientOrderId' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,

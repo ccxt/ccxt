@@ -233,14 +233,24 @@ class bitbank extends Exchange {
     }
 
     public function parse_ohlcv($ohlcv, $market = null, $timeframe = '5m', $since = null, $limit = null) {
-        return [
-            $ohlcv[5],
-            floatval ($ohlcv[0]),
-            floatval ($ohlcv[1]),
-            floatval ($ohlcv[2]),
-            floatval ($ohlcv[3]),
-            floatval ($ohlcv[4]),
-        ];
+        //
+        //     array(
+        //         "0.02501786",
+        //         "0.02501786",
+        //         "0.02501786",
+        //         "0.02501786",
+        //         "0.0000",
+        //         1591488000000
+        //     )
+        //
+        return array(
+            $this->safe_integer($ohlcv, 5),
+            $this->safe_float($ohlcv, 0),
+            $this->safe_float($ohlcv, 1),
+            $this->safe_float($ohlcv, 2),
+            $this->safe_float($ohlcv, 3),
+            $this->safe_float($ohlcv, 4),
+        );
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {
@@ -255,8 +265,29 @@ class bitbank extends Exchange {
             'yyyymmdd' => implode('', $date),
         );
         $response = $this->publicGetPairCandlestickCandletypeYyyymmdd (array_merge($request, $params));
-        $ohlcv = $this->safe_value($response['data']['candlestick'][0], 'ohlcv');
-        return $this->parse_ohlcvs($ohlcv, $market, $timeframe, $since, $limit);
+        //
+        //     {
+        //         "success":1,
+        //         "$data":{
+        //             "$candlestick":[
+        //                 {
+        //                     "type":"5min",
+        //                     "$ohlcv":[
+        //                         ["0.02501786","0.02501786","0.02501786","0.02501786","0.0000",1591488000000],
+        //                         ["0.02501747","0.02501953","0.02501747","0.02501953","0.3017",1591488300000],
+        //                         ["0.02501762","0.02501762","0.02500392","0.02500392","0.1500",1591488600000],
+        //                     ]
+        //                 }
+        //             ],
+        //             "timestamp":1591508668190
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $candlestick = $this->safe_value($data, 'candlestick', array());
+        $first = $this->safe_value($candlestick, 0, array());
+        $ohlcv = $this->safe_value($first, 'ohlcv', array());
+        return $this->parse_ohlcvs($ohlcv, $market);
     }
 
     public function fetch_balance($params = array ()) {

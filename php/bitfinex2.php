@@ -696,7 +696,14 @@ class bitfinex2 extends bitfinex {
             'limit' => $limit,
         );
         $response = $this->publicGetCandlesTradeTimeframeSymbolHist (array_merge($request, $params));
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        //
+        //     [
+        //         [1591503840000,0.025069,0.025068,0.025069,0.025068,1.97828998],
+        //         [1591504500000,0.025065,0.025065,0.025065,0.025065,1.0164],
+        //         [1591504620000,0.025062,0.025062,0.025062,0.025062,0.5],
+        //     ]
+        //
+        return $this->parse_ohlcvs($response, $market);
     }
 
     public function parse_order_status($status) {
@@ -1074,14 +1081,19 @@ class bitfinex2 extends bitfinex {
             $id = null;
             $status = 'failed';
         }
+        $tag = $this->safe_string($data, 3);
         return array(
             'info' => $transaction,
             'id' => $id,
             'txid' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'address' => null, // this is actually the tag for XRP transfers (the address is missing)
-            'tag' => $this->safe_string($data, 3), // refix it properly for the tag from description
+            'addressFrom' => null,
+            'address' => null, // this is actually the $tag for XRP transfers (the address is missing)
+            'addressTo' => null,
+            'tagFrom' => null,
+            'tag' => $tag, // refix it properly for the $tag from description
+            'tagTo' => $tag,
             'type' => 'withdrawal',
             'amount' => $amount,
             'currency' => $code,

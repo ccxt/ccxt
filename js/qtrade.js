@@ -302,15 +302,14 @@ module.exports = class qtrade extends Exchange {
         //         "market_volume":"0.08465047"
         //     }
         //
-        const result = [
+        return [
             this.parse8601 (this.safeString (ohlcv, 'time')),
             this.safeFloat (ohlcv, 'open'),
             this.safeFloat (ohlcv, 'high'),
             this.safeFloat (ohlcv, 'low'),
             this.safeFloat (ohlcv, 'close'),
-            this.safeFloat (ohlcv, 'volume'),
+            this.safeFloat (ohlcv, 'market_volume'),
         ];
-        return result;
     }
 
     async fetchOHLCV (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
@@ -334,7 +333,7 @@ module.exports = class qtrade extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const ohlcvs = this.safeValue (data, 'slices', []);
-        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
+        return this.parseOHLCVs (ohlcvs, market);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -733,6 +732,7 @@ module.exports = class qtrade extends Exchange {
             const code = this.safeCurrencyCode (currencyId);
             const account = (code in result) ? result[code] : this.account ();
             account['free'] = this.safeFloat (balance, 'balance');
+            account['used'] = 0;
             result[code] = account;
         }
         balances = this.safeValue (data, 'order_balances', []);

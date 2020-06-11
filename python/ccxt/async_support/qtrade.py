@@ -308,15 +308,14 @@ class qtrade(Exchange):
         #         "market_volume":"0.08465047"
         #     }
         #
-        result = [
+        return [
             self.parse8601(self.safe_string(ohlcv, 'time')),
             self.safe_float(ohlcv, 'open'),
             self.safe_float(ohlcv, 'high'),
             self.safe_float(ohlcv, 'low'),
             self.safe_float(ohlcv, 'close'),
-            self.safe_float(ohlcv, 'volume'),
+            self.safe_float(ohlcv, 'market_volume'),
         ]
-        return result
 
     async def fetch_ohlcv(self, symbol, timeframe='5m', since=None, limit=None, params={}):
         await self.load_markets()
@@ -339,7 +338,7 @@ class qtrade(Exchange):
         #
         data = self.safe_value(response, 'data', {})
         ohlcvs = self.safe_value(data, 'slices', [])
-        return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
+        return self.parse_ohlcvs(ohlcvs, market)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -712,6 +711,7 @@ class qtrade(Exchange):
             code = self.safe_currency_code(currencyId)
             account = result[code] if (code in result) else self.account()
             account['free'] = self.safe_float(balance, 'balance')
+            account['used'] = 0
             result[code] = account
         balances = self.safe_value(data, 'order_balances', [])
         for i in range(0, len(balances)):

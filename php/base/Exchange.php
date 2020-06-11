@@ -36,7 +36,7 @@ use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
 
-$version = '1.28.60';
+$version = '1.29.67';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.28.60';
+    const VERSION = '1.29.67';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -89,6 +89,7 @@ class Exchange {
         'bitstamp',
         'bitstamp1',
         'bittrex',
+        'bitvavo',
         'bitz',
         'bl3p',
         'bleutrade',
@@ -121,6 +122,7 @@ class Exchange {
         'coolcoin',
         'coss',
         'crex24',
+        'currencycom',
         'deribit',
         'digifinex',
         'dsx',
@@ -866,6 +868,7 @@ class Exchange {
         $this->fees = array('trading' => array(), 'funding' => array());
         $this->precision = array();
         $this->orders = array();
+        $this->myTrades = null;
         $this->trades = array();
         $this->transactions = array();
         $this->ohlcvs = array();

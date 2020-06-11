@@ -457,6 +457,7 @@ class exmo extends Exchange {
                     '50054' => '\\ccxt\\InsufficientFunds',
                     '50304' => '\\ccxt\\OrderNotFound', // "Order was not found '123456789'" (fetching order trades for an order that does not have trades yet)
                     '50173' => '\\ccxt\\OrderNotFound', // "Order with id X was not found." (cancelling non-existent, closed and cancelled order)
+                    '50277' => '\\ccxt\\InvalidOrder',
                     '50319' => '\\ccxt\\InvalidOrder', // Price by order is less than permissible minimum for this pair
                     '50321' => '\\ccxt\\InvalidOrder', // Price by order is more than permissible maximum for this pair
                 ),
@@ -728,7 +729,7 @@ class exmo extends Exchange {
         //     }
         //
         $candles = $this->safe_value($response, 'candles', array());
-        return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($candles, $market);
     }
 
     public function parse_ohlcv($ohlcv, $market = null, $timeframe = '5m', $since = null, $limit = null) {
@@ -1334,15 +1335,15 @@ class exmo extends Exchange {
             }
             $lastTradeTimestamp = $trades[$numTransactions - 1]['timestamp'];
         }
+        $status = $this->safe_string($order, 'status'); // in case we need to redefine it for canceled orders
         $remaining = null;
         if ($amount !== null) {
             $remaining = $amount - $filled;
-        }
-        $status = $this->safe_string($order, 'status'); // in case we need to redefine it for canceled orders
-        if ($filled >= $amount) {
-            $status = 'closed';
-        } else {
-            $status = 'open';
+            if ($filled >= $amount) {
+                $status = 'closed';
+            } else {
+                $status = 'open';
+            }
         }
         if ($market === null) {
             $market = $this->get_market_from_trades($trades);

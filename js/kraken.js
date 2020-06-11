@@ -37,6 +37,7 @@ module.exports = class kraken extends Exchange {
                 'fetchLedgerEntry': true,
                 'fetchLedger': true,
                 'fetchOrderTrades': 'emulated',
+                'fetchTime': true,
             },
             'marketsByAltname': {},
             'timeframes': {
@@ -617,13 +618,25 @@ module.exports = class kraken extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        //
+        //     [
+        //         1591475640,
+        //         "0.02500",
+        //         "0.02500",
+        //         "0.02500",
+        //         "0.02500",
+        //         "0.02500",
+        //         "9.12201000",
+        //         5
+        //     ]
+        //
         return [
-            ohlcv[0] * 1000,
-            parseFloat (ohlcv[1]),
-            parseFloat (ohlcv[2]),
-            parseFloat (ohlcv[3]),
-            parseFloat (ohlcv[4]),
-            parseFloat (ohlcv[6]),
+            this.safeTimestamp (ohlcv, 0),
+            this.safeFloat (ohlcv, 1),
+            this.safeFloat (ohlcv, 2),
+            this.safeFloat (ohlcv, 3),
+            this.safeFloat (ohlcv, 4),
+            this.safeFloat (ohlcv, 6),
         ];
     }
 
@@ -638,8 +651,22 @@ module.exports = class kraken extends Exchange {
             request['since'] = parseInt ((since - 1) / 1000);
         }
         const response = await this.publicGetOHLC (this.extend (request, params));
-        const ohlcvs = response['result'][market['id']];
-        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
+        //
+        //     {
+        //         "error":[],
+        //         "result":{
+        //             "XETHXXBT":[
+        //                 [1591475580,"0.02499","0.02499","0.02499","0.02499","0.00000","0.00000000",0],
+        //                 [1591475640,"0.02500","0.02500","0.02500","0.02500","0.02500","9.12201000",5],
+        //                 [1591475700,"0.02499","0.02499","0.02499","0.02499","0.02499","1.28681415",2],
+        //                 [1591475760,"0.02499","0.02499","0.02499","0.02499","0.02499","0.08800000",1],
+        //             ],
+        //             "last":1591517580
+        //         }
+        //     }
+        const result = this.safeValue (response, 'result', {});
+        const ohlcvs = this.safeValue (result, market['id'], []);
+        return this.parseOHLCVs (ohlcvs, market);
     }
 
     parseLedgerEntryType (type) {
@@ -1132,7 +1159,7 @@ module.exports = class kraken extends Exchange {
     }
 
     parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
-        const result = [];
+        let result = [];
         const ids = Object.keys (orders);
         let symbol = undefined;
         if (market !== undefined) {
@@ -1143,6 +1170,7 @@ module.exports = class kraken extends Exchange {
             const order = this.extend ({ 'id': id }, orders[id]);
             result.push (this.extend (this.parseOrder (order, market), params));
         }
+        result = this.sortBy (result, 'timestamp');
         return this.filterBySymbolSinceLimit (result, symbol, since, limit);
     }
 
@@ -1507,6 +1535,22 @@ module.exports = class kraken extends Exchange {
         //                   status: "Success"                                                       } ] }
         //
         return this.parseTransactionsByType ('deposit', response['result'], code, since, limit);
+    }
+
+    async fetchTime (params = {}) {
+        // https://www.kraken.com/en-us/features/api#get-server-time
+        const response = await this.publicGetTime (params);
+        //
+        //    {
+        //        "error": [],
+        //        "result": {
+        //            "unixtime": 1591502873,
+        //            "rfc1123": "Sun,  7 Jun 20 04:07:53 +0000"
+        //        }
+        //    }
+        //
+        const result = this.safeValue (response, 'result', {});
+        return this.safeTimestamp (result, 'unixtime');
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {

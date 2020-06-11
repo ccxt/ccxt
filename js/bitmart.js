@@ -301,7 +301,7 @@ module.exports = class bitmart extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (ticker, 'closeTime', this.milliseconds ());
-        const marketId = this.safeString (ticker, 'pair');
+        const marketId = this.safeString2 (ticker, 'pair', 'symbol_id');
         let symbol = undefined;
         if (marketId !== undefined) {
             if (marketId in this.markets_by_id) {
@@ -621,6 +621,16 @@ module.exports = class bitmart extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        //
+        //     {
+        //         "timestamp":1525761000000,
+        //         "open_price":"0.010130",
+        //         "highest_price":"0.010130",
+        //         "lowest_price":"0.010130",
+        //         "current_price":"0.010130",
+        //         "volume":"0.000000"
+        //     }
+        //
         return [
             this.safeInteger (ohlcv, 'timestamp'),
             this.safeFloat (ohlcv, 'open_price'),
@@ -664,7 +674,7 @@ module.exports = class bitmart extends Exchange {
         //         }
         //     ]
         //
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        return this.parseOHLCVs (response, market);
     }
 
     async fetchBalance (params = {}) {

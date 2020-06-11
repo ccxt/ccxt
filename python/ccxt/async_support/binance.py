@@ -236,6 +236,7 @@ class binance(Exchange):
                         'balance',
                         'positionMargin/history',
                         'positionRisk',
+                        'positionSide/dual',
                         'userTrades',
                         'income',
                     ],
@@ -323,7 +324,7 @@ class binance(Exchange):
                 'fetchTradesMethod': 'publicGetAggTrades',  # publicGetTrades, publicGetHistoricalTrades
                 'fetchTickersMethod': 'publicGetTicker24hr',
                 'defaultTimeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
-                'defaultType': 'spot',  # 'spot', 'future'
+                'defaultType': 'spot',  # 'spot', 'future', 'margin'
                 'hasAlreadyAuthenticatedSuccessfully': False,
                 'warnOnFetchOpenOrdersWithoutSymbol': True,
                 'recvWindow': 5 * 1000,  # 5 sec, binance default
@@ -370,8 +371,8 @@ class binance(Exchange):
         response = await getattr(self, method)(params)
         return self.safe_integer(response, 'serverTime')
 
-    async def load_time_difference(self):
-        serverTime = await self.fetch_time()
+    async def load_time_difference(self, params={}):
+        serverTime = await self.fetch_time(params)
         after = self.milliseconds()
         self.options['timeDifference'] = after - serverTime
         return self.options['timeDifference']
@@ -476,7 +477,8 @@ class binance(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
-            filters = self.index_by(market['filters'], 'filterType')
+            filters = self.safe_value(market, 'filters', [])
+            filtersByType = self.index_by(filters, 'filterType')
             precision = {
                 'base': self.safe_integer(market, 'baseAssetPrecision'),
                 'quote': self.safe_integer(market, 'quotePrecision'),
@@ -516,8 +518,8 @@ class binance(Exchange):
                     },
                 },
             }
-            if 'PRICE_FILTER' in filters:
-                filter = filters['PRICE_FILTER']
+            if 'PRICE_FILTER' in filtersByType:
+                filter = self.safe_value(filtersByType, 'PRICE_FILTER', {})
                 # PRICE_FILTER reports zero values for maxPrice
                 # since they updated filter types in November 2018
                 # https://github.com/ccxt/ccxt/issues/4286
@@ -530,22 +532,23 @@ class binance(Exchange):
                 if (maxPrice is not None) and (maxPrice > 0):
                     entry['limits']['price']['max'] = maxPrice
                 entry['precision']['price'] = self.precision_from_string(filter['tickSize'])
-            if 'LOT_SIZE' in filters:
-                filter = self.safe_value(filters, 'LOT_SIZE', {})
+            if 'LOT_SIZE' in filtersByType:
+                filter = self.safe_value(filtersByType, 'LOT_SIZE', {})
                 stepSize = self.safe_string(filter, 'stepSize')
                 entry['precision']['amount'] = self.precision_from_string(stepSize)
                 entry['limits']['amount'] = {
                     'min': self.safe_float(filter, 'minQty'),
                     'max': self.safe_float(filter, 'maxQty'),
                 }
-            if 'MARKET_LOT_SIZE' in filters:
-                filter = self.safe_value(filters, 'MARKET_LOT_SIZE', {})
+            if 'MARKET_LOT_SIZE' in filtersByType:
+                filter = self.safe_value(filtersByType, 'MARKET_LOT_SIZE', {})
                 entry['limits']['market'] = {
                     'min': self.safe_float(filter, 'minQty'),
                     'max': self.safe_float(filter, 'maxQty'),
                 }
-            if 'MIN_NOTIONAL' in filters:
-                entry['limits']['cost']['min'] = self.safe_float(filters['MIN_NOTIONAL'], 'minNotional')
+            if 'MIN_NOTIONAL' in filtersByType:
+                filter = self.safe_value(filtersByType, 'MIN_NOTIONAL', {})
+                entry['limits']['cost']['min'] = self.safe_float(filter, 'minNotional')
             result.append(entry)
         return result
 
@@ -767,6 +770,22 @@ class binance(Exchange):
         return self.parse_tickers(response, symbols)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+        #
+        #     [
+        #         1591478520000,
+        #         "0.02501300",
+        #         "0.02501800",
+        #         "0.02500000",
+        #         "0.02500000",
+        #         "22.19000000",
+        #         1591478579999,
+        #         "0.55490906",
+        #         40,
+        #         "10.92900000",
+        #         "0.27336462",
+        #         "0"
+        #     ]
+        #
         return [
             self.safe_integer(ohlcv, 0),
             self.safe_float(ohlcv, 1),
@@ -789,7 +808,14 @@ class binance(Exchange):
             request['limit'] = limit  # default == max == 500
         method = 'publicGetKlines' if market['spot'] else 'fapiPublicGetKlines'
         response = await getattr(self, method)(self.extend(request, params))
-        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+        #
+        #     [
+        #         [1591478520000,"0.02501300","0.02501800","0.02500000","0.02500000","22.19000000",1591478579999,"0.55490906",40,"10.92900000","0.27336462","0"],
+        #         [1591478580000,"0.02499600","0.02500900","0.02499400","0.02500300","21.34700000",1591478639999,"0.53370468",24,"7.53800000","0.18850725","0"],
+        #         [1591478640000,"0.02500800","0.02501100","0.02500300","0.02500800","154.14200000",1591478699999,"3.85405839",97,"5.32300000","0.13312641","0"],
+        #     ]
+        #
+        return self.parse_ohlcvs(response, market)
 
     def parse_trade(self, trade, market=None):
         if 'isDustTrade' in trade:
@@ -1145,42 +1171,75 @@ class binance(Exchange):
         }
         if clientOrderId is not None:
             request['newClientOrderId'] = clientOrderId
-        quoteOrderQty = self.safe_value(self.options, 'quoteOrderQty', False)
-        if uppercaseType == 'MARKET' and quoteOrderQty:
-            quoteOrderQty = self.safe_float(params, 'quoteOrderQty')
-            precision = market['precision']['price']
-            if quoteOrderQty is not None:
-                request['quoteOrderQty'] = self.decimal_to_precision(quoteOrderQty, TRUNCATE, precision, self.precisionMode)
-                params = self.omit(params, 'quoteOrderQty')
-            elif price is not None:
-                request['quoteOrderQty'] = self.decimal_to_precision(amount * price, TRUNCATE, precision, self.precisionMode)
-            else:
-                request['quantity'] = self.amount_to_precision(symbol, amount)
-        else:
-            request['quantity'] = self.amount_to_precision(symbol, amount)
         if market['spot']:
             request['newOrderRespType'] = self.safe_value(self.options['newOrderRespType'], type, 'RESULT')  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+        # additional required fields depending on the order type
         timeInForceIsRequired = False
         priceIsRequired = False
         stopPriceIsRequired = False
-        if uppercaseType == 'LIMIT':
+        quantityIsRequired = False
+        #
+        # spot/margin
+        #
+        #     LIMIT                timeInForce, quantity, price
+        #     MARKET               quantity or quoteOrderQty
+        #     STOP_LOSS            quantity, stopPrice
+        #     STOP_LOSS_LIMIT      timeInForce, quantity, price, stopPrice
+        #     TAKE_PROFIT          quantity, stopPrice
+        #     TAKE_PROFIT_LIMIT    timeInForce, quantity, price, stopPrice
+        #     LIMIT_MAKER          quantity, price
+        #
+        # futures
+        #
+        #     LIMIT                timeInForce, quantity, price
+        #     MARKET               quantity
+        #     STOP/TAKE_PROFIT     quantity, price, stopPrice
+        #     STOP_MARKET          stopPrice
+        #     TAKE_PROFIT_MARKET   stopPrice
+        #     TRAILING_STOP_MARKET callbackRate
+        #
+        if uppercaseType == 'MARKET':
+            quoteOrderQty = self.safe_value(self.options, 'quoteOrderQty', False)
+            if quoteOrderQty:
+                quoteOrderQty = self.safe_float(params, 'quoteOrderQty')
+                precision = market['precision']['price']
+                if quoteOrderQty is not None:
+                    request['quoteOrderQty'] = self.decimal_to_precision(quoteOrderQty, TRUNCATE, precision, self.precisionMode)
+                    params = self.omit(params, 'quoteOrderQty')
+                elif price is not None:
+                    request['quoteOrderQty'] = self.decimal_to_precision(amount * price, TRUNCATE, precision, self.precisionMode)
+                else:
+                    quantityIsRequired = True
+            else:
+                quantityIsRequired = True
+        elif uppercaseType == 'LIMIT':
             priceIsRequired = True
             timeInForceIsRequired = True
+            quantityIsRequired = True
         elif (uppercaseType == 'STOP_LOSS') or (uppercaseType == 'TAKE_PROFIT'):
             stopPriceIsRequired = True
+            quantityIsRequired = True
             if market['future']:
                 priceIsRequired = True
         elif (uppercaseType == 'STOP_LOSS_LIMIT') or (uppercaseType == 'TAKE_PROFIT_LIMIT'):
+            quantityIsRequired = True
             stopPriceIsRequired = True
             priceIsRequired = True
             timeInForceIsRequired = True
         elif uppercaseType == 'LIMIT_MAKER':
             priceIsRequired = True
+            quantityIsRequired = True
         elif uppercaseType == 'STOP':
+            quantityIsRequired = True
             stopPriceIsRequired = True
             priceIsRequired = True
-        elif uppercaseType == 'STOP_MARKET':
+        elif (uppercaseType == 'STOP_MARKET') or (uppercaseType == 'TAKE_PROFIT_MARKET'):
+            closePosition = self.safe_value(params, 'closePosition')
+            if closePosition is None:
+                quantityIsRequired = True
             stopPriceIsRequired = True
+        if quantityIsRequired:
+            request['quantity'] = self.amount_to_precision(symbol, amount)
         if priceIsRequired:
             if price is None:
                 raise InvalidOrder(self.id + ' createOrder method requires a price argument for a ' + type + ' order')
@@ -1329,7 +1388,7 @@ class binance(Exchange):
         defaultType = self.safe_string_2(self.options, 'fetchOpenOrders', 'defaultType', market['type'])
         type = self.safe_string(params, 'type', defaultType)
         # https://github.com/ccxt/ccxt/issues/6507
-        origClientOrderId = self.safe_value(params, 'origClientOrderId')
+        origClientOrderId = self.safe_value_2(params, 'origClientOrderId', 'clientOrderId')
         request = {
             'symbol': market['id'],
             # 'orderId': int(id),
@@ -1344,7 +1403,7 @@ class binance(Exchange):
             method = 'fapiPrivateDeleteOrder'
         elif type == 'margin':
             method = 'sapiDeleteMarginOrder'
-        query = self.omit(params, 'type')
+        query = self.omit(params, ['type', 'origClientOrderId', 'clientOrderId'])
         response = await getattr(self, method)(self.extend(request, query))
         return self.parse_order(response)
 
@@ -1888,41 +1947,41 @@ class binance(Exchange):
                 raise InvalidOrder(self.id + ' order amount should be evenly divisible by lot size ' + body)
             if body.find('PRICE_FILTER') >= 0:
                 raise InvalidOrder(self.id + ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use self.price_to_precision(symbol, amount) ' + body)
-        if len(body) > 0:
-            if body[0] == '{':
-                # check success value for wapi endpoints
-                # response in format {'msg': 'The coin does not exist.', 'success': True/false}
-                success = self.safe_value(response, 'success', True)
-                if not success:
-                    message = self.safe_string(response, 'msg')
+        if response is None:
+            return  # fallback to default error handler
+        # check success value for wapi endpoints
+        # response in format {'msg': 'The coin does not exist.', 'success': True/false}
+        success = self.safe_value(response, 'success', True)
+        if not success:
+            message = self.safe_string(response, 'msg')
+            parsedMessage = None
+            if message is not None:
+                try:
+                    parsedMessage = json.loads(message)
+                except Exception as e:
+                    # do nothing
                     parsedMessage = None
-                    if message is not None:
-                        try:
-                            parsedMessage = json.loads(message)
-                        except Exception as e:
-                            # do nothing
-                            parsedMessage = None
-                        if parsedMessage is not None:
-                            response = parsedMessage
-                message = self.safe_string(response, 'msg')
-                if message is not None:
-                    self.throw_exactly_matched_exception(self.exceptions, message, self.id + ' ' + message)
-                # checks against error codes
-                error = self.safe_string(response, 'code')
-                if error is not None:
-                    # https://github.com/ccxt/ccxt/issues/6501
-                    if error == '200':
-                        return
-                    # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
-                    # despite that their message is very confusing, it is raised by Binance
-                    # on a temporary ban, the API key is valid, but disabled for a while
-                    if (error == '-2015') and self.options['hasAlreadyAuthenticatedSuccessfully']:
-                        raise DDoSProtection(self.id + ' temporary banned: ' + body)
-                    feedback = self.id + ' ' + body
-                    self.throw_exactly_matched_exception(self.exceptions, error, feedback)
-                    raise ExchangeError(feedback)
-                if not success:
-                    raise ExchangeError(self.id + ' ' + body)
+                if parsedMessage is not None:
+                    response = parsedMessage
+        message = self.safe_string(response, 'msg')
+        if message is not None:
+            self.throw_exactly_matched_exception(self.exceptions, message, self.id + ' ' + message)
+        # checks against error codes
+        error = self.safe_string(response, 'code')
+        if error is not None:
+            # https://github.com/ccxt/ccxt/issues/6501
+            if error == '200':
+                return
+            # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
+            # despite that their message is very confusing, it is raised by Binance
+            # on a temporary ban, the API key is valid, but disabled for a while
+            if (error == '-2015') and self.options['hasAlreadyAuthenticatedSuccessfully']:
+                raise DDoSProtection(self.id + ' temporary banned: ' + body)
+            feedback = self.id + ' ' + body
+            self.throw_exactly_matched_exception(self.exceptions, error, feedback)
+            raise ExchangeError(feedback)
+        if not success:
+            raise ExchangeError(self.id + ' ' + body)
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = await self.fetch2(path, api, method, params, headers, body)

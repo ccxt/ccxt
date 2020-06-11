@@ -437,14 +437,24 @@ class bytetrade extends Exchange {
     }
 
     public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
-        return [
-            $ohlcv[0],
-            floatval ($ohlcv[1]),
-            floatval ($ohlcv[2]),
-            floatval ($ohlcv[3]),
-            floatval ($ohlcv[4]),
-            floatval ($ohlcv[5]),
-        ];
+        //
+        //     array(
+        //         1591505760000,
+        //         "242.7",
+        //         "242.76",
+        //         "242.69",
+        //         "242.76",
+        //         "0.1892"
+        //     )
+        //
+        return array(
+            $this->safe_integer($ohlcv, 0),
+            $this->safe_float($ohlcv, 1),
+            $this->safe_float($ohlcv, 2),
+            $this->safe_float($ohlcv, 3),
+            $this->safe_float($ohlcv, 4),
+            $this->safe_float($ohlcv, 5),
+        );
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
@@ -461,7 +471,14 @@ class bytetrade extends Exchange {
             $request['limit'] = $limit;
         }
         $response = $this->marketGetKlines (array_merge($request, $params));
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        //
+        //     [
+        //         [1591505760000,"242.7","242.76","242.69","242.76","0.1892"],
+        //         [1591505820000,"242.77","242.83","242.7","242.72","0.6378"],
+        //         [1591505880000,"242.72","242.73","242.61","242.72","0.4141"],
+        //     ]
+        //
+        return $this->parse_ohlcvs($response, $market);
     }
 
     public function parse_trade($trade, $market = null) {
@@ -930,7 +947,7 @@ class bytetrade extends Exchange {
         }
         $this->load_markets();
         $currency = $this->currency($code);
-        $amountTruncate = $this->decimal_to_precision($amount, TRUNCATE, $currency['info']['transferPrecision'], DECIMAL_PLACES, NO_PADDING);
+        $amountTruncate = $this->decimal_to_precision($amount, TRUNCATE, $currency['info']['basePrecision'] - $currency['info']['transferPrecision'], DECIMAL_PLACES, NO_PADDING);
         $amountChain = $this->to_wei($amountTruncate, $currency['precision']['amount']);
         $assetType = intval ($currency['id']);
         $now = $this->milliseconds();
@@ -1211,7 +1228,7 @@ class bytetrade extends Exchange {
         $feeAmount = '300000000000000';
         $currency = $this->currency($code);
         $coinId = $currency['id'];
-        $amountTruncate = $this->decimal_to_precision($amount, TRUNCATE, $currency['info']['transferPrecision'], DECIMAL_PLACES, NO_PADDING);
+        $amountTruncate = $this->decimal_to_precision($amount, TRUNCATE, $currency['info']['basePrecision'] - $currency['info']['transferPrecision'], DECIMAL_PLACES, NO_PADDING);
         $amountChain = $this->to_wei($amountTruncate, $currency['info']['externalPrecision']);
         $eightBytes = $this->integer_pow('2', '64');
         $assetFee = 0;
