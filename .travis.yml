@@ -33,7 +33,7 @@ before_install:
 - git pull --tags
 script:
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then npm config set git-tag-version=false && NPM_VERSION=$(npm version patch); fi
-- cp package.json LICENSE.txt keys.json python
+- cp package.json LICENSE.txt keys.json README.md python
 - npm run build
 #- npm run git-unignore-generated-files
 - cd python
