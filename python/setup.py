@@ -32,9 +32,7 @@ setup(
 
     description=package['description'],
     long_description=long_description,
-
-    # will switch from rst to md shortly
-    # long_description_content_type='text/markdown',
+    long_description_content_type='text/markdown',
 
     url=package['homepage'],
 
