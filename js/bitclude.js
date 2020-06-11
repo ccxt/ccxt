@@ -35,7 +35,8 @@ module.exports = class bitclude extends Exchange {
                 'fetchCurrencies': false,
                 'cancelAllOrders': false,
                 'fetchClosedOrders': false,
-                'fetchDepositAddress': false,
+                'createDepositAddress': true,
+                'fetchDepositAddress': 'emulated',
                 'fetchDeposits': false,
                 'fetchFundingFees': false,
                 'fetchMyTrades': false,
@@ -371,6 +372,47 @@ module.exports = class bitclude extends Exchange {
             'side': order['side'],
         };
         return this.cancelOrder (order['id'], undefined, this.extend (request, params));
+    }
+
+    async createDepositAddress (code, params = {}) {
+        // not yet documented exchange api method
+        await this.loadMarkets ();
+        const currencyId = this.currencyId (code);
+        const request = {
+            'method': 'account',
+            'action': 'newaddress',
+            'currency': currencyId,
+        };
+        const response = await this.privateGet (this.extend (request, params));
+        const address = this.safeString (response, 'address');
+        // waiting for documentation
+        // const tag = this.safeString
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'info': response,
+        };
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        let currencyId = this.currencyId (code);
+        currencyId = currencyId.toUpperCase ();
+        const request = {
+            'method': 'account',
+            'action': 'info',
+        };
+        const response = await this.privateGet (this.extend (request, params));
+        const deposits = this.safeValue (response, 'deposit');
+        const deposit = this.safeValue (deposits, currencyId);
+        const address = this.safeString (deposit, 'deposit');
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'info': response,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
