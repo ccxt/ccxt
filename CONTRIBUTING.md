@@ -155,7 +155,7 @@ The contents of the repository are structured as follows:
 /python/async/__init__.py  # asynchronous version of the ccxt.library for Python 3.5.3+ asyncio
 /python/base/              # base code for the Python version of the ccxt library
 /python/MANIFEST.in        # a PyPI-package file listing extra package files (license, configs, etc...)
-/python/README.rst         # generated reStructuredText for PyPI
+/python/README.md          # a copy of README.md for PyPI
 /python/setup.cfg          # wheels config file for the Python package
 /python/setup.py           # pip/setuptools script (build/install) for ccxt in Python
 /python/tox.ini            # tox config for Python
