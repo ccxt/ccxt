@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.29.75",
+  "version": "1.29.77",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 130+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "dist/ccxt.browser.js",
@@ -14,7 +14,7 @@
   "readme": "README.md",
   "scripts": {
     "docker": "docker-compose run --rm ccxt",
-    "build": "npm run build-without-docs && npm run pandoc-all && npm run update-badges",
+    "build": "npm run build-without-docs && npm run update-badges",
     "build-without-docs": "npm run export-exchanges && npm run vss && npm run copy-python-files && npm run check-js-syntax && npm run browserify && npm run transpile && npm run check-python-syntax && npm run check-php-syntax",
     "test": "npm run build && node run-tests",
     "fast-test": "node run-tests --js",
