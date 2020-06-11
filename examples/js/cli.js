@@ -109,14 +109,14 @@ try {
 
     const { Agent } = require ('https')
 
-    const agent = new Agent ({
+    const httpsAgent = new Agent ({
         ecdhCurve: 'auto',
     })
 
     exchange = new (ccxt)[exchangeId] ({
         timeout,
         enableRateLimit,
-        agent,
+        httpsAgent,
         ... settings,
     })
 
