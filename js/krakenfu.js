@@ -1161,14 +1161,13 @@ module.exports = class krakenfu extends Exchange {
         if (quoteId === undefined) {
             throw new BadSymbol (this.id + ' symbolId could not be parsed: ' + symbolId);
         }
-        const first = this.sliceString (symbolId, 0, symbolId.length - quoteId.length);
-        const second = this.sliceString (symbolId, quoteId.length);
         if (!reversed) {
-            baseId = first;
-            quoteId = second;
+            const baseIdLength = symbolId.length - quoteId.length;
+            baseId = this.sliceString (symbolId, 0, baseIdLength);
+            quoteId = this.sliceString (symbolId, baseIdLength);
         } else {
-            quoteId = first;
-            baseId = second;
+            quoteId = this.sliceString (symbolId, 0, quoteId.length);
+            baseId = this.sliceString (symbolId, quoteId.length);
         }
         return {
             'baseId': baseId,
