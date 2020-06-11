@@ -181,6 +181,7 @@ class Exchange {
         'upbit',
         'vaultoro',
         'vbtc',
+        'wavesexchange',
         'whitebit',
         'xbtce',
         'yobit',
@@ -1007,6 +1008,7 @@ class Exchange {
         $this->last_response_headers = null;
 
         $this->requiresWeb3 = false;
+        $this->requiresEddsa = false;
 
         $this->commonCurrencies = array(
             'XBT' => 'BTC',

@@ -38,6 +38,11 @@ from cryptography.hazmat.primitives.serialization import load_pem_private_key
 
 # ecdsa signing
 from ccxt.static_dependencies import ecdsa
+# eddsa signing
+try:
+    import axolotl_curve25519 as eddsa
+except ImportError:
+    eddsa = None
 
 # -----------------------------------------------------------------------------
 
@@ -309,6 +314,7 @@ class Exchange(object):
     last_response_headers = None
 
     requiresWeb3 = False
+    requiresEddsa = False
     web3 = None
     base58_encoder = None
     base58_decoder = None
@@ -1162,6 +1168,14 @@ class Exchange(object):
         }
 
     @staticmethod
+    def eddsa(request, secret, curve='ed25519'):
+        random = b'\x00' * 64
+        request = base64.b16decode(request, casefold=True)
+        secret = base64.b16decode(secret, casefold=True)
+        signature = eddsa.calculateSignature(random, request, secret)
+        return Exchange.binary_to_base58(signature)
+
+    @staticmethod
     def unjson(input):
         return json.loads(input)
 
@@ -1797,6 +1811,8 @@ class Exchange(object):
     def check_required_dependencies(self):
         if not Exchange.has_web3():
             raise NotSupported("Web3 functionality requires Python3 and web3 package installed: https://github.com/ethereum/web3.py")
+        if self.requiresEddsa and eddsa is None:
+            raise NotSupported('Eddsa functionality requires python-axolotl-curve25519, install with `pip install python-axolotl-curve25519==0.4.1.post2`: https://github.com/tgalal/python-axolotl-curve25519')
 
     @staticmethod
     def from_wei(amount, decimals=18):

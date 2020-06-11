@@ -267,6 +267,7 @@ module.exports = class Exchange {
         this.myTrades     = undefined
 
         this.requiresWeb3 = false
+        this.requiresEddsa = false
         this.precision = {}
 
         this.enableLastJsonResponse = true
