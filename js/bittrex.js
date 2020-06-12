@@ -48,7 +48,6 @@ module.exports = class bittrex extends Exchange {
                     'public': 'https://{hostname}/api',
                     'account': 'https://{hostname}/api',
                     'market': 'https://{hostname}/api',
-                    'v2': 'https://{hostname}/api/v2.0/pub',
                     'v3': 'https://api.bittrex.com/v3',
                     'v3public': 'https://api.bittrex.com/v3',
                 },
@@ -111,17 +110,6 @@ module.exports = class bittrex extends Exchange {
                         'markets/{marketSymbol}/ticker',
                         'markets/{marketSymbol}/candles',
                         'markets/{marketSymbol}/candles/{candleInterval}/historical/{year}/{month}/{day}',
-                    ],
-                },
-                'v2': {
-                    'get': [
-                        'currencies/GetBTCPrice',
-                        'currencies/GetWalletHealth',
-                        'general/GetLatestAlert',
-                        'market/GetTicks',
-                        'market/GetLatestTick',
-                        'Markets/GetMarketSummaries',
-                        'market/GetLatestTick',
                     ],
                 },
                 'public': {
@@ -210,6 +198,7 @@ module.exports = class bittrex extends Exchange {
             'exceptions': {
                 'exact': {
                     'BAD_REQUEST': BadRequest, // {"code":"BAD_REQUEST","detail":"Refer to the data field for specific field validation failures.","data":{"invalidRequestParameter":"day"}}
+                    'STARTDATE_OUT_OF_RANGE': BadRequest, // {"code":"STARTDATE_OUT_OF_RANGE"}
                     // 'Call to Cancel was throttled. Try again in 60 seconds.': DDoSProtection,
                     // 'Call to GetBalances was throttled. Try again in 60 seconds.': DDoSProtection,
                     'APISIGN_NOT_PROVIDED': AuthenticationError,
@@ -311,9 +300,9 @@ module.exports = class bittrex extends Exchange {
             const market = response[i];
             const baseId = this.safeString (market, 'baseCurrencySymbol');
             const quoteId = this.safeString (market, 'quoteCurrencySymbol');
-            // bittrex v2 uses inverted pairs, v3 uses regular pairs
-            // we use v3 for fetchMarkets and v2 throughout the rest of this implementation
-            // therefore we swap the base ←→ quote here to be v2-compatible
+            // bittrex v1 uses inverted pairs, v3 uses regular pairs
+            // we use v3 for fetchMarkets and v1 throughout the rest of this implementation
+            // therefore we swap the base ←→ quote here to be v1-compatible
             // https://github.com/ccxt/ccxt/issues/5634
             // const id = this.safeString (market, 'symbol');
             const id = quoteId + this.options['symbolSeparator'] + baseId;
@@ -657,15 +646,19 @@ module.exports = class bittrex extends Exchange {
         };
         let method = 'v3publicGetMarketsMarketSymbolCandles';
         if (since !== undefined) {
-            method = 'v3publicGetMarketsMarketSymbolCandlesCandleIntervalHistoricalYearMonthDay';
-            const date = this.ymd (since);
-            const parts = date.split ('-');
-            const year = this.safeInteger (parts, 0);
-            const month = this.safeInteger (parts, 1);
-            const day = this.safeInteger (parts, 2);
-            request['year'] = year;
-            request['month'] = month;
-            request['day'] = day;
+            const now = this.milliseconds ();
+            const difference = Math.abs (now - since);
+            if (difference > 86400000) {
+                method = 'v3publicGetMarketsMarketSymbolCandlesCandleIntervalHistoricalYearMonthDay';
+                const date = this.ymd (since);
+                const parts = date.split ('-');
+                const year = this.safeInteger (parts, 0);
+                const month = this.safeInteger (parts, 1);
+                const day = this.safeInteger (parts, 2);
+                request['year'] = year;
+                request['month'] = month;
+                request['day'] = day;
+            }
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -675,7 +668,7 @@ module.exports = class bittrex extends Exchange {
         //         {"startsAt":"2020-06-12T02:45:00Z","open":"0.02490753","high":"0.02493143","low":"0.02490753","close":"0.02493143","volume":"0.17769640","quoteVolume":"0.00442663"}
         //     ]
         //
-        return this.parseOHLCVs (response, market, since, limit);
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -958,7 +951,7 @@ module.exports = class bittrex extends Exchange {
         if (feeCost === undefined) {
             if (type === 'deposit') {
                 // according to https://support.bittrex.com/hc/en-us/articles/115000199651-What-fees-does-Bittrex-charge-
-                feeCost = 0; // FIXME: remove hardcoded value that may change any time
+                feeCost = 0;
             }
         }
         return {
@@ -1333,7 +1326,7 @@ module.exports = class bittrex extends Exchange {
             market = this.market (symbol);
             // because of this line we will have to rethink the entire v3
             // in other words, markets define all the rest of the API
-            // and v3 market ids are reversed in comparison to v2
+            // and v3 market ids are reversed in comparison to v1
             // v3 has to be a completely separate implementation
             // otherwise we will have to shuffle symbols and currencies everywhere
             // which is prone to errors, as was shown here
@@ -1407,7 +1400,7 @@ module.exports = class bittrex extends Exchange {
         let url = this.implodeParams (this.urls['api'][api], {
             'hostname': this.hostname,
         }) + '/';
-        if (api !== 'v2' && api !== 'v3' && api !== 'v3public') {
+        if (api !== 'v3' && api !== 'v3public') {
             url += this.version + '/';
         }
         if (api === 'public') {
@@ -1419,11 +1412,6 @@ module.exports = class bittrex extends Exchange {
         } else if (api === 'v3public') {
             url += this.implodeParams (path, params);
             params = this.omit (params, this.extractParams (path));
-            if (Object.keys (params).length) {
-                url += '?' + this.urlencode (params);
-            }
-        } else if (api === 'v2') {
-            url += path;
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
