@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { BadSymbol, ExchangeNotAvailable, ArgumentsRequired, PermissionDenied, AuthenticationError, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder, InvalidAddress, NotSupported } = require ('./base/errors');
+const { BadSymbol, ExchangeNotAvailable, ArgumentsRequired, PermissionDenied, AuthenticationError, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder, InvalidAddress } = require ('./base/errors');
 const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -151,7 +151,6 @@ module.exports = class kraken extends Exchange {
                     'get': [
                         // we should really refrain from putting fixed fee numbers and stop hardcoding
                         // we will be using their web APIs to scrape all numbers from these articles
-                        '205893708', // -What-is-the-minimum-order-size-
                         '360000292886', // -What-are-the-deposit-fees-
                         '201893608', // -What-are-the-withdrawal-fees-
                     ],
@@ -208,7 +207,6 @@ module.exports = class kraken extends Exchange {
                 'delistedMarketsById': {},
                 // cannot withdraw/deposit these
                 'inactiveCurrencies': [ 'CAD', 'USD', 'JPY', 'GBP' ],
-                'fetchMinOrderAmounts': true,
             },
             'exceptions': {
                 'EQuery:Invalid asset pair': BadSymbol, // {"error":["EQuery:Invalid asset pair"]}
@@ -234,34 +232,6 @@ module.exports = class kraken extends Exchange {
 
     feeToPrecision (symbol, fee) {
         return this.decimalToPrecision (fee, TRUNCATE, this.markets[symbol]['precision']['amount'], DECIMAL_PLACES);
-    }
-
-    async fetchMinOrderAmounts (params = {}) {
-        const response = await this.zendeskGet205893708 (params);
-        const article = this.safeValue (response, 'article');
-        const html = this.safeString (article, 'body');
-        const parts = html.split ('<td class="wysiwyg-text-align-right">');
-        const numParts = parts.length;
-        if (numParts < 3) {
-            throw new NotSupported (this.id + ' fetchMinOrderAmounts HTML page markup has changed: https://kraken.zendesk.com/api/v2/help_center/en-us/articles/205893708');
-        }
-        const result = {};
-        // skip the part before the header and the header itself
-        for (let i = 2; i < parts.length; i++) {
-            const part = parts[i];
-            const chunks = part.split ('</td>');
-            const amountAndCode = chunks[0];
-            if (amountAndCode !== 'To Be Announced') {
-                const pieces = amountAndCode.split (' ');
-                const numPieces = pieces.length;
-                if (numPieces === 2) {
-                    const amount = parseFloat (pieces[0]);
-                    const code = this.safeCurrencyCode (pieces[1]);
-                    result[code] = amount;
-                }
-            }
-        }
-        return result;
     }
 
     async fetchMarkets (params = {}) {
@@ -307,16 +277,12 @@ module.exports = class kraken extends Exchange {
         //                 ],
         //                 "fee_volume_currency":"ZUSD",
         //                 "margin_call":80,
-        //                 "margin_stop":40
+        //                 "margin_stop":40,
+        //                 "ordermin": "1"
         //             },
         //         }
         //     }
         //
-        const fetchMinOrderAmounts = this.safeValue (this.options, 'fetchMinOrderAmounts', false);
-        let limits = {};
-        if (fetchMinOrderAmounts) {
-            limits = await this.fetchMinOrderAmounts ();
-        }
         const keys = Object.keys (response['result']);
         let result = [];
         for (let i = 0; i < keys.length; i++) {
@@ -336,10 +302,7 @@ module.exports = class kraken extends Exchange {
                 'amount': market['lot_decimals'],
                 'price': market['pair_decimals'],
             };
-            let minAmount = Math.pow (10, -precision['amount']);
-            if (base in limits) {
-                minAmount = limits[base];
-            }
+            const minAmount = this.safeFloat (market, 'ordermin');
             result.push ({
                 'id': id,
                 'symbol': symbol,
