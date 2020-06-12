@@ -1186,7 +1186,13 @@ class Exchange {
         return $signature;
     }
 
-    // this method is experimental
+    public static function eddsa($request, $secret, $algorithm = 'ed25519') {
+        // this method is experimental ( ͡° ͜ʖ ͡°)
+        $curve = new EdDSA ($algorithm);
+        $signature = $curve->signModified ($request, $secret);
+        return static::binary_to_base58(static::base16_to_binary($signature->toHex()));
+    }
+
     public function throttle() {
         $now = $this->milliseconds();
         $elapsed = $now - $this->lastRestRequestTimestamp;
@@ -2829,32 +2835,32 @@ class Exchange {
     }
 
     public static function base58_to_binary($s) {
-        if (!static::$base58_decoder) {
-            static::$base58_decoder = array();
-            static::$base58_encoder = array();
-            for ($i = 0; $i < strlen(static::$base58_alphabet); $i++) {
+        if (!self::$base58_decoder) {
+            self::$base58_decoder = array();
+            self::$base58_encoder = array();
+            for ($i = 0; $i < strlen(self::$base58_alphabet); $i++) {
                 $bigNum = new BN($i);
-                static::$base58_decoder[static::$base58_alphabet[$i]] = $bigNum;
-                static::$base58_encoder[$i] = static::$base58_alphabet[$i];
+                self::$base58_decoder[self::$base58_alphabet[$i]] = $bigNum;
+                self::$base58_encoder[$i] = self::$base58_alphabet[$i];
             }
         }
         $result = new BN(0);
         $base = new BN(58);
         for ($i = 0; $i < strlen($s); $i++) {
             $result->imul($base);
-            $result->iadd(static::$base58_decoder[$s[$i]]);
+            $result->iadd(self::$base58_decoder[$s[$i]]);
         }
         return static::number_to_be($result, 0);
     }
 
     public static function binary_to_base58($b) {
-        if (!static::$base58_encoder) {
-            static::$base58_decoder = array();
-            static::$base58_encoder = array();
-            for ($i = 0; $i < strlen(static::$base58_alphabet); $i++) {
+        if (!self::$base58_encoder) {
+            self::$base58_decoder = array();
+            self::$base58_encoder = array();
+            for ($i = 0; $i < strlen(self::$base58_alphabet); $i++) {
                 $bigNum = new BN($i);
-                static::$base58_decoder[static::$base58_alphabet[$i]] = $bigNum;
-                static::$base58_encoder[$i] = static::$base58_alphabet[$i];
+                self::$base58_decoder[self::$base58_alphabet[$i]] = $bigNum;
+                self::$base58_encoder[$i] = self::$base58_alphabet[$i];
             }
         }
         // convert binary to decimal
@@ -2868,7 +2874,7 @@ class Exchange {
         while (!$result->isZero()) {
             $next_character = $result->modn(58);
             $result->idivn(58);
-            $string[] = static::$base58_encoder[$next_character];
+            $string[] = self::$base58_encoder[$next_character];
         }
         return implode('', array_reverse($string));
     }

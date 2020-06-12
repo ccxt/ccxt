@@ -560,6 +560,8 @@ class Exchange(object):
                 proxies=self.proxies,
                 verify=self.verify
             )
+            # does not try to detect encoding
+            response.encoding = 'utf-8'
             http_response = response.text
             http_status_code = response.status_code
             http_status_text = response.reason
@@ -1172,7 +1174,7 @@ class Exchange(object):
         random = b'\x00' * 64
         request = base64.b16decode(request, casefold=True)
         secret = base64.b16decode(secret, casefold=True)
-        signature = eddsa.calculateSignature(random, request, secret)
+        signature = eddsa.calculateSignature(random, secret, request)
         return Exchange.binary_to_base58(signature)
 
     @staticmethod
@@ -1273,8 +1275,8 @@ class Exchange(object):
         self.markets = self.index_by(values, 'symbol')
         self.markets_by_id = self.index_by(values, 'id')
         self.marketsById = self.markets_by_id
-        self.symbols = sorted(list(self.markets.keys()))
-        self.ids = sorted(list(self.markets_by_id.keys()))
+        self.symbols = sorted(self.markets.keys())
+        self.ids = sorted(self.markets_by_id.keys())
         if currencies:
             self.currencies = self.deep_extend(currencies, self.currencies)
         else:
@@ -1816,6 +1818,8 @@ class Exchange(object):
 
     @staticmethod
     def from_wei(amount, decimals=18):
+        if amount is None:
+            return None
         amount_float = float(amount)
         exponential = '{:.14e}'.format(amount_float)
         n, exponent = exponential.split('e')
@@ -1824,6 +1828,8 @@ class Exchange(object):
 
     @staticmethod
     def to_wei(amount, decimals=18):
+        if amount is None:
+            return None
         amount_float = float(amount)
         exponential = '{:.14e}'.format(amount_float)
         n, exponent = exponential.split('e')

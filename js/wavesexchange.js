@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired } = require ('./base/errors');
+const { ArgumentsRequired, AuthenticationError, InsufficientFunds, InvalidOrder, AccountSuspended, ExchangeError, DuplicateOrderId, OrderNotFound, BadSymbol, ExchangeNotAvailable, BadRequest } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -26,6 +26,7 @@ module.exports = class wavesexchange extends Exchange {
                 'fetchBalance': true,
                 'createOrder': true,
                 'cancelOrder': true,
+                'fetchDepositAddress': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -49,8 +50,10 @@ module.exports = class wavesexchange extends Exchange {
                     'public': 'https://api.wavesplatform.com/v0',
                     'private': 'https://api.waves.exchange/v1',
                     'forward': 'https://waves.exchange/api/v1/forward/matcher',
+                    'gateway': 'https://gw.waves.exchange/api/v1',
                 },
                 'doc': 'https://docs.waves.exchange',
+                'www': 'https://waves.exchange',
             },
             'api': {
                 'matcher': {
@@ -217,6 +220,11 @@ module.exports = class wavesexchange extends Exchange {
                         'matcher/orders/{address}/{orderId}',
                     ],
                 },
+                'gateway': {
+                    'post': [
+                        'external/deposit',
+                    ],
+                },
             },
             'commonCurrencies': {
                 'WBTC': 'BTC',
@@ -231,6 +239,31 @@ module.exports = class wavesexchange extends Exchange {
                 'wavesAddress': undefined,
             },
             'requiresEddsa': true,
+            'exceptions': {
+                '3147270': InsufficientFunds,  // https://github.com/wavesplatform/matcher/wiki/List-of-all-errors
+                '4': ExchangeError,
+                '13': ExchangeNotAvailable,
+                '14': ExchangeNotAvailable,
+                '3145733': AccountSuspended,
+                '3148040': DuplicateOrderId,
+                '3148801': AuthenticationError,
+                '9440512': AuthenticationError,
+                '9440771': BadSymbol,
+                '9441026': InvalidOrder,
+                '9441282': InvalidOrder,
+                '9441286': InvalidOrder,
+                '9441295': InvalidOrder,
+                '9441540': InvalidOrder,
+                '9441542': InvalidOrder,
+                '106954752': AuthenticationError,
+                '106954769': AuthenticationError,
+                '106957828': AuthenticationError,
+                '106960131': AuthenticationError,
+                '106981137': AuthenticationError,
+                '9437193': OrderNotFound,
+                '1048577': BadRequest,
+                '1051904': AuthenticationError,
+            },
         });
     }
 
@@ -491,15 +524,17 @@ module.exports = class wavesexchange extends Exchange {
         // }
         const result = this.parseOHLCVs (this.safeValue (response, 'data', []), market, timeframe, since, limit);
         let lastClose = undefined;
-        for (let i = result.length - 1; i >= 0; i--) {
-            const entry = result[i];
+        const length = result.length;
+        for (let i = 0; i < result.length; i++) {
+            const j = length - i - 1;
+            const entry = result[j];
             const open = entry[1];
             if (open === undefined) {
                 entry[1] = lastClose;
                 entry[2] = lastClose;
                 entry[3] = lastClose;
                 entry[4] = lastClose;
-                result[i] = entry;
+                result[j] = entry;
             }
             lastClose = entry[4];
         }
@@ -527,15 +562,28 @@ module.exports = class wavesexchange extends Exchange {
         const high = this.safeFloat (data, 'high');
         const low = this.safeFloat (data, 'low');
         const volume = this.safeFloat (data, 'volume', 0);
-        return [ this.parse8601 (timestamp), open, high, low, close, volume ]
+        return [ this.parse8601 (timestamp), open, high, low, close, volume ];
     }
 
     async fetchDepositAddress (code, params = {}) {
-        await this.getAccessToken ();
+        // will migrate to the new API once
+        // https://docs.waves.exchange/en/api/gateways/deposit/
+        // is fully implemented
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const wavesAddress = await this.getWavesAddress ();
         const request = this.extend ({
-            'code': code,
+            'assetId': currency['id'],
+            'userAddress': wavesAddress,
         }, params);
-        return await this.privateGetDepositAddressesCode (request);
+        const response = await this.gatewayPostExternalDeposit (request);
+        const address = this.safeString (response, 'address');
+        return {
+            'address': address,
+            'code': code,
+            'tag': undefined,
+            'info': response,
+        };
     }
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -547,11 +595,13 @@ module.exports = class wavesexchange extends Exchange {
 
     async getMatcherPublicKey () {
         // this method returns a single string
-        const matcherPublicKey = this.safeString (this.safeString (this.options, 'matcherPublicKey'));
+        const matcherPublicKey = this.safeString (this.options, 'matcherPublicKey');
         if (matcherPublicKey) {
             return matcherPublicKey;
         } else {
-            this.options['matcherPublicKey'] = this.unjson (await this.matcherGetMatcher ());
+            const response = await this.matcherGetMatcher ();
+            // remove trailing quotes from string response
+            this.options['matcherPublicKey'] = response.slice (1, response.length - 1);
             return this.options['matcherPublicKey'];
         }
     }
@@ -601,9 +651,9 @@ module.exports = class wavesexchange extends Exchange {
         const priceAsset = this.getAssetId (market['quoteId']);
         amount = parseInt (this.amountToPrecision (symbol, amount));
         price = parseInt (this.priceToPrecision (symbol, price));
-        const orderType = side === 'buy' ? 0 : 1;
+        const orderType = (side === 'buy') ? 0 : 1;
         const timestamp = this.milliseconds ();
-        const expiration = timestamp + this.getDefaultExpiry ();
+        const expiration = this.sum (timestamp, this.getDefaultExpiry ());
         const matcherFee = 300000;
         const byteArray = [
             this.numberToBE (3, 1),
@@ -623,7 +673,7 @@ module.exports = class wavesexchange extends Exchange {
         const signature = this.eddsa (this.binaryToBase16 (binary), this.binaryToBase16 (this.base58ToBinary (this.secret)), 'ed25519');
         const assetPair = {
             'amountAsset': amountAsset,
-            'priceAsset': priceAsset
+            'priceAsset': priceAsset,
         };
         const body = {
             'senderPublicKey': this.apiKey,
@@ -636,7 +686,7 @@ module.exports = class wavesexchange extends Exchange {
             'expiration': expiration,
             'matcherFee': matcherFee,
             'signature': signature,
-            'version': 3
+            'version': 3,
         };
         const response = await this.matcherPostMatcherOrderbook (body);
         // { success: true,
@@ -967,7 +1017,7 @@ module.exports = class wavesexchange extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchMyTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const address = await this.getWavesAddress ();
@@ -1085,5 +1135,18 @@ module.exports = class wavesexchange extends Exchange {
             'cost': cost,
             'fee': fee,
         };
+    }
+
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        const errorCode = this.safeString (response, 'error');
+        const success = this.safeValue (response, 'success', true);
+        const Exception = this.safeValue (this.exceptions, errorCode);
+        if (Exception !== undefined) {
+            const message = this.safeString (response, 'message');
+            throw new Exception (this.id + ' ' + message);
+        }
+        if (!success) {
+            throw new ExchangeError (this.id + ' ' + body);
+        }
     }
 };
