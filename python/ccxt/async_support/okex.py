@@ -1401,7 +1401,7 @@ class okex(Exchange):
         #         ]
         #     ]
         #
-        return self.parse_ohlcvs(response, market)
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def parse_account_balance(self, response):
         #

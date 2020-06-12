@@ -650,7 +650,7 @@ class kraken(Exchange):
         #     }
         result = self.safe_value(response, 'result', {})
         ohlcvs = self.safe_value(result, market['id'], [])
-        return self.parse_ohlcvs(ohlcvs, market)
+        return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
     def parse_ledger_entry_type(self, type):
         types = {

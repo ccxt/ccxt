@@ -171,7 +171,7 @@ class _1btcxe(Exchange):
         }
         response = await self.publicGetHistoricalPrices(self.extend(request, params))
         ohlcvs = self.to_array(self.omit(response['historical-prices'], 'request_currency'))
-        return self.parse_ohlcvs(ohlcvs, market)
+        return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
     def parse_trade(self, trade, market=None):
         timestamp = self.safe_timestamp(trade, 'timestamp')

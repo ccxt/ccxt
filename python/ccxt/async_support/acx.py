@@ -282,7 +282,7 @@ class acx(Exchange):
         if since is not None:
             request['timestamp'] = int(since / 1000)
         response = await self.publicGetK(self.extend(request, params))
-        return self.parse_ohlcvs(response, market)
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def parse_order_status(self, status):
         statuses = {

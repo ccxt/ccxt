@@ -333,7 +333,7 @@ module.exports = class qtrade extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const ohlcvs = this.safeValue (data, 'slices', []);
-        return this.parseOHLCVs (ohlcvs, market);
+        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

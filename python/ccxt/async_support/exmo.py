@@ -718,7 +718,7 @@ class exmo(Exchange):
         #     }
         #
         candles = self.safe_value(response, 'candles', [])
-        return self.parse_ohlcvs(candles, market)
+        return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='5m', since=None, limit=None):
         #

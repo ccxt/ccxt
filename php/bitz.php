@@ -683,7 +683,7 @@ class bitz extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $bars = $this->safe_value($data, 'bars', array());
-        return $this->parse_ohlcvs($bars, $market);
+        return $this->parse_ohlcvs($bars, $market, $timeframe, $since, $limit);
     }
 
     public function parse_order_status($status) {

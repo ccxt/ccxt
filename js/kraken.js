@@ -666,7 +666,7 @@ module.exports = class kraken extends Exchange {
         //     }
         const result = this.safeValue (response, 'result', {});
         const ohlcvs = this.safeValue (result, market['id'], []);
-        return this.parseOHLCVs (ohlcvs, market);
+        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
     parseLedgerEntryType (type) {

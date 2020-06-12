@@ -370,7 +370,7 @@ class coss(Exchange):
         #     }
         #
         series = self.safe_value(response, 'series', [])
-        return self.parse_ohlcvs(series, market)
+        return self.parse_ohlcvs(series, market, timeframe, since, limit)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()

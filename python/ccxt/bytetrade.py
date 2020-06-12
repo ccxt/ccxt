@@ -455,7 +455,7 @@ class bytetrade(Exchange):
         #         [1591505880000,"242.72","242.73","242.61","242.72","0.4141"],
         #     ]
         #
-        return self.parse_ohlcvs(response, market)
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def parse_trade(self, trade, market=None):
         timestamp = self.safe_integer(trade, 'timestamp')

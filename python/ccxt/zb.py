@@ -82,7 +82,7 @@ class zb(Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg',
                 'api': {
-                    'public': 'https://api.zb.cn/data',  # no https for public API
+                    'public': 'http://api.zb.cn/data',  # no https for public API
                     'private': 'https://trade.zb.cn/api',
                 },
                 'www': 'https://www.zb.com',
@@ -344,7 +344,7 @@ class zb(Exchange):
             request['since'] = since
         response = self.publicGetKline(self.extend(request, params))
         data = self.safe_value(response, 'data', [])
-        return self.parse_ohlcvs(data, market)
+        return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def parse_trade(self, trade, market=None):
         timestamp = self.safe_timestamp(trade, 'date')

@@ -837,7 +837,7 @@ module.exports = class bitmax extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parseOHLCVs (data, market);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
@@ -995,7 +995,7 @@ module.exports = class bitmax extends Exchange {
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
-        let timestamp = this.safeInteger (order, 'timestamp');
+        let timestamp = this.safeInteger2 (order, 'timestamp', 'sendingTime');
         let lastTradeTimestamp = this.safeInteger (order, 'lastExecTime');
         const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'orderQty');

@@ -379,7 +379,7 @@ module.exports = class coss extends Exchange {
         //     }
         //
         const series = this.safeValue (response, 'series', []);
-        return this.parseOHLCVs (series, market);
+        return this.parseOHLCVs (series, market, timeframe, since, limit);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

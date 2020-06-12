@@ -36,7 +36,7 @@ use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
 
-$version = '1.29.75';
+$version = '1.29.84';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,11 +55,15 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
+<<<<<<< HEAD
     const VERSION = '1.29.75';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
     private static $base58_decoder = null;
+=======
+    const VERSION = '1.29.84';
+>>>>>>> master
 
     public static $exchanges = array(
         '_1btcxe',
@@ -147,7 +151,6 @@ class Exchange {
         'independentreserve',
         'indodax',
         'itbit',
-        'kkex',
         'kraken',
         'kucoin',
         'kuna',

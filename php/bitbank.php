@@ -287,7 +287,7 @@ class bitbank extends Exchange {
         $candlestick = $this->safe_value($data, 'candlestick', array());
         $first = $this->safe_value($candlestick, 0, array());
         $ohlcv = $this->safe_value($first, 'ohlcv', array());
-        return $this->parse_ohlcvs($ohlcv, $market);
+        return $this->parse_ohlcvs($ohlcv, $market, $timeframe, $since, $limit);
     }
 
     public function fetch_balance($params = array ()) {

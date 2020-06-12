@@ -626,7 +626,7 @@ class fcoin(Exchange):
             request['before'] = self.sum(sinceInSeconds, timerange) - 1
         response = await self.marketGetCandlesTimeframeSymbol(self.extend(request, params))
         data = self.safe_value(response, 'data', [])
-        return self.parse_ohlcvs(data, market)
+        return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def nonce(self):
         return self.milliseconds()

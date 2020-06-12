@@ -888,7 +888,7 @@ module.exports = class bitbay extends Exchange {
         //     }
         //
         const items = this.safeValue (response, 'items', []);
-        return this.parseOHLCVs (items, market);
+        return this.parseOHLCVs (items, market, timeframe, since, limit);
     }
 
     parseTrade (trade, market = undefined) {

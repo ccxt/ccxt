@@ -284,7 +284,7 @@ module.exports = class bitbank extends Exchange {
         const candlestick = this.safeValue (data, 'candlestick', []);
         const first = this.safeValue (candlestick, 0, {});
         const ohlcv = this.safeValue (first, 'ohlcv', []);
-        return this.parseOHLCVs (ohlcv, market);
+        return this.parseOHLCVs (ohlcv, market, timeframe, since, limit);
     }
 
     async fetchBalance (params = {}) {

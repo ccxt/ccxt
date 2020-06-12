@@ -669,7 +669,7 @@ class fcoin extends Exchange {
         }
         $response = $this->marketGetCandlesTimeframeSymbol (array_merge($request, $params));
         $data = $this->safe_value($response, 'data', array());
-        return $this->parse_ohlcvs($data, $market);
+        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
     public function nonce() {

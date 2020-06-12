@@ -870,7 +870,7 @@ class bitbay(Exchange):
         #     }
         #
         items = self.safe_value(response, 'items', [])
-        return self.parse_ohlcvs(items, market)
+        return self.parse_ohlcvs(items, market, timeframe, since, limit)
 
     def parse_trade(self, trade, market=None):
         #

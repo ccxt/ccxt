@@ -409,7 +409,7 @@ module.exports = class bibox extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', []);
-        return this.parseOHLCVs (result, market);
+        return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
     async fetchCurrencies (params = {}) {

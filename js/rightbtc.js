@@ -369,7 +369,7 @@ module.exports = class rightbtc extends Exchange {
         };
         const response = await this.publicGetCandlestickTimeSymbolTradingPair (this.extend (request, params));
         const result = this.safeValue (response, 'result', []);
-        return this.parseOHLCVs (result, market);
+        return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
     async fetchBalance (params = {}) {

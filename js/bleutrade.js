@@ -353,7 +353,8 @@ module.exports = class bleutrade extends Exchange {
             'count': limit,
         };
         const response = await this.v3PublicGetGetcandles (this.extend (request, params));
-        return this.parseOHLCVs (response['result'], market);
+        const result = this.safeValue (response, 'result', []);
+        return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

@@ -680,7 +680,7 @@ module.exports = class bitz extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const bars = this.safeValue (data, 'bars', []);
-        return this.parseOHLCVs (bars, market);
+        return this.parseOHLCVs (bars, market, timeframe, since, limit);
     }
 
     parseOrderStatus (status) {
