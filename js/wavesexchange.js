@@ -523,7 +523,8 @@ module.exports = class wavesexchange extends Exchange {
         //     }, …
         //   ]
         // }
-        const result = this.parseOHLCVs (this.safeValue (response, 'data', []), market, timeframe, since, limit);
+        const data = this.safeValue (response, 'data', []);
+        const result = this.parseOHLCVs (data, market, timeframe, since, limit);
         let lastClose = undefined;
         const length = result.length;
         for (let i = 0; i < result.length; i++) {
