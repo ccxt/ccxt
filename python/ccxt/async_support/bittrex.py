@@ -16,6 +16,7 @@ import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import AddressPending
@@ -57,11 +58,10 @@ class bittrex(Exchange):
                 'fetchTransactions': False,
             },
             'timeframes': {
-                '1m': 'oneMin',
-                '5m': 'fiveMin',
-                '30m': 'thirtyMin',
-                '1h': 'hour',
-                '1d': 'day',
+                '1m': 'MINUTE_1',
+                '5m': 'MINUTE_5',
+                '1h': 'HOUR_1',
+                '1d': 'DAY_1',
             },
             'hostname': 'bittrex.com',
             'urls': {
@@ -132,6 +132,7 @@ class bittrex(Exchange):
                         'markets/{marketSymbol}/trades',
                         'markets/{marketSymbol}/ticker',
                         'markets/{marketSymbol}/candles',
+                        'markets/{marketSymbol}/candles/{candleInterval}/historical/{year}/{month}/{day}',
                     ],
                 },
                 'v2': {
@@ -230,6 +231,7 @@ class bittrex(Exchange):
             },
             'exceptions': {
                 'exact': {
+                    'BAD_REQUEST': BadRequest,  # {"code":"BAD_REQUEST","detail":"Refer to the data field for specific field validation failures.","data":{"invalidRequestParameter":"day"}}
                     # 'Call to Cancel was throttled. Try again in 60 seconds.': DDoSProtection,
                     # 'Call to GetBalances was throttled. Try again in 60 seconds.': DDoSProtection,
                     'APISIGN_NOT_PROVIDED': AuthenticationError,
@@ -618,46 +620,52 @@ class bittrex(Exchange):
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1d', since=None, limit=None):
         #
         #     {
-        #         "O":0.02249509,
-        #         "H":0.02249509,
-        #         "L":0.02249509,
-        #         "C":0.02249509,
-        #         "V":0.72452427,
-        #         "T":"2020-05-28T06:17:00",
-        #         "BV":0.01629823
+        #         "startsAt":"2020-06-12T02:35:00Z",
+        #         "open":"0.02493753",
+        #         "high":"0.02493753",
+        #         "low":"0.02493753",
+        #         "close":"0.02493753",
+        #         "volume":"0.09590123",
+        #         "quoteVolume":"0.00239153"
         #     }
         #
         return [
-            self.parse8601(ohlcv['T'] + '+00:00'),
-            self.safe_float(ohlcv, 'O'),
-            self.safe_float(ohlcv, 'H'),
-            self.safe_float(ohlcv, 'L'),
-            self.safe_float(ohlcv, 'C'),
-            self.safe_float(ohlcv, 'V'),
+            self.parse8601(self.safe_string(ohlcv, 'startsAt')),
+            self.safe_float(ohlcv, 'open'),
+            self.safe_float(ohlcv, 'high'),
+            self.safe_float(ohlcv, 'low'),
+            self.safe_float(ohlcv, 'close'),
+            self.safe_float(ohlcv, 'volume'),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        reverseId = market['baseId'] + '-' + market['quoteId']
         request = {
-            'tickInterval': self.timeframes[timeframe],
-            'marketName': market['id'],
+            'candleInterval': self.timeframes[timeframe],
+            'marketSymbol': reverseId,
         }
-        response = await self.v2GetMarketGetTicks(self.extend(request, params))
+        method = 'v3publicGetMarketsMarketSymbolCandles'
+        if since is not None:
+            method = 'v3publicGetMarketsMarketSymbolCandlesCandleIntervalHistoricalYearMonthDay'
+            date = self.ymd(since)
+            parts = date.split('-')
+            year = self.safe_integer(parts, 0)
+            month = self.safe_integer(parts, 1)
+            day = self.safe_integer(parts, 2)
+            request['year'] = year
+            request['month'] = month
+            request['day'] = day
+        response = await getattr(self, method)(self.extend(request, params))
         #
-        #     {
-        #         "success":true,
-        #         "message":"",
-        #         "result":[
-        #             {"O":0.02249509,"H":0.02249509,"L":0.02249509,"C":0.02249509,"V":0.72452427,"T":"2020-05-28T06:17:00","BV":0.01629823},
-        #             {"O":0.02249509,"H":0.02249509,"L":0.02249509,"C":0.02249509,"V":0.0,"T":"2020-05-28T06:18:00","BV":0.0},
-        #             {"O":0.02251987,"H":0.02251987,"L":0.02251987,"C":0.02251987,"V":1.66344206,"T":"2020-05-28T06:19:00","BV":0.03746049},
-        #         ],
-        #         "explanation":null
-        #     }
+        #     [
+        #         {"startsAt":"2020-06-12T02:35:00Z","open":"0.02493753","high":"0.02493753","low":"0.02493753","close":"0.02493753","volume":"0.09590123","quoteVolume":"0.00239153"},
+        #         {"startsAt":"2020-06-12T02:40:00Z","open":"0.02491874","high":"0.02491874","low":"0.02490970","close":"0.02490970","volume":"0.04515695","quoteVolume":"0.00112505"},
+        #         {"startsAt":"2020-06-12T02:45:00Z","open":"0.02490753","high":"0.02493143","low":"0.02490753","close":"0.02493143","volume":"0.17769640","quoteVolume":"0.00442663"}
+        #     ]
         #
-        result = self.safe_value(response, 'result', [])
-        return self.parse_ohlcvs(result, market, since, limit)
+        return self.parse_ohlcvs(response, market, since, limit)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -1312,11 +1320,13 @@ class bittrex(Exchange):
         if api != 'v2' and api != 'v3' and api != 'v3public':
             url += self.version + '/'
         if api == 'public':
-            url += api + '/' + method.lower() + path
+            url += api + '/' + method.lower() + self.implode_params(path, params)
+            params = self.omit(params, self.extract_params(path))
             if params:
                 url += '?' + self.urlencode(params)
         elif api == 'v3public':
-            url += path
+            url += self.implode_params(path, params)
+            params = self.omit(params, self.extract_params(path))
             if params:
                 url += '?' + self.urlencode(params)
         elif api == 'v2':
