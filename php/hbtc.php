@@ -802,7 +802,7 @@ class hbtc extends Exchange {
         //         [1587906360000,"0.1761","0.1848","0.1761","0.1848","53",0,"9.7944",1,"0","0"],
         //     ]
         //
-        return $this->parse_ohlcvs($response, $market, $since, $limit);
+        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {

@@ -598,7 +598,7 @@ class hollaex extends Exchange {
         //         ),
         //     )
         //
-        return $this->parse_ohlcvs($response, $market, $since, $limit);
+        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
     public function parse_ohlcv($response, $market = null, $timeframe = '1h', $since = null, $limit = null) {

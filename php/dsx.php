@@ -641,7 +641,7 @@ class dsx extends Exchange {
         //     }
         //
         $candles = $this->safe_value($response, $market['id'], array());
-        return $this->parse_ohlcvs($candles, $market, $since, $limit);
+        return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

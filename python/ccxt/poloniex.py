@@ -279,7 +279,7 @@ class poloniex(Exchange):
         #         {"date":1590914100,"high":0.02498596,"low":0.02488503,"open":0.02493033,"close":0.02497896,"volume":0.21196348,"quoteVolume":8.50291888,"weightedAverage":0.02492832},
         #     ]
         #
-        return self.parse_ohlcvs(response, market, since, limit)
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def fetch_markets(self, params={}):
         markets = self.publicGetReturnTicker(params)

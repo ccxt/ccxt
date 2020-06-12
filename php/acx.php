@@ -302,7 +302,7 @@ class acx extends Exchange {
             $request['timestamp'] = intval ($since / 1000);
         }
         $response = $this->publicGetK (array_merge($request, $params));
-        return $this->parse_ohlcvs($response, $market, $since, $limit);
+        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
     public function parse_order_status($status) {

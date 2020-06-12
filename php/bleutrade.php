@@ -358,7 +358,7 @@ class bleutrade extends Exchange {
         );
         $response = $this->v3PublicGetGetcandles (array_merge($request, $params));
         $result = $this->safe_value($response, 'result', array());
-        return $this->parse_ohlcvs($result, $market, $since, $limit);
+        return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

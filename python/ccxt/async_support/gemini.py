@@ -684,4 +684,4 @@ class gemini(Exchange):
         #         [1591514400000,0.02503,0.02503,0.02503,0.02503,0],
         #     ]
         #
-        return self.parse_ohlcvs(response, market, since, limit)
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)

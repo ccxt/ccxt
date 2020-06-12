@@ -240,7 +240,7 @@ class btcturk(Exchange):
         if limit is not None:
             request['last'] = limit
         response = await self.publicGetOhlcdata(self.extend(request, params))
-        return self.parse_ohlcvs(response, market, since, limit)
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()

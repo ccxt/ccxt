@@ -343,7 +343,7 @@ class bleutrade(Exchange):
         }
         response = self.v3PublicGetGetcandles(self.extend(request, params))
         result = self.safe_value(response, 'result', [])
-        return self.parse_ohlcvs(result, market, since, limit)
+        return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type != 'limit':

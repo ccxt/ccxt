@@ -70,7 +70,6 @@ class bittrex(Exchange):
                     'public': 'https://{hostname}/api',
                     'account': 'https://{hostname}/api',
                     'market': 'https://{hostname}/api',
-                    'v2': 'https://{hostname}/api/v2.0/pub',
                     'v3': 'https://api.bittrex.com/v3',
                     'v3public': 'https://api.bittrex.com/v3',
                 },
@@ -133,17 +132,6 @@ class bittrex(Exchange):
                         'markets/{marketSymbol}/ticker',
                         'markets/{marketSymbol}/candles',
                         'markets/{marketSymbol}/candles/{candleInterval}/historical/{year}/{month}/{day}',
-                    ],
-                },
-                'v2': {
-                    'get': [
-                        'currencies/GetBTCPrice',
-                        'currencies/GetWalletHealth',
-                        'general/GetLatestAlert',
-                        'market/GetTicks',
-                        'market/GetLatestTick',
-                        'Markets/GetMarketSummaries',
-                        'market/GetLatestTick',
                     ],
                 },
                 'public': {
@@ -232,6 +220,7 @@ class bittrex(Exchange):
             'exceptions': {
                 'exact': {
                     'BAD_REQUEST': BadRequest,  # {"code":"BAD_REQUEST","detail":"Refer to the data field for specific field validation failures.","data":{"invalidRequestParameter":"day"}}
+                    'STARTDATE_OUT_OF_RANGE': BadRequest,  # {"code":"STARTDATE_OUT_OF_RANGE"}
                     # 'Call to Cancel was throttled. Try again in 60 seconds.': DDoSProtection,
                     # 'Call to GetBalances was throttled. Try again in 60 seconds.': DDoSProtection,
                     'APISIGN_NOT_PROVIDED': AuthenticationError,
@@ -330,9 +319,9 @@ class bittrex(Exchange):
             market = response[i]
             baseId = self.safe_string(market, 'baseCurrencySymbol')
             quoteId = self.safe_string(market, 'quoteCurrencySymbol')
-            # bittrex v2 uses inverted pairs, v3 uses regular pairs
-            # we use v3 for fetchMarkets and v2 throughout the rest of self implementation
-            # therefore we swap the base ←→ quote here to be v2-compatible
+            # bittrex v1 uses inverted pairs, v3 uses regular pairs
+            # we use v3 for fetchMarkets and v1 throughout the rest of self implementation
+            # therefore we swap the base ←→ quote here to be v1-compatible
             # https://github.com/ccxt/ccxt/issues/5634
             # id = self.safe_string(market, 'symbol')
             id = quoteId + self.options['symbolSeparator'] + baseId
@@ -648,15 +637,18 @@ class bittrex(Exchange):
         }
         method = 'v3publicGetMarketsMarketSymbolCandles'
         if since is not None:
-            method = 'v3publicGetMarketsMarketSymbolCandlesCandleIntervalHistoricalYearMonthDay'
-            date = self.ymd(since)
-            parts = date.split('-')
-            year = self.safe_integer(parts, 0)
-            month = self.safe_integer(parts, 1)
-            day = self.safe_integer(parts, 2)
-            request['year'] = year
-            request['month'] = month
-            request['day'] = day
+            now = self.milliseconds()
+            difference = abs(now - since)
+            if difference > 86400000:
+                method = 'v3publicGetMarketsMarketSymbolCandlesCandleIntervalHistoricalYearMonthDay'
+                date = self.ymd(since)
+                parts = date.split('-')
+                year = self.safe_integer(parts, 0)
+                month = self.safe_integer(parts, 1)
+                day = self.safe_integer(parts, 2)
+                request['year'] = year
+                request['month'] = month
+                request['day'] = day
         response = getattr(self, method)(self.extend(request, params))
         #
         #     [
@@ -665,7 +657,7 @@ class bittrex(Exchange):
         #         {"startsAt":"2020-06-12T02:45:00Z","open":"0.02490753","high":"0.02493143","low":"0.02490753","close":"0.02493143","volume":"0.17769640","quoteVolume":"0.00442663"}
         #     ]
         #
-        return self.parse_ohlcvs(response, market, since, limit)
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -931,7 +923,7 @@ class bittrex(Exchange):
         if feeCost is None:
             if type == 'deposit':
                 # according to https://support.bittrex.com/hc/en-us/articles/115000199651-What-fees-does-Bittrex-charge-
-                feeCost = 0  # FIXME: remove hardcoded value that may change any time
+                feeCost = 0
         return {
             'info': transaction,
             'id': id,
@@ -1251,7 +1243,7 @@ class bittrex(Exchange):
             market = self.market(symbol)
             # because of self line we will have to rethink the entire v3
             # in other words, markets define all the rest of the API
-            # and v3 market ids are reversed in comparison to v2
+            # and v3 market ids are reversed in comparison to v1
             # v3 has to be a completely separate implementation
             # otherwise we will have to shuffle symbols and currencies everywhere
             # which is prone to errors, as was shown here
@@ -1317,7 +1309,7 @@ class bittrex(Exchange):
         url = self.implode_params(self.urls['api'][api], {
             'hostname': self.hostname,
         }) + '/'
-        if api != 'v2' and api != 'v3' and api != 'v3public':
+        if api != 'v3' and api != 'v3public':
             url += self.version + '/'
         if api == 'public':
             url += api + '/' + method.lower() + self.implode_params(path, params)
@@ -1327,10 +1319,6 @@ class bittrex(Exchange):
         elif api == 'v3public':
             url += self.implode_params(path, params)
             params = self.omit(params, self.extract_params(path))
-            if params:
-                url += '?' + self.urlencode(params)
-        elif api == 'v2':
-            url += path
             if params:
                 url += '?' + self.urlencode(params)
         elif api == 'v3':

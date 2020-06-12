@@ -279,7 +279,7 @@ class bitbank(Exchange):
         candlestick = self.safe_value(data, 'candlestick', [])
         first = self.safe_value(candlestick, 0, {})
         ohlcv = self.safe_value(first, 'ohlcv', [])
-        return self.parse_ohlcvs(ohlcv, market, since, limit)
+        return self.parse_ohlcvs(ohlcv, market, timeframe, since, limit)
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
