@@ -120,7 +120,6 @@ If you choose the hard way, here is the list of the dependencies you will need. 
   - mbstring
   - PCRE
   - bcmath (php<7.1)
-- [Pandoc](https://pandoc.org/installing.html) 1.19+
 
 ## What You Need To Know
 
