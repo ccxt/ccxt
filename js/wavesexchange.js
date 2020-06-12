@@ -46,7 +46,7 @@ module.exports = class wavesexchange extends Exchange {
             },
             'urls': {
                 'api': {
-                    'matcher': 'http://matcher.waves.exchange',
+                    'matcher': 'https://matcher.waves.exchange',
                     'node': 'https://nodes.wavesnodes.com',
                     'public': 'https://api.wavesplatform.com/v0',
                     'private': 'https://api.waves.exchange/v1',
