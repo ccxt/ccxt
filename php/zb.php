@@ -77,7 +77,7 @@ class zb extends Exchange {
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg',
                 'api' => array(
-                    'public' => 'https://api.zb.cn/data', // no https for public API
+                    'public' => 'http://api.zb.cn/data', // no https for public API
                     'private' => 'https://trade.zb.cn/api',
                 ),
                 'www' => 'https://www.zb.com',
