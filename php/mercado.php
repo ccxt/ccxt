@@ -458,7 +458,7 @@ class mercado extends Exchange {
         }
         $response = $this->v4PublicGetCoinCandle (array_merge($request, $params));
         $candles = $this->safe_value($response, 'candles', array());
-        return $this->parse_ohlcvs($candles, $market, $since, $limit);
+        return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
     }
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {

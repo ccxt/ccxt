@@ -323,7 +323,7 @@ class tidebit(Exchange):
         #
         if response == 'None':
             return []
-        return self.parse_ohlcvs(response, market, since, limit)
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def parse_order_status(self, status):
         statuses = {

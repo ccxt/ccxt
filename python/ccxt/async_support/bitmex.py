@@ -896,7 +896,7 @@ class bitmex(Exchange):
         #         {"timestamp":"2015-09-25T13:40:00.000Z","symbol":"XBTUSD","open":237.45,"high":237.45,"low":237.45,"close":237.45,"trades":0,"volume":0,"vwap":null,"lastSize":null,"turnover":0,"homeNotional":0,"foreignNotional":0}
         #     ]
         #
-        result = self.parse_ohlcvs(response, market)
+        result = self.parse_ohlcvs(response, market, timeframe, since, limit)
         if fetchOHLCVOpenTimestamp:
             # bitmex returns the candle's close timestamp - https://github.com/ccxt/ccxt/issues/4446
             # we can emulate the open timestamp by shifting all the timestamps one place

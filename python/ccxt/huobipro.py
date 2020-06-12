@@ -694,7 +694,7 @@ class huobipro(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        return self.parse_ohlcvs(data, market, since, limit)
+        return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def fetch_accounts(self, params={}):
         self.load_markets()

@@ -676,7 +676,7 @@ class kraken extends Exchange {
         //     }
         $result = $this->safe_value($response, 'result', array());
         $ohlcvs = $this->safe_value($result, $market['id'], array());
-        return $this->parse_ohlcvs($ohlcvs, $market, $since, $limit);
+        return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
     public function parse_ledger_entry_type($type) {

@@ -584,7 +584,7 @@ class whitebit extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        return $this->parse_ohlcvs($result, $market, $since, $limit);
+        return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
     }
 
     public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {

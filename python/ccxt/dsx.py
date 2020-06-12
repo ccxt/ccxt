@@ -609,7 +609,7 @@ class dsx(Exchange):
         #     }
         #
         candles = self.safe_value(response, market['id'], [])
-        return self.parse_ohlcvs(candles, market, since, limit)
+        return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

@@ -525,7 +525,7 @@ class coinbasepro(Exchange):
         #         [1591514040,0.02505,0.02507,0.02505,0.02507,0.19918178]
         #     ]
         #
-        return self.parse_ohlcvs(response, market, since, limit)
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def fetch_time(self, params={}):
         response = self.publicGetTime(params)
