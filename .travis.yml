@@ -16,8 +16,6 @@ before_install:
 - npm install
 - npm install web3@1.0.0-beta.37 ethereumjs-util ethereumjs-abi --no-save
 - git checkout package.json package-lock.json
-- sudo wget --quiet https://github.com/jgm/pandoc/releases/download/2.2.1/pandoc-2.2.1-1-amd64.deb
-- sudo dpkg -i pandoc-2.2.1-1-amd64.deb
 - sudo apt-get install python3-pip
 - python3 --version
 - python2 --version
