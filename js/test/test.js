@@ -42,14 +42,14 @@ const enableRateLimit = true
 
 const { Agent } = require ('https')
 
-const agent = new Agent ({
+const httpsAgent = new Agent ({
     ecdhCurve: 'auto',
 })
 
 const timeout = 20000
 
 const exchange = new (ccxt)[exchangeId] ({
-    agent,
+    httpsAgent,
     verbose,
     enableRateLimit,
     debug,
