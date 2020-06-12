@@ -27,6 +27,7 @@ module.exports = class wavesexchange extends Exchange {
                 'createOrder': true,
                 'cancelOrder': true,
                 'fetchDepositAddress': true,
+                'fetchOHLCV': true,
             },
             'timeframes': {
                 '1m': '1m',
