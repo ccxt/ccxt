@@ -731,7 +731,7 @@ class huobipro extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        return $this->parse_ohlcvs($data, $market);
+        return $this->parse_ohlcvs($data, $market, $since, $limit);
     }
 
     public function fetch_accounts($params = array ()) {

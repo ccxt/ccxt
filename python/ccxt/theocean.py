@@ -238,7 +238,7 @@ class theocean(Exchange):
         #         }
         #     ]
         #
-        return self.parse_ohlcvs(response, market)
+        return self.parse_ohlcvs(response, market, since, limit)
 
     def fetch_balance_by_code(self, code, params={}):
         if not self.walletAddress or (self.walletAddress.find('0x') != 0):

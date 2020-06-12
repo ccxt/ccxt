@@ -338,7 +338,7 @@ class qtrade(Exchange):
         #
         data = self.safe_value(response, 'data', {})
         ohlcvs = self.safe_value(data, 'slices', [])
-        return self.parse_ohlcvs(ohlcvs, market)
+        return self.parse_ohlcvs(ohlcvs, market, since, limit)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()

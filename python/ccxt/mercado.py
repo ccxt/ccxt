@@ -423,7 +423,7 @@ class mercado(Exchange):
             request['from'] = request['to'] - (limit * self.parse_timeframe(timeframe))
         response = self.v4PublicGetCoinCandle(self.extend(request, params))
         candles = self.safe_value(response, 'candles', [])
-        return self.parse_ohlcvs(candles, market)
+        return self.parse_ohlcvs(candles, market, since, limit)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:

@@ -629,7 +629,7 @@ class crex24 extends Exchange {
         //         }
         //     )
         //
-        return $this->parse_ohlcvs($response, $market);
+        return $this->parse_ohlcvs($response, $market, $since, $limit);
     }
 
     public function parse_order_status($status) {

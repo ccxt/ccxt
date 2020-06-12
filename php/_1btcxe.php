@@ -172,7 +172,7 @@ class _1btcxe extends Exchange {
         );
         $response = $this->publicGetHistoricalPrices (array_merge($request, $params));
         $ohlcvs = $this->to_array($this->omit($response['historical-prices'], 'request_currency'));
-        return $this->parse_ohlcvs($ohlcvs, $market);
+        return $this->parse_ohlcvs($ohlcvs, $market, $since, $limit);
     }
 
     public function parse_trade($trade, $market = null) {

@@ -842,7 +842,7 @@ class binance extends Exchange {
         //         [1591478640000,"0.02500800","0.02501100","0.02500300","0.02500800","154.14200000",1591478699999,"3.85405839",97,"5.32300000","0.13312641","0"],
         //     ]
         //
-        return $this->parse_ohlcvs($response, $market);
+        return $this->parse_ohlcvs($response, $market, $since, $limit);
     }
 
     public function parse_trade($trade, $market = null) {

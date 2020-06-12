@@ -574,7 +574,7 @@ class hollaex(Exchange):
         #         },
         #     ]
         #
-        return self.parse_ohlcvs(response, market)
+        return self.parse_ohlcvs(response, market, since, limit)
 
     def parse_ohlcv(self, response, market=None, timeframe='1h', since=None, limit=None):
         #

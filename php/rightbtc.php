@@ -376,7 +376,7 @@ class rightbtc extends Exchange {
         );
         $response = $this->publicGetCandlestickTimeSymbolTradingPair (array_merge($request, $params));
         $result = $this->safe_value($response, 'result', array());
-        return $this->parse_ohlcvs($result, $market);
+        return $this->parse_ohlcvs($result, $market, $since, $limit);
     }
 
     public function fetch_balance($params = array ()) {

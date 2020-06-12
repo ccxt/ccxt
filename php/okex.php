@@ -1421,7 +1421,7 @@ class okex extends Exchange {
         //         )
         //     )
         //
-        return $this->parse_ohlcvs($response, $market);
+        return $this->parse_ohlcvs($response, $market, $since, $limit);
     }
 
     public function parse_account_balance($response) {

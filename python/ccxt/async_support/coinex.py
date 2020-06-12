@@ -378,7 +378,7 @@ class coinex(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        return self.parse_ohlcvs(data, market)
+        return self.parse_ohlcvs(data, market, since, limit)
 
     async def fetch_balance(self, params={}):
         await self.load_markets()

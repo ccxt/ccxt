@@ -663,7 +663,7 @@ class bitz(Exchange):
         #
         data = self.safe_value(response, 'data', {})
         bars = self.safe_value(data, 'bars', [])
-        return self.parse_ohlcvs(bars, market)
+        return self.parse_ohlcvs(bars, market, since, limit)
 
     def parse_order_status(self, status):
         statuses = {

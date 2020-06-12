@@ -403,7 +403,7 @@ class bibox(Exchange):
         #     }
         #
         result = self.safe_value(response, 'result', [])
-        return self.parse_ohlcvs(result, market)
+        return self.parse_ohlcvs(result, market, since, limit)
 
     async def fetch_currencies(self, params={}):
         if not self.apiKey or not self.secret:

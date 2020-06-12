@@ -703,7 +703,7 @@ class bitfinex2 extends bitfinex {
         //         [1591504620000,0.025062,0.025062,0.025062,0.025062,0.5],
         //     ]
         //
-        return $this->parse_ohlcvs($response, $market);
+        return $this->parse_ohlcvs($response, $market, $since, $limit);
     }
 
     public function parse_order_status($status) {

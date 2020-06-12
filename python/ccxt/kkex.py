@@ -369,7 +369,7 @@ class kkex(Exchange):
         #         ]
         #     ]
         #
-        return self.parse_ohlcvs(response, market)
+        return self.parse_ohlcvs(response, market, since, limit)
 
     def parse_order_status(self, status):
         statuses = {

@@ -604,7 +604,7 @@ class currencycom(Exchange):
         #         [1590971160000,"0.02455","0.02456","0.02453","0.02454",286],
         #     ]
         #
-        return self.parse_ohlcvs(response, market)
+        return self.parse_ohlcvs(response, market, since, limit)
 
     def parse_trade(self, trade, market=None):
         #

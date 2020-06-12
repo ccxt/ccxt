@@ -414,7 +414,7 @@ class bibox extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        return $this->parse_ohlcvs($result, $market);
+        return $this->parse_ohlcvs($result, $market, $since, $limit);
     }
 
     public function fetch_currencies($params = array ()) {

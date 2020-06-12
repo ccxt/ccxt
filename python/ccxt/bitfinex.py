@@ -895,7 +895,7 @@ class bitfinex(Exchange):
         #         [1457550240000,0.0255,0.0253,0.0255,0.0252,3.2640000000000002],
         #     ]
         #
-        return self.parse_ohlcvs(response, market)
+        return self.parse_ohlcvs(response, market, since, limit)
 
     def get_currency_name(self, code):
         # todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method

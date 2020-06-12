@@ -648,7 +648,7 @@ class stex(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        return self.parse_ohlcvs(data, market)
+        return self.parse_ohlcvs(data, market, since, limit)
 
     def parse_trade(self, trade, market=None):
         #

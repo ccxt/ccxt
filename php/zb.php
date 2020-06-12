@@ -357,7 +357,7 @@ class zb extends Exchange {
         }
         $response = $this->publicGetKline (array_merge($request, $params));
         $data = $this->safe_value($response, 'data', array());
-        return $this->parse_ohlcvs($data, $market);
+        return $this->parse_ohlcvs($data, $market, $since, $limit);
     }
 
     public function parse_trade($trade, $market = null) {

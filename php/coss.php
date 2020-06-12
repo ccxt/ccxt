@@ -381,7 +381,7 @@ class coss extends Exchange {
         //     }
         //
         $series = $this->safe_value($response, 'series', array());
-        return $this->parse_ohlcvs($series, $market);
+        return $this->parse_ohlcvs($series, $market, $since, $limit);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
