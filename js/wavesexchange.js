@@ -17,6 +17,7 @@ module.exports = class wavesexchange extends Exchange {
             'certified': true,
             'pro': false,
             'has': {
+                'fetchTicker': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
@@ -203,6 +204,7 @@ module.exports = class wavesexchange extends Exchange {
                 },
                 'public': {
                     'get': [
+                        'pairs',
                         'candles/{baseId}/{quoteId}',
                         'transactions/exchange',
                     ],
@@ -482,6 +484,119 @@ module.exports = class wavesexchange extends Exchange {
             this.options['accessToken'] = this.safeString (response, 'access_token');
             return this.options['accessToken'];
         }
+    }
+
+    parseTicker (ticker, market = undefined) {
+        //
+        //     {
+        //         "__type":"pair",
+        //         "data":{
+        //             "firstPrice":0.00012512,
+        //             "lastPrice":0.00012441,
+        //             "low":0.00012167,
+        //             "high":0.00012768,
+        //             "weightedAveragePrice":0.000124710697407246,
+        //             "volume":209554.26356614,
+        //             "quoteVolume":26.1336583539951,
+        //             "volumeWaves":209554.26356614,
+        //             "txsCount":6655
+        //         },
+        //         "amountAsset":"WAVES",
+        //         "priceAsset":"8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS"
+        //     }
+        //
+        const timestamp = undefined;
+        const baseId = this.safeString (ticker, 'amountAsset');
+        const quoteId = this.safeString (ticker, 'priceAsset');
+        let symbol = undefined;
+        if ((baseId !== undefined) && (quoteId !== undefined)) {
+            const marketId = baseId + '/' + quoteId;
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            } else {
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
+        const data = this.safeValue (ticker, 'data', {});
+        const last = this.safeFloat (data, 'lastPrice');
+        const low = this.safeFloat (data, 'low');
+        const high = this.safeFloat (data, 'high');
+        const vwap = this.safeFloat (data, 'weightedAveragePrice');
+        const baseVolume = this.safeFloat (data, 'volume');
+        const quoteVolume = this.safeFloat (data, 'quoteVolume');
+        const open = this.safeValue (data, 'firstPrice');
+        let change = undefined;
+        let average = undefined;
+        let percentage = undefined;
+        if (last !== undefined && open !== undefined) {
+            change = last - open;
+            average = this.sum (last, open) / 2;
+            if (open > 0) {
+                percentage = change / open * 100;
+            }
+        }
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': high,
+            'low': low,
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
+            'vwap': vwap,
+            'open': open,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': change,
+            'percentage': percentage,
+            'average': average,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
+            'info': ticker,
+        };
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'pairs': market['id'],
+        };
+        const response = await this.publicGetPairs (this.extend (request, params));
+        //
+        //     {
+        //         "__type":"list",
+        //         "data":[
+        //             {
+        //                 "__type":"pair",
+        //                 "data":{
+        //                     "firstPrice":0.00012512,
+        //                     "lastPrice":0.00012441,
+        //                     "low":0.00012167,
+        //                     "high":0.00012768,
+        //                     "weightedAveragePrice":0.000124710697407246,
+        //                     "volume":209554.26356614,
+        //                     "quoteVolume":26.1336583539951,
+        //                     "volumeWaves":209554.26356614,
+        //                     "txsCount":6655
+        //                 },
+        //                 "amountAsset":"WAVES",
+        //                 "priceAsset":"8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const ticker = this.safeValue (data, 0, {});
+        return this.parseTicker (ticker, market);
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
