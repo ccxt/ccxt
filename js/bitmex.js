@@ -1238,6 +1238,8 @@ module.exports = class bitmex extends Exchange {
                 request['clOrdID'] = clientOrderId;
             }
             params = this.omit (params, [ 'origClOrdID', 'clOrdID', 'clientOrderId' ]);
+        } else {
+            request['orderID'] = id;
         }
         if (amount !== undefined) {
             request['orderQty'] = amount;
