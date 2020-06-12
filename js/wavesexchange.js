@@ -617,27 +617,29 @@ module.exports = class wavesexchange extends Exchange {
             request['timeStart'] = currentTime - delta;
         }
         const response = await this.publicGetCandlesBaseIdQuoteId (this.extend (request, params));
-        // {
-        //   "__type": "list",
-        //   "data": [
+        //
         //     {
-        //       "__type": "candle",
-        //       "data": {
-        //         "time": "2020-06-09T14:47:00.000Z",
-        //         "open": 0.0250385,
-        //         "close": 0.0250385,
-        //         "high": 0.0250385,
-        //         "low": 0.0250385,
-        //         "volume": 0.01033012,
-        //         "quoteVolume": 0.00025865,
-        //         "weightedAveragePrice": 0.0250385,
-        //         "maxHeight": 2099399,
-        //         "txsCount": 5,
-        //         "timeClose": "2020-06-09T14:47:59.999Z"
-        //       }
-        //     }, …
-        //   ]
-        // }
+        //         "__type": "list",
+        //         "data": [
+        //             {
+        //                 "__type": "candle",
+        //                 "data": {
+        //                     "time": "2020-06-09T14:47:00.000Z",
+        //                     "open": 0.0250385,
+        //                     "close": 0.0250385,
+        //                     "high": 0.0250385,
+        //                     "low": 0.0250385,
+        //                     "volume": 0.01033012,
+        //                     "quoteVolume": 0.00025865,
+        //                     "weightedAveragePrice": 0.0250385,
+        //                     "maxHeight": 2099399,
+        //                     "txsCount": 5,
+        //                     "timeClose": "2020-06-09T14:47:59.999Z"
+        //                 }
+        //             }
+        //         ]
+        //     }
+        //
         const data = this.safeValue (response, 'data', []);
         const result = this.parseOHLCVs (data, market, timeframe, since, limit);
         let lastClose = undefined;
