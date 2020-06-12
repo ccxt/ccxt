@@ -8,6 +8,7 @@ const { stringToBase64, utf16ToBase64, urlencodeBase64 } = require ('./encode')
 const NodeRSA = require ('./../../static_dependencies/node-rsa/NodeRSA')
 const { numberToLE } = require ('./encode')
 const EC = require ('./../../static_dependencies/elliptic/lib/elliptic').ec
+const Signature = require('./../../static_dependencies/elliptic/lib/elliptic/ec/signature')
 const { ArgumentsRequired } = require ('./../errors')
 const BN = require ('../../static_dependencies/BN/bn.js')
 
@@ -96,6 +97,11 @@ function ecdsa (request, secret, algorithm = 'p256', hashFunction = undefined, f
     }
 }
 
+function signatureToDER (r, s, enc) {
+    const signature = new Signature ({ r, s })
+    return signature.toDER (enc);
+}
+
 /*  ------------------------------------------------------------------------ */
 
 const totp = (secret) => {
@@ -142,6 +148,7 @@ module.exports = {
     totp,
     rsa,
     ecdsa,
+    signatureToDER,
 }
 
 /*  ------------------------------------------------------------------------ */

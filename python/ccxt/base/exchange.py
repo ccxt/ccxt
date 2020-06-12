@@ -76,6 +76,7 @@ import zlib
 from decimal import Decimal
 from time import mktime
 from wsgiref.handlers import format_date_time
+import binascii
 
 # -----------------------------------------------------------------------------
 
@@ -1156,6 +1157,15 @@ class Exchange(object):
             's': s,
             'v': v,
         }
+
+    @staticmethod
+    def signature_to_der(r, s, enc):
+        r = binascii.unhexlify(r)
+        s = binascii.unhexlify(s)
+        der = ecdsa.der.encode_sequence(r, s)
+        if (enc == 'hex'):
+            return der.hex()
+        return der
 
     @staticmethod
     def unjson(input):
