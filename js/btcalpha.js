@@ -276,7 +276,7 @@ module.exports = class btcalpha extends Exchange {
         //         {"time":1591295400,"open":0.024721,"close":0.024717,"low":0.024711,"high":0.02473,"volume":65.071}
         //     ]
         //
-        return this.parseOHLCVs (response, market, since, limit);
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     async fetchBalance (params = {}) {

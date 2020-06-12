@@ -226,7 +226,7 @@ module.exports = class theocean extends Exchange {
         //         }
         //     ]
         //
-        return this.parseOHLCVs (response, market, since, limit);
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     async fetchBalanceByCode (code, params = {}) {
