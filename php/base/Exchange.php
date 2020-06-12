@@ -55,15 +55,11 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-<<<<<<< HEAD
-    const VERSION = '1.29.75';
+    const VERSION = '1.29.84';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
     private static $base58_decoder = null;
-=======
-    const VERSION = '1.29.84';
->>>>>>> master
 
     public static $exchanges = array(
         '_1btcxe',
