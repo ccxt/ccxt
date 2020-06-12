@@ -544,27 +544,33 @@ module.exports = class wavesexchange extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
-        // { __type: 'candle',
-        //   data:
-        //    { time: '2020-06-05T20:46:00.000Z',
-        //      open: 240.573975,
-        //      close: 240.573975,
-        //      high: 240.573975,
-        //      low: 240.573975,
-        //      volume: 0.01278413,
-        //      quoteVolume: 3.075528,
-        //      weightedAveragePrice: 240.573975,
-        //      maxHeight: 2093895,
-        //      txsCount: 5,
-        //      timeClose: '2020-06-05T20:46:59.999Z' } }
-        const data = this.safeValue (ohlcv, 'data');
-        const timestamp = this.safeString (data, 'time');
-        const open = this.safeFloat (data, 'open');
-        const close = this.safeFloat (data, 'close');
-        const high = this.safeFloat (data, 'high');
-        const low = this.safeFloat (data, 'low');
-        const volume = this.safeFloat (data, 'volume', 0);
-        return [ this.parse8601 (timestamp), open, high, low, close, volume ];
+        //
+        //     {
+        //         __type: 'candle',
+        //         data: {
+        //             time: '2020-06-05T20:46:00.000Z',
+        //             open: 240.573975,
+        //             close: 240.573975,
+        //             high: 240.573975,
+        //             low: 240.573975,
+        //             volume: 0.01278413,
+        //             quoteVolume: 3.075528,
+        //             weightedAveragePrice: 240.573975,
+        //             maxHeight: 2093895,
+        //             txsCount: 5,
+        //             timeClose: '2020-06-05T20:46:59.999Z'
+        //         }
+        //     }
+        //
+        const data = this.safeValue (ohlcv, 'data', {});
+        return [
+            this.parse8601 (this.safeString (data, 'time')),
+            this.safeFloat (data, 'open'),
+            this.safeFloat (data, 'high'),
+            this.safeFloat (data, 'low'),
+            this.safeFloat (data, 'close'),
+            this.safeFloat (data, 'volume', 0),
+        ];
     }
 
     async fetchDepositAddress (code, params = {}) {
