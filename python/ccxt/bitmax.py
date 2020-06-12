@@ -967,7 +967,7 @@ class bitmax(Exchange):
                 symbol = base + '/' + quote
         if (symbol is None) and (market is not None):
             symbol = market['symbol']
-        timestamp = self.safe_integer(order, 'timestamp')
+        timestamp = self.safe_integer_2(order, 'timestamp', 'sendingTime')
         lastTradeTimestamp = self.safe_integer(order, 'lastExecTime')
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'orderQty')

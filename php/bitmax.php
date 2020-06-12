@@ -998,7 +998,7 @@ class bitmax extends Exchange {
         if (($symbol === null) && ($market !== null)) {
             $symbol = $market['symbol'];
         }
-        $timestamp = $this->safe_integer($order, 'timestamp');
+        $timestamp = $this->safe_integer_2($order, 'timestamp', 'sendingTime');
         $lastTradeTimestamp = $this->safe_integer($order, 'lastExecTime');
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'orderQty');
