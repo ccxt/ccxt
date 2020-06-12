@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.29.87'
+__version__ = '1.29.88'
 
 # ----------------------------------------------------------------------------
 
@@ -186,6 +186,7 @@ from ccxt.topq import topq                                  # noqa: F401
 from ccxt.upbit import upbit                                # noqa: F401
 from ccxt.vaultoro import vaultoro                          # noqa: F401
 from ccxt.vbtc import vbtc                                  # noqa: F401
+from ccxt.wavesexchange import wavesexchange                # noqa: F401
 from ccxt.whitebit import whitebit                          # noqa: F401
 from ccxt.xbtce import xbtce                                # noqa: F401
 from ccxt.yobit import yobit                                # noqa: F401
@@ -311,6 +312,7 @@ exchanges = [
     'upbit',
     'vaultoro',
     'vbtc',
+    'wavesexchange',
     'whitebit',
     'xbtce',
     'yobit',

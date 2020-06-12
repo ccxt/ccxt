@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.29.87",
+  "version": "1.29.88",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 130+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "dist/ccxt.browser.js",
@@ -521,7 +521,9 @@
     "bitvavo.com",
     "Bitvavo",
     "currency.com",
-    "Currency.com"
+    "Currency.com",
+    "waves.exchange",
+    "Waves.Exchange"
   ],
   "collective": {
     "type": "opencollective",
