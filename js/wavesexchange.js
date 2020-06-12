@@ -46,6 +46,7 @@ module.exports = class wavesexchange extends Exchange {
                 '1M': '1M',
             },
             'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/84547058-5fb27d80-ad0b-11ea-8711-78ac8b3c7f31.jpg',
                 'api': {
                     'matcher': 'https://matcher.waves.exchange',
                     'node': 'https://nodes.wavesnodes.com',
