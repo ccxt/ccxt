@@ -727,7 +727,7 @@ module.exports = class huobipro extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parseOHLCVs (data, market);
+        return this.parseOHLCVs (data, market, since, limit);
     }
 
     async fetchAccounts (params = {}) {

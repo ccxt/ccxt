@@ -665,7 +665,7 @@ module.exports = class fcoin extends Exchange {
         }
         const response = await this.marketGetCandlesTimeframeSymbol (this.extend (request, params));
         const data = this.safeValue (response, 'data', []);
-        return this.parseOHLCVs (data, market);
+        return this.parseOHLCVs (data, market, since, limit);
     }
 
     nonce () {

@@ -697,7 +697,7 @@ module.exports = class bitfinex2 extends bitfinex {
         //         [1591504620000,0.025062,0.025062,0.025062,0.025062,0.5],
         //     ]
         //
-        return this.parseOHLCVs (response, market);
+        return this.parseOHLCVs (response, market, since, limit);
     }
 
     parseOrderStatus (status) {

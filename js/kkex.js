@@ -393,7 +393,7 @@ module.exports = class kkex extends Exchange {
         //         ]
         //     ]
         //
-        return this.parseOHLCVs (response, market);
+        return this.parseOHLCVs (response, market, since, limit);
     }
 
     parseOrderStatus (status) {

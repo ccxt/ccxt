@@ -351,7 +351,7 @@ module.exports = class zb extends Exchange {
         }
         const response = await this.publicGetKline (this.extend (request, params));
         const data = this.safeValue (response, 'data', []);
-        return this.parseOHLCVs (data, market);
+        return this.parseOHLCVs (data, market, since, limit);
     }
 
     parseTrade (trade, market = undefined) {

@@ -368,7 +368,7 @@ module.exports = class lbank extends Exchange {
         //         [1590969720,0.02445973,0.02452067,0.02445909,0.02446151,266.16920000],
         //     ]
         //
-        return this.parseOHLCVs (response, market);
+        return this.parseOHLCVs (response, market, since, limit);
     }
 
     async fetchBalance (params = {}) {

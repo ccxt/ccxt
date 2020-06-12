@@ -287,7 +287,7 @@ module.exports = class xbtce extends Exchange {
         //         'timestamp': since,
         //         'count': limit,
         //     }, params));
-        //     return this.parseOHLCVs (response['Bars'], market);
+        //     return this.parseOHLCVs (response['Bars'], market, since, limit);
         throw new NotSupported (this.id + ' fetchOHLCV is disabled by the exchange');
     }
 

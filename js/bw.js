@@ -610,7 +610,7 @@ module.exports = class bw extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'datas', []);
-        return this.parseOHLCVs (data, market);
+        return this.parseOHLCVs (data, market, since, limit);
     }
 
     async fetchBalance (params = {}) {

@@ -425,7 +425,7 @@ module.exports = class bitforex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parseOHLCVs (data, market);
+        return this.parseOHLCVs (data, market, since, limit);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

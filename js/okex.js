@@ -1415,7 +1415,7 @@ module.exports = class okex extends Exchange {
         //         ]
         //     ]
         //
-        return this.parseOHLCVs (response, market);
+        return this.parseOHLCVs (response, market, since, limit);
     }
 
     parseAccountBalance (response) {
