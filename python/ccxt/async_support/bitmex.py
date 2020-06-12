@@ -1163,6 +1163,8 @@ class bitmex(Exchange):
             if clientOrderId is not None:
                 request['clOrdID'] = clientOrderId
             params = self.omit(params, ['origClOrdID', 'clOrdID', 'clientOrderId'])
+        else:
+            request['orderID'] = id
         if amount is not None:
             request['orderQty'] = amount
         if price is not None:

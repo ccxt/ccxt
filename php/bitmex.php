@@ -1242,6 +1242,8 @@ class bitmex extends Exchange {
                 $request['clOrdID'] = $clientOrderId;
             }
             $params = $this->omit($params, array( 'origClOrdID', 'clOrdID', 'clientOrderId' ));
+        } else {
+            $request['orderID'] = $id;
         }
         if ($amount !== null) {
             $request['orderQty'] = $amount;
