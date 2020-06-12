@@ -4,7 +4,7 @@
 
 let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x => !x.startsWith ('--'))
     , verbose = process.argv.includes ('--verbose')
-    , debug = process.argv.includes ('--verbose')
+    , debug = process.argv.includes ('--debug')
     , cloudscrape = process.argv.includes ('--cloudscrape')
     , cfscrape = process.argv.includes ('--cfscrape')
     , poll = process.argv.includes ('--poll')
