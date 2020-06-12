@@ -13,7 +13,6 @@ use \ccxt\InvalidAddress;
 use \ccxt\InvalidOrder;
 use \ccxt\OrderNotFound;
 use \ccxt\CancelPending;
-use \ccxt\NotSupported;
 use \ccxt\ExchangeNotAvailable;
 use \ccxt\InvalidNonce;
 
@@ -161,7 +160,6 @@ class kraken extends Exchange {
                     'get' => array(
                         // we should really refrain from putting fixed fee numbers and stop hardcoding
                         // we will be using their web APIs to scrape all numbers from these articles
-                        '205893708', // -What-is-the-minimum-order-size-
                         '360000292886', // -What-are-the-deposit-fees-
                         '201893608', // -What-are-the-withdrawal-fees-
                     ),
@@ -218,7 +216,6 @@ class kraken extends Exchange {
                 'delistedMarketsById' => array(),
                 // cannot withdraw/deposit these
                 'inactiveCurrencies' => array( 'CAD', 'USD', 'JPY', 'GBP' ),
-                'fetchMinOrderAmounts' => true,
             ),
             'exceptions' => array(
                 'EQuery:Invalid asset pair' => '\\ccxt\\BadSymbol', // array("error":["EQuery:Invalid asset pair"])
@@ -244,34 +241,6 @@ class kraken extends Exchange {
 
     public function fee_to_precision($symbol, $fee) {
         return $this->decimal_to_precision($fee, TRUNCATE, $this->markets[$symbol]['precision']['amount'], DECIMAL_PLACES);
-    }
-
-    public function fetch_min_order_amounts($params = array ()) {
-        $response = $this->zendeskGet205893708 ($params);
-        $article = $this->safe_value($response, 'article');
-        $html = $this->safe_string($article, 'body');
-        $parts = explode('<td class="wysiwyg-text-align-right">', $html);
-        $numParts = is_array($parts) ? count($parts) : 0;
-        if ($numParts < 3) {
-            throw new NotSupported($this->id . ' fetchMinOrderAmounts HTML page markup has changed => https://kraken.zendesk.com/api/v2/help_center/en-us/articles/205893708');
-        }
-        $result = array();
-        // skip the $part before the header and the header itself
-        for ($i = 2; $i < count($parts); $i++) {
-            $part = $parts[$i];
-            $chunks = explode('</td>', $part);
-            $amountAndCode = $chunks[0];
-            if ($amountAndCode !== 'To Be Announced') {
-                $pieces = explode(' ', $amountAndCode);
-                $numPieces = is_array($pieces) ? count($pieces) : 0;
-                if ($numPieces === 2) {
-                    $amount = floatval ($pieces[0]);
-                    $code = $this->safe_currency_code($pieces[1]);
-                    $result[$code] = $amount;
-                }
-            }
-        }
-        return $result;
     }
 
     public function fetch_markets($params = array ()) {
@@ -317,16 +286,12 @@ class kraken extends Exchange {
         //                 ],
         //                 "fee_volume_currency":"ZUSD",
         //                 "margin_call":80,
-        //                 "margin_stop":40
+        //                 "margin_stop":40,
+        //                 "ordermin" => "1"
         //             ),
         //         }
         //     }
         //
-        $fetchMinOrderAmounts = $this->safe_value($this->options, 'fetchMinOrderAmounts', false);
-        $limits = array();
-        if ($fetchMinOrderAmounts) {
-            $limits = $this->fetch_min_order_amounts();
-        }
         $keys = is_array($response['result']) ? array_keys($response['result']) : array();
         $result = array();
         for ($i = 0; $i < count($keys); $i++) {
@@ -346,10 +311,7 @@ class kraken extends Exchange {
                 'amount' => $market['lot_decimals'],
                 'price' => $market['pair_decimals'],
             );
-            $minAmount = pow(10, -$precision['amount']);
-            if (is_array($limits) && array_key_exists($base, $limits)) {
-                $minAmount = $limits[$base];
-            }
+            $minAmount = $this->safe_float($market, 'ordermin');
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
