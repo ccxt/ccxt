@@ -49,6 +49,18 @@ module.exports = class phemex extends Exchange {
                 },
                 'v0': {
                     'get': [
+                        'md/orderbook', // ?symbol=<symbol>&id=<id>
+                        'md/orderbook', // ?symbol=sBTCUSDT
+                        'md/orderbook', // ?symbol=<symbol>&id=<id>
+                        'md/orderbook', // ?symbol=BTCUSD
+                        'md/trade', // ?symbol=<symbol>&id=<id>
+                        'md/trade', // ?symbol=sBTCUSDT
+                        'md/trade', // ?symbol=<symbol>&id=<id>
+                        'md/trade', // ?symbol=BTCUSD
+                        'md/spot/ticker/24hr', // ?symbol=<symbol>&id=<id>
+                        'md/spot/ticker/24hr', // ?symbol=sBTCUSDT
+                        'md/ticker/24hr', // ?symbol=<symbol>&id=<id>
+                        'md/ticker/24hr', // ?symbol=BTCUSD
                     ],
                 },
             },
