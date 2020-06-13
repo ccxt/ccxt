@@ -840,9 +840,14 @@ class ftx(Exchange):
         remaining = self.safe_float(order, 'remainingSize')
         symbol = None
         marketId = self.safe_string(order, 'market')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+                symbol = market['symbol']
+            else:
+                # support for delisted market ids
+                # https://github.com/ccxt/ccxt/issues/7113
+                symbol = marketId
         if (symbol is None) and (market is not None):
             symbol = market['symbol']
         status = self.parse_order_status(self.safe_string(order, 'status'))

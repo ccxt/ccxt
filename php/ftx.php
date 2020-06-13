@@ -872,9 +872,15 @@ class ftx extends Exchange {
         $remaining = $this->safe_float($order, 'remainingSize');
         $symbol = null;
         $marketId = $this->safe_string($order, 'market');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-            $symbol = $market['symbol'];
+        if ($marketId !== null) {
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+                $symbol = $market['symbol'];
+            } else {
+                // support for delisted $market ids
+                // https://github.com/ccxt/ccxt/issues/7113
+                $symbol = $marketId;
+            }
         }
         if (($symbol === null) && ($market !== null)) {
             $symbol = $market['symbol'];
