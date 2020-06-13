@@ -66,7 +66,6 @@ class wavesexchange(Exchange):
                     'public': 'https://api.wavesplatform.com/v0',
                     'private': 'https://api.waves.exchange/v1',
                     'forward': 'https://waves.exchange/api/v1/forward/matcher',
-                    'gateway': 'https://gw.waves.exchange/api/v1',
                 },
                 'doc': 'https://docs.waves.exchange',
                 'www': 'https://waves.exchange',
@@ -226,6 +225,7 @@ class wavesexchange(Exchange):
                 'private': {
                     'get': [
                         'deposit/addresses/{code}',
+                        'deposit/currencies',
                     ],
                     'post': [
                         'oauth2/token',
@@ -235,11 +235,6 @@ class wavesexchange(Exchange):
                     'get': [
                         'matcher/orders/{address}',  # can't get the orders endpoint to work with the matcher api
                         'matcher/orders/{address}/{orderId}',
-                    ],
-                },
-                'gateway': {
-                    'post': [
-                        'external/deposit',
                     ],
                 },
             },
@@ -254,6 +249,7 @@ class wavesexchange(Exchange):
                 'quotes': None,
                 'createOrderDefaultExpiry': 2419200000,  # 60 * 60 * 24 * 28 * 1000
                 'wavesAddress': None,
+                'matcherFee': 300000,
             },
             'requiresEddsa': True,
             'exceptions': {
@@ -674,29 +670,50 @@ class wavesexchange(Exchange):
         ]
 
     async def fetch_deposit_address(self, code, params={}):
-        # will migrate to the new API once
-        # https://docs.waves.exchange/en/api/gateways/deposit/
-        # is fully implemented
-        await self.load_markets()
-        currency = self.currency(code)
-        wavesAddress = await self.get_waves_address()
+        await self.get_access_token()
+        supportedCurrencies = await self.privateGetDepositCurrencies()
+        currencies = {}
+        items = self.safe_value(supportedCurrencies, 'items', [])
+        for i in range(0, len(items)):
+            entry = items[i]
+            code = self.safe_string(entry, 'id')
+            currencies[code] = True
+        if not (code in currencies):
+            codes = list(currencies.keys())
+            raise ExchangeError(self.id + ' fetch ' + code + ' deposit address not supported. Currency code must be one of ' + str(codes))
         request = self.extend({
-            'assetId': currency['id'],
-            'userAddress': wavesAddress,
+            'code': code,
         }, params)
-        response = await self.gatewayPostExternalDeposit(request)
-        address = self.safe_string(response, 'address')
+        response = await self.privateGetDepositAddressesCode(request)
+        # {
+        #   "type": "deposit_addresses",
+        #   "currency": {
+        #     "type": "deposit_currency",
+        #     "id": "ERGO",
+        #     "waves_asset_id": "5dJj4Hn9t2Ve3tRpNGirUHy4yBK6qdJRAJYV21yPPuGz",
+        #     "decimals": 9,
+        #     "status": "active",
+        #     "allowed_amount": {
+        #       "min": 0.001,
+        #       "max": 100000
+        #     },
+        #     "fees": {
+        #       "flat": 0,
+        #       "rate": 0
+        #     }
+        #   },
+        #   "deposit_addresses": [
+        #     "9fRAAQjF8Yqg7qicQCL884zjimsRnuwsSavsM1rUdDaoG8mThku"
+        #   ]
+        # }
+        addresses = self.safe_value(response, 'deposit_addresses')
+        address = self.safe_string(addresses, 0)
         return {
             'address': address,
             'code': code,
             'tag': None,
             'info': response,
         }
-
-    async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
-        if code is None:
-            raise ArgumentsRequired(self.id + ' code is required for fetchTransactions')
-        await self.load_markets()
 
     async def get_matcher_public_key(self):
         # self method returns a single string
@@ -748,7 +765,7 @@ class wavesexchange(Exchange):
         orderType = 0 if (side == 'buy') else 1
         timestamp = self.milliseconds()
         expiration = self.sum(timestamp, self.get_default_expiry())
-        matcherFee = 300000
+        matcherFee = self.safe_integer(self.options, 'matcherFee', 300000)
         byteArray = [
             self.number_to_be(3, 1),
             self.base58_to_binary(self.apiKey),
@@ -913,6 +930,26 @@ class wavesexchange(Exchange):
             'closedOnly': True,
         }
         response = await self.forwardGetMatcherOrdersAddress(request)
+        # [
+        #   {
+        #     "id": "9aXcxvXai73jbAm7tQNnqaQ2PwUjdmWuyjvRTKAHsw4f",
+        #     "type": "buy",
+        #     "orderType": "limit",
+        #     "amount": 23738330,
+        #     "fee": 300000,
+        #     "price": 3828348334,
+        #     "timestamp": 1591926905636,
+        #     "filled": 23738330,
+        #     "filledFee": 300000,
+        #     "feeAsset": "WAVES",
+        #     "status": "Filled",
+        #     "assetPair": {
+        #       "amountAsset": "HZk1mbfuJpmxU1Fs4AX5MWLVYtctsNcg6e2C6VKqK8zk",
+        #       "priceAsset": null
+        #     },
+        #     "avgWeighedPrice": 3828348334
+        #   }, ...
+        # ]
         return self.parse_orders(response, market, since, limit)
 
     def parse_order_status(self, status):
@@ -988,8 +1025,7 @@ class wavesexchange(Exchange):
                 'publicKey': self.apiKey,
             }
             response = await self.nodeGetAddressesPublicKeyPublicKey(request)
-            address = self.safe_string(response, 'address')
-            self.options['wavesAddress'] = address
+            self.options['wavesAddress'] = self.safe_string(response, 'address')
             return self.options['wavesAddress']
         else:
             return cachedAddreess

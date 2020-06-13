@@ -56,7 +56,6 @@ class wavesexchange extends Exchange {
                     'public' => 'https://api.wavesplatform.com/v0',
                     'private' => 'https://api.waves.exchange/v1',
                     'forward' => 'https://waves.exchange/api/v1/forward/matcher',
-                    'gateway' => 'https://gw.waves.exchange/api/v1',
                 ),
                 'doc' => 'https://docs.waves.exchange',
                 'www' => 'https://waves.exchange',
@@ -216,6 +215,7 @@ class wavesexchange extends Exchange {
                 'private' => array(
                     'get' => array(
                         'deposit/addresses/{code}',
+                        'deposit/currencies',
                     ),
                     'post' => array(
                         'oauth2/token',
@@ -225,11 +225,6 @@ class wavesexchange extends Exchange {
                     'get' => array(
                         'matcher/orders/{address}',  // can't get the orders endpoint to work with the matcher api
                         'matcher/orders/{address}/{orderId}',
-                    ),
-                ),
-                'gateway' => array(
-                    'post' => array(
-                        'external/deposit',
                     ),
                 ),
             ),
@@ -244,6 +239,7 @@ class wavesexchange extends Exchange {
                 'quotes' => null,
                 'createOrderDefaultExpiry' => 2419200000, // 60 * 60 * 24 * 28 * 1000
                 'wavesAddress' => null,
+                'matcherFee' => 300000,
             ),
             'requiresEddsa' => true,
             'exceptions' => array(
@@ -695,31 +691,52 @@ class wavesexchange extends Exchange {
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
-        // will migrate to the new API once
-        // https://docs.waves.exchange/en/api/gateways/deposit/
-        // is fully implemented
-        $this->load_markets();
-        $currency = $this->currency($code);
-        $wavesAddress = $this->get_waves_address();
+        $this->get_access_token();
+        $supportedCurrencies = $this->privateGetDepositCurrencies ();
+        $currencies = array();
+        $items = $this->safe_value($supportedCurrencies, 'items', array());
+        for ($i = 0; $i < count($items); $i++) {
+            $entry = $items[$i];
+            $code = $this->safe_string($entry, 'id');
+            $currencies[$code] = true;
+        }
+        if (!(is_array($currencies) && array_key_exists($code, $currencies))) {
+            $codes = is_array($currencies) ? array_keys($currencies) : array();
+            throw new ExchangeError($this->id . ' fetch ' . $code . ' deposit $address not supported. Currency $code must be one of ' . (string) $codes);
+        }
         $request = array_merge(array(
-            'assetId' => $currency['id'],
-            'userAddress' => $wavesAddress,
+            'code' => $code,
         ), $params);
-        $response = $this->gatewayPostExternalDeposit ($request);
-        $address = $this->safe_string($response, 'address');
+        $response = $this->privateGetDepositAddressesCode ($request);
+        // {
+        //   "type" => "deposit_addresses",
+        //   "currency" => {
+        //     "type" => "deposit_currency",
+        //     "id" => "ERGO",
+        //     "waves_asset_id" => "5dJj4Hn9t2Ve3tRpNGirUHy4yBK6qdJRAJYV21yPPuGz",
+        //     "decimals" => 9,
+        //     "status" => "active",
+        //     "allowed_amount" => array(
+        //       "min" => 0.001,
+        //       "max" => 100000
+        //     ),
+        //     "fees" => array(
+        //       "flat" => 0,
+        //       "rate" => 0
+        //     }
+        //   ),
+        //   "deposit_addresses" => array(
+        //     "9fRAAQjF8Yqg7qicQCL884zjimsRnuwsSavsM1rUdDaoG8mThku"
+        //   )
+        // }
+        $addresses = $this->safe_value($response, 'deposit_addresses');
+        $address = $this->safe_string($addresses, 0);
         return array(
             'address' => $address,
             'code' => $code,
             'tag' => null,
             'info' => $response,
         );
-    }
-
-    public function fetch_transactions($code = null, $since = null, $limit = null, $params = array ()) {
-        if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' $code is required for fetchTransactions');
-        }
-        $this->load_markets();
     }
 
     public function get_matcher_public_key() {
@@ -783,7 +800,7 @@ class wavesexchange extends Exchange {
         $orderType = ($side === 'buy') ? 0 : 1;
         $timestamp = $this->milliseconds();
         $expiration = $this->sum($timestamp, $this->get_default_expiry());
-        $matcherFee = 300000;
+        $matcherFee = $this->safe_integer($this->options, 'matcherFee', 300000);
         $byteArray = [
             $this->number_to_be(3, 1),
             $this->base58_to_binary($this->apiKey),
@@ -954,6 +971,26 @@ class wavesexchange extends Exchange {
             'closedOnly' => true,
         );
         $response = $this->forwardGetMatcherOrdersAddress ($request);
+        // array(
+        //   array(
+        //     "id" => "9aXcxvXai73jbAm7tQNnqaQ2PwUjdmWuyjvRTKAHsw4f",
+        //     "type" => "buy",
+        //     "orderType" => "$limit",
+        //     "amount" => 23738330,
+        //     "fee" => 300000,
+        //     "price" => 3828348334,
+        //     "timestamp" => 1591926905636,
+        //     "filled" => 23738330,
+        //     "filledFee" => 300000,
+        //     "feeAsset" => "WAVES",
+        //     "status" => "Filled",
+        //     "assetPair" => array(
+        //       "amountAsset" => "HZk1mbfuJpmxU1Fs4AX5MWLVYtctsNcg6e2C6VKqK8zk",
+        //       "priceAsset" => null
+        //     ),
+        //     "avgWeighedPrice" => 3828348334
+        //   ), ...
+        // )
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
@@ -1036,8 +1073,7 @@ class wavesexchange extends Exchange {
                 'publicKey' => $this->apiKey,
             );
             $response = $this->nodeGetAddressesPublicKeyPublicKey ($request);
-            $address = $this->safe_string($response, 'address');
-            $this->options['wavesAddress'] = $address;
+            $this->options['wavesAddress'] = $this->safe_string($response, 'address');
             return $this->options['wavesAddress'];
         } else {
             return $cachedAddreess;
