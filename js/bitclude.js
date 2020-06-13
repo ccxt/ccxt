@@ -37,7 +37,7 @@ module.exports = class bitclude extends Exchange {
                 'fetchClosedOrders': false,
                 'createDepositAddress': true,
                 'fetchDepositAddress': 'emulated',
-                'fetchDeposits': false,
+                'fetchDeposits': true,
                 'fetchFundingFees': false,
                 'fetchMyTrades': false,
                 'fetchOHLCV': false,
@@ -412,6 +412,66 @@ module.exports = class bitclude extends Exchange {
             'currency': code,
             'address': address,
             'info': response,
+        };
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDeposits requires a currency code argument');
+        }
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const currencyId = currency['id'];
+        const request = {
+            'method': 'account',
+            'action': 'deposits',
+            'currency': currencyId,
+        };
+        const response = await this.privateGet (this.extend (request, params));
+        const transactions = this.safeValue (response, 'history', []);
+        return this.parseTransactions (transactions, currency);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // fetchDeposits
+        //
+        //     {
+        //       "time": "1530883428",
+        //       "amount": "0.13750000",
+        //       "type": "b787400027b4eae298bad72150384540a23342daaa3eec1c8d17459c103c6bbc",
+        //       "state": "1"
+        //     }
+        //
+        // fetchWithdrawals
+        //
+        //     {
+        //         "time": "1528715035",
+        //         "amount": "1.00000000",
+        //         "tx": "01b8ae6437843879574b69daf95542aff43a4aefaa90e8f70ebf572eccf01cad",
+        //         "address": "2N8hwP1WmJrFF5QWABn38y63uYLhnJYJYTF",
+        //         "state": "0"
+        //     },
+        //
+        const txid = this.safeString (transaction, 'type');
+        const timestamp = this.safeInteger (transaction, 'time');
+        const amount = this.safeFloat (transaction, 'amount');
+        const currencyCode = this.safeString (currency, 'code');
+        const status = this.safeString (transaction, 'state'); // todo
+        return {
+            'info': transaction,
+            'id': undefined,
+            'currency': currencyCode,
+            'amount': amount,
+            'address': undefined,
+            'tag': undefined,
+            'status': status,
+            'type': undefined,
+            'updated': undefined,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fee': undefined,
         };
     }
 
