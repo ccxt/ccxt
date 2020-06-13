@@ -53,7 +53,6 @@ module.exports = class wavesexchange extends Exchange {
                     'public': 'https://api.wavesplatform.com/v0',
                     'private': 'https://api.waves.exchange/v1',
                     'forward': 'https://waves.exchange/api/v1/forward/matcher',
-                    'gateway': 'https://gw.waves.exchange/api/v1',
                 },
                 'doc': 'https://docs.waves.exchange',
                 'www': 'https://waves.exchange',
@@ -213,6 +212,7 @@ module.exports = class wavesexchange extends Exchange {
                 'private': {
                     'get': [
                         'deposit/addresses/{code}',
+                        'deposit/currencies',
                     ],
                     'post': [
                         'oauth2/token',
@@ -222,11 +222,6 @@ module.exports = class wavesexchange extends Exchange {
                     'get': [
                         'matcher/orders/{address}',  // can't get the orders endpoint to work with the matcher api
                         'matcher/orders/{address}/{orderId}',
-                    ],
-                },
-                'gateway': {
-                    'post': [
-                        'external/deposit',
                     ],
                 },
             },
@@ -241,6 +236,7 @@ module.exports = class wavesexchange extends Exchange {
                 'quotes': undefined,
                 'createOrderDefaultExpiry': 2419200000, // 60 * 60 * 24 * 28 * 1000
                 'wavesAddress': undefined,
+                'matcherFee': 300000,
             },
             'requiresEddsa': true,
             'exceptions': {
@@ -692,31 +688,52 @@ module.exports = class wavesexchange extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
-        // will migrate to the new API once
-        // https://docs.waves.exchange/en/api/gateways/deposit/
-        // is fully implemented
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const wavesAddress = await this.getWavesAddress ();
+        await this.getAccessToken ();
+        const supportedCurrencies = await this.privateGetDepositCurrencies ();
+        const currencies = {};
+        const items = this.safeValue (supportedCurrencies, 'items', []);
+        for (let i = 0; i < items.length; i++) {
+            const entry = items[i];
+            const code = this.safeString (entry, 'id');
+            currencies[code] = true;
+        }
+        if (!(code in currencies)) {
+            const codes = Object.keys (currencies);
+            throw new ExchangeError (this.id + ' fetch ' + code + ' deposit address not supported. Currency code must be one of ' + codes.toString ());
+        }
         const request = this.extend ({
-            'assetId': currency['id'],
-            'userAddress': wavesAddress,
+            'code': code,
         }, params);
-        const response = await this.gatewayPostExternalDeposit (request);
-        const address = this.safeString (response, 'address');
+        const response = await this.privateGetDepositAddressesCode (request);
+        // {
+        //   "type": "deposit_addresses",
+        //   "currency": {
+        //     "type": "deposit_currency",
+        //     "id": "ERGO",
+        //     "waves_asset_id": "5dJj4Hn9t2Ve3tRpNGirUHy4yBK6qdJRAJYV21yPPuGz",
+        //     "decimals": 9,
+        //     "status": "active",
+        //     "allowed_amount": {
+        //       "min": 0.001,
+        //       "max": 100000
+        //     },
+        //     "fees": {
+        //       "flat": 0,
+        //       "rate": 0
+        //     }
+        //   },
+        //   "deposit_addresses": [
+        //     "9fRAAQjF8Yqg7qicQCL884zjimsRnuwsSavsM1rUdDaoG8mThku"
+        //   ]
+        // }
+        const addresses = this.safeValue (response, 'deposit_addresses');
+        const address = this.safeString (addresses, 0);
         return {
             'address': address,
             'code': code,
             'tag': undefined,
             'info': response,
         };
-    }
-
-    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
-        if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' code is required for fetchTransactions');
-        }
-        await this.loadMarkets ();
     }
 
     async getMatcherPublicKey () {
@@ -780,7 +797,7 @@ module.exports = class wavesexchange extends Exchange {
         const orderType = (side === 'buy') ? 0 : 1;
         const timestamp = this.milliseconds ();
         const expiration = this.sum (timestamp, this.getDefaultExpiry ());
-        const matcherFee = 300000;
+        const matcherFee = this.safeInteger (this.options, 'matcherFee', 300000);
         const byteArray = [
             this.numberToBE (3, 1),
             this.base58ToBinary (this.apiKey),
@@ -951,6 +968,26 @@ module.exports = class wavesexchange extends Exchange {
             'closedOnly': true,
         };
         const response = await this.forwardGetMatcherOrdersAddress (request);
+        // [
+        //   {
+        //     "id": "9aXcxvXai73jbAm7tQNnqaQ2PwUjdmWuyjvRTKAHsw4f",
+        //     "type": "buy",
+        //     "orderType": "limit",
+        //     "amount": 23738330,
+        //     "fee": 300000,
+        //     "price": 3828348334,
+        //     "timestamp": 1591926905636,
+        //     "filled": 23738330,
+        //     "filledFee": 300000,
+        //     "feeAsset": "WAVES",
+        //     "status": "Filled",
+        //     "assetPair": {
+        //       "amountAsset": "HZk1mbfuJpmxU1Fs4AX5MWLVYtctsNcg6e2C6VKqK8zk",
+        //       "priceAsset": null
+        //     },
+        //     "avgWeighedPrice": 3828348334
+        //   }, ...
+        // ]
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -1033,8 +1070,7 @@ module.exports = class wavesexchange extends Exchange {
                 'publicKey': this.apiKey,
             };
             const response = await this.nodeGetAddressesPublicKeyPublicKey (request);
-            const address = this.safeString (response, 'address');
-            this.options['wavesAddress'] = address;
+            this.options['wavesAddress'] = this.safeString (response, 'address');
             return this.options['wavesAddress'];
         } else {
             return cachedAddreess;
