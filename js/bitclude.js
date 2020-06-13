@@ -39,7 +39,7 @@ module.exports = class bitclude extends Exchange {
                 'fetchDepositAddress': 'emulated',
                 'fetchDeposits': true,
                 'fetchFundingFees': false,
-                'fetchMyTrades': false,
+                'fetchMyTrades': true,
                 'fetchOHLCV': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': false,
@@ -196,15 +196,64 @@ module.exports = class bitclude extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseTrade (trade, market) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'method': 'account',
+            'action': 'history',
+        };
+        const response = await this.privateGet (this.extend (request, params));
+        const trades = this.safeValue (response, 'history', []);
+        return this.parseTrades (trades, market, since, limit);
+    }
+
+    parseTrade (trade, market = undefined) {
+        //  fetchTrades
+        //
+        //    {
+        //         "time":1531917229,
+        //         "nr":"786",
+        //         "amount":"0.00018620",
+        //         "price":"7314.57",
+        //         "type":"a"
+        //    }
+        //
+        //  fetchMyTrades
+        //
+        //    {
+        //         "currency1": "btc",
+        //         "currency2": "usd",
+        //         "amount": "0.00100000",
+        //         "time_close": 1516212758,
+        //         "price": "4.00",
+        //         "fee_taker": "50", // Idk what does it exactly means
+        //         "fee_maker": "0",
+        //         "type": "bid",
+        //         "action": "open"
+        //    }
         const id = this.safeString (trade, 'nr');
-        const timestamp = this.safeTimestamp (trade, 'time');
+        let timestamp = this.safeInteger2 (trade, 'time', 'time_close');
+        if ('time' in trade) {
+            // API return timestamp in different formats depending on endpoint. Of course this is not specified in docs xD
+            timestamp = timestamp * 1000;
+        }
         const type = undefined;
+        const baseId = this.safeString (trade, 'currency1');
+        const quoteId = this.safeString (trade, 'currency2');
+        let symbol = undefined;
+        if (baseId !== undefined && quoteId !== undefined) {
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            symbol = (base + '/' + quote);
+        } else {
+            symbol = market['symbol'];
+        }
         let side = this.safeString (trade, 'type');
-        if (side === 'a') {
+        if (side === 'a' || side === 'ask') {
             // todo ensure
             side = 'sell';
-        } else if (side === 'b') {
+        } else if (side === 'b' || side === 'bid') {
             side = 'buy';
         }
         const price = this.safeFloat (trade, 'price');
@@ -221,7 +270,7 @@ module.exports = class bitclude extends Exchange {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': type,
             'order': undefined,
             'side': side,
