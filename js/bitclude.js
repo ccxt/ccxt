@@ -432,6 +432,23 @@ module.exports = class bitclude extends Exchange {
         return this.parseTransactions (transactions, currency);
     }
 
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDeposits requires a currency code argument');
+        }
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const currencyId = currency['id'];
+        const request = {
+            'method': 'account',
+            'action': 'withdrawals',
+            'currency': currencyId,
+        };
+        const response = await this.privateGet (this.extend (request, params));
+        const transactions = this.safeValue (response, 'history', []);
+        return this.parseTransactions (transactions, currency);
+    }
+
     parseTransaction (transaction, currency = undefined) {
         //
         // fetchDeposits
@@ -453,17 +470,18 @@ module.exports = class bitclude extends Exchange {
         //         "state": "0"
         //     },
         //
-        const txid = this.safeString (transaction, 'type');
         const timestamp = this.safeInteger (transaction, 'time');
-        const amount = this.safeFloat (transaction, 'amount');
         const currencyCode = this.safeString (currency, 'code');
+        const amount = this.safeFloat (transaction, 'amount');
+        const address = this.safeString (transaction, 'address');
         const status = this.safeString (transaction, 'state'); // todo
+        const txid = this.safeString2 (transaction, 'type', 'tx');
         return {
             'info': transaction,
             'id': undefined,
             'currency': currencyCode,
             'amount': amount,
-            'address': undefined,
+            'address': address,
             'tag': undefined,
             'status': status,
             'type': undefined,
