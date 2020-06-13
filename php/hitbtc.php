@@ -403,7 +403,7 @@ class hitbtc extends Exchange {
         //         array("timestamp":"2015-08-20T19:06:00.000Z","open":"0.0055","close":"0.005","min":"0.005","max":"0.0055","volume":"0.003","volumeQuote":"0.0000155"),
         //     )
         //
-        return $this->parse_ohlcvs($response, $market, $since, $limit);
+        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
