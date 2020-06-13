@@ -373,7 +373,7 @@ module.exports = class zaif extends Exchange {
             'remaining': undefined,
             'trades': undefined,
             'fee': undefined,
-            'info': undefined,
+            'info': order,
             'average': undefined,
         };
     }
