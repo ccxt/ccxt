@@ -22,6 +22,10 @@ module.exports = class phemex extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/83165440-2f1cf200-a116-11ea-9046-a255d09fb2ed.jpg',
+                'test': {
+                    'public': 'https://testnet-api.phemex.com',
+                    'private': 'https://testnet-api.phemex.com',
+                },
                 'api': {
                     'public': 'https://api.phemex.com',
                     'private': 'https://api.phemex.com',
