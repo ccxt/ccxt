@@ -350,7 +350,7 @@ class zaif(Exchange):
             'remaining': None,
             'trades': None,
             'fee': None,
-            'info': None,
+            'info': order,
             'average': None,
         }
 
