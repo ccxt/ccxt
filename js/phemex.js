@@ -36,6 +36,21 @@ module.exports = class phemex extends Exchange {
                 'referral': 'https://phemex.com/register?referralCode=EDNVJ',
             },
             'api': {
+                'public': {
+                    'get': [
+                        'exchange/public/cfg/v2/products', // spot + contracts
+                        'exchange/public/products', // contracts only
+                        'exchange/public/nomics/trades', // ?market=<symbol>&since=<since>
+                    ],
+                },
+                'v1': {
+                    'get': [
+                    ],
+                },
+                'v0': {
+                    'get': [
+                    ],
+                },
             },
             'fees': {
                 'trading': {
