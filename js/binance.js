@@ -1217,8 +1217,8 @@ module.exports = class binance extends Exchange {
             const test = this.safeValue (params, 'test', false);
             if (test) {
                 method += 'Test';
-                params = this.omit (params, 'test');
             }
+            params = this.omit (params, 'test');
         }
         const uppercaseType = type.toUpperCase ();
         const validOrderTypes = this.safeValue (market['info'], 'orderTypes');

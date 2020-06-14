@@ -61,7 +61,7 @@ class wavesexchange(Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/84547058-5fb27d80-ad0b-11ea-8711-78ac8b3c7f31.jpg',
                 'api': {
-                    'matcher': 'https://matcher.waves.exchange',
+                    'matcher': 'http://matcher.waves.exchange',
                     'node': 'https://nodes.wavesnodes.com',
                     'public': 'https://api.wavesplatform.com/v0',
                     'private': 'https://api.waves.exchange/v1',
@@ -391,12 +391,10 @@ class wavesexchange(Exchange):
             'amountAsset': market['baseId'],
             'priceAsset': market['quoteId'],
         }, params)
-        if limit is not None:
-            request['depth'] = limit
         response = self.matcherGetMatcherOrderbookAmountAssetPriceAsset(request)
         timestamp = self.safe_integer(response, 'timestamp')
-        bids = self.parse_order_book_side(self.safe_value(response, 'bids'), market)
-        asks = self.parse_order_book_side(self.safe_value(response, 'asks'), market)
+        bids = self.parse_order_book_side(self.safe_value(response, 'bids'), market, limit)
+        asks = self.parse_order_book_side(self.safe_value(response, 'asks'), market, limit)
         return {
             'bids': bids,
             'asks': asks,
@@ -405,7 +403,7 @@ class wavesexchange(Exchange):
             'nonce': None,
         }
 
-    def parse_order_book_side(self, bookSide, market=None):
+    def parse_order_book_side(self, bookSide, market=None, limit=None):
         precision = market['precision']
         amountPrecision = math.pow(10, precision['amount'])
         pricePrecision = math.pow(10, precision['price'])
@@ -414,6 +412,8 @@ class wavesexchange(Exchange):
             entry = bookSide[i]
             price = self.safe_integer(entry, 'price', 0) / pricePrecision
             amount = self.safe_integer(entry, 'amount', 0) / amountPrecision
+            if (limit is not None) and (i > limit):
+                break
             result.append([price, amount])
         return result
 
@@ -454,10 +454,11 @@ class wavesexchange(Exchange):
         if not self.safe_string(self.options, 'accessToken'):
             prefix = 'ffffff01'
             expiresDelta = 60 * 60 * 24 * 7
-            seconds = self.seconds() + expiresDelta
+            seconds = self.sum(self.seconds(), expiresDelta)
+            seconds = str(seconds)
             clientId = 'waves.exchange'
             message = 'W:' + clientId + ':' + seconds
-            messageHex = base64.b16encode(message)
+            messageHex = self.decode(base64.b16encode(self.encode(message)))
             payload = prefix + messageHex
             hexKey = base64.b16encode(self.base58_to_binary(self.secret))
             signature = self.eddsa(payload, hexKey, 'ed25519')
@@ -592,13 +593,14 @@ class wavesexchange(Exchange):
             'interval': self.timeframes[timeframe],
         }
         if since is not None:
-            request['timeStart'] = since
+            request['timeStart'] = str(since)
         else:
             allowedCandles = self.safe_integer(self.options, 'allowedCandles', 1440)
             timeframeUnix = self.parse_timeframe(timeframe) * 1000
             currentTime = int(math.floor(self.milliseconds()) / timeframeUnix) * timeframeUnix
             delta = (allowedCandles - 1) * timeframeUnix
-            request['timeStart'] = currentTime - delta
+            timeStart = currentTime - delta
+            request['timeStart'] = str(timeStart)
         response = self.publicGetCandlesBaseIdQuoteId(self.extend(request, params))
         #
         #     {
@@ -755,6 +757,7 @@ class wavesexchange(Exchange):
             return self.options['createOrderDefaultExpiry']
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        self.check_required_dependencies()
         self.load_markets()
         market = self.market(symbol)
         matcherPublicKey = self.get_matcher_public_key()
@@ -825,6 +828,7 @@ class wavesexchange(Exchange):
         return self.parse_order(value, market)
 
     def cancel_order(self, id, symbol=None, params={}):
+        self.check_required_dependencies()
         self.load_markets()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' symbol is required for cancelOrder')
@@ -870,6 +874,7 @@ class wavesexchange(Exchange):
         }
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        self.check_required_dependencies()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders requires symbol argument')
         self.load_markets()
@@ -884,7 +889,7 @@ class wavesexchange(Exchange):
         signature = self.eddsa(base64.b16encode(binary), hexSecret, 'ed25519')
         request = {
             'Accept': 'application/json',
-            'Timestamp': timestamp,
+            'Timestamp': str(timestamp),
             'Signature': signature,
             'publicKey': self.apiKey,
             'baseId': market['baseId'],
@@ -911,7 +916,9 @@ class wavesexchange(Exchange):
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         self.get_access_token()
-        market = self.market(symbol)
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
         address = self.get_waves_address()
         request = {
             'address': address,
@@ -923,7 +930,9 @@ class wavesexchange(Exchange):
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         self.get_access_token()
-        market = self.market(symbol)
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
         address = self.get_waves_address()
         request = {
             'address': address,
@@ -1037,6 +1046,7 @@ class wavesexchange(Exchange):
         # getTotalBalance(doesn't include waves), getReservedBalance(doesn't include waves)
         # getReservedBalance(includes WAVES)
         # I couldn't find another way to get all the data
+        self.check_required_dependencies()
         self.load_markets()
         wavesAddress = self.get_waves_address()
         request = {
@@ -1097,7 +1107,7 @@ class wavesexchange(Exchange):
         matcherRequest = {
             'publicKey': self.apiKey,
             'signature': signature,
-            'timestamp': timestamp,
+            'timestamp': str(timestamp),
         }
         reservedBalance = self.matcherGetMatcherBalanceReservedPublicKey(matcherRequest)
         # {WAVES: 200300000}
@@ -1118,11 +1128,12 @@ class wavesexchange(Exchange):
         #   "confirmations": 0,
         #   "balance": 909085978
         # }
+        result['WAVES'] = self.safe_value(result, 'WAVES', {})
         result['WAVES']['total'] = self.currency_from_precision('WAVES', self.safe_float(wavesTotal, 'balance'))
         codes = list(result.keys())
         for i in range(0, len(codes)):
             code = codes[i]
-            if result[code]['used'] is None:
+            if self.safe_value(result[code], 'used') is None:
                 result[code]['used'] = 0.0
         return self.parse_balance(result)
 

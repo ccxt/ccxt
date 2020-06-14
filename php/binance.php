@@ -1224,8 +1224,8 @@ class binance extends Exchange {
             $test = $this->safe_value($params, 'test', false);
             if ($test) {
                 $method .= 'Test';
-                $params = $this->omit($params, 'test');
             }
+            $params = $this->omit($params, 'test');
         }
         $uppercaseType = strtoupper($type);
         $validOrderTypes = $this->safe_value($market['info'], 'orderTypes');

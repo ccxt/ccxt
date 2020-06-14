@@ -1160,7 +1160,7 @@ class binance(Exchange):
             test = self.safe_value(params, 'test', False)
             if test:
                 method += 'Test'
-                params = self.omit(params, 'test')
+            params = self.omit(params, 'test')
         uppercaseType = type.upper()
         validOrderTypes = self.safe_value(market['info'], 'orderTypes')
         if not self.in_array(uppercaseType, validOrderTypes):
