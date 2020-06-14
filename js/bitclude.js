@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { DECIMAL_PLACES } = require ('./base/functions/number');
-const { ExchangeError, InvalidOrder, BadRequest, InsufficientFunds, OrderNotFound, ArgumentsRequired } = require ('./base/errors');
+const { ExchangeError, InvalidOrder, BadRequest, InsufficientFunds, OrderNotFound, ArgumentsRequired, AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -32,7 +32,7 @@ module.exports = class bitclude extends Exchange {
             },
             'has': {
                 'fetchMarkets': 'emulated',
-                'fetchCurrencies': false,
+                'fetchCurrencies': true, // private
                 'cancelAllOrders': false,
                 'fetchClosedOrders': false,
                 'createDepositAddress': true,
@@ -115,6 +115,55 @@ module.exports = class bitclude extends Exchange {
                 'info': info,
             };
             result.push (entry);
+        }
+        return result;
+    }
+
+    async fetchCurrencies (params = {}) {
+        if (!this.apiKey || !this.uid) {
+            throw new AuthenticationError (this.id + " fetchCurrencies is an authenticated endpoint, therefore it requires 'apiKey' and 'uid' credentials. If you don't need currency details, set exchange.has['fetchCurrencies'] = false before calling its methods.");
+        }
+        const request = {
+            'method': 'account',
+            'action': 'getwalletsstatus',
+        };
+        const response = await this.privateGet (this.extend (request, params));
+        const ids = Object.keys (response);
+        const result = {};
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            if (id === 'success') {
+                continue;
+            }
+            const currency = response[id];
+            const code = this.safeCurrencyCode (id);
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency,
+                'name': undefined,
+                'active': this.safeValue (currency, 'is_online'),
+                'fee': this.safeFloat (currency, 'current_optimal_fee'),
+                'precision': this.safeInteger (currency, 'decimal_point'),
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': this.safeFloat (currency, 'current_minimal_amount'),
+                        'max': undefined,
+                    },
+                },
+            };
         }
         return result;
     }
