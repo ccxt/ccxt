@@ -48,7 +48,7 @@ module.exports = class wavesexchange extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/84547058-5fb27d80-ad0b-11ea-8711-78ac8b3c7f31.jpg',
                 'api': {
-                    'matcher': 'https://matcher.waves.exchange',
+                    'matcher': 'http://matcher.waves.exchange',
                     'node': 'https://nodes.wavesnodes.com',
                     'public': 'https://api.wavesplatform.com/v0',
                     'private': 'https://api.waves.exchange/v1',
@@ -387,7 +387,7 @@ module.exports = class wavesexchange extends Exchange {
             'priceAsset': market['quoteId'],
         }, params);
         if (limit !== undefined) {
-            request['depth'] = limit;
+            request['depth'] = limit.toString ();
         }
         const response = await this.matcherGetMatcherOrderbookAmountAssetPriceAsset (request);
         const timestamp = this.safeInteger (response, 'timestamp');
@@ -605,13 +605,14 @@ module.exports = class wavesexchange extends Exchange {
             'interval': this.timeframes[timeframe],
         };
         if (since !== undefined) {
-            request['timeStart'] = since;
+            request['timeStart'] = since.toString ();
         } else {
             const allowedCandles = this.safeInteger (this.options, 'allowedCandles', 1440);
             const timeframeUnix = this.parseTimeframe (timeframe) * 1000;
             const currentTime = Math.floor (this.milliseconds () / timeframeUnix) * timeframeUnix;
             const delta = (allowedCandles - 1) * timeframeUnix;
-            request['timeStart'] = currentTime - delta;
+            const timeStart = currentTime - delta;
+            request['timeStart'] = timeStart.toString ();
         }
         const response = await this.publicGetCandlesBaseIdQuoteId (this.extend (request, params));
         //
