@@ -458,10 +458,11 @@ module.exports = class wavesexchange extends Exchange {
         if (!this.safeString (this.options, 'accessToken')) {
             const prefix = 'ffffff01';
             const expiresDelta = 60 * 60 * 24 * 7;
-            const seconds = this.seconds () + expiresDelta;
+            let seconds = this.sum (this.seconds (), expiresDelta);
+            seconds = seconds.toString ();
             const clientId = 'waves.exchange';
             const message = 'W:' + clientId + ':' + seconds;
-            const messageHex = this.binaryToBase16 (this.stringToBinary (message));
+            const messageHex = this.decode (this.binaryToBase16 (this.stringToBinary (this.encode (message))));
             const payload = prefix + messageHex;
             const hexKey = this.binaryToBase16 (this.base58ToBinary (this.secret));
             const signature = this.eddsa (payload, hexKey, 'ed25519');
@@ -952,7 +953,10 @@ module.exports = class wavesexchange extends Exchange {
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         await this.getAccessToken ();
-        const market = this.market (symbol);
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const address = await this.getWavesAddress ();
         const request = {
             'address': address,
@@ -965,7 +969,10 @@ module.exports = class wavesexchange extends Exchange {
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         await this.getAccessToken ();
-        const market = this.market (symbol);
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const address = await this.getWavesAddress ();
         const request = {
             'address': address,
