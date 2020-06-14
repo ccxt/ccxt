@@ -14,7 +14,7 @@ module.exports = class phemex extends Exchange {
             'id': 'phemex',
             'name': 'Phemex',
             'countries': [ 'CN' ], // China
-            'rateLimit': 500,
+            'rateLimit': 100,
             'version': 'v1',
             'certified': false,
             'pro': true,
@@ -23,14 +23,15 @@ module.exports = class phemex extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/83165440-2f1cf200-a116-11ea-9046-a255d09fb2ed.jpg',
                 'test': {
-                    'public': 'https://testnet-api.phemex.com',
+                    'public': 'https://testnet-api.phemex.com/exchange/public',
                     'private': 'https://testnet-api.phemex.com',
                 },
                 'api': {
-                    'public': 'https://api.phemex.com',
+                    'public': 'https://api.phemex.com/exchange/public',
+                    // 'public': 'https://api.phemex.com',
                     'private': 'https://api.phemex.com',
                 },
-                'www': 'https://phemex.com/',
+                'www': 'https://phemex.com',
                 'doc': 'https://github.com/phemex/phemex-api-docs',
                 'fees': 'https://phemex.com/fees-conditions',
                 'referral': 'https://phemex.com/register?referralCode=EDNVJ',
@@ -38,13 +39,24 @@ module.exports = class phemex extends Exchange {
             'api': {
                 'public': {
                     'get': [
-                        'exchange/public/cfg/v2/products', // spot + contracts
-                        'exchange/public/products', // contracts only
-                        'exchange/public/nomics/trades', // ?market=<symbol>&since=<since>
+                        'cfg/v2/products', // spot + contracts
+                        'products', // contracts only
+                        'nomics/trades', // ?market=<symbol>&since=<since>
                     ],
                 },
                 'v1': {
                     'get': [
+                        'v1/md/orderbook', // ?symbol=<symbol>&id=<id>
+                        'v1/md/orderbook', // ?symbol=sBTCUSDT
+                        'v1/md/orderbook', // ?symbol=<symbol>&id=<id>
+                        'v1/md/orderbook', // ?symbol=BTCUSD
+                        'v1/md/trade', // ?symbol=<symbol>&id=<id>
+                        'v1/md/trade', // ?symbol=BTCUSD
+                        'v1/md/ticker/24hr', // ?symbol=<symbol>&id=<id>
+                        'v1/md/ticker/24hr', // ?symbol=BTCUSD
+                        'v1/md/ticker/24hr/all', // ?id=<id>
+                        'v1/md/ticker/24hr/all',
+                        'v1/exchange/public/products', // contracts only
                     ],
                 },
                 'v0': {
@@ -87,33 +99,174 @@ module.exports = class phemex extends Exchange {
         });
     }
 
+    async fetchMarkets (params = {}) {
+        const response = await this.publicGetCfgV2Products (params);
+        //
+        //     {
+        //         "code":0,
+        //         "msg":"OK",
+        //         "data":{
+        //             "ratioScale":8,
+        //             "currencies":[
+        //                 {"currency":"BTC","valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"name":"Bitcoin"},
+        //                 {"currency":"USD","valueScale":4,"minValueEv":1,"maxValueEv":500000000000000,"name":"USD"},
+        //                 {"currency":"USDT","valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"name":"TetherUS"},
+        //             ],
+        //             "products":[
+        //                 {
+        //                     "symbol":"BTCUSD",
+        //                     "displaySymbol":"BTC / USD",
+        //                     "indexSymbol":".BTC",
+        //                     "markSymbol":".MBTC",
+        //                     "fundingRateSymbol":".BTCFR",
+        //                     "fundingRate8hSymbol":".BTCFR8H",
+        //                     "contractUnderlyingAssets":"USD",
+        //                     "settleCurrency":"BTC",
+        //                     "quoteCurrency":"USD",
+        //                     "contractSize":1.0,
+        //                     "lotSize":1,
+        //                     "tickSize":0.5,
+        //                     "priceScale":4,
+        //                     "ratioScale":8,
+        //                     "pricePrecision":1,
+        //                     "minPriceEp":5000,
+        //                     "maxPriceEp":10000000000,
+        //                     "maxOrderQty":1000000,
+        //                     "type":"Perpetual"
+        //                 },
+        //                 {
+        //                     "symbol":"sBTCUSDT",
+        //                     "displaySymbol":"BTC / USDT",
+        //                     "quoteCurrency":"USDT",
+        //                     "pricePrecision":2,
+        //                     "type":"Spot",
+        //                     "baseCurrency":"BTC",
+        //                     "baseTickSize":"0.000001 BTC",
+        //                     "baseTickSizeEv":100,
+        //                     "quoteTickSize":"0.01 USDT",
+        //                     "quoteTickSizeEv":1000000,
+        //                     "minOrderValue":"10 USDT",
+        //                     "minOrderValueEv":1000000000,
+        //                     "maxBaseOrderSize":"1000 BTC",
+        //                     "maxBaseOrderSizeEv":100000000000,
+        //                     "maxOrderValue":"5,000,000 USDT",
+        //                     "maxOrderValueEv":500000000000000,
+        //                     "defaultTakerFee":"0.001",
+        //                     "defaultTakerFeeEr":100000,
+        //                     "defaultMakerFee":"0.001",
+        //                     "defaultMakerFeeEr":100000,
+        //                     "baseQtyPrecision":6,
+        //                     "quoteQtyPrecision":2
+        //                 },
+        //             ],
+        //             "riskLimits":[
+        //                 {
+        //                     "symbol":"BTCUSD",
+        //                     "steps":"50",
+        //                     "riskLimits":[
+        //                         {"limit":100,"initialMargin":"1.0%","initialMarginEr":1000000,"maintenanceMargin":"0.5%","maintenanceMarginEr":500000},
+        //                         {"limit":150,"initialMargin":"1.5%","initialMarginEr":1500000,"maintenanceMargin":"1.0%","maintenanceMarginEr":1000000},
+        //                         {"limit":200,"initialMargin":"2.0%","initialMarginEr":2000000,"maintenanceMargin":"1.5%","maintenanceMarginEr":1500000},
+        //                     ]
+        //                 },
+        //             ],
+        //             "leverages":[
+        //                 {"initialMargin":"1.0%","initialMarginEr":1000000,"options":[1,2,3,5,10,25,50,100]},
+        //                 {"initialMargin":"1.5%","initialMarginEr":1500000,"options":[1,2,3,5,10,25,50,66]},
+        //                 {"initialMargin":"2.0%","initialMarginEr":2000000,"options":[1,2,3,5,10,25,33,50]},
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const products = this.safeValue (data, 'products', []);
+        const riskLimits = this.safeValue (data, 'riskLimits', []);
+        const result = [];
+        for (let i = 0; i < products.length; i++) {
+            const market = products[i];
+            const id = this.safeString (market, 'symbol');
+            const type = this.safeStringLower (market, 'type');
+            if (type === 'perpetual') {
+            } else if (type === 'spot') {
+            }
+            const id = this.safeString (market, 'market');
+            const baseId = this.safeString (market, 'base');
+            const quoteId = this.safeString (market, 'quote');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
+            const status = this.safeString (market, 'status');
+            const active = (status === 'trading');
+            const baseCurrency = this.safeValue (currenciesById, baseId);
+            let amountPrecision = undefined;
+            if (baseCurrency !== undefined) {
+                amountPrecision = this.safeInteger (baseCurrency, 'decimals', 8);
+            }
+            const precision = {
+                'price': this.safeInteger (market, 'pricePrecision'),
+                'amount': amountPrecision,
+            };
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'info': market,
+                'active': active,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': this.safeFloat (market, 'minOrderInBaseAsset'),
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': this.safeFloat (market, 'minOrderInQuoteAsset'),
+                        'max': undefined,
+                    },
+                },
+            });
+        }
+        return result;
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
-        let url = '/' + this.version + '/' + this.implodeParams (path, params);
-        const getOrDelete = (method === 'GET') || (method === 'DELETE');
-        if (getOrDelete) {
+        let url = '/' + this.implodeParams (path, params);
+        if (api === 'public') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
         }
-        if (api === 'private') {
-            this.checkRequiredCredentials ();
-            let payload = '';
-            if (!getOrDelete) {
-                if (Object.keys (query).length) {
-                    body = this.json (query);
-                    payload = body;
-                }
-            }
-            const timestamp = this.milliseconds ().toString ();
-            const auth = timestamp + method + url + payload;
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret));
-            headers = {
-            };
-            if (!getOrDelete) {
-                headers['Content-Type'] = 'application/json';
-            }
-        }
+        // const getOrDelete = (method === 'GET') || (method === 'DELETE');
+        // if (getOrDelete) {
+        //     if (Object.keys (query).length) {
+        //         url += '?' + this.urlencode (query);
+        //     }
+        // }
+        // if (api === 'private') {
+        //     this.checkRequiredCredentials ();
+        //     let payload = '';
+        //     if (!getOrDelete) {
+        //         if (Object.keys (query).length) {
+        //             body = this.json (query);
+        //             payload = body;
+        //         }
+        //     }
+        //     const timestamp = this.milliseconds ().toString ();
+        //     const auth = timestamp + method + url + payload;
+        //     const signature = this.hmac (this.encode (auth), this.encode (this.secret));
+        //     headers = {
+        //     };
+        //     if (!getOrDelete) {
+        //         headers['Content-Type'] = 'application/json';
+        //     }
+        // }
         url = this.urls['api'][api] + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
