@@ -389,13 +389,10 @@ class wavesexchange extends Exchange {
             'amountAsset' => $market['baseId'],
             'priceAsset' => $market['quoteId'],
         ), $params);
-        if ($limit !== null) {
-            $request['depth'] = (string) $limit;
-        }
         $response = $this->matcherGetMatcherOrderbookAmountAssetPriceAsset ($request);
         $timestamp = $this->safe_integer($response, 'timestamp');
-        $bids = $this->parse_order_book_side($this->safe_value($response, 'bids'), $market);
-        $asks = $this->parse_order_book_side($this->safe_value($response, 'asks'), $market);
+        $bids = $this->parse_order_book_side($this->safe_value($response, 'bids'), $market, $limit);
+        $asks = $this->parse_order_book_side($this->safe_value($response, 'asks'), $market, $limit);
         return array(
             'bids' => $bids,
             'asks' => $asks,
@@ -405,7 +402,7 @@ class wavesexchange extends Exchange {
         );
     }
 
-    public function parse_order_book_side($bookSide, $market = null) {
+    public function parse_order_book_side($bookSide, $market = null, $limit = null) {
         $precision = $market['precision'];
         $amountPrecision = pow(10, $precision['amount']);
         $pricePrecision = pow(10, $precision['price']);
@@ -414,6 +411,9 @@ class wavesexchange extends Exchange {
             $entry = $bookSide[$i];
             $price = $this->safe_integer($entry, 'price', 0) / $pricePrecision;
             $amount = $this->safe_integer($entry, 'amount', 0) / $amountPrecision;
+            if (($limit !== null) && ($i > $limit)) {
+                break;
+            }
             $result[] = [$price, $amount];
         }
         return $result;
@@ -461,10 +461,11 @@ class wavesexchange extends Exchange {
         if (!$this->safe_string($this->options, 'accessToken')) {
             $prefix = 'ffffff01';
             $expiresDelta = 60 * 60 * 24 * 7;
-            $seconds = $this->seconds() . $expiresDelta;
+            $seconds = $this->sum($this->seconds(), $expiresDelta);
+            $seconds = (string) $seconds;
             $clientId = 'waves.exchange';
             $message = 'W:' . $clientId . ':' . $seconds;
-            $messageHex = bin2hex($message);
+            $messageHex = $this->decode(bin2hex($this->encode($message)));
             $payload = $prefix . $messageHex;
             $hexKey = bin2hex($this->base58_to_binary($this->secret));
             $signature = $this->eddsa($payload, $hexKey, 'ed25519');
@@ -791,6 +792,7 @@ class wavesexchange extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        $this->check_required_dependencies();
         $this->load_markets();
         $market = $this->market($symbol);
         $matcherPublicKey = $this->get_matcher_public_key();
@@ -862,6 +864,7 @@ class wavesexchange extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        $this->check_required_dependencies();
         $this->load_markets();
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' $symbol is required for cancelOrder');
@@ -909,6 +912,7 @@ class wavesexchange extends Exchange {
     }
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->check_required_dependencies();
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrders requires $symbol argument');
         }
@@ -924,7 +928,7 @@ class wavesexchange extends Exchange {
         $signature = $this->eddsa(bin2hex($binary), $hexSecret, 'ed25519');
         $request = array(
             'Accept' => 'application/json',
-            'Timestamp' => $timestamp,
+            'Timestamp' => (string) $timestamp,
             'Signature' => $signature,
             'publicKey' => $this->apiKey,
             'baseId' => $market['baseId'],
@@ -952,7 +956,10 @@ class wavesexchange extends Exchange {
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $this->get_access_token();
-        $market = $this->market($symbol);
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
         $address = $this->get_waves_address();
         $request = array(
             'address' => $address,
@@ -965,7 +972,10 @@ class wavesexchange extends Exchange {
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $this->get_access_token();
-        $market = $this->market($symbol);
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
         $address = $this->get_waves_address();
         $request = array(
             'address' => $address,
@@ -1088,6 +1098,7 @@ class wavesexchange extends Exchange {
         // getTotalBalance (doesn't include waves), getReservedBalance (doesn't include waves)
         // getReservedBalance (includes WAVES)
         // I couldn't find another way to get all the data
+        $this->check_required_dependencies();
         $this->load_markets();
         $wavesAddress = $this->get_waves_address();
         $request = array(
@@ -1149,7 +1160,7 @@ class wavesexchange extends Exchange {
         $matcherRequest = array(
             'publicKey' => $this->apiKey,
             'signature' => $signature,
-            'timestamp' => $timestamp,
+            'timestamp' => (string) $timestamp,
         );
         $reservedBalance = $this->matcherGetMatcherBalanceReservedPublicKey ($matcherRequest);
         // array( WAVES => 200300000 )
@@ -1172,11 +1183,12 @@ class wavesexchange extends Exchange {
         //   "confirmations" => 0,
         //   "$balance" => 909085978
         // }
+        $result['WAVES'] = $this->safe_value($result, 'WAVES', array());
         $result['WAVES']['total'] = $this->currency_from_precision('WAVES', $this->safe_float($wavesTotal, 'balance'));
         $codes = is_array($result) ? array_keys($result) : array();
         for ($i = 0; $i < count($codes); $i++) {
             $code = $codes[$i];
-            if ($result[$code]['used'] === null) {
+            if ($this->safe_value($result[$code], 'used') === null) {
                 $result[$code]['used'] = 0.0;
             }
         }
