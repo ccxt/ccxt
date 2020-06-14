@@ -51,7 +51,7 @@ class wavesexchange extends Exchange {
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/84547058-5fb27d80-ad0b-11ea-8711-78ac8b3c7f31.jpg',
                 'api' => array(
-                    'matcher' => 'https://matcher.waves.exchange',
+                    'matcher' => 'http://matcher.waves.exchange',
                     'node' => 'https://nodes.wavesnodes.com',
                     'public' => 'https://api.wavesplatform.com/v0',
                     'private' => 'https://api.waves.exchange/v1',
@@ -390,7 +390,7 @@ class wavesexchange extends Exchange {
             'priceAsset' => $market['quoteId'],
         ), $params);
         if ($limit !== null) {
-            $request['depth'] = $limit;
+            $request['depth'] = (string) $limit;
         }
         $response = $this->matcherGetMatcherOrderbookAmountAssetPriceAsset ($request);
         $timestamp = $this->safe_integer($response, 'timestamp');
@@ -608,13 +608,14 @@ class wavesexchange extends Exchange {
             'interval' => $this->timeframes[$timeframe],
         );
         if ($since !== null) {
-            $request['timeStart'] = $since;
+            $request['timeStart'] = (string) $since;
         } else {
             $allowedCandles = $this->safe_integer($this->options, 'allowedCandles', 1440);
             $timeframeUnix = $this->parse_timeframe($timeframe) * 1000;
             $currentTime = (int) floor($this->milliseconds() / $timeframeUnix) * $timeframeUnix;
             $delta = ($allowedCandles - 1) * $timeframeUnix;
-            $request['timeStart'] = $currentTime - $delta;
+            $timeStart = $currentTime - $delta;
+            $request['timeStart'] = (string) $timeStart;
         }
         $response = $this->publicGetCandlesBaseIdQuoteId (array_merge($request, $params));
         //

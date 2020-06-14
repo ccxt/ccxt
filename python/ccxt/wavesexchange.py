@@ -61,7 +61,7 @@ class wavesexchange(Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/84547058-5fb27d80-ad0b-11ea-8711-78ac8b3c7f31.jpg',
                 'api': {
-                    'matcher': 'https://matcher.waves.exchange',
+                    'matcher': 'http://matcher.waves.exchange',
                     'node': 'https://nodes.wavesnodes.com',
                     'public': 'https://api.wavesplatform.com/v0',
                     'private': 'https://api.waves.exchange/v1',
@@ -392,7 +392,7 @@ class wavesexchange(Exchange):
             'priceAsset': market['quoteId'],
         }, params)
         if limit is not None:
-            request['depth'] = limit
+            request['depth'] = str(limit)
         response = self.matcherGetMatcherOrderbookAmountAssetPriceAsset(request)
         timestamp = self.safe_integer(response, 'timestamp')
         bids = self.parse_order_book_side(self.safe_value(response, 'bids'), market)
@@ -592,13 +592,14 @@ class wavesexchange(Exchange):
             'interval': self.timeframes[timeframe],
         }
         if since is not None:
-            request['timeStart'] = since
+            request['timeStart'] = str(since)
         else:
             allowedCandles = self.safe_integer(self.options, 'allowedCandles', 1440)
             timeframeUnix = self.parse_timeframe(timeframe) * 1000
             currentTime = int(math.floor(self.milliseconds()) / timeframeUnix) * timeframeUnix
             delta = (allowedCandles - 1) * timeframeUnix
-            request['timeStart'] = currentTime - delta
+            timeStart = currentTime - delta
+            request['timeStart'] = str(timeStart)
         response = self.publicGetCandlesBaseIdQuoteId(self.extend(request, params))
         #
         #     {
