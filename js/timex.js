@@ -1104,7 +1104,7 @@ module.exports = class timex extends Exchange {
         };
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         //
         //     {
         //         "timestamp":"2019-12-04T23:00:00",

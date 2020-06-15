@@ -636,7 +636,7 @@ module.exports = class fcoin extends Exchange {
         return this.parseOrders (response['data'], market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         return [
             this.safeTimestamp (ohlcv, 'id'),
             this.safeFloat (ohlcv, 'open'),

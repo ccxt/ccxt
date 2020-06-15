@@ -765,7 +765,7 @@ module.exports = class bitmax extends Exchange {
         return this.parseTickers (data, symbols);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         //
         //     {
         //         "m":"bar",

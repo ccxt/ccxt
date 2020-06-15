@@ -432,7 +432,7 @@ module.exports = class bytetrade extends Exchange {
         return this.parseTickers (rawTickers, symbols);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         //
         //     [
         //         1591505760000,
