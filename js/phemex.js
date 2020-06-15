@@ -27,6 +27,7 @@ module.exports = class phemex extends Exchange {
                     'private': 'https://testnet-api.phemex.com',
                 },
                 'api': {
+                    'v1': 'https://api.phemex.com/v1',
                     'public': 'https://api.phemex.com/exchange/public',
                     // 'public': 'https://api.phemex.com',
                     'private': 'https://api.phemex.com',
@@ -46,11 +47,11 @@ module.exports = class phemex extends Exchange {
                 },
                 'v1': {
                     'get': [
-                        'v1/md/orderbook', // ?symbol=<symbol>&id=<id>
-                        'v1/md/trade', // ?symbol=<symbol>&id=<id>
-                        'v1/md/ticker/24hr', // ?symbol=<symbol>&id=<id>
-                        'v1/md/ticker/24hr/all', // ?id=<id>
-                        'v1/exchange/public/products', // contracts only
+                        'md/orderbook', // ?symbol=<symbol>&id=<id>
+                        'md/trade', // ?symbol=<symbol>&id=<id>
+                        'md/ticker/24hr', // ?symbol=<symbol>&id=<id>
+                        'md/ticker/24hr/all', // ?id=<id>
+                        'exchange/public/products', // contracts only
                     ],
                 },
                 'v0': {
@@ -182,8 +183,8 @@ module.exports = class phemex extends Exchange {
         for (let i = 0; i < products.length; i++) {
             let market = products[i];
             const id = this.safeString (market, 'symbol');
-            const type = this.safeStringLower (market, 'type');
             const quoteId = this.safeString (market, 'quoteCurrency');
+            let type = this.safeStringLower (market, 'type');
             let baseId = undefined;
             let limits = undefined;
             let spot = undefined;
@@ -191,14 +192,27 @@ module.exports = class phemex extends Exchange {
             let precision = undefined;
             let taker = undefined;
             let maker = undefined;
+            let linear = undefined;
+            let inverse = undefined;
             if (type === 'perpetual') {
+                type = 'future';
                 future = true;
                 spot = false;
                 const riskLimitValues = this.safeValue (riskLimitsById, id, {});
                 market = this.extend (market, riskLimitValues);
-                console.log (market);
-                process.exit ();
-                continue;
+                const settleCurrency = this.safeString (market, 'settleCurrency');
+                const contractUnderlyingAssets = this.safeString (market, 'contractUnderlyingAssets');
+                if (settleCurrency === quoteId) {
+                    baseId = contractUnderlyingAssets;
+                    inverse = false;
+                } else {
+                    baseId = settleCurrency;
+                    inverse = true;
+                }
+                linear = !inverse;
+                // console.log (market);
+                // process.exit ();
+                // continue;
             } else if (type === 'spot') {
                 baseId = this.safeString (market, 'baseCurrency');
                 spot = true;
@@ -248,6 +262,8 @@ module.exports = class phemex extends Exchange {
                 'type': type,
                 'spot': spot,
                 'future': future,
+                'linear': linear,
+                'inverse': inverse,
                 'active': active,
                 'taker': taker,
                 'maker': maker,
@@ -261,7 +277,7 @@ module.exports = class phemex extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
         let url = '/' + this.implodeParams (path, params);
-        if (api === 'public') {
+        if ((api === 'public') || (api === 'v1')) {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
