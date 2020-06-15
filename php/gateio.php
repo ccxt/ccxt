@@ -370,7 +370,7 @@ class gateio extends Exchange {
         return $this->parse_order_book($response);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         // they return array( Timestamp, Volume, Close, High, Low, Open )
         return array(
             $this->safe_integer($ohlcv, 0), // t

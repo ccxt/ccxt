@@ -576,7 +576,7 @@ module.exports = class eterbase extends Exchange {
         return this.parseOrderBook (response, timestamp);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         //
         //     {
         //         "time":1588807500000,

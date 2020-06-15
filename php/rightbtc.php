@@ -356,7 +356,7 @@ class rightbtc extends Exchange {
         return $this->parse_trades($response['result'], $market, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '5m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         return [
             $this->safe_integer($ohlcv, 0),
             floatval ($ohlcv[2]) / 1e8,

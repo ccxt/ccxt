@@ -366,7 +366,7 @@ module.exports = class gateio extends Exchange {
         return this.parseOrderBook (response);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         // they return [ Timestamp, Volume, Close, High, Low, Open ]
         return [
             this.safeInteger (ohlcv, 0), // t

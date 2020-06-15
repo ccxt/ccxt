@@ -485,7 +485,7 @@ class ftx(Exchange):
         result = self.safe_value(response, 'result', {})
         return self.parse_order_book(result)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     {
         #         "close":177.23,

@@ -598,7 +598,7 @@ class kucoin(Exchange):
         #
         return self.parse_ticker(response['data'], market)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     [
         #         "1545904980",             # Start time of the candle cycle

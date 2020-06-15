@@ -566,7 +566,7 @@ module.exports = class dsx extends Exchange {
         return this.parseTrades (response[market['id']], market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         //
         //     {
         //         "high" : 0.01955,

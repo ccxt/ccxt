@@ -237,7 +237,7 @@ module.exports = class btcturk extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1d', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         return [
             this.parse8601 (this.safeString (ohlcv, 'Time')),
             this.safeFloat (ohlcv, 'Open'),

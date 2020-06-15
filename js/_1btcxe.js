@@ -149,7 +149,7 @@ module.exports = class _1btcxe extends Exchange {
         };
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1d', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         return [
             this.parse8601 (ohlcv['date'] + ' 00:00:00'),
             undefined,

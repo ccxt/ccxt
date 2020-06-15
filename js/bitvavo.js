@@ -690,7 +690,7 @@ module.exports = class bitvavo extends Exchange {
         return orderbook;
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         //
         //     [
         //         1590383700000,

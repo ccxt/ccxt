@@ -395,7 +395,7 @@ class mercado(Exchange):
             'id': response['response_data']['withdrawal']['id'],
         }
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         return [
             self.safe_timestamp(ohlcv, 'timestamp'),
             self.safe_float(ohlcv, 'open'),

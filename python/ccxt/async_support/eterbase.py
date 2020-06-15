@@ -556,7 +556,7 @@ class eterbase(Exchange):
         timestamp = self.safe_integer(response, 'timestamp')
         return self.parse_order_book(response, timestamp)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     {
         #         "time":1588807500000,

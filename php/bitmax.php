@@ -768,7 +768,7 @@ class bitmax extends Exchange {
         return $this->parse_tickers($data, $symbols);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     {
         //         "m":"bar",

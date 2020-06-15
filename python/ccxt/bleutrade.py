@@ -323,7 +323,7 @@ class bleutrade(Exchange):
             'info': ticker,
         }
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1d', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         return [
             self.parse8601(ohlcv['TimeStamp'] + '+00:00'),
             self.safe_float(ohlcv, 'Open'),

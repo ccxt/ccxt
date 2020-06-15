@@ -152,7 +152,7 @@ class _1btcxe extends Exchange {
         );
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1d', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         return [
             $this->parse8601($ohlcv['date'] . ' 00:00:00'),
             null,

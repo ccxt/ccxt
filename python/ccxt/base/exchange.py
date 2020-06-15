@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.30.2'
+__version__ = '1.30.3'
 
 # -----------------------------------------------------------------------------
 
@@ -1423,7 +1423,7 @@ class Exchange(object):
     def fetch_withdrawals(self, symbol=None, since=None, limit=None, params={}):
         raise NotSupported('fetch_withdrawals() is not supported yet')
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         return ohlcv[0:6] if isinstance(ohlcv, list) else ohlcv
 
     def parse_ohlcvs(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
@@ -1434,7 +1434,7 @@ class Exchange(object):
         while i < num_ohlcvs:
             if limit and (len(result) >= limit):
                 break
-            ohlcv = self.parse_ohlcv(ohlcvs[i], market, timeframe, since, limit)
+            ohlcv = self.parse_ohlcv(ohlcvs[i], market)
             i = i + 1
             if since and (ohlcv[0] < since):
                 continue

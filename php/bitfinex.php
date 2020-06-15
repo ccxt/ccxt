@@ -906,7 +906,7 @@ class bitfinex extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     array(
         //         1457539800000,
