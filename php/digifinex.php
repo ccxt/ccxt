@@ -621,7 +621,7 @@ class digifinex extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     array(
         //         1556712900,

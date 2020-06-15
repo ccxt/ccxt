@@ -350,7 +350,7 @@ class coinex extends Exchange {
         return $this->parse_trades($response['data'], $market, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '5m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     array(
         //         1591484400,

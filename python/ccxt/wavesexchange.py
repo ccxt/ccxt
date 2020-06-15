@@ -642,7 +642,7 @@ class wavesexchange(Exchange):
             lastClose = entry[4]
         return result
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     {
         #         __type: 'candle',

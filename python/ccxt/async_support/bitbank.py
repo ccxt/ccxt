@@ -225,7 +225,7 @@ class bitbank(Exchange):
         response = await self.publicGetPairTransactions(self.extend(request, params))
         return self.parse_trades(response['data']['transactions'], market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='5m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     [
         #         "0.02501786",

@@ -1061,7 +1061,7 @@ class timex(Exchange):
             'fee': fee,
         }
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     {
         #         "timestamp":"2019-12-04T23:00:00",

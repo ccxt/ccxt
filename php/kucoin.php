@@ -609,7 +609,7 @@ class kucoin extends Exchange {
         return $this->parse_ticker($response['data'], $market);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     array(
         //         "1545904980",             // Start time of the candle cycle

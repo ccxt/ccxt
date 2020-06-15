@@ -232,7 +232,7 @@ class bitbank extends Exchange {
         return $this->parse_trades($response['data']['transactions'], $market, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '5m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     array(
         //         "0.02501786",

@@ -357,7 +357,7 @@ class hitbtc(Exchange):
             result[code] = account
         return self.parse_balance(result)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1d', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     {
         #         "timestamp":"2015-08-20T19:01:00.000Z",

@@ -361,7 +361,7 @@ class bibox(Exchange):
         response = await self.publicGetMdata(self.extend(request, params))
         return self.parse_order_book(response['result'], self.safe_float(response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume')
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     {
         #         "time":1591448220000,

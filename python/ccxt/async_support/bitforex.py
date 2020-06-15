@@ -380,7 +380,7 @@ class bitforex(Exchange):
             'info': response,
         }
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     {
         #         "close":0.02505143,

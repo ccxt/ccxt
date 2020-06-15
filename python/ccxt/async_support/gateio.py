@@ -364,7 +364,7 @@ class gateio(Exchange):
         response = await self.publicGetOrderBookId(self.extend(request, params))
         return self.parse_order_book(response)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         # they return [Timestamp, Volume, Close, High, Low, Open]
         return [
             self.safe_integer(ohlcv, 0),  # t

@@ -543,7 +543,7 @@ class bw(Exchange):
         trades = self.safe_value(response, 'datas', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     [
         #         "K",

@@ -323,7 +323,7 @@ class coss(Exchange):
             }
         return self.parse_balance(result)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     [
         #         1545138960000,

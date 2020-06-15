@@ -572,7 +572,7 @@ class kraken(Exchange):
         ticker = response['result'][market['id']]
         return self.parse_ticker(ticker, market)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     [
         #         1591475640,

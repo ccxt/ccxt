@@ -360,7 +360,7 @@ class hitbtc extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1d', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     {
         //         "timestamp":"2015-08-20T19:01:00.000Z",

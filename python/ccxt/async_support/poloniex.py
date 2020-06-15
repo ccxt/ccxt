@@ -231,7 +231,7 @@ class poloniex(Exchange):
             'cost': float(self.fee_to_precision(symbol, cost)),
         }
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='5m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     {
         #         "date":1590913773,

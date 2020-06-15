@@ -259,7 +259,7 @@ class acx(Exchange):
         response = self.publicGetTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         return [
             self.safe_timestamp(ohlcv, 0),
             self.safe_float(ohlcv, 1),
