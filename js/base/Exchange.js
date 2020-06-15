@@ -1215,7 +1215,7 @@ module.exports = class Exchange {
         return ((symbol !== undefined) ? array.filter ((entry) => entry.symbol === symbol) : array)
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         return Array.isArray (ohlcv) ? ohlcv.slice (0, 6) : ohlcv
     }
 
@@ -1230,7 +1230,7 @@ module.exports = class Exchange {
             if (limit && (result.length >= limit)) {
                 break;
             }
-            const ohlcv = this.parseOHLCV (ohlcvs[i], market, timeframe, since, limit)
+            const ohlcv = this.parseOHLCV (ohlcvs[i], market)
             if (since && (ohlcv[0] < since)) {
                 continue
             }

@@ -1599,12 +1599,12 @@ class Exchange {
         return $this->accounts;
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = 60, $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         return ('array' === gettype($ohlcv) && !static::is_associative($ohlcv)) ? array_slice($ohlcv, 0, 6) : $ohlcv;
     }
 
-    public function parseOHLCV($ohlcv, $market = null, $timeframe = 60, $since = null, $limit = null) {
-        return $this->parse_ohlcv($ohlcv, $market, $timeframe, $since, $limit);
+    public function parseOHLCV($ohlcv, $market = null) {
+        return $this->parse_ohlcv($ohlcv, $market);
     }
 
     public function parse_ohlcvs($ohlcvs, $market = null, $timeframe = 60, $since = null, $limit = null) {
@@ -1615,7 +1615,7 @@ class Exchange {
             if ($limit && (count($result) >= $limit)) {
                 break;
             }
-            $ohlcv = $this->parse_ohlcv($ohlcvs[$i], $market, $timeframe, $since, $limit);
+            $ohlcv = $this->parse_ohlcv($ohlcvs[$i], $market);
             if ($since && ($ohlcv[0] < $since)) {
                 continue;
             }

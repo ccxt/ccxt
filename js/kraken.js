@@ -580,7 +580,7 @@ module.exports = class kraken extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         //
         //     [
         //         1591475640,
