@@ -134,6 +134,7 @@ class cex extends Exchange {
                     'Rate limit exceeded' => '\\ccxt\\RateLimitExceeded',
                     'Invalid API key' => '\\ccxt\\AuthenticationError',
                     'There was an error while placing your order' => '\\ccxt\\InvalidOrder',
+                    'Sorry, too many clients already' => '\\ccxt\\DDoSProtection',
                 ),
             ),
             'options' => array(

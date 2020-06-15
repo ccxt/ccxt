@@ -20,6 +20,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
 
@@ -146,6 +147,7 @@ class cex(Exchange):
                     'Rate limit exceeded': RateLimitExceeded,
                     'Invalid API key': AuthenticationError,
                     'There was an error while placing your order': InvalidOrder,
+                    'Sorry, too many clients already': DDoSProtection,
                 },
             },
             'options': {
