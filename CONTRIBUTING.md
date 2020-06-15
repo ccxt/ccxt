@@ -36,6 +36,29 @@ If you want to submit an issue and you want your issue to be resolved quickly, h
 
 If you found a security issue or a critical vulnerability and reporting it in public would impose risk – please feel free to send us a message to <a href="mailto:info@ccxt.trade">info@ccxt.trade</a>.
 
+## How To Build the Code
+
+### Prerequisites
+
+To build CCXT you will need:
+- git (from a command prompt: `git --version`)
+- node (from a command prompt: `node --version`)
+    - v14.3.0 confirmed working
+- tox
+    - via pip: `pip install tox` 
+    - macOS with [brew](https://brew.sh): `brew install tox` 
+    - linux: `apt-get install tox`
+
+### Build Steps
+
+1. Checkout code:
+    > git clone https://github.com/ccxt/ccxt.git
+2. cd into to the root directory
+2. If you want to limit the build to specific exchanges, first edit `exchanges.cfg`. By default it will build them all
+3. Run `npm install`. This will fetch packages and should end with a message saying "Thank you!"
+4. Run `npm run build`
+5. Test: `run-tests --js`
+
 ## How To Contribute Code
 
 - **[MAKE SURE YOUR CODE IS UNIFIED](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#derived-exchange-classes)!**
