@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, InvalidAddress, BadRequest, RateLimitExceeded, PermissionDenied, ExchangeNotAvailable, AccountSuspended, OnMaintenance } = require ('./base/errors');
-const { TRUNCATE } = require ('./base/functions/number');
+const { TICK_SIZE, TRUNCATE } = require ('./base/functions/number');
 
 // ----------------------------------------------------------------------------
 
@@ -47,35 +47,22 @@ module.exports = class phemex extends Exchange {
                 'v1': {
                     'get': [
                         'v1/md/orderbook', // ?symbol=<symbol>&id=<id>
-                        'v1/md/orderbook', // ?symbol=sBTCUSDT
-                        'v1/md/orderbook', // ?symbol=<symbol>&id=<id>
-                        'v1/md/orderbook', // ?symbol=BTCUSD
                         'v1/md/trade', // ?symbol=<symbol>&id=<id>
-                        'v1/md/trade', // ?symbol=BTCUSD
                         'v1/md/ticker/24hr', // ?symbol=<symbol>&id=<id>
-                        'v1/md/ticker/24hr', // ?symbol=BTCUSD
                         'v1/md/ticker/24hr/all', // ?id=<id>
-                        'v1/md/ticker/24hr/all',
                         'v1/exchange/public/products', // contracts only
                     ],
                 },
                 'v0': {
                     'get': [
                         'md/orderbook', // ?symbol=<symbol>&id=<id>
-                        'md/orderbook', // ?symbol=sBTCUSDT
-                        'md/orderbook', // ?symbol=<symbol>&id=<id>
-                        'md/orderbook', // ?symbol=BTCUSD
                         'md/trade', // ?symbol=<symbol>&id=<id>
-                        'md/trade', // ?symbol=sBTCUSDT
-                        'md/trade', // ?symbol=<symbol>&id=<id>
-                        'md/trade', // ?symbol=BTCUSD
                         'md/spot/ticker/24hr', // ?symbol=<symbol>&id=<id>
-                        'md/spot/ticker/24hr', // ?symbol=sBTCUSDT
                         'md/ticker/24hr', // ?symbol=<symbol>&id=<id>
-                        'md/ticker/24hr', // ?symbol=BTCUSD
                     ],
                 },
             },
+            'precisionMode': TICK_SIZE,
             'fees': {
                 'trading': {
                     'tierBased': false,
@@ -97,6 +84,15 @@ module.exports = class phemex extends Exchange {
             'options': {
             },
         });
+    }
+
+    parseSafeFloat (value = undefined) {
+        if (value === undefined) {
+            return value;
+        }
+        value = value.replace (',', '');
+        const parts = value.split (' ');
+        return this.safeFloat (parts, 0);
     }
 
     async fetchMarkets (params = {}) {
@@ -181,31 +177,66 @@ module.exports = class phemex extends Exchange {
         const data = this.safeValue (response, 'data', {});
         const products = this.safeValue (data, 'products', []);
         const riskLimits = this.safeValue (data, 'riskLimits', []);
+        const riskLimitsById = this.indexBy (riskLimits, 'symbol');
         const result = [];
         for (let i = 0; i < products.length; i++) {
-            const market = products[i];
+            let market = products[i];
             const id = this.safeString (market, 'symbol');
             const type = this.safeStringLower (market, 'type');
+            const quoteId = this.safeString (market, 'quoteCurrency');
+            let baseId = undefined;
+            let limits = undefined;
+            let spot = undefined;
+            let future = undefined;
+            let precision = undefined;
+            let taker = undefined;
+            let maker = undefined;
             if (type === 'perpetual') {
+                future = true;
+                spot = false;
+                const riskLimitValues = this.safeValue (riskLimitsById, id, {});
+                market = this.extend (market, riskLimitValues);
+                console.log (market);
+                process.exit ();
+                continue;
             } else if (type === 'spot') {
+                baseId = this.safeString (market, 'baseCurrency');
+                spot = true;
+                future = false;
+                taker = this.safeFloat (market, 'defaultTakerFee');
+                maker = this.safeFloat (market, 'defaultMakerFee');
+                precision = {
+                    'amount': this.parseSafeFloat (this.safeString (market, 'baseTickSize')),
+                    'price': this.parseSafeFloat (this.safeString (market, 'quoteTickSize')),
+                };
+                limits = {
+                    'amount': {
+                        'min': precision['amount'],
+                        'max': this.parseSafeFloat (this.safeString (market, 'maxBaseOrderSize')),
+                    },
+                    'price': {
+                        'min': precision['price'],
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': this.parseSafeFloat (this.safeString (market, 'minOrderValue')),
+                        'max': this.parseSafeFloat (this.safeString (market, 'maxOrderValue')),
+                    },
+                };
             }
-            const id = this.safeString (market, 'market');
-            const baseId = this.safeString (market, 'base');
-            const quoteId = this.safeString (market, 'quote');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
-            const status = this.safeString (market, 'status');
-            const active = (status === 'trading');
-            const baseCurrency = this.safeValue (currenciesById, baseId);
-            let amountPrecision = undefined;
-            if (baseCurrency !== undefined) {
-                amountPrecision = this.safeInteger (baseCurrency, 'decimals', 8);
-            }
-            const precision = {
-                'price': this.safeInteger (market, 'pricePrecision'),
-                'amount': amountPrecision,
-            };
+            const active = undefined;
+            // const baseCurrency = this.safeValue (currenciesById, baseId);
+            // let amountPrecision = undefined;
+            // if (baseCurrency !== undefined) {
+            //     amountPrecision = this.safeInteger (baseCurrency, 'decimals', 8);
+            // }
+            // const precision = {
+            //     'price': this.safeInteger (market, 'pricePrecision'),
+            //     'amount': amountPrecision,
+            // };
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -214,22 +245,14 @@ module.exports = class phemex extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
+                'type': type,
+                'spot': spot,
+                'future': future,
                 'active': active,
+                'taker': taker,
+                'maker': maker,
                 'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': this.safeFloat (market, 'minOrderInBaseAsset'),
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': this.safeFloat (market, 'minOrderInQuoteAsset'),
-                        'max': undefined,
-                    },
-                },
+                'limits': limits,
             });
         }
         return result;
