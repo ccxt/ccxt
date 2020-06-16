@@ -540,7 +540,7 @@ class liquid extends Exchange {
             'side' => $side,
             'quantity' => $this->amount_to_precision($symbol, $amount),
         );
-        if ($type === 'limit') {
+        if (($type === 'limit') || ($type === 'limit_post_only') || ($type === 'market_with_range') || ($type === 'stop')) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         $response = $this->privatePostOrders (array_merge($request, $params));

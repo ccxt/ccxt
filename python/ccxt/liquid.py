@@ -507,7 +507,7 @@ class liquid(Exchange):
             'side': side,
             'quantity': self.amount_to_precision(symbol, amount),
         }
-        if type == 'limit':
+        if (type == 'limit') or (type == 'limit_post_only') or (type == 'market_with_range') or (type == 'stop'):
             request['price'] = self.price_to_precision(symbol, price)
         response = self.privatePostOrders(self.extend(request, params))
         #
