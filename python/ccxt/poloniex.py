@@ -489,31 +489,20 @@ class poloniex(Exchange):
 
     def parse_trade(self, trade, market=None):
         #
-        # fetchMyTrades(symbol defined, specific market)
+        # fetchMyTrades
         #
         #     {
-        #         globalTradeID: 394698946,
-        #         tradeID: 45210255,
-        #         date: '2018-10-23 17:28:55',
-        #         type: 'sell',
-        #         rate: '0.03114126',
-        #         amount: '0.00018753',
-        #         total: '0.00000583'
-        #     }
-        #
-        # fetchMyTrades(symbol None, all markets)
-        #
-        #     {
-        #         globalTradeID: 394131412,
-        #         tradeID: '5455033',
-        #         date: '2018-10-16 18:05:17',
-        #         rate: '0.06935244',
-        #         amount: '1.40308443',
-        #         total: '0.09730732',
-        #         fee: '0.00100000',
-        #         orderNumber: '104768235081',
-        #         type: 'sell',
-        #         category: 'exchange'
+        #       globalTradeID: 471030550,
+        #       tradeID: '42582',
+        #       date: '2020-06-16 09:47:50',
+        #       rate: '0.000079980000',
+        #       amount: '75215.00000000',
+        #       total: '6.01569570',
+        #       fee: '0.00095000',
+        #       feeDisplay: '0.26636100 TRX(0.07125%)',
+        #       orderNumber: '5963454848',
+        #       type: 'sell',
+        #       category: 'exchange'
         #     }
         #
         # createOrder(taker trades)
@@ -552,23 +541,17 @@ class poloniex(Exchange):
         price = self.safe_float(trade, 'rate')
         cost = self.safe_float(trade, 'total')
         amount = self.safe_float(trade, 'amount')
-        if 'fee' in trade:
-            rate = self.safe_float(trade, 'fee')
-            feeCost = None
-            currency = None
-            if side == 'buy':
-                currency = base
-                feeCost = amount * rate
-            else:
-                currency = quote
-                if cost is not None:
-                    feeCost = cost * rate
-            fee = {
-                'type': None,
-                'rate': rate,
-                'cost': feeCost,
-                'currency': currency,
-            }
+        if 'feeDisplay' in trade:
+            feeData = self.safe_string(trade, 'feeDisplay')
+            if feeData:
+                feeCost, feeCurrency, feeRate = feeData.split(' ')
+                rate = feeRate.replace('(', '').replace(')', '').replace('%', '')
+                fee = {
+                    'type': None,
+                    'rate': float(rate) / 100,
+                    'cost': float(feeCost),
+                    'currency': feeCurrency,
+                }
         takerOrMaker = None
         takerAdjustment = self.safe_float(trade, 'takerAdjustment')
         if takerAdjustment is not None:
@@ -620,49 +603,59 @@ class poloniex(Exchange):
         #
         #     [
         #         {
-        #             globalTradeID: 394700861,
-        #             tradeID: 45210354,
-        #             date: '2018-10-23 18:01:58',
-        #             type: 'buy',
-        #             rate: '0.03117266',
-        #             amount: '0.00000652',
-        #             total: '0.00000020'
+        #             globalTradeID: 470912587,
+        #             tradeID: '42543',
+        #             date: '2020-06-15 17:31:22',
+        #             rate: '0.000083840000',
+        #             amount: '95237.60321429',
+        #             total: '7.98472065',
+        #             fee: '0.00095000',
+        #             feeDisplay: '0.36137761 TRX(0.07125%)',
+        #             orderNumber: '5926344995',
+        #             type: 'sell',
+        #             category: 'exchange'
         #         },
         #         {
-        #             globalTradeID: 394698946,
-        #             tradeID: 45210255,
-        #             date: '2018-10-23 17:28:55',
+        #             globalTradeID: 470974497,
+        #             tradeID: '42560',
+        #             date: '2020-06-16 00:41:23',
+        #             rate: '0.000078220000',
+        #             amount: '1000000.00000000',
+        #             total: '78.22000000',
+        #             fee: '0.00095000',
+        #             feeDisplay: '3.48189819 TRX(0.07125%)',
+        #             orderNumber: '5945490830',
         #             type: 'sell',
-        #             rate: '0.03114126',
-        #             amount: '0.00018753',
-        #             total: '0.00000583'
+        #             category: 'exchange'
         #         }
         #     ]
         #
         # all markets(symbol None)
         #
         #     {
-        #         BTC_BCH: [{
-        #             globalTradeID: 394131412,
-        #             tradeID: '5455033',
-        #             date: '2018-10-16 18:05:17',
-        #             rate: '0.06935244',
-        #             amount: '1.40308443',
-        #             total: '0.09730732',
-        #             fee: '0.00100000',
-        #             orderNumber: '104768235081',
-        #             type: 'sell',
+        #        BTC_GNT: [{
+        #             globalTradeID: 470839947,
+        #             tradeID: '4322347',
+        #             date: '2020-06-15 12:25:24',
+        #             rate: '0.000005810000',
+        #             amount: '1702.04429303',
+        #             total: '0.00988887',
+        #             fee: '0.00095000',
+        #             feeDisplay: '4.18235294 TRX(0.07125%)',
+        #             orderNumber: '102290272520',
+        #             type: 'buy',
         #             category: 'exchange'
-        #         }, {
-        #             globalTradeID: 394126818,
-        #             tradeID: '5455007',
-        #             date: '2018-10-16 16:55:34',
-        #             rate: '0.06935244',
-        #             amount: '0.00155709',
-        #             total: '0.00010798',
-        #             fee: '0.00200000',
-        #             orderNumber: '104768179137',
-        #             type: 'sell',
+        #     }, {
+        #             globalTradeID: 470895902,
+        #             tradeID: '4322413',
+        #             date: '2020-06-15 16:19:00',
+        #             rate: '0.000005980000',
+        #             amount: '18.66879219',
+        #             total: '0.00011163',
+        #             fee: '0.00095000',
+        #             feeDisplay: '0.04733727 TRX(0.07125%)',
+        #             orderNumber: '102298304480',
+        #             type: 'buy',
         #             category: 'exchange'
         #         }],
         #     }
