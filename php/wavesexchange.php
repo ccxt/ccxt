@@ -229,8 +229,14 @@ class wavesexchange extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
+                'BITCOIN CASH' => 'BCH',
+                'LITECOIN' => 'LTC',
+                'MONERO' => 'XMR',
+                'TIDEX' => 'TDX',
+                'USD-N' => 'USDN',
                 'WBTC' => 'BTC',
                 'WETH' => 'ETH',
+                'ZCASH' => 'ZEC',
             ),
             'options' => array(
                 'allowedCandles' => 1440,
