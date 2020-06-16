@@ -226,8 +226,14 @@ module.exports = class wavesexchange extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'BITCOIN CASH': 'BCH',
+                'LITECOIN': 'LTC',
+                'MONERO': 'XMR',
+                'TIDEX': 'TDX',
+                'USD-N': 'USDN',
                 'WBTC': 'BTC',
                 'WETH': 'ETH',
+                'ZCASH': 'ZEC,
             },
             'options': {
                 'allowedCandles': 1440,
