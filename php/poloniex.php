@@ -512,11 +512,11 @@ class poloniex extends Exchange {
         //       globalTradeID => 471030550,
         //       tradeID => '42582',
         //       date => '2020-06-16 09:47:50',
-        //       $rate => '0.000079980000',
+        //       rate => '0.000079980000',
         //       $amount => '75215.00000000',
         //       total => '6.01569570',
         //       $fee => '0.00095000',
-        //       feeDisplay => '0.26636100 TRX (0.07125%)',
+        //       $feeDisplay => '0.26636100 TRX (0.07125%)',
         //       orderNumber => '5963454848',
         //       type => 'sell',
         //       category => 'exchange'
@@ -561,16 +561,24 @@ class poloniex extends Exchange {
         $price = $this->safe_float($trade, 'rate');
         $cost = $this->safe_float($trade, 'total');
         $amount = $this->safe_float($trade, 'amount');
-        if (is_array($trade) && array_key_exists('feeDisplay', $trade)) {
-            $feeData = $this->safe_string($trade, 'feeDisplay');
-            if ($feeData) {
-                list($feeCost, $feeCurrency, $feeRate) = explode(' ', $feeData);
-                $rate = str_replace('%', '', $feeRate->replace ('(', '').replace (')', ''));
+        $feeDisplay = $this->safe_string($trade, 'feeDisplay');
+        if ($feeDisplay !== null) {
+            $parts = explode(' ', $feeDisplay);
+            $feeCost = $this->safe_float($parts, 0);
+            if ($feeCost !== null) {
+                $feeCurrencyId = $this->safe_string($parts, 1);
+                $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
+                $feeRate = $this->safe_string($parts, 2);
+                if ($feeRate !== null) {
+                    $feeRate = str_replace('(', '', $feeRate);
+                    $feeRate = str_replace(', $feeRate)', '');
+                    $feeRate = str_replace('%', '', $feeRate);
+                    $feeRate = floatval ($feeRate) / 100;
+                }
                 $fee = array(
-                    'type' => null,
-                    'rate' => floatval ($rate) / 100,
-                    'cost' => floatval ($feeCost),
-                    'currency' => $feeCurrency,
+                    'cost' => $feeCost,
+                    'currency' => $feeCurrencyCode,
+                    'rate' => $feeRate,
                 );
             }
         }

@@ -541,16 +541,23 @@ class poloniex(Exchange):
         price = self.safe_float(trade, 'rate')
         cost = self.safe_float(trade, 'total')
         amount = self.safe_float(trade, 'amount')
-        if 'feeDisplay' in trade:
-            feeData = self.safe_string(trade, 'feeDisplay')
-            if feeData:
-                feeCost, feeCurrency, feeRate = feeData.split(' ')
-                rate = feeRate.replace('(', '').replace(')', '').replace('%', '')
+        feeDisplay = self.safe_string(trade, 'feeDisplay')
+        if feeDisplay is not None:
+            parts = feeDisplay.split(' ')
+            feeCost = self.safe_float(parts, 0)
+            if feeCost is not None:
+                feeCurrencyId = self.safe_string(parts, 1)
+                feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
+                feeRate = self.safe_string(parts, 2)
+                if feeRate is not None:
+                    feeRate = feeRate.replace('(', '')
+                    feeRate = feeRate.replace(')', '')
+                    feeRate = feeRate.replace('%', '')
+                    feeRate = float(feeRate) / 100
                 fee = {
-                    'type': None,
-                    'rate': float(rate) / 100,
-                    'cost': float(feeCost),
-                    'currency': feeCurrency,
+                    'cost': feeCost,
+                    'currency': feeCurrencyCode,
+                    'rate': feeRate,
                 }
         takerOrMaker = None
         takerAdjustment = self.safe_float(trade, 'takerAdjustment')
