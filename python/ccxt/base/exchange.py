@@ -1811,7 +1811,7 @@ class Exchange(object):
         return Web3 is not None
 
     def check_required_dependencies(self):
-        if not Exchange.has_web3():
+        if self.requiresWeb3 and not Exchange.has_web3():
             raise NotSupported("Web3 functionality requires Python3 and web3 package installed: https://github.com/ethereum/web3.py")
         if self.requiresEddsa and eddsa is None:
             raise NotSupported('Eddsa functionality requires python-axolotl-curve25519, install with `pip install python-axolotl-curve25519==0.4.1.post2`: https://github.com/tgalal/python-axolotl-curve25519')
