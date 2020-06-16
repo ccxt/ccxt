@@ -2676,7 +2676,7 @@ class Exchange {
 
     public static function has_web3() {
         // PHP version of this function does nothing, as most of its
-        // dependencies are extremely lightweight
+        // dependencies are very lightweight
         return true;
     }
 
