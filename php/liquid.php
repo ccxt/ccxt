@@ -534,12 +534,17 @@ class liquid extends Exchange {
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
+        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_order_id');
+        $params = $this->omit($params, array( 'clientOrderId', 'client_order_id' ));
         $request = array(
             'order_type' => $type,
             'product_id' => $this->market_id($symbol),
             'side' => $side,
             'quantity' => $this->amount_to_precision($symbol, $amount),
         );
+        if ($clientOrderId !== null) {
+            $request['client_order_id'] = $clientOrderId;
+        }
         if (($type === 'limit') || ($type === 'limit_post_only') || ($type === 'market_with_range') || ($type === 'stop')) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
@@ -563,7 +568,8 @@ class liquid extends Exchange {
         //         "product_code" => "CASH",
         //         "funding_currency" => "USD",
         //         "currency_pair_code" => "BTCUSD",
-        //         "order_fee" => "0.0"
+        //         "order_fee" => "0.0",
+        //         "client_order_id" => null,
         //     }
         //
         return $this->parse_order($response);
@@ -632,6 +638,7 @@ class liquid extends Exchange {
         //         "funding_currency" => "USD",
         //         "currency_pair_code" => "BTCUSD",
         //         "order_fee" => "0.0"
+        //         "client_order_id" => null,
         //     }
         //
         // fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders
@@ -718,9 +725,10 @@ class liquid extends Exchange {
             $remaining = $amount - $filled;
         }
         $side = $this->safe_string($order, 'side');
+        $clientOrderId = $this->safe_string($order, 'client_order_id');
         return array(
             'id' => $orderId,
-            'clientOrderId' => null,
+            'clientOrderId' => $clientOrderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
@@ -933,10 +941,12 @@ class liquid extends Exchange {
             $nonce = $this->nonce();
             $request = array(
                 'path' => $url,
-                'nonce' => $nonce,
                 'token_id' => $this->apiKey,
                 'iat' => (int) floor($nonce / 1000), // issued at
             );
+            if (!(is_array($query) && array_key_exists('client_order_id', $query))) {
+                $request['nonce'] = $nonce;
+            }
             $headers['X-Quoine-Auth'] = $this->jwt($request, $this->encode($this->secret));
         } else {
             if ($query) {
