@@ -233,7 +233,7 @@ module.exports = class wavesexchange extends Exchange {
                 'USD-N': 'USDN',
                 'WBTC': 'BTC',
                 'WETH': 'ETH',
-                'ZCASH': 'ZEC,
+                'ZCASH': 'ZEC',
             },
             'options': {
                 'allowedCandles': 1440,
