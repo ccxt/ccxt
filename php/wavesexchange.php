@@ -799,6 +799,7 @@ class wavesexchange extends Exchange {
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->check_required_dependencies();
+        $this->check_required_credentials();
         $this->load_markets();
         $market = $this->market($symbol);
         $matcherPublicKey = $this->get_matcher_public_key();
@@ -871,6 +872,7 @@ class wavesexchange extends Exchange {
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->check_required_dependencies();
+        $this->check_required_credentials();
         $this->load_markets();
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' $symbol is required for cancelOrder');
@@ -919,6 +921,7 @@ class wavesexchange extends Exchange {
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->check_required_dependencies();
+        $this->check_required_credentials();
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrders requires $symbol argument');
         }
@@ -1105,6 +1108,7 @@ class wavesexchange extends Exchange {
         // getReservedBalance (includes WAVES)
         // I couldn't find another way to get all the data
         $this->check_required_dependencies();
+        $this->check_required_credentials();
         $this->load_markets();
         $wavesAddress = $this->get_waves_address();
         $request = array(

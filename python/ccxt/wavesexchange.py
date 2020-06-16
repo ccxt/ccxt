@@ -764,6 +764,7 @@ class wavesexchange(Exchange):
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.check_required_dependencies()
+        self.check_required_credentials()
         self.load_markets()
         market = self.market(symbol)
         matcherPublicKey = self.get_matcher_public_key()
@@ -835,6 +836,7 @@ class wavesexchange(Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         self.check_required_dependencies()
+        self.check_required_credentials()
         self.load_markets()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' symbol is required for cancelOrder')
@@ -881,6 +883,7 @@ class wavesexchange(Exchange):
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         self.check_required_dependencies()
+        self.check_required_credentials()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders requires symbol argument')
         self.load_markets()
@@ -1053,6 +1056,7 @@ class wavesexchange(Exchange):
         # getReservedBalance(includes WAVES)
         # I couldn't find another way to get all the data
         self.check_required_dependencies()
+        self.check_required_credentials()
         self.load_markets()
         wavesAddress = self.get_waves_address()
         request = {
