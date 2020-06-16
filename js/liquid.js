@@ -534,7 +534,7 @@ module.exports = class liquid extends Exchange {
             'side': side,
             'quantity': this.amountToPrecision (symbol, amount),
         };
-        if (type === 'limit') {
+        if ((type === 'limit') || (type === 'limit_post_only') || (type === 'market_with_range') || (type === 'stop')) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         const response = await this.privatePostOrders (this.extend (request, params));
