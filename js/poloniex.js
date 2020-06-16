@@ -556,16 +556,24 @@ module.exports = class poloniex extends Exchange {
         const price = this.safeFloat (trade, 'rate');
         const cost = this.safeFloat (trade, 'total');
         const amount = this.safeFloat (trade, 'amount');
-        if ('feeDisplay' in trade) {
-            const feeData = this.safeString (trade, 'feeDisplay');
-            if (feeData) {
-                const [ feeCost, feeCurrency, feeRate ] = feeData.split (' ');
-                const rate = feeRate.replace ('(', '').replace (')', '').replace ('%', '');
+        const feeDisplay = this.safeString (trade, 'feeDisplay');
+        if (feeDisplay !== undefined) {
+            const parts = feeDisplay.split (' ');
+            const feeCost = this.safeFloat (parts, 0);
+            if (feeCost !== undefined) {
+                const feeCurrencyId = this.safeString (parts, 1);
+                const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+                let feeRate = this.safeString (parts, 2);
+                if (feeRate !== undefined) {
+                    feeRate = feeRate.replace ('(', '');
+                    feeRate = feeRate.replace (')', '');
+                    feeRate = feeRate.replace ('%', '');
+                    feeRate = parseFloat (feeRate) / 100;
+                }
                 fee = {
-                    'type': undefined,
-                    'rate': parseFloat (rate) / 100,
-                    'cost': parseFloat (feeCost),
-                    'currency': feeCurrency,
+                    'cost': feeCost,
+                    'currency': feeCurrencyCode,
+                    'rate': feeRate,
                 };
             }
         }
