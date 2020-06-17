@@ -79,6 +79,7 @@
     "operator-assignment": "off",
     "no-underscore-dangle": "off",
     "consistent-return": "off",
-    "no-await-in-loop": "off"
+    "no-await-in-loop": "off",
+    "no-bitwise": ["error", { "allow": ["^"] }]
   }
 }

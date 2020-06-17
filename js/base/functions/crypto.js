@@ -153,6 +153,8 @@ module.exports = {
     rsa,
     ecdsa,
     eddsa,
+    algo:CryptoJS.algo,
+    enc:CryptoJS.enc,
 }
 
 /*  ------------------------------------------------------------------------ */
