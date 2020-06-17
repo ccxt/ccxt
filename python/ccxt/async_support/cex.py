@@ -20,6 +20,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
 
@@ -146,6 +147,7 @@ class cex(Exchange):
                     'Rate limit exceeded': RateLimitExceeded,
                     'Invalid API key': AuthenticationError,
                     'There was an error while placing your order': InvalidOrder,
+                    'Sorry, too many clients already': DDoSProtection,
                 },
             },
             'options': {
@@ -398,7 +400,7 @@ class cex(Exchange):
         timestamp = self.safe_timestamp(response, 'timestamp')
         return self.parse_order_book(response, timestamp)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     [
         #         1591403940,

@@ -587,7 +587,7 @@ class whitebit extends Exchange {
         return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     array(
         //         1591488000,

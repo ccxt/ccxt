@@ -763,7 +763,7 @@ class upbit extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1d', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     {
         //         $market => "BTC-ETH",

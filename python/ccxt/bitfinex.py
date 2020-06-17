@@ -345,6 +345,7 @@ class bitfinex(Exchange):
                     'Cannot evaluate your available balance, please try again': ExchangeNotAvailable,
                 },
                 'broad': {
+                    'Invalid X-BFX-SIGNATURE': AuthenticationError,
                     'This API key does not have permission': PermissionDenied,  # authenticated but not authorized
                     'not enough exchange balance for ': InsufficientFunds,  # when buying cost is greater than the available quote currency
                     'minimum size for ': InvalidOrder,  # when amount below limits.amount.min
@@ -853,7 +854,7 @@ class bitfinex(Exchange):
         response = self.privatePostOrderStatus(self.extend(request, params))
         return self.parse_order(response)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     [
         #         1457539800000,

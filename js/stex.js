@@ -596,7 +596,7 @@ module.exports = class stex extends Exchange {
         return this.parseTickers (tickers, symbols);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1d', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         //
         //     {
         //         "time": 1566086400000,

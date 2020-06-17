@@ -246,7 +246,7 @@ class xbtce(Exchange):
         # no method for trades?
         return self.privateGetTrade(params)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         return [
             self.safe_integer(ohlcv, 'Timestamp'),
             self.safe_float(ohlcv, 'Open'),

@@ -620,7 +620,7 @@ class bittrex extends Exchange {
         throw new ExchangeError($this->id . ' fetchTrades() returned null response');
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1d', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     {
         //         "startsAt":"2020-06-12T02:35:00Z",

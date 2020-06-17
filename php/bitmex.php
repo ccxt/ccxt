@@ -882,7 +882,7 @@ class bitmex extends Exchange {
         );
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     {
         //         "timestamp":"2015-09-25T13:38:00.000Z",

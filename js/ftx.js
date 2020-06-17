@@ -495,7 +495,7 @@ module.exports = class ftx extends Exchange {
         return this.parseOrderBook (result);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         //
         //     {
         //         "close":177.23,

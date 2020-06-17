@@ -637,7 +637,7 @@ class bybit(Exchange):
             tickers[symbol] = ticker
         return self.filter_by_array(tickers, 'symbol', symbols)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         # inverse perpetual BTC/USD
         #

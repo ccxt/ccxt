@@ -290,7 +290,7 @@ module.exports = class qtrade extends Exchange {
         return result;
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '5m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         //
         //     {
         //         "time":"2019-12-07T22:55:00Z",

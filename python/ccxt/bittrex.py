@@ -606,7 +606,7 @@ class bittrex(Exchange):
                 return self.parse_trades(response['result'], market, since, limit)
         raise ExchangeError(self.id + ' fetchTrades() returned None response')
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1d', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     {
         #         "startsAt":"2020-06-12T02:35:00Z",

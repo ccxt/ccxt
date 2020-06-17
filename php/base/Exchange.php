@@ -36,7 +36,7 @@ use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
 
-$version = '1.30.2';
+$version = '1.30.11';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.30.2';
+    const VERSION = '1.30.11';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -1599,12 +1599,12 @@ class Exchange {
         return $this->accounts;
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = 60, $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         return ('array' === gettype($ohlcv) && !static::is_associative($ohlcv)) ? array_slice($ohlcv, 0, 6) : $ohlcv;
     }
 
-    public function parseOHLCV($ohlcv, $market = null, $timeframe = 60, $since = null, $limit = null) {
-        return $this->parse_ohlcv($ohlcv, $market, $timeframe, $since, $limit);
+    public function parseOHLCV($ohlcv, $market = null) {
+        return $this->parse_ohlcv($ohlcv, $market);
     }
 
     public function parse_ohlcvs($ohlcvs, $market = null, $timeframe = 60, $since = null, $limit = null) {
@@ -1615,7 +1615,7 @@ class Exchange {
             if ($limit && (count($result) >= $limit)) {
                 break;
             }
-            $ohlcv = $this->parse_ohlcv($ohlcvs[$i], $market, $timeframe, $since, $limit);
+            $ohlcv = $this->parse_ohlcv($ohlcvs[$i], $market);
             if ($since && ($ohlcv[0] < $since)) {
                 continue;
             }
@@ -2676,7 +2676,7 @@ class Exchange {
 
     public static function has_web3() {
         // PHP version of this function does nothing, as most of its
-        // dependencies are very lighweight and don't eat a lot
+        // dependencies are lightweight and don't eat a lot
         return true;
     }
 

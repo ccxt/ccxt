@@ -296,7 +296,7 @@ class qtrade(Exchange):
             }
         return result
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='5m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     {
         #         "time":"2019-12-07T22:55:00Z",

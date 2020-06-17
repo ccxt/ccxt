@@ -424,7 +424,7 @@ module.exports = class mercado extends Exchange {
         };
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         return [
             this.safeTimestamp (ohlcv, 'timestamp'),
             this.safeFloat (ohlcv, 'open'),

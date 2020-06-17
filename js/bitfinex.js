@@ -331,6 +331,7 @@ module.exports = class bitfinex extends Exchange {
                     'Cannot evaluate your available balance, please try again': ExchangeNotAvailable,
                 },
                 'broad': {
+                    'Invalid X-BFX-SIGNATURE': AuthenticationError,
                     'This API key does not have permission': PermissionDenied, // authenticated but not authorized
                     'not enough exchange balance for ': InsufficientFunds, // when buying cost is greater than the available quote currency
                     'minimum size for ': InvalidOrder, // when amount below limits.amount.min
@@ -903,7 +904,7 @@ module.exports = class bitfinex extends Exchange {
         return this.parseOrder (response);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         //
         //     [
         //         1457539800000,

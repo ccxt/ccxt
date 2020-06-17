@@ -134,6 +134,7 @@ class cex extends Exchange {
                     'Rate limit exceeded' => '\\ccxt\\RateLimitExceeded',
                     'Invalid API key' => '\\ccxt\\AuthenticationError',
                     'There was an error while placing your order' => '\\ccxt\\InvalidOrder',
+                    'Sorry, too many clients already' => '\\ccxt\\DDoSProtection',
                 ),
             ),
             'options' => array(
@@ -399,7 +400,7 @@ class cex extends Exchange {
         return $this->parse_order_book($response, $timestamp);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     array(
         //         1591403940,

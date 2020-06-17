@@ -648,7 +648,7 @@ class bybit extends Exchange {
         return $this->filter_by_array($tickers, 'symbol', $symbols);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         // inverse perpetual BTC/USD
         //

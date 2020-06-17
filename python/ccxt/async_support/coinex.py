@@ -336,7 +336,7 @@ class coinex(Exchange):
         response = await self.publicGetMarketDeals(self.extend(request, params))
         return self.parse_trades(response['data'], market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='5m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     [
         #         1591484400,

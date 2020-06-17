@@ -239,7 +239,7 @@ class btcalpha extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '5m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     {
         //         "time":1591296000,

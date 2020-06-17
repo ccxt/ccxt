@@ -672,7 +672,7 @@ class bitvavo(Exchange):
         orderbook['nonce'] = self.safe_integer(response, 'nonce')
         return orderbook
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     [
         #         1590383700000,

@@ -235,7 +235,7 @@ class aofex(Exchange):
             })
         return result
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='5m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     {
         #         id:  1584950100,

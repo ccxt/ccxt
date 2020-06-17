@@ -337,7 +337,7 @@ class rightbtc(Exchange):
         response = await self.publicGetTradesTradingPair(self.extend(request, params))
         return self.parse_trades(response['result'], market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='5m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         return [
             self.safe_integer(ohlcv, 0),
             float(ohlcv[2]) / 1e8,

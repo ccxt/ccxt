@@ -831,7 +831,7 @@ class bitmex(Exchange):
             'info': ticker,
         }
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     {
         #         "timestamp":"2015-09-25T13:38:00.000Z",

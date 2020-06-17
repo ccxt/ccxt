@@ -565,7 +565,7 @@ class currencycom(Exchange):
         #
         return self.parse_tickers(response, symbols)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     [
         #         1590971040000,

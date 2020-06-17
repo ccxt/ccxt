@@ -226,8 +226,14 @@ module.exports = class wavesexchange extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'BITCOIN CASH': 'BCH',
+                'LITECOIN': 'LTC',
+                'MONERO': 'XMR',
+                'TIDEX': 'TDX',
+                'USD-N': 'USDN',
                 'WBTC': 'BTC',
                 'WETH': 'ETH',
+                'ZCASH': 'ZEC',
             },
             'options': {
                 'allowedCandles': 1440,
@@ -659,7 +665,7 @@ module.exports = class wavesexchange extends Exchange {
         return result;
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         //
         //     {
         //         __type: 'candle',
@@ -790,6 +796,7 @@ module.exports = class wavesexchange extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         this.checkRequiredDependencies ();
+        this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const market = this.market (symbol);
         const matcherPublicKey = await this.getMatcherPublicKey ();
@@ -862,6 +869,7 @@ module.exports = class wavesexchange extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         this.checkRequiredDependencies ();
+        this.checkRequiredCredentials ();
         await this.loadMarkets ();
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' symbol is required for cancelOrder');
@@ -910,6 +918,7 @@ module.exports = class wavesexchange extends Exchange {
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         this.checkRequiredDependencies ();
+        this.checkRequiredCredentials ();
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders requires symbol argument');
         }
@@ -1096,6 +1105,7 @@ module.exports = class wavesexchange extends Exchange {
         // getReservedBalance (includes WAVES)
         // I couldn't find another way to get all the data
         this.checkRequiredDependencies ();
+        this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const wavesAddress = await this.getWavesAddress ();
         const request = {

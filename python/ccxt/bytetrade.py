@@ -416,7 +416,7 @@ class bytetrade(Exchange):
         rawTickers = self.marketGetTickers(params)
         return self.parse_tickers(rawTickers, symbols)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     [
         #         1591505760000,

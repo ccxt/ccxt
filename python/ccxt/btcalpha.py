@@ -224,7 +224,7 @@ class btcalpha(Exchange):
         trades = self.publicGetExchanges(self.extend(request, params))
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='5m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     {
         #         "time":1591296000,

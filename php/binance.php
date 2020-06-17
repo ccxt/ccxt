@@ -793,7 +793,7 @@ class binance extends Exchange {
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     array(
         //         1591478520000,

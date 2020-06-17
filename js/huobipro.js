@@ -680,7 +680,7 @@ module.exports = class huobipro extends Exchange {
         return this.filterBySymbolSinceLimit (result, symbol, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         //
         //     {
         //         "amount":1.2082,

@@ -261,7 +261,7 @@ module.exports = class xbtce extends Exchange {
         return await this.privateGetTrade (params);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         return [
             this.safeInteger (ohlcv, 'Timestamp'),
             this.safeFloat (ohlcv, 'Open'),

@@ -231,7 +231,7 @@ class aofex extends Exchange {
         return $result;
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '5m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     {
         //         id =>  1584950100,

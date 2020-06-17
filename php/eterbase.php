@@ -579,7 +579,7 @@ class eterbase extends Exchange {
         return $this->parse_order_book($response, $timestamp);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     {
         //         "time":1588807500000,

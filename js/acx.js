@@ -274,7 +274,7 @@ module.exports = class acx extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         return [
             this.safeTimestamp (ohlcv, 0),
             this.safeFloat (ohlcv, 1),

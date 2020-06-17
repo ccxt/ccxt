@@ -584,7 +584,7 @@ module.exports = class bigone extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         //
         //     {
         //         close: '0.021562',

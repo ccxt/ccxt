@@ -349,7 +349,7 @@ module.exports = class rightbtc extends Exchange {
         return this.parseTrades (response['result'], market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '5m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         return [
             this.safeInteger (ohlcv, 0),
             parseFloat (ohlcv[2]) / 1e8,

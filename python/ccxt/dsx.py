@@ -541,7 +541,7 @@ class dsx(Exchange):
                 return []
         return self.parse_trades(response[market['id']], market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     {
         #         "high" : 0.01955,

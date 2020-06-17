@@ -436,7 +436,7 @@ class bytetrade extends Exchange {
         return $this->parse_tickers($rawTickers, $symbols);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     array(
         //         1591505760000,

@@ -428,7 +428,7 @@ class mercado extends Exchange {
         );
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         return array(
             $this->safe_timestamp($ohlcv, 'timestamp'),
             $this->safe_float($ohlcv, 'open'),
