@@ -19,15 +19,19 @@ module.exports = class phemex extends Exchange {
             'certified': false,
             'pro': true,
             'has': {
+                'fetchMarkets': true,
+                'fetchCurrencies': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/83165440-2f1cf200-a116-11ea-9046-a255d09fb2ed.jpg',
                 'test': {
+                    'v0': 'https://testnet-api.phemex.com',
                     'v1': 'https://testnet-api.phemex.com/v1',
                     'public': 'https://testnet-api.phemex.com/exchange/public',
                     'private': 'https://testnet-api.phemex.com',
                 },
                 'api': {
+                    'v0': 'https://api.phemex.com',
                     'v1': 'https://api.phemex.com/v1',
                     'public': 'https://api.phemex.com/exchange/public',
                     // 'public': 'https://api.phemex.com',
@@ -437,6 +441,77 @@ module.exports = class phemex extends Exchange {
                 market = this.parseSpotMarket (market);
             }
             result.push (market);
+        }
+        return result;
+    }
+
+    async fetchCurrencies (params = {}) {
+        const response = await this.publicGetCfgV2Products (params);
+        //
+        //     {
+        //         "code":0,
+        //         "msg":"OK",
+        //         "data":{
+        //             "ratioScale":8,
+        //             "currencies":[
+        //                 {"currency":"BTC","valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"name":"Bitcoin"},
+        //                 {"currency":"USD","valueScale":4,"minValueEv":1,"maxValueEv":500000000000000,"name":"USD"},
+        //                 {"currency":"USDT","valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"name":"TetherUS"},
+        //             ],
+        //             ...
+        //         }
+        //     }
+        const data = this.safeValue (response, 'data', {});
+        const currencies = this.safeValue (data, 'currencies', []);
+        const result = {};
+        for (let i = 0; i < currencies.length; i++) {
+            const currency = currencies[i];
+            const id = this.safeString (currency, 'currency');
+            const name = this.safeString (currency, 'name');
+            const code = this.safeCurrencyCode (id);
+            const valueScale = this.safeInteger (currency, 'valueScale');
+            const minValueEv = this.safeFloat (currency, 'minValueEv');
+            const maxValueEv = this.safeFloat (currency, 'maxValueEv');
+            let minAmount = undefined;
+            let maxAmount = undefined;
+            let precision = undefined;
+            if (valueScale !== undefined) {
+                precision = Math.pow (10, -valueScale);
+                precision = parseFloat (this.decimalToPrecision (precision, ROUND, 0.00000001, this.precisionMode));
+                if (minValueEv !== undefined) {
+                    minAmount = parseFloat (this.decimalToPrecision (minValueEv * precision, ROUND, 0.00000001, this.precisionMode));
+                }
+                if (maxValueEv !== undefined) {
+                    maxAmount = parseFloat (this.decimalToPrecision (maxValueEv * precision, ROUND, 0.00000001, this.precisionMode));
+                }
+            }
+            result[code] = {
+                'id': id,
+                'info': currency,
+                'code': code,
+                'name': name,
+                'active': undefined,
+                'fee': undefined,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': minAmount,
+                        'max': maxAmount,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+            };
         }
         return result;
     }
