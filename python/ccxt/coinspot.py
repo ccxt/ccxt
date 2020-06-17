@@ -10,7 +10,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import NotSupported
 
 
-class coinspot (Exchange):
+class coinspot(Exchange):
 
     def describe(self):
         return self.deep_extend(super(coinspot, self).describe(), {

@@ -20,9 +20,65 @@ from ccxt.base.decimal_to_precision import TICK_SIZE             # noqa F401
 from ccxt.base.decimal_to_precision import PAD_WITH_ZERO         # noqa F401
 from ccxt.base.decimal_to_precision import NO_PADDING            # noqa F401
 from ccxt.base.decimal_to_precision import number_to_string      # noqa F401
+from ccxt.base.exchange import Exchange                          # noqa F401
+
+
+def toWei(amount, decimals):
+    return Exchange.to_wei(amount, decimals)
+
+
+def fromWei(amount, decimals):
+    return Exchange.from_wei(amount, decimals)
+
 
 # ----------------------------------------------------------------------------
+# toWei / fromWei
 
+assert(toWei(1, 18) == '1000000000000000000')
+assert(toWei(1, 17) == '100000000000000000')
+assert(toWei(1, 16) == '10000000000000000')
+assert(toWei('1', 18) == '1000000000000000000')
+assert(toWei('1', 17) == '100000000000000000')
+assert(toWei('1', 16) == '10000000000000000')
+assert(toWei(0, 18) == '0')
+assert(toWei(1, 0) == '1')
+assert(toWei(1, 1) == '10')
+assert(toWei(1.3, 18) == '1300000000000000000')
+assert(toWei('1.3', 18) == '1300000000000000000')
+assert(toWei(1.999, 17) == '199900000000000000')
+assert(toWei('1.999', 17) == '199900000000000000')
+assert(toWei('0.1', 18) == '100000000000000000')
+assert(toWei('0.01', 18) == '10000000000000000')
+assert(toWei('0.001', 18) == '1000000000000000')
+assert(toWei(0.1, 18) == '100000000000000000')
+assert(toWei(0.01, 18) == '10000000000000000')
+assert(toWei(0.001, 18) == '1000000000000000')
+assert(toWei('0.3323340739', 18) == '332334073900000000')
+assert(toWei(0.3323340739, 18) == '332334073900000000')
+assert(toWei('0.009428', 18) == '9428000000000000')
+assert(toWei(0.009428, 18) == '9428000000000000')
+
+# us test that we get the inverse for all these test
+assert(fromWei('1000000000000000000', 18) == 1.0)
+assert(fromWei('100000000000000000', 17) == 1.0)
+assert(fromWei('10000000000000000', 16) == 1.0)
+assert(fromWei(1000000000000000000, 18) == 1.0)
+assert(fromWei(100000000000000000, 17) == 1.0)
+assert(fromWei(10000000000000000, 16) == 1.0)
+assert(fromWei('1300000000000000000', 18) == 1.3)
+assert(fromWei(1300000000000000000, 18) == 1.3)
+assert(fromWei('199900000000000000', 17) == 1.999)
+assert(fromWei(199900000000000000, 17) == 1.999)
+assert(fromWei('100000000000000000', 18) == 0.1)
+assert(fromWei('10000000000000000', 18) == 0.01)
+assert(fromWei('1000000000000000', 18) == 0.001)
+assert(fromWei(100000000000000000, 18) == 0.1)
+assert(fromWei(10000000000000000, 18) == 0.01)
+assert(fromWei(1000000000000000, 18) == 0.001)
+assert(fromWei('332334073900000000', 18) == 0.3323340739)
+assert(fromWei(332334073900000000, 18) == 0.3323340739)
+assert(fromWei('9428000000000000', 18) == 0.009428)
+assert(fromWei(9428000000000000, 18) == 0.009428)
 
 # ----------------------------------------------------------------------------
 # number_to_string
@@ -38,7 +94,8 @@ assert(number_to_string(7.9e27) == '7900000000000000000000000000')
 assert(number_to_string(-12.345) == '-12.345')
 assert(number_to_string(12.345) == '12.345')
 assert(number_to_string(0) == '0')
-# self line breaks the test
+assert(number_to_string(7.35946e21) == '7359460000000000000000')
+# the following line breaks the test
 # see https://github.com/ccxt/ccxt/issues/5744
 # assert(number_to_string(0.00000001) == '0.00000001')
 
@@ -155,6 +212,8 @@ assert(decimal_to_precision('0.098765', ROUND, 1, SIGNIFICANT_DIGITS, PAD_WITH_Z
 assert(decimal_to_precision('0', ROUND, 0, SIGNIFICANT_DIGITS) == '0')
 assert(decimal_to_precision('-0.123', ROUND, 0, SIGNIFICANT_DIGITS) == '0')
 
+assert(decimal_to_precision('0.00000044', ROUND, 5, SIGNIFICANT_DIGITS) == '0.00000044')
+
 # ----------------------------------------------------------------------------
 # testDecimalToPrecisionRoundingToTickSize
 
@@ -168,6 +227,7 @@ assert(decimal_to_precision('3210', TRUNCATE, 1110, TICK_SIZE) == '2220')
 assert(decimal_to_precision('165', ROUND, 110, TICK_SIZE) == '220')
 assert(decimal_to_precision('0.000123456789', ROUND, 0.00000012, TICK_SIZE) == '0.00012348')
 assert(decimal_to_precision('0.000123456789', TRUNCATE, 0.00000012, TICK_SIZE) == '0.00012336')
+assert(decimal_to_precision('0.000273398', ROUND, 1e-7, TICK_SIZE) == '0.0002734')
 
 assert(decimal_to_precision('0.01', ROUND, 0.0001, TICK_SIZE, PAD_WITH_ZERO) == '0.0100')
 assert(decimal_to_precision('0.01', TRUNCATE, 0.0001, TICK_SIZE, PAD_WITH_ZERO) == '0.0100')
@@ -176,6 +236,24 @@ assert(decimal_to_precision('-0.000123456789', ROUND, 0.00000012, TICK_SIZE) == 
 assert(decimal_to_precision('-0.000123456789', TRUNCATE, 0.00000012, TICK_SIZE) == '-0.00012336')
 assert(decimal_to_precision('-165', TRUNCATE, 110, TICK_SIZE) == '-110')
 assert(decimal_to_precision('-165', ROUND, 110, TICK_SIZE) == '-220')
+assert(decimal_to_precision('-1650', TRUNCATE, 1100, TICK_SIZE) == '-1100')
+assert(decimal_to_precision('-1650', ROUND, 1100, TICK_SIZE) == '-2200')
+
+assert(decimal_to_precision('0.0006', TRUNCATE, 0.0001, TICK_SIZE) == '0.0006')
+assert(decimal_to_precision('-0.0006', TRUNCATE, 0.0001, TICK_SIZE) == '-0.0006')
+assert(decimal_to_precision('0.6', TRUNCATE, 0.2, TICK_SIZE) == '0.6')
+assert(decimal_to_precision('-0.6', TRUNCATE, 0.2, TICK_SIZE) == '-0.6')
+assert(decimal_to_precision('1.2', ROUND, 0.4, TICK_SIZE) == '1.2')
+assert(decimal_to_precision('-1.2', ROUND, 0.4, TICK_SIZE) == '-1.2')
+assert(decimal_to_precision('1.2', ROUND, 0.02, TICK_SIZE) == '1.2')
+assert(decimal_to_precision('-1.2', ROUND, 0.02, TICK_SIZE) == '-1.2')
+assert(decimal_to_precision('44', ROUND, 4.4, TICK_SIZE) == '44')
+assert(decimal_to_precision('-44', ROUND, 4.4, TICK_SIZE) == '-44')
+assert(decimal_to_precision('44.00000001', ROUND, 4.4, TICK_SIZE) == '44')
+assert(decimal_to_precision('-44.00000001', ROUND, 4.4, TICK_SIZE) == '-44')
+
+# https://github.com/ccxt/ccxt/issues/6731
+assert(decimal_to_precision('20', TRUNCATE, 0.00000001, TICK_SIZE) == '20')
 
 # ----------------------------------------------------------------------------
 # testDecimalToPrecisionNegativeNumbers
@@ -221,6 +299,7 @@ assert(decimal_to_precision('-69.3', TRUNCATE, -2, DECIMAL_PLACES) == '0')
 assert(decimal_to_precision('69.3', TRUNCATE, -1, SIGNIFICANT_DIGITS) == '60')
 assert(decimal_to_precision('-69.3', TRUNCATE, -1, SIGNIFICANT_DIGITS) == '-60')
 assert(decimal_to_precision('69.3', TRUNCATE, -2, SIGNIFICANT_DIGITS) == '0')
+assert(decimal_to_precision('1602000000000000000000', TRUNCATE, 3, SIGNIFICANT_DIGITS) == '1600000000000000000000')
 
 # ----------------------------------------------------------------------------
 # testDecimalToPrecisionErrorHandling(todo)

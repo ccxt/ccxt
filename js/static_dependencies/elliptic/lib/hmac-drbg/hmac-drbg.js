@@ -2,6 +2,8 @@
 
 var CryptoJS = require('../../../crypto-js/crypto-js');
 var assert = require('../elliptic/utils').assert;
+var utils = require ('../elliptic/utils')
+var { byteArrayToWordArray } = require('../../../../base/functions/encode');
 
 // some static stuff
 const ONE = CryptoJS.enc.Utf8.parse ('\x01')
@@ -108,54 +110,5 @@ HmacDRBG.prototype.generate = function generate(len, enc, add, addEnc) {
   }
   this._update (add);
   this._reseed++;
-  return wordArrayToBuffer(res);
+  return utils.wordArrayToBuffer(res);
 };
-
-
-// actually the opposite of what I had to do in node-rsa schemes/pcks1.js, check it out bwoi
-function byteArrayToWordArray(ba) {
-  var wa = [],
-      i;
-  for (i = 0; i < ba.length; i++) {
-    wa[(i / 4) | 0] |= ba[i] << (24 - 8 * i);
-  }
-
-  return CryptoJS.lib.WordArray.create(wa, ba.length);
-}
-
-// used to convert `CryptoJS` wordArrays into `crypto` hex buffers
-function wordToByteArray(word, length) {
-  var ba = [],
-      xFF = 0xFF;
-  if (length > 0)
-    ba.push(word >>> 24);
-  if (length > 1)
-    ba.push((word >>> 16) & xFF);
-  if (length > 2)
-    ba.push((word >>> 8) & xFF);
-  if (length > 3)
-    ba.push(word & xFF);
-
-  return ba;
-}
-
-function wordArrayToBuffer(wordArray) {
-  let length = undefined;
-  if (wordArray.hasOwnProperty("sigBytes") && wordArray.hasOwnProperty("words")) {
-    length = wordArray.sigBytes;
-    wordArray = wordArray.words;
-  } else {
-    throw Error('Argument not a wordArray')
-  }
-
-  const result = []
-  let bytes = []
-  let i = 0;
-  while (length > 0) {
-    bytes = wordToByteArray(wordArray[i], Math.min(4, length));
-    length -= bytes.length;
-    result.push(bytes);
-    i++;
-  }
-  return [].concat.apply([], result)
-}

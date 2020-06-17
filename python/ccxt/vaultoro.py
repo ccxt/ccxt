@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 
 
-class vaultoro (Exchange):
+class vaultoro(Exchange):
 
     def describe(self):
         return self.deep_extend(super(vaultoro, self).describe(), {
@@ -83,6 +83,9 @@ class vaultoro (Exchange):
             'baseId': baseId,
             'quoteId': quoteId,
             'info': market,
+            'active': None,
+            'precision': self.precision,
+            'limits': self.limits,
         })
         return result
 

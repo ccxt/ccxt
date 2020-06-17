@@ -134,16 +134,16 @@ module.exports = class theocean extends Exchange {
                 'price': -parseInt (quoteToken['precision']),
             };
             const amountLimits = {
-                'min': this.fromWei (this.safeString (baseToken, 'minAmount'), 'ether', baseDecimals),
-                'max': this.fromWei (this.safeString (baseToken, 'maxAmount'), 'ether', baseDecimals),
+                'min': this.fromWei (this.safeString (baseToken, 'minAmount'), baseDecimals),
+                'max': this.fromWei (this.safeString (baseToken, 'maxAmount'), baseDecimals),
             };
             const priceLimits = {
                 'min': undefined,
                 'max': undefined,
             };
             const costLimits = {
-                'min': this.fromWei (this.safeString (quoteToken, 'minAmount'), 'ether', quoteDecimals),
-                'max': this.fromWei (this.safeString (quoteToken, 'maxAmount'), 'ether', quoteDecimals),
+                'min': this.fromWei (this.safeString (quoteToken, 'minAmount'), quoteDecimals),
+                'max': this.fromWei (this.safeString (quoteToken, 'maxAmount'), quoteDecimals),
             };
             const limits = {
                 'amount': amountLimits,
@@ -167,7 +167,20 @@ module.exports = class theocean extends Exchange {
         return result;
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '5m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //     {
+        //         "market_id":"ETH-BTC",
+        //         "open":"0.02811",
+        //         "close":"0.02811",
+        //         "low":"0.02811",
+        //         "high":"0.02811",
+        //         "base_volume":"0.0005",
+        //         "quote_volume":"0.000014055",
+        //         "start_time":"2018-11-30T18:19:00.000Z",
+        //         "end_time":"2018-11-30T18:20:00.000Z"
+        //     }
+        //
         const baseDecimals = this.safeInteger (this.options['decimals'], market['base'], 18);
         return [
             this.safeTimestamp (ohlcv, 'startTime'),
@@ -175,44 +188,43 @@ module.exports = class theocean extends Exchange {
             this.safeFloat (ohlcv, 'high'),
             this.safeFloat (ohlcv, 'low'),
             this.safeFloat (ohlcv, 'close'),
-            this.fromWei (this.safeString (ohlcv, 'baseVolume'), 'ether', baseDecimals),
+            this.fromWei (this.safeString (ohlcv, 'baseVolume'), baseDecimals),
         ];
     }
 
     async fetchOHLCV (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
+        if (since === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOHLCV requires a since argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'baseTokenAddress': market['baseId'],
             'quoteTokenAddress': market['quoteId'],
             'interval': this.timeframes[timeframe],
+            'startTime': parseInt (since),
         };
-        if (since === undefined) {
-            throw new ExchangeError (this.id + ' fetchOHLCV requires a since argument');
-        }
-        since = parseInt (since);
-        request['startTime'] = since;
         const response = await this.publicGetCandlesticks (this.extend (request, params));
         //
-        //   [
-        //     {
-        //         "high": "100.52",
-        //         "low": "97.23",
-        //         "open": "98.45",
-        //         "close": "99.23",
-        //         "baseVolume": "2400000000000000000000",
-        //         "quoteVolume": "1200000000000000000000",
-        //         "startTime": "1512929323784"
-        //     },
-        //     {
-        //         "high": "100.52",
-        //         "low": "97.23",
-        //         "open": "98.45",
-        //         "close": "99.23",
-        //         "volume": "2400000000000000000000",
-        //         "startTime": "1512929198980"
-        //     }
-        //   ]
+        //     [
+        //         {
+        //             "high": "100.52",
+        //             "low": "97.23",
+        //             "open": "98.45",
+        //             "close": "99.23",
+        //             "baseVolume": "2400000000000000000000",
+        //             "quoteVolume": "1200000000000000000000",
+        //             "startTime": "1512929323784"
+        //         },
+        //         {
+        //             "high": "100.52",
+        //             "low": "97.23",
+        //             "open": "98.45",
+        //             "close": "99.23",
+        //             "volume": "2400000000000000000000",
+        //             "startTime": "1512929198980"
+        //         }
+        //     ]
         //
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
@@ -232,9 +244,9 @@ module.exports = class theocean extends Exchange {
         //     {"available":"0","committed":"0","total":"0"}
         //
         const decimals = this.safeInteger (this.options['decimals'], code, 18);
-        const free = this.fromWei (this.safeString (response, 'available'), 'ether', decimals);
-        const used = this.fromWei (this.safeString (response, 'committed'), 'ether', decimals);
-        const total = this.fromWei (this.safeString (response, 'total'), 'ether', decimals);
+        const free = this.fromWei (this.safeString (response, 'available'), decimals);
+        const used = this.fromWei (this.safeString (response, 'committed'), decimals);
+        const total = this.fromWei (this.safeString (response, 'total'), decimals);
         return {
             'free': free,
             'used': used,
@@ -345,7 +357,7 @@ module.exports = class theocean extends Exchange {
             base = market['base'];
         }
         const baseDecimals = this.safeInteger (this.options['decimals'], base, 18);
-        const baseVolume = this.fromWei (this.safeString (ticker, 'volume'), 'ether', baseDecimals);
+        const baseVolume = this.fromWei (this.safeString (ticker, 'volume'), baseDecimals);
         const last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
@@ -452,7 +464,7 @@ module.exports = class theocean extends Exchange {
             base = market['base'];
         }
         const baseDecimals = this.safeInteger (this.options['decimals'], base, 18);
-        const amount = this.fromWei (this.safeString (trade, 'amount'), 'ether', baseDecimals);
+        const amount = this.fromWei (this.safeString (trade, 'amount'), baseDecimals);
         let cost = undefined;
         if (amount !== undefined && price !== undefined) {
             cost = amount * price;
@@ -537,7 +549,7 @@ module.exports = class theocean extends Exchange {
             'baseTokenAddress': market['baseId'], // Base token address
             'quoteTokenAddress': market['quoteId'], // Quote token address
             'side': side, // "buy" or "sell"
-            'amount': this.toWei (this.amountToPrecision (symbol, amount), 'ether', baseDecimals), // Base token amount in wei
+            'amount': this.toWei (this.amountToPrecision (symbol, amount), baseDecimals), // Base token amount in wei
         };
         let method = undefined;
         if (type === 'limit') {
@@ -623,13 +635,13 @@ module.exports = class theocean extends Exchange {
         }
         const baseDecimals = this.safeInteger (this.options['decimals'], base, 18);
         const price = this.safeFloat (order, 'price');
-        const filledAmount = this.fromWei (this.safeString (order, 'filledAmount'), 'ether', baseDecimals);
-        const settledAmount = this.fromWei (this.safeString (order, 'settledAmount'), 'ether', baseDecimals);
-        const confirmedAmount = this.fromWei (this.safeString (order, 'confirmedAmount'), 'ether', baseDecimals);
-        const failedAmount = this.fromWei (this.safeString (order, 'failedAmount'), 'ether', baseDecimals);
-        const deadAmount = this.fromWei (this.safeString (order, 'deadAmount'), 'ether', baseDecimals);
-        const prunedAmount = this.fromWei (this.safeString (order, 'prunedAmount'), 'ether', baseDecimals);
-        const amount = this.fromWei (this.safeString (order, 'initialAmount'), 'ether', baseDecimals);
+        const filledAmount = this.fromWei (this.safeString (order, 'filledAmount'), baseDecimals);
+        const settledAmount = this.fromWei (this.safeString (order, 'settledAmount'), baseDecimals);
+        const confirmedAmount = this.fromWei (this.safeString (order, 'confirmedAmount'), baseDecimals);
+        const failedAmount = this.fromWei (this.safeString (order, 'failedAmount'), baseDecimals);
+        const deadAmount = this.fromWei (this.safeString (order, 'deadAmount'), baseDecimals);
+        const prunedAmount = this.fromWei (this.safeString (order, 'prunedAmount'), baseDecimals);
+        const amount = this.fromWei (this.safeString (order, 'initialAmount'), baseDecimals);
         const filled = this.sum (filledAmount, settledAmount, confirmedAmount);
         let remaining = undefined;
         let lastTradeTimestamp = undefined;
@@ -689,7 +701,7 @@ module.exports = class theocean extends Exchange {
             }
             const feeDecimals = this.safeInteger (this.options['decimals'], feeCurrency, 18);
             fee = {
-                'cost': this.fromWei (feeCost, 'ether', feeDecimals),
+                'cost': this.fromWei (feeCost, feeDecimals),
                 'currency': feeCurrency,
             };
         }
@@ -706,6 +718,7 @@ module.exports = class theocean extends Exchange {
         const result = {
             'info': order,
             'id': id,
+            'clientOrderId': undefined,
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -720,6 +733,7 @@ module.exports = class theocean extends Exchange {
             'status': status,
             'fee': fee,
             'trades': trades,
+            'average': undefined,
         };
         return result;
     }
@@ -891,30 +905,21 @@ module.exports = class theocean extends Exchange {
         if (body === "'Authentication failed'") {
             throw new AuthenticationError (this.id + ' ' + body);
         }
-        if ((body[0] === '{') || (body[0] === '[')) {
-            const message = this.safeString (response, 'message');
-            if (message !== undefined) {
-                //
-                // {"message":"Schema validation failed for 'query'","errors":[{"name":"required","argument":"startTime","message":"requires property \"startTime\"","instance":{"baseTokenAddress":"0x6ff6c0ff1d68b964901f986d4c9fa3ac68346570","quoteTokenAddress":"0xd0a1e359811322d97991e03f863a0c30c2cf029c","interval":"300"},"property":"instance"}]}
-                // {"message":"Logic validation failed for 'query'","errors":[{"message":"startTime should be between 0 and current date","type":"startTime"}]}
-                // {"message":"Order not found","errors":[]}
-                // {"message":"Orderbook exhausted for intent MARKET_INTENT:8yjjzd8b0e8yjjzd8b0fjjzd8b0g"}
-                // {"message":"Intent validation failed.","errors":[{"message":"Greater than available wallet balance.","type":"walletBaseTokenAmount"}]}
-                // {"message":"Schema validation failed for 'body'","errors":[{"name":"anyOf","argument":["[subschema 0]","[subschema 1]","[subschema 2]"],"message":"is not any of [subschema 0],[subschema 1],[subschema 2]","instance":{"signedTargetOrder":{"error":{"message":"Unsigned target order validation failed.","errors":[{"message":"Greater than available wallet balance.","type":"walletBaseTokenAmount"}]},"maker":"0x1709c02cd7327d391a39a7671af8a91a1ef8a47b","orderHash":"0xda007ea8b5eca71ac96fe4072f7c1209bb151d898a9cc89bbeaa594f0491ee49","ecSignature":{"v":27,"r":"0xb23ce6c4a7b5d51d77e2d00f6d1d472a3b2e72d5b2be1510cfeb122f9366b79e","s":"0x07d274e6d7a00b65fc3026c2f9019215b1e47a5ac4d1f05e03f90550d27109be"}}},"property":"instance"}]}
-                // {"message":"Schema validation failed for 'params'","errors":[{"name":"pattern","argument":"^0x[0-9a-fA-F]{64}$","message":"does not match pattern \"^0x[0-9a-fA-F]{64}$\"","instance":"1","property":"instance.orderHash"}]}
-                //
-                const feedback = this.id + ' ' + this.json (response);
-                const exact = this.exceptions['exact'];
-                if (message in exact) {
-                    throw new exact[message] (feedback);
-                }
-                const broad = this.exceptions['broad'];
-                const broadKey = this.findBroadlyMatchedKey (broad, body);
-                if (broadKey !== undefined) {
-                    throw new broad[broadKey] (feedback);
-                }
-                throw new ExchangeError (feedback); // unknown message
-            }
+        const message = this.safeString (response, 'message');
+        if (message !== undefined) {
+            //
+            // {"message":"Schema validation failed for 'query'","errors":[{"name":"required","argument":"startTime","message":"requires property \"startTime\"","instance":{"baseTokenAddress":"0x6ff6c0ff1d68b964901f986d4c9fa3ac68346570","quoteTokenAddress":"0xd0a1e359811322d97991e03f863a0c30c2cf029c","interval":"300"},"property":"instance"}]}
+            // {"message":"Logic validation failed for 'query'","errors":[{"message":"startTime should be between 0 and current date","type":"startTime"}]}
+            // {"message":"Order not found","errors":[]}
+            // {"message":"Orderbook exhausted for intent MARKET_INTENT:8yjjzd8b0e8yjjzd8b0fjjzd8b0g"}
+            // {"message":"Intent validation failed.","errors":[{"message":"Greater than available wallet balance.","type":"walletBaseTokenAmount"}]}
+            // {"message":"Schema validation failed for 'body'","errors":[{"name":"anyOf","argument":["[subschema 0]","[subschema 1]","[subschema 2]"],"message":"is not any of [subschema 0],[subschema 1],[subschema 2]","instance":{"signedTargetOrder":{"error":{"message":"Unsigned target order validation failed.","errors":[{"message":"Greater than available wallet balance.","type":"walletBaseTokenAmount"}]},"maker":"0x1709c02cd7327d391a39a7671af8a91a1ef8a47b","orderHash":"0xda007ea8b5eca71ac96fe4072f7c1209bb151d898a9cc89bbeaa594f0491ee49","ecSignature":{"v":27,"r":"0xb23ce6c4a7b5d51d77e2d00f6d1d472a3b2e72d5b2be1510cfeb122f9366b79e","s":"0x07d274e6d7a00b65fc3026c2f9019215b1e47a5ac4d1f05e03f90550d27109be"}}},"property":"instance"}]}
+            // {"message":"Schema validation failed for 'params'","errors":[{"name":"pattern","argument":"^0x[0-9a-fA-F]{64}$","message":"does not match pattern \"^0x[0-9a-fA-F]{64}$\"","instance":"1","property":"instance.orderHash"}]}
+            //
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
+            throw new ExchangeError (feedback); // unknown message
         }
     }
 };

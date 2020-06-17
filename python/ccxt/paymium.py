@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 
 
-class paymium (Exchange):
+class paymium(Exchange):
 
     def describe(self):
         return self.deep_extend(super(paymium, self).describe(), {
@@ -18,46 +18,57 @@ class paymium (Exchange):
             'version': 'v1',
             'has': {
                 'CORS': True,
+                'fetchBalance': True,
+                'fetchTicker': True,
+                'fetchTrades': True,
+                'fetchOrderBook': True,
+                'createOrder': True,
+                'cancelOrder': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27790564-a945a9d4-5ff9-11e7-9d2d-b635763f2f24.jpg',
                 'api': 'https://paymium.com/api',
                 'www': 'https://www.paymium.com',
+                'fees': 'https://www.paymium.com/page/help/fees',
                 'doc': [
                     'https://github.com/Paymium/api-documentation',
                     'https://www.paymium.com/page/developers',
                 ],
+                'referral': 'https://www.paymium.com/page/sign-up?referral=eDAzPoRQFMvaAB8sf-qj',
             },
             'api': {
                 'public': {
                     'get': [
                         'countries',
-                        'data/{id}/ticker',
-                        'data/{id}/trades',
-                        'data/{id}/depth',
+                        'data/{currency}/ticker',
+                        'data/{currency}/trades',
+                        'data/{currency}/depth',
                         'bitcoin_charts/{id}/trades',
                         'bitcoin_charts/{id}/depth',
                     ],
                 },
                 'private': {
                     'get': [
-                        'merchant/get_payment/{UUID}',
                         'user',
                         'user/addresses',
-                        'user/addresses/{btc_address}',
+                        'user/addresses/{address}',
                         'user/orders',
-                        'user/orders/{UUID}',
+                        'user/orders/{uuid}',
                         'user/price_alerts',
+                        'merchant/get_payment/{uuid}',
                     ],
                     'post': [
-                        'user/orders',
                         'user/addresses',
+                        'user/orders',
+                        'user/withdrawals',
+                        'user/email_transfers',
                         'user/payment_requests',
                         'user/price_alerts',
                         'merchant/create_payment',
                     ],
                     'delete': [
-                        'user/orders/{UUID}/cancel',
+                        'user/orders/{uuid}',
+                        'user/orders/{uuid}/cancel',
                         'user/price_alerts/{id}',
                     ],
                 },
@@ -67,8 +78,8 @@ class paymium (Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': 0.0059,
-                    'taker': 0.0059,
+                    'maker': 0.002,
+                    'taker': 0.002,
                 },
             },
         })
@@ -80,7 +91,7 @@ class paymium (Exchange):
         currencies = list(self.currencies.keys())
         for i in range(0, len(currencies)):
             code = currencies[i]
-            currencyId = self.currencyId(code)
+            currencyId = self.currency_id(code)
             free = 'balance_' + currencyId
             if free in response:
                 account = self.account()
@@ -93,16 +104,17 @@ class paymium (Exchange):
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         request = {
-            'id': self.market_id(symbol),
+            'currency': self.market_id(symbol),
         }
-        response = self.publicGetDataIdDepth(self.extend(request, params))
+        response = self.publicGetDataCurrencyDepth(self.extend(request, params))
         return self.parse_order_book(response, None, 'bids', 'asks', 'price', 'amount')
 
     def fetch_ticker(self, symbol, params={}):
+        self.load_markets()
         request = {
-            'id': self.market_id(symbol),
+            'currency': self.market_id(symbol),
         }
-        ticker = self.publicGetDataIdTicker(self.extend(request, params))
+        ticker = self.publicGetDataCurrencyTicker(self.extend(request, params))
         timestamp = self.safe_timestamp(ticker, 'at')
         vwap = self.safe_float(ticker, 'vwap')
         baseVolume = self.safe_float(ticker, 'volume')
@@ -167,9 +179,9 @@ class paymium (Exchange):
         self.load_markets()
         market = self.market(symbol)
         request = {
-            'id': market['id'],
+            'currency': market['id'],
         }
-        response = self.publicGetDataIdTrades(self.extend(request, params))
+        response = self.publicGetDataCurrencyTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -190,9 +202,9 @@ class paymium (Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         request = {
-            'UUID': id,
+            'uuid': id,
         }
-        return self.privateDeleteUserOrdersUUIDCancel(self.extend(request, params))
+        return self.privateDeleteUserOrdersUuidCancel(self.extend(request, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
@@ -204,16 +216,21 @@ class paymium (Exchange):
             self.check_required_credentials()
             nonce = str(self.nonce())
             auth = nonce + url
+            headers = {
+                'Api-Key': self.apiKey,
+                'Api-Nonce': nonce,
+            }
             if method == 'POST':
                 if query:
                     body = self.json(query)
                     auth += body
-            headers = {
-                'Api-Key': self.apiKey,
-                'Api-Signature': self.hmac(self.encode(auth), self.encode(self.secret)),
-                'Api-Nonce': nonce,
-                'Content-Type': 'application/json',
-            }
+                    headers['Content-Type'] = 'application/json'
+            else:
+                if query:
+                    queryString = self.urlencode(query)
+                    auth += queryString
+                    url += '?' + queryString
+            headers['Api-Signature'] = self.hmac(self.encode(auth), self.encode(self.secret))
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):

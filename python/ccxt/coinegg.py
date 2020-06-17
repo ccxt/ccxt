@@ -14,7 +14,7 @@ from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import InvalidNonce
 
 
-class coinegg (Exchange):
+class coinegg(Exchange):
 
     def describe(self):
         return self.deep_extend(super(coinegg, self).describe(), {
@@ -312,7 +312,7 @@ class coinegg (Exchange):
             key = keys[i]
             currencyId, accountType = key.split('_')
             code = self.safe_currency_code(currencyId)
-            if not(code in list(result.keys())):
+            if not (code in result):
                 result[code] = self.account()
             type = 'used' if (accountType == 'lock') else 'free'
             result[code][type] = self.safe_float(balances, key)
@@ -341,6 +341,7 @@ class coinegg (Exchange):
         id = self.safe_string(order, 'id')
         return {
             'id': id,
+            'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
@@ -356,6 +357,7 @@ class coinegg (Exchange):
             'trades': None,
             'fee': None,
             'info': info,
+            'average': None,
         }
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -469,7 +471,6 @@ class coinegg (Exchange):
         errorCode = self.safe_string(response, 'code')
         errorMessages = self.errorMessages
         message = self.safe_string(errorMessages, errorCode, 'Unknown Error')
-        if errorCode in self.exceptions:
-            raise self.exceptions[errorCode](self.id + ' ' + message)
-        else:
-            raise ExchangeError(self.id + ' ' + message)
+        feedback = self.id + ' ' + message
+        self.throw_exactly_matched_exception(self.exceptions, errorCode, feedback)
+        raise ExchangeError(self.id + ' ' + message)

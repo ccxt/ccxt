@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { NotSupported } = require ('./base/errors');
+const { InsufficientFunds, ExchangeError, InvalidNonce, InvalidOrder, ArgumentsRequired } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -59,7 +59,12 @@ module.exports = class coinfloor extends Exchange {
             'markets': {
                 'BTC/GBP': { 'id': 'XBT/GBP', 'symbol': 'BTC/GBP', 'base': 'BTC', 'quote': 'GBP', 'baseId': 'XBT', 'quoteId': 'GBP', 'precision': { 'price': 0, 'amount': 4 }},
                 'BTC/EUR': { 'id': 'XBT/EUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'XBT', 'quoteId': 'EUR', 'precision': { 'price': 0, 'amount': 4 }},
-                'ETH/GBP': { 'id': 'ETH/GBP', 'symbol': 'ETH/GBP', 'base': 'ETH', 'quote': 'GBP', 'baseId': 'ETH', 'quoteId': 'GBP', 'precision': { 'price': 0, 'amount': 4 }},
+            },
+            'exceptions': {
+                'exact': {
+                    'You have insufficient funds.': InsufficientFunds,
+                    'Tonce is out of sequence.': InvalidNonce,
+                },
             },
         });
     }
@@ -67,33 +72,40 @@ module.exports = class coinfloor extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let market = undefined;
-        if ('symbol' in params) {
-            market = this.findMarket (params['symbol']);
+        let query = params;
+        const symbol = this.safeString (params, 'symbol');
+        if (symbol !== undefined) {
+            market = this.market (params['symbol']);
+            query = this.omit (params, 'symbol');
         }
-        if ('id' in params) {
-            market = this.findMarket (params['id']);
+        const marketId = this.safeString (params, 'id');
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
         }
-        if (!market) {
-            throw new NotSupported (this.id + ' fetchBalance requires a symbol param');
+        if (market === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchBalance requires a symbol param');
         }
         const request = {
             'id': market['id'],
         };
-        const response = await this.privatePostIdBalance (this.extend (request, params));
+        const response = await this.privatePostIdBalance (this.extend (request, query));
         const result = {
             'info': response,
         };
         // base/quote used for keys e.g. "xbt_reserved"
-        const keys = market['id'].toLowerCase ().split ('/');
-        result[market['base']] = {
-            'free': this.safeFloat (response, keys[0] + '_available'),
-            'used': this.safeFloat (response, keys[0] + '_reserved'),
-            'total': this.safeFloat (response, keys[0] + '_balance'),
+        const base = market['base'];
+        const quote = market['quote'];
+        const baseIdLower = this.safeStringLower (market, 'baseId');
+        const quoteIdLower = this.safeStringLower (market, 'quoteId');
+        result[base] = {
+            'free': this.safeFloat (response, baseIdLower + '_available'),
+            'used': this.safeFloat (response, baseIdLower + '_reserved'),
+            'total': this.safeFloat (response, baseIdLower + '_balance'),
         };
-        result[market['quote']] = {
-            'free': this.safeFloat (response, keys[1] + '_available'),
-            'used': this.safeFloat (response, keys[1] + '_reserved'),
-            'total': this.safeFloat (response, keys[1] + '_balance'),
+        result[quote] = {
+            'free': this.safeFloat (response, quoteIdLower + '_available'),
+            'used': this.safeFloat (response, quoteIdLower + '_reserved'),
+            'total': this.safeFloat (response, quoteIdLower + '_balance'),
         };
         return this.parseBalance (result);
     }
@@ -201,10 +213,10 @@ module.exports = class coinfloor extends Exchange {
         // code is actually a market symbol in this situation, not a currency code
         await this.loadMarkets ();
         let market = undefined;
-        if (code) {
-            market = this.findMarket (code);
-            if (!market) {
-                throw new NotSupported (this.id + ' fetchTransactions requires a code argument (a market symbol)');
+        if (code !== undefined) {
+            market = this.market (code);
+            if (market === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchTransactions requires a code argument (a market symbol)');
             }
         }
         const request = {
@@ -331,8 +343,8 @@ module.exports = class coinfloor extends Exchange {
                 };
             }
             return [
-                this.extend (result, { 'currency': base, 'amount': Math.abs (baseAmount), 'direction': baseAmount > 0 ? 'in' : 'out' }),
-                this.extend (result, { 'currency': quote, 'amount': Math.abs (quoteAmount), 'direction': quoteAmount > 0 ? 'in' : 'out', 'fee': fee }),
+                this.extend (result, { 'currency': base, 'amount': Math.abs (baseAmount), 'direction': (baseAmount > 0) ? 'in' : 'out' }),
+                this.extend (result, { 'currency': quote, 'amount': Math.abs (quoteAmount), 'direction': (quoteAmount > 0) ? 'in' : 'out', 'fee': fee }),
             ];
             //
             // if fee is base or quote depending on buy/sell side
@@ -340,15 +352,15 @@ module.exports = class coinfloor extends Exchange {
             //     const baseFee = (baseAmount > 0) ? { 'currency': base, 'cost': feeCost } : undefined;
             //     const quoteFee = (quoteAmount > 0) ? { 'currency': quote, 'cost': feeCost } : undefined;
             //     return [
-            //         this.extend (result, { 'currency': base, 'amount': baseAmount, 'direction': baseAmount > 0 ? 'in' : 'out', 'fee': baseFee }),
-            //         this.extend (result, { 'currency': quote, 'amount': quoteAmount, 'direction': quoteAmount > 0 ? 'in' : 'out', 'fee': quoteFee }),
+            //         this.extend (result, { 'currency': base, 'amount': baseAmount, 'direction': (baseAmount > 0) ? 'in' : 'out', 'fee': baseFee }),
+            //         this.extend (result, { 'currency': quote, 'amount': quoteAmount, 'direction': (quoteAmount > 0) ? 'in' : 'out', 'fee': quoteFee }),
             //     ];
             //
             // fee as the 3rd item
             //
             //     return [
-            //         this.extend (result, { 'currency': base, 'amount': baseAmount, 'direction': baseAmount > 0 ? 'in' : 'out' }),
-            //         this.extend (result, { 'currency': quote, 'amount': quoteAmount, 'direction': quoteAmount > 0 ? 'in' : 'out' }),
+            //         this.extend (result, { 'currency': base, 'amount': baseAmount, 'direction': (baseAmount > 0) ? 'in' : 'out' }),
+            //         this.extend (result, { 'currency': quote, 'amount': quoteAmount, 'direction': (quoteAmount > 0) ? 'in' : 'out' }),
             //         this.extend (result, { 'currency': feeCurrency, 'amount': feeCost, 'direction': 'out', 'type': 'fee' }),
             //     ];
             //
@@ -356,8 +368,8 @@ module.exports = class coinfloor extends Exchange {
             //
             // it's a regular transaction (deposit or withdrawal)
             //
-            const amount = baseAmount === 0 ? quoteAmount : baseAmount;
-            const code = baseAmount === 0 ? quote : base;
+            const amount = (baseAmount === 0) ? quoteAmount : baseAmount;
+            const code = (baseAmount === 0) ? quote : base;
             const direction = (amount > 0) ? 'in' : 'out';
             if (feeCost !== undefined) {
                 fee = {
@@ -387,12 +399,32 @@ module.exports = class coinfloor extends Exchange {
             request['price'] = price;
             request['amount'] = amount;
         }
-        return await this[method] (this.extend (request, params));
+        //
+        //     {
+        //         "id":31950584,
+        //         "datetime":"2020-05-21 08:38:18",
+        //         "type":1,
+        //         "price":"9100",
+        //         "amount":"0.0026"
+        //     }
+        //
+        const response = await this[method] (this.extend (request, params));
+        const timestamp = this.parse8601 (this.safeString (response, 'datetime'));
+        return {
+            'id': this.safeString (response, 'id'),
+            'clientOrderId': undefined,
+            'datetime': this.iso8601 (timestamp),
+            'timestamp': timestamp,
+            'type': type,
+            'price': this.safeFloat (response, 'price'),
+            'remaining': this.safeFloat (response, 'amount'),
+            'info': response,
+        };
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new NotSupported (this.id + ' cancelOrder requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -400,7 +432,12 @@ module.exports = class coinfloor extends Exchange {
             'symbol': market['id'],
             'id': id,
         };
-        return await this.privatePostSymbolCancelOrder (request);
+        const response = await this.privatePostSymbolCancelOrder (request);
+        if (response === 'false') {
+            // unfortunately the exchange does not give much info in the response
+            throw new InvalidOrder (this.id + ' cancel was rejected');
+        }
+        return response;
     }
 
     parseOrder (order, market = undefined) {
@@ -428,6 +465,7 @@ module.exports = class coinfloor extends Exchange {
         return {
             'info': order,
             'id': id,
+            'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
@@ -436,17 +474,19 @@ module.exports = class coinfloor extends Exchange {
             'type': 'limit',
             'side': side,
             'price': price,
-            'amount': amount,
+            'amount': undefined,
             'filled': undefined,
-            'remaining': undefined,
+            'remaining': amount,
             'cost': cost,
             'fee': undefined,
+            'average': undefined,
+            'trades': undefined,
         };
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new NotSupported (this.id + ' fetchOpenOrders requires a symbol param');
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a symbol param');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -462,6 +502,19 @@ module.exports = class coinfloor extends Exchange {
         //     "type": 0
         //   }
         return this.parseOrders (response, market, since, limit, { 'status': 'open' });
+    }
+
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (code < 400) {
+            return;
+        }
+        if (response === undefined) {
+            return;
+        }
+        const message = this.safeString (response, 'error_msg');
+        const feedback = this.id + ' ' + body;
+        this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+        throw new ExchangeError (feedback);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

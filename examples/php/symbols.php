@@ -53,7 +53,7 @@ if (count ($argv) > 1) {
 
     if ($exchange_found) {
 
-        dump ('Instantiating', green ($id), 'exchange exchange');
+        dump ('Instantiating', green ($id), 'exchange');
 
         // instantiate the exchange by id
         $exchange = '\\ccxt\\' . $id;

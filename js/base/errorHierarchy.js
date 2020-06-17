@@ -29,8 +29,12 @@ const errorHierarchy = {
             'NotSupported': {},
         },
         'NetworkError': {
-            'DDoSProtection': {},
-            'ExchangeNotAvailable': {},
+            'DDoSProtection': {
+                'RateLimitExceeded': {},
+            },
+            'ExchangeNotAvailable': {
+                'OnMaintenance': {},
+            },
             'InvalidNonce': {},
             'RequestTimeout': {},
         },

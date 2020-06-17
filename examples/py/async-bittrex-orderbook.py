@@ -13,10 +13,9 @@ sys.path.append(root + '/python')
 
 import ccxt.async_support as ccxt  # noqa: E402
 
-exchange = ccxt.bittrex()
-
 
 async def poll():
+    exchange = ccxt.bittrex()
     while True:
         yield await exchange.fetch_order_book('BTC/USDT')
         await asyncio.sleep(exchange.rateLimit / 1000)

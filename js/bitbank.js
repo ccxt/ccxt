@@ -87,7 +87,7 @@ module.exports = class bitbank extends Exchange {
                 },
                 'funding': {
                     'withdraw': {
-                        // 'JPY': amount => amount > 30000 ? 756 : 540,
+                        // 'JPY': (amount > 30000) ? 756 : 540,
                         'BTC': 0.001,
                         'LTC': 0.001,
                         'XRP': 0.15,
@@ -229,14 +229,24 @@ module.exports = class bitbank extends Exchange {
         return this.parseTrades (response['data']['transactions'], market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '5m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //     [
+        //         "0.02501786",
+        //         "0.02501786",
+        //         "0.02501786",
+        //         "0.02501786",
+        //         "0.0000",
+        //         1591488000000
+        //     ]
+        //
         return [
-            ohlcv[5],
-            parseFloat (ohlcv[0]),
-            parseFloat (ohlcv[1]),
-            parseFloat (ohlcv[2]),
-            parseFloat (ohlcv[3]),
-            parseFloat (ohlcv[4]),
+            this.safeInteger (ohlcv, 5),
+            this.safeFloat (ohlcv, 0),
+            this.safeFloat (ohlcv, 1),
+            this.safeFloat (ohlcv, 2),
+            this.safeFloat (ohlcv, 3),
+            this.safeFloat (ohlcv, 4),
         ];
     }
 
@@ -252,7 +262,28 @@ module.exports = class bitbank extends Exchange {
             'yyyymmdd': date.join (''),
         };
         const response = await this.publicGetPairCandlestickCandletypeYyyymmdd (this.extend (request, params));
-        const ohlcv = this.safeValue (response['data']['candlestick'][0], 'ohlcv');
+        //
+        //     {
+        //         "success":1,
+        //         "data":{
+        //             "candlestick":[
+        //                 {
+        //                     "type":"5min",
+        //                     "ohlcv":[
+        //                         ["0.02501786","0.02501786","0.02501786","0.02501786","0.0000",1591488000000],
+        //                         ["0.02501747","0.02501953","0.02501747","0.02501953","0.3017",1591488300000],
+        //                         ["0.02501762","0.02501762","0.02500392","0.02500392","0.1500",1591488600000],
+        //                     ]
+        //                 }
+        //             ],
+        //             "timestamp":1591508668190
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const candlestick = this.safeValue (data, 'candlestick', []);
+        const first = this.safeValue (candlestick, 0, {});
+        const ohlcv = this.safeValue (first, 'ohlcv', []);
         return this.parseOHLCVs (ohlcv, market, timeframe, since, limit);
     }
 
@@ -313,6 +344,7 @@ module.exports = class bitbank extends Exchange {
         const side = this.safeStringLower (order, 'side');
         return {
             'id': id,
+            'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,

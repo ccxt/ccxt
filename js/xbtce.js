@@ -129,6 +129,9 @@ module.exports = class xbtce extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
+                'active': undefined,
+                'precision': this.precision,
+                'limits': this.limits,
             });
         }
         return result;
@@ -258,14 +261,14 @@ module.exports = class xbtce extends Exchange {
         return await this.privateGetTrade (params);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         return [
-            ohlcv['Timestamp'],
-            ohlcv['Open'],
-            ohlcv['High'],
-            ohlcv['Low'],
-            ohlcv['Close'],
-            ohlcv['Volume'],
+            this.safeInteger (ohlcv, 'Timestamp'),
+            this.safeFloat (ohlcv, 'Open'),
+            this.safeFloat (ohlcv, 'High'),
+            this.safeFloat (ohlcv, 'Low'),
+            this.safeFloat (ohlcv, 'Close'),
+            this.safeFloat (ohlcv, 'Volume'),
         ];
     }
 

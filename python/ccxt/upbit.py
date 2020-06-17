@@ -10,11 +10,12 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import AddressPending
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 
 
-class upbit (Exchange):
+class upbit(Exchange):
 
     def describe(self):
         return self.deep_extend(super(upbit, self).describe(), {
@@ -24,6 +25,7 @@ class upbit (Exchange):
             'version': 'v1',
             'rateLimit': 1000,
             'certified': True,
+            'pro': True,
             # new metainfo interface
             'has': {
                 'CORS': True,
@@ -55,9 +57,13 @@ class upbit (Exchange):
                 '1w': 'weeks',
                 '1M': 'months',
             },
+            'hostname': 'api.upbit.com',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/49245610-eeaabe00-f423-11e8-9cba-4b0aed794799.jpg',
-                'api': 'https://api.upbit.com',
+                'api': {
+                    'public': 'https://{hostname}',
+                    'private': 'https://{hostname}',
+                },
                 'www': 'https://upbit.com',
                 'doc': 'https://docs.upbit.com/docs/%EC%9A%94%EC%B2%AD-%EC%88%98-%EC%A0%9C%ED%95%9C',
                 'fees': 'https://upbit.com/service_center/guide',
@@ -125,7 +131,8 @@ class upbit (Exchange):
             },
             'exceptions': {
                 'exact': {
-                    'Missing request parameter error. Check the required parametersnot ': BadRequest,
+                    'This key has expired.': AuthenticationError,
+                    'Missing request parameter error. Check the required parameters!': BadRequest,
                     'side is missing, side does not have a valid value': InvalidOrder,
                 },
                 'broad': {
@@ -149,9 +156,6 @@ class upbit (Exchange):
                 'tradingFeesByQuoteCurrency': {
                     'KRW': 0.0005,
                 },
-            },
-            'commonCurrencies': {
-                'CPT': 'Contents Protocol',  # conflict with CPT(Cryptaur) https://github.com/ccxt/ccxt/issues/4920
             },
         })
 
@@ -437,7 +441,7 @@ class upbit (Exchange):
         quote = self.safe_currency_code(quoteId)
         return base + '/' + quote
 
-    def fetch_order_books(self, symbols=None, params={}):
+    def fetch_order_books(self, symbols=None, limit=None, params={}):
         self.load_markets()
         ids = None
         if symbols is None:
@@ -496,7 +500,7 @@ class upbit (Exchange):
         return result
 
     def fetch_order_book(self, symbol, limit=None, params={}):
-        orderbooks = self.fetch_order_books([symbol], params)
+        orderbooks = self.fetch_order_books([symbol], limit, params)
         return self.safe_value(orderbooks, symbol)
 
     def parse_ticker(self, ticker, market=None):
@@ -529,7 +533,7 @@ class upbit (Exchange):
         #                     timestamp:  1542883543813  }
         #
         timestamp = self.safe_integer(ticker, 'trade_timestamp')
-        symbol = self.get_symbol_from_market_id(self.safe_string(ticker, 'market'), market)
+        symbol = self.get_symbol_from_market_id(self.safe_string_2(ticker, 'market', 'code'), market)
         previous = self.safe_float(ticker, 'prev_closing_price')
         last = self.safe_float(ticker, 'trade_price')
         change = self.safe_float(ticker, 'signed_change_price')
@@ -659,8 +663,8 @@ class upbit (Exchange):
             if amount is not None:
                 if price is not None:
                     cost = price * amount
-        marketId = self.safe_string(trade, 'market')
-        market = self.safe_value(self.markets_by_id, marketId)
+        marketId = self.safe_string_2(trade, 'market', 'code')
+        market = self.safe_value(self.markets_by_id, marketId, market)
         fee = None
         feeCurrency = None
         symbol = None
@@ -729,19 +733,21 @@ class upbit (Exchange):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1d', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
-        #       {                 market: "BTC-ETH",
-        #            candle_date_time_utc: "2018-11-22T13:47:00",
-        #            candle_date_time_kst: "2018-11-22T22:47:00",
-        #                   opening_price:  0.02915963,
-        #                      high_price:  0.02915963,
-        #                       low_price:  0.02915448,
-        #                     trade_price:  0.02915448,
-        #                       timestamp:  1542894473674,
-        #          candle_acc_trade_price:  0.0981629437535248,
-        #         candle_acc_trade_volume:  3.36693173,
-        #                            unit:  1                     },
+        #     {
+        #         market: "BTC-ETH",
+        #         candle_date_time_utc: "2018-11-22T13:47:00",
+        #         candle_date_time_kst: "2018-11-22T22:47:00",
+        #         opening_price: 0.02915963,
+        #         high_price: 0.02915963,
+        #         low_price: 0.02915448,
+        #         trade_price: 0.02915448,
+        #         timestamp: 1542894473674,
+        #         candle_acc_trade_price: 0.0981629437535248,
+        #         candle_acc_trade_volume: 3.36693173,
+        #         unit: 1
+        #     }
         #
         return [
             self.parse8601(self.safe_string(ohlcv, 'candle_date_time_utc')),
@@ -774,28 +780,34 @@ class upbit (Exchange):
             request['to'] = self.iso8601(self.sum(since, timeframePeriod * limit * 1000))
         response = getattr(self, method)(self.extend(request, params))
         #
-        #     [{                 market: "BTC-ETH",
-        #            candle_date_time_utc: "2018-11-22T13:47:00",
-        #            candle_date_time_kst: "2018-11-22T22:47:00",
-        #                   opening_price:  0.02915963,
-        #                      high_price:  0.02915963,
-        #                       low_price:  0.02915448,
-        #                     trade_price:  0.02915448,
-        #                       timestamp:  1542894473674,
-        #          candle_acc_trade_price:  0.0981629437535248,
-        #         candle_acc_trade_volume:  3.36693173,
-        #                            unit:  1                     },
-        #       {                 market: "BTC-ETH",
-        #            candle_date_time_utc: "2018-11-22T10:06:00",
-        #            candle_date_time_kst: "2018-11-22T19:06:00",
-        #                   opening_price:  0.0294,
-        #                      high_price:  0.02940882,
-        #                       low_price:  0.02934283,
-        #                     trade_price:  0.02937354,
-        #                       timestamp:  1542881219276,
-        #          candle_acc_trade_price:  0.0762597110943884,
-        #         candle_acc_trade_volume:  2.5949617,
-        #                            unit:  1                     }  ]
+        #     [
+        #         {
+        #             market: "BTC-ETH",
+        #             candle_date_time_utc: "2018-11-22T13:47:00",
+        #             candle_date_time_kst: "2018-11-22T22:47:00",
+        #             opening_price: 0.02915963,
+        #             high_price: 0.02915963,
+        #             low_price: 0.02915448,
+        #             trade_price: 0.02915448,
+        #             timestamp: 1542894473674,
+        #             candle_acc_trade_price: 0.0981629437535248,
+        #             candle_acc_trade_volume: 3.36693173,
+        #             unit: 1
+        #         },
+        #         {
+        #             market: "BTC-ETH",
+        #             candle_date_time_utc: "2018-11-22T10:06:00",
+        #             candle_date_time_kst: "2018-11-22T19:06:00",
+        #             opening_price: 0.0294,
+        #             high_price: 0.02940882,
+        #             low_price: 0.02934283,
+        #             trade_price: 0.02937354,
+        #             timestamp: 1542881219276,
+        #             candle_acc_trade_price: 0.0762597110943884,
+        #             candle_acc_trade_volume: 2.5949617,
+        #             unit: 1
+        #         }
+        #     ]
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
@@ -814,7 +826,7 @@ class upbit (Exchange):
         elif side == 'sell':
             orderSide = 'ask'
         else:
-            raise InvalidOrder(self.id + ' createOrder allows buy or sell side onlynot ')
+            raise InvalidOrder(self.id + ' createOrder allows buy or sell side only!')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -911,7 +923,7 @@ class upbit (Exchange):
         #         ...,
         #     ]
         #
-        return self.parseTransactions(response, currency, since, limit)
+        return self.parse_transactions(response, currency, since, limit)
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -942,7 +954,7 @@ class upbit (Exchange):
         #         ...,
         #     ]
         #
-        return self.parseTransactions(response, currency, since, limit)
+        return self.parse_transactions(response, currency, since, limit)
 
     def parse_transaction_status(self, status):
         statuses = {
@@ -1138,6 +1150,7 @@ class upbit (Exchange):
         result = {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -1253,9 +1266,11 @@ class upbit (Exchange):
         return self.parse_order(response)
 
     def parse_deposit_addresses(self, addresses):
-        result = []
+        result = {}
         for i in range(0, len(addresses)):
-            result.append(self.parse_deposit_address(addresses[i]))
+            address = self.parse_deposit_address(addresses[i])
+            code = address['currency']
+            result[code] = address
         return result
 
     def fetch_deposit_addresses(self, codes=None, params={}):
@@ -1323,7 +1338,8 @@ class upbit (Exchange):
         request = {
             'currency': currency['id'],
         }
-        response = self.fetch_deposit_address(code, self.extend(request, params))
+        # https://github.com/ccxt/ccxt/issues/6452
+        response = self.privatePostDepositsGenerateCoinAddress(self.extend(request, params))
         #
         # https://docs.upbit.com/v1.0/reference#%EC%9E%85%EA%B8%88-%EC%A3%BC%EC%86%8C-%EC%83%9D%EC%84%B1-%EC%9A%94%EC%B2%AD
         # can be any of the two responses:
@@ -1341,12 +1357,7 @@ class upbit (Exchange):
         #
         message = self.safe_string(response, 'message')
         if message is not None:
-            return {
-                'currency': code,
-                'address': None,
-                'tag': None,
-                'info': response,
-            }
+            raise AddressPending(self.id + ' is generating ' + code + ' deposit address, call fetchDepositAddress or createDepositAddress one more time later to retrieve the generated address')
         return self.parse_deposit_address(response)
 
     def withdraw(self, code, amount, address, tag=None, params={}):
@@ -1386,9 +1397,12 @@ class upbit (Exchange):
         return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
+        url = self.implode_params(self.urls['api'][api], {
+            'hostname': self.hostname,
+        })
+        url += '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        if method == 'GET':
+        if method != 'POST':
             if query:
                 url += '?' + self.urlencode(query)
         if api == 'private':
@@ -1399,12 +1413,15 @@ class upbit (Exchange):
                 'nonce': nonce,
             }
             if query:
-                request['query'] = self.urlencode(query)
+                auth = self.urlencode(query)
+                hash = self.hash(self.encode(auth), 'sha512')
+                request['query_hash'] = hash
+                request['query_hash_alg'] = 'SHA512'
             jwt = self.jwt(request, self.encode(self.secret))
             headers = {
                 'Authorization': 'Bearer ' + jwt,
             }
-            if method != 'GET':
+            if (method != 'GET') and (method != 'DELETE'):
                 body = self.json(params)
                 headers['Content-Type'] = 'application/json'
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
@@ -1413,31 +1430,23 @@ class upbit (Exchange):
         if response is None:
             return  # fallback to default error handler
         #
-        #   {'error': {'message': "Missing request parameter error. Check the required parametersnot ", 'name':  400} },
-        #   {'error': {'message': "side is missing, side does not have a valid value", 'name': "validation_error"} },
-        #   {'error': {'message': "개인정보 제 3자 제공 동의가 필요합니다.", 'name': "thirdparty_agreement_required"} },
-        #   {'error': {'message': "권한이 부족합니다.", 'name': "out_of_scope"} },
-        #   {'error': {'message': "주문을 찾지 못했습니다.", 'name': "order_not_found"} },
-        #   {'error': {'message': "주문가능한 금액(ETH)이 부족합니다.", 'name': "insufficient_funds_ask"} },
-        #   {'error': {'message': "주문가능한 금액(BTC)이 부족합니다.", 'name': "insufficient_funds_bid"} },
-        #   {'error': {'message': "잘못된 엑세스 키입니다.", 'name': "invalid_access_key"} },
-        #   {'error': {'message': "Jwt 토큰 검증에 실패했습니다.", 'name': "jwt_verification"} }
+        #   {'error': {'message': "Missing request parameter error. Check the required parameters!", 'name': 400}},
+        #   {'error': {'message': "side is missing, side does not have a valid value", 'name': "validation_error"}},
+        #   {'error': {'message': "개인정보 제 3자 제공 동의가 필요합니다.", 'name': "thirdparty_agreement_required"}},
+        #   {'error': {'message': "권한이 부족합니다.", 'name': "out_of_scope"}},
+        #   {'error': {'message': "주문을 찾지 못했습니다.", 'name': "order_not_found"}},
+        #   {'error': {'message': "주문가능한 금액(ETH)이 부족합니다.", 'name': "insufficient_funds_ask"}},
+        #   {'error': {'message': "주문가능한 금액(BTC)이 부족합니다.", 'name': "insufficient_funds_bid"}},
+        #   {'error': {'message': "잘못된 엑세스 키입니다.", 'name': "invalid_access_key"}},
+        #   {'error': {'message': "Jwt 토큰 검증에 실패했습니다.", 'name': "jwt_verification"}}
         #
         error = self.safe_value(response, 'error')
         if error is not None:
             message = self.safe_string(error, 'message')
             name = self.safe_string(error, 'name')
-            feedback = self.id + ' ' + self.json(response)
-            exact = self.exceptions['exact']
-            if message in exact:
-                raise exact[message](feedback)
-            if name in exact:
-                raise exact[name](feedback)
-            broad = self.exceptions['broad']
-            broadKey = self.findBroadlyMatchedKey(broad, message)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
-            broadKey = self.findBroadlyMatchedKey(broad, name)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
+            feedback = self.id + ' ' + body
+            self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], name, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], name, feedback)
             raise ExchangeError(feedback)  # unknown message

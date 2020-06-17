@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, InvalidNonce, OrderNotFound, InvalidOrder, InsufficientFunds, AuthenticationError, DDoSProtection } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, InvalidNonce, OrderNotFound, InvalidOrder, InsufficientFunds, AuthenticationError, DDoSProtection, NotSupported } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -24,6 +24,7 @@ module.exports = class liquid extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchMyTrades': true,
+                'withdraw': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/45798859-1a872600-bcb4-11e8-8746-69291ce87b04.jpg',
@@ -44,6 +45,7 @@ module.exports = class liquid extends Exchange {
                         'products/{id}/price_levels',
                         'executions',
                         'ir_ladders/{currency}',
+                        'fees', // add fetchFees, fetchTradingFees, fetchFundingFees
                     ],
                 },
                 'private': {
@@ -51,35 +53,44 @@ module.exports = class liquid extends Exchange {
                         'accounts/balance',
                         'accounts/main_asset',
                         'accounts/{id}',
-                        'crypto_accounts',
+                        'accounts/{currency}/reserved_balance_details',
+                        'crypto_accounts', // add fetchAccounts
+                        'crypto_withdrawals', // add fetchWithdrawals
                         'executions/me',
-                        'fiat_accounts',
+                        'fiat_accounts', // add fetchAccounts
+                        'fund_infos', // add fetchDeposits
                         'loan_bids',
                         'loans',
                         'orders',
                         'orders/{id}',
-                        'orders/{id}/trades',
-                        'orders/{id}/executions',
+                        'orders/{id}/trades', // add fetchOrderTrades
                         'trades',
                         'trades/{id}/loans',
                         'trading_accounts',
                         'trading_accounts/{id}',
                         'transactions',
+                        'withdrawals', // add fetchWithdrawals
                     ],
                     'post': [
+                        'crypto_withdrawals',
+                        'fund_infos',
                         'fiat_accounts',
                         'loan_bids',
                         'orders',
+                        'withdrawals',
                     ],
                     'put': [
+                        'crypto_withdrawal/{id}/cancel',
                         'loan_bids/{id}/close',
                         'loans/{id}',
-                        'orders/{id}',
+                        'orders/{id}', // add editOrder
                         'orders/{id}/cancel',
                         'trades/{id}',
+                        'trades/{id}/adjust_margin',
                         'trades/{id}/close',
                         'trades/close_all',
                         'trading_accounts/{id}',
+                        'withdrawals/{id}/cancel',
                     ],
                 },
             },
@@ -166,7 +177,7 @@ module.exports = class liquid extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const markets = await this.publicGetProducts ();
+        const spot = await this.publicGetProducts (params);
         //
         //     [
         //         {
@@ -197,20 +208,69 @@ module.exports = class liquid extends Exchange {
         //         },
         //     ]
         //
+        const perpetual = await this.publicGetProducts ({ 'perpetual': '1' });
+        //
+        //     [
+        //         {
+        //             "id": "603",
+        //             "product_type": "Perpetual",
+        //             "code": "CASH",
+        //             "name": null,
+        //             "market_ask": "1143900",
+        //             "market_bid": "1143250",
+        //             "currency": "JPY",
+        //             "currency_pair_code": "P-BTCJPY",
+        //             "pusher_channel": "product_cash_p-btcjpy_603",
+        //             "taker_fee": "0.0",
+        //             "maker_fee": "0.0",
+        //             "low_market_bid": "1124450.0",
+        //             "high_market_ask": "1151750.0",
+        //             "volume_24h": "0.1756",
+        //             "last_price_24h": "1129850.0",
+        //             "last_traded_price": "1144700.0",
+        //             "last_traded_quantity": "0.014",
+        //             "quoted_currency": "JPY",
+        //             "base_currency": "P-BTC",
+        //             "tick_size": "50.0",
+        //             "perpetual_enabled": true,
+        //             "index_price": "1142636.03935",
+        //             "mark_price": "1143522.18417",
+        //             "funding_rate": "0.00033",
+        //             "fair_price": "1143609.31009",
+        //             "timestamp": "1581558659.195353100",
+        //         },
+        //     ]
+        //
         const currencies = await this.fetchCurrencies ();
         const currenciesByCode = this.indexBy (currencies, 'code');
         const result = [];
+        const markets = this.arrayConcat (spot, perpetual);
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
-            const id = market['id'].toString ();
-            const baseId = market['base_currency'];
-            const quoteId = market['quoted_currency'];
+            const id = this.safeString (market, 'id');
+            const baseId = this.safeString (market, 'base_currency');
+            const quoteId = this.safeString (market, 'quoted_currency');
+            const productType = this.safeString (market, 'product_type');
+            let type = 'spot';
+            let spot = true;
+            let swap = false;
+            if (productType === 'Perpetual') {
+                spot = false;
+                swap = true;
+                type = 'swap';
+            }
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
+            let symbol = undefined;
+            if (swap) {
+                symbol = this.safeString (market, 'currency_pair_code');
+            } else {
+                symbol = base + '/' + quote;
+            }
             const maker = this.safeFloat (market, 'maker_fee');
             const taker = this.safeFloat (market, 'taker_fee');
-            const active = !market['disabled'];
+            const disabled = this.safeValue (market, 'disabled', false);
+            const active = !disabled;
             const baseCurrency = this.safeValue (currenciesByCode, base);
             const quoteCurrency = this.safeValue (currenciesByCode, quote);
             const precision = {
@@ -254,6 +314,9 @@ module.exports = class liquid extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': type,
+                'spot': spot,
+                'swap': swap,
                 'maker': maker,
                 'taker': taker,
                 'limits': limits,
@@ -382,7 +445,7 @@ module.exports = class liquid extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    parseTrade (trade, market) {
+    parseTrade (trade, market = undefined) {
         // {             id:  12345,
         //         quantity: "6.789",
         //            price: "98765.4321",
@@ -409,13 +472,17 @@ module.exports = class liquid extends Exchange {
             }
         }
         const id = this.safeString (trade, 'id');
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
         return {
             'info': trade,
             'id': id,
             'order': orderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': undefined,
             'side': side,
             'takerOrMaker': takerOrMaker,
@@ -461,13 +528,18 @@ module.exports = class liquid extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
+        params = this.omit (params, [ 'clientOrderId', 'client_order_id' ]);
         const request = {
             'order_type': type,
             'product_id': this.marketId (symbol),
             'side': side,
             'quantity': this.amountToPrecision (symbol, amount),
         };
-        if (type === 'limit') {
+        if (clientOrderId !== undefined) {
+            request['client_order_id'] = clientOrderId;
+        }
+        if ((type === 'limit') || (type === 'limit_post_only') || (type === 'market_with_range') || (type === 'stop')) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         const response = await this.privatePostOrders (this.extend (request, params));
@@ -490,7 +562,8 @@ module.exports = class liquid extends Exchange {
         //         "product_code": "CASH",
         //         "funding_currency": "USD",
         //         "currency_pair_code": "BTCUSD",
-        //         "order_fee": "0.0"
+        //         "order_fee": "0.0",
+        //         "client_order_id": null,
         //     }
         //
         return this.parseOrder (response);
@@ -559,6 +632,7 @@ module.exports = class liquid extends Exchange {
         //         "funding_currency": "USD",
         //         "currency_pair_code": "BTCUSD",
         //         "order_fee": "0.0"
+        //         "client_order_id": null,
         //     }
         //
         // fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders
@@ -645,8 +719,10 @@ module.exports = class liquid extends Exchange {
             remaining = amount - filled;
         }
         const side = this.safeString (order, 'side');
+        const clientOrderId = this.safeString (order, 'client_order_id');
         return {
             'id': orderId,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -729,14 +805,111 @@ module.exports = class liquid extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const request = { 'status': 'live' };
-        return this.fetchOrders (symbol, since, limit, this.extend (request, params));
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const request = { 'status': 'filled' };
-        return this.fetchOrders (symbol, since, limit, this.extend (request, params));
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            // 'auth_code': '', // optional 2fa code
+            'currency': currency['id'],
+            'address': address,
+            'amount': this.currencyToPrecision (code, amount),
+            // 'payment_id': tag, // for XRP only
+            // 'memo_type': 'text', // 'text', 'id' or 'hash', for XLM only
+            // 'memo_value': tag, // for XLM only
+        };
+        if (tag !== undefined) {
+            if (code === 'XRP') {
+                request['payment_id'] = tag;
+            } else if (code === 'XLM') {
+                request['memo_type'] = 'text'; // overrideable via params
+                request['memo_value'] = tag;
+            } else {
+                throw new NotSupported (this.id + ' withdraw() only supports a tag along the address for XRP or XLM');
+            }
+        }
+        const response = await this.privatePostCryptoWithdrawals (this.extend (request, params));
+        //
+        //     {
+        //         "id": 1353,
+        //         "address": "1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2",
+        //         "amount": 1.0,
+        //         "state": "pending",
+        //         "currency": "BTC",
+        //         "withdrawal_fee": 0.0,
+        //         "created_at": 1568016450,
+        //         "updated_at": 1568016450,
+        //         "payment_id": null
+        //     }
+        //
+        return this.parseTransaction (response, currency);
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            'pending': 'pending',
+            'cancelled': 'canceled',
+            'approved': 'ok',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // withdraw
+        //
+        //     {
+        //         "id": 1353,
+        //         "address": "1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2",
+        //         "amount": 1.0,
+        //         "state": "pending",
+        //         "currency": "BTC",
+        //         "withdrawal_fee": 0.0,
+        //         "created_at": 1568016450,
+        //         "updated_at": 1568016450,
+        //         "payment_id": null
+        //     }
+        //
+        // fetchDeposits, fetchWithdrawals
+        //
+        //     ...
+        //
+        const id = this.safeString (transaction, 'id');
+        const address = this.safeString (transaction, 'address');
+        const tag = this.safeString2 (transaction, 'payment_id', 'memo_value');
+        const txid = undefined;
+        const currencyId = this.safeString (transaction, 'asset');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const timestamp = this.safeTimestamp (transaction, 'created_at');
+        const updated = this.safeTimestamp (transaction, 'updated_at');
+        const type = 'withdrawal';
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
+        const amount = this.safeFloat (transaction, 'amount');
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'address': address,
+            'tag': tag,
+            'type': type,
+            'amount': amount,
+            'currency': code,
+            'status': status,
+            'updated': updated,
+            'fee': undefined,
+        };
     }
 
     nonce () {
@@ -762,10 +935,12 @@ module.exports = class liquid extends Exchange {
             const nonce = this.nonce ();
             const request = {
                 'path': url,
-                'nonce': nonce,
                 'token_id': this.apiKey,
                 'iat': Math.floor (nonce / 1000), // issued at
             };
+            if (!('client_order_id' in query)) {
+                request['nonce'] = nonce;
+            }
             headers['X-Quoine-Auth'] = this.jwt (request, this.encode (this.secret));
         } else {
             if (Object.keys (query).length) {
@@ -780,14 +955,10 @@ module.exports = class liquid extends Exchange {
         if (code >= 200 && code < 300) {
             return;
         }
-        const exceptions = this.exceptions;
         if (code === 401) {
             // expected non-json response
-            if (body in exceptions) {
-                throw new exceptions[body] (this.id + ' ' + body);
-            } else {
-                return;
-            }
+            this.throwExactlyMatchedException (this.exceptions, body, body);
+            return;
         }
         if (code === 429) {
             throw new DDoSProtection (this.id + ' ' + body);
@@ -802,9 +973,7 @@ module.exports = class liquid extends Exchange {
             //
             //  { "message": "Order not found" }
             //
-            if (message in exceptions) {
-                throw new exceptions[message] (feedback);
-            }
+            this.throwExactlyMatchedException (this.exceptions, message, feedback);
         } else if (errors !== undefined) {
             //
             //  { "errors": { "user": ["not_enough_free_balance"] }}
@@ -817,9 +986,7 @@ module.exports = class liquid extends Exchange {
                 const errorMessages = errors[type];
                 for (let j = 0; j < errorMessages.length; j++) {
                     const message = errorMessages[j];
-                    if (message in exceptions) {
-                        throw new exceptions[message] (feedback);
-                    }
+                    this.throwExactlyMatchedException (this.exceptions, message, feedback);
                 }
             }
         } else {

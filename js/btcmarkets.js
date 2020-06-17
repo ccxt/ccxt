@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, OrderNotFound, ArgumentsRequired, InvalidOrder, DDoSProtection } = require ('./base/errors');
+const { ROUND } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -82,6 +83,20 @@ module.exports = class btcmarkets extends Exchange {
             'exceptions': {
                 '3': InvalidOrder,
                 '6': DDoSProtection,
+            },
+            'fees': {
+                'percentage': true,
+                'tierBased': true,
+                'maker': -0.05 / 100,
+                'taker': 0.20 / 100,
+            },
+            'options': {
+                'fees': {
+                    'AUD': {
+                        'maker': 0.85 / 100,
+                        'taker': 0.85 / 100,
+                    },
+                },
             },
         });
     }
@@ -210,8 +225,7 @@ module.exports = class btcmarkets extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
-            // todo: refactor this
-            const fee = (quote === 'AUD') ? 0.0085 : 0.0022;
+            const fees = this.safeValue (this.safeValue (this.options, 'fees', {}), quote, this.fees);
             let pricePrecision = 2;
             let amountPrecision = 4;
             const minAmount = 0.001; // where does it come from?
@@ -250,8 +264,8 @@ module.exports = class btcmarkets extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': undefined,
-                'maker': fee,
-                'taker': fee,
+                'maker': fees['maker'],
+                'taker': fees['taker'],
                 'limits': limits,
                 'precision': precision,
             });
@@ -284,16 +298,31 @@ module.exports = class btcmarkets extends Exchange {
         return this.parseBalance (result);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //     {
+        //         "timestamp":1572307200000,
+        //         "open":1962218,
+        //         "high":1974850,
+        //         "low":1962208,
+        //         "close":1974850,
+        //         "volume":305211315,
+        //     }
+        //
         const multiplier = 100000000; // for price and volume
-        return [
-            ohlcv[0],
-            parseFloat (ohlcv[1]) / multiplier,
-            parseFloat (ohlcv[2]) / multiplier,
-            parseFloat (ohlcv[3]) / multiplier,
-            parseFloat (ohlcv[4]) / multiplier,
-            parseFloat (ohlcv[5]) / multiplier,
+        const keys = [ 'open', 'high', 'low', 'close', 'volume' ];
+        const result = [
+            this.safeInteger (ohlcv, 'timestamp'),
         ];
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            let value = this.safeFloat (ohlcv, key);
+            if (value !== undefined) {
+                value = value / multiplier;
+            }
+            result.push (value);
+        }
+        return result;
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -301,13 +330,37 @@ module.exports = class btcmarkets extends Exchange {
         const market = this.market (symbol);
         const request = {
             'id': market['id'],
-            'timeWindow': this.timeframes[timeframe],
+            'timeframe': this.timeframes[timeframe],
+            // set to true to see candles more recent than the timestamp in the
+            // since parameter, if a since parameter is used, default is false
+            'indexForward': true,
+            // set to true to see the earliest candles first in the list of
+            // returned candles in chronological order, default is false
+            'sortForward': true,
         };
         if (since !== undefined) {
             request['since'] = since;
         }
-        const response = await this.webGetMarketBTCMarketsIdTickByTime (this.extend (request, params));
-        return this.parseOHLCVs (response['ticks'], market, timeframe, since, limit);
+        if (limit !== undefined) {
+            request['limit'] = limit; // default is 3000
+        }
+        const response = await this.publicGetV2MarketIdTickByTimeTimeframe (this.extend (request, params));
+        //
+        //     {
+        //         "success":true,
+        //         "paging":{
+        //             "newer":"/v2/market/ETH/BTC/tickByTime/day?indexForward=true&since=1572307200000",
+        //             "older":"/v2/market/ETH/BTC/tickByTime/day?since=1457827200000"
+        //         },
+        //         "ticks":[
+        //             {"timestamp":1572307200000,"open":1962218,"high":1974850,"low":1962208,"close":1974850,"volume":305211315},
+        //             {"timestamp":1572220800000,"open":1924700,"high":1951276,"low":1909328,"close":1951276,"volume":1086067595},
+        //             {"timestamp":1572134400000,"open":1962155,"high":1962734,"low":1900905,"close":1930243,"volume":790141098},
+        //         ],
+        //     }
+        //
+        const ticks = this.safeValue (response, 'ticks', []);
+        return this.parseOHLCVs (ticks, market, timeframe, since, limit);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -363,7 +416,7 @@ module.exports = class btcmarkets extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        const timestamp = this.safeTimestamp (trade, 'timestamp');
+        const timestamp = this.safeTimestamp (trade, 'date');
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -415,8 +468,8 @@ module.exports = class btcmarkets extends Exchange {
         });
         request['currency'] = market['quote'];
         request['instrument'] = market['base'];
-        request['price'] = parseInt (price * multiplier);
-        request['volume'] = parseInt (amount * multiplier);
+        request['price'] = parseInt (this.decimalToPrecision (price * multiplier, ROUND, 0));
+        request['volume'] = parseInt (this.decimalToPrecision (amount * multiplier, ROUND, 0));
         request['orderSide'] = orderSide;
         request['ordertype'] = this.capitalize (type);
         request['clientRequestId'] = this.nonce ().toString ();
@@ -512,6 +565,7 @@ module.exports = class btcmarkets extends Exchange {
                 'currency': feeCurrencyCode,
                 'cost': feeCost,
             },
+            'takerOrMaker': undefined,
         };
     }
 
@@ -559,9 +613,11 @@ module.exports = class btcmarkets extends Exchange {
             lastTradeTimestamp = trades[numTrades - 1]['timestamp'];
         }
         const id = this.safeString (order, 'id');
+        const clientOrderId = this.safeString (order, 'clientRequestId');
         return {
             'info': order,
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -693,13 +749,9 @@ module.exports = class btcmarkets extends Exchange {
         if ('success' in response) {
             if (!response['success']) {
                 const error = this.safeString (response, 'errorCode');
-                const message = this.id + ' ' + this.json (response);
-                if (error in this.exceptions) {
-                    const ExceptionClass = this.exceptions[error];
-                    throw new ExceptionClass (message);
-                } else {
-                    throw new ExchangeError (message);
-                }
+                const feedback = this.id + ' ' + body;
+                this.throwExactlyMatchedException (this.exceptions, error, feedback);
+                throw new ExchangeError (feedback);
             }
         }
     }

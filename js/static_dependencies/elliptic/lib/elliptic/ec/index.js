@@ -1,6 +1,6 @@
 'use strict';
 
-var BN = require('../../BN/bn');
+var BN = require('../../../../BN/bn');
 var HmacDRBG = require('../../hmac-drbg/hmac-drbg');
 var elliptic = require('../../elliptic');
 var utils = elliptic.utils;
@@ -107,7 +107,7 @@ EC.prototype.sign = function sign(msg, key, enc, options) {
   // Instantiate Hmac_DRBG
   var drbg = new HmacDRBG({
     hash: this.hash,
-    entropy: bkey,
+    entropy: options['extraEntropy'] ? bkey.concat (options['extraEntropy']) : bkey,
     nonce: nonce,
     pers: options.pers,
     persEnc: options.persEnc || 'utf8'

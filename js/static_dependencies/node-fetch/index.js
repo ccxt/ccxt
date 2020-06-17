@@ -1551,6 +1551,12 @@ fetch.default = fetch;
 // expose Promise
 fetch.Promise = global.Promise;
 
+// Igor Kroitor 2019 Dec 30
+// expose http and https
+// https://github.com/ccxt/ccxt/issues/6327
+fetch.http = http
+fetch.https = https
+
 module.exports = exports = fetch;
 exports.Headers = Headers;
 exports.Request = Request;

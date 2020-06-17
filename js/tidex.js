@@ -34,6 +34,7 @@ module.exports = class tidex extends Exchange {
                 },
                 'www': 'https://tidex.com',
                 'doc': 'https://tidex.com/exchange/public-api',
+                'referral': 'https://tidex.com/exchange/?ref=57f5638d9cd7',
                 'fees': [
                     'https://tidex.com/exchange/assets-spec',
                     'https://tidex.com/exchange/pairs-spec',
@@ -163,11 +164,11 @@ module.exports = class tidex extends Exchange {
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': currency['withdrawMinAmout'],
+                        'min': this.safeFloat (currency, 'withdrawMinAmount'),
                         'max': undefined,
                     },
                     'deposit': {
-                        'min': currency['depositMinAmount'],
+                        'min': this.safeFloat (currency, 'depositMinAmount'),
                         'max': undefined,
                     },
                 },
@@ -280,7 +281,7 @@ module.exports = class tidex extends Exchange {
         return this.parseOrderBook (orderbook);
     }
 
-    async fetchOrderBooks (symbols = undefined, params = {}) {
+    async fetchOrderBooks (symbols = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let ids = undefined;
         if (symbols === undefined) {
@@ -297,6 +298,9 @@ module.exports = class tidex extends Exchange {
         const request = {
             'pair': ids,
         };
+        if (limit !== undefined) {
+            request['limit'] = limit; // default = 150, max = 2000
+        }
         const response = await this.publicGetDepthPair (this.extend (request, params));
         const result = {};
         ids = Object.keys (response);
@@ -323,10 +327,13 @@ module.exports = class tidex extends Exchange {
         //        sell: 0.03377798,
         //     updated: 1537522009          }
         //
-        const timestamp = this.safeTimestamp (ticker, 'updated');
+        let timestamp = this.safeTimestamp (ticker, 'updated');
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
+            if (!market['active']) {
+                timestamp = undefined;
+            }
         }
         const last = this.safeFloat (ticker, 'last');
         return {
@@ -521,9 +528,13 @@ module.exports = class tidex extends Exchange {
             'filled': filled,
             'fee': undefined,
             // 'trades': this.parseTrades (order['trades'], market),
+            'info': response,
+            'clientOrderId': undefined,
+            'average': undefined,
+            'trades': undefined,
         };
         this.orders[id] = order;
-        return this.extend ({ 'info': response }, order);
+        return order;
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -586,6 +597,7 @@ module.exports = class tidex extends Exchange {
         return {
             'info': order,
             'id': id,
+            'clientOrderId': undefined,
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -599,6 +611,8 @@ module.exports = class tidex extends Exchange {
             'filled': filled,
             'status': status,
             'fee': fee,
+            'average': undefined,
+            'trades': undefined,
         };
     }
 
@@ -836,18 +850,10 @@ module.exports = class tidex extends Exchange {
             if (!success) {
                 const code = this.safeString (response, 'code');
                 const message = this.safeString (response, 'error');
-                const feedback = this.id + ' ' + this.json (response);
-                const exact = this.exceptions['exact'];
-                if (code in exact) {
-                    throw new exact[code] (feedback);
-                } else if (message in exact) {
-                    throw new exact[message] (feedback);
-                }
-                const broad = this.exceptions['broad'];
-                const broadKey = this.findBroadlyMatchedKey (broad, message);
-                if (broadKey !== undefined) {
-                    throw new broad[broadKey] (feedback);
-                }
+                const feedback = this.id + ' ' + body;
+                this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+                this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+                this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
                 throw new ExchangeError (feedback); // unknown message
             }
         }

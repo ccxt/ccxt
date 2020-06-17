@@ -9,11 +9,13 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import DDoSProtection
 
 
-class bitmart (Exchange):
+class bitmart(Exchange):
 
     def describe(self):
         return self.deep_extend(super(bitmart, self).describe(), {
@@ -43,6 +45,7 @@ class bitmart (Exchange):
                 'fetchClosedOrders': True,
                 'fetchCanceledOrders': True,
                 'fetchOrder': True,
+                'signIn': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/61835713-a2662f80-ae85-11e9-9d00-6442919701fd.jpg',
@@ -50,6 +53,7 @@ class bitmart (Exchange):
                 'www': 'https://www.bitmart.com/',
                 'doc': 'https://github.com/bitmartexchange/bitmart-official-api-docs',
                 'referral': 'http://www.bitmart.com/?r=rQCFLh',
+                'fees': 'https://www.bitmart.com/fee/en',
             },
             'requiredCredentials': {
                 'apiKey': True,
@@ -111,7 +115,7 @@ class bitmart (Exchange):
                 'trading': {
                     'tierBased': True,
                     'percentage': True,
-                    'taker': 0.001,
+                    'taker': 0.002,
                     'maker': 0.001,
                     'tiers': {
                         'taker': [
@@ -141,8 +145,11 @@ class bitmart (Exchange):
                 'exact': {
                     'Place order error': InvalidOrder,  # {"message":"Place order error"}
                     'Not found': OrderNotFound,  # {"message":"Not found"}
+                    'Visit too often, please try again later': DDoSProtection,  # {"code":-30,"msg":"Visit too often, please try again later","subMsg":"","data":{}}
+                    'Unknown symbol': BadSymbol,  # {"message":"Unknown symbol"}
                 },
                 'broad': {
+                    'Invalid limit. limit must be in the range': InvalidOrder,
                     'Maximum price is': InvalidOrder,  # {"message":"Maximum price is 0.112695"}
                     # {"message":"Required Integer parameter 'status' is not present"}
                     # {"message":"Required String parameter 'symbol' is not present"}
@@ -152,6 +159,10 @@ class bitmart (Exchange):
                     # {"message":"Required Long parameter 'to' is not present"}
                     'is not present': BadRequest,
                 },
+            },
+            'commonCurrencies': {
+                'ONE': 'Menlo One',
+                'PLA': 'Plair',
             },
         })
 
@@ -246,30 +257,81 @@ class bitmart (Exchange):
                 'precision': precision,
                 'limits': limits,
                 'info': market,
+                'active': None,
             })
         return result
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = self.milliseconds()
-        marketId = self.safe_string(ticker, 'symbol_id')
+        #
+        # fetchTicker
+        #
+        #     {
+        #         "volume":"6139.8058",
+        #         "ask_1":"0.021856",
+        #         "base_volume":"131.5157",
+        #         "lowest_price":"0.021090",
+        #         "bid_1":"0.021629",
+        #         "highest_price":"0.021929",
+        #         "ask_1_amount":"0.1245",
+        #         "current_price":"0.021635",
+        #         "fluctuation":"+0.0103",
+        #         "symbol_id":"ETH_BTC",
+        #         "url":"https://www.bitmart.com/trade?symbol=ETH_BTC",
+        #         "bid_1_amount":"1.8546"
+        #     }
+        #
+        # fetchTickers
+        #
+        #     {
+        #         "priceChange":"0%",
+        #         "symbolId":1066,
+        #         "website":"https://www.bitmart.com/trade?symbol=1SG_BTC",
+        #         "depthEndPrecision":6,
+        #         "ask_1":"0.000095",
+        #         "anchorId":2,
+        #         "anchorName":"BTC",
+        #         "pair":"1SG_BTC",
+        #         "volume":"0.0",
+        #         "coinId":2029,
+        #         "depthStartPrecision":4,
+        #         "high_24h":"0.000035",
+        #         "low_24h":"0.000035",
+        #         "new_24h":"0.000035",
+        #         "closeTime":1589389249342,
+        #         "bid_1":"0.000035",
+        #         "coinName":"1SG",
+        #         "baseVolume":"0.0",
+        #         "openTime":1589302849342
+        #     }
+        #
+        timestamp = self.safe_integer(ticker, 'closeTime', self.milliseconds())
+        marketId = self.safe_string_2(ticker, 'pair', 'symbol_id')
         symbol = None
         if marketId is not None:
             if marketId in self.markets_by_id:
                 market = self.markets_by_id[marketId]
-                symbol = market['symbol']
             elif marketId is not None:
                 baseId, quoteId = marketId.split('_')
                 base = self.safe_currency_code(baseId)
                 quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
-        last = self.safe_float(ticker, 'current_price')
+        if (symbol is None) and (market is not None):
+            symbol = market['symbol']
+        last = self.safe_float_2(ticker, 'current_price', 'new_24h')
         percentage = self.safe_float(ticker, 'fluctuation')
+        if percentage is None:
+            percentage = self.safe_string(ticker, 'priceChange')
+            if percentage is not None:
+                percentage = percentage.replace('%', '')
+                percentage = float(percentage)
+        else:
+            percentage *= 100
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'highest_price'),
-            'low': self.safe_float(ticker, 'lowest_price'),
+            'high': self.safe_float_2(ticker, 'highest_price', 'high_24h'),
+            'low': self.safe_float_2(ticker, 'lowest_price', 'low_24h'),
             'bid': self.safe_float(ticker, 'bid_1'),
             'bidVolume': self.safe_float(ticker, 'bid_1_amount'),
             'ask': self.safe_float(ticker, 'ask_1'),
@@ -280,17 +342,18 @@ class bitmart (Exchange):
             'last': last,
             'previousClose': None,
             'change': None,
-            'percentage': percentage * 100,
+            'percentage': percentage,
             'average': None,
             'baseVolume': self.safe_float(ticker, 'volume'),
-            'quoteVolume': self.safe_float(ticker, 'base_volume'),
+            'quoteVolume': self.safe_float_2(ticker, 'base_volume', 'baseVolume'),
             'info': ticker,
         }
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
+        market = self.market(symbol)
         request = {
-            'symbol': self.market_id(symbol),
+            'symbol': market['id'],
         }
         response = await self.publicGetTicker(self.extend(request, params))
         #
@@ -309,11 +372,36 @@ class bitmart (Exchange):
         #         "bid_1_amount":"134.78"
         #     }
         #
-        return self.parse_ticker(response)
+        return self.parse_ticker(response, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
         tickers = await self.publicGetTicker(params)
+        #
+        #         [
+        #             {
+        #                 "priceChange":"0%",
+        #                 "symbolId":1066,
+        #                 "website":"https://www.bitmart.com/trade?symbol=1SG_BTC",
+        #                 "depthEndPrecision":6,
+        #                 "ask_1":"0.000095",
+        #                 "anchorId":2,
+        #                 "anchorName":"BTC",
+        #                 "pair":"1SG_BTC",
+        #                 "volume":"0.0",
+        #                 "coinId":2029,
+        #                 "depthStartPrecision":4,
+        #                 "high_24h":"0.000035",
+        #                 "low_24h":"0.000035",
+        #                 "new_24h":"0.000035",
+        #                 "closeTime":1589389249342,
+        #                 "bid_1":"0.000035",
+        #                 "coinName":"1SG",
+        #                 "baseVolume":"0.0",
+        #                 "openTime":1589302849342
+        #             },
+        #         ]
+        #
         result = {}
         for i in range(0, len(tickers)):
             ticker = self.parse_ticker(tickers[i])
@@ -383,20 +471,23 @@ class bitmart (Exchange):
         # fetchMyTrades(private)
         #
         #     {
-        #         "symbol": "BMX_ETH",
-        #         "amount": "1.0",
-        #         "fees": "0.0005000000",
-        #         "trade_id": 2734956,
-        #         "price": "0.00013737",
-        #         "active": True,
-        #         "entrust_id": 5576623,
-        #         "timestamp": 1545292334000
-        #     }
+        #         active: True,
+        #             amount: '0.2000',
+        #             entrustType: 1,
+        #             entrust_id: 979648824,
+        #             fees: '0.0000085532',
+        #             price: '0.021383',
+        #             symbol: 'ETH_BTC',
+        #             timestamp: 1574343514000,
+        #             trade_id: 329418828
+        #     },
         #
         id = self.safe_string(trade, 'trade_id')
         timestamp = self.safe_integer_2(trade, 'timestamp', 'order_time')
         type = None
         side = self.safe_string_lower(trade, 'type')
+        if (side is None) and ('entrustType' in trade):
+            side = 'sell' if trade['entrustType'] else 'buy'
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
         cost = None
@@ -421,8 +512,9 @@ class bitmart (Exchange):
         feeCost = self.safe_float(trade, 'fees')
         fee = None
         if feeCost is not None:
-            # is it always quote, always base, or base-quote depending on the side?
             feeCurrencyCode = None
+            if market is not None:
+                feeCurrencyCode = market['base'] if (side == 'buy') else market['quote']
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
@@ -468,12 +560,14 @@ class bitmart (Exchange):
             raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
+        # limit is required, must be in the range(0, 50)
+        maxLimit = 50
+        limit = maxLimit if (limit is None) else min(limit, maxLimit)
         request = {
             'symbol': market['id'],
-            # 'offset': 0,  # current page, starts from 0
+            'offset': 0,  # current page, starts from 0
+            'limit': limit,  # required
         }
-        if limit is None:
-            request['limit'] = limit  # default 500, max 1000
         response = await self.privateGetTrades(self.extend(request, params))
         #
         #     {
@@ -504,7 +598,17 @@ class bitmart (Exchange):
         }
         return await self.fetch_my_trades(symbol, since, limit, self.extend(request, params))
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
+        #
+        #     {
+        #         "timestamp":1525761000000,
+        #         "open_price":"0.010130",
+        #         "highest_price":"0.010130",
+        #         "lowest_price":"0.010130",
+        #         "current_price":"0.010130",
+        #         "volume":"0.000000"
+        #     }
+        #
         return [
             self.safe_integer(ohlcv, 'timestamp'),
             self.safe_float(ohlcv, 'open_price'),
@@ -601,7 +705,18 @@ class bitmart (Exchange):
         id = self.safe_string(order, 'entrust_id')
         timestamp = self.milliseconds()
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        symbol = self.find_symbol(self.safe_string(order, 'symbol'), market)
+        symbol = None
+        marketId = self.safe_string(order, 'symbol')
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+            else:
+                baseId, quoteId = marketId.split('_')
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
+                symbol = base + '/' + quote
+        if (symbol is None) and (market is not None):
+            symbol = market['symbol']
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'original_amount')
         cost = None
@@ -621,6 +736,7 @@ class bitmart (Exchange):
         type = None
         return {
             'id': id,
+            'clientOrderId': None,
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -659,8 +775,8 @@ class bitmart (Exchange):
         request = {
             'symbol': market['id'],
             'side': side.lower(),
-            'amount': float(self.amount_to_precision(symbol, amount)),
-            'price': float(self.price_to_precision(symbol, price)),
+            'amount': self.amount_to_precision(symbol, amount),
+            'price': self.price_to_precision(symbol, price),
         }
         response = await self.privatePostOrders(self.extend(request, params))
         #
@@ -828,13 +944,8 @@ class bitmart (Exchange):
         #     {"message":"Place order error"}
         #
         feedback = self.id + ' ' + body
-        message = self.safe_string(response, 'message')
+        message = self.safe_string_2(response, 'message', 'msg')
         if message is not None:
-            exact = self.exceptions['exact']
-            if message in exact:
-                raise exact[message](feedback)
-            broad = self.exceptions['broad']
-            broadKey = self.findBroadlyMatchedKey(broad, message)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message

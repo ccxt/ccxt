@@ -16,7 +16,7 @@ module.exports = class flowbtc extends Exchange {
             'version': 'v1',
             'rateLimit': 1000,
             'has': {
-                'CORS': true,
+                'CORS': false,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28162465-cd815d4c-67cf-11e7-8e57-438bea0523a2.jpg',
@@ -108,6 +108,7 @@ module.exports = class flowbtc extends Exchange {
                     },
                 },
                 'info': market,
+                'active': undefined,
             };
         }
         return result;
@@ -197,6 +198,8 @@ module.exports = class flowbtc extends Exchange {
             'price': price,
             'amount': amount,
             'cost': cost,
+            'takerOrMaker': undefined,
+            'fee': undefined,
         };
     }
 

@@ -13,7 +13,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import InvalidNonce
 
 
-class bitbank (Exchange):
+class bitbank(Exchange):
 
     def describe(self):
         return self.deep_extend(super(bitbank, self).describe(), {
@@ -94,7 +94,7 @@ class bitbank (Exchange):
                 },
                 'funding': {
                     'withdraw': {
-                        # 'JPY': amount => amount > 756 if 30000 else 540,
+                        # 'JPY': 756 if (amount > 30000) else 540,
                         'BTC': 0.001,
                         'LTC': 0.001,
                         'XRP': 0.15,
@@ -225,14 +225,24 @@ class bitbank (Exchange):
         response = self.publicGetPairTransactions(self.extend(request, params))
         return self.parse_trades(response['data']['transactions'], market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='5m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
+        #
+        #     [
+        #         "0.02501786",
+        #         "0.02501786",
+        #         "0.02501786",
+        #         "0.02501786",
+        #         "0.0000",
+        #         1591488000000
+        #     ]
+        #
         return [
-            ohlcv[5],
-            float(ohlcv[0]),
-            float(ohlcv[1]),
-            float(ohlcv[2]),
-            float(ohlcv[3]),
-            float(ohlcv[4]),
+            self.safe_integer(ohlcv, 5),
+            self.safe_float(ohlcv, 0),
+            self.safe_float(ohlcv, 1),
+            self.safe_float(ohlcv, 2),
+            self.safe_float(ohlcv, 3),
+            self.safe_float(ohlcv, 4),
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='5m', since=None, limit=None, params={}):
@@ -247,7 +257,28 @@ class bitbank (Exchange):
             'yyyymmdd': ''.join(date),
         }
         response = self.publicGetPairCandlestickCandletypeYyyymmdd(self.extend(request, params))
-        ohlcv = self.safe_value(response['data']['candlestick'][0], 'ohlcv')
+        #
+        #     {
+        #         "success":1,
+        #         "data":{
+        #             "candlestick":[
+        #                 {
+        #                     "type":"5min",
+        #                     "ohlcv":[
+        #                         ["0.02501786","0.02501786","0.02501786","0.02501786","0.0000",1591488000000],
+        #                         ["0.02501747","0.02501953","0.02501747","0.02501953","0.3017",1591488300000],
+        #                         ["0.02501762","0.02501762","0.02500392","0.02500392","0.1500",1591488600000],
+        #                     ]
+        #                 }
+        #             ],
+        #             "timestamp":1591508668190
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        candlestick = self.safe_value(data, 'candlestick', [])
+        first = self.safe_value(candlestick, 0, {})
+        ohlcv = self.safe_value(first, 'ohlcv', [])
         return self.parse_ohlcvs(ohlcv, market, timeframe, since, limit)
 
     def fetch_balance(self, params={}):
@@ -281,7 +312,7 @@ class bitbank (Exchange):
         id = self.safe_string(order, 'order_id')
         marketId = self.safe_string(order, 'pair')
         symbol = None
-        if marketId and not market and (marketId in list(self.marketsById.keys())):
+        if marketId and not market and (marketId in self.marketsById):
             market = self.marketsById[marketId]
         if market is not None:
             symbol = market['symbol']
@@ -300,6 +331,7 @@ class bitbank (Exchange):
         side = self.safe_string_lower(order, 'side')
         return {
             'id': id,
+            'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
@@ -402,7 +434,7 @@ class bitbank (Exchange):
         }
 
     def withdraw(self, code, amount, address, tag=None, params={}):
-        if not('uuid' in list(params.keys())):
+        if not ('uuid' in params):
             raise ExchangeError(self.id + ' uuid is required for withdrawal')
         self.load_markets()
         currency = self.currency(code)

@@ -52,7 +52,7 @@ module.exports = class btcturk extends Exchange {
             'fees': {
                 'trading': {
                     'maker': 0.002 * 1.18,
-                    'taker': 0.0035 * 1.18,
+                    'taker': 0.003 * 1.18,
                 },
             },
         });
@@ -237,10 +237,9 @@ module.exports = class btcturk extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1d', since = undefined, limit = undefined) {
-        const timestamp = this.parse8601 (this.safeString (ohlcv, 'Time'));
+    parseOHLCV (ohlcv, market = undefined) {
         return [
-            timestamp,
+            this.parse8601 (this.safeString (ohlcv, 'Time')),
             this.safeFloat (ohlcv, 'Open'),
             this.safeFloat (ohlcv, 'High'),
             this.safeFloat (ohlcv, 'Low'),

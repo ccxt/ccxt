@@ -5,8 +5,8 @@
 ![npm Weekly Downloads](https://img.shields.io/npm/dw/ccxt.svg)
 ![npm Monthly Downloads](https://img.shields.io/npm/dm/ccxt.svg)
 ![npm Yearly Downloads](https://img.shields.io/npm/dy/ccxt.svg)
-![Dependent repos (via libraries.io)](https://img.shields.io/librariesio/dependent-repos/npm/ccxt.svg)
-![Dependents (via libraries.io)](https://img.shields.io/librariesio/dependents/npm/ccxt.svg)
+<!-- ![Dependent repos (via libraries.io)](https://img.shields.io/librariesio/dependent-repos/npm/ccxt.svg) -->
+<!-- ![Dependents (via libraries.io)](https://img.shields.io/librariesio/dependents/npm/ccxt.svg) -->
 <!-- ![npm bundle size](https://img.shields.io/bundlephobia/min/ccxt.svg) -->
 <!-- ![npm bundle size](https://img.shields.io/bundlephobia/minzip/ccxt.svg) -->
 
@@ -15,8 +15,8 @@
 ![PyPI Daily Downloads](https://img.shields.io/pypi/dd/ccxt.svg)
 ![PyPI Weekly Downloads](https://img.shields.io/pypi/dw/ccxt.svg)
 ![PyPI Monthly Downloads](https://img.shields.io/pypi/dm/ccxt.svg)
-![Dependent repos (via libraries.io)](https://img.shields.io/librariesio/dependent-repos/pypi/ccxt.svg)
-![Dependents (via libraries.io)](https://img.shields.io/librariesio/dependents/pypi/ccxt.svg)
+<!-- ![Dependent repos (via libraries.io)](https://img.shields.io/librariesio/dependent-repos/pypi/ccxt.svg) -->
+<!-- ![Dependents (via libraries.io)](https://img.shields.io/librariesio/dependents/pypi/ccxt.svg) -->
 
 ## PHP / Packagist
 

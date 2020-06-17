@@ -21,7 +21,7 @@ module.exports = class latoken extends Exchange {
             'has': {
                 'CORS': false,
                 'publicAPI': true,
-                'pivateAPI': true,
+                'privateAPI': true,
                 'cancelOrder': true,
                 'cancelAllOrders': true,
                 'createMarketOrder': false,
@@ -61,6 +61,7 @@ module.exports = class latoken extends Exchange {
                         'MarketData/tickers',
                         'MarketData/ticker/{symbol}',
                         'MarketData/orderBook/{symbol}',
+                        'MarketData/orderBook/{symbol}/{limit}',
                         'MarketData/trades/{symbol}',
                         'MarketData/trades/{symbol}/{limit}',
                     ],
@@ -91,6 +92,7 @@ module.exports = class latoken extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'MT': 'Monarch',
                 'TSL': 'Treasure SL',
             },
             'options': {
@@ -171,7 +173,7 @@ module.exports = class latoken extends Exchange {
                     'max': undefined,
                 },
                 'price': {
-                    'min': undefined,
+                    'min': Math.pow (10, -precision['price']),
                     'max': undefined,
                 },
                 'cost': {
@@ -272,7 +274,7 @@ module.exports = class latoken extends Exchange {
         };
     }
 
-    async fetchBalance (currency = undefined, params = {}) {
+    async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetAccountBalances (params);
         //
@@ -313,26 +315,49 @@ module.exports = class latoken extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
+            'limit': 10,
         };
-        const response = await this.publicGetMarketDataOrderBookSymbol (this.extend (request, params));
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 10, max 100
+        }
+        const response = await this.publicGetMarketDataOrderBookSymbolLimit (this.extend (request, params));
         //
         //     {
         //         "pairId": 502,
         //         "symbol": "LAETH",
         //         "spread": 0.07,
         //         "asks": [
-        //             { "price": 136.3, "amount": 7.024 }
+        //             { "price": 136.3, "quantity": 7.024 }
         //         ],
         //         "bids": [
-        //             { "price": 136.2, "amount": 6.554 }
+        //             { "price": 136.2, "quantity": 6.554 }
         //         ]
         //     }
         //
-        return this.parseOrderBook (response, undefined, 'bids', 'asks', 'price', 'amount');
+        return this.parseOrderBook (response, undefined, 'bids', 'asks', 'price', 'quantity');
     }
 
     parseTicker (ticker, market = undefined) {
-        const symbol = this.findSymbol (this.safeString (ticker, 'symbol'), market);
+        //
+        //     {
+        //         "pairId":"63b41092-f3f6-4ea4-9e7c-4525ed250dad",
+        //         "symbol":"ETHBTC",
+        //         "volume":11317.037494474000000000,
+        //         "open":0.020033000000000000,
+        //         "low":0.019791000000000000,
+        //         "high":0.020375000000000000,
+        //         "close":0.019923000000000000,
+        //         "priceChange":-0.1500
+        //     }
+        //
+        let symbol = undefined;
+        const marketId = this.safeString (ticker, 'symbol');
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
         const open = this.safeFloat (ticker, 'open');
         const close = this.safeFloat (ticker, 'close');
         let change = undefined;
@@ -359,8 +384,8 @@ module.exports = class latoken extends Exchange {
             'change': change,
             'percentage': percentage,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'volume'),
-            'quoteVolume': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': this.safeFloat (ticker, 'volume'),
             'info': ticker,
         };
     }
@@ -623,8 +648,10 @@ module.exports = class latoken extends Exchange {
         if ((timeFilled !== undefined) && (timeFilled > 0)) {
             lastTradeTimestamp = timeFilled;
         }
+        const clientOrderId = this.safeString (order, 'cliOrdId');
         return {
             'id': id,
+            'clientOrderId': clientOrderId,
             'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -640,6 +667,7 @@ module.exports = class latoken extends Exchange {
             'average': undefined,
             'remaining': remaining,
             'fee': undefined,
+            'trades': undefined,
         };
     }
 
@@ -855,28 +883,16 @@ module.exports = class latoken extends Exchange {
         //     { "error": { "message": "Order 1563460289.571254.704945@0370:1 is not found","errorType":"RequestError","statusCode":400 }}
         //
         const message = this.safeString (response, 'message');
-        const exact = this.exceptions['exact'];
-        const broad = this.exceptions['broad'];
         const feedback = this.id + ' ' + body;
         if (message !== undefined) {
-            if (message in exact) {
-                throw new exact[message] (feedback);
-            }
-            const broadKey = this.findBroadlyMatchedKey (broad, message);
-            if (broadKey !== undefined) {
-                throw new broad[broadKey] (feedback);
-            }
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
         }
         const error = this.safeValue (response, 'error', {});
         const errorMessage = this.safeString (error, 'message');
         if (errorMessage !== undefined) {
-            if (errorMessage in exact) {
-                throw new exact[errorMessage] (feedback);
-            }
-            const broadKey = this.findBroadlyMatchedKey (broad, errorMessage);
-            if (broadKey !== undefined) {
-                throw new broad[broadKey] (feedback);
-            }
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorMessage, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
     }

@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, PermissionDenied, InvalidOrder, AuthenticationError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, PermissionDenied, InvalidOrder, AuthenticationError, InsufficientFunds, OrderNotFound, DDoSProtection, OnMaintenance, RateLimitExceeded } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -24,6 +24,9 @@ module.exports = class bitz extends Exchange {
                 'fetchOrders': true,
                 'fetchOrder': true,
                 'createMarketOrder': false,
+                'fetchDeposits': true,
+                'fetchWithdrawals': true,
+                'fetchTransactions': false,
             },
             'timeframes': {
                 '1m': '1min',
@@ -37,17 +40,18 @@ module.exports = class bitz extends Exchange {
                 '1w': '1week',
                 '1M': '1mon',
             },
+            'hostname': 'apiv2.bitz.com',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/35862606-4f554f14-0b5d-11e8-957d-35058c504b6f.jpg',
                 'api': {
-                    'market': 'https://apiv2.bit-z.pro',
-                    'trade': 'https://apiv2.bit-z.pro',
-                    'assets': 'https://apiv2.bit-z.pro',
+                    'market': 'https://{hostname}',
+                    'trade': 'https://{hostname}',
+                    'assets': 'https://{hostname}',
                 },
-                'www': 'https://www.bit-z.com',
-                'doc': 'https://apidoc.bit-z.com/en/',
-                'fees': 'https://www.bit-z.com/fee?type=1',
-                'referral': 'https://u.bit-z.com/register?invite_code=1429193',
+                'www': 'https://www.bitz.com',
+                'doc': 'https://apidoc.bitz.com/en/',
+                'fees': 'https://www.bitz.com/fee?type=1',
+                'referral': 'https://u.bitz.com/register?invite_code=1429193',
             },
             'api': {
                 'market': {
@@ -71,6 +75,7 @@ module.exports = class bitz extends Exchange {
                         'getUserHistoryEntrustSheet', // closed orders
                         'getUserNowEntrustSheet', // open orders
                         'getEntrustSheetInfo', // order
+                        'depositOrWithdraw', // transactions
                     ],
                 },
                 'assets': {
@@ -81,8 +86,8 @@ module.exports = class bitz extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'maker': 0.001,
-                    'taker': 0.001,
+                    'maker': 0.002,
+                    'taker': 0.002,
                 },
                 'funding': {
                     'withdraw': {
@@ -155,8 +160,11 @@ module.exports = class bitz extends Exchange {
                 // https://github.com/ccxt/ccxt/issues/3881
                 // https://support.bit-z.pro/hc/en-us/articles/360007500654-BOX-BOX-Token-
                 'BOX': 'BOX Token',
+                'LEO': 'LeoCoin',
                 'XRB': 'NANO',
                 'PXC': 'Pixiecoin',
+                'VTC': 'VoteCoin',
+                'TTC': 'TimesChain',
             },
             'exceptions': {
                 // '200': Success
@@ -168,7 +176,9 @@ module.exports = class bitz extends Exchange {
                 '-109': AuthenticationError, // Invalid scretKey
                 '-110': DDoSProtection, // The number of access requests exceeded
                 '-111': PermissionDenied, // Current IP is not in the range of trusted IP
-                '-112': ExchangeNotAvailable, // Service is under maintenance
+                '-112': OnMaintenance, // Service is under maintenance
+                '-114': RateLimitExceeded, // The number of daily requests has reached the limit
+                '-117': AuthenticationError, // The apikey expires
                 '-100015': AuthenticationError, // Trade password error
                 '-100044': ExchangeError, // Fail to request data
                 '-100101': ExchangeError, // Invalid symbol
@@ -607,15 +617,17 @@ module.exports = class bitz extends Exchange {
         return this.parseTrades (response['data'], market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         //
-        //      {     time: "1535973420000",
-        //            open: "0.03975084",
-        //            high: "0.03975084",
-        //             low: "0.03967700",
-        //           close: "0.03967700",
-        //          volume: "12.4733",
-        //        datetime: "2018-09-03 19:17:00" }
+        //     {
+        //         time: "1535973420000",
+        //         open: "0.03975084",
+        //         high: "0.03975084",
+        //         low: "0.03967700",
+        //         close: "0.03967700",
+        //         volume: "12.4733",
+        //         datetime: "2018-09-03 19:17:00"
+        //     }
         //
         return [
             this.safeInteger (ohlcv, 'time'),
@@ -642,40 +654,32 @@ module.exports = class bitz extends Exchange {
             }
         } else {
             if (since !== undefined) {
-                throw new ExchangeError (this.id + ' fetchOHLCV requires a limit argument if the since argument is specified');
+                throw new ArgumentsRequired (this.id + ' fetchOHLCV requires a limit argument if the since argument is specified');
             }
         }
         const response = await this.marketGetKline (this.extend (request, params));
         //
-        //     {    status:    200,
-        //             msg:   "",
-        //            data: {       bars: [ {     time: "1535973420000",
-        //                                        open: "0.03975084",
-        //                                        high: "0.03975084",
-        //                                         low: "0.03967700",
-        //                                       close: "0.03967700",
-        //                                      volume: "12.4733",
-        //                                    datetime: "2018-09-03 19:17:00" },
-        //                                  {     time: "1535955480000",
-        //                                        open: "0.04009900",
-        //                                        high: "0.04016745",
-        //                                         low: "0.04009900",
-        //                                       close: "0.04012074",
-        //                                      volume: "74.4803",
-        //                                    datetime: "2018-09-03 14:18:00" }  ],
-        //                    resolution:   "1min",
-        //                        symbol:   "eth_btc",
-        //                          from:   "1535973420000",
-        //                            to:   "1535955480000",
-        //                          size:    300                                    },
-        //            time:    1535973435,
-        //       microtime:   "0.56462100 1535973435",
-        //          source:   "api"                                                    }
+        //     {
+        //         status: 200,
+        //         msg: "",
+        //         data: {
+        //             bars: [
+        //                 { time: "1535973420000", open: "0.03975084", high: "0.03975084", low: "0.03967700", close: "0.03967700", volume: "12.4733", datetime: "2018-09-03 19:17:00" },
+        //                 { time: "1535955480000", open: "0.04009900", high: "0.04016745", low: "0.04009900", close: "0.04012074", volume: "74.4803", datetime: "2018-09-03 14:18:00" },
+        //             ],
+        //             resolution: "1min",
+        //             symbol: "eth_btc",
+        //             from: "1535973420000",
+        //             to: "1535955480000",
+        //             size: 300
+        //         },
+        //         time: 1535973435,
+        //         microtime: "0.56462100 1535973435",
+        //         source: "api"
+        //     }
         //
-        const bars = this.safeValue (response['data'], 'bars', undefined);
-        if (bars === undefined) {
-            return [];
-        }
+        const data = this.safeValue (response, 'data', {});
+        const bars = this.safeValue (data, 'bars', []);
         return this.parseOHLCVs (bars, market, timeframe, since, limit);
     }
 
@@ -746,6 +750,7 @@ module.exports = class bitz extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         return {
             'id': id,
+            'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
@@ -761,6 +766,7 @@ module.exports = class bitz extends Exchange {
             'trades': undefined,
             'fee': undefined,
             'info': order,
+            'average': undefined,
         };
     }
 
@@ -1008,6 +1014,141 @@ module.exports = class bitz extends Exchange {
         return await this.fetchOrdersWithMethod ('tradePostGetUserHistoryEntrustSheet', symbol, since, limit, params);
     }
 
+    parseTransactionStatus (status) {
+        const statuses = {
+            '1': 'pending',
+            '2': 'pending',
+            '3': 'pending',
+            '4': 'ok',
+            '5': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        //     {
+        //         "id": '96275',
+        //         "uid": '2109073',
+        //         "wallet": '0xf4c4141c0127bc37b1d0c409a091920eba13ada7',
+        //         "txid": '0xb7adfa52aa566f9ac112e3c01f77bd91179b19eab12092a9a5a8b33d5086e31d',
+        //         "confirm": '12',
+        //         "number": '0.50000000',
+        //         "status": 4,
+        //         "updated": '1534944168605',
+        //         "addressUrl": 'https://etherscan.io/address/',
+        //         "txidUrl": 'https://etherscan.io/tx/',
+        //         "description": 'Ethereum',
+        //         "coin": 'eth',
+        //         "memo": ''
+        //     }
+        //
+        //     {
+        //         "id":"397574",
+        //         "uid":"2033056",
+        //         "wallet":"1AG1gZvQAYu3WBvgg7p4BMMghQD2gE693k",
+        //         "txid":"",
+        //         "confirm":"0",
+        //         "number":"1000.00000000",
+        //         "status":1,
+        //         "updated":"0",
+        //         "addressUrl":"http://omniexplorer.info/lookupadd.aspx?address=",
+        //         "txidUrl":"http://omniexplorer.info/lookuptx.aspx?txid=",
+        //         "description":"Tether",
+        //         "coin":"usdt",
+        //         "memo":""
+        //     }
+        //
+        //     {
+        //         "id":"153606",
+        //         "uid":"2033056",
+        //         "wallet":"1AG1gZvQAYu3WBvgg7p4BMMghQD2gE693k",
+        //         "txid":"aa2b179f84cd6dedafd41845e0fbf7f01e14c0d71ea3140d03d6f5a9ccd93199",
+        //         "confirm":"0",
+        //         "number":"761.11110000",
+        //         "status":4,
+        //         "updated":"1536726133579",
+        //         "addressUrl":"http://omniexplorer.info/lookupadd.aspx?address=",
+        //         "txidUrl":"http://omniexplorer.info/lookuptx.aspx?txid=",
+        //         "description":"Tether",
+        //         "coin":"usdt",
+        //         "memo":""
+        //     }
+        //
+        let timestamp = this.safeInteger (transaction, 'updated');
+        if (timestamp === 0) {
+            timestamp = undefined;
+        }
+        const currencyId = this.safeString (transaction, 'coin');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const type = this.safeStringLower (transaction, 'type');
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        return {
+            'id': this.safeString (transaction, 'id'),
+            'txid': this.safeString (transaction, 'txid'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'address': this.safeString (transaction, 'wallet'),
+            'tag': this.safeString (transaction, 'memo'),
+            'type': type,
+            'amount': this.safeFloat (transaction, 'number'),
+            'currency': code,
+            'status': status,
+            'updated': timestamp,
+            'fee': undefined,
+            'info': transaction,
+        };
+    }
+
+    parseTransactionsByType (type, transactions, code = undefined, since = undefined, limit = undefined) {
+        const result = [];
+        for (let i = 0; i < transactions.length; i++) {
+            const transaction = this.parseTransaction (this.extend ({
+                'type': type,
+            }, transactions[i]));
+            result.push (transaction);
+        }
+        return this.filterByCurrencySinceLimit (result, code, since, limit);
+    }
+
+    parseTransactionType (type) {
+        const types = {
+            'deposit': 1,
+            'withdrawal': 2,
+        };
+        return this.safeInteger (types, type, type);
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchTransactionsForType ('deposit', code, since, limit, params);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchTransactionsForType ('withdrawal', code, since, limit, params);
+    }
+
+    async fetchTransactionsForType (type, code = undefined, since = undefined, limit = undefined, params = {}) {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTransactions() requires a currency `code` argument');
+        }
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'coin': currency['id'],
+            'type': this.parseTransactionType (type),
+        };
+        if (since !== undefined) {
+            request['startTime'] = parseInt (since / 1000).toString ();
+        }
+        if (limit !== undefined) {
+            request['page'] = 1;
+            request['pageSize'] = limit;
+        }
+        const response = await this.tradePostDepositOrWithdraw (this.extend (request, params));
+        const transactions = this.safeValue (response['data'], 'data', []);
+        return this.parseTransactionsByType (type, transactions, code, since, limit);
+    }
+
     nonce () {
         const currentTimestamp = this.seconds ();
         if (currentTimestamp > this.options['lastNonceTimestamp']) {
@@ -1019,7 +1160,8 @@ module.exports = class bitz extends Exchange {
     }
 
     sign (path, api = 'market', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api] + '/' + this.capitalize (api) + '/' + path;
+        const baseUrl = this.implodeParams (this.urls['api'][api], { 'hostname': this.hostname });
+        let url = baseUrl + '/' + this.capitalize (api) + '/' + path;
         let query = undefined;
         if (api === 'market') {
             query = this.urlencode (params);
@@ -1046,7 +1188,6 @@ module.exports = class bitz extends Exchange {
         const status = this.safeString (response, 'status');
         if (status !== undefined) {
             const feedback = this.id + ' ' + body;
-            const exceptions = this.exceptions;
             //
             //     {"status":-107,"msg":"","data":"","time":1535968848,"microtime":"0.89092200 1535968848","source":"api"}
             //
@@ -1056,20 +1197,14 @@ module.exports = class bitz extends Exchange {
                 //
                 const code = this.safeInteger (response, 'data');
                 if (code !== undefined) {
-                    if (code in exceptions) {
-                        throw new exceptions[code] (feedback);
-                    } else {
-                        throw new ExchangeError (feedback);
-                    }
+                    this.throwExactlyMatchedException (this.exceptions, code, feedback);
+                    throw new ExchangeError (feedback);
                 } else {
                     return; // no error
                 }
             }
-            if (status in exceptions) {
-                throw new exceptions[status] (feedback);
-            } else {
-                throw new ExchangeError (feedback);
-            }
+            this.throwExactlyMatchedException (this.exceptions, status, feedback);
+            throw new ExchangeError (feedback);
         }
     }
 };

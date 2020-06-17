@@ -16,7 +16,7 @@ module.exports = class bitso extends Exchange {
             'rateLimit': 2000, // 30 requests per minute
             'version': 'v3',
             'has': {
-                'CORS': true,
+                'CORS': false,
                 'fetchMyTrades': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -28,6 +28,14 @@ module.exports = class bitso extends Exchange {
                 'doc': 'https://bitso.com/api_info',
                 'fees': 'https://bitso.com/fees?l=es',
                 'referral': 'https://bitso.com/?ref=itej',
+            },
+            'options': {
+                'precision': {
+                    'XRP': 6,
+                    'MXN': 2,
+                    'TUSD': 2,
+                },
+                'defaultPrecision': 8,
             },
             'api': {
                 'public': {
@@ -118,8 +126,8 @@ module.exports = class bitso extends Exchange {
                 },
             };
             const precision = {
-                'amount': this.precisionFromString (market['minimum_amount']),
-                'price': this.precisionFromString (market['minimum_price']),
+                'amount': this.safeInteger (this.options['precision'], base, this.options['defaultPrecision']),
+                'price': this.safeInteger (this.options['precision'], quote, this.options['defaultPrecision']),
             };
             result.push ({
                 'id': id,
@@ -131,6 +139,7 @@ module.exports = class bitso extends Exchange {
                 'info': market,
                 'limits': limits,
                 'precision': precision,
+                'active': undefined,
             });
         }
         return result;
@@ -361,9 +370,11 @@ module.exports = class bitso extends Exchange {
                 filled = amount - remaining;
             }
         }
+        const clientOrderId = this.safeString (order, 'client_id');
         return {
             'info': order,
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -377,6 +388,8 @@ module.exports = class bitso extends Exchange {
             'filled': filled,
             'status': status,
             'fee': undefined,
+            'average': undefined,
+            'trades': undefined,
         };
     }
 
@@ -390,7 +403,7 @@ module.exports = class bitso extends Exchange {
         // warn the user with an exception if the user wants to filter
         // starting from since timestamp, but does not set the trade id with an extra 'marker' param
         if ((since !== undefined) && !markerInParams) {
-            throw ExchangeError (this.id + ' fetchOpenOrders does not support fetching orders starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id');
+            throw new ExchangeError (this.id + ' fetchOpenOrders does not support fetching orders starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id');
         }
         // convert it to an integer unconditionally
         if (markerInParams) {
@@ -536,12 +549,8 @@ module.exports = class bitso extends Exchange {
                     throw new ExchangeError (feedback);
                 }
                 const code = this.safeString (error, 'code');
-                const exceptions = this.exceptions;
-                if (code in exceptions) {
-                    throw new exceptions[code] (feedback);
-                } else {
-                    throw new ExchangeError (feedback);
-                }
+                this.throwExactlyMatchedException (this.exceptions, code, feedback);
+                throw new ExchangeError (feedback);
             }
         }
     }

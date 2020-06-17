@@ -8,7 +8,7 @@ import math
 from ccxt.base.errors import ExchangeError
 
 
-class coinmarketcap (Exchange):
+class coinmarketcap(Exchange):
 
     def describe(self):
         return self.deep_extend(super(coinmarketcap, self).describe(), {
@@ -102,17 +102,19 @@ class coinmarketcap (Exchange):
             'Blocktrade Token': 'Blocktrade Token',
             'Catcoin': 'Catcoin',
             'CanYaCoin': 'CanYaCoin',  # conflict with CAN(Content and AD Network)
+            'CryptoBossCoin': 'CryptoBossCoin',  # conflict with CBC(CashBet Coin)
             'Comet': 'Comet',  # conflict with CMT(CyberMiles)
             'CPChain': 'CPChain',
             'CrowdCoin': 'CrowdCoin',  # conflict with CRC CryCash
+            'Cryptaur': 'Cryptaur',  # conflict with CPT = Contents Protocol https://github.com/ccxt/ccxt/issues/4920 and https://github.com/ccxt/ccxt/issues/6081
             'Cubits': 'Cubits',  # conflict with QBT(Qbao)
             'DAO.Casino': 'DAO.Casino',  # conflict with BET(BetaCoin)
             'E-Dinar Coin': 'E-Dinar Coin',  # conflict with EDR Endor Protocol and EDRCoin
             'EDRcoin': 'EDRcoin',  # conflict with EDR Endor Protocol and E-Dinar Coin
             'ENTCash': 'ENTCash',  # conflict with ENT(Eternity)
-            'FairGame': 'FairGame',
+            'FairCoin': 'FairCoin',  # conflict with FAIR(FairGame) https://github.com/ccxt/ccxt/pull/5865
             'Fabric Token': 'Fabric Token',
-            'GET Protocol': 'GET Protocol',
+            # 'GET Protocol': 'GET Protocol',
             'Global Tour Coin': 'Global Tour Coin',  # conflict with GTC(Game.com)
             'GuccioneCoin': 'GuccioneCoin',  # conflict with GCC(Global Cryptocurrency)
             'HarmonyCoin': 'HarmonyCoin',  # conflict with HMC(Hi Mutual Society)
@@ -125,12 +127,22 @@ class coinmarketcap (Exchange):
             'KingN Coin': 'KingN Coin',  # conflict with KNC(Kyber Network)
             'LiteBitcoin': 'LiteBitcoin',  # conflict with LBTC(LightningBitcoin)
             'Maggie': 'Maggie',
+            'Monarch': 'Monarch',  # conflict with MyToken(MT)
+            'MTC Mesh Network': 'MTC Mesh Network',  # conflict with MTC Docademic doc.com Token https://github.com/ccxt/ccxt/issues/6081 https://github.com/ccxt/ccxt/issues/3025
             'IOTA': 'IOTA',  # a special case, most exchanges list it as IOTA, therefore we change just the Coinmarketcap instead of changing them all
             'NetCoin': 'NetCoin',
             'PCHAIN': 'PCHAIN',  # conflict with PAI(Project Pai)
+            'Plair': 'Plair',  # conflict with PLA(PLANET)
+            'PlayChip': 'PlayChip',  # conflict with PLA(PLANET)
             'Polcoin': 'Polcoin',
             'PutinCoin': 'PutinCoin',  # conflict with PUT(Profile Utility Token)
             'Rcoin': 'Rcoin',  # conflict with RCN(Ripio Credit Network)
+            # https://github.com/ccxt/ccxt/issues/6081
+            # https://github.com/ccxt/ccxt/issues/3365
+            # https://github.com/ccxt/ccxt/issues/2873
+            'Themis': 'Themis',  # conflict with GET(Guaranteed Entrance Token, GET Protocol)
+            'Menlo One': 'Menlo One',  # conflict with Harmony(ONE)
+            'BigONE Token': 'BigONE Token',  # conflict with Harmony(ONE)
         }
         return self.safe_value(currencies, name, base)
 
@@ -158,6 +170,9 @@ class coinmarketcap (Exchange):
                     'baseId': baseId,
                     'quoteId': quoteId,
                     'info': market,
+                    'active': None,
+                    'precision': self.precision,
+                    'limits': self.limits,
                 })
         return result
 

@@ -356,6 +356,7 @@ module.exports = class bitflyer extends Exchange {
         const id = this.safeString (order, 'child_order_acceptance_id');
         return {
             'id': id,
+            'clientOrderId': undefined,
             'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -370,6 +371,8 @@ module.exports = class bitflyer extends Exchange {
             'filled': filled,
             'remaining': remaining,
             'fee': fee,
+            'average': undefined,
+            'trades': undefined,
         };
     }
 

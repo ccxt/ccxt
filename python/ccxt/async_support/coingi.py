@@ -15,7 +15,7 @@ import math
 from ccxt.base.errors import ExchangeError
 
 
-class coingi (Exchange):
+class coingi(Exchange):
 
     def describe(self):
         return self.deep_extend(super(coingi, self).describe(), {

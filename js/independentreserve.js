@@ -71,6 +71,9 @@ module.exports = class independentreserve extends Exchange {
                     'tierBased': false,
                 },
             },
+            'commonCurrencies': {
+                'PLA': 'PlayChip',
+            },
         });
     }
 
@@ -94,6 +97,9 @@ module.exports = class independentreserve extends Exchange {
                     'baseId': baseId,
                     'quoteId': quoteId,
                     'info': id,
+                    'active': undefined,
+                    'precision': this.precision,
+                    'limits': this.limits,
                 });
             }
         }
@@ -171,11 +177,34 @@ module.exports = class independentreserve extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //
+        //     {
+        //         "OrderGuid": "c7347e4c-b865-4c94-8f74-d934d4b0b177",
+        //         "CreatedTimestampUtc": "2014-09-23T12:39:34.3817763Z",
+        //         "Type": "MarketBid",
+        //         "VolumeOrdered": 5.0,
+        //         "VolumeFilled": 5.0,
+        //         "Price": null,
+        //         "AvgPrice": 100.0,
+        //         "ReservedAmount": 0.0,
+        //         "Status": "Filled",
+        //         "PrimaryCurrencyCode": "Xbt",
+        //         "SecondaryCurrencyCode": "Usd"
+        //     }
+        //
         let symbol = undefined;
-        if (market === undefined) {
+        const baseId = this.safeString (order, 'PrimaryCurrencyCode');
+        const quoteId = this.safeString (order, 'PrimaryCurrencyCode');
+        let base = undefined;
+        let quote = undefined;
+        if ((baseId !== undefined) && (quoteId !== undefined)) {
+            base = this.safeCurrencyCode (baseId);
+            quote = this.safeCurrencyCode (quoteId);
+            symbol = base + '/' + quote;
+        } else if (market !== undefined) {
             symbol = market['symbol'];
-        } else {
-            market = this.findMarket (order['PrimaryCurrencyCode'] + '/' + order['SecondaryCurrencyCode']);
+            base = market['base'];
+            quote = market['quote'];
         }
         let orderType = this.safeValue (order, 'Type');
         if (orderType.indexOf ('Market') >= 0) {
@@ -189,7 +218,7 @@ module.exports = class independentreserve extends Exchange {
         } else if (orderType.indexOf ('Offer') >= 0) {
             side = 'sell';
         }
-        const timestamp = this.parse8601 (order['CreatedTimestampUtc']);
+        const timestamp = this.parse8601 (this.safeString (order, 'CreatedTimestampUtc'));
         let amount = this.safeFloat (order, 'VolumeOrdered');
         if (amount === undefined) {
             amount = this.safeFloat (order, 'Volume');
@@ -206,15 +235,10 @@ module.exports = class independentreserve extends Exchange {
                 }
             }
         }
-        let feeCurrency = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-            feeCurrency = market['base'];
-        }
         const fee = {
             'rate': feeRate,
             'cost': feeCost,
-            'currency': feeCurrency,
+            'currency': base,
         };
         const id = this.safeString (order, 'OrderGuid');
         const status = this.parseOrderStatus (this.safeString (order, 'Status'));
@@ -224,6 +248,7 @@ module.exports = class independentreserve extends Exchange {
         return {
             'info': order,
             'id': id,
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -238,6 +263,7 @@ module.exports = class independentreserve extends Exchange {
             'remaining': remaining,
             'status': status,
             'fee': fee,
+            'trades': undefined,
         };
     }
 

@@ -16,7 +16,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
-class bitmex (Exchange):
+class bitmex(Exchange):
 
     def describe(self):
         return self.deep_extend(super(bitmex, self).describe(), {
@@ -26,6 +26,7 @@ class bitmex (Exchange):
             'version': 'v1',
             'userAgent': None,
             'rateLimit': 2000,
+            'pro': True,
             'has': {
                 'CORS': False,
                 'fetchOHLCV': True,
@@ -38,6 +39,9 @@ class bitmex (Exchange):
                 'fetchMyTrades': True,
                 'fetchLedger': True,
                 'fetchTransactions': 'emulated',
+                'createOrder': True,
+                'cancelOrder': True,
+                'cancelAllOrders': True,
             },
             'timeframes': {
                 '1m': '1m',
@@ -46,16 +50,22 @@ class bitmex (Exchange):
                 '1d': '1d',
             },
             'urls': {
-                'test': 'https://testnet.bitmex.com',
+                'test': {
+                    'public': 'https://testnet.bitmex.com',
+                    'private': 'https://testnet.bitmex.com',
+                },
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg',
-                'api': 'https://www.bitmex.com',
+                'api': {
+                    'public': 'https://www.bitmex.com',
+                    'private': 'https://www.bitmex.com',
+                },
                 'www': 'https://www.bitmex.com',
                 'doc': [
                     'https://www.bitmex.com/app/apiOverview',
                     'https://github.com/BitMEX/api-connectors/tree/master/official-http',
                 ],
                 'fees': 'https://www.bitmex.com/app/fees',
-                'referral': 'https://www.bitmex.com/register/rm3C16',
+                'referral': 'https://www.bitmex.com/register/upZpOX',
             },
             'api': {
                 'public': {
@@ -157,6 +167,7 @@ class bitmex (Exchange):
                     'Signature not valid': AuthenticationError,
                     'overloaded': ExchangeNotAvailable,
                     'Account has insufficient Available Balance': InsufficientFunds,
+                    'Service unavailable': ExchangeNotAvailable,  # {"error":{"message":"Service unavailable","name":"HTTPError"}}
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -420,6 +431,7 @@ class bitmex (Exchange):
         types = {
             'Withdrawal': 'transaction',
             'RealisedPNL': 'margin',
+            'UnrealisedPNL': 'margin',
             'Deposit': 'transaction',
             'Transfer': 'transfer',
             'AffiliatePayout': 'referral',
@@ -445,6 +457,29 @@ class bitmex (Exchange):
         #         timestamp: "2017-03-22T13:09:23.514Z"
         #     }
         #
+        # ButMEX returns the unrealized pnl from the wallet history endpoint.
+        # The unrealized pnl transaction has an empty timestamp.
+        # It is not related to historical pnl it has status set to "Pending".
+        # Therefore it's not a part of the history at all.
+        # https://github.com/ccxt/ccxt/issues/6047
+        #
+        #     {
+        #         "transactID":"00000000-0000-0000-0000-000000000000",
+        #         "account":121210,
+        #         "currency":"XBt",
+        #         "transactType":"UnrealisedPNL",
+        #         "amount":-5508,
+        #         "fee":0,
+        #         "transactStatus":"Pending",
+        #         "address":"XBTUSD",
+        #         "tx":"",
+        #         "text":"",
+        #         "transactTime":null,  # ←---------------------------- null
+        #         "walletBalance":139198767,
+        #         "marginBalance":139193259,
+        #         "timestamp":null  # ←---------------------------- null
+        #     }
+        #
         id = self.safe_string(item, 'transactID')
         account = self.safe_string(item, 'account')
         referenceId = self.safe_string(item, 'tx')
@@ -456,6 +491,11 @@ class bitmex (Exchange):
         if amount is not None:
             amount = amount * 1e-8
         timestamp = self.parse8601(self.safe_string(item, 'transactTime'))
+        if timestamp is None:
+            # https://github.com/ccxt/ccxt/issues/6047
+            # set the timestamp to zero, 1970 Jan 1 00:00:00
+            # for unrealized pnl and other transactions without a timestamp
+            timestamp = 0  # see comments above
         feeCost = self.safe_float(item, 'fee', 0)
         if feeCost is not None:
             feeCost = feeCost * 1e-8
@@ -547,7 +587,7 @@ class bitmex (Exchange):
         currency = None
         if code is not None:
             currency = self.currency(code)
-        return self.parseTransactions(transactions, currency, since, limit)
+        return self.parse_transactions(transactions, currency, since, limit)
 
     def parse_transaction_status(self, status):
         statuses = {
@@ -791,10 +831,26 @@ class bitmex (Exchange):
             'info': ticker,
         }
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
-        timestamp = self.parse8601(self.safe_string(ohlcv, 'timestamp'))
+    def parse_ohlcv(self, ohlcv, market=None):
+        #
+        #     {
+        #         "timestamp":"2015-09-25T13:38:00.000Z",
+        #         "symbol":"XBTUSD",
+        #         "open":237.45,
+        #         "high":237.45,
+        #         "low":237.45,
+        #         "close":237.45,
+        #         "trades":0,
+        #         "volume":0,
+        #         "vwap":null,
+        #         "lastSize":null,
+        #         "turnover":0,
+        #         "homeNotional":0,
+        #         "foreignNotional":0
+        #     }
+        #
         return [
-            timestamp,
+            self.parse8601(self.safe_string(ohlcv, 'timestamp')),
             self.safe_float(ohlcv, 'open'),
             self.safe_float(ohlcv, 'high'),
             self.safe_float(ohlcv, 'low'),
@@ -833,6 +889,13 @@ class bitmex (Exchange):
             ymdhms = self.ymdhms(timestamp)
             request['startTime'] = ymdhms  # starting date filter for results
         response = self.publicGetTradeBucketed(self.extend(request, params))
+        #
+        #     [
+        #         {"timestamp":"2015-09-25T13:38:00.000Z","symbol":"XBTUSD","open":237.45,"high":237.45,"low":237.45,"close":237.45,"trades":0,"volume":0,"vwap":null,"lastSize":null,"turnover":0,"homeNotional":0,"foreignNotional":0},
+        #         {"timestamp":"2015-09-25T13:39:00.000Z","symbol":"XBTUSD","open":237.45,"high":237.45,"low":237.45,"close":237.45,"trades":0,"volume":0,"vwap":null,"lastSize":null,"turnover":0,"homeNotional":0,"foreignNotional":0},
+        #         {"timestamp":"2015-09-25T13:40:00.000Z","symbol":"XBTUSD","open":237.45,"high":237.45,"low":237.45,"close":237.45,"trades":0,"volume":0,"vwap":null,"lastSize":null,"turnover":0,"homeNotional":0,"foreignNotional":0}
+        #     ]
+        #
         result = self.parse_ohlcvs(response, market, timeframe, since, limit)
         if fetchOHLCVOpenTimestamp:
             # bitmex returns the candle's close timestamp - https://github.com/ccxt/ccxt/issues/4446
@@ -935,7 +998,7 @@ class bitmex (Exchange):
             }
         takerOrMaker = None
         if fee is not None:
-            takerOrMaker = fee['cost'] < 'maker' if 0 else 'taker'
+            takerOrMaker = 'maker' if (fee['cost'] < 0) else 'taker'
         symbol = None
         marketId = self.safe_string(trade, 'symbol')
         if marketId is not None:
@@ -1007,9 +1070,11 @@ class bitmex (Exchange):
         id = self.safe_string(order, 'orderID')
         type = self.safe_string_lower(order, 'ordType')
         side = self.safe_string_lower(order, 'side')
+        clientOrderId = self.safe_string(order, 'clOrdID')
         return {
             'info': order,
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -1024,6 +1089,7 @@ class bitmex (Exchange):
             'remaining': remaining,
             'status': status,
             'fee': None,
+            'trades': None,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -1077,6 +1143,10 @@ class bitmex (Exchange):
         }
         if price is not None:
             request['price'] = price
+        clientOrderId = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
+        if clientOrderId is not None:
+            request['clOrdID'] = clientOrderId
+            params = self.omit(params, ['clOrdID', 'clientOrderId'])
         response = self.privatePostOrder(self.extend(request, params))
         order = self.parse_order(response)
         id = self.safe_string(order, 'id')
@@ -1085,9 +1155,16 @@ class bitmex (Exchange):
 
     def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
         self.load_markets()
-        request = {
-            'orderID': id,
-        }
+        request = {}
+        origClOrdID = self.safe_string_2(params, 'origClOrdID', 'clientOrderId')
+        if origClOrdID is not None:
+            request['origClOrdID'] = origClOrdID
+            clientOrderId = self.safe_string(params, 'clOrdID', 'clientOrderId')
+            if clientOrderId is not None:
+                request['clOrdID'] = clientOrderId
+            params = self.omit(params, ['origClOrdID', 'clOrdID', 'clientOrderId'])
+        else:
+            request['orderID'] = id
         if amount is not None:
             request['orderQty'] = amount
         if price is not None:
@@ -1099,8 +1176,16 @@ class bitmex (Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
-        response = self.privateDeleteOrder(self.extend({'orderID': id}, params))
-        order = response[0]
+        # https://github.com/ccxt/ccxt/issues/6507
+        clientOrderId = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
+        request = {}
+        if clientOrderId is None:
+            request['orderID'] = id
+        else:
+            request['clOrdID'] = clientOrderId
+            params = self.omit(params, ['clOrdID', 'clientOrderId'])
+        response = self.privateDeleteOrder(self.extend(request, params))
+        order = self.safe_value(response, 0, {})
         error = self.safe_string(order, 'error')
         if error is not None:
             if error.find('Unable to cancel order due to existing state') >= 0:
@@ -1108,6 +1193,55 @@ class bitmex (Exchange):
         order = self.parse_order(order)
         self.orders[order['id']] = order
         return self.extend({'info': response}, order)
+
+    def cancel_all_orders(self, symbol=None, params={}):
+        self.load_markets()
+        request = {}
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        response = self.privateDeleteOrderAll(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "orderID": "string",
+        #             "clOrdID": "string",
+        #             "clOrdLinkID": "string",
+        #             "account": 0,
+        #             "symbol": "string",
+        #             "side": "string",
+        #             "simpleOrderQty": 0,
+        #             "orderQty": 0,
+        #             "price": 0,
+        #             "displayQty": 0,
+        #             "stopPx": 0,
+        #             "pegOffsetValue": 0,
+        #             "pegPriceType": "string",
+        #             "currency": "string",
+        #             "settlCurrency": "string",
+        #             "ordType": "string",
+        #             "timeInForce": "string",
+        #             "execInst": "string",
+        #             "contingencyType": "string",
+        #             "exDestination": "string",
+        #             "ordStatus": "string",
+        #             "triggered": "string",
+        #             "workingIndicator": True,
+        #             "ordRejReason": "string",
+        #             "simpleLeavesQty": 0,
+        #             "leavesQty": 0,
+        #             "simpleCumQty": 0,
+        #             "cumQty": 0,
+        #             "avgPx": 0,
+        #             "multiLegReportingType": "string",
+        #             "text": "string",
+        #             "transactTime": "2020-06-01T09:36:35.290Z",
+        #             "timestamp": "2020-06-01T09:36:35.290Z"
+        #         }
+        #     ]
+        #
+        return self.parse_orders(response, market)
 
     def is_fiat(self, currency):
         if currency == 'EUR':
@@ -1144,13 +1278,8 @@ class bitmex (Exchange):
             error = self.safe_value(response, 'error', {})
             message = self.safe_string(error, 'message')
             feedback = self.id + ' ' + body
-            exact = self.exceptions['exact']
-            if message in exact:
-                raise exact[message](feedback)
-            broad = self.exceptions['broad']
-            broadKey = self.findBroadlyMatchedKey(broad, message)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             if code == 400:
                 raise BadRequest(feedback)
             raise ExchangeError(feedback)  # unknown message
@@ -1168,7 +1297,7 @@ class bitmex (Exchange):
             if format is not None:
                 query += '?' + self.urlencode({'_format': format})
                 params = self.omit(params, '_format')
-        url = self.urls['api'] + query
+        url = self.urls['api'][api] + query
         if self.apiKey and self.secret:
             auth = method + query
             expires = self.safe_integer(self.options, 'api-expires')

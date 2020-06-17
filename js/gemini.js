@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, BadRequest, OrderNotFound, InvalidOrder, InvalidNonce, DDoSProtection, InsufficientFunds, AuthenticationError, ExchangeNotAvailable, PermissionDenied, NotSupported } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, BadRequest, OrderNotFound, InvalidOrder, InvalidNonce, InsufficientFunds, AuthenticationError, PermissionDenied, NotSupported, OnMaintenance, RateLimitExceeded } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -45,7 +45,11 @@ module.exports = class gemini extends Exchange {
                     'https://docs.gemini.com/rest-api',
                     'https://docs.sandbox.gemini.com',
                 ],
-                'test': 'https://api.sandbox.gemini.com',
+                'test': {
+                    'public': 'https://api.sandbox.gemini.com',
+                    'private': 'https://api.sandbox.gemini.com',
+                    'web': 'https://docs.sandbox.gemini.com',
+                },
                 'fees': [
                     'https://gemini.com/api-fee-schedule',
                     'https://gemini.com/trading-fees',
@@ -79,6 +83,7 @@ module.exports = class gemini extends Exchange {
                         'v1/order/status',
                         'v1/orders',
                         'v1/mytrades',
+                        'v1/notionalvolume',
                         'v1/tradevolume',
                         'v1/transfers',
                         'v1/balances',
@@ -100,10 +105,10 @@ module.exports = class gemini extends Exchange {
                 '403': PermissionDenied, // The API key is missing the role necessary to access this private API endpoint
                 '404': OrderNotFound, // Unknown API entry point or Order not found
                 '406': InsufficientFunds, // Insufficient Funds
-                '429': DDoSProtection, // Rate Limiting was applied
+                '429': RateLimitExceeded, // Rate Limiting was applied
                 '500': ExchangeError, // The server encountered an error
                 '502': ExchangeError, // Technical issues are preventing the request from being satisfied
-                '503': ExchangeNotAvailable, // The exchange is down for maintenance
+                '503': OnMaintenance, // The exchange is down for maintenance
             },
             'timeframes': {
                 '1m': '1m',
@@ -133,7 +138,7 @@ module.exports = class gemini extends Exchange {
                     'InvalidSignature': AuthenticationError, // The signature did not match the expected signature
                     'InvalidSymbol': BadRequest, // An invalid symbol was specified
                     'InvalidTimestampInPayload': BadRequest, // The JSON payload contained a timestamp parameter with an unsupported value.
-                    'Maintenance': ExchangeNotAvailable, // The system is down for maintenance
+                    'Maintenance': OnMaintenance, // The system is down for maintenance
                     'MarketNotOpen': InvalidOrder, // The order was rejected because the market is not accepting new orders
                     'MissingApikeyHeader': AuthenticationError, // The X-GEMINI-APIKEY header was missing
                     'MissingOrderField': InvalidOrder, // A required order_id field was not specified
@@ -143,11 +148,13 @@ module.exports = class gemini extends Exchange {
                     'NoSSL': AuthenticationError, // You must use HTTPS to access the API
                     'OptionsMustBeArray': BadRequest, // The options parameter must be an array.
                     'OrderNotFound': OrderNotFound, // The order specified was not found
-                    'RateLimit': DDoSProtection, // Requests were made too frequently. See Rate Limits below.
+                    'RateLimit': RateLimitExceeded, // Requests were made too frequently. See Rate Limits below.
                     'System': ExchangeError, // We are experiencing technical issues
                     'UnsupportedOption': BadRequest, // This order execution option is not supported.
                 },
-                'broad': {},
+                'broad': {
+                    'The Gemini Exchange is currently undergoing maintenance.': OnMaintenance, // The Gemini Exchange is currently undergoing maintenance. Please check https://status.gemini.com/ for more information.
+                },
             },
             'options': {
                 'fetchMarketsMethod': 'fetch_markets_from_web',
@@ -173,78 +180,89 @@ module.exports = class gemini extends Exchange {
         if (numTables < 2) {
             throw new NotSupported (error);
         }
-        // tables[1] = tables[1].replace ("\n", ''); // eslint-disable-line quotes
-        const rows = tables[1].split ("<tr>\n"); // eslint-disable-line quotes
+        const rows = tables[1].split ("\n<tr>\n"); // eslint-disable-line quotes
         const numRows = rows.length;
         if (numRows < 2) {
             throw new NotSupported (error);
         }
+        const apiSymbols = await this.fetchMarketsFromAPI (params);
+        const indexedSymbols = this.indexBy (apiSymbols, 'symbol');
         const result = [];
         // skip the first element (empty string)
         for (let i = 1; i < numRows; i++) {
             const row = rows[i];
             const cells = row.split ("</td>\n"); // eslint-disable-line quotes
             const numCells = cells.length;
-            if (numCells < 7) {
+            if (numCells < 9) {
                 throw new NotSupported (error);
             }
-            //
             //     [
-            //         '<td><code class="prettyprint">btcusd</code>',
-            //         '<td>USD', // quote
-            //         '<td>BTC', // base
-            //         '<td>0.00001 BTC (1e-5)', // min amount
-            //         '<td>0.00000001 BTC (1e-8)', // amount min tick size
-            //         '<td>0.01 USD', // price min tick size
-            //         '</tr>\n'
+            //         '<td>BTC', // currency
+            //         '<td>0.00001 BTC (1e-5)', // min order size
+            //         '<td>0.00000001 BTC (1e-8)', // tick size
+            //         '<td>0.01 USD', // usd price increment
+            //         '<td>N/A', // btc price increment
+            //         '<td>0.0001 ETH (1e-4)', // eth price increment
+            //         '<td>0.0001 BCH (1e-4)', // bch price increment
+            //         '<td>0.001 LTC (1e-3)', // ltc price increment
+            //         '</tr>'
             //     ]
             //
-            let id = cells[0].replace ('<td>', '');
-            id = id.replace ('<code class="prettyprint">', '');
-            id = id.replace ('</code>', '');
-            let baseId = cells[2].replace ('<td>', '');
-            let quoteId = cells[1].replace ('<td>', '');
-            const minAmountAsString = cells[3].replace ('<td>', '');
-            const amountTickSizeAsString = cells[4].replace ('<td>', '');
-            const priceTickSizeAsString = cells[5].replace ('<td>', '');
-            const minAmount = minAmountAsString.split (' ');
-            const amountPrecision = amountTickSizeAsString.split (' ');
-            const pricePrecision = priceTickSizeAsString.split (' ');
-            baseId = baseId.toLowerCase ();
-            quoteId = quoteId.toLowerCase ();
+            const uppercaseBaseId = cells[0].replace ('<td>', '');
+            const baseId = uppercaseBaseId.toLowerCase ();
             const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
-            const precision = {
-                'amount': this.precisionFromString (amountPrecision[0]),
-                'price': this.precisionFromString (pricePrecision[0]),
-            };
-            const active = undefined;
-            result.push ({
-                'id': id,
-                'info': row,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'active': active,
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': parseFloat (minAmount[0]),
-                        'max': undefined,
+            const quoteIds = [ 'usd', 'btc', 'eth', 'bch', 'ltc' ];
+            const minAmountString = cells[1].replace ('<td>', '');
+            const minAmountParts = minAmountString.split (' ');
+            const minAmount = this.safeFloat (minAmountParts, 0);
+            const amountPrecisionString = cells[2].replace ('<td>', '');
+            const amountPrecisionParts = amountPrecisionString.split (' ');
+            const amountPrecision = this.precisionFromString (amountPrecisionParts[0]);
+            for (let j = 0; j < quoteIds.length; j++) {
+                const quoteId = quoteIds[j];
+                const quote = this.safeCurrencyCode (quoteId);
+                const pricePrecisionIndex = this.sum (3, j);
+                const pricePrecisionString = cells[pricePrecisionIndex].replace ('<td>', '');
+                if (pricePrecisionString === 'N/A') {
+                    continue;
+                }
+                const pricePrecisionParts = pricePrecisionString.split (' ');
+                const pricePrecision = this.precisionFromString (pricePrecisionParts[0]);
+                const symbol = base + '/' + quote;
+                if (!(symbol in indexedSymbols)) {
+                    continue;
+                }
+                const id = baseId + quoteId;
+                const active = undefined;
+                result.push ({
+                    'id': id,
+                    'info': row,
+                    'symbol': symbol,
+                    'base': base,
+                    'quote': quote,
+                    'baseId': baseId,
+                    'quoteId': quoteId,
+                    'active': active,
+                    'precision': {
+                        'amount': amountPrecision,
+                        'price': pricePrecision,
                     },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
+                    'limits': {
+                        'amount': {
+                            'min': minAmount,
+                            'max': undefined,
+                        },
+                        'price': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'cost': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-            });
+                });
+            }
         }
         return result;
     }
@@ -255,8 +273,16 @@ module.exports = class gemini extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const id = response[i];
             const market = id;
-            const baseId = id.slice (0, 3);
-            const quoteId = id.slice (3, 6);
+            const idLength = id.length - 0;
+            let baseId = undefined;
+            let quoteId = undefined;
+            if (idLength === 7) {
+                baseId = id.slice (0, 4);
+                quoteId = id.slice (4, 7);
+            } else {
+                baseId = id.slice (0, 3);
+                quoteId = id.slice (3, 6);
+            }
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
@@ -287,6 +313,7 @@ module.exports = class gemini extends Exchange {
                         'max': undefined,
                     },
                 },
+                'active': undefined,
             });
         }
         return result;
@@ -448,8 +475,10 @@ module.exports = class gemini extends Exchange {
         }
         const id = this.safeString (order, 'order_id');
         const side = this.safeStringLower (order, 'side');
+        const clientOrderId = this.safeString (order, 'client_order_id');
         return {
             'id': id,
+            'clientOrderId': clientOrderId,
             'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -465,6 +494,7 @@ module.exports = class gemini extends Exchange {
             'filled': filled,
             'remaining': remaining,
             'fee': fee,
+            'trades': undefined,
         };
     }
 
@@ -635,6 +665,10 @@ module.exports = class gemini extends Exchange {
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
+            if (typeof body === 'string') {
+                const feedback = this.id + ' ' + body;
+                this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
+            }
             return; // fallback to default error handler
         }
         //
@@ -649,17 +683,9 @@ module.exports = class gemini extends Exchange {
             const reason = this.safeString (response, 'reason');
             const message = this.safeString (response, 'message');
             const feedback = this.id + ' ' + message;
-            const exact = this.exceptions['exact'];
-            if (reason in exact) {
-                throw new exact[reason] (feedback);
-            } else if (message in exact) {
-                throw new exact[message] (feedback);
-            }
-            const broad = this.exceptions['broad'];
-            const broadKey = this.findBroadlyMatchedKey (broad, message);
-            if (broadKey !== undefined) {
-                throw new broad[broadKey] (feedback);
-            }
+            this.throwExactlyMatchedException (this.exceptions['exact'], reason, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
     }
@@ -689,6 +715,13 @@ module.exports = class gemini extends Exchange {
             'symbol': market['id'],
         };
         const response = await this.publicGetV2CandlesSymbolTimeframe (this.extend (request, params));
+        //
+        //     [
+        //         [1591515000000,0.02509,0.02509,0.02509,0.02509,0],
+        //         [1591514700000,0.02503,0.02509,0.02503,0.02509,44.6405],
+        //         [1591514400000,0.02503,0.02503,0.02503,0.02503,0],
+        //     ]
+        //
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 };

@@ -52,6 +52,7 @@ module.exports = class luno extends Exchange {
                         'accounts/{id}/pending',
                         'accounts/{id}/transactions',
                         'balance',
+                        'beneficiaries',
                         'fee_info',
                         'funding_address',
                         'listorders',
@@ -73,6 +74,7 @@ module.exports = class luno extends Exchange {
                         'oauth2/grant',
                     ],
                     'put': [
+                        'accounts/{id}/name',
                         'quotes/{id}',
                     ],
                     'delete': [
@@ -103,6 +105,9 @@ module.exports = class luno extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
+                'active': undefined,
+                'precision': this.precision,
+                'limits': this.limits,
             });
         }
         return result;
@@ -145,13 +150,31 @@ module.exports = class luno extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //
+        //     {
+        //         "base": "string",
+        //         "completed_timestamp": "string",
+        //         "counter": "string",
+        //         "creation_timestamp": "string",
+        //         "expiration_timestamp": "string",
+        //         "fee_base": "string",
+        //         "fee_counter": "string",
+        //         "limit_price": "string",
+        //         "limit_volume": "string",
+        //         "order_id": "string",
+        //         "pair": "string",
+        //         "state": "PENDING",
+        //         "type": "BID"
+        //     }
+        //
         const timestamp = this.safeInteger (order, 'creation_timestamp');
         const status = (order['state'] === 'PENDING') ? 'open' : 'closed';
         const side = (order['type'] === 'ASK') ? 'sell' : 'buy';
-        if (market === undefined) {
-            market = this.findMarket (order['pair']);
-        }
+        const marketId = this.safeString (order, 'pair');
         let symbol = undefined;
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+        }
         if (market !== undefined) {
             symbol = market['symbol'];
         }
@@ -169,15 +192,20 @@ module.exports = class luno extends Exchange {
         }
         const fee = { 'currency': undefined };
         if (quoteFee) {
-            fee['side'] = 'quote';
             fee['cost'] = quoteFee;
+            if (market !== undefined) {
+                fee['currency'] = market['quote'];
+            }
         } else {
-            fee['side'] = 'base';
             fee['cost'] = baseFee;
+            if (market !== undefined) {
+                fee['currency'] = market['base'];
+            }
         }
         const id = this.safeString (order, 'order_id');
         return {
             'id': id,
+            'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
@@ -193,6 +221,7 @@ module.exports = class luno extends Exchange {
             'trades': undefined,
             'fee': fee,
             'info': order,
+            'average': undefined,
         };
     }
 
@@ -307,7 +336,7 @@ module.exports = class luno extends Exchange {
                 takerOrMaker = 'taker';
             }
         } else {
-            side = (trade['is_buy']) ? 'buy' : 'sell';
+            side = trade['is_buy'] ? 'buy' : 'sell';
         }
         const feeBase = this.safeFloat (trade, 'fee_base');
         const feeCounter = this.safeFloat (trade, 'fee_counter');

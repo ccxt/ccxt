@@ -12,7 +12,7 @@ from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import OrderNotFound
 
 
-class therock (Exchange):
+class therock(Exchange):
 
     def describe(self):
         return self.deep_extend(super(therock, self).describe(), {
@@ -835,7 +835,7 @@ class therock (Exchange):
         transactions = self.safe_value(response, 'transactions', [])
         transactionTypes = ['withdraw', 'atm_payment']
         depositsAndWithdrawals = self.filter_by_array(transactions, 'type', transactionTypes, False)
-        return self.parseTransactions(depositsAndWithdrawals, currency, since, limit)
+        return self.parse_transactions(depositsAndWithdrawals, currency, since, limit)
 
     def parse_order_status(self, status):
         statuses = {
@@ -918,6 +918,7 @@ class therock (Exchange):
                 cost = 0
         return {
             'id': id,
+            'clientOrderId': None,
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -1152,15 +1153,10 @@ class therock (Exchange):
         numErrors = len(errors)
         if numErrors > 0:
             feedback = self.id + ' ' + body
-            exact = self.exceptions['exact']
-            broad = self.exceptions['broad']
             # here we raise the first error we can identify
             for i in range(0, numErrors):
                 error = errors[i]
                 message = self.safe_string(error, 'message')
-                if message in exact:
-                    raise exact[message](feedback)
-                broadKey = self.findBroadlyMatchedKey(broad, message)
-                if broadKey is not None:
-                    raise broad[broadKey](feedback)
+                self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+                self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message

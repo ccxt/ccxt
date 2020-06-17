@@ -13,10 +13,12 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import OnMaintenance
 
 
-class bitz (Exchange):
+class bitz(Exchange):
 
     def describe(self):
         return self.deep_extend(super(bitz, self).describe(), {
@@ -34,6 +36,9 @@ class bitz (Exchange):
                 'fetchOrders': True,
                 'fetchOrder': True,
                 'createMarketOrder': False,
+                'fetchDeposits': True,
+                'fetchWithdrawals': True,
+                'fetchTransactions': False,
             },
             'timeframes': {
                 '1m': '1min',
@@ -47,17 +52,18 @@ class bitz (Exchange):
                 '1w': '1week',
                 '1M': '1mon',
             },
+            'hostname': 'apiv2.bitz.com',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/35862606-4f554f14-0b5d-11e8-957d-35058c504b6f.jpg',
                 'api': {
-                    'market': 'https://apiv2.bit-z.pro',
-                    'trade': 'https://apiv2.bit-z.pro',
-                    'assets': 'https://apiv2.bit-z.pro',
+                    'market': 'https://{hostname}',
+                    'trade': 'https://{hostname}',
+                    'assets': 'https://{hostname}',
                 },
-                'www': 'https://www.bit-z.com',
-                'doc': 'https://apidoc.bit-z.com/en/',
-                'fees': 'https://www.bit-z.com/fee?type=1',
-                'referral': 'https://u.bit-z.com/register?invite_code=1429193',
+                'www': 'https://www.bitz.com',
+                'doc': 'https://apidoc.bitz.com/en/',
+                'fees': 'https://www.bitz.com/fee?type=1',
+                'referral': 'https://u.bitz.com/register?invite_code=1429193',
             },
             'api': {
                 'market': {
@@ -81,6 +87,7 @@ class bitz (Exchange):
                         'getUserHistoryEntrustSheet',  # closed orders
                         'getUserNowEntrustSheet',  # open orders
                         'getEntrustSheetInfo',  # order
+                        'depositOrWithdraw',  # transactions
                     ],
                 },
                 'assets': {
@@ -91,8 +98,8 @@ class bitz (Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': 0.001,
-                    'taker': 0.001,
+                    'maker': 0.002,
+                    'taker': 0.002,
                 },
                 'funding': {
                     'withdraw': {
@@ -165,8 +172,11 @@ class bitz (Exchange):
                 # https://github.com/ccxt/ccxt/issues/3881
                 # https://support.bit-z.pro/hc/en-us/articles/360007500654-BOX-BOX-Token-
                 'BOX': 'BOX Token',
+                'LEO': 'LeoCoin',
                 'XRB': 'NANO',
                 'PXC': 'Pixiecoin',
+                'VTC': 'VoteCoin',
+                'TTC': 'TimesChain',
             },
             'exceptions': {
                 # '200': Success
@@ -178,7 +188,9 @@ class bitz (Exchange):
                 '-109': AuthenticationError,  # Invalid scretKey
                 '-110': DDoSProtection,  # The number of access requests exceeded
                 '-111': PermissionDenied,  # Current IP is not in the range of trusted IP
-                '-112': ExchangeNotAvailable,  # Service is under maintenance
+                '-112': OnMaintenance,  # Service is under maintenance
+                '-114': RateLimitExceeded,  # The number of daily requests has reached the limit
+                '-117': AuthenticationError,  # The apikey expires
                 '-100015': AuthenticationError,  # Trade password error
                 '-100044': ExchangeError,  # Fail to request data
                 '-100101': ExchangeError,  # Invalid symbol
@@ -592,15 +604,17 @@ class bitz (Exchange):
         #
         return self.parse_trades(response['data'], market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
-        #      {    time: "1535973420000",
-        #            open: "0.03975084",
-        #            high: "0.03975084",
-        #             low: "0.03967700",
-        #           close: "0.03967700",
-        #          volume: "12.4733",
-        #        datetime: "2018-09-03 19:17:00"}
+        #     {
+        #         time: "1535973420000",
+        #         open: "0.03975084",
+        #         high: "0.03975084",
+        #         low: "0.03967700",
+        #         close: "0.03967700",
+        #         volume: "12.4733",
+        #         datetime: "2018-09-03 19:17:00"
+        #     }
         #
         return [
             self.safe_integer(ohlcv, 'time'),
@@ -625,37 +639,30 @@ class bitz (Exchange):
                 request['to'] = self.sum(since, limit * duration * 1000)
         else:
             if since is not None:
-                raise ExchangeError(self.id + ' fetchOHLCV requires a limit argument if the since argument is specified')
+                raise ArgumentsRequired(self.id + ' fetchOHLCV requires a limit argument if the since argument is specified')
         response = await self.marketGetKline(self.extend(request, params))
         #
-        #     {   status:    200,
-        #             msg:   "",
-        #            data: {      bars: [{    time: "1535973420000",
-        #                                        open: "0.03975084",
-        #                                        high: "0.03975084",
-        #                                         low: "0.03967700",
-        #                                       close: "0.03967700",
-        #                                      volume: "12.4733",
-        #                                    datetime: "2018-09-03 19:17:00"},
-        #                                  {    time: "1535955480000",
-        #                                        open: "0.04009900",
-        #                                        high: "0.04016745",
-        #                                         low: "0.04009900",
-        #                                       close: "0.04012074",
-        #                                      volume: "74.4803",
-        #                                    datetime: "2018-09-03 14:18:00"}  ],
-        #                    resolution:   "1min",
-        #                        symbol:   "eth_btc",
-        #                          from:   "1535973420000",
-        #                            to:   "1535955480000",
-        #                          size:    300                                    },
-        #            time:    1535973435,
-        #       microtime:   "0.56462100 1535973435",
-        #          source:   "api"                                                    }
+        #     {
+        #         status: 200,
+        #         msg: "",
+        #         data: {
+        #             bars: [
+        #                 {time: "1535973420000", open: "0.03975084", high: "0.03975084", low: "0.03967700", close: "0.03967700", volume: "12.4733", datetime: "2018-09-03 19:17:00"},
+        #                 {time: "1535955480000", open: "0.04009900", high: "0.04016745", low: "0.04009900", close: "0.04012074", volume: "74.4803", datetime: "2018-09-03 14:18:00"},
+        #             ],
+        #             resolution: "1min",
+        #             symbol: "eth_btc",
+        #             from: "1535973420000",
+        #             to: "1535955480000",
+        #             size: 300
+        #         },
+        #         time: 1535973435,
+        #         microtime: "0.56462100 1535973435",
+        #         source: "api"
+        #     }
         #
-        bars = self.safe_value(response['data'], 'bars', None)
-        if bars is None:
-            return []
+        data = self.safe_value(response, 'data', {})
+        bars = self.safe_value(data, 'bars', [])
         return self.parse_ohlcvs(bars, market, timeframe, since, limit)
 
     def parse_order_status(self, status):
@@ -716,6 +723,7 @@ class bitz (Exchange):
         status = self.parse_order_status(self.safe_string(order, 'status'))
         return {
             'id': id,
+            'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
@@ -731,6 +739,7 @@ class bitz (Exchange):
             'trades': None,
             'fee': None,
             'info': order,
+            'average': None,
         }
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -964,6 +973,129 @@ class bitz (Exchange):
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         return await self.fetch_orders_with_method('tradePostGetUserHistoryEntrustSheet', symbol, since, limit, params)
 
+    def parse_transaction_status(self, status):
+        statuses = {
+            '1': 'pending',
+            '2': 'pending',
+            '3': 'pending',
+            '4': 'ok',
+            '5': 'canceled',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        #     {
+        #         "id": '96275',
+        #         "uid": '2109073',
+        #         "wallet": '0xf4c4141c0127bc37b1d0c409a091920eba13ada7',
+        #         "txid": '0xb7adfa52aa566f9ac112e3c01f77bd91179b19eab12092a9a5a8b33d5086e31d',
+        #         "confirm": '12',
+        #         "number": '0.50000000',
+        #         "status": 4,
+        #         "updated": '1534944168605',
+        #         "addressUrl": 'https://etherscan.io/address/',
+        #         "txidUrl": 'https://etherscan.io/tx/',
+        #         "description": 'Ethereum',
+        #         "coin": 'eth',
+        #         "memo": ''
+        #     }
+        #
+        #     {
+        #         "id":"397574",
+        #         "uid":"2033056",
+        #         "wallet":"1AG1gZvQAYu3WBvgg7p4BMMghQD2gE693k",
+        #         "txid":"",
+        #         "confirm":"0",
+        #         "number":"1000.00000000",
+        #         "status":1,
+        #         "updated":"0",
+        #         "addressUrl":"http://omniexplorer.info/lookupadd.aspx?address=",
+        #         "txidUrl":"http://omniexplorer.info/lookuptx.aspx?txid=",
+        #         "description":"Tether",
+        #         "coin":"usdt",
+        #         "memo":""
+        #     }
+        #
+        #     {
+        #         "id":"153606",
+        #         "uid":"2033056",
+        #         "wallet":"1AG1gZvQAYu3WBvgg7p4BMMghQD2gE693k",
+        #         "txid":"aa2b179f84cd6dedafd41845e0fbf7f01e14c0d71ea3140d03d6f5a9ccd93199",
+        #         "confirm":"0",
+        #         "number":"761.11110000",
+        #         "status":4,
+        #         "updated":"1536726133579",
+        #         "addressUrl":"http://omniexplorer.info/lookupadd.aspx?address=",
+        #         "txidUrl":"http://omniexplorer.info/lookuptx.aspx?txid=",
+        #         "description":"Tether",
+        #         "coin":"usdt",
+        #         "memo":""
+        #     }
+        #
+        timestamp = self.safe_integer(transaction, 'updated')
+        if timestamp == 0:
+            timestamp = None
+        currencyId = self.safe_string(transaction, 'coin')
+        code = self.safe_currency_code(currencyId, currency)
+        type = self.safe_string_lower(transaction, 'type')
+        status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
+        return {
+            'id': self.safe_string(transaction, 'id'),
+            'txid': self.safe_string(transaction, 'txid'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'address': self.safe_string(transaction, 'wallet'),
+            'tag': self.safe_string(transaction, 'memo'),
+            'type': type,
+            'amount': self.safe_float(transaction, 'number'),
+            'currency': code,
+            'status': status,
+            'updated': timestamp,
+            'fee': None,
+            'info': transaction,
+        }
+
+    def parse_transactions_by_type(self, type, transactions, code=None, since=None, limit=None):
+        result = []
+        for i in range(0, len(transactions)):
+            transaction = self.parse_transaction(self.extend({
+                'type': type,
+            }, transactions[i]))
+            result.append(transaction)
+        return self.filter_by_currency_since_limit(result, code, since, limit)
+
+    def parse_transaction_type(self, type):
+        types = {
+            'deposit': 1,
+            'withdrawal': 2,
+        }
+        return self.safe_integer(types, type, type)
+
+    async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        return await self.fetch_transactions_for_type('deposit', code, since, limit, params)
+
+    async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        return await self.fetch_transactions_for_type('withdrawal', code, since, limit, params)
+
+    async def fetch_transactions_for_type(self, type, code=None, since=None, limit=None, params={}):
+        if code is None:
+            raise ArgumentsRequired(self.id + ' fetchTransactions() requires a currency `code` argument')
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'coin': currency['id'],
+            'type': self.parse_transaction_type(type),
+        }
+        if since is not None:
+            request['startTime'] = int(since / str(1000))
+        if limit is not None:
+            request['page'] = 1
+            request['pageSize'] = limit
+        response = await self.tradePostDepositOrWithdraw(self.extend(request, params))
+        transactions = self.safe_value(response['data'], 'data', [])
+        return self.parse_transactions_by_type(type, transactions, code, since, limit)
+
     def nonce(self):
         currentTimestamp = self.seconds()
         if currentTimestamp > self.options['lastNonceTimestamp']:
@@ -973,7 +1105,8 @@ class bitz (Exchange):
         return self.options['lastNonce']
 
     def sign(self, path, api='market', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'][api] + '/' + self.capitalize(api) + '/' + path
+        baseUrl = self.implode_params(self.urls['api'][api], {'hostname': self.hostname})
+        url = baseUrl + '/' + self.capitalize(api) + '/' + path
         query = None
         if api == 'market':
             query = self.urlencode(params)
@@ -996,7 +1129,6 @@ class bitz (Exchange):
         status = self.safe_string(response, 'status')
         if status is not None:
             feedback = self.id + ' ' + body
-            exceptions = self.exceptions
             #
             #     {"status":-107,"msg":"","data":"","time":1535968848,"microtime":"0.89092200 1535968848","source":"api"}
             #
@@ -1006,13 +1138,9 @@ class bitz (Exchange):
                 #
                 code = self.safe_integer(response, 'data')
                 if code is not None:
-                    if code in exceptions:
-                        raise exceptions[code](feedback)
-                    else:
-                        raise ExchangeError(feedback)
+                    self.throw_exactly_matched_exception(self.exceptions, code, feedback)
+                    raise ExchangeError(feedback)
                 else:
                     return  # no error
-            if status in exceptions:
-                raise exceptions[status](feedback)
-            else:
-                raise ExchangeError(feedback)
+            self.throw_exactly_matched_exception(self.exceptions, status, feedback)
+            raise ExchangeError(feedback)

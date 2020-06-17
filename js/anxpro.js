@@ -127,6 +127,7 @@ module.exports = class anxpro extends Exchange {
                     'Order Engine is offline': ExchangeNotAvailable,
                     'No executed order with that identifer found': OrderNotFound,
                     'Unknown server error, please contact support.': ExchangeError,
+                    'Not available': ExchangeNotAvailable, // { "status": "Not available" }
                 },
             },
             'fees': {
@@ -447,12 +448,20 @@ module.exports = class anxpro extends Exchange {
         const amount = this.safeFloat (trade, 'tradedCurrencyFillAmount');
         const cost = this.safeFloat (trade, 'settlementCurrencyFillAmount');
         const side = this.safeStringLower (trade, 'side');
+        let symbol = undefined;
+        const marketId = this.safeString (trade, 'ccyPair');
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
         return {
             'id': id,
             'order': orderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': this.findSymbol (this.safeString (trade, 'ccyPair')),
+            'symbol': symbol,
             'type': undefined,
             'side': side,
             'price': price,
@@ -460,6 +469,7 @@ module.exports = class anxpro extends Exchange {
             'cost': cost,
             'fee': undefined,
             'info': trade,
+            'takerOrMaker': undefined,
         };
     }
 
@@ -887,6 +897,8 @@ module.exports = class anxpro extends Exchange {
             'ACTIVE': 'open',
             'FULL_FILL': 'closed',
             'CANCEL': 'canceled',
+            'USER_CANCEL_PARTIAL': 'canceled',
+            'PARTIAL_FILL': 'canceled',
         };
         return this.safeString (statuses, status, status);
     }
@@ -931,13 +943,12 @@ module.exports = class anxpro extends Exchange {
         //         ]
         //     }
         //
-        const tradedCurrency = this.safeString (order, 'tradedCurrency');
-        const orderStatus = this.safeString (order, 'orderStatus');
-        const status = this.parseOrderStatus (orderStatus);
-        const settlementCurrency = this.safeString (order, 'settlementCurrency');
-        const symbol = this.findSymbol (tradedCurrency + '/' + settlementCurrency);
+        const status = this.parseOrderStatus (this.safeString (order, 'orderStatus'));
+        const base = this.safeCurrencyCode (this.safeString (order, 'tradedCurrency'));
+        const quote = this.safeCurrencyCode (this.safeString (order, 'settlementCurrency'));
+        const symbol = base + '/' + quote;
         const buyTradedCurrency = this.safeString (order, 'buyTradedCurrency');
-        const side = buyTradedCurrency === 'true' ? 'buy' : 'sell';
+        const side = (buyTradedCurrency === 'true') ? 'buy' : 'sell';
         const timestamp = this.safeInteger (order, 'timestamp');
         let lastTradeTimestamp = undefined;
         const trades = [];
@@ -955,7 +966,7 @@ module.exports = class anxpro extends Exchange {
         }
         const price = this.safeFloat (order, 'limitPriceInSettlementCurrency');
         const executedAverageRate = this.safeFloat (order, 'executedAverageRate');
-        const remaining = type === 'market' ? 0 : this.safeFloat (order, 'tradedCurrencyAmountOutstanding');
+        const remaining = (type === 'market') ? 0 : this.safeFloat (order, 'tradedCurrencyAmountOutstanding');
         let amount = this.safeFloat (order, 'tradedCurrencyAmount');
         if (!amount) {
             const settlementCurrencyAmount = this.safeFloat (order, 'settlementCurrencyAmount');
@@ -964,6 +975,7 @@ module.exports = class anxpro extends Exchange {
         const cost = executedAverageRate * filled;
         return {
             'id': this.safeString (order, 'orderId'),
+            'clientOrderId': undefined,
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -979,6 +991,7 @@ module.exports = class anxpro extends Exchange {
             'fee': undefined,
             'trades': trades,
             'info': order,
+            'average': undefined,
         };
     }
 
@@ -1056,6 +1069,7 @@ module.exports = class anxpro extends Exchange {
         return {
             'info': order,
             'id': id,
+            'clientOrderId': undefined,
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1070,6 +1084,7 @@ module.exports = class anxpro extends Exchange {
             'status': status,
             'fee': fee,
             'trades': trades,
+            'average': undefined,
         };
     }
 
@@ -1142,6 +1157,7 @@ module.exports = class anxpro extends Exchange {
         return {
             'currency': code,
             'address': address,
+            'tag': undefined,
             'info': response,
         };
     }
@@ -1191,20 +1207,14 @@ module.exports = class anxpro extends Exchange {
         }
         const result = this.safeString (response, 'result');
         const code = this.safeString (response, 'resultCode');
-        if (((result !== undefined) && (result !== 'success')) || ((code !== undefined) && (code !== 'OK'))) {
+        const status = this.safeString (response, 'status');
+        if (((result !== undefined) && (result !== 'success')) || ((code !== undefined) && (code !== 'OK')) || (status !== undefined)) {
             const message = this.safeString (response, 'error');
             const feedback = this.id + ' ' + body;
-            const exact = this.exceptions['exact'];
-            if (code in exact) {
-                throw new exact[code] (feedback);
-            } else if (message in exact) {
-                throw new exact[message] (feedback);
-            }
-            const broad = this.safeValue (this.exceptions, 'broad', {});
-            const broadKey = this.findBroadlyMatchedKey (broad, message);
-            if (broadKey !== undefined) {
-                throw new broad[broadKey] (feedback);
-            }
+            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], status, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
     }

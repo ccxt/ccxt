@@ -12,7 +12,7 @@ is_python_2 = sys.version_info < (3, 0)
 here = path.abspath(path.dirname(__file__))
 root = path.dirname(here)
 
-readme = path.join(here, 'README.rst')
+readme = path.join(here, 'README.md')
 package_json = path.join(here, 'package.json')
 
 # a workaround when installing locally from git repository with pip install -e .
@@ -34,6 +34,7 @@ setup(
 
     description=package['description'],
     long_description=long_description,
+    long_description_content_type='text/markdown',
 
     # will switch from rst to md shortly
     # long_description_content_type='text/markdown',
@@ -78,12 +79,12 @@ setup(
 
     extras_require={
         ':python_version>="3.5.2"': [
-            'aiohttp>=3.0.1',
+            'aiohttp==3.6.2',
             'aiodns==1.1.1',
             'yarl==1.1.0',
         ],
         'qa': [
-            'flake8==3.5.0'
+            'flake8==3.7.9'
         ],
         'doc': [
             'Sphinx==1.7.0'

@@ -19,7 +19,7 @@ from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import InvalidNonce
 
 
-class digifinex (Exchange):
+class digifinex(Exchange):
 
     def describe(self):
         return self.deep_extend(super(digifinex, self).describe(), {
@@ -56,7 +56,7 @@ class digifinex (Exchange):
                 'doc': [
                     'https://docs.digifinex.vip',
                 ],
-                'fees': 'https://digifinex.zendesk.com/hc/en-us/articles/360000328482-Fee-Structure-on-DigiFinex',
+                'fees': 'https://digifinex.zendesk.com/hc/en-us/articles/360000328422-Fee-Structure-on-DigiFinex',
                 'referral': 'https://www.digifinex.vip/en-ww/from/DhOzBg/3798****5114',
             },
             'api': {
@@ -113,6 +113,14 @@ class digifinex (Exchange):
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'tierBased': False,
+                    'percentage': True,
+                    'maker': 0.002,
+                    'taker': 0.002,
+                },
+            },
             'exceptions': {
                 'exact': {
                     '10001': [BadRequest, "Wrong request method, please check it's a GET ot POST request"],
@@ -148,6 +156,9 @@ class digifinex (Exchange):
             'options': {
                 'defaultType': 'spot',
                 'types': ['spot', 'margin', 'otc'],
+            },
+            'commonCurrencies': {
+                'BHT': 'Black House Test',
             },
         })
 
@@ -592,14 +603,24 @@ class digifinex (Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
+        #
+        #     [
+        #         1556712900,
+        #         2205.899,
+        #         0.029967,
+        #         0.02997,
+        #         0.029871,
+        #         0.029927
+        #     ]
+        #
         return [
-            ohlcv[0] * 1000,  # timestamp
-            ohlcv[5],  # open
-            ohlcv[3],  # high
-            ohlcv[4],  # low
-            ohlcv[2],  # close
-            ohlcv[1],  # volume
+            self.safe_timestamp(ohlcv, 0),
+            self.safe_float(ohlcv, 5),  # open
+            self.safe_float(ohlcv, 3),  # high
+            self.safe_float(ohlcv, 4),  # low
+            self.safe_float(ohlcv, 2),  # close
+            self.safe_float(ohlcv, 1),  # volume
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -804,6 +825,7 @@ class digifinex (Exchange):
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -818,6 +840,7 @@ class digifinex (Exchange):
             'average': average,
             'status': status,
             'fee': None,
+            'trades': None,
         }
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -903,6 +926,9 @@ class digifinex (Exchange):
         orderType = self.safe_string(params, 'type', defaultType)
         params = self.omit(params, 'type')
         self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
         request = {
             'market': orderType,
             'order_id': id,
@@ -929,7 +955,8 @@ class digifinex (Exchange):
         #         ]
         #     }
         #
-        return self.parse_order(response)
+        data = self.safe_value(response, 'data', {})
+        return self.parse_order(data, market)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         defaultType = self.safe_string(self.options, 'defaultType', 'spot')

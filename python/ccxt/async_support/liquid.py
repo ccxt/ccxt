@@ -11,11 +11,12 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import InvalidNonce
 
 
-class liquid (Exchange):
+class liquid(Exchange):
 
     def describe(self):
         return self.deep_extend(super(liquid, self).describe(), {
@@ -33,6 +34,7 @@ class liquid (Exchange):
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'fetchMyTrades': True,
+                'withdraw': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/45798859-1a872600-bcb4-11e8-8746-69291ce87b04.jpg',
@@ -53,6 +55,7 @@ class liquid (Exchange):
                         'products/{id}/price_levels',
                         'executions',
                         'ir_ladders/{currency}',
+                        'fees',  # add fetchFees, fetchTradingFees, fetchFundingFees
                     ],
                 },
                 'private': {
@@ -60,35 +63,44 @@ class liquid (Exchange):
                         'accounts/balance',
                         'accounts/main_asset',
                         'accounts/{id}',
-                        'crypto_accounts',
+                        'accounts/{currency}/reserved_balance_details',
+                        'crypto_accounts',  # add fetchAccounts
+                        'crypto_withdrawals',  # add fetchWithdrawals
                         'executions/me',
-                        'fiat_accounts',
+                        'fiat_accounts',  # add fetchAccounts
+                        'fund_infos',  # add fetchDeposits
                         'loan_bids',
                         'loans',
                         'orders',
                         'orders/{id}',
-                        'orders/{id}/trades',
-                        'orders/{id}/executions',
+                        'orders/{id}/trades',  # add fetchOrderTrades
                         'trades',
                         'trades/{id}/loans',
                         'trading_accounts',
                         'trading_accounts/{id}',
                         'transactions',
+                        'withdrawals',  # add fetchWithdrawals
                     ],
                     'post': [
+                        'crypto_withdrawals',
+                        'fund_infos',
                         'fiat_accounts',
                         'loan_bids',
                         'orders',
+                        'withdrawals',
                     ],
                     'put': [
+                        'crypto_withdrawal/{id}/cancel',
                         'loan_bids/{id}/close',
                         'loans/{id}',
-                        'orders/{id}',
+                        'orders/{id}',  # add editOrder
                         'orders/{id}/cancel',
                         'trades/{id}',
+                        'trades/{id}/adjust_margin',
                         'trades/{id}/close',
                         'trades/close_all',
                         'trading_accounts/{id}',
+                        'withdrawals/{id}/cancel',
                     ],
                 },
             },
@@ -172,7 +184,7 @@ class liquid (Exchange):
         return result
 
     async def fetch_markets(self, params={}):
-        markets = await self.publicGetProducts()
+        spot = await self.publicGetProducts(params)
         #
         #     [
         #         {
@@ -203,20 +215,67 @@ class liquid (Exchange):
         #         },
         #     ]
         #
+        perpetual = await self.publicGetProducts({'perpetual': '1'})
+        #
+        #     [
+        #         {
+        #             "id": "603",
+        #             "product_type": "Perpetual",
+        #             "code": "CASH",
+        #             "name": null,
+        #             "market_ask": "1143900",
+        #             "market_bid": "1143250",
+        #             "currency": "JPY",
+        #             "currency_pair_code": "P-BTCJPY",
+        #             "pusher_channel": "product_cash_p-btcjpy_603",
+        #             "taker_fee": "0.0",
+        #             "maker_fee": "0.0",
+        #             "low_market_bid": "1124450.0",
+        #             "high_market_ask": "1151750.0",
+        #             "volume_24h": "0.1756",
+        #             "last_price_24h": "1129850.0",
+        #             "last_traded_price": "1144700.0",
+        #             "last_traded_quantity": "0.014",
+        #             "quoted_currency": "JPY",
+        #             "base_currency": "P-BTC",
+        #             "tick_size": "50.0",
+        #             "perpetual_enabled": True,
+        #             "index_price": "1142636.03935",
+        #             "mark_price": "1143522.18417",
+        #             "funding_rate": "0.00033",
+        #             "fair_price": "1143609.31009",
+        #             "timestamp": "1581558659.195353100",
+        #         },
+        #     ]
+        #
         currencies = await self.fetch_currencies()
         currenciesByCode = self.index_by(currencies, 'code')
         result = []
+        markets = self.array_concat(spot, perpetual)
         for i in range(0, len(markets)):
             market = markets[i]
-            id = str(market['id'])
-            baseId = market['base_currency']
-            quoteId = market['quoted_currency']
+            id = self.safe_string(market, 'id')
+            baseId = self.safe_string(market, 'base_currency')
+            quoteId = self.safe_string(market, 'quoted_currency')
+            productType = self.safe_string(market, 'product_type')
+            type = 'spot'
+            spot = True
+            swap = False
+            if productType == 'Perpetual':
+                spot = False
+                swap = True
+                type = 'swap'
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
+            symbol = None
+            if swap:
+                symbol = self.safe_string(market, 'currency_pair_code')
+            else:
+                symbol = base + '/' + quote
             maker = self.safe_float(market, 'maker_fee')
             taker = self.safe_float(market, 'taker_fee')
-            active = not market['disabled']
+            disabled = self.safe_value(market, 'disabled', False)
+            active = not disabled
             baseCurrency = self.safe_value(currenciesByCode, base)
             quoteCurrency = self.safe_value(currenciesByCode, quote)
             precision = {
@@ -256,6 +315,9 @@ class liquid (Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': type,
+                'spot': spot,
+                'swap': swap,
                 'maker': maker,
                 'taker': taker,
                 'limits': limits,
@@ -366,7 +428,7 @@ class liquid (Exchange):
         response = await self.publicGetProductsId(self.extend(request, params))
         return self.parse_ticker(response, market)
 
-    def parse_trade(self, trade, market):
+    def parse_trade(self, trade, market=None):
         # {            id:  12345,
         #         quantity: "6.789",
         #            price: "98765.4321",
@@ -390,13 +452,16 @@ class liquid (Exchange):
             if amount is not None:
                 cost = price * amount
         id = self.safe_string(trade, 'id')
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         return {
             'info': trade,
             'id': id,
             'order': orderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': None,
             'side': side,
             'takerOrMaker': takerOrMaker,
@@ -436,13 +501,17 @@ class liquid (Exchange):
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
+        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_order_id')
+        params = self.omit(params, ['clientOrderId', 'client_order_id'])
         request = {
             'order_type': type,
             'product_id': self.market_id(symbol),
             'side': side,
             'quantity': self.amount_to_precision(symbol, amount),
         }
-        if type == 'limit':
+        if clientOrderId is not None:
+            request['client_order_id'] = clientOrderId
+        if (type == 'limit') or (type == 'limit_post_only') or (type == 'market_with_range') or (type == 'stop'):
             request['price'] = self.price_to_precision(symbol, price)
         response = await self.privatePostOrders(self.extend(request, params))
         #
@@ -464,7 +533,8 @@ class liquid (Exchange):
         #         "product_code": "CASH",
         #         "funding_currency": "USD",
         #         "currency_pair_code": "BTCUSD",
-        #         "order_fee": "0.0"
+        #         "order_fee": "0.0",
+        #         "client_order_id": null,
         #     }
         #
         return self.parse_order(response)
@@ -526,6 +596,7 @@ class liquid (Exchange):
         #         "funding_currency": "USD",
         #         "currency_pair_code": "BTCUSD",
         #         "order_fee": "0.0"
+        #         "client_order_id": null,
         #     }
         #
         # fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders
@@ -605,8 +676,10 @@ class liquid (Exchange):
         if amount is not None and filled is not None:
             remaining = amount - filled
         side = self.safe_string(order, 'side')
+        clientOrderId = self.safe_string(order, 'client_order_id')
         return {
             'id': orderId,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -684,13 +757,105 @@ class liquid (Exchange):
         orders = self.safe_value(response, 'models', [])
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         request = {'status': 'live'}
-        return self.fetch_orders(symbol, since, limit, self.extend(request, params))
+        return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         request = {'status': 'filled'}
-        return self.fetch_orders(symbol, since, limit, self.extend(request, params))
+        return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
+
+    async def withdraw(self, code, amount, address, tag=None, params={}):
+        self.check_address(address)
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            # 'auth_code': '',  # optional 2fa code
+            'currency': currency['id'],
+            'address': address,
+            'amount': self.currency_to_precision(code, amount),
+            # 'payment_id': tag,  # for XRP only
+            # 'memo_type': 'text',  # 'text', 'id' or 'hash', for XLM only
+            # 'memo_value': tag,  # for XLM only
+        }
+        if tag is not None:
+            if code == 'XRP':
+                request['payment_id'] = tag
+            elif code == 'XLM':
+                request['memo_type'] = 'text'  # overrideable via params
+                request['memo_value'] = tag
+            else:
+                raise NotSupported(self.id + ' withdraw() only supports a tag along the address for XRP or XLM')
+        response = await self.privatePostCryptoWithdrawals(self.extend(request, params))
+        #
+        #     {
+        #         "id": 1353,
+        #         "address": "1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2",
+        #         "amount": 1.0,
+        #         "state": "pending",
+        #         "currency": "BTC",
+        #         "withdrawal_fee": 0.0,
+        #         "created_at": 1568016450,
+        #         "updated_at": 1568016450,
+        #         "payment_id": null
+        #     }
+        #
+        return self.parse_transaction(response, currency)
+
+    def parse_transaction_status(self, status):
+        statuses = {
+            'pending': 'pending',
+            'cancelled': 'canceled',
+            'approved': 'ok',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        # withdraw
+        #
+        #     {
+        #         "id": 1353,
+        #         "address": "1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2",
+        #         "amount": 1.0,
+        #         "state": "pending",
+        #         "currency": "BTC",
+        #         "withdrawal_fee": 0.0,
+        #         "created_at": 1568016450,
+        #         "updated_at": 1568016450,
+        #         "payment_id": null
+        #     }
+        #
+        # fetchDeposits, fetchWithdrawals
+        #
+        #     ...
+        #
+        id = self.safe_string(transaction, 'id')
+        address = self.safe_string(transaction, 'address')
+        tag = self.safe_string_2(transaction, 'payment_id', 'memo_value')
+        txid = None
+        currencyId = self.safe_string(transaction, 'asset')
+        code = self.safe_currency_code(currencyId, currency)
+        timestamp = self.safe_timestamp(transaction, 'created_at')
+        updated = self.safe_timestamp(transaction, 'updated_at')
+        type = 'withdrawal'
+        status = self.parse_transaction_status(self.safe_string(transaction, 'state'))
+        amount = self.safe_float(transaction, 'amount')
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'address': address,
+            'tag': tag,
+            'type': type,
+            'amount': amount,
+            'currency': code,
+            'status': status,
+            'updated': updated,
+            'fee': None,
+        }
 
     def nonce(self):
         return self.milliseconds()
@@ -712,10 +877,11 @@ class liquid (Exchange):
             nonce = self.nonce()
             request = {
                 'path': url,
-                'nonce': nonce,
                 'token_id': self.apiKey,
                 'iat': int(math.floor(nonce / 1000)),  # issued at
             }
+            if not ('client_order_id' in query):
+                request['nonce'] = nonce
             headers['X-Quoine-Auth'] = self.jwt(request, self.encode(self.secret))
         else:
             if query:
@@ -726,13 +892,10 @@ class liquid (Exchange):
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if code >= 200 and code < 300:
             return
-        exceptions = self.exceptions
         if code == 401:
             # expected non-json response
-            if body in exceptions:
-                raise exceptions[body](self.id + ' ' + body)
-            else:
-                return
+            self.throw_exactly_matched_exception(self.exceptions, body, body)
+            return
         if code == 429:
             raise DDoSProtection(self.id + ' ' + body)
         if response is None:
@@ -744,8 +907,7 @@ class liquid (Exchange):
             #
             #  {"message": "Order not found"}
             #
-            if message in exceptions:
-                raise exceptions[message](feedback)
+            self.throw_exactly_matched_exception(self.exceptions, message, feedback)
         elif errors is not None:
             #
             #  {"errors": {"user": ["not_enough_free_balance"]}}
@@ -758,7 +920,6 @@ class liquid (Exchange):
                 errorMessages = errors[type]
                 for j in range(0, len(errorMessages)):
                     message = errorMessages[j]
-                    if message in exceptions:
-                        raise exceptions[message](feedback)
+                    self.throw_exactly_matched_exception(self.exceptions, message, feedback)
         else:
             raise ExchangeError(feedback)

@@ -113,7 +113,7 @@ class EC
             // Instatiate HmacDRBG
             $drbg = new HmacDRBG(array(
                 "hash" => $this->hash,
-                "entropy" => $bkey,
+                "entropy" => array_key_exists('extraEntropy', $options) ? array_merge($bkey, $options['extraEntropy']) : $bkey,
                 "nonce" => $nonce,
                 "pers" => isset($options["pers"]) ? $options["pers"] : "",
                 "persEnc" => isset($options["persEnc"]) ? $options["persEnc"] : false

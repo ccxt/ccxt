@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InsufficientFunds, OrderNotFound } = require ('./base/errors');
+const { ExchangeError, InsufficientFunds, OrderNotFound, ArgumentsRequired } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -17,7 +17,7 @@ module.exports = class tidebit extends Exchange {
             'version': 'v2',
             'has': {
                 'fetchDepositAddress': true,
-                'CORS': true,
+                'CORS': false,
                 'fetchTickers': true,
                 'fetchOHLCV': true,
                 'withdraw': true,
@@ -102,8 +102,8 @@ module.exports = class tidebit extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'maker': 0.2 / 100,
-                    'taker': 0.2 / 100,
+                    'maker': 0.3 / 100,
+                    'taker': 0.3 / 100,
                 },
                 'funding': {
                     'tierBased': false,
@@ -157,6 +157,9 @@ module.exports = class tidebit extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
+                'active': undefined,
+                'precision': this.precision,
+                'limits': this.limits,
             });
         }
         return result;
@@ -234,19 +237,12 @@ module.exports = class tidebit extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             let market = undefined;
-            let symbol = id;
             if (id in this.markets_by_id) {
                 market = this.markets_by_id[id];
-                symbol = market['symbol'];
-            } else {
-                const baseId = id.slice (0, 3);
-                const quoteId = id.slice (3, 6);
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
+                const symbol = market['symbol'];
+                const ticker = tickers[id];
+                result[symbol] = this.parseTicker (ticker, market);
             }
-            const ticker = tickers[id];
-            result[symbol] = this.parseTicker (ticker, market);
         }
         return result;
     }
@@ -298,14 +294,24 @@ module.exports = class tidebit extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //     [
+        //         1498530360,
+        //         2700.0,
+        //         2700.0,
+        //         2700.0,
+        //         2700.0,
+        //         0.01
+        //     ]
+        //
         return [
-            ohlcv[0] * 1000,
-            ohlcv[1],
-            ohlcv[2],
-            ohlcv[3],
-            ohlcv[4],
-            ohlcv[5],
+            this.safeTimestamp (ohlcv, 0),
+            this.safeFloat (ohlcv, 1),
+            this.safeFloat (ohlcv, 2),
+            this.safeFloat (ohlcv, 3),
+            this.safeFloat (ohlcv, 4),
+            this.safeFloat (ohlcv, 5),
         ];
     }
 
@@ -326,6 +332,13 @@ module.exports = class tidebit extends Exchange {
             request['timestamp'] = 1800000;
         }
         const response = await this.publicGetK (this.extend (request, params));
+        //
+        //     [
+        //         [1498530360,2700.0,2700.0,2700.0,2700.0,0.01],
+        //         [1498530420,2700.0,2700.0,2700.0,2700.0,0],
+        //         [1498530480,2700.0,2700.0,2700.0,2700.0,0],
+        //     ]
+        //
         if (response === 'null') {
             return [];
         }
@@ -342,6 +355,41 @@ module.exports = class tidebit extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //
+        //     {
+        //         "id": 7,                              // 唯一的 Order ID
+        //         "side": "sell",                       // Buy/Sell 代表买单/卖单
+        //         "price": "3100.0",                    // 出价
+        //         "avg_price": "3101.2",                // 平均成交价
+        //         "state": "wait",                      // 订单的当前状态 [wait,done,cancel]
+        //                                               //   wait   表明订单正在市场上挂单
+        //                                               //          是一个active order
+        //                                               //          此时订单可能部分成交或者尚未成交
+        //                                               //   done   代表订单已经完全成交
+        //                                               //   cancel 代表订单已经被撤销
+        //         "market": "btccny",                   // 订单参与的交易市场
+        //         "created_at": "2014-04-18T02:02:33Z", // 下单时间 ISO8601格式
+        //         "volume": "100.0",                    // 购买/卖出数量
+        //         "remaining_volume": "89.8",           // 还未成交的数量 remaining_volume 总是小于等于 volume
+        //                                               //   在订单完全成交时变成 0
+        //         "executed_volume": "10.2",            // 已成交的数量
+        //                                               //   volume = remaining_volume + executed_volume
+        //         "trades_count": 1,                    // 订单的成交数 整数值
+        //                                               //   未成交的订单为 0 有一笔成交的订单为 1
+        //                                               //   通过该字段可以判断订单是否处于部分成交状态
+        //         "trades": [                           // 订单的详细成交记录 参见Trade
+        //                                               //   注意: 只有某些返回详细订单数据的 API 才会包含 Trade 数据
+        //             {
+        //                 "id": 2,
+        //                 "price": "3100.0",
+        //                 "volume": "10.2",
+        //                 "market": "btccny",
+        //                 "created_at": "2014-04-18T02:04:49Z",
+        //                 "side": "sell"
+        //             }
+        //         ]
+        //     }
+        //
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -366,6 +414,7 @@ module.exports = class tidebit extends Exchange {
         }
         return {
             'id': id,
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -381,6 +430,7 @@ module.exports = class tidebit extends Exchange {
             'trades': undefined,
             'fee': undefined,
             'info': order,
+            'average': undefined,
         };
     }
 
@@ -420,7 +470,7 @@ module.exports = class tidebit extends Exchange {
         const currency = this.currency (code);
         const id = this.safeString (params, 'id');
         if (id === undefined) {
-            throw new ExchangeError (this.id + ' withdraw() requires an extra `id` param (withdraw account id according to withdraws/bind_account_list endpoint');
+            throw new ArgumentsRequired (this.id + ' withdraw() requires an extra `id` param (withdraw account id according to withdraws/bind_account_list endpoint');
         }
         const request = {
             'id': id,
@@ -477,14 +527,14 @@ module.exports = class tidebit extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (code === 400) {
-            const error = this.safeValue (response, 'error');
-            const errorCode = this.safeString (error, 'code');
-            const feedback = this.id + ' ' + this.json (response);
-            const exceptions = this.exceptions;
-            if (errorCode in exceptions) {
-                throw new exceptions[errorCode] (feedback);
+        if ((code === 400) || (response === undefined)) {
+            const feedback = this.id + ' ' + body;
+            if (response === undefined) {
+                throw new ExchangeError (feedback);
             }
+            const error = this.safeValue (response, 'error', {});
+            const errorCode = this.safeString (error, 'code');
+            this.throwExactlyMatchedException (this.exceptions, errorCode, feedback);
             // fallback to default error handler
         }
     }

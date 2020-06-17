@@ -7,11 +7,12 @@ from ccxt.async_support.base.exchange import Exchange
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import DDoSProtection
 
 
-class lbank (Exchange):
+class lbank(Exchange):
 
     def describe(self):
         return self.deep_extend(super(lbank, self).describe(), {
@@ -46,7 +47,7 @@ class lbank (Exchange):
                 'api': 'https://api.lbank.info',
                 'www': 'https://www.lbank.info',
                 'doc': 'https://github.com/LBank-exchange/lbank-official-api-docs',
-                'fees': 'https://lbankinfo.zendesk.com/hc/zh-cn/articles/115002295114--%E8%B4%B9%E7%8E%87%E8%AF%B4%E6%98%8E',
+                'fees': 'https://lbankinfo.zendesk.com/hc/en-gb/articles/360012072873-Trading-Fees',
                 'referral': 'https://www.lbex.io/invite?icode=7QCY',
             },
             'api': {
@@ -305,23 +306,33 @@ class lbank (Exchange):
         response = await self.publicGetTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
+        #
+        #     [
+        #         1590969600,
+        #         0.02451657,
+        #         0.02452675,
+        #         0.02443701,
+        #         0.02447814,
+        #         238.38210000
+        #     ]
+        #
         return [
-            ohlcv[0] * 1000,
-            ohlcv[1],
-            ohlcv[2],
-            ohlcv[3],
-            ohlcv[4],
-            ohlcv[5],
+            self.safe_timestamp(ohlcv, 0),
+            self.safe_float(ohlcv, 1),
+            self.safe_float(ohlcv, 2),
+            self.safe_float(ohlcv, 3),
+            self.safe_float(ohlcv, 4),
+            self.safe_float(ohlcv, 5),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='5m', since=None, limit=1000, params={}):
         await self.load_markets()
         market = self.market(symbol)
         if since is None:
-            raise ExchangeError(self.id + ' fetchOHLCV requires a `since` argument')
+            raise ArgumentsRequired(self.id + ' fetchOHLCV requires a `since` argument')
         if limit is None:
-            raise ExchangeError(self.id + ' fetchOHLCV requires a `limit` argument')
+            raise ArgumentsRequired(self.id + ' fetchOHLCV requires a `limit` argument')
         request = {
             'symbol': market['id'],
             'type': self.timeframes[timeframe],
@@ -329,6 +340,13 @@ class lbank (Exchange):
             'time': int(since / 1000),
         }
         response = await self.publicGetKline(self.extend(request, params))
+        #
+        #     [
+        #         [1590969600,0.02451657,0.02452675,0.02443701,0.02447814,238.38210000],
+        #         [1590969660,0.02447814,0.02449883,0.02443209,0.02445973,212.40270000],
+        #         [1590969720,0.02445973,0.02452067,0.02445909,0.02446151,266.16920000],
+        #     ]
+        #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     async def fetch_balance(self, params={}):
@@ -383,6 +401,19 @@ class lbank (Exchange):
         return self.safe_string(statuses, status)
 
     def parse_order(self, order, market=None):
+        #
+        #     {
+        #         "symbol"："eth_btc",
+        #         "amount"：10.000000,
+        #         "create_time"：1484289832081,
+        #         "price"：5000.000000,
+        #         "avg_price"：5277.301200,
+        #         "type"："sell",
+        #         "order_id"："ab704110-af0d-48fd-a083-c218f19a4a55",
+        #         "deal_amount"：10.000000,
+        #         "status"：2
+        #     }
+        #
         symbol = None
         responseMarket = self.safe_value(self.marketsById, order['symbol'])
         if responseMarket is not None:
@@ -409,6 +440,7 @@ class lbank (Exchange):
                 remaining = amount - filled
         return {
             'id': id,
+            'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
@@ -424,6 +456,7 @@ class lbank (Exchange):
             'trades': None,
             'fee': None,
             'info': self.safe_value(order, 'info', order),
+            'average': None,
         }
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -550,7 +583,7 @@ class lbank (Exchange):
                     self.options['pem'] = pem
             else:
                 pem = self.convert_secret_to_pem(self.secret)
-            sign = self.binaryToBase64(self.rsa(message, self.encode(pem), 'RS256'))
+            sign = self.binary_to_base64(self.rsa(message, self.encode(pem), 'RS256'))
             query['sign'] = sign
             body = self.urlencode(query)
             headers = {'Content-Type': 'application/x-www-form-urlencoded'}

@@ -9,7 +9,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 
 
-class luno (Exchange):
+class luno(Exchange):
 
     def describe(self):
         return self.deep_extend(super(luno, self).describe(), {
@@ -55,6 +55,7 @@ class luno (Exchange):
                         'accounts/{id}/pending',
                         'accounts/{id}/transactions',
                         'balance',
+                        'beneficiaries',
                         'fee_info',
                         'funding_address',
                         'listorders',
@@ -76,6 +77,7 @@ class luno (Exchange):
                         'oauth2/grant',
                     ],
                     'put': [
+                        'accounts/{id}/name',
                         'quotes/{id}',
                     ],
                     'delete': [
@@ -105,6 +107,9 @@ class luno (Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
+                'active': None,
+                'precision': self.precision,
+                'limits': self.limits,
             })
         return result
 
@@ -140,12 +145,30 @@ class luno (Exchange):
         return self.parse_order_book(response, timestamp, 'bids', 'asks', 'price', 'volume')
 
     def parse_order(self, order, market=None):
+        #
+        #     {
+        #         "base": "string",
+        #         "completed_timestamp": "string",
+        #         "counter": "string",
+        #         "creation_timestamp": "string",
+        #         "expiration_timestamp": "string",
+        #         "fee_base": "string",
+        #         "fee_counter": "string",
+        #         "limit_price": "string",
+        #         "limit_volume": "string",
+        #         "order_id": "string",
+        #         "pair": "string",
+        #         "state": "PENDING",
+        #         "type": "BID"
+        #     }
+        #
         timestamp = self.safe_integer(order, 'creation_timestamp')
         status = 'open' if (order['state'] == 'PENDING') else 'closed'
         side = 'sell' if (order['type'] == 'ASK') else 'buy'
-        if market is None:
-            market = self.find_market(order['pair'])
+        marketId = self.safe_string(order, 'pair')
         symbol = None
+        if marketId in self.markets_by_id:
+            market = self.markets_by_id[marketId]
         if market is not None:
             symbol = market['symbol']
         price = self.safe_float(order, 'limit_price')
@@ -160,14 +183,17 @@ class luno (Exchange):
                 remaining = max(0, amount - filled)
         fee = {'currency': None}
         if quoteFee:
-            fee['side'] = 'quote'
             fee['cost'] = quoteFee
+            if market is not None:
+                fee['currency'] = market['quote']
         else:
-            fee['side'] = 'base'
             fee['cost'] = baseFee
+            if market is not None:
+                fee['currency'] = market['base']
         id = self.safe_string(order, 'order_id')
         return {
             'id': id,
+            'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
@@ -183,6 +209,7 @@ class luno (Exchange):
             'trades': None,
             'fee': fee,
             'info': order,
+            'average': None,
         }
 
     def fetch_order(self, id, symbol=None, params={}):
@@ -283,7 +310,7 @@ class luno (Exchange):
             else:
                 takerOrMaker = 'taker'
         else:
-            side = 'buy' if (trade['is_buy']) else 'sell'
+            side = 'buy' if trade['is_buy'] else 'sell'
         feeBase = self.safe_float(trade, 'fee_base')
         feeCounter = self.safe_float(trade, 'fee_counter')
         feeCurrency = None

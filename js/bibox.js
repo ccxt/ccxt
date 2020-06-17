@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, AuthenticationError, DDoSProtection, ExchangeNotAvailable, InvalidOrder, OrderNotFound, PermissionDenied, InsufficientFunds } = require ('./base/errors');
+const { ExchangeError, AccountSuspended, ArgumentsRequired, AuthenticationError, DDoSProtection, ExchangeNotAvailable, InvalidOrder, OrderNotFound, PermissionDenied, InsufficientFunds, BadSymbol } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -46,15 +46,14 @@ module.exports = class bibox extends Exchange {
                 '1w': 'week',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/34902611-2be8bf1a-f830-11e7-91a2-11b2f292e750.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/77257418-3262b000-6c85-11ea-8fb8-20bdf20b3592.jpg',
                 'api': 'https://api.bibox.com',
                 'www': 'https://www.bibox.com',
                 'doc': [
-                    'https://github.com/Biboxcom/api_reference/wiki/home_en',
-                    'https://github.com/Biboxcom/api_reference/wiki/api_reference',
+                    'https://biboxcom.github.io/en/',
                 ],
-                'fees': 'https://bibox.zendesk.com/hc/en-us/articles/115004417013-Fee-Structure-on-Bibox',
-                'referral': 'https://www.bibox.com/signPage?id=11114745&lang=en',
+                'fees': 'https://bibox.zendesk.com/hc/en-us/articles/360002336133',
+                'referral': 'https://w2.bibox.com/login/register?invite_code=05Kj3I',
             },
             'api': {
                 'public': {
@@ -63,14 +62,22 @@ module.exports = class bibox extends Exchange {
                         'mdata',
                     ],
                     'get': [
+                        'cquery',
                         'mdata',
                     ],
                 },
                 'private': {
                     'post': [
+                        'cquery',
+                        'ctrade',
                         'user',
                         'orderpending',
                         'transfer',
+                    ],
+                },
+                'v2private': {
+                    'post': [
+                        'assets/transfer/spot',
                     ],
                 },
             },
@@ -79,7 +86,7 @@ module.exports = class bibox extends Exchange {
                     'tierBased': false,
                     'percentage': true,
                     'taker': 0.001,
-                    'maker': 0.001,
+                    'maker': 0.0008,
                 },
                 'funding': {
                     'tierBased': false,
@@ -89,14 +96,16 @@ module.exports = class bibox extends Exchange {
                 },
             },
             'exceptions': {
-                '2021': InsufficientFunds, // Insufficient balance available for withdrawal
+                '2011': AccountSuspended, // Account is locked
                 '2015': AuthenticationError, // Google authenticator is wrong
+                '2021': InsufficientFunds, // Insufficient balance available for withdrawal
                 '2027': InsufficientFunds, // Insufficient balance available (for trade)
                 '2033': OrderNotFound, // operation failed! Orders have been completed or revoked
                 '2067': InvalidOrder, // Does not support market orders
                 '2068': InvalidOrder, // The number of orders can not be less than
                 '2085': InvalidOrder, // Order quantity is too small
                 '3012': AuthenticationError, // invalid apiKey
+                '3016': BadSymbol, // Trading pair error
                 '3024': PermissionDenied, // wrong apikey permissions
                 '3025': AuthenticationError, // signature failed
                 '4000': ExchangeNotAvailable, // current network is unstable
@@ -104,6 +113,7 @@ module.exports = class bibox extends Exchange {
             },
             'commonCurrencies': {
                 'KEY': 'Bihu',
+                'MTC': 'MTC Mesh Network', // conflict with MTC Docademic doc.com Token https://github.com/ccxt/ccxt/issues/6081 https://github.com/ccxt/ccxt/issues/3025
                 'PAI': 'PCHAIN',
             },
         });
@@ -165,8 +175,8 @@ module.exports = class bibox extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'baseId': base,
-                'quoteId': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'active': true,
                 'info': market,
                 'precision': precision,
@@ -356,9 +366,19 @@ module.exports = class bibox extends Exchange {
         return this.parseOrderBook (response['result'], this.safeFloat (response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume');
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //     {
+        //         "time":1591448220000,
+        //         "open":"0.02507029",
+        //         "high":"0.02507029",
+        //         "low":"0.02506349",
+        //         "close":"0.02506349",
+        //         "vol":"5.92000000"
+        //     }
+        //
         return [
-            ohlcv['time'],
+            this.safeInteger (ohlcv, 'time'),
             this.safeFloat (ohlcv, 'open'),
             this.safeFloat (ohlcv, 'high'),
             this.safeFloat (ohlcv, 'low'),
@@ -377,7 +397,19 @@ module.exports = class bibox extends Exchange {
             'size': limit,
         };
         const response = await this.publicGetMdata (this.extend (request, params));
-        return this.parseOHLCVs (response['result'], market, timeframe, since, limit);
+        //
+        //     {
+        //         "result":[
+        //             {"time":1591448220000,"open":"0.02507029","high":"0.02507029","low":"0.02506349","close":"0.02506349","vol":"5.92000000"},
+        //             {"time":1591448280000,"open":"0.02506449","high":"0.02506975","low":"0.02506108","close":"0.02506843","vol":"5.72000000"},
+        //             {"time":1591448340000,"open":"0.02506698","high":"0.02506698","low":"0.02506452","close":"0.02506519","vol":"4.86000000"},
+        //         ],
+        //         "cmd":"kline",
+        //         "ver":"1.1"
+        //     }
+        //
+        const result = this.safeValue (response, 'result', []);
+        return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
     async fetchCurrencies (params = {}) {
@@ -394,7 +426,7 @@ module.exports = class bibox extends Exchange {
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const id = this.safeString (currency, 'symbol');
-            const name = this.safeString (currency, 'name');
+            const name = currency['name']; // contains hieroglyphs causing python ASCII bug
             const code = this.safeCurrencyCode (id);
             const precision = 8;
             const deposit = this.safeValue (currency, 'enable_deposit');
@@ -700,10 +732,11 @@ module.exports = class bibox extends Exchange {
                 'currency': undefined,
             };
         }
-        cost = cost ? cost : parseFloat (price) * filled;
+        cost = cost ? cost : (parseFloat (price) * filled);
         return {
             'info': order,
             'id': id,
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -718,6 +751,7 @@ module.exports = class bibox extends Exchange {
             'remaining': remaining,
             'status': status,
             'fee': fee,
+            'trades': undefined,
         };
     }
 
@@ -742,7 +776,7 @@ module.exports = class bibox extends Exchange {
             market = this.market (symbol);
             pair = market['id'];
         }
-        const size = (limit) ? limit : 200;
+        const size = limit ? limit : 200;
         const request = {
             'cmd': 'orderpending/orderPendingList',
             'body': this.extend ({
@@ -783,7 +817,7 @@ module.exports = class bibox extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const size = (limit) ? limit : 200;
+        const size = limit ? limit : 200;
         const request = {
             'cmd': 'orderpending/orderHistoryList',
             'body': this.extend ({
@@ -810,8 +844,23 @@ module.exports = class bibox extends Exchange {
             }, params),
         };
         const response = await this.privatePostTransfer (request);
-        const address = this.safeString (response, 'result');
-        const tag = undefined; // todo: figure this out
+        //
+        //     {
+        //         "result":"3Jx6RZ9TNMsAoy9NUzBwZf68QBppDruSKW","cmd":"transfer/transferIn"
+        //     }
+        //
+        //     {
+        //         "result":"{\"account\":\"PERSONALLY OMITTED\",\"memo\":\"PERSONALLY OMITTED\"}","cmd":"transfer/transferIn"
+        //     }
+        //
+        const result = this.safeString (response, 'result');
+        let address = result;
+        let tag = undefined;
+        if (this.isJsonEncodedObject (result)) {
+            const parsed = JSON.parse (result);
+            address = this.safeString (parsed, 'account');
+            tag = this.safeString (parsed, 'memo');
+        }
         return {
             'currency': code,
             'address': address,
@@ -889,6 +938,15 @@ module.exports = class bibox extends Exchange {
             } else if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
+        } else if (api === 'v2private') {
+            this.checkRequiredCredentials ();
+            url = this.urls['api'] + '/v2/' + path;
+            const json_params = this.json (params);
+            body = {
+                'body': json_params,
+                'apikey': this.apiKey,
+                'sign': this.hmac (this.encode (json_params), this.encode (this.secret), 'md5'),
+            };
         } else {
             this.checkRequiredCredentials ();
             body = {
@@ -912,14 +970,10 @@ module.exports = class bibox extends Exchange {
             if ('code' in response['error']) {
                 const code = this.safeString (response['error'], 'code');
                 const feedback = this.id + ' ' + body;
-                const exceptions = this.exceptions;
-                if (code in exceptions) {
-                    throw new exceptions[code] (feedback);
-                } else {
-                    throw new ExchangeError (feedback);
-                }
+                this.throwExactlyMatchedException (this.exceptions, code, feedback);
+                throw new ExchangeError (feedback);
             }
-            throw new ExchangeError (this.id + ': "error" in response: ' + body);
+            throw new ExchangeError (this.id + ' ' + body);
         }
         if (!('result' in response)) {
             throw new ExchangeError (this.id + ' ' + body);

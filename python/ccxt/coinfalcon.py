@@ -8,10 +8,10 @@ import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
-from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import RateLimitExceeded
 
 
-class coinfalcon (Exchange):
+class coinfalcon(Exchange):
 
     def describe(self):
         return self.deep_extend(super(coinfalcon, self).describe(), {
@@ -182,10 +182,10 @@ class coinfalcon (Exchange):
         fee = None
         feeCost = self.safe_float(trade, 'fee')
         if feeCost is not None:
-            feeCurrencyCode = None
+            feeCurrencyCode = self.safe_string(trade, 'fee_currency_code')
             fee = {
                 'cost': feeCost,
-                'currency': feeCurrencyCode,
+                'currency': self.safe_currency_code(feeCurrencyCode),
             }
         return {
             'info': trade,
@@ -257,6 +257,23 @@ class coinfalcon (Exchange):
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
+        #
+        #     {
+        #         "id":"8bdd79f4-8414-40a2-90c3-e9f4d6d1eef4"
+        #         "market":"IOT-BTC"
+        #         "price":"0.0000003"
+        #         "size":"4.0"
+        #         "size_filled":"3.0"
+        #         "fee":"0.0075"
+        #         "fee_currency_code":"iot"
+        #         "funds":"0.0"
+        #         "status":"canceled"
+        #         "order_type":"buy"
+        #         "post_only":false
+        #         "operation_type":"market_order"
+        #         "created_at":"2018-01-12T21:14:06.747828Z"
+        #     }
+        #
         if market is None:
             marketId = self.safe_string(order, 'market')
             if marketId in self.markets_by_id:
@@ -283,6 +300,7 @@ class coinfalcon (Exchange):
         side = self.safe_string(order, 'order_type')
         return {
             'id': self.safe_string(order, 'id'),
+            'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'status': status,
@@ -297,6 +315,8 @@ class coinfalcon (Exchange):
             'trades': None,
             'fee': None,
             'info': order,
+            'lastTradeTimestamp': None,
+            'average': None,
         }
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -381,6 +401,6 @@ class coinfalcon (Exchange):
             return
         ErrorClass = self.safe_value({
             '401': AuthenticationError,
-            '429': DDoSProtection,
+            '429': RateLimitExceeded,
         }, code, ExchangeError)
         raise ErrorClass(body)

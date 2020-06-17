@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 
 
-class foxbit (Exchange):
+class foxbit(Exchange):
 
     def describe(self):
         return self.deep_extend(super(foxbit, self).describe(), {

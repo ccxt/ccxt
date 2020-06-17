@@ -14,7 +14,6 @@ const log       = require ('ololog')
 module.exports = async (exchange, symbol) => {
 
     const skippedExchanges = [
-        'mandala',
         'rightbtc',
     ]
 

@@ -12,7 +12,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 
 
-class idex (Exchange):
+class idex(Exchange):
 
     def describe(self):
         return self.deep_extend(super(idex, self).describe(), {
@@ -30,8 +30,9 @@ class idex (Exchange):
                 'fetchBalance': True,
                 'createOrder': True,
                 'cancelOrder': True,
+                'fetchOpenOrders': True,
                 'fetchTransactions': True,
-                'fetchTrades': False,
+                'fetchTrades': True,
                 'fetchMyTrades': True,
                 'withdraw': True,
                 'fetchOHLCV': False,
@@ -54,7 +55,7 @@ class idex (Exchange):
                 'api': 'https://api.idex.market',
                 'www': 'https://idex.market',
                 'doc': [
-                    'https://github.com/AuroraDAO/idex-api-docs',
+                    'https://docs.idex.market/',
                 ],
             },
             'api': {
@@ -100,6 +101,13 @@ class idex (Exchange):
                 'privateKey': True,
                 'apiKey': False,
                 'secret': False,
+            },
+            'commonCurrencies': {
+                'FT': 'Fabric Token',
+                'MT': 'Monarch',
+                'ONE': 'Menlo One',
+                'PLA': 'PlayChip',
+                'WAX': 'WAXP',
             },
         })
 
@@ -201,8 +209,8 @@ class idex (Exchange):
             'change': None,
             'percentage': percentage,
             'average': None,
-            'baseVolume': baseVolume,
-            'quoteVolume': quoteVolume,
+            'baseVolume': quoteVolume,
+            'quoteVolume': baseVolume,
             'info': ticker,
         }
 
@@ -244,7 +252,7 @@ class idex (Exchange):
                 market = {'symbol': symbol}
             ticker = response[id]
             result[symbol] = self.parse_ticker(ticker, market)
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -367,13 +375,13 @@ class idex (Exchange):
             if side == 'buy':
                 tokenBuy = market['baseId']
                 tokenSell = market['quoteId']
-                amountBuy = self.toWei(amount, 'ether', market['precision']['amount'])
-                amountSell = self.toWei(quoteAmount, 'ether', 18)
+                amountBuy = self.to_wei(amount, market['precision']['amount'])
+                amountSell = self.to_wei(quoteAmount, 18)
             else:
                 tokenBuy = market['quoteId']
                 tokenSell = market['baseId']
-                amountBuy = self.toWei(quoteAmount, 'ether', 18)
-                amountSell = self.toWei(amount, 'ether', market['precision']['amount'])
+                amountBuy = self.to_wei(quoteAmount, 18)
+                amountSell = self.to_wei(amount, market['precision']['amount'])
             nonce = self.get_nonce()
             orderToHash = {
                 'contractAddress': contractAddress,
@@ -386,7 +394,7 @@ class idex (Exchange):
                 'address': self.walletAddress,
             }
             orderHash = self.get_idex_create_order_hash(orderToHash)
-            signature = self.signMessage(orderHash, self.privateKey)
+            signature = self.sign_message(orderHash, self.privateKey)
             request = {
                 'tokenBuy': tokenBuy,
                 'amountBuy': amountBuy,
@@ -414,10 +422,10 @@ class idex (Exchange):
             #      amountSell: '153300000000000000',
             #      expires: 100000,
             #      nonce: 1,
-            #      user: '0x0ab991497116f7f5532a4c2f4f7b1784488628e1'} }
+            #      user: '0x0ab991497116f7f5532a4c2f4f7b1784488628e1'}}
             return self.parse_order(response, market)
         elif type == 'market':
-            if not('orderHash' in list(params.keys())):
+            if not ('orderHash' in params):
                 raise ArgumentsRequired(self.id + ' market order requires an order structure such as that in fetchOrderBook()[\'bids\'][0][2], fetchOrder()[\'info\'], or fetchOpenOrders()[0][\'info\']')
             # {price: '0.000132247803328924',
             #   amount: '19980',
@@ -435,7 +443,7 @@ class idex (Exchange):
             #      amountSell: '19980000000000000000000',
             #      expires: 10000,
             #      nonce: 1564656561510,
-            #      user: '0xc3f8304270e49b8e8197bfcfd8567b83d9e4479b'} }
+            #      user: '0xc3f8304270e49b8e8197bfcfd8567b83d9e4479b'}}
             orderToSign = {
                 'orderHash': params['orderHash'],
                 'amount': params['params']['amountBuy'],
@@ -443,7 +451,7 @@ class idex (Exchange):
                 'nonce': params['params']['nonce'],
             }
             orderHash = self.get_idex_market_order_hash(orderToSign)
-            signature = self.signMessage(orderHash, self.privateKey)
+            signature = self.sign_message(orderHash, self.privateKey)
             signedOrder = self.extend(orderToSign, signature)
             signedOrder['address'] = self.walletAddress
             signedOrder['nonce'] = self.get_nonce()
@@ -485,7 +493,7 @@ class idex (Exchange):
             'nonce': nonce,
         }
         orderHash = self.get_idex_cancel_order_hash(orderToHash)
-        signature = self.signMessage(orderHash, self.privateKey)
+        signature = self.sign_message(orderHash, self.privateKey)
         request = {
             'orderHash': orderId,
             'address': self.walletAddress,
@@ -530,8 +538,8 @@ class idex (Exchange):
         #         '0xab555fc301779dd92fd41ccd143b1d72776ae7b5acfc59ca44a1d376f68fda15',
         #        withdrawalNumber: 1444070,
         #        status: 'COMPLETE'}]}
-        deposits = self.parseTransactions(response['deposits'], currency, since, limit)
-        withdrawals = self.parseTransactions(response['withdrawals'], currency, since, limit)
+        deposits = self.parse_transactions(response['deposits'], currency, since, limit)
+        withdrawals = self.parse_transactions(response['withdrawals'], currency, since, limit)
         return self.array_concat(deposits, withdrawals)
 
     def parse_transaction(self, item, currency=None):
@@ -697,17 +705,19 @@ class idex (Exchange):
         else:
             amount = self.safe_float(order, 'amount')
         filled = self.safe_float(order, 'filled')
-        cost = self.safe_float(order, 'total')
         price = self.safe_float(order, 'price')
+        cost = self.safe_float(order, 'total')
+        if (cost is not None) and (filled is not None) and not cost:
+            cost = filled * price
         if 'market' in order:
             marketId = order['market']
             symbol = self.markets_by_id[marketId]['symbol']
-        elif (side is not None) and ('params' in list(order.keys())):
+        elif (side is not None) and ('params' in order):
             params = order['params']
             buy = self.safe_currency_code(self.safe_string(params, 'tokenBuy'))
             sell = self.safe_currency_code(self.safe_string(params, 'tokenSell'))
             if buy is not None and sell is not None:
-                symbol = side == buy + '/' + sell if 'buy' else sell + '/' + buy
+                symbol = (buy + '/' + sell) if (side == 'buy') else (sell + '/' + buy)
         if symbol is None and market is not None:
             symbol = market['symbol']
         id = self.safe_string(order, 'orderHash')
@@ -715,6 +725,7 @@ class idex (Exchange):
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -726,6 +737,10 @@ class idex (Exchange):
             'remaining': remaining,
             'cost': cost,
             'status': status,
+            'lastTradeTimestamp': None,
+            'average': None,
+            'trades': None,
+            'fee': None,
         }
 
     def parse_order_status(self, status):
@@ -804,6 +819,37 @@ class idex (Exchange):
                 result = self.array_concat(result, parsed)
             return result
 
+    def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'market': market['id'],
+        }
+        if limit is not None:
+            request['start'] = int(int(math.floor(limit)))
+        response = self.publicPostReturnTradeHistory(self.extend(request, params))
+        #    [{type: 'buy',
+        #        date: '2019-07-25 11:24:41',
+        #        amount: '347.833140025692348611',
+        #        total: '0.050998794333719943',
+        #        uuid: 'cbdff960-aece-11e9-b566-c5d69c3be671',
+        #        tid: 4320867,
+        #        timestamp: 1564053881,
+        #        price: '0.000146618560640751',
+        #        taker: '0x0ab991497116f7f5532a4c2f4f7b1784488628e1',
+        #        maker: '0x1a961bc2e0d619d101f5f92a6be752132d7606e6',
+        #        orderHash:
+        #         '0xbec6485613a15be619c04c1425e8e821ebae42b88fa95ac4dfe8ba2beb363ee4',
+        #        transactionHash:
+        #         '0xf094e07b329ac8046e8f34db358415863c41daa36765c05516f4cf4f5b403ad1',
+        #        tokenBuy: '0x0000000000000000000000000000000000000000',
+        #        buyerFee: '0.695666280051384697',
+        #        gasFee: '28.986780264563232993',
+        #        sellerFee: '0.00005099879433372',
+        #        tokenSell: '0xb705268213d593b8fd88d3fdeff93aff5cbdcfae',
+        #        usdValue: '11.336926687304238214'}]
+        return self.parse_trades(response, market, since, limit)
+
     def parse_trade(self, trade, market=None):
         # {type: 'buy',
         #   date: '2019-07-25 11:24:41',
@@ -830,7 +876,7 @@ class idex (Exchange):
         symbol = None
         maker = self.safe_string(trade, 'maker')
         takerOrMaker = None
-        if maker is not None:
+        if maker is not None and self.walletAddress is not None:
             if maker.lower() == self.walletAddress.lower():
                 takerOrMaker = 'maker'
             else:
@@ -872,7 +918,7 @@ class idex (Exchange):
             'cost': feeCost,
         }
         if feeCost is not None and amount is not None:
-            feeCurrencyAmount = feeCurrency == cost if 'ETH' else amount
+            feeCurrencyAmount = cost if (feeCurrency == 'ETH') else amount
             fee['rate'] = feeCost / feeCurrencyAmount
         orderId = self.safe_string(trade, 'orderHash')
         return {
@@ -898,7 +944,7 @@ class idex (Exchange):
         currency = self.currency(code)
         tokenAddress = currency['id']
         nonce = self.get_nonce()
-        amount = self.toWei(amount, 'ether', currency['precision'])
+        amount = self.to_wei(amount, currency['precision'])
         requestToHash = {
             'contractAddress': self.get_contract_address(),
             'token': tokenAddress,
@@ -907,7 +953,7 @@ class idex (Exchange):
             'nonce': nonce,
         }
         hash = self.get_idex_withdraw_hash(requestToHash)
-        signature = self.signMessage(hash, self.privateKey)
+        signature = self.sign_message(hash, self.privateKey)
         request = {
             'address': address,
             'amount': amount,
@@ -934,7 +980,7 @@ class idex (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def get_idex_create_order_hash(self, order):
-        return self.soliditySha3([
+        return self.solidity_sha3([
             order['contractAddress'],  # address
             order['tokenBuy'],  # address
             order['amountBuy'],  # uint256
@@ -946,13 +992,13 @@ class idex (Exchange):
         ])
 
     def get_idex_cancel_order_hash(self, order):
-        return self.soliditySha3([
+        return self.solidity_sha3([
             order['orderHash'],  # address
             order['nonce'],  # uint256
         ])
 
     def get_idex_market_order_hash(self, order):
-        return self.soliditySha3([
+        return self.solidity_sha3([
             order['orderHash'],  # address
             order['amount'],  # uint256
             order['address'],  # address
@@ -960,7 +1006,7 @@ class idex (Exchange):
         ])
 
     def get_idex_withdraw_hash(self, request):
-        return self.soliditySha3([
+        return self.solidity_sha3([
             request['contractAddress'],  # address
             request['token'],  # uint256
             request['amount'],  # uint256

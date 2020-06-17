@@ -8,7 +8,7 @@ import math
 from ccxt.base.errors import ArgumentsRequired
 
 
-class kuna (acx):
+class kuna(acx):
 
     def describe(self):
         return self.deep_extend(super(kuna, self).describe(), {
@@ -20,11 +20,12 @@ class kuna (acx):
             'has': {
                 'CORS': False,
                 'fetchTickers': True,
-                'fetchOHLCV': False,
+                'fetchOHLCV': 'emulated',
                 'fetchOpenOrders': True,
                 'fetchMyTrades': True,
                 'withdraw': False,
             },
+            'timeframes': None,
             'urls': {
                 'referral': 'https://kuna.io?r=kunaid-gvfihe8az7o4',
                 'logo': 'https://user-images.githubusercontent.com/1294454/31697638-912824fa-b3c1-11e7-8c36-cf9606eb94ac.jpg',
@@ -60,7 +61,7 @@ class kuna (acx):
         })
 
     async def fetch_markets(self, params={}):
-        quotes = ['btc', 'eth', 'eurs', 'rub', 'uah', 'usd', 'usdt']
+        quotes = ['btc', 'eth', 'eurs', 'rub', 'uah', 'usd', 'usdt', 'gol']
         pricePrecisions = {
             'UAH': 0,
         }
@@ -104,6 +105,8 @@ class kuna (acx):
                                 'max': None,
                             },
                         },
+                        'active': None,
+                        'info': None,
                     })
                     break
         return markets
@@ -130,13 +133,13 @@ class kuna (acx):
         symbol = None
         if market:
             symbol = market['symbol']
-        side = self.safe_string(trade, 'side')
+        side = self.safe_string_2(trade, 'side', 'trend')
         if side is not None:
             sideMap = {
                 'ask': 'sell',
                 'bid': 'buy',
             }
-            side = self.safe_string(sideMap, side)
+            side = self.safe_string(sideMap, side, side)
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'volume')
         cost = self.safe_float(trade, 'funds')
@@ -177,3 +180,20 @@ class kuna (acx):
         }
         response = await self.privateGetTradesMy(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
+
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limits=None, params={}):
+        await self.load_markets()
+        trades = await self.fetch_trades(symbol, since, limits, params)
+        ohlcvc = self.build_ohlcvc(trades, timeframe, since, limits)
+        result = []
+        for i in range(0, len(ohlcvc)):
+            ohlcv = ohlcvc[i]
+            result.append([
+                ohlcv[0],
+                ohlcv[1],
+                ohlcv[2],
+                ohlcv[3],
+                ohlcv[4],
+                ohlcv[5],
+            ])
+        return result

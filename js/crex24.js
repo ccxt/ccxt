@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadRequest, InvalidNonce, RequestTimeout, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, BadRequest, InvalidNonce, RequestTimeout, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, AuthenticationError, BadSymbol } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -27,10 +27,10 @@ module.exports = class crex24 extends Exchange {
                 'fetchDeposits': true,
                 'fetchFundingFees': false,
                 'fetchMyTrades': true,
-                'fetchOHLCV': false,
+                'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
-                'fetchOrders': false,
+                'fetchOrders': true,
                 'fetchOrderTrades': true,
                 'fetchTickers': true,
                 'fetchTradingFee': false, // actually, true, but will be implemented later
@@ -38,6 +38,18 @@ module.exports = class crex24 extends Exchange {
                 'fetchTransactions': true,
                 'fetchWithdrawals': true,
                 'withdraw': true,
+            },
+            'timeframes': {
+                '1m': '1m',
+                '3m': '3m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
+                '1h': '1h',
+                '4h': '4h',
+                '1d': '1d',
+                '1w': '1w',
+                '1M': '1mo',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/47813922-6f12cc00-dd5d-11e8-97c6-70f957712d47.jpg',
@@ -55,11 +67,13 @@ module.exports = class crex24 extends Exchange {
                         'tickers',
                         'recentTrades',
                         'orderBook',
+                        'ohlcv',
                     ],
                 },
                 'trading': {
                     'get': [
                         'orderStatus',
+                        'orderTrades',
                         'activeOrders',
                         'orderHistory',
                         'tradeHistory',
@@ -94,7 +108,7 @@ module.exports = class crex24 extends Exchange {
                     'tierBased': true,
                     'percentage': true,
                     'taker': 0.001,
-                    'maker': -0.01,
+                    'maker': -0.0001,
                 },
                 // should be deleted, these are outdated and inaccurate
                 'funding': {
@@ -106,13 +120,15 @@ module.exports = class crex24 extends Exchange {
             },
             'commonCurrencies': {
                 'YOYO': 'YOYOW',
+                'BULL': 'BuySell',
                 'BCC': 'BCH',
             },
             // exchange-specific options
             'options': {
+                'fetchOrdersMethod': 'tradingGetOrderHistory', // or 'tradingGetActiveOrders'
+                'fetchClosedOrdersMethod': 'tradingGetOrderHistory', // or 'tradingGetActiveOrders'
                 'fetchTickersMethod': 'publicGetTicker24hr',
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
-                'defaultLimitOrderType': 'limit', // or 'limit_maker'
                 'hasAlreadyAuthenticatedSuccessfully': false,
                 'warnOnFetchOpenOrdersWithoutSymbol': true,
                 'parseOrderToPrecision': false, // force amounts and costs in parseOrder to precision
@@ -126,10 +142,12 @@ module.exports = class crex24 extends Exchange {
                     'Failed to verify request signature.': AuthenticationError, // eslint-disable-quotes
                     "Nonce error. Make sure that the value passed in the 'X-CREX24-API-NONCE' header is greater in each consecutive request than in the previous one for the corresponding API-Key provided in 'X-CREX24-API-KEY' header.": InvalidNonce,
                     'Market orders are not supported by the instrument currently.': InvalidOrder,
+                    "Parameter 'instrument' contains invalid value.": BadSymbol,
                 },
                 'broad': {
                     'API Key': AuthenticationError, // "API Key '9edc48de-d5b0-4248-8e7e-f59ffcd1c7f1' doesn't exist."
                     'Insufficient funds': InsufficientFunds, // "Insufficient funds: new order requires 10 ETH which is more than the available balance."
+                    'has been delisted.': BadSymbol, // {"errorDescription":"Instrument '$PAC-BTC' has been delisted."}
                 },
             },
         });
@@ -297,9 +315,6 @@ module.exports = class crex24 extends Exchange {
         //         }
         //     ]
         //
-        // const log = require ('ololog').unlimited.green;
-        // log (response);
-        // process.exit ();
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
@@ -501,7 +516,7 @@ module.exports = class crex24 extends Exchange {
                 cost = amount * price;
             }
         }
-        const id = undefined;
+        const id = this.safeString (trade, 'id');
         const side = this.safeString (trade, 'side');
         const orderId = this.safeString (trade, 'orderId');
         let symbol = undefined;
@@ -561,6 +576,53 @@ module.exports = class crex24 extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //     {
+        //         timestamp: '2019-09-21T10:36:00Z',
+        //         open: 0.02152,
+        //         high: 0.02156,
+        //         low: 0.02152,
+        //         close: 0.02156,
+        //         volume: 0.01741259
+        //     }
+        //
+        return [
+            this.parse8601 (this.safeString (ohlcv, 'timestamp')),
+            this.safeFloat (ohlcv, 'open'),
+            this.safeFloat (ohlcv, 'high'),
+            this.safeFloat (ohlcv, 'low'),
+            this.safeFloat (ohlcv, 'close'),
+            this.safeFloat (ohlcv, 'volume'),
+        ];
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'granularity': this.timeframes[timeframe],
+            'instrument': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit; // Accepted values: 1 - 1000. If the parameter is not specified, the number of results is limited to 100
+        }
+        const response = await this.publicGetOhlcv (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "timestamp": "2020-06-06T17:36:00Z",
+        //             "open": 0.025,
+        //             "high": 0.025,
+        //             "low": 0.02499,
+        //             "close": 0.02499,
+        //             "volume": 0.00643127
+        //         }
+        //     ]
+        //
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
+    }
+
     parseOrderStatus (status) {
         const statuses = {
             'submitting': 'open', // A newly created limit order has a status "submitting" until it has been processed.
@@ -597,7 +659,21 @@ module.exports = class crex24 extends Exchange {
         //     }
         //
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const symbol = this.findSymbol (this.safeString (order, 'symbol'), market);
+        let symbol = undefined;
+        const marketId = this.safeString (order, 'instrument');
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('-');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
         const timestamp = this.parse8601 (this.safeString (order, 'timestamp'));
         let price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'volume');
@@ -643,6 +719,7 @@ module.exports = class crex24 extends Exchange {
         return {
             'info': order,
             'id': id,
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -757,6 +834,45 @@ module.exports = class crex24 extends Exchange {
         return this.parseOrder (response[0]);
     }
 
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        if (since !== undefined) {
+            request['from'] = this.ymdhms (since, 'T');
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            request['instrument'] = market['id'];
+        }
+        const method = this.safeString (this.options, 'fetchOrdersMethod', 'tradingGetOrderHistory');
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "id": 468535711,
+        //             "timestamp": "2018-06-02T16:42:40Z",
+        //             "instrument": "BTC-EUR",
+        //             "side": "sell",
+        //             "type": "limit",
+        //             "status": "submitting",
+        //             "cancellationReason": null,
+        //             "timeInForce": "GTC",
+        //             "volume": 0.00770733,
+        //             "price": 6724.9,
+        //             "stopPrice": null,
+        //             "remainingVolume": 0.00770733,
+        //             "lastUpdate": "2018-06-02T16:42:40Z",
+        //             "parentOrderId": null,
+        //             "childOrderId": null
+        //         }
+        //     ]
+        //
+        return this.parseOrders (response);
+    }
+
     async fetchOrdersByIds (ids = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
@@ -852,7 +968,8 @@ module.exports = class crex24 extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // min 1, max 1000, default 100
         }
-        const response = await this.tradingGetActiveOrders (this.extend (request, params));
+        const method = this.safeString (this.options, 'fetchClosedOrdersMethod', 'tradingGetOrderHistory');
+        const response = await this[method] (this.extend (request, params));
         //     [
         //         {
         //             "id": 468535711,
@@ -1175,16 +1292,9 @@ module.exports = class crex24 extends Exchange {
             return; // no error
         }
         const message = this.safeString (response, 'errorDescription');
-        const feedback = this.id + ' ' + this.json (response);
-        const exact = this.exceptions['exact'];
-        if (message in exact) {
-            throw new exact[message] (feedback);
-        }
-        const broad = this.exceptions['broad'];
-        const broadKey = this.findBroadlyMatchedKey (broad, message);
-        if (broadKey !== undefined) {
-            throw new broad[broadKey] (feedback);
-        }
+        const feedback = this.id + ' ' + body;
+        this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+        this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
         if (code === 400) {
             throw new BadRequest (feedback);
         } else if (code === 401) {

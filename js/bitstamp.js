@@ -16,10 +16,11 @@ module.exports = class bitstamp extends Exchange {
             'rateLimit': 1000,
             'version': 'v2',
             'userAgent': this.userAgents['chrome'],
+            'pro': true,
             'has': {
                 'CORS': true,
                 'fetchDepositAddress': true,
-                'fetchOrder': 'emulated',
+                'fetchOrder': true,
                 'fetchOpenOrders': true,
                 'fetchMyTrades': true,
                 'fetchTransactions': true,
@@ -28,7 +29,11 @@ module.exports = class bitstamp extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg',
-                'api': 'https://www.bitstamp.net/api',
+                'api': {
+                    'public': 'https://www.bitstamp.net/api',
+                    'private': 'https://www.bitstamp.net/api',
+                    'v1': 'https://www.bitstamp.net/api',
+                },
                 'www': 'https://www.bitstamp.net',
                 'doc': 'https://www.bitstamp.net/api',
             },
@@ -95,13 +100,14 @@ module.exports = class bitstamp extends Exchange {
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
-                    'taker': 0.25 / 100,
-                    'maker': 0.25 / 100,
+                    'taker': 0.5 / 100,
+                    'maker': 0.5 / 100,
                     'tiers': {
                         'taker': [
-                            [0, 0.25 / 100],
-                            [20000, 0.24 / 100],
-                            [100000, 0.22 / 100],
+                            [0, 0.5 / 100],
+                            [20000, 0.25 / 100],
+                            [100000, 0.24 / 100],
+                            [200000, 0.22 / 100],
                             [400000, 0.20 / 100],
                             [600000, 0.15 / 100],
                             [1000000, 0.14 / 100],
@@ -111,9 +117,10 @@ module.exports = class bitstamp extends Exchange {
                             [20000001, 0.10 / 100],
                         ],
                         'maker': [
-                            [0, 0.25 / 100],
-                            [20000, 0.24 / 100],
-                            [100000, 0.22 / 100],
+                            [0, 0.5 / 100],
+                            [20000, 0.25 / 100],
+                            [100000, 0.24 / 100],
+                            [200000, 0.22 / 100],
                             [400000, 0.20 / 100],
                             [600000, 0.15 / 100],
                             [1000000, 0.14 / 100],
@@ -228,8 +235,27 @@ module.exports = class bitstamp extends Exchange {
             'pair': this.marketId (symbol),
         };
         const response = await this.publicGetOrderBookPair (this.extend (request, params));
-        const timestamp = this.safeTimestamp (response, 'timestamp');
-        return this.parseOrderBook (response, timestamp);
+        //
+        //     {
+        //         "timestamp": "1583652948",
+        //         "microtimestamp": "1583652948955826",
+        //         "bids": [
+        //             [ "8750.00", "1.33685271" ],
+        //             [ "8749.39", "0.07700000" ],
+        //             [ "8746.98", "0.07400000" ],
+        //         ]
+        //         "asks": [
+        //             [ "8754.10", "1.51995636" ],
+        //             [ "8754.71", "1.40000000" ],
+        //             [ "8754.72", "2.50000000" ],
+        //         ]
+        //     }
+        //
+        const microtimestamp = this.safeInteger (response, 'microtimestamp');
+        const timestamp = parseInt (microtimestamp / 1000);
+        const orderbook = this.parseOrderBook (response, timestamp);
+        orderbook['nonce'] = microtimestamp;
+        return orderbook;
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -870,10 +896,9 @@ module.exports = class bitstamp extends Exchange {
         const timestamp = this.parse8601 (this.safeString (order, 'datetime'));
         let lastTradeTimestamp = undefined;
         let symbol = undefined;
-        let marketId = this.safeString (order, 'currency_pair');
+        let marketId = this.safeStringLower (order, 'currency_pair');
         if (marketId !== undefined) {
             marketId = marketId.replace ('/', '');
-            marketId = marketId.toLowerCase ();
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
                 symbol = market['symbol'];
@@ -942,6 +967,7 @@ module.exports = class bitstamp extends Exchange {
         }
         return {
             'id': id,
+            'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -957,6 +983,7 @@ module.exports = class bitstamp extends Exchange {
             'trades': trades,
             'fee': fee,
             'info': order,
+            'average': undefined,
         };
     }
 
@@ -1019,7 +1046,10 @@ module.exports = class bitstamp extends Exchange {
         method += 'Post' + this.capitalize (name);
         method += v1 ? 'Deposit' : '';
         method += 'Address';
-        const response = await this[method] (params);
+        let response = await this[method] (params);
+        if (v1) {
+            response = JSON.parse (response);
+        }
         const address = v1 ? response : this.safeString (response, 'address');
         const tag = v1 ? undefined : this.safeString (response, 'destination_tag');
         this.checkAddress (address);
@@ -1061,7 +1091,7 @@ module.exports = class bitstamp extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/';
+        let url = this.urls['api'][api] + '/';
         if (api !== 'v1') {
             url += this.version + '/';
         }
@@ -1073,18 +1103,52 @@ module.exports = class bitstamp extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
-            const nonce = this.nonce ().toString ();
-            const auth = nonce + this.uid + this.apiKey;
-            const signature = this.encode (this.hmac (this.encode (auth), this.encode (this.secret)));
-            query = this.extend ({
-                'key': this.apiKey,
-                'signature': signature.toUpperCase (),
-                'nonce': nonce,
-            }, query);
-            body = this.urlencode (query);
-            headers = {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            };
+            const authVersion = this.safeValue (this.options, 'auth', 'v2');
+            if ((authVersion === 'v1') || (api === 'v1')) {
+                const nonce = this.nonce ().toString ();
+                const auth = nonce + this.uid + this.apiKey;
+                const signature = this.encode (this.hmac (this.encode (auth), this.encode (this.secret)));
+                query = this.extend ({
+                    'key': this.apiKey,
+                    'signature': signature.toUpperCase (),
+                    'nonce': nonce,
+                }, query);
+                body = this.urlencode (query);
+                headers = {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                };
+            } else {
+                const xAuth = 'BITSTAMP ' + this.apiKey;
+                const xAuthNonce = this.uuid ();
+                const xAuthTimestamp = this.milliseconds ().toString ();
+                const xAuthVersion = 'v2';
+                let contentType = '';
+                headers = {
+                    'X-Auth': xAuth,
+                    'X-Auth-Nonce': xAuthNonce,
+                    'X-Auth-Timestamp': xAuthTimestamp,
+                    'X-Auth-Version': xAuthVersion,
+                };
+                if (method === 'POST') {
+                    if (Object.keys (query).length) {
+                        body = this.urlencode (query);
+                        contentType = 'application/x-www-form-urlencoded';
+                        headers['Content-Type'] = contentType;
+                    } else {
+                        // sending an empty POST request will trigger
+                        // an API0020 error returned by the exchange
+                        // therefore for empty requests we send a dummy object
+                        // https://github.com/ccxt/ccxt/issues/6846
+                        body = this.urlencode ({ 'foo': 'bar' });
+                        contentType = 'application/x-www-form-urlencoded';
+                        headers['Content-Type'] = contentType;
+                    }
+                }
+                const authBody = body ? body : '';
+                const auth = xAuth + method + url.replace ('https://', '') + contentType + xAuthNonce + xAuthTimestamp + xAuthVersion + authBody;
+                const signature = this.hmac (this.encode (auth), this.encode (this.secret));
+                headers['X-Auth-Signature'] = signature;
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
@@ -1128,18 +1192,11 @@ module.exports = class bitstamp extends Exchange {
             if (code === 'API0005') {
                 throw new AuthenticationError (this.id + ' invalid signature, use the uid for the main account if you have subaccounts');
             }
-            const exact = this.exceptions['exact'];
-            const broad = this.exceptions['broad'];
             const feedback = this.id + ' ' + body;
             for (let i = 0; i < errors.length; i++) {
                 const value = errors[i];
-                if (value in exact) {
-                    throw new exact[value] (feedback);
-                }
-                const broadKey = this.findBroadlyMatchedKey (broad, value);
-                if (broadKey !== undefined) {
-                    throw new broad[broadKey] (feedback);
-                }
+                this.throwExactlyMatchedException (this.exceptions['exact'], value, feedback);
+                this.throwBroadlyMatchedException (this.exceptions['broad'], value, feedback);
             }
             throw new ExchangeError (feedback);
         }

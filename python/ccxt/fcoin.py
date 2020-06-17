@@ -14,12 +14,12 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import NotSupported
-from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 
 
-class fcoin (Exchange):
+class fcoin(Exchange):
 
     def describe(self):
         return self.deep_extend(super(fcoin, self).describe(), {
@@ -126,8 +126,8 @@ class fcoin (Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': 0.001,
-                    'taker': 0.001,
+                    'maker': -0.0002,
+                    'taker': 0.0003,
                 },
             },
             'limits': {
@@ -156,7 +156,7 @@ class fcoin (Exchange):
                 '400': NotSupported,  # Bad Request
                 '401': AuthenticationError,
                 '405': NotSupported,
-                '429': DDoSProtection,  # Too Many Requests, exceed api request limit
+                '429': RateLimitExceeded,  # Too Many Requests, exceed api request limit
                 '1002': ExchangeNotAvailable,  # System busy
                 '1016': InsufficientFunds,
                 '2136': AuthenticationError,  # The API key is expired
@@ -376,19 +376,19 @@ class fcoin (Exchange):
                 if id in self.markets_by_id:
                     market = self.markets_by_id[id]
         values = ticker['ticker']
-        last = float(values[0])
+        last = self.safe_float(values, 0)
         if market is not None:
             symbol = market['symbol']
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(values[7]),
-            'low': float(values[8]),
-            'bid': float(values[2]),
-            'bidVolume': float(values[3]),
-            'ask': float(values[4]),
-            'askVolume': float(values[5]),
+            'high': self.safe_float(values, 7),
+            'low': self.safe_float(values, 8),
+            'bid': self.safe_float(values, 2),
+            'bidVolume': self.safe_float(values, 3),
+            'ask': self.safe_float(values, 4),
+            'askVolume': self.safe_float(values, 5),
             'vwap': None,
             'open': None,
             'close': last,
@@ -397,8 +397,8 @@ class fcoin (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': float(values[9]),
-            'quoteVolume': float(values[10]),
+            'baseVolume': self.safe_float(values, 9),
+            'quoteVolume': self.safe_float(values, 10),
             'info': ticker,
         }
 
@@ -445,23 +445,24 @@ class fcoin (Exchange):
         return self.parse_trades(response['data'], market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
-        if type == 'market':
-            # for market buy it requires the amount of quote currency to spend
-            if side == 'buy':
-                if self.options['createMarketBuyOrderRequiresPrice']:
-                    if price is None:
-                        raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False to supply the cost in the amount argument(the exchange-specific behaviour)")
-                    else:
-                        amount = amount * price
         self.load_markets()
-        orderType = type
         request = {
             'symbol': self.market_id(symbol),
-            'amount': self.amount_to_precision(symbol, amount),
             'side': side,
-            'type': orderType,
+            'type': type,
         }
-        if type == 'limit':
+        # for market buy it requires the amount of quote currency to spend
+        if (type == 'market') and (side == 'buy'):
+            if self.options['createMarketBuyOrderRequiresPrice']:
+                if price is None:
+                    raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False to supply the cost in the amount argument(the exchange-specific behaviour)")
+                else:
+                    request['amount'] = self.cost_to_precision(symbol, amount * price)
+            else:
+                request['amount'] = self.cost_to_precision(symbol, amount)
+        else:
+            request['amount'] = self.amount_to_precision(symbol, amount)
+        if (type == 'limit') or (type == 'ioc') or (type == 'fok'):
             request['price'] = self.price_to_precision(symbol, price)
         response = self.privatePostOrders(self.extend(request, params))
         return {
@@ -493,6 +494,22 @@ class fcoin (Exchange):
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
+        #
+        #     {
+        #         "id": "string",
+        #         "symbol": "string",
+        #         "type": "limit",
+        #         "side": "buy",
+        #         "price": "string",
+        #         "amount": "string",
+        #         "state": "submitted",
+        #         "executed_value": "string",
+        #         "fill_fees": "string",
+        #         "filled_amount": "string",
+        #         "created_at": 0,
+        #         "source": "web"
+        #     }
+        #
         id = self.safe_string(order, 'id')
         side = self.safe_string(order, 'side')
         status = self.parse_order_status(self.safe_string(order, 'state'))
@@ -517,13 +534,22 @@ class fcoin (Exchange):
             elif (cost > 0) and (filled > 0):
                 price = cost / filled
         feeCurrency = None
-        if market is not None:
-            symbol = market['symbol']
-            feeCurrency = market['base'] if (side == 'buy') else market['quote']
-        feeCost = self.safe_float(order, 'fill_fees')
+        feeCost = None
+        feeRebate = self.safe_float(order, 'fees_income')
+        if (feeRebate is not None) and (feeRebate > 0):
+            if market is not None:
+                symbol = market['symbol']
+                feeCurrency = market['quote'] if (side == 'buy') else market['base']
+            feeCost = -feeRebate
+        else:
+            feeCost = self.safe_float(order, 'fill_fees')
+            if market is not None:
+                symbol = market['symbol']
+                feeCurrency = market['base'] if (side == 'buy') else market['quote']
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -574,7 +600,7 @@ class fcoin (Exchange):
         response = self.privateGetOrders(self.extend(request, params))
         return self.parse_orders(response['data'], market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         return [
             self.safe_timestamp(ohlcv, 'id'),
             self.safe_float(ohlcv, 'open'),
@@ -584,18 +610,23 @@ class fcoin (Exchange):
             self.safe_float(ohlcv, 'base_vol'),
         ]
 
-    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=100, params={}):
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         self.load_markets()
-        if limit is None:
-            raise ExchangeError(self.id + ' fetchOHLCV requires a limit argument')
         market = self.market(symbol)
+        if limit is None:
+            limit = 20  # default is 20
         request = {
             'symbol': market['id'],
             'timeframe': self.timeframes[timeframe],
             'limit': limit,
         }
+        if since is not None:
+            sinceInSeconds = int(since / 1000)
+            timerange = limit * self.parse_timeframe(timeframe)
+            request['before'] = self.sum(sinceInSeconds, timerange) - 1
         response = self.marketGetCandlesTimeframeSymbol(self.extend(request, params))
-        return self.parse_ohlcvs(response['data'], market, timeframe, since, limit)
+        data = self.safe_value(response, 'data', [])
+        return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def nonce(self):
         return self.milliseconds()
@@ -646,7 +677,5 @@ class fcoin (Exchange):
         status = self.safe_string(response, 'status')
         if status != '0' and status != 'ok':
             feedback = self.id + ' ' + body
-            if status in self.exceptions:
-                exceptions = self.exceptions
-                raise exceptions[status](feedback)
+            self.throw_exactly_matched_exception(self.exceptions, status, feedback)
             raise ExchangeError(feedback)

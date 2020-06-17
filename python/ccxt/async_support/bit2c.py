@@ -16,7 +16,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 
 
-class bit2c (Exchange):
+class bit2c(Exchange):
 
     def describe(self):
         return self.deep_extend(super(bit2c, self).describe(), {
@@ -148,7 +148,7 @@ class bit2c (Exchange):
         for i in range(0, len(codes)):
             code = codes[i]
             account = self.account()
-            currencyId = self.currencyId(code)
+            currencyId = self.currency_id(code)
             uppercase = currencyId.upper()
             if uppercase in balance:
                 account['free'] = self.safe_float(balance, 'AVAILABLE_' + uppercase)
@@ -271,6 +271,7 @@ class bit2c (Exchange):
         status = self.safe_string(order, 'status')
         return {
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -286,6 +287,7 @@ class bit2c (Exchange):
             'trades': None,
             'fee': None,
             'info': order,
+            'average': None,
         }
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
@@ -317,7 +319,7 @@ class bit2c (Exchange):
             timestamp = self.safe_timestamp(trade, 'ticks')
             price = self.safe_float(trade, 'price')
             amount = self.safe_float(trade, 'firstAmount')
-            reference_parts = reference.split('|')  # reference contains: 'pair|orderId|tradeId'
+            reference_parts = reference.split('|')  # reference contains 'pair|orderId|tradeId'
             if market is None:
                 marketId = self.safe_string(trade, 'pair')
                 if marketId in self.markets_by_id[marketId]:

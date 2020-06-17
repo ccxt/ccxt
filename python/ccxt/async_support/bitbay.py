@@ -7,12 +7,19 @@ from ccxt.async_support.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import AccountSuspended
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import OrderImmediatelyFillable
+from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 
 
-class bitbay (Exchange):
+class bitbay(Exchange):
 
     def describe(self):
         return self.deep_extend(super(bitbay, self).describe(), {
@@ -25,6 +32,22 @@ class bitbay (Exchange):
                 'withdraw': True,
                 'fetchMyTrades': True,
                 'fetchOpenOrders': True,
+                'fetchOHLCV': True,
+            },
+            'timeframes': {
+                '1m': '60',
+                '3m': '180',
+                '5m': '300',
+                '15m': '900',
+                '30m': '1800',
+                '1h': '3600',
+                '2h': '7200',
+                '4h': '14400',
+                '6h': '21600',
+                '12h': '43200',
+                '1d': '86400',
+                '3d': '259200',
+                '1w': '604800',
             },
             'urls': {
                 'referral': 'https://auth.bitbay.net/ref/jHlbB4mIkdS1',
@@ -43,6 +66,7 @@ class bitbay (Exchange):
                     'https://github.com/BitBayNet/API',
                     'https://docs.bitbay.net/v1.0.1-en/reference',
                 ],
+                'support': 'https://support.bitbay.net',
                 'fees': 'https://bitbay.net/en/fees',
             },
             'api': {
@@ -107,8 +131,60 @@ class bitbay (Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': 0.3 / 100,
-                    'taker': 0.0043,
+                    'maker': 0.0,
+                    'taker': 0.1 / 100,
+                    'percentage': True,
+                    'tierBased': False,
+                },
+                'fiat': {
+                    'maker': 0.30 / 100,
+                    'taker': 0.43 / 100,
+                    'percentage': True,
+                    'tierBased': True,
+                    'tiers': {
+                        'taker': [
+                            [0.0043, 0],
+                            [0.0042, 1250],
+                            [0.0041, 3750],
+                            [0.0040, 7500],
+                            [0.0039, 10000],
+                            [0.0038, 15000],
+                            [0.0037, 20000],
+                            [0.0036, 25000],
+                            [0.0035, 37500],
+                            [0.0034, 50000],
+                            [0.0033, 75000],
+                            [0.0032, 100000],
+                            [0.0031, 150000],
+                            [0.0030, 200000],
+                            [0.0029, 250000],
+                            [0.0028, 375000],
+                            [0.0027, 500000],
+                            [0.0026, 625000],
+                            [0.0025, 875000],
+                        ],
+                        'maker': [
+                            [0.0030, 0],
+                            [0.0029, 1250],
+                            [0.0028, 3750],
+                            [0.0028, 7500],
+                            [0.0027, 10000],
+                            [0.0026, 15000],
+                            [0.0025, 20000],
+                            [0.0025, 25000],
+                            [0.0024, 37500],
+                            [0.0023, 50000],
+                            [0.0023, 75000],
+                            [0.0022, 100000],
+                            [0.0021, 150000],
+                            [0.0021, 200000],
+                            [0.0020, 250000],
+                            [0.0019, 375000],
+                            [0.0018, 500000],
+                            [0.0018, 625000],
+                            [0.0017, 875000],
+                        ],
+                    },
                 },
                 'funding': {
                     'withdraw': {
@@ -125,6 +201,9 @@ class bitbay (Exchange):
                     },
                 },
             },
+            'options': {
+                'fiatCurrencies': ['EUR', 'USD', 'GBP', 'PLN'],
+            },
             'exceptions': {
                 '400': ExchangeError,  # At least one parameter wasn't set
                 '401': InvalidOrder,  # Invalid order type
@@ -140,17 +219,24 @@ class bitbay (Exchange):
                 '503': InvalidNonce,  # Invalid moment parameter. Request time doesn't match current server time
                 '504': ExchangeError,  # Invalid method
                 '505': AuthenticationError,  # Key has no permission for self action
-                '506': AuthenticationError,  # Account locked. Please contact with customer service
+                '506': AccountSuspended,  # Account locked. Please contact with customer service
                 # codes 507 and 508 are not specified in their docs
                 '509': ExchangeError,  # The BIC/SWIFT is required for self currency
-                '510': ExchangeError,  # Invalid market name
+                '510': BadSymbol,  # Invalid market name
                 'FUNDS_NOT_SUFFICIENT': InsufficientFunds,
                 'OFFER_FUNDS_NOT_EXCEEDING_MINIMUMS': InvalidOrder,
+                'OFFER_NOT_FOUND': OrderNotFound,
+                'OFFER_WOULD_HAVE_BEEN_PARTIALLY_FILLED': OrderImmediatelyFillable,
+                'ACTION_LIMIT_EXCEEDED': RateLimitExceeded,
+                'UNDER_MAINTENANCE': OnMaintenance,
+                'REQUEST_TIMESTAMP_TOO_OLD': InvalidNonce,
+                'PERMISSIONS_NOT_SUFFICIENT': PermissionDenied,
             },
         })
 
     async def fetch_markets(self, params={}):
         response = await self.v1_01PublicGetTradingTicker(params)
+        fiatCurrencies = self.safe_value(self.options, 'fiatCurrencies', [])
         #
         #     {
         #         status: 'Ok',
@@ -189,6 +275,11 @@ class bitbay (Exchange):
                 'amount': self.safe_integer(first, 'scale'),
                 'price': self.safe_integer(second, 'scale'),
             }
+            fees = self.safe_value(self.fees, 'trading', {})
+            if self.in_array(base, fiatCurrencies) or self.in_array(quote, fiatCurrencies):
+                fees = self.safe_value(self.fees, 'fiat', {})
+            maker = self.safe_float(fees, 'maker')
+            taker = self.safe_float(fees, 'taker')
             # todo: check that the limits have ben interpreted correctly
             # todo: parse the fees page
             result.append({
@@ -200,7 +291,8 @@ class bitbay (Exchange):
                 'quoteId': quoteId,
                 'precision': precision,
                 'active': None,
-                'fee': None,
+                'maker': maker,
+                'taker': taker,
                 'limits': {
                     'amount': {
                         'min': self.safe_float(first, 'minOffer'),
@@ -267,6 +359,7 @@ class bitbay (Exchange):
                 filled = max(0, amount - remaining)
         return {
             'id': self.safe_string(order, 'id'),
+            'clientOrderId': None,
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -282,15 +375,17 @@ class bitbay (Exchange):
             'remaining': remaining,
             'average': None,
             'fee': None,
+            'trades': None,
         }
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
-        markets = [self.market_id(symbol)] if symbol else []
-        request = {
-            'markets': markets,
-        }
-        response = await self.v1_01PrivateGetTradingHistoryTransactions(self.extend({'query': self.json(request)}, params))
+        request = {}
+        if symbol:
+            markets = [self.market_id(symbol)]
+            request['markets'] = markets
+        query = {'query': self.json(self.extend(request, params))}
+        response = await self.v1_01PrivateGetTradingHistoryTransactions(query)
         #
         #     {
         #         status: 'Ok',
@@ -719,13 +814,74 @@ class bitbay (Exchange):
         }
         return self.safe_string(types, type, type)
 
-    def parse_trade(self, trade, market):
-        if 'tid' in trade:
-            return self.parse_public_trade(trade, market)
-        else:
-            return self.parse_my_trade(trade, market)
+    def parse_ohlcv(self, ohlcv, market=None):
+        #
+        #     [
+        #         '1582399800000',
+        #         {
+        #             o: '0.0001428',
+        #             c: '0.0001428',
+        #             h: '0.0001428',
+        #             l: '0.0001428',
+        #             v: '4',
+        #             co: '1'
+        #         }
+        #     ]
+        #
+        first = self.safe_value(ohlcv, 1, {})
+        return [
+            self.safe_integer(ohlcv, 0),
+            self.safe_float(first, 'o'),
+            self.safe_float(first, 'h'),
+            self.safe_float(first, 'l'),
+            self.safe_float(first, 'c'),
+            self.safe_float(first, 'v'),
+        ]
 
-    def parse_my_trade(self, trade, market=None):
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        tradingSymbol = market['baseId'] + '-' + market['quoteId']
+        request = {
+            'symbol': tradingSymbol,
+            'resolution': self.timeframes[timeframe],
+            # 'from': 1574709092000,  # unix timestamp in milliseconds, required
+            # 'to': 1574709092000,  # unix timestamp in milliseconds, required
+        }
+        if limit is None:
+            limit = 100
+        duration = self.parse_timeframe(timeframe)
+        timerange = limit * duration * 1000
+        if since is None:
+            request['to'] = self.milliseconds()
+            request['from'] = request['to'] - timerange
+        else:
+            request['from'] = int(since)
+            request['to'] = self.sum(request['from'], timerange)
+        response = await self.v1_01PublicGetTradingCandleHistorySymbolResolution(self.extend(request, params))
+        #
+        #     {
+        #         "status":"Ok",
+        #         "items":[
+        #             ["1591503060000",{"o":"0.02509572","c":"0.02509438","h":"0.02509664","l":"0.02509438","v":"0.02082165","co":"17"}],
+        #             ["1591503120000",{"o":"0.02509606","c":"0.02509515","h":"0.02509606","l":"0.02509487","v":"0.04971703","co":"13"}],
+        #             ["1591503180000",{"o":"0.02509532","c":"0.02509589","h":"0.02509589","l":"0.02509454","v":"0.01332236","co":"7"}],
+        #         ]
+        #     }
+        #
+        items = self.safe_value(response, 'items', [])
+        return self.parse_ohlcvs(items, market, timeframe, since, limit)
+
+    def parse_trade(self, trade, market=None):
+        #
+        # createOrder trades
+        #
+        #     {
+        #         "rate": "0.02195928",
+        #         "amount": "0.00167952"
+        #     }
+        #
+        # fetchMyTrades(private)
         #
         #     {
         #         amount: "0.29285199",
@@ -740,13 +896,25 @@ class bitbay (Exchange):
         #         wasTaker: True,
         #     }
         #
-        timestamp = self.safe_integer(trade, 'time')
+        # fetchTrades(public)
+        #
+        #     {
+        #          id: 'df00b0da-e5e0-11e9-8c19-0242ac11000a',
+        #          t: '1570108958831',
+        #          a: '0.04776653',
+        #          r: '0.02145854',
+        #          ty: 'Sell'
+        #     }
+        #
+        timestamp = self.safe_integer_2(trade, 'time', 't')
         userAction = self.safe_string(trade, 'userAction')
         side = 'buy' if (userAction == 'Buy') else 'sell'
         wasTaker = self.safe_value(trade, 'wasTaker')
-        takerOrMaker = 'taker' if wasTaker else 'maker'
-        price = self.safe_float(trade, 'rate')
-        amount = self.safe_float(trade, 'amount')
+        takerOrMaker = None
+        if wasTaker is not None:
+            takerOrMaker = 'taker' if wasTaker else 'maker'
+        price = self.safe_float_2(trade, 'rate', 'r')
+        amount = self.safe_float_2(trade, 'amount', 'a')
         cost = None
         if amount is not None:
             if price is not None:
@@ -754,12 +922,14 @@ class bitbay (Exchange):
         feeCost = self.safe_float(trade, 'commissionValue')
         marketId = self.safe_string(trade, 'market')
         base = None
+        quote = None
         symbol = None
         if marketId is not None:
             if marketId in self.markets_by_id:
                 market = self.markets_by_id[marketId]
                 symbol = market['symbol']
                 base = market['base']
+                quote = market['quote']
             else:
                 baseId, quoteId = marketId.split('-')
                 base = self.safe_currency_code(baseId)
@@ -772,13 +942,16 @@ class bitbay (Exchange):
                 base = market['base']
         fee = None
         if feeCost is not None:
+            feeCcy = base if (side == 'buy') else quote
             fee = {
-                'currency': base,
+                'currency': feeCcy,
                 'cost': feeCost,
             }
         order = self.safe_string(trade, 'offerId')
         # todo: check self logic
-        type = 'limit' if order else 'market'
+        type = None
+        if order is not None:
+            type = 'limit' if order else 'market'
         return {
             'id': self.safe_string(trade, 'id'),
             'order': order,
@@ -795,78 +968,20 @@ class bitbay (Exchange):
             'info': trade,
         }
 
-    def parse_public_trade(self, trade, market=None):
-        #
-        #     {
-        #         "date":1459608665,
-        #         "price":0.02722571,
-        #         "type":"sell",
-        #         "amount":1.08112001,
-        #         "tid":"0"
-        #     }
-        #
-        timestamp = self.safe_timestamp(trade, 'date')
-        id = self.safe_string(trade, 'tid')
-        type = None
-        side = self.safe_string(trade, 'type')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amount')
-        cost = None
-        if amount is not None:
-            if price is not None:
-                cost = price * amount
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        return {
-            'id': id,
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'order': None,
-            'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
-            'fee': None,
-        }
-
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        tradingSymbol = market['baseId'] + '-' + market['quoteId']
         request = {
-            'id': market['id'],
+            'symbol': tradingSymbol,
         }
-        response = await self.publicGetIdTrades(self.extend(request, params))
-        #
-        #     [
-        #         {
-        #             "date":1459608665,
-        #             "price":0.02722571,
-        #             "type":"sell",
-        #             "amount":1.08112001,
-        #             "tid":"0"
-        #         },
-        #         {
-        #             "date":1459698930,
-        #             "price":0.029,
-        #             "type":"buy",
-        #             "amount":0.444188,
-        #             "tid":"1"
-        #         },
-        #         {
-        #             "date":1459726670,
-        #             "price":0.029,
-        #             "type":"buy",
-        #             "amount":0.25459599,
-        #             "tid":"2"
-        #         }
-        #     ]
-        #
-        return self.parse_trades(response, market, since, limit)
+        if since is not None:
+            request['fromTime'] = since - 1  # result does not include exactly `since` time therefore decrease by 1
+        if limit is not None:
+            request['limit'] = limit  # default - 10, max - 300
+        response = await self.v1_01PublicGetTradingTransactionsSymbol(self.extend(request, params))
+        items = self.safe_value(response, 'items')
+        return self.parse_trades(items, market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
@@ -880,16 +995,104 @@ class bitbay (Exchange):
         }
         if type == 'limit':
             request['rate'] = price
+            price = float(price)
+        amount = float(amount)
+        response = await self.v1_01PrivatePostTradingOfferSymbol(self.extend(request, params))
+        #
+        # unfilled(open order)
+        #
         #     {
         #         status: 'Ok',
         #         completed: False,  # can deduce status from here
         #         offerId: 'ce9cc72e-d61c-11e9-9248-0242ac110005',
         #         transactions: [],  # can deduce order info from here
         #     }
-        response = await self.v1_01PrivatePostTradingOfferSymbol(self.extend(request, params))
+        #
+        # filled(closed order)
+        #
+        #     {
+        #         "status": "Ok",
+        #         "offerId": "942a4a3e-e922-11e9-8c19-0242ac11000a",
+        #         "completed": True,
+        #         "transactions": [
+        #           {
+        #             "rate": "0.02195928",
+        #             "amount": "0.00167952"
+        #           },
+        #           {
+        #             "rate": "0.02195928",
+        #             "amount": "0.00167952"
+        #           },
+        #           {
+        #             "rate": "0.02196207",
+        #             "amount": "0.27704177"
+        #           }
+        #         ]
+        #     }
+        #
+        # partially-filled(open order)
+        #
+        #     {
+        #         "status": "Ok",
+        #         "offerId": "d0ebefab-f4d7-11e9-8c19-0242ac11000a",
+        #         "completed": False,
+        #         "transactions": [
+        #           {
+        #             "rate": "0.02106404",
+        #             "amount": "0.0019625"
+        #           },
+        #           {
+        #             "rate": "0.02106404",
+        #             "amount": "0.0019625"
+        #           },
+        #           {
+        #             "rate": "0.02105901",
+        #             "amount": "0.00975256"
+        #           }
+        #         ]
+        #     }
+        #
+        timestamp = self.milliseconds()  # the real timestamp is missing in the response
+        id = self.safe_string(response, 'offerId')
+        completed = self.safe_value(response, 'completed', False)
+        status = 'closed' if completed else 'open'
+        filled = 0
+        cost = None
+        transactions = self.safe_value(response, 'transactions')
+        trades = None
+        if transactions is not None:
+            trades = self.parse_trades(transactions, market, None, None, {
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+                'symbol': symbol,
+                'side': side,
+                'type': type,
+                'orderId': id,
+            })
+            cost = 0
+            for i in range(0, len(trades)):
+                filled = self.sum(filled, trades[i]['amount'])
+                cost = self.sum(cost, trades[i]['cost'])
+        remaining = amount - filled
         return {
-            'id': self.safe_string(response, 'offerId'),
+            'id': id,
             'info': response,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
+            'status': status,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'filled': filled,
+            'remaining': remaining,
+            'average': None,
+            'fee': None,
+            'trades': trades,
+            'clientOrderId': None,
         }
 
     async def cancel_order(self, id, symbol=None, params={}):
@@ -961,7 +1164,7 @@ class bitbay (Exchange):
             self.check_required_credentials()
             query = self.omit(params, self.extract_params(path))
             url += '/' + self.implode_params(path, params)
-            nonce = self.milliseconds()
+            nonce = str(self.milliseconds())
             payload = None
             if method != 'POST':
                 if query:
@@ -1021,11 +1224,8 @@ class bitbay (Exchange):
             #
             code = self.safe_string(response, 'code')  # always an integer
             feedback = self.id + ' ' + body
-            exceptions = self.exceptions
-            if code in self.exceptions:
-                raise exceptions[code](feedback)
-            else:
-                raise ExchangeError(feedback)
+            self.throw_exactly_matched_exception(self.exceptions, code, feedback)
+            raise ExchangeError(feedback)
         elif 'status' in response:
             #
             #      {"status":"Fail","errors":["OFFER_FUNDS_NOT_EXCEEDING_MINIMUMS"]}
@@ -1033,9 +1233,8 @@ class bitbay (Exchange):
             status = self.safe_string(response, 'status')
             if status == 'Fail':
                 errors = self.safe_value(response, 'errors')
-                feedback = self.id + ' ' + self.json(response)
+                feedback = self.id + ' ' + body
                 for i in range(0, len(errors)):
                     error = errors[i]
-                    if error in self.exceptions:
-                        raise self.exceptions[error](feedback)
+                    self.throw_exactly_matched_exception(self.exceptions, error, feedback)
                 raise ExchangeError(feedback)

@@ -8,7 +8,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 
 
-class acx (Exchange):
+class acx(Exchange):
 
     def describe(self):
         return self.deep_extend(super(acx, self).describe(), {
@@ -94,6 +94,9 @@ class acx (Exchange):
                     'withdraw': {},  # There is only 1% fee on withdrawals to your bank account.
                 },
             },
+            'commonCurrencies': {
+                'PLA': 'Plair',
+            },
             'exceptions': {
                 '2002': InsufficientFunds,
                 '2003': OrderNotFound,
@@ -131,6 +134,8 @@ class acx (Exchange):
                 'quoteId': quoteId,
                 'precision': precision,
                 'info': market,
+                'active': None,
+                'limits': self.limits,
             })
         return result
 
@@ -254,14 +259,14 @@ class acx (Exchange):
         response = await self.publicGetTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         return [
-            ohlcv[0] * 1000,
-            ohlcv[1],
-            ohlcv[2],
-            ohlcv[3],
-            ohlcv[4],
-            ohlcv[5],
+            self.safe_timestamp(ohlcv, 0),
+            self.safe_float(ohlcv, 1),
+            self.safe_float(ohlcv, 2),
+            self.safe_float(ohlcv, 3),
+            self.safe_float(ohlcv, 4),
+            self.safe_float(ohlcv, 5),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -301,6 +306,7 @@ class acx (Exchange):
         id = self.safe_string(order, 'id')
         return {
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -315,6 +321,8 @@ class acx (Exchange):
             'trades': None,
             'fee': None,
             'info': order,
+            'cost': None,
+            'average': None,
         }
 
     async def fetch_order(self, id, symbol=None, params={}):
@@ -419,7 +427,5 @@ class acx (Exchange):
             error = self.safe_value(response, 'error')
             errorCode = self.safe_string(error, 'code')
             feedback = self.id + ' ' + self.json(response)
-            exceptions = self.exceptions
-            if errorCode in exceptions:
-                raise exceptions[errorCode](feedback)
+            self.throw_exactly_matched_exception(self.exceptions, errorCode, feedback)
             # fallback to default error handler

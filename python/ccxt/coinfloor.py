@@ -5,10 +5,14 @@
 
 from ccxt.base.exchange import Exchange
 import base64
-from ccxt.base.errors import NotSupported
+from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import InvalidNonce
 
 
-class coinfloor (Exchange):
+class coinfloor(Exchange):
 
     def describe(self):
         return self.deep_extend(super(coinfloor, self).describe(), {
@@ -61,37 +65,49 @@ class coinfloor (Exchange):
             'markets': {
                 'BTC/GBP': {'id': 'XBT/GBP', 'symbol': 'BTC/GBP', 'base': 'BTC', 'quote': 'GBP', 'baseId': 'XBT', 'quoteId': 'GBP', 'precision': {'price': 0, 'amount': 4}},
                 'BTC/EUR': {'id': 'XBT/EUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'XBT', 'quoteId': 'EUR', 'precision': {'price': 0, 'amount': 4}},
-                'ETH/GBP': {'id': 'ETH/GBP', 'symbol': 'ETH/GBP', 'base': 'ETH', 'quote': 'GBP', 'baseId': 'ETH', 'quoteId': 'GBP', 'precision': {'price': 0, 'amount': 4}},
+            },
+            'exceptions': {
+                'exact': {
+                    'You have insufficient funds.': InsufficientFunds,
+                    'Tonce is out of sequence.': InvalidNonce,
+                },
             },
         })
 
     def fetch_balance(self, params={}):
         self.load_markets()
         market = None
-        if 'symbol' in params:
-            market = self.find_market(params['symbol'])
-        if 'id' in params:
-            market = self.find_market(params['id'])
-        if not market:
-            raise NotSupported(self.id + ' fetchBalance requires a symbol param')
+        query = params
+        symbol = self.safe_string(params, 'symbol')
+        if symbol is not None:
+            market = self.market(params['symbol'])
+            query = self.omit(params, 'symbol')
+        marketId = self.safe_string(params, 'id')
+        if marketId in self.markets_by_id:
+            market = self.markets_by_id[marketId]
+        if market is None:
+            raise ArgumentsRequired(self.id + ' fetchBalance requires a symbol param')
         request = {
             'id': market['id'],
         }
-        response = self.privatePostIdBalance(self.extend(request, params))
+        response = self.privatePostIdBalance(self.extend(request, query))
         result = {
             'info': response,
         }
         # base/quote used for keys e.g. "xbt_reserved"
-        keys = market['id'].lower().split('/')
-        result[market['base']] = {
-            'free': self.safe_float(response, keys[0] + '_available'),
-            'used': self.safe_float(response, keys[0] + '_reserved'),
-            'total': self.safe_float(response, keys[0] + '_balance'),
+        base = market['base']
+        quote = market['quote']
+        baseIdLower = self.safe_string_lower(market, 'baseId')
+        quoteIdLower = self.safe_string_lower(market, 'quoteId')
+        result[base] = {
+            'free': self.safe_float(response, baseIdLower + '_available'),
+            'used': self.safe_float(response, baseIdLower + '_reserved'),
+            'total': self.safe_float(response, baseIdLower + '_balance'),
         }
-        result[market['quote']] = {
-            'free': self.safe_float(response, keys[1] + '_available'),
-            'used': self.safe_float(response, keys[1] + '_reserved'),
-            'total': self.safe_float(response, keys[1] + '_balance'),
+        result[quote] = {
+            'free': self.safe_float(response, quoteIdLower + '_available'),
+            'used': self.safe_float(response, quoteIdLower + '_reserved'),
+            'total': self.safe_float(response, quoteIdLower + '_balance'),
         }
         return self.parse_balance(result)
 
@@ -188,10 +204,10 @@ class coinfloor (Exchange):
         # code is actually a market symbol in self situation, not a currency code
         self.load_markets()
         market = None
-        if code:
-            market = self.find_market(code)
-            if not market:
-                raise NotSupported(self.id + ' fetchTransactions requires a code argument(a market symbol)')
+        if code is not None:
+            market = self.market(code)
+            if market is None:
+                raise ArgumentsRequired(self.id + ' fetchTransactions requires a code argument(a market symbol)')
         request = {
             'id': market['id'],
             'limit': limit,
@@ -308,8 +324,8 @@ class coinfloor (Exchange):
                     'currency': quote,
                 }
             return [
-                self.extend(result, {'currency': base, 'amount': abs(baseAmount), 'direction': baseAmount > 'in' if 0 else 'out'}),
-                self.extend(result, {'currency': quote, 'amount': abs(quoteAmount), 'direction': quoteAmount > 'in' if 0 else 'out', 'fee': fee}),
+                self.extend(result, {'currency': base, 'amount': abs(baseAmount), 'direction': 'in' if (baseAmount > 0) else 'out'}),
+                self.extend(result, {'currency': quote, 'amount': abs(quoteAmount), 'direction': 'in' if (quoteAmount > 0) else 'out', 'fee': fee}),
             ]
             #
             # if fee is base or quote depending on buy/sell side
@@ -317,15 +333,15 @@ class coinfloor (Exchange):
             #     baseFee = (baseAmount > 0) ? {'currency': base, 'cost': feeCost} : None
             #     quoteFee = (quoteAmount > 0) ? {'currency': quote, 'cost': feeCost} : None
             #     return [
-            #         self.extend(result, {'currency': base, 'amount': baseAmount, 'direction': baseAmount > 'in' if 0 else 'out', 'fee': baseFee}),
-            #         self.extend(result, {'currency': quote, 'amount': quoteAmount, 'direction': quoteAmount > 'in' if 0 else 'out', 'fee': quoteFee}),
+            #         self.extend 'in' if (result, {'currency': base, 'amount': baseAmount, 'direction': (baseAmount > 0) else 'out', 'fee': baseFee}),
+            #         self.extend 'in' if (result, {'currency': quote, 'amount': quoteAmount, 'direction': (quoteAmount > 0) else 'out', 'fee': quoteFee}),
             #     ]
             #
             # fee as the 3rd item
             #
             #     return [
-            #         self.extend(result, {'currency': base, 'amount': baseAmount, 'direction': baseAmount > 'in' if 0 else 'out'}),
-            #         self.extend(result, {'currency': quote, 'amount': quoteAmount, 'direction': quoteAmount > 'in' if 0 else 'out'}),
+            #         self.extend 'in' if (result, {'currency': base, 'amount': baseAmount, 'direction': (baseAmount > 0) else 'out'}),
+            #         self.extend 'in' if (result, {'currency': quote, 'amount': quoteAmount, 'direction': (quoteAmount > 0) else 'out'}),
             #         self.extend(result, {'currency': feeCurrency, 'amount': feeCost, 'direction': 'out', 'type': 'fee'}),
             #     ]
             #
@@ -333,8 +349,8 @@ class coinfloor (Exchange):
             #
             # it's a regular transaction(deposit or withdrawal)
             #
-            amount = baseAmount == quoteAmount if 0 else baseAmount
-            code = baseAmount == quote if 0 else base
+            amount = quoteAmount if (baseAmount == 0) else baseAmount
+            code = quote if (baseAmount == 0) else base
             direction = 'in' if (amount > 0) else 'out'
             if feeCost is not None:
                 fee = {
@@ -360,18 +376,42 @@ class coinfloor (Exchange):
         else:
             request['price'] = price
             request['amount'] = amount
-        return getattr(self, method)(self.extend(request, params))
+        #
+        #     {
+        #         "id":31950584,
+        #         "datetime":"2020-05-21 08:38:18",
+        #         "type":1,
+        #         "price":"9100",
+        #         "amount":"0.0026"
+        #     }
+        #
+        response = getattr(self, method)(self.extend(request, params))
+        timestamp = self.parse8601(self.safe_string(response, 'datetime'))
+        return {
+            'id': self.safe_string(response, 'id'),
+            'clientOrderId': None,
+            'datetime': self.iso8601(timestamp),
+            'timestamp': timestamp,
+            'type': type,
+            'price': self.safe_float(response, 'price'),
+            'remaining': self.safe_float(response, 'amount'),
+            'info': response,
+        }
 
     def cancel_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise NotSupported(self.id + ' cancelOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelOrder requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
             'id': id,
         }
-        return self.privatePostSymbolCancelOrder(request)
+        response = self.privatePostSymbolCancelOrder(request)
+        if response == 'false':
+            # unfortunately the exchange does not give much info in the response
+            raise InvalidOrder(self.id + ' cancel was rejected')
+        return response
 
     def parse_order(self, order, market=None):
         timestamp = self.parse8601(self.safe_string(order, 'datetime'))
@@ -394,6 +434,7 @@ class coinfloor (Exchange):
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
@@ -402,16 +443,18 @@ class coinfloor (Exchange):
             'type': 'limit',
             'side': side,
             'price': price,
-            'amount': amount,
+            'amount': None,
             'filled': None,
-            'remaining': None,
+            'remaining': amount,
             'cost': cost,
             'fee': None,
+            'average': None,
+            'trades': None,
         }
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise NotSupported(self.id + ' fetchOpenOrders requires a symbol param')
+            raise ArgumentsRequired(self.id + ' fetchOpenOrders requires a symbol param')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -426,6 +469,16 @@ class coinfloor (Exchange):
         #     "type": 0
         #   }
         return self.parse_orders(response, market, since, limit, {'status': 'open'})
+
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        if code < 400:
+            return
+        if response is None:
+            return
+        message = self.safe_string(response, 'error_msg')
+        feedback = self.id + ' ' + body
+        self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+        raise ExchangeError(feedback)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         # curl -k -u '[User ID]/[API key]:[Passphrase]' https://webapi.coinfloor.co.uk:8090/bist/XBT/GBP/balance/
