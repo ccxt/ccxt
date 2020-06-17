@@ -127,7 +127,7 @@ module.exports = class krakenfu extends Exchange {
         //   "instruments":[
         //     {
         //       "symbol":"fi_ethusd_180928",
-        //       "type":"futures_inverse",
+        //       "type":"futures_inverse",                      // futures_vanilla  // spot index
         //       "underlying":"rr_ethusd",
         //       "lastTradingTime":"2018-09-28T15:00:00.000Z",
         //       "tickSize":0.1,
@@ -167,23 +167,17 @@ module.exports = class krakenfu extends Exchange {
             const active = true;
             const id = market['symbol'];
             let type = undefined;
-            let swap = false;
-            let future = false;
-            let prediction = false;
-            let perpetual = undefined;
-            if (market['type'].indexOf ('_inverse') >= 0) {
-                swap = true;
-                type = 'swap';
-            } else if (market['type'].indexOf (' index') >= 0) {
-                prediction = true;
-                type = 'prediction';
+            const prediction = (market['type'].indexOf (' index') >= 0);
+            let linear = undefined;
+            if (!prediction) {
+                linear = (market['type'].indexOf ('_vanilla') >= 0);
+                const settleTime = this.safeString (market, 'lastTradingTime');
+                type = (settleTime === undefined) ? 'swap' : 'future';
             } else {
-                future = true;
-                type = 'future';
+                type = 'prediction';
             }
-            if (type !== 'prediction') {
-                perpetual = (this.safeString (market, 'lastTradingTime') === undefined);
-            }
+            const swap = (type === 'swap');
+            const future = (type === 'future');
             let symbol = id;
             const split = id.split ('_');
             const parsed = this.parseSymbolIdJoined (split[1]);
@@ -191,7 +185,8 @@ module.exports = class krakenfu extends Exchange {
             const quoteId = parsed['quoteId'];
             const base = parsed['base'];
             const quote = parsed['quote'];
-            if (perpetual) {
+            // swap == perpetual
+            if (swap) {
                 symbol = base + '/' + quote;
             }
             const precision = {
@@ -235,7 +230,7 @@ module.exports = class krakenfu extends Exchange {
                 'swap': swap,
                 'future': future,
                 'prediction': prediction,
-                'perpetual': perpetual,
+                'linear': linear,
                 'lotSize': lotSize,
                 'info': market,
             });
@@ -338,10 +333,10 @@ module.exports = class krakenfu extends Exchange {
         let baseVolume = undefined;
         let quoteVolume = undefined;
         if ((market !== undefined) && (!market['prediction'])) {
-            if (market['swap']) {
-                quoteVolume = volume;
+            if (market['linear']) {
+                baseVolume = volume; // pv_xrpxbt volume given in XRP
             } else {
-                baseVolume = volume;
+                quoteVolume = volume; // pi_xbtusd volume given in USD
             }
         }
         return {
@@ -465,8 +460,8 @@ module.exports = class krakenfu extends Exchange {
         }
         let cost = undefined;
         if ((amount !== undefined) && (market !== undefined)) {
-            if (market['swap']) {
-                cost = amount;
+            if (!market['linear']) {
+                cost = amount; // assuming cost is in quote currency
             } else if (price !== undefined) {
                 cost = price * amount;
             }
@@ -992,8 +987,8 @@ module.exports = class krakenfu extends Exchange {
         }
         let cost = undefined;
         if ((filled !== undefined) && (market !== undefined)) {
-            if (market['swap']) {
-                cost = filled;
+            if (!market['linear']) {
+                cost = filled; // assuming cost is in quote currency
             } else if (average !== undefined) {
                 cost = average * filled;
             } else if (price !== undefined) {
