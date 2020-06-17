@@ -779,11 +779,11 @@ module.exports = class wavesexchange extends Exchange {
     }
 
     amountToPrecision (symbol, amount) {
-        return this.toWei (amount, this.markets[symbol]['precision']['amount']);
+        return parseInt (parseFloat (this.toWei (amount, this.markets[symbol]['precision']['amount'])));
     }
 
     currencyFromPrecision (currency, amount) {
-        return this.fromWei (amount, this.currencies[currency]['precision']);
+        return parseInt (parseFloat (this.fromWei (amount, this.currencies[currency]['precision'])));
     }
 
     getDefaultExpiry () {
@@ -804,8 +804,8 @@ module.exports = class wavesexchange extends Exchange {
         const matcherPublicKey = await this.getMatcherPublicKey ();
         const amountAsset = this.getAssetId (market['baseId']);
         const priceAsset = this.getAssetId (market['quoteId']);
-        amount = parseInt (this.amountToPrecision (symbol, amount));
-        price = parseInt (this.priceToPrecision (symbol, price));
+        amount = this.amountToPrecision (symbol, amount);
+        price = this.priceToPrecision (symbol, price);
         const orderType = (side === 'buy') ? 0 : 1;
         const timestamp = this.milliseconds ();
         const expiration = this.sum (timestamp, this.getDefaultExpiry ());
