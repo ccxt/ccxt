@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, InvalidAddress, BadRequest, RateLimitExceeded, PermissionDenied, ExchangeNotAvailable, AccountSuspended, OnMaintenance } = require ('./base/errors');
-const { TICK_SIZE, TRUNCATE } = require ('./base/functions/number');
+const { TICK_SIZE, ROUND } = require ('./base/functions/number');
 
 // ----------------------------------------------------------------------------
 
@@ -186,18 +186,18 @@ module.exports = class phemex extends Exchange {
             const quoteId = this.safeString (market, 'quoteCurrency');
             let type = this.safeStringLower (market, 'type');
             let baseId = undefined;
+            let precision = undefined;
             let limits = undefined;
             let spot = undefined;
-            let future = undefined;
-            let precision = undefined;
+            let swap = undefined;
             let taker = undefined;
             let maker = undefined;
             let linear = undefined;
             let inverse = undefined;
             if (type === 'perpetual') {
-                type = 'future';
-                future = true;
+                type = 'swap';
                 spot = false;
+                swap = true;
                 const riskLimitValues = this.safeValue (riskLimitsById, id, {});
                 market = this.extend (market, riskLimitValues);
                 const settleCurrency = this.safeString (market, 'settleCurrency');
@@ -210,13 +210,43 @@ module.exports = class phemex extends Exchange {
                     inverse = true;
                 }
                 linear = !inverse;
+                precision = {
+                    'amount': this.safeFloat (market, 'lotSize'),
+                    'price': this.safeFloat (market, 'tickSize'),
+                };
+                const priceScale = this.safeInteger (market, 'priceScale');
+                const tenToPriceScale = Math.pow (10, -priceScale);
+                const minPriceEp = this.safeFloat (market, 'minPriceEp');
+                const maxPriceEp = this.safeFloat (market, 'maxPriceEp');
+                let minPrice = undefined;
+                let maxPrice = undefined;
+                if (minPriceEp !== undefined) {
+                    minPrice = parseFloat (this.decimalToPrecision (minPriceEp * tenToPriceScale, ROUND, precision['price'], this.precisionMode));
+                }
+                if (maxPriceEp !== undefined) {
+                    maxPrice = parseFloat (this.decimalToPrecision (maxPriceEp * tenToPriceScale, ROUND, precision['price'], this.precisionMode));
+                }
+                limits = {
+                    'amount': {
+                        'min': precision['amount'],
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': minPrice,
+                        'max': maxPrice,
+                    },
+                    'cost': {
+                        'min': this.parseSafeFloat (this.safeString (market, 'minOrderValue')),
+                        'max': undefined,
+                    },
+                };
                 // console.log (market);
                 // process.exit ();
                 // continue;
             } else if (type === 'spot') {
                 baseId = this.safeString (market, 'baseCurrency');
                 spot = true;
-                future = false;
+                swap = false;
                 taker = this.safeFloat (market, 'defaultTakerFee');
                 maker = this.safeFloat (market, 'defaultMakerFee');
                 precision = {
@@ -261,7 +291,7 @@ module.exports = class phemex extends Exchange {
                 'info': market,
                 'type': type,
                 'spot': spot,
-                'future': future,
+                'swap': swap,
                 'linear': linear,
                 'inverse': inverse,
                 'active': active,
