@@ -15,6 +15,7 @@ async def print_ticker(symbol, id):
     # verbose mode will show the order of execution to verify concurrency
     exchange = getattr(ccxt, id)({'verbose': True})
     print(await exchange.fetch_ticker(symbol))
+    await exchange.close()
 
 
 if __name__ == '__main__':
@@ -25,7 +26,6 @@ if __name__ == '__main__':
         'bitfinex',
         'poloniex',
         'kraken',
-        'gdax',
         'bittrex',
         'hitbtc',
     ]]

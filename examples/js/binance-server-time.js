@@ -4,7 +4,7 @@ const log  = require ('ololog').configure ({ locate: false })
 const ccxt = require('../../ccxt')
 
 const binance = new ccxt['binance'] ()
-const recvWindow = binance.security.recvWindow
+const recvWindow = binance.options.recvWindow
 const aheadWindow = 1000
 
 async function test () {

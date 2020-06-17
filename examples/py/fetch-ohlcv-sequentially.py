@@ -22,15 +22,15 @@ hold = 30
 
 # -----------------------------------------------------------------------------
 
-exchange = ccxt.kraken({
-    'rateLimit': 3000,
+exchange = ccxt.binance({
+    'rateLimit': 1000,
     'enableRateLimit': True,
     # 'verbose': True,
 })
 
 # -----------------------------------------------------------------------------
 
-from_datetime = '2017-01-01 00:00:00'
+from_datetime = '2018-01-01 00:00:00'
 from_timestamp = exchange.parse8601(from_datetime)
 
 # -----------------------------------------------------------------------------
@@ -46,7 +46,7 @@ while from_timestamp < now:
     try:
 
         print(exchange.milliseconds(), 'Fetching candles starting from', exchange.iso8601(from_timestamp))
-        ohlcvs = exchange.fetch_ohlcv('BTC/USD', '1m', from_timestamp)
+        ohlcvs = exchange.fetch_ohlcv('ETH/BTC', '1m', from_timestamp)
         print(exchange.milliseconds(), 'Fetched', len(ohlcvs), 'candles')
         first = ohlcvs[0][0]
         last = ohlcvs[-1][0]

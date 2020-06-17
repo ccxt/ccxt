@@ -10,18 +10,14 @@ sys.path.append(root + '/python')
 import ccxt.async_support as ccxt  # noqa: E402
 
 
-async def main(exchange):
-    for i in range(0, 10):
+async def main():
+    exchange = ccxt.binance({
+        'enableRateLimit': True,  # required by the Manual
+    })
+    for i in range(0, 100):
         # this can be any call instead of fetch_ticker, really
-        print(await exchange.fetch_ticker('BTC/USD'))
+        print(await exchange.fetch_ticker('ETH/BTC'))
+    await exchange.close()
 
 
-# you can set enableRateLimit = True to enable the built-in rate limiter
-# this way you request rate will never hit the limit of an exchange
-# the library will throttle your requests to avoid that
-
-exchange = ccxt.bitfinex({
-    'enableRateLimit': True,  # this option enables the built-in rate limiter
-})
-
-asyncio.get_event_loop().run_until_complete(main(exchange))
+asyncio.get_event_loop().run_until_complete(main())

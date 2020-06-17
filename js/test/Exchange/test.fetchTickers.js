@@ -15,6 +15,7 @@ module.exports = async (exchange, symbol) => {
 
     const skippedExchanges = [
         'binance',
+        'digifinex',
     ]
 
     if (skippedExchanges.includes (exchange.id)) {
@@ -41,7 +42,7 @@ module.exports = async (exchange, symbol) => {
             log ('fetched', Object.keys (tickers).length.toString ().green, 'tickers')
         }
 
-        Object.values (tickers).forEach (ticker => testTicker (exchange, ticker, method, symbol))
+        Object.values (tickers).forEach ((ticker) => testTicker (exchange, ticker, method, symbol))
         return tickers
 
     } else {

@@ -4,12 +4,13 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-import json
+from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 
 
-class tidebit (Exchange):
+class tidebit(Exchange):
 
     def describe(self):
         return self.deep_extend(super(tidebit, self).describe(), {
@@ -20,7 +21,7 @@ class tidebit (Exchange):
             'version': 'v2',
             'has': {
                 'fetchDepositAddress': True,
-                'CORS': True,
+                'CORS': False,
                 'fetchTickers': True,
                 'fetchOHLCV': True,
                 'withdraw': True,
@@ -42,37 +43,62 @@ class tidebit (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/39034921-e3acf016-4480-11e8-9945-a6086a1082fe.jpg',
                 'api': 'https://www.tidebit.com',
                 'www': 'https://www.tidebit.com',
-                'doc': 'https://www.tidebit.com/documents/api_v2',
+                'doc': [
+                    'https://www.tidebit.com/documents/api/guide',
+                    'https://www.tidebit.com/swagger/#/default',
+                ],
+                'referral': 'http://bit.ly/2IX0LrM',
             },
             'api': {
                 'public': {
                     'get': [
-                        'v2/markets',  # V2MarketsJson
-                        'v2/tickers',  # V2TickersJson
-                        'v2/tickers/{market}',  # V2TickersMarketJson
-                        'v2/trades',  # V2TradesJson
-                        'v2/trades/{market}',  # V2TradesMarketJson
-                        'v2/order_book',  # V2OrderBookJson
-                        'v2/order',  # V2OrderJson
-                        'v2/k_with_pending_trades',  # V2KWithPendingTradesJson
-                        'v2/k',  # V2KJson
-                        'v2/depth',  # V2DepthJson
+                        'markets',
+                        'tickers',
+                        'tickers/{market}',
+                        'timestamp',
+                        'trades',
+                        'trades/{market}',
+                        'order_book',
+                        'order',
+                        'k_with_pending_trades',
+                        'k',
+                        'depth',
                     ],
                     'post': [],
                 },
                 'private': {
                     'get': [
-                        'v2/deposits',  # V2DepositsJson
-                        'v2/deposit_address',  # V2DepositAddressJson
-                        'v2/deposit',  # V2DepositJson
-                        'v2/members/me',  # V2MembersMeJson
-                        'v2/addresses/{address}',  # V2AddressesAddressJson
+                        'addresses/{address}',
+                        'deposits/history',
+                        'deposits/get_deposit',
+                        'deposits/deposit_address',
+                        'historys/orders',
+                        'historys/vouchers',
+                        'historys/accounts',
+                        'historys/snapshots',
+                        'linkage/get_status',
+                        'members/me',
+                        'order',
+                        'orders',
+                        'partners/orders/{id}/trades',
+                        'referral_commissions/get_undeposited',
+                        'referral_commissions/get_graph_data',
+                        'trades/my',
+                        'withdraws/bind_account_list',
+                        'withdraws/get_withdraw_account',
+                        'withdraws/fetch_bind_info',
                     ],
                     'post': [
-                        'v2/order/delete',  # V2OrderDeleteJson
-                        'v2/order',  # V2OrderJson
-                        'v2/order/multi',  # V2OrderMultiJson
-                        'v2/order/clear',  # V2OrderClearJson
+                        'deposits/deposit_cash',
+                        'favorite_markets/update',
+                        'order/delete',
+                        'orders',
+                        'orders/multi',
+                        'orders/clear',
+                        'referral_commissions/deposit',
+                        'withdraws/apply',
+                        'withdraws/bind_bank',
+                        'withdraws/bind_address',
                     ],
                 },
             },
@@ -80,8 +106,8 @@ class tidebit (Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': 0.2 / 100,
-                    'taker': 0.2 / 100,
+                    'maker': 0.3 / 100,
+                    'taker': 0.3 / 100,
                 },
                 'funding': {
                     'tierBased': False,
@@ -98,9 +124,10 @@ class tidebit (Exchange):
     def fetch_deposit_address(self, code, params={}):
         self.load_markets()
         currency = self.currency(code)
-        response = self.privateGetV2DepositAddress(self.extend({
+        request = {
             'currency': currency['id'],
-        }, params))
+        }
+        response = self.privateGetDepositAddress(self.extend(request, params))
         if 'success' in response:
             if response['success']:
                 address = self.safe_string(response, 'address')
@@ -112,16 +139,16 @@ class tidebit (Exchange):
                     'info': response,
                 }
 
-    def fetch_markets(self):
-        markets = self.publicGetV2Markets()
+    def fetch_markets(self, params={}):
+        response = self.publicGetMarkets(params)
         result = []
-        for p in range(0, len(markets)):
-            market = markets[p]
-            id = market['id']
-            symbol = market['name']
+        for i in range(0, len(response)):
+            market = response[i]
+            id = self.safe_string(market, 'id')
+            symbol = self.safe_string(market, 'name')
             baseId, quoteId = symbol.split('/')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -130,26 +157,24 @@ class tidebit (Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
+                'active': None,
+                'precision': self.precision,
+                'limits': self.limits,
             })
         return result
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        response = self.privateGetV2MembersMe()
-        balances = response['accounts']
+        response = self.privateGetMembersMe(params)
+        balances = self.safe_value(response, 'accounts')
         result = {'info': balances}
-        for b in range(0, len(balances)):
-            balance = balances[b]
-            currencyId = balance['currency']
-            code = currencyId.upper()
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            account = {
-                'free': float(balance['balance']),
-                'used': float(balance['locked']),
-                'total': 0.0,
-            }
-            account['total'] = self.sum(account['free'], account['used'])
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            currencyId = self.safe_string(balance, 'currency')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_float(balance, 'balance')
+            account['used'] = self.safe_float(balance, 'locked')
             result[code] = account
         return self.parse_balance(result)
 
@@ -159,16 +184,16 @@ class tidebit (Exchange):
         request = {
             'market': market['id'],
         }
-        if limit is None:
+        if limit is not None:
             request['limit'] = limit  # default = 300
         request['market'] = market['id']
-        orderbook = self.publicGetV2Depth(self.extend(request, params))
-        timestamp = orderbook['timestamp'] * 1000
-        return self.parse_order_book(orderbook, timestamp)
+        response = self.publicGetDepth(self.extend(request, params))
+        timestamp = self.safe_timestamp(response, 'timestamp')
+        return self.parse_order_book(response, timestamp)
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = ticker['at'] * 1000
-        ticker = ticker['ticker']
+        timestamp = self.safe_timestamp(ticker, 'at')
+        ticker = self.safe_value(ticker, 'ticker', {})
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -198,67 +223,80 @@ class tidebit (Exchange):
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        tickers = self.publicGetV2Tickers(params)
+        tickers = self.publicGetTickers(params)
         ids = list(tickers.keys())
         result = {}
         for i in range(0, len(ids)):
             id = ids[i]
             market = None
-            symbol = id
             if id in self.markets_by_id:
                 market = self.markets_by_id[id]
                 symbol = market['symbol']
-            else:
-                base = id[0:3]
-                quote = id[3:6]
-                base = base.upper()
-                quote = quote.upper()
-                base = self.common_currency_code(base)
-                quote = self.common_currency_code(quote)
-                symbol = base + '/' + quote
-            ticker = tickers[id]
-            result[symbol] = self.parse_ticker(ticker, market)
+                ticker = tickers[id]
+                result[symbol] = self.parse_ticker(ticker, market)
         return result
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetV2TickersMarket(self.extend({
+        request = {
             'market': market['id'],
-        }, params))
+        }
+        response = self.publicGetTickersMarket(self.extend(request, params))
         return self.parse_ticker(response, market)
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.parse8601(trade['created_at'])
+        timestamp = self.parse8601(self.safe_string(trade, 'created_at'))
+        id = self.safe_string(trade, 'id')
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'volume')
+        cost = self.safe_float(trade, 'funds')
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         return {
-            'id': str(trade['id']),
+            'id': id,
+            'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': None,
             'side': None,
-            'price': self.safe_float(trade, 'price'),
-            'amount': self.safe_float(trade, 'volume'),
-            'cost': self.safe_float(trade, 'funds'),
-            'info': trade,
+            'order': None,
+            'takerOrMaker': None,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': None,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetV2Trades(self.extend({
+        request = {
             'market': market['id'],
-        }, params))
+        }
+        response = self.publicGetTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
+        #
+        #     [
+        #         1498530360,
+        #         2700.0,
+        #         2700.0,
+        #         2700.0,
+        #         2700.0,
+        #         0.01
+        #     ]
+        #
         return [
-            ohlcv[0] * 1000,
-            ohlcv[1],
-            ohlcv[2],
-            ohlcv[3],
-            ohlcv[4],
-            ohlcv[5],
+            self.safe_timestamp(ohlcv, 0),
+            self.safe_float(ohlcv, 1),
+            self.safe_float(ohlcv, 2),
+            self.safe_float(ohlcv, 3),
+            self.safe_float(ohlcv, 4),
+            self.safe_float(ohlcv, 5),
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -272,77 +310,148 @@ class tidebit (Exchange):
             'limit': limit,
         }
         if since is not None:
-            request['timestamp'] = since
+            request['timestamp'] = int(since / 1000)
         else:
             request['timestamp'] = 1800000
-        response = self.publicGetV2K(self.extend(request, params))
+        response = self.publicGetK(self.extend(request, params))
+        #
+        #     [
+        #         [1498530360,2700.0,2700.0,2700.0,2700.0,0.01],
+        #         [1498530420,2700.0,2700.0,2700.0,2700.0,0],
+        #         [1498530480,2700.0,2700.0,2700.0,2700.0,0],
+        #     ]
+        #
+        if response == 'None':
+            return []
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
+    def parse_order_status(self, status):
+        statuses = {
+            'done': 'closed',
+            'wait': 'open',
+            'cancel': 'canceled',
+        }
+        return self.safe_string(statuses, status, status)
+
     def parse_order(self, order, market=None):
+        #
+        #     {
+        #         "id": 7,                              # 唯一的 Order ID
+        #         "side": "sell",                       # Buy/Sell 代表买单/卖单
+        #         "price": "3100.0",                    # 出价
+        #         "avg_price": "3101.2",                # 平均成交价
+        #         "state": "wait",                      # 订单的当前状态 [wait,done,cancel]
+        #                                               #   wait   表明订单正在市场上挂单
+        #                                               #          是一个active order
+        #                                               #          此时订单可能部分成交或者尚未成交
+        #                                               #   done   代表订单已经完全成交
+        #                                               #   cancel 代表订单已经被撤销
+        #         "market": "btccny",                   # 订单参与的交易市场
+        #         "created_at": "2014-04-18T02:02:33Z",  # 下单时间 ISO8601格式
+        #         "volume": "100.0",                    # 购买/卖出数量
+        #         "remaining_volume": "89.8",           # 还未成交的数量 remaining_volume 总是小于等于 volume
+        #                                               #   在订单完全成交时变成 0
+        #         "executed_volume": "10.2",            # 已成交的数量
+        #                                               #   volume = remaining_volume + executed_volume
+        #         "trades_count": 1,                    # 订单的成交数 整数值
+        #                                               #   未成交的订单为 0 有一笔成交的订单为 1
+        #                                               #   通过该字段可以判断订单是否处于部分成交状态
+        #         "trades": [                          # 订单的详细成交记录 参见Trade
+        #                                               #   注意: 只有某些返回详细订单数据的 API 才会包含 Trade 数据
+        #             {
+        #                 "id": 2,
+        #                 "price": "3100.0",
+        #                 "volume": "10.2",
+        #                 "market": "btccny",
+        #                 "created_at": "2014-04-18T02:04:49Z",
+        #                 "side": "sell"
+        #             }
+        #         ]
+        #     }
+        #
         symbol = None
         if market is not None:
             symbol = market['symbol']
         else:
             marketId = order['market']
             symbol = self.markets_by_id[marketId]['symbol']
-        timestamp = self.parse8601(order['created_at'])
-        state = order['state']
-        status = None
-        if state == 'done':
-            status = 'closed'
-        elif state == 'wait':
-            status = 'open'
-        elif state == 'cancel':
-            status = 'canceled'
+        timestamp = self.parse8601(self.safe_string(order, 'created_at'))
+        status = self.parse_order_status(self.safe_string(order, 'state'))
+        id = self.safe_string(order, 'id')
+        type = self.safe_string(order, 'ord_type')
+        side = self.safe_string(order, 'side')
+        price = self.safe_float(order, 'price')
+        amount = self.safe_float(order, 'volume')
+        filled = self.safe_float(order, 'executed_volume')
+        remaining = self.safe_float(order, 'remaining_volume')
+        cost = None
+        if price is not None:
+            if filled is not None:
+                cost = price * filled
         return {
-            'id': str(order['id']),
+            'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
-            'type': order['ord_type'],
-            'side': order['side'],
-            'price': self.safe_float(order, 'price'),
-            'amount': self.safe_float(order, 'volume'),
-            'filled': self.safe_float(order, 'executed_volume'),
-            'remaining': self.safe_float(order, 'remaining_volume'),
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'cost': cost,
             'trades': None,
             'fee': None,
             'info': order,
+            'average': None,
         }
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
-        order = {
+        request = {
             'market': self.market_id(symbol),
             'side': side,
             'volume': str(amount),
             'ord_type': type,
         }
         if type == 'limit':
-            order['price'] = str(price)
-        response = self.privatePostV2Order(self.extend(order, params))
+            request['price'] = str(price)
+        response = self.privatePostOrders(self.extend(request, params))
         market = self.markets_by_id[response['market']]
         return self.parse_order(response, market)
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
-        result = self.privatePostV2OrderDelete({'id': id})
+        request = {
+            'id': id,
+        }
+        result = self.privatePostOrderDelete(self.extend(request, params))
         order = self.parse_order(result)
-        status = order['status']
+        status = self.safe_string(order, 'status')
         if status == 'closed' or status == 'canceled':
             raise OrderNotFound(self.id + ' ' + self.json(order))
         return order
 
-    def withdraw(self, currency, amount, address, tag=None, params={}):
+    def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
         self.load_markets()
-        result = self.privatePostWithdraw(self.extend({
-            'currency': currency.lower(),
-            'sum': amount,
-            'address': address,
-        }, params))
+        currency = self.currency(code)
+        id = self.safe_string(params, 'id')
+        if id is None:
+            raise ArgumentsRequired(self.id + ' withdraw() requires an extra `id` param(withdraw account id according to withdraws/bind_account_list endpoint')
+        request = {
+            'id': id,
+            'currency_type': 'coin',  # or 'cash'
+            'currency': currency['id'],
+            'body': amount,
+            # 'address': address,  # they don't allow withdrawing to direct addresses?
+        }
+        if tag is not None:
+            request['memo'] = tag
+        result = self.privatePostWithdrawsApply(self.extend(request, params))
         return {
             'info': result,
             'id': None,
@@ -355,7 +464,7 @@ class tidebit (Exchange):
         return self.urlencode(self.keysort(params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        request = '/' + 'api/' + self.implode_params(path, params) + '.json'
+        request = '/' + 'api/' + self.version + '/' + self.implode_params(path, params) + '.json'
         query = self.omit(params, self.extract_params(path))
         url = self.urls['api'] + request
         if api == 'public':
@@ -379,13 +488,12 @@ class tidebit (Exchange):
                 headers = {'Content-Type': 'application/x-www-form-urlencoded'}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body):
-        if code == 400:
-            response = json.loads(body)
-            error = self.safe_value(response, 'error')
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        if (code == 400) or (response is None):
+            feedback = self.id + ' ' + body
+            if response is None:
+                raise ExchangeError(feedback)
+            error = self.safe_value(response, 'error', {})
             errorCode = self.safe_string(error, 'code')
-            feedback = self.id + ' ' + self.json(response)
-            exceptions = self.exceptions
-            if errorCode in exceptions:
-                raise exceptions[errorCode](feedback)
+            self.throw_exactly_matched_exception(self.exceptions, errorCode, feedback)
             # fallback to default error handler

@@ -1,0 +1,34 @@
+{
+    "name": "simplito/elliptic-php",
+    "description": "Fast elliptic curve cryptography",
+    "type": "library",
+    "homepage": "https://github.com/simplito/elliptic-php",
+    "keywords": ["elliptic", "curve", "cryptography", "ECC", 
+                 "ECDH", "ECDSA", "EdDSA", 
+                 "secp256k1", "curve25519", "ed25519", 
+                 "nistp192", "nistp224", "nistp256", "nistp384", "nistp521"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Simplito Team",
+            "email": "s.smyczynski@simplito.com",
+            "homepage": "https://simplito.com"
+        }
+    ],
+    "require": {
+        "ext-gmp": "*",
+        "simplito/bn-php": "~1.1.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "*",
+        "phpbench/phpbench": "@dev"
+    },
+    "autoload": {
+        "psr-4": {
+            "Elliptic\\": "lib/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit --verbose"
+    }
+}
