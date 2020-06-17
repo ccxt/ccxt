@@ -227,6 +227,8 @@ module.exports = class wavesexchange extends Exchange {
             },
             'commonCurrencies': {
                 'BITCOIN CASH': 'BCH',
+                'BITCOIN SV': 'BSV',
+                'BANCOR': 'BNT',
                 'LITECOIN': 'LTC',
                 'MONERO': 'XMR',
                 'TIDEX': 'TDX',
