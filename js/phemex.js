@@ -369,6 +369,7 @@ module.exports = class phemex extends Exchange {
             'maker': maker,
             'priceFactor': priceFactor,
             'amountFactor': 1,
+            'costFactor': 1,
             'precision': precision,
             'limits': limits,
         };
@@ -457,6 +458,7 @@ module.exports = class phemex extends Exchange {
             'precision': precision,
             'priceFactor': 0.00000001,
             'amountFactor': 0.00000001,
+            'costFactor': 0.00000001,
             'limits': limits,
         };
     }
@@ -744,18 +746,25 @@ module.exports = class phemex extends Exchange {
     }
 
     unscalePrice (price, market = undefined) {
-        if (price === undefined) {
+        if ((price === undefined) || (market === undefined)) {
             return price;
         }
         return parseFloat (this.decimalToPrecision (price * market['priceFactor'], ROUND, market['precision']['price'], this.precisionMode));
     }
 
     unscaleAmount (amount, market = undefined) {
-        if (amount === undefined) {
+        if ((amount === undefined) || (market === undefined)) {
             return amount;
         }
         return parseFloat (this.decimalToPrecision (amount * market['amountFactor'], ROUND, market['precision']['amount'], this.precisionMode));
     }
+
+    // unscaleCost (cost, market = undefined) {
+    //     if ((cost === undefined) || (market === undefined)) {
+    //         return cost;
+    //     }
+    //     return parseFloat (this.decimalToPrecision (cost * market['costFactor'], ROUND, market['precision']['price'], this.precisionMode));
+    // }
 
     parseOHLCV (ohlcv, market = undefined) {
         //
@@ -827,10 +836,157 @@ module.exports = class phemex extends Exchange {
         return this.parseOHLCVs (rows, market, timeframe, since, limit);
     }
 
+    parseTicker (ticker, market = undefined) {
+        //
+        // spot
+        //
+        //     {
+        //         "askEp": 943836000000,
+        //         "bidEp": 943601000000,
+        //         "highEp": 955946000000,
+        //         "lastEp": 943803000000,
+        //         "lowEp": 924973000000,
+        //         "openEp": 948693000000,
+        //         "symbol": "sBTCUSDT",
+        //         "timestamp": 1592471203505728630,
+        //         "turnoverEv": 111822826123103,
+        //         "volumeEv": 11880532281
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "askEp": 2332500,
+        //         "bidEp": 2331000,
+        //         "fundingRateEr": 10000,
+        //         "highEp": 2380000,
+        //         "indexEp": 2329057,
+        //         "lastEp": 2331500,
+        //         "lowEp": 2274000,
+        //         "markEp": 2329232,
+        //         "openEp": 2337500,
+        //         "openInterest": 1298050,
+        //         "predFundingRateEr": 19921,
+        //         "symbol": "ETHUSD",
+        //         "timestamp": 1592474241582701416,
+        //         "turnoverEv": 47228362330,
+        //         "volume": 4053863
+        //     }
+        //
+        let symbol = undefined;
+        const marketId = this.safeString (ticker, 'symbol');
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
+        const timestamp = this.safeIntegerProduct (ticker, 'timestamp', 0.000001);
+        const last = this.unscalePrice (this.safeFloat (ticker, 'lastEp'), market);
+        const baseVolumeUnscaled = this.unscaleAmount (this.safeFloat (ticker, 'volumeEv'), market);
+        const baseVolume = this.safeFloat (ticker, 'volume', baseVolumeUnscaled);
+        // const baseVolume = this.unscaleAmount (this.safeFloat2 (ticker, 'volume', 'volumeEv'), market);
+        const quoteVolume = this.unscalePrice (this.safeFloat (ticker, 'turnoverEv'), market);
+        let vwap = undefined;
+        if ((quoteVolume !== undefined) && (baseVolume !== undefined) && (baseVolume > 0)) {
+            vwap = quoteVolume / baseVolume;
+        }
+        let change = undefined;
+        let percentage = undefined;
+        let average = undefined;
+        const open = this.unscalePrice (this.safeFloat (ticker, 'openEp'), market);
+        if ((open !== undefined) && (last !== undefined)) {
+            change = last - open;
+            if (open > 0) {
+                percentage = change / open * 100;
+            }
+            average = this.sum (open, last) / 2;
+        }
+        const result = {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.unscalePrice (this.safeFloat (ticker, 'highEp'), market),
+            'low': this.unscalePrice (this.safeFloat (ticker, 'lowEp'), market),
+            'bid': this.unscalePrice (this.safeFloat (ticker, 'bidEp'), market),
+            'bidVolume': undefined,
+            'ask': this.unscalePrice (this.safeFloat (ticker, 'askEp'), market),
+            'askVolume': undefined,
+            'vwap': vwap,
+            'open': open,
+            'close': last,
+            'last': last,
+            'previousClose': undefined, // previous day close
+            'change': change,
+            'percentage': percentage,
+            'average': average,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
+            'info': ticker,
+        };
+        return result;
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const method = market['spot'] ? 'v0GetMdSpotTicker24hr' : 'v1GetMdTicker24hr';
+        const response = await this[method] (this.extend (request, params));
+        //
+        // spot
+        //
+        //     {
+        //         "error": null,
+        //         "id": 0,
+        //         "result": {
+        //             "askEp": 943836000000,
+        //             "bidEp": 943601000000,
+        //             "highEp": 955946000000,
+        //             "lastEp": 943803000000,
+        //             "lowEp": 924973000000,
+        //             "openEp": 948693000000,
+        //             "symbol": "sBTCUSDT",
+        //             "timestamp": 1592471203505728630,
+        //             "turnoverEv": 111822826123103,
+        //             "volumeEv": 11880532281
+        //         }
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "error": null,
+        //         "id": 0,
+        //         "result": {
+        //             "askEp": 2332500,
+        //             "bidEp": 2331000,
+        //             "fundingRateEr": 10000,
+        //             "highEp": 2380000,
+        //             "indexEp": 2329057,
+        //             "lastEp": 2331500,
+        //             "lowEp": 2274000,
+        //             "markEp": 2329232,
+        //             "openEp": 2337500,
+        //             "openInterest": 1298050,
+        //             "predFundingRateEr": 19921,
+        //             "symbol": "ETHUSD",
+        //             "timestamp": 1592474241582701416,
+        //             "turnoverEv": 47228362330,
+        //             "volume": 4053863
+        //         }
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        return this.parseTicker (result, market);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
         let url = '/' + this.implodeParams (path, params);
-        if ((api === 'public') || (api === 'v1')) {
+        if ((api === 'public') || (api === 'v1') || (api === 'v0')) {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
