@@ -1172,6 +1172,9 @@ class bitmex extends Exchange {
         );
         if ($since !== null) {
             $request['startTime'] = $this->iso8601($since);
+        } else {
+            // by default reverse=false, i.e. trades are fetched $since the time of $market inception (year 2015 for XBTUSD)
+            $request['reverse'] = true;
         }
         if ($limit !== null) {
             $request['count'] = $limit;

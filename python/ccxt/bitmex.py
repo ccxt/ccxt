@@ -1100,6 +1100,9 @@ class bitmex(Exchange):
         }
         if since is not None:
             request['startTime'] = self.iso8601(since)
+        else:
+            # by default reverse=false, i.e. trades are fetched since the time of market inception(year 2015 for XBTUSD)
+            request['reverse'] = True
         if limit is not None:
             request['count'] = limit
         response = self.publicGetTrade(self.extend(request, params))
