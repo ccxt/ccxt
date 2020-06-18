@@ -310,6 +310,10 @@ function toWei (amount, decimals = 18) {
     return numberToString (Math.floor (parseFloat (n + 'e' + newExponent))) // wei must be whole numbers
 }
 
+function FROM_CHAR_CODE (x) {
+    return String.fromCharCode(x)
+}
+
 /*  ------------------------------------------------------------------------ */
 
 module.exports = {
@@ -330,6 +334,7 @@ module.exports = {
     TICK_SIZE,
     NO_PADDING,
     PAD_WITH_ZERO,
+    FROM_CHAR_CODE,
 }
 
 /*  ------------------------------------------------------------------------ */
