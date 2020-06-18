@@ -5,7 +5,14 @@
 
 from ccxt.base.exchange import Exchange
 import math
+from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadRequest
+from ccxt.base.errors import BadSymbol
+from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import OrderNotFound
 
 
 class coineal(Exchange):
@@ -27,6 +34,13 @@ class coineal(Exchange):
                 'fetchMyTrades': True,
                 'fetchOpenOrders': True,
                 'fetchBalance': True,
+                'fetchOrder': True,
+                'fetchClosedOrders': True,
+                'fetchTicker': True,
+            },
+            'timeframes': {
+                '1m': '1',
+                '1d': '1440',
             },
             'urls': {
                 'api': {
@@ -42,6 +56,7 @@ class coineal(Exchange):
                         'open/api/get_records',
                         'open/api/market_dept',
                         'open/api/get_trades',
+                        'open/api/get_ticker',
                     ],
                 },
                 'private': {
@@ -49,6 +64,7 @@ class coineal(Exchange):
                         'open/api/all_trade',
                         'open/api/new_order',
                         'open/api/user/account',
+                        'open/api/order_info',
                     ],
                     'post': [
                         'open/api/create_order',
@@ -56,16 +72,50 @@ class coineal(Exchange):
                     ],
                 },
             },
+            'exceptions': {
+                '5': InvalidOrder,
+                '6': InvalidOrder,
+                '7': InvalidOrder,
+                '8': InvalidOrder,
+                '19': InsufficientFunds,
+                '22': OrderNotFound,
+                '23': ArgumentsRequired,
+                '24': ArgumentsRequired,
+                '100004': BadRequest,
+                '100005': BadRequest,
+                '100007': AuthenticationError,
+                '110002': BadSymbol,
+                '110005': InsufficientFunds,
+                '110032': AuthenticationError,
+            },
+            'errorMessages': {
+                '5': 'Order Failed',
+                '6': 'Exceed the minimum volume requirement',
+                '7': 'Exceed the maximum volume requirement',
+                '8': 'Order cancellation failed',
+                '9': 'The transaction is frozen',
+                '13': 'Sorry, the program has a system error, please contact the webmaster',
+                '19': 'Insufficient balance available',
+                '22': 'Order does not exist',
+                '23': 'Missing transaction quantity parameter',
+                '24': 'Missing transaction price parameter',
+                '25': 'Quantity Precision Error',
+                '100001': 'System error',
+                '100002': 'System upgrade',
+                '100004': 'Parameter request is invalid',
+                '100005': 'Parameter signature error',
+                '100007': 'Unathorized IP',
+                '110002': 'Unknown currency code',
+                '110005': 'Insufficient balance available',
+                '110025': 'Account locked by background administrator',
+                '110032': 'This user is not athorized to do self',
+            },
         })
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api]
         url += '/' + path
         query = self.omit(params, self.extract_params(path))
-        if api == 'public':
-            # Case When Public method and has QueryParams
-            if query:
-                url += '?' + self.urlencode(query)
         if api == 'private':
             content = ''
             query['api_key'] = self.apiKey
@@ -77,19 +127,13 @@ class coineal(Exchange):
             signature = content + self.secret
             hash = self.hash(self.encode(signature), 'md5')
             query['sign'] = hash
-            if method == 'GET':
-                if query:
-                    # Api Key need to be binded
-                    url += '?' + self.urlencode(query)
             if method == 'POST':
-                body = self.json(query)
                 headers = {
                     'Content-Type': 'application/x-www-form-urlencoded',
                 }
+        if query:
+            url += '?' + self.urlencode(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
-
-    def normalize_symbol(self, symbol):
-        return symbol.replace('/', '').lower()
 
     def fetch_markets(self, params={}):
         response = self.publicGetOpenApiCommonSymbols()
@@ -121,7 +165,7 @@ class coineal(Exchange):
                 'amount': self.safe_integer(market, 'amount_precision'),
                 'price': self.safe_integer(market, 'price_precision'),
             }
-            active = True  # Assuemed If True than only query will return result
+            active = True
             entry = {
                 'id': id,
                 'symbol': symbol,
@@ -150,7 +194,7 @@ class coineal(Exchange):
             result.append(entry)
         return result
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='5m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return [
             ohlcv[0] * 1000,
             float(ohlcv[1]),
@@ -160,13 +204,12 @@ class coineal(Exchange):
             float(ohlcv[5]),
         ]
 
-    def fetch_ohlcv(self, symbol='BTC/USDT', timeframe=1, params={}, since=None, limit=None):
+    def fetch_ohlcv(self, symbol='BTC/USDT', timeframe='1m', params={}, since=None, limit=None):
         self.load_markets()
         market = self.market(symbol)
-        updatedSymbol = self.normalize_symbol(symbol)
         request = {
-            'symbol': updatedSymbol,
-            'period': timeframe,
+            'symbol': market['id'],
+            'period': self.timeframes[timeframe],
         }
         response = self.publicGetOpenApiGetRecords(self.extend(request, params))
         # Exchange response
@@ -188,11 +231,10 @@ class coineal(Exchange):
 
     def fetch_order_book(self, symbol='BTC/USDT', limit=None, params={}):
         self.load_markets()
-        updatedSymbol = self.normalize_symbol(symbol)
-        type = 'step0'
+        market = self.market(symbol)
         request = {
-            'symbol': updatedSymbol,
-            'type': type,
+            'symbol': market['id'],
+            'type': 'step0',
         }
         response = self.publicGetOpenApiMarketDept(self.extend(request, params))
         # Exchange response
@@ -231,17 +273,103 @@ class coineal(Exchange):
         detailData = self.safe_value(data, 'tick')
         return self.parse_order_book(detailData, self.safe_value(detailData, 'time'))
 
+    def parse_ticker(self, ticker, market=None):
+        timestamp = self.safe_integer(ticker, 'time')
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
+        last = self.safe_float(ticker, 'last')
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': None,
+            'bidVolume': None,
+            'ask': None,
+            'askVolume': None,
+            'vwap': None,
+            'open': None,
+            'close': last,
+            'last': last,
+            'previousClose': None,
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': self.safe_float(ticker, 'vol'),
+            'quoteVolume': None,
+            'info': ticker,
+        }
+
+    def fetch_ticker(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = self.publicGetOpenApiGetTicker(self.extend(request))
+        # {
+        #     "code": "0",
+        #     "msg": "suc",
+        #     "data": {
+        #         "high": 6796.63,
+        #         "vol": 2364.85442742,
+        #         "last": 6722.37,
+        #         "low": 6399.28,
+        #         "buy": "6721.56",
+        #         "sell": "6747.47",
+        #         "time": 1529406706715
+        #     }
+        # }
+        result = self.safe_value(response, 'data')
+        return self.parse_ticker(result, market)
+
     def parse_trade(self, trade, market=None):
+        # Fetch My Trades Object
+        #             {
+        #                 "volume": "1.000",
+        #                 "side": "BUY",
+        #                 "price": "0.10000000",
+        #                 "fee": "0.16431104",
+        #                 "ctime": 1510996571195,
+        #                 "deal_price": "0.10000000",
+        #                 "id": 306,
+        #                 "type": "买入"
+        #             }
+        # Fetch Trades Object
+        #         {
+        #             "amount": 0.99583,
+        #             "trade_time": 1529408112000,
+        #             "price": 6763.9,
+        #             "id": 280101,
+        #             "type": "sell"
+        #         }
         timestamp = self.safe_string(trade, 'trade_time')
+        if timestamp is None:
+            timestamp = self.safe_string(trade, 'ctime')
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
-        symbol = self.safe_string(market, 'symbol')
+        if amount is None:
+            amount = self.safe_float(trade, 'volume')
+        symbol = None
+        if market is not None:
+            symbol = self.safe_string(market, 'symbol')
         cost = None
         if price is not None:
             if amount is not None:
                 cost = float(self.cost_to_precision(symbol, price * amount))
         tradeId = self.safe_string(trade, 'id')
-        side = self.safe_string(trade, 'type')
+        side = self.safe_string(trade, 'side')
+        if side is None:
+            side = self.safe_string(trade, 'type')
+        feecost = self.safe_float(trade, 'fee')
+        fee = None
+        if feecost is not None:
+            fee = {
+                'cost': feecost,
+                'currency': self.safe_string(trade, 'feeCoin'),
+            }
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -255,15 +383,14 @@ class coineal(Exchange):
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': None,
+            'fee': fee,
         }
 
     def fetch_trades(self, symbol='BTC/USDT', params={}, since=None, limit=None):
         self.load_markets()
         market = self.market(symbol)
-        updatedSymbol = self.normalize_symbol(symbol)
         request = {
-            'symbol': updatedSymbol,
+            'symbol': market['id'],
         }
         response = self.publicGetOpenApiGetTrades(self.extend(request, params))
         # Exchange response
@@ -284,20 +411,25 @@ class coineal(Exchange):
 
     def create_order(self, symbol, type, side, amount, price=None, params=None):
         self.load_markets()
-        updatePrice = price
-        if type == '2':
-            updatePrice = self.price_to_precision(symbol, price)
-        updatedSymbol = self.normalize_symbol(symbol)
+        market = self.market(symbol)
         request = {
-            'time': self.ymdhms(self.milliseconds()),
-            'symbol': updatedSymbol,
-            'side': side,
-            'type': type,
-            'price': updatePrice,
+            'time': str(self.milliseconds()),
+            'symbol': market['id'],
+            'side': side.upper(),
             'volume': amount,
-            # Work In Progress
         }
-        respose = self.privatePostOpenApiCreateOrder(self.extend(request, params))
+        if type == 'limit':
+            request['type'] = '1'
+            request['price'] = self.price_to_precision(symbol, price)
+        else:
+            request['type'] = '2'
+            if side.upper() == 'BUY':
+                currentSymbolDetail = self.fetch_ticker(symbol)
+                currentPrice = self.safe_float(currentSymbolDetail, 'last')
+                if currentPrice is None:
+                    raise InvalidOrder('Provide correct Symbol')
+                request['volume'] = self.cost_to_precision(symbol, amount * currentPrice)
+        response = self.privatePostOpenApiCreateOrder(self.extend(request, params))
         # Exchange response
         # {
         #     "code": "0",
@@ -306,18 +438,21 @@ class coineal(Exchange):
         #         "order_id": 34343
         #     }
         # }
-        if respose['msg'] != 'suc':
-            raise InvalidOrder(respose['msg'] + ' order was rejected by the exchange ' + self.json(respose))
-        return respose
+        code = self.safe_string(response, 'code')
+        if code != '0':
+            raise InvalidOrder(response['msg'] + ' ' + self.json(response))
+        result = self.safe_value(response, 'data')
+        return self.fetch_order(self.safe_string(result, 'order_id'), symbol)
 
-    def cancel_order(self, id, symbol='BTC/USDT', params={}):
+    def cancel_order(self, id, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' CancelOrder requires a symbol argument')
         self.load_markets()
-        updatedSymbol = self.normalize_symbol(symbol)
+        market = self.market(symbol)
         request = {
-            'symbol': updatedSymbol,
+            'symbol': market['id'],
             'order_id': id,
-            'time': self.ymdhms(self.milliseconds()),
-            # Work In Progress
+            'time': self.milliseconds(),
         }
         response = self.privatePostOpenApiCancelOrder(self.extend(request, params))
         # Exchange response
@@ -326,18 +461,21 @@ class coineal(Exchange):
         #     "msg": "suc",
         #     "data": {}
         # }
-        return response
+        code = self.safe_string(response, 'code')
+        if code != '0':
+            raise InvalidOrder(response['msg'] + ' ' + self.json(response))
+        return self.fetch_order(id, symbol)
 
-    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_my_trades(self, symbol=None, since=None, limit=100, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
         self.load_markets()
-        updatedSymbol = self.normalize_symbol(symbol)
+        market = self.market(symbol)
         request = {
-            'symbol': updatedSymbol,
-            'time': self.ymdhms(self.milliseconds()),
-            'page': '',
-            'pageSize': '',
-            'sign': '',
-            # Work In Progress
+            'symbol': market['id'],
+            'time': self.milliseconds(),
+            'page': 1,
+            'pageSize': limit,
         }
         response = self.privateGetOpenApiAllTrade(self.extend(request, params))
         # Exchange response
@@ -360,20 +498,117 @@ class coineal(Exchange):
         #         ]
         #     }
         # }
-        return response
+        result = self.safe_value(response, 'data')
+        return self.parse_trades(self.safe_value(result, 'resultList'), market, since, limit)
 
-    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        self.load_markets()
-        updatedSymbol = self.normalize_symbol(symbol)
-        request = {
-            'symbol': updatedSymbol,
-            'time': self.ymdhms(self.milliseconds()),
-            'page': '',
-            'pageSize': '',
-            'sign': '',
-            # Work In Progress
+    def parse_order_status(self, status):
+        statuses = {
+            '0': 'Historical Order Unsuccessful',
+            '1': 'Open',
+            '2': 'Closed',
+            '3': 'Open',
+            '4': 'Cancelled',
+            '5': 'Cancelling',
+            '6': 'Abnormal Orders',
         }
-        response = self.privateGetOpenApiNewOrder(self.extend(request, params))
+        return self.safe_string(statuses, status, status)
+
+    def parse_order(self, order, market=None):
+        status = self.parse_order_status(self.safe_string(order, 'status'))
+        symbol = None
+        baseId = self.safe_string(order, 'baseCoin')
+        quoteId = self.safe_string(order, 'countCoin')
+        base = self.safe_currency_code(baseId)  # unified
+        quote = self.safe_currency_code(quoteId)
+        if base is not None:
+            if quote is not None:
+                symbol = base + '/' + quote
+        timestamp = self.safe_string(order, 'created_at')
+        price = self.safe_float(order, 'price')
+        filled = self.safe_float(order, 'deal_volume')
+        remaining = self.safe_float(order, 'remain_volume')
+        amount = self.safe_float(order, 'volume')
+        id = self.safe_string(order, 'order_id')
+        if id is None:
+            id = self.safe_string(order, 'id')
+        side = self.safe_string(order, 'side')
+        cost = None
+        type = None
+        if filled is not None:
+            if price is not None:
+                cost = filled * price
+        typeId = self.safe_integer(order, 'type')
+        if typeId is not None:
+            if typeId == 1:
+                type = 'limit'
+            else:
+                type = 'market'
+        trades = self.safe_value(order, 'tradeList')
+        fee = None
+        average = self.safe_float(order, 'avg_price')
+        if trades is not None:
+            trades = self.parse_trades(trades, market)
+            feeCost = None
+            numTrades = len(trades)
+            for i in range(0, numTrades):
+                if feeCost is None:
+                    feeCost = 0
+                tradeFee = self.safe_float(trades[i], 'fee')
+                if tradeFee is not None:
+                    feeCost = self.sum(feeCost, tradeFee)
+            feeCurrency = None
+            if market is not None:
+                feeCurrency = market['quote']
+            if feeCost is not None:
+                fee = {
+                    'cost': feeCost,
+                    'currency': feeCurrency,
+                }
+        return {
+            'info': order,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'average': average,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': fee,
+            'trades': trades,
+        }
+
+    def fetch_common_orders(self, symbol, limit, params):
+        request = {
+            'symbol': symbol,
+            'time': self.milliseconds(),
+            'page': 1,
+            'pageSize': limit,
+        }
+        return self.privateGetOpenApiNewOrder(self.extend(request, params))
+
+    def fetch_closed_orders(self, symbol=None, since=None, limit=100, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' FetchOpenOrder requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        response = self.fetch_common_orders(market['id'], limit, params)
+        result = self.safe_value(response, 'data')
+        closedOrdered = self.filter_by(self.safe_value(result, 'resultList', {}), 'status', 2)
+        return self.parse_orders(closedOrdered, market, since, limit)
+
+    def fetch_open_orders(self, symbol='None', since=None, limit=100, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' FetchOpenOrder requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        response = self.fetch_common_orders(market['id'], limit, params)
         # Exchange response
         # {
         #     "code": "0",
@@ -434,4 +669,65 @@ class coineal(Exchange):
         #         ]
         #     }
         # }
-        return response
+        result = self.safe_value(response, 'data')
+        ordered = self.filter_by(self.safe_value(result, 'resultList', {}), 'status', 1)
+        partialOrdered = self.filter_by(self.safe_value(result, 'resultList', {}), 'status', 3)
+        allOrders = self.array_concat(ordered, partialOrdered)
+        return self.parse_orders(allOrders, market, since, limit)
+
+    def fetch_order(self, id, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' FetchOrder requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+            'time': (self.milliseconds()),
+            'order_id': id,
+        }
+        response = self.privateGetOpenApiOrderInfo(self.extend(request, params))
+        result = self.safe_value(response, 'data')
+        return self.parse_order(self.safe_value(result, 'order_info', {}))
+
+    def fetch_balance(self, params={}):
+        self.load_markets()
+        request = {
+            'time': self.milliseconds(),
+        }
+        response = self.privateGetOpenApiUserAccount(self.extend(request, params))
+        result = {'info': response}
+        resultData = self.safe_value(response, 'data')
+        balances = self.safe_value(resultData, 'coin_list')
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            currencyId = self.safe_string(balance, 'coin')
+            code = self.safe_currency_code(currencyId)
+            account = {
+                'free': self.safe_float(balance, 'normal'),
+                'used': self.safe_float(balance, 'locked'),
+                # 'total': self.safe_float(balance, 'balance'),
+            }
+            result[code] = account
+        return self.parse_balance(result)
+
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        if response is None:
+            return
+        # EndPoints Result common pattern
+        # {
+        #     "code" : "code_id",
+        #     "msg" : "",
+        #     "data" : {}
+        # }
+        errorCode = self.safe_string(response, 'code')
+        if errorCode == '0':
+            # success
+            return
+        errorMessages = self.errorMessages
+        message = None
+        message = self.safe_string(response, 'msg')
+        if message is None:
+            message = self.safe_string(errorMessages, errorCode, 'Unknown Error')
+        feedback = self.id + ' ' + message
+        self.throw_exactly_matched_exception(self.exceptions, errorCode, feedback)
+        raise ExchangeError(feedback)
