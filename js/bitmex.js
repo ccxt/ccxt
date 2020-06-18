@@ -665,11 +665,11 @@ module.exports = class bitmex extends Exchange {
         }
         let amount = this.safeInteger (transaction, 'amount');
         if (amount !== undefined) {
-            amount = Math.abs (amount) * 1e-8;
+            amount = Math.abs (amount) / 10000000;
         }
         let feeCost = this.safeInteger (transaction, 'fee');
         if (feeCost !== undefined) {
-            feeCost = feeCost * 1e-8;
+            feeCost = feeCost / 10000000;
         }
         const fee = {
             'cost': feeCost,
