@@ -748,10 +748,10 @@ class wavesexchange(Exchange):
         return currencyId
 
     def price_to_precision(self, symbol, price):
-        return self.to_wei(price, self.markets[symbol]['precision']['price'])
+        return int(float(self.to_wei(price, self.markets[symbol]['precision']['price'])))
 
     def amount_to_precision(self, symbol, amount):
-        return self.to_wei(amount, self.markets[symbol]['precision']['amount'])
+        return int(float(self.to_wei(amount, self.markets[symbol]['precision']['amount'])))
 
     def currency_from_precision(self, currency, amount):
         return self.from_wei(amount, self.currencies[currency]['precision'])
@@ -772,8 +772,8 @@ class wavesexchange(Exchange):
         matcherPublicKey = self.get_matcher_public_key()
         amountAsset = self.get_asset_id(market['baseId'])
         priceAsset = self.get_asset_id(market['quoteId'])
-        amount = int(self.amount_to_precision(symbol, amount))
-        price = int(self.price_to_precision(symbol, price))
+        amount = self.amount_to_precision(symbol, amount)
+        price = self.price_to_precision(symbol, price)
         orderType = 0 if (side == 'buy') else 1
         timestamp = self.milliseconds()
         expiration = self.sum(timestamp, self.get_default_expiry())

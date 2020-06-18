@@ -778,11 +778,11 @@ class wavesexchange extends Exchange {
     }
 
     public function price_to_precision($symbol, $price) {
-        return $this->to_wei($price, $this->markets[$symbol]['precision']['price']);
+        return intval (floatval ($this->to_wei($price, $this->markets[$symbol]['precision']['price'])));
     }
 
     public function amount_to_precision($symbol, $amount) {
-        return $this->to_wei($amount, $this->markets[$symbol]['precision']['amount']);
+        return intval (floatval ($this->to_wei($amount, $this->markets[$symbol]['precision']['amount'])));
     }
 
     public function currency_from_precision($currency, $amount) {
@@ -807,8 +807,8 @@ class wavesexchange extends Exchange {
         $matcherPublicKey = $this->get_matcher_public_key();
         $amountAsset = $this->get_asset_id($market['baseId']);
         $priceAsset = $this->get_asset_id($market['quoteId']);
-        $amount = intval ($this->amount_to_precision($symbol, $amount));
-        $price = intval ($this->price_to_precision($symbol, $price));
+        $amount = $this->amount_to_precision($symbol, $amount);
+        $price = $this->price_to_precision($symbol, $price);
         $orderType = ($side === 'buy') ? 0 : 1;
         $timestamp = $this->milliseconds();
         $expiration = $this->sum($timestamp, $this->get_default_expiry());
