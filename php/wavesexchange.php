@@ -778,7 +778,7 @@ class wavesexchange extends Exchange {
     }
 
     public function price_to_precision($symbol, $price) {
-        return $this->to_wei($price, $this->markets[$symbol]['precision']['price']);
+        return intval (floatval ($this->to_wei($price, $this->markets[$symbol]['precision']['price'])));
     }
 
     public function amount_to_precision($symbol, $amount) {
@@ -786,7 +786,7 @@ class wavesexchange extends Exchange {
     }
 
     public function currency_from_precision($currency, $amount) {
-        return intval (floatval ($this->from_wei($amount, $this->currencies[$currency]['precision'])));
+        return $this->from_wei($amount, $this->currencies[$currency]['precision']);
     }
 
     public function get_default_expiry() {

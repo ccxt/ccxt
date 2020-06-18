@@ -748,13 +748,13 @@ class wavesexchange(Exchange):
         return currencyId
 
     def price_to_precision(self, symbol, price):
-        return self.to_wei(price, self.markets[symbol]['precision']['price'])
+        return int(float(self.to_wei(price, self.markets[symbol]['precision']['price'])))
 
     def amount_to_precision(self, symbol, amount):
         return int(float(self.to_wei(amount, self.markets[symbol]['precision']['amount'])))
 
     def currency_from_precision(self, currency, amount):
-        return int(float(self.from_wei(amount, self.currencies[currency]['precision'])))
+        return self.from_wei(amount, self.currencies[currency]['precision'])
 
     def get_default_expiry(self):
         expiry = self.safe_integer(self.options, 'createOrderDefaultExpiry')
