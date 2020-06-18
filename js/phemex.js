@@ -48,10 +48,12 @@ module.exports = class phemex extends Exchange {
                         'cfg/v2/products', // spot + contracts
                         'products', // contracts only
                         'nomics/trades', // ?market=<symbol>&since=<since>
+                        'md/kline', // ?from=1589811875&resolution=1800&symbol=sBTCUSDT&to=1592457935
                     ],
                 },
                 'v1': {
                     'get': [
+                        'md/kline',
                         'md/orderbook', // ?symbol=<symbol>&id=<id>
                         'md/trade', // ?symbol=<symbol>&id=<id>
                         'md/ticker/24hr', // ?symbol=<symbol>&id=<id>
@@ -61,6 +63,7 @@ module.exports = class phemex extends Exchange {
                 },
                 'v0': {
                     'get': [
+                        'md/kline',
                         'md/orderbook', // ?symbol=<symbol>&id=<id>
                         'md/trade', // ?symbol=<symbol>&id=<id>
                         'md/spot/ticker/24hr', // ?symbol=<symbol>&id=<id>
@@ -165,11 +168,9 @@ module.exports = class phemex extends Exchange {
             'price': this.safeFloat (market, 'tickSize'),
         };
         const priceScale = this.safeInteger (market, 'priceScale');
-        const amountScale = this.safeInteger (market, 'valueScale');
         const ratioScale = this.safeInteger (market, 'ratioScale');
         const priceFactor = parseFloat (this.decimalToPrecision (Math.pow (10, -priceScale), ROUND, 0.00000001, this.precisionMode));
         const ratioFactor = parseFloat (this.decimalToPrecision (Math.pow (10, -ratioScale), ROUND, 0.00000001, this.precisionMode));
-        const amountFactor = parseFloat (this.decimalToPrecision (Math.pow (10, -amountScale), ROUND, 0.00000001, this.precisionMode));
         const minPriceEp = this.safeFloat (market, 'minPriceEp');
         const maxPriceEp = this.safeFloat (market, 'maxPriceEp');
         const makerFeeRateEr = this.safeFloat (market, 'makerFeeRateEr');
