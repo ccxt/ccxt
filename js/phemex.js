@@ -165,9 +165,11 @@ module.exports = class phemex extends Exchange {
             'price': this.safeFloat (market, 'tickSize'),
         };
         const priceScale = this.safeInteger (market, 'priceScale');
+        const amountScale = this.safeInteger (market, 'valueScale');
         const ratioScale = this.safeInteger (market, 'ratioScale');
-        const priceScalePower = Math.pow (10, -priceScale);
-        const ratioScalePower = Math.pow (10, -ratioScale);
+        const priceFactor = parseFloat (this.decimalToPrecision (Math.pow (10, -priceScale), ROUND, 0.00000001, this.precisionMode));
+        const ratioFactor = parseFloat (this.decimalToPrecision (Math.pow (10, -ratioScale), ROUND, 0.00000001, this.precisionMode));
+        const amountFactor = parseFloat (this.decimalToPrecision (Math.pow (10, -amountScale), ROUND, 0.00000001, this.precisionMode));
         const minPriceEp = this.safeFloat (market, 'minPriceEp');
         const maxPriceEp = this.safeFloat (market, 'maxPriceEp');
         const makerFeeRateEr = this.safeFloat (market, 'makerFeeRateEr');
@@ -175,16 +177,16 @@ module.exports = class phemex extends Exchange {
         let minPrice = undefined;
         let maxPrice = undefined;
         if ((minPriceEp !== undefined) && (precision['price'] !== undefined)) {
-            minPrice = parseFloat (this.decimalToPrecision (minPriceEp * priceScalePower, ROUND, precision['price'], this.precisionMode));
+            minPrice = parseFloat (this.decimalToPrecision (minPriceEp * priceFactor, ROUND, precision['price'], this.precisionMode));
         }
         if ((maxPriceEp !== undefined) && (precision['price'] !== undefined)) {
-            maxPrice = parseFloat (this.decimalToPrecision (maxPriceEp * priceScalePower, ROUND, precision['price'], this.precisionMode));
+            maxPrice = parseFloat (this.decimalToPrecision (maxPriceEp * priceFactor, ROUND, precision['price'], this.precisionMode));
         }
         if (makerFeeRateEr !== undefined) {
-            maker = parseFloat (this.decimalToPrecision (makerFeeRateEr * ratioScalePower, ROUND, 0.00000001, this.precisionMode));
+            maker = parseFloat (this.decimalToPrecision (makerFeeRateEr * ratioFactor, ROUND, 0.00000001, this.precisionMode));
         }
         if (takerFeeRateEr !== undefined) {
-            taker = parseFloat (this.decimalToPrecision (takerFeeRateEr * ratioScalePower, ROUND, 0.00000001, this.precisionMode));
+            taker = parseFloat (this.decimalToPrecision (takerFeeRateEr * ratioFactor, ROUND, 0.00000001, this.precisionMode));
         }
         const limits = {
             'amount': {
@@ -220,6 +222,8 @@ module.exports = class phemex extends Exchange {
             'active': active,
             'taker': taker,
             'maker': maker,
+            'priceFactor': priceFactor,
+            'amountFactor': 1,
             'precision': precision,
             'limits': limits,
         };
@@ -284,6 +288,11 @@ module.exports = class phemex extends Exchange {
         const quote = this.safeCurrencyCode (quoteId);
         const symbol = base + '/' + quote;
         const active = undefined;
+        // const baseQtyPrecision = this.safeInteger (market, 'baseQtyPrecision');
+        // const quoteTickSizeEv = this.safeInteger (market, 'quoteTickSizeEv');
+        // const quoteTickSizeEvLog10 = Math.log10 (quoteTickSizeEv);
+        // const priceFactor = parseFloat (this.decimalToPrecision (Math.pow (0.1, quoteTickSizeEvLog10), ROUND, 0.00000001, this.precisionMode));
+        // const amountFactor = parseFloat (this.decimalToPrecision (Math.pow (10, -baseQtyPrecision), ROUND, 0.00000001, this.precisionMode));
         return {
             'id': id,
             'symbol': symbol,
@@ -301,6 +310,8 @@ module.exports = class phemex extends Exchange {
             'taker': taker,
             'maker': maker,
             'precision': precision,
+            'priceFactor': 0.00000001,
+            'amountFactor': 0.00000001,
             'limits': limits,
         };
     }
@@ -515,6 +526,83 @@ module.exports = class phemex extends Exchange {
         }
         return result;
     }
+
+    parseBidAsk (bidask, priceKey = 0, amountKey = 1, market = undefined) {
+        // console.log (market);
+        // console.log (bidask);
+        // process.exit ();
+        if (market === undefined) {
+            throw new ArgumentsRequired (this.id + ' parseBidAsk requires a market argument');
+        }
+        const scaledPrice = this.safeFloat (bidask, priceKey);
+        const scaledAmount = this.safeFloat (bidask, amountKey);
+        const price = parseFloat (this.decimalToPrecision (scaledPrice * market['priceFactor'], ROUND, market['precision']['price'], this.precisionMode));
+        const amount = parseFloat (this.decimalToPrecision (scaledAmount * market['amountFactor'], ROUND, market['precision']['amount'], this.precisionMode));
+        // , [ price, amount ]);
+        return [ price, amount ];
+    }
+
+    parseOrderBook (orderbook, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1, market = undefined) {
+        const result = {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'nonce': undefined,
+        };
+        const sides = [ bidsKey, asksKey ];
+        for (let i = 0; i < sides.length; i++) {
+            const side = sides[i];
+            const orders = [];
+            const bidasks = this.safeValue (orderbook, side);
+            for (let k = 0; k < bidasks.length; k++) {
+                orders.push (this.parseBidAsk (bidasks[k], priceKey, amountKey, market));
+            }
+            result[side] = orders;
+        }
+        result[bidsKey] = this.sortBy (result[bidsKey], 0, true);
+        result[asksKey] = this.sortBy (result[asksKey], 0);
+        return result;
+    }
+
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.v1GetMdOrderbook (this.extend (request, params));
+        //
+        //     {
+        //         "error": null,
+        //         "id": 0,
+        //         "result": {
+        //             "book": {
+        //                 "asks": [
+        //                     [ 23415000000, 105262000 ],
+        //                     [ 23416000000, 147914000 ],
+        //                     [ 23419000000, 160914000 ],
+        //                 ],
+        //                 "bids": [
+        //                     [ 23360000000, 32995000 ],
+        //                     [ 23359000000, 221887000 ],
+        //                     [ 23356000000, 284599000 ],
+        //                 ],
+        //             },
+        //             "depth": 30,
+        //             "sequence": 1592059928,
+        //             "symbol": "sETHUSDT",
+        //             "timestamp": 1592387340020000955,
+        //             "type": "snapshot"
+        //         }
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const book = this.safeValue (result, 'book', {});
+        const timestamp = this.safeIntegerProduct (result, 'timestamp', 0.000001);
+        const orderbook = this.parseOrderBook (book, timestamp, 'bids', 'asks', 0, 1, market);
+        orderbook['nonce'] = this.safeInteger (result, 'sequence');
+        return orderbook;
+    }
+
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
