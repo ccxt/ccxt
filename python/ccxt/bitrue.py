@@ -28,7 +28,7 @@ class bitrue(Exchange):
             'rateLimit': 3000,
             'diff_millis': None,
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/58385970-794e2d80-8001-11e9-889c-0567cd79b78e.jpg',
+                'logo': 'https://www.bitrue.com/includes/assets/346c710f38975f71fa8ea90f9f7457a3.svg',
                 'api': 'https://www.bitrue.com/api',
                 'www': 'https://bitrue.com',
                 'doc': 'https://github.com/Bitrue/bitrue-official-api-docs',
