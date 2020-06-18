@@ -22,6 +22,7 @@ module.exports = class phemex extends Exchange {
                 'fetchMarkets': true,
                 'fetchCurrencies': true,
                 'fetchOrderBook': true,
+                'fetchOHLCV': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/83165440-2f1cf200-a116-11ea-9046-a255d09fb2ed.jpg',
