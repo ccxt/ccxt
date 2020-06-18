@@ -883,14 +883,24 @@ module.exports = class phemex extends Exchange {
         }
         const timestamp = this.safeIntegerProduct (ticker, 'timestamp', 0.000001);
         const last = this.unscalePrice (this.safeFloat (ticker, 'lastEp'), market);
-        const baseVolumeUnscaled = this.unscaleAmount (this.safeFloat (ticker, 'volumeEv'), market);
-        const baseVolume = this.safeFloat (ticker, 'volume', baseVolumeUnscaled);
-        // const baseVolume = this.unscaleAmount (this.safeFloat2 (ticker, 'volume', 'volumeEv'), market);
         const quoteVolume = this.unscalePrice (this.safeFloat (ticker, 'turnoverEv'), market);
+        let baseVolume = undefined;
         let vwap = undefined;
-        if ((quoteVolume !== undefined) && (baseVolume !== undefined) && (baseVolume > 0)) {
-            vwap = quoteVolume / baseVolume;
+        if (market['spot']) {
+            baseVolume = this.unscaleAmount (this.safeFloat (ticker, 'volumeEv'), market);
+            if ((quoteVolume !== undefined) && (baseVolume !== undefined) && (baseVolume > 0)) {
+                vwap = quoteVolume / baseVolume;
+            }
+        } else if (market['swap']) {
+            baseVolume = this.safeFloat (ticker, 'volume');
+            // const contractSize =
+            if ((quoteVolume !== undefined) && (baseVolume !== undefined) && (baseVolume > 0)) {
+                vwap = quoteVolume / (baseVolume * 0.005);
+            }
         }
+        // const baseVolumeUnscaled = this.unscaleAmount (this.safeFloat (ticker, 'volumeEv'), market);
+        // const baseVolume = this.safeFloat (ticker, 'volume', baseVolumeUnscaled);
+        // const baseVolume = this.unscaleAmount (this.safeFloat2 (ticker, 'volume', 'volumeEv'), market);
         let change = undefined;
         let percentage = undefined;
         let average = undefined;
