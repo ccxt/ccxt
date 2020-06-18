@@ -782,7 +782,6 @@ module.exports = class phemex extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        // max limit 2000
         const request = {
             // 'symbol': market['id'],
             'resolution': this.timeframes[timeframe],
@@ -800,7 +799,7 @@ module.exports = class phemex extends Exchange {
             request['to'] = this.sum (since, duration * limit);
         } else if (limit !== undefined) {
             limit = Math.min (limit, 2000);
-            request['from'] = now - duration * limit;
+            request['from'] = now - duration * this.sum (limit, 1);
             request['to'] = now;
         } else {
             throw new ArgumentsRequired (this.id + ' fetchOHLCV requires a since argument, or a limit argument, or both');
