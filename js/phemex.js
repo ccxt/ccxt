@@ -72,7 +72,6 @@ module.exports = class phemex extends Exchange {
                 },
                 'v1': {
                     'get': [
-                        'md/kline',
                         'md/orderbook', // ?symbol=<symbol>&id=<id>
                         'md/trade', // ?symbol=<symbol>&id=<id>
                         'md/ticker/24hr', // ?symbol=<symbol>&id=<id>
@@ -82,7 +81,6 @@ module.exports = class phemex extends Exchange {
                 },
                 'v0': {
                     'get': [
-                        'md/kline',
                         'md/orderbook', // ?symbol=<symbol>&id=<id>
                         'md/trade', // ?symbol=<symbol>&id=<id>
                         'md/spot/ticker/24hr', // ?symbol=<symbol>&id=<id>
@@ -981,6 +979,33 @@ module.exports = class phemex extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         return this.parseTicker (result, market);
+    }
+
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            // 'id': 123456789, // optional request id
+        };
+        const response = await this.v1GetMdTrade (this.extend (request, params));
+        //
+        //     {
+        //         "error": null,
+        //         "id": 0,
+        //         "result": {
+        //             "sequence": 1315644947,
+        //             "symbol": "BTCUSD",
+        //             "trades": [
+        //                 [ 1592541746712239749, 13156448570000, "Buy", 93070000, 40173 ],
+        //                 [ 1592541740434625085, 13156447110000, "Sell", 93065000, 5000 ],
+        //                 [ 1592541732958241616, 13156441390000, "Buy", 93070000, 3460 ],
+        //             ],
+        //             "type": "snapshot"
+        //         }
+        //     }
+        //
+        return this.parseTrades (response, market, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
