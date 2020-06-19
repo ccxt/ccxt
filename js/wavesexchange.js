@@ -219,6 +219,12 @@ module.exports = class wavesexchange extends Exchange {
                         'oauth2/token',
                     ],
                 },
+                'forward': {
+                    'get': [
+                        'matcher/orders/{address}',  // can't get the orders endpoint to work with the matcher api
+                        'matcher/orders/{address}/{orderId}',
+                    ],
+                },
                 'market': {
                     'get': [
                         'tickers',
