@@ -160,6 +160,7 @@ module.exports = class phemex extends Exchange {
                     '10003': CancelPending, // OM_ORDER_PENDING_CANCEL Cannot cancel while order is already in pending cancel status
                     '10004': CancelPending, // OM_ORDER_PENDING_REPLACE Cannot cancel while order is already in pending cancel status
                     '10005': CancelPending, // OM_ORDER_PENDING Cannot cancel while order is already in pending cancel status
+                    '10500': BadRequest, // {"msg":"Missing required parameter","code":10500}
                     '11001': InsufficientFunds, // TE_NO_ENOUGH_AVAILABLE_BALANCE Insufficient available balance
                     '11002': InvalidOrder, // TE_INVALID_RISK_LIMIT Invalid risk limit value
                     '11003': InsufficientFunds, // TE_NO_ENOUGH_BALANCE_FOR_NEW_RISK_LIMIT Insufficient available balance
