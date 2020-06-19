@@ -23,6 +23,7 @@ module.exports = class phemex extends Exchange {
                 'fetchCurrencies': true,
                 'fetchOrderBook': true,
                 'fetchOHLCV': true,
+                'fetchTicker': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/83165440-2f1cf200-a116-11ea-9046-a255d09fb2ed.jpg',
@@ -313,8 +314,10 @@ module.exports = class phemex extends Exchange {
         };
         const priceScale = this.safeInteger (market, 'priceScale');
         const ratioScale = this.safeInteger (market, 'ratioScale');
-        const priceFactor = parseFloat (this.decimalToPrecision (Math.pow (10, -priceScale), ROUND, 0.00000001, this.precisionMode));
-        const ratioFactor = parseFloat (this.decimalToPrecision (Math.pow (10, -ratioScale), ROUND, 0.00000001, this.precisionMode));
+        // const valueScale = this.safeInteger (market, 'valueScale');
+        const ep = parseFloat (this.decimalToPrecision (Math.pow (10, -priceScale), ROUND, 0.00000001, this.precisionMode));
+        const er = parseFloat (this.decimalToPrecision (Math.pow (10, -ratioScale), ROUND, 0.00000001, this.precisionMode));
+        // const ev = parseFloat (this.decimalToPrecision (Math.pow (10, -valueScale), ROUND, 0.00000001, this.precisionMode));
         const minPriceEp = this.safeFloat (market, 'minPriceEp');
         const maxPriceEp = this.safeFloat (market, 'maxPriceEp');
         const makerFeeRateEr = this.safeFloat (market, 'makerFeeRateEr');
@@ -322,16 +325,16 @@ module.exports = class phemex extends Exchange {
         let minPrice = undefined;
         let maxPrice = undefined;
         if ((minPriceEp !== undefined) && (precision['price'] !== undefined)) {
-            minPrice = parseFloat (this.decimalToPrecision (minPriceEp * priceFactor, ROUND, precision['price'], this.precisionMode));
+            minPrice = parseFloat (this.decimalToPrecision (minPriceEp * ep, ROUND, precision['price'], this.precisionMode));
         }
         if ((maxPriceEp !== undefined) && (precision['price'] !== undefined)) {
-            maxPrice = parseFloat (this.decimalToPrecision (maxPriceEp * priceFactor, ROUND, precision['price'], this.precisionMode));
+            maxPrice = parseFloat (this.decimalToPrecision (maxPriceEp * ep, ROUND, precision['price'], this.precisionMode));
         }
         if (makerFeeRateEr !== undefined) {
-            maker = parseFloat (this.decimalToPrecision (makerFeeRateEr * ratioFactor, ROUND, 0.00000001, this.precisionMode));
+            maker = parseFloat (this.decimalToPrecision (makerFeeRateEr * er, ROUND, 0.00000001, this.precisionMode));
         }
         if (takerFeeRateEr !== undefined) {
-            taker = parseFloat (this.decimalToPrecision (takerFeeRateEr * ratioFactor, ROUND, 0.00000001, this.precisionMode));
+            taker = parseFloat (this.decimalToPrecision (takerFeeRateEr * er, ROUND, 0.00000001, this.precisionMode));
         }
         const limits = {
             'amount': {
@@ -367,8 +370,9 @@ module.exports = class phemex extends Exchange {
             'active': active,
             'taker': taker,
             'maker': maker,
-            'priceFactor': priceFactor,
-            'amountFactor': 1,
+            'ep': ep,
+            'er': er,
+            'ev': 1,
             'precision': precision,
             'limits': limits,
         };
@@ -455,8 +459,9 @@ module.exports = class phemex extends Exchange {
             'taker': taker,
             'maker': maker,
             'precision': precision,
-            'priceFactor': 0.00000001,
-            'amountFactor': 0.00000001,
+            'ep': 0.00000001,
+            'er': 0.00000001,
+            'ev': 0.00000001,
             'limits': limits,
         };
     }
@@ -677,8 +682,8 @@ module.exports = class phemex extends Exchange {
             throw new ArgumentsRequired (this.id + ' parseBidAsk requires a market argument');
         }
         return [
-            this.unscalePrice (this.safeFloat (bidask, priceKey), market),
-            this.unscaleAmount (this.safeFloat (bidask, amountKey), market),
+            this.fromEp (this.safeFloat (bidask, priceKey), market),
+            this.fromEv (this.safeFloat (bidask, amountKey), market),
         ];
     }
 
@@ -743,18 +748,22 @@ module.exports = class phemex extends Exchange {
         return orderbook;
     }
 
-    unscalePrice (price, market = undefined) {
-        if ((price === undefined) || (market === undefined)) {
-            return price;
-        }
-        return parseFloat (this.decimalToPrecision (price * market['priceFactor'], ROUND, market['precision']['price'], this.precisionMode));
+    fromEn (en, scale, precision) {
+        return parseFloat (this.decimalToPrecision (en * scale, ROUND, precision, this.precisionMode));
     }
 
-    unscaleAmount (amount, market = undefined) {
-        if ((amount === undefined) || (market === undefined)) {
-            return amount;
+    fromEp (ep, market = undefined) {
+        if ((ep === undefined) || (market === undefined)) {
+            return ep;
         }
-        return parseFloat (this.decimalToPrecision (amount * market['amountFactor'], ROUND, market['precision']['amount'], this.precisionMode));
+        return this.fromEn (ep, market['ep'], market['precision']['price']);
+    }
+
+    fromEv (ev, market = undefined) {
+        if ((ev === undefined) || (market === undefined)) {
+            return ev;
+        }
+        return this.fromEn (ev, market['ev'], market['precision']['amount']);
     }
 
     parseOHLCV (ohlcv, market = undefined) {
@@ -773,11 +782,11 @@ module.exports = class phemex extends Exchange {
         //
         return [
             this.safeTimestamp (ohlcv, 0),
-            this.unscalePrice (this.safeFloat (ohlcv, 3), market),
-            this.unscalePrice (this.safeFloat (ohlcv, 4), market),
-            this.unscalePrice (this.safeFloat (ohlcv, 5), market),
-            this.unscalePrice (this.safeFloat (ohlcv, 6), market),
-            this.unscaleAmount (this.safeFloat (ohlcv, 7), market),
+            this.fromEp (this.safeFloat (ohlcv, 3), market),
+            this.fromEp (this.safeFloat (ohlcv, 4), market),
+            this.fromEp (this.safeFloat (ohlcv, 5), market),
+            this.fromEp (this.safeFloat (ohlcv, 6), market),
+            this.fromEv (this.safeFloat (ohlcv, 7), market),
         ];
     }
 
@@ -873,9 +882,9 @@ module.exports = class phemex extends Exchange {
             symbol = market['symbol'];
         }
         const timestamp = this.safeIntegerProduct (ticker, 'timestamp', 0.000001);
-        const last = this.unscalePrice (this.safeFloat (ticker, 'lastEp'), market);
-        const quoteVolume = this.unscalePrice (this.safeFloat (ticker, 'turnoverEv'), market);
-        const baseVolume = this.unscaleAmount (this.safeFloat2 (ticker, 'volumeEv', 'volume'), market);
+        const last = this.fromEp (this.safeFloat (ticker, 'lastEp'), market);
+        const quoteVolume = this.fromEp (this.safeFloat (ticker, 'turnoverEv'), market);
+        const baseVolume = this.fromEv (this.safeFloat2 (ticker, 'volumeEv', 'volume'), market);
         let vwap = undefined;
         if (market['spot']) {
             if ((quoteVolume !== undefined) && (baseVolume !== undefined) && (baseVolume > 0)) {
@@ -885,7 +894,7 @@ module.exports = class phemex extends Exchange {
         let change = undefined;
         let percentage = undefined;
         let average = undefined;
-        const open = this.unscalePrice (this.safeFloat (ticker, 'openEp'), market);
+        const open = this.fromEp (this.safeFloat (ticker, 'openEp'), market);
         if ((open !== undefined) && (last !== undefined)) {
             change = last - open;
             if (open > 0) {
@@ -897,11 +906,11 @@ module.exports = class phemex extends Exchange {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.unscalePrice (this.safeFloat (ticker, 'highEp'), market),
-            'low': this.unscalePrice (this.safeFloat (ticker, 'lowEp'), market),
-            'bid': this.unscalePrice (this.safeFloat (ticker, 'bidEp'), market),
+            'high': this.fromEp (this.safeFloat (ticker, 'highEp'), market),
+            'low': this.fromEp (this.safeFloat (ticker, 'lowEp'), market),
+            'bid': this.fromEp (this.safeFloat (ticker, 'bidEp'), market),
             'bidVolume': undefined,
-            'ask': this.unscalePrice (this.safeFloat (ticker, 'askEp'), market),
+            'ask': this.fromEp (this.safeFloat (ticker, 'askEp'), market),
             'askVolume': undefined,
             'vwap': vwap,
             'open': open,
