@@ -24,17 +24,16 @@ module.exports = class phemex extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOHLCV': true,
                 'fetchTicker': true,
+                'fetchTrades': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/83165440-2f1cf200-a116-11ea-9046-a255d09fb2ed.jpg',
                 'test': {
-                    'v0': 'https://testnet-api.phemex.com',
                     'v1': 'https://testnet-api.phemex.com/v1',
                     'public': 'https://testnet-api.phemex.com/exchange/public',
                     'private': 'https://testnet-api.phemex.com',
                 },
                 'api': {
-                    'v0': 'https://api.phemex.com',
                     'v1': 'https://api.phemex.com/v1',
                     'public': 'https://api.phemex.com/exchange/public',
                     // 'public': 'https://api.phemex.com',
@@ -76,15 +75,9 @@ module.exports = class phemex extends Exchange {
                         'md/trade', // ?symbol=<symbol>&id=<id>
                         'md/ticker/24hr', // ?symbol=<symbol>&id=<id>
                         'md/ticker/24hr/all', // ?id=<id>
-                        'exchange/public/products', // contracts only
-                    ],
-                },
-                'v0': {
-                    'get': [
-                        'md/orderbook', // ?symbol=<symbol>&id=<id>
-                        'md/trade', // ?symbol=<symbol>&id=<id>
                         'md/spot/ticker/24hr', // ?symbol=<symbol>&id=<id>
-                        'md/ticker/24hr', // ?symbol=<symbol>&id=<id>
+                        'md/spot/ticker/24hr/all', // ?symbol=<symbol>&id=<id>
+                        'exchange/public/products', // contracts only
                     ],
                 },
             },
@@ -1101,7 +1094,7 @@ module.exports = class phemex extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
         let url = '/' + this.implodeParams (path, params);
-        if ((api === 'public') || (api === 'v1') || (api === 'v0')) {
+        if ((api === 'public') || (api === 'v1')) {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
