@@ -711,6 +711,7 @@ module.exports = class phemex extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
+            // 'id': 123456789, // optional request id
         };
         const response = await this.v1GetMdOrderbook (this.extend (request, params));
         //
@@ -930,6 +931,7 @@ module.exports = class phemex extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
+            // 'id': 123456789, // optional request id
         };
         const method = market['spot'] ? 'v0GetMdSpotTicker24hr' : 'v1GetMdTicker24hr';
         const response = await this[method] (this.extend (request, params));
@@ -1022,56 +1024,73 @@ module.exports = class phemex extends Exchange {
         //         40173
         //     ]
         //
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'amount');
+        let price = undefined;
+        let amount = undefined;
+        let timestamp = undefined;
+        let id = undefined;
+        let side = undefined;
         let cost = undefined;
-        if ((price !== undefined) && (amount !== undefined)) {
-            cost = price * amount;
-        }
-        const timestamp = this.safeInteger (trade, 'timestamp');
-        const side = this.safeString (trade, 'side');
-        const id = this.safeString2 (trade, 'id', 'fillId');
-        const marketId = this.safeInteger (trade, 'market');
+        const fee = undefined;
         let symbol = undefined;
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('-');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
+        if (Array.isArray (trade)) {
+            timestamp = this.safeIntegerProduct (trade, 0, 0.000001);
+            id = this.safeString (trade, 1);
+            side = this.safeStringLower (trade, 2);
+            if (market !== undefined) {
+                price = this.fromEp (this.safeFloat (trade, 3), market);
+                amount = this.fromEv (this.safeFloat (trade, 4), market);
+                if (market['spot']) {
+                    if ((price !== undefined) && (amount !== undefined)) {
+                        cost = price * amount;
+                    }
+                }
             }
+        } else {
         }
+        // const timestamp = this.safeInteger (trade, 'timestamp');
+        // const side = this.safeString (trade, 'side');
+        // const id = this.safeString2 (trade, 'id', 'fillId');
+        // const marketId = this.safeInteger (trade, 'market');
+        // let symbol = undefined;
+        // if (marketId !== undefined) {
+        //     if (marketId in this.markets_by_id) {
+        //         market = this.markets_by_id[marketId];
+        //     } else {
+        //         const [ baseId, quoteId ] = marketId.split ('-');
+        //         const base = this.safeCurrencyCode (baseId);
+        //         const quote = this.safeCurrencyCode (quoteId);
+        //         symbol = base + '/' + quote;
+        //     }
+        // }
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
-        const taker = this.safeValue (trade, 'taker');
-        let takerOrMaker = undefined;
-        if (taker !== undefined) {
-            takerOrMaker = taker ? 'taker' : 'maker';
-        }
-        const feeCost = this.safeFloat (trade, 'fee');
-        let fee = undefined;
-        if (feeCost !== undefined) {
-            const feeCurrencyId = this.safeString (trade, 'feeCurrency');
-            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
-            fee = {
-                'cost': feeCost,
-                'currency': feeCurrencyCode,
-            };
-        }
-        const orderId = this.safeString (trade, 'orderId');
+        // const taker = this.safeValue (trade, 'taker');
+        // let takerOrMaker = undefined;
+        // if (taker !== undefined) {
+        //     takerOrMaker = taker ? 'taker' : 'maker';
+        // }
+        // const feeCost = this.safeFloat (trade, 'fee');
+        // let fee = undefined;
+        // if (feeCost !== undefined) {
+        //     const feeCurrencyId = this.safeString (trade, 'feeCurrency');
+        //     const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+        //     fee = {
+        //         'cost': feeCost,
+        //         'currency': feeCurrencyCode,
+        //     };
+        // }
+        // const orderId = this.safeString (trade, 'orderId');
         return {
             'info': trade,
             'id': id,
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'order': orderId,
+            'order': undefined,
             'type': undefined,
             'side': side,
-            'takerOrMaker': takerOrMaker,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
