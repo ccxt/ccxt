@@ -67,6 +67,7 @@ module.exports = class phemex extends Exchange {
                         'products', // contracts only
                         'nomics/trades', // ?market=<symbol>&since=<since>
                         'md/kline', // ?from=1589811875&resolution=1800&symbol=sBTCUSDT&to=1592457935
+                        'md/ticker/24hr/all', // ?id=<id>
                     ],
                 },
                 'v1': {
@@ -78,6 +79,58 @@ module.exports = class phemex extends Exchange {
                         'md/spot/ticker/24hr', // ?symbol=<symbol>&id=<id>
                         'md/spot/ticker/24hr/all', // ?symbol=<symbol>&id=<id>
                         'exchange/public/products', // contracts only
+                    ],
+                },
+                'private': {
+                    'get': [
+                        // spot
+                        'spot/orders/active', // ?symbol=<symbol>&orderID=<orderID>
+                        'spot/orders/active', // ?symbol=<symbol>&clOrDID=<clOrdID>
+                        'spot/orders', // ?symbol=<symbol>
+                        'spot/wallets', // ?currency=<currency>
+                        'exchange/spot/order', // ?symbol=<symbol>&ordStatus=<ordStatus1,orderStatus2>ordType=<ordType1,orderType2>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'exchange/spot/order/trades', // ?symbol=<symbol>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        // swap
+                        'accounts/accountPositions', // ?currency=<currency>
+                        'orders/activeList', // ?symbol=<symbol>
+                        'exchange/order/list', // ?symbol=<symbol>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&ordStatus=<ordStatus>&withCount=<withCount>
+                        'exchange/order', // ?symbol=<symbol>&orderID=<orderID1,orderID2>
+                        'exchange/order', // ?symbol=<symbol>&clOrdID=<clOrdID1,clOrdID2>
+                        'exchange/order/trade', // ?symbol=<symbol>&start=<start>&end=<end>&limit=<limit>&offset=<offset>&withCount=<withCount>
+                        'phemex-user/users/children', // ?offset=<offset>&limit=<limit>&withCount=<withCount>
+                        'exchange/margins/transfer', // ?start=<start>&end=<end>&offset=<offset>&limit=<limit>&withCount=<withCount>
+                        'exchange/wallets/confirm/withdraw', // ?code=<withdrawConfirmCode>
+                        'exchange/wallets/withdrawList', // ?currency=<currency>&limit=<limit>&offset=<offset>&withCount=<withCount>
+                    ],
+                    'post': [
+                        // spot
+                        'spot/orders',
+                        // swap
+                        'orders',
+                        'positions/assign', // ?symbol=<symbol>&posBalance=<posBalance>&posBalanceEv=<posBalanceEv>
+                        'exchange/wallets/transferOut',
+                        'exchange/wallets/transferIn',
+                        'exchange/margins',
+                        'exchange/wallets/createWithdraw', // ?otpCode=<otpCode>
+                        'exchange/wallets/cancelWithdraw',
+                        'exchange/wallets/createWithdrawAddress', // ?otpCode={optCode}
+                    ],
+                    'put': [
+                        // spot
+                        'spot/orders', // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&priceEp=<priceEp>&baseQtyEV=<baseQtyEV>&quoteQtyEv=<quoteQtyEv>&stopPxEp=<stopPxEp>
+                        // swap
+                        'orders/replace', // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&price=<price>&priceEp=<priceEp>&orderQty=<orderQty>&stopPx=<stopPx>&stopPxEp=<stopPxEp>&takeProfit=<takeProfit>&takeProfitEp=<takeProfitEp>&stopLoss=<stopLoss>&stopLossEp=<stopLossEp>&pegOffsetValueEp=<pegOffsetValueEp>&pegPriceType=<pegPriceType>
+                        'positions/leverage', // ?symbol=<symbol>&leverage=<leverage>&leverageEr=<leverageEr>
+                        'positions/riskLimit', // ?symbol=<symbol>&riskLimit=<riskLimit>&riskLimitEv=<riskLimitEv>
+                    ],
+                    'delete': [
+                        // spot
+                        'spot/orders', // ?symbol=<symbol>&orderID=<orderID>
+                        'spot/orders', // ?symbol=<symbol>&clOrdID=<clOrdID>
+                        // swap
+                        'orders/cancel', // ?symbol=<symbol>&orderID=<orderID>
+                        'orders', // ?symbol=<symbol>&orderID=<orderID1>,<orderID2>,<orderID3>
+                        'orders/all', // ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
                     ],
                 },
             },
@@ -227,6 +280,7 @@ module.exports = class phemex extends Exchange {
                 },
             },
             'options': {
+                'x-phemex-request-expiry': 60, // in seconds
             },
         });
     }
@@ -1093,36 +1147,34 @@ module.exports = class phemex extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
-        let url = '/' + this.implodeParams (path, params);
-        if ((api === 'public') || (api === 'v1')) {
+        const request = '/' + this.implodeParams (path, params);
+        let url = request;
+        let queryString = '';
+        if ((method === 'GET') || (method === 'DELETE')) {
             if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
+                queryString = this.urlencodeWithArrayRepeat (query);
+                url += '?' + queryString;
             }
         }
-        // const getOrDelete = (method === 'GET') || (method === 'DELETE');
-        // if (getOrDelete) {
-        //     if (Object.keys (query).length) {
-        //         url += '?' + this.urlencode (query);
-        //     }
-        // }
-        // if (api === 'private') {
-        //     this.checkRequiredCredentials ();
-        //     let payload = '';
-        //     if (!getOrDelete) {
-        //         if (Object.keys (query).length) {
-        //             body = this.json (query);
-        //             payload = body;
-        //         }
-        //     }
-        //     const timestamp = this.milliseconds ().toString ();
-        //     const auth = timestamp + method + url + payload;
-        //     const signature = this.hmac (this.encode (auth), this.encode (this.secret));
-        //     headers = {
-        //     };
-        //     if (!getOrDelete) {
-        //         headers['Content-Type'] = 'application/json';
-        //     }
-        // }
+        if (api === 'private') {
+            this.checkRequiredCredentials ();
+            const timestamp = this.seconds ();
+            const xPhemexRequestExpiry = this.safeInteger (this.options, 'x-phemex-request-expiry', 60);
+            const expiry = this.sum (timestamp, xPhemexRequestExpiry);
+            const expiryString = expiry.toString ();
+            headers = {
+                'x-phemex-access-token': this.apiKey,
+                'x-phemex-request-expiry': expiryString,
+            };
+            let payload = '';
+            if ((method === 'POST') || (method === 'PUT')) {
+                payload = this.json (params);
+                body = payload;
+                headers['Content-Type'] = 'application/json';
+            }
+            const auth = request + queryString + expiryString + payload;
+            headers['x-phemex-request-signature'] = this.hmac (this.encode (auth), this.encode (this.secret));
+        }
         url = this.urls['api'][api] + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
