@@ -369,7 +369,6 @@ module.exports = class phemex extends Exchange {
             'maker': maker,
             'priceFactor': priceFactor,
             'amountFactor': 1,
-            'costFactor': 1,
             'precision': precision,
             'limits': limits,
         };
@@ -458,7 +457,6 @@ module.exports = class phemex extends Exchange {
             'precision': precision,
             'priceFactor': 0.00000001,
             'amountFactor': 0.00000001,
-            'costFactor': 0.00000001,
             'limits': limits,
         };
     }
@@ -759,13 +757,6 @@ module.exports = class phemex extends Exchange {
         return parseFloat (this.decimalToPrecision (amount * market['amountFactor'], ROUND, market['precision']['amount'], this.precisionMode));
     }
 
-    // unscaleCost (cost, market = undefined) {
-    //     if ((cost === undefined) || (market === undefined)) {
-    //         return cost;
-    //     }
-    //     return parseFloat (this.decimalToPrecision (cost * market['costFactor'], ROUND, market['precision']['price'], this.precisionMode));
-    // }
-
     parseOHLCV (ohlcv, market = undefined) {
         //
         //     [
@@ -884,23 +875,13 @@ module.exports = class phemex extends Exchange {
         const timestamp = this.safeIntegerProduct (ticker, 'timestamp', 0.000001);
         const last = this.unscalePrice (this.safeFloat (ticker, 'lastEp'), market);
         const quoteVolume = this.unscalePrice (this.safeFloat (ticker, 'turnoverEv'), market);
-        let baseVolume = undefined;
+        const baseVolume = this.unscaleAmount (this.safeFloat2 (ticker, 'volumeEv', 'volume'), market);
         let vwap = undefined;
         if (market['spot']) {
-            baseVolume = this.unscaleAmount (this.safeFloat (ticker, 'volumeEv'), market);
             if ((quoteVolume !== undefined) && (baseVolume !== undefined) && (baseVolume > 0)) {
                 vwap = quoteVolume / baseVolume;
             }
-        } else if (market['swap']) {
-            baseVolume = this.safeFloat (ticker, 'volume');
-            // const contractSize =
-            if ((quoteVolume !== undefined) && (baseVolume !== undefined) && (baseVolume > 0)) {
-                vwap = quoteVolume / (baseVolume * 0.005);
-            }
         }
-        // const baseVolumeUnscaled = this.unscaleAmount (this.safeFloat (ticker, 'volumeEv'), market);
-        // const baseVolume = this.safeFloat (ticker, 'volume', baseVolumeUnscaled);
-        // const baseVolume = this.unscaleAmount (this.safeFloat2 (ticker, 'volume', 'volumeEv'), market);
         let change = undefined;
         let percentage = undefined;
         let average = undefined;
