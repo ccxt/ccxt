@@ -160,7 +160,6 @@ module.exports = class phemex extends Exchange {
                     '10003': CancelPending, // OM_ORDER_PENDING_CANCEL Cannot cancel while order is already in pending cancel status
                     '10004': CancelPending, // OM_ORDER_PENDING_REPLACE Cannot cancel while order is already in pending cancel status
                     '10005': CancelPending, // OM_ORDER_PENDING Cannot cancel while order is already in pending cancel status
-                    '10500': BadRequest, // {"msg":"Missing required parameter","code":10500}
                     '11001': InsufficientFunds, // TE_NO_ENOUGH_AVAILABLE_BALANCE Insufficient available balance
                     '11002': InvalidOrder, // TE_INVALID_RISK_LIMIT Invalid risk limit value
                     '11003': InsufficientFunds, // TE_NO_ENOUGH_BALANCE_FOR_NEW_RISK_LIMIT Insufficient available balance
@@ -278,6 +277,9 @@ module.exports = class phemex extends Exchange {
                     '11115': InvalidOrder, // TE_ORDER_VALUE_TOO_SMALL Order value is too small
                 },
                 'broad': {
+                    'Failed to find api-key': AuthenticationError, // {"msg":"Failed to find api-key 1c5ec63fd-660d-43ea-847a-0d3ba69e106e","code":10500}
+                    'Missing required parameter': BadRequest, // {"msg":"Missing required parameter","code":10500}
+                    'API Signature verification failed': AuthenticationError, // {"msg":"API Signature verification failed.","code":10500}
                 },
             },
             'options': {
