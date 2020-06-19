@@ -938,6 +938,8 @@ module.exports = class bitmex extends Exchange {
             }
             const ymdhms = this.ymdhms (timestamp);
             request['startTime'] = ymdhms; // starting date filter for results
+        } else {
+            request['reverse'] = true;
         }
         const response = await this.publicGetTradeBucketed (this.extend (request, params));
         //
