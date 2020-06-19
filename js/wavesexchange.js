@@ -53,6 +53,7 @@ module.exports = class wavesexchange extends Exchange {
                     'public': 'https://api.wavesplatform.com/v0',
                     'private': 'https://api.waves.exchange/v1',
                     'forward': 'https://waves.exchange/api/v1/forward/matcher',
+                    'market': 'https://marketdata.wavesplatform.com/api/v1',
                 },
                 'doc': 'https://docs.waves.exchange',
                 'www': 'https://waves.exchange',
@@ -218,24 +219,11 @@ module.exports = class wavesexchange extends Exchange {
                         'oauth2/token',
                     ],
                 },
-                'forward': {
+                'market': {
                     'get': [
-                        'matcher/orders/{address}',  // can't get the orders endpoint to work with the matcher api
-                        'matcher/orders/{address}/{orderId}',
+                        'tickers',
                     ],
                 },
-            },
-            'commonCurrencies': {
-                'BITCOIN CASH': 'BCH',
-                'BITCOIN SV': 'BSV',
-                'BANCOR': 'BNT',
-                'LITECOIN': 'LTC',
-                'MONERO': 'XMR',
-                'TIDEX': 'TDX',
-                'USD-N': 'USDN',
-                'WBTC': 'BTC',
-                'WETH': 'ETH',
-                'ZCASH': 'ZEC',
             },
             'options': {
                 'allowedCandles': 1440,
@@ -344,45 +332,30 @@ module.exports = class wavesexchange extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const quotes = await this.getQuotes ();
-        const response = await this.matcherGetMatcherOrderbook (params);
-        const markets = this.safeValue (response, 'markets');
-        const result = {};
-        for (let i = 0; i < markets.length; i++) {
-            const entry = markets[i];
-            const baseId = this.safeString (entry, 'amountAssetName');
-            const quoteId = this.safeString (entry, 'priceAssetName');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            const baseAsset = this.safeString (entry, 'amountAsset');
-            const quoteAsset = this.safeString (entry, 'priceAsset');
-            const id = baseAsset + '/' + quoteAsset;
-            const symbol = base + '/' + quote;
-            const amountPrecision = this.safeValue (entry, 'amountAssetInfo');
-            const pricePricision = this.safeValue (entry, 'priceAssetInfo');
+        const response = await this.marketGetTickers ();
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const baseId = this.safeString (entry, 'amountAssetID');
+            const quoteId = this.safeString (entry, 'priceAssetID');
+            const id = baseId + '/' + quoteId;
+            const marketId = this.safeString (entry, 'symbol');
+            const [ base, quote ] = marketId.split ('/');
+            const symbol = this.safeCurrencyCode (base) + '/' + this.safeCurrencyCode (quote);
             const precision = {
-                'amount': this.safeInteger (amountPrecision, 'decimals'),
-                'price': this.safeInteger (pricePricision, 'decimals'),
+                'amount': this.safeInteger (entry, 'amountAssetDecimals'),
+                'price': this.safeInteger (entry, 'priceAssetDecimals'),
             };
-            if (symbol in result) {
-                // determine which symbol is "fake news"
-                const entry = result[symbol];
-                const entryCount = (entry['baseId'] in quotes) + (entry['quoteId'] in quotes);
-                const myCount = (baseId in quotes) + (quoteId in quotes);
-                if (entryCount > myCount) {
-                    continue;
-                }
-            }
-            result[symbol] = {
+            result.push ({
                 'symbol': symbol,
                 'id': id,
                 'base': base,
                 'quote': quote,
-                'baseId': baseAsset,
-                'quoteId': quoteAsset,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'info': entry,
                 'precision': precision,
-            };
+            });
         }
         return result;
     }
@@ -422,6 +395,35 @@ module.exports = class wavesexchange extends Exchange {
             result.push ([price, amount]);
         }
         return result;
+    }
+
+    checkRequiredKeys () {
+        if (this.apiKey === undefined) {
+            throw new AuthenticationError (this.id + ' requires apiKey credential');
+        }
+        if (this.secret === undefined) {
+            throw new AuthenticationError (this.id + ' requires secret credential');
+        }
+        let apiKeyBytes = undefined;
+        let secretKeyBytes = undefined;
+        try {
+            apiKeyBytes = this.base58ToBinary (this.apiKey);
+        } catch (e) {
+            throw new AuthenticationError (this.id + ' apiKey must be a base58 encoded public key');
+        }
+        try {
+            secretKeyBytes = this.base58ToBinary (this.secret);
+        } catch (e) {
+            throw new AuthenticationError (this.id + ' secret must be a base58 encoded private key');
+        }
+        const hexApiKeyBytes = this.binaryToBase16 (apiKeyBytes);
+        const hexSecretKeyBytes = this.binaryToBase16 (secretKeyBytes);
+        if (hexApiKeyBytes.length !== 64) {
+            throw new AuthenticationError (this.id + ' apiKey must be a base58 encoded public key');
+        }
+        if (hexSecretKeyBytes.length !== 64) {
+            throw new AuthenticationError (this.id + ' secret must be a base58 encoded private key');
+        }
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -798,7 +800,7 @@ module.exports = class wavesexchange extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         this.checkRequiredDependencies ();
-        this.checkRequiredCredentials ();
+        this.checkRequiredKeys ();
         await this.loadMarkets ();
         const market = this.market (symbol);
         const matcherPublicKey = await this.getMatcherPublicKey ();
@@ -871,7 +873,7 @@ module.exports = class wavesexchange extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         this.checkRequiredDependencies ();
-        this.checkRequiredCredentials ();
+        this.checkRequiredKeys ();
         await this.loadMarkets ();
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' symbol is required for cancelOrder');
@@ -920,7 +922,7 @@ module.exports = class wavesexchange extends Exchange {
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         this.checkRequiredDependencies ();
-        this.checkRequiredCredentials ();
+        this.checkRequiredKeys ();
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders requires symbol argument');
         }
@@ -1107,7 +1109,7 @@ module.exports = class wavesexchange extends Exchange {
         // getReservedBalance (includes WAVES)
         // I couldn't find another way to get all the data
         this.checkRequiredDependencies ();
-        this.checkRequiredCredentials ();
+        this.checkRequiredKeys ();
         await this.loadMarkets ();
         const wavesAddress = await this.getWavesAddress ();
         const request = {
