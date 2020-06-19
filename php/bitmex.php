@@ -942,6 +942,8 @@ class bitmex extends Exchange {
             }
             $ymdhms = $this->ymdhms($timestamp);
             $request['startTime'] = $ymdhms; // starting date $filter for results
+        } else {
+            $request['reverse'] = true;
         }
         $response = $this->publicGetTradeBucketed (array_merge($request, $params));
         //

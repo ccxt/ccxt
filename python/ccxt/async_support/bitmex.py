@@ -888,6 +888,8 @@ class bitmex(Exchange):
                 timestamp = self.sum(timestamp, duration)
             ymdhms = self.ymdhms(timestamp)
             request['startTime'] = ymdhms  # starting date filter for results
+        else:
+            request['reverse'] = True
         response = await self.publicGetTradeBucketed(self.extend(request, params))
         #
         #     [
