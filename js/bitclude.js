@@ -433,6 +433,7 @@ module.exports = class bitclude extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        // only for fetchOpenOrders
         const status = 'open'; // hardcoded shit
         let side = this.safeString (order, 'offertype');
         if (side === 'ask') {
@@ -451,7 +452,7 @@ module.exports = class bitclude extends Exchange {
         } else {
             symbol = market['symbol'];
         }
-        const timestamp = this.safeTimestamp (order, 'timeopen');
+        const timestamp = this.safeInteger (order, 'time_open');
         return {
             'info': order,
             'id': this.safeString (order, 'nr'),
@@ -478,7 +479,7 @@ module.exports = class bitclude extends Exchange {
         if (!side_in_params) {
             throw new ArgumentsRequired (this.id + ' cancelOrder requires a `side` parameter (sell or buy)');
         }
-        const side = (params['side'] === 'buy') ? 'bid' : 'ask';
+        const side = (params['side'] === 'buy') ? 'bid' : 'ask'; // Typo could cause cancel wrong order. todo: handle typo
         params = this.omit (params, [ 'side', 'currency' ]);
         const request = {
             'method': 'transactions',
