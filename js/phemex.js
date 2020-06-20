@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, InvalidAddress, BadRequest, RateLimitExceeded, PermissionDenied, ExchangeNotAvailable, AccountSuspended, OnMaintenance, CancelPending, DDoSProtection, DuplicateOrderId, NotSupported } = require ('./base/errors');
-const { TICK_SIZE, ROUND } = require ('./base/functions/number');
+const { TICK_SIZE, ROUND, DECIMAL_PLACES } = require ('./base/functions/number');
 
 // ----------------------------------------------------------------------------
 
@@ -284,6 +284,7 @@ module.exports = class phemex extends Exchange {
             },
             'options': {
                 'x-phemex-request-expiry': 60, // in seconds
+                'createMarketOrderByQuoteRequiresPrice': true,
             },
         });
     }
@@ -788,11 +789,22 @@ module.exports = class phemex extends Exchange {
         return orderbook;
     }
 
+    toEn (n, scale, precision) {
+        return parseInt (this.decimalToPrecision (n * Math.pow (10, scale), ROUND, precision, DECIMAL_PLACES));
+    }
+
+    toEv (amount, market = undefined) {
+        if ((amount === undefined) || (market === undefined)) {
+            return amount;
+        }
+        return this.toEn (amount, market['valueScale'], 0);
+    }
+
     toEp (price, market = undefined) {
         if ((price === undefined) || (market === undefined)) {
             return price;
         }
-        return parseInt (price * Math.pow (10, market['priceScale']));
+        return this.toEn (price, market['priceScale'], 0);
     }
 
     fromEn (en, scale, precision) {
@@ -1202,7 +1214,6 @@ module.exports = class phemex extends Exchange {
             result[code] = account;
         }
         return this.parseBalance (result);
-
     }
 
     parseSwapBalance (response) {
@@ -1438,50 +1449,95 @@ module.exports = class phemex extends Exchange {
             }
         }
         side = this.capitalize (side);
-        // const request = {
-        //     // common
-        //     'symbol': market['id'],
-        //     'side': side, // Sell, Buy
-        //     // 'ordType': 'Limit', // Market, Limit, Stop, StopLimit, MarketIfTouched, LimitIfTouched or Pegged for swap orders
-        //     'stopPxEp' Number -- used in conditional order
-        //     'stopPxEp' Integer - Trigger price for stop orders
-        //     'priceEp' Number   Scaled price
-        //     'priceEp' Integer - Scaled price, required for limit order
-        //     // 'timeInForce': 'GoodTillCancel', // GoodTillCancel, PostOnly, ImmediateOrCancel, FillOrKill
-
-        //     // spot
-        //     'qtyType': 'ByBase', // ByBase, ByQuote
-        //     'quoteQtyEv' Number -- Required when qtyType = ByQuote
-        //     'baseQtyEv' Number --  Required when qtyType = ByBase
-        //     // 'trigger': 'ByLastPrice', // required for conditional orders
-
-        //     // swap
-        //     'clOrdID': this.uuid () // required for swap orders, max length 40
-        //     'orderQty' Integer Yes Order quntity
-        //     // 'reduceOnly': false,
-        //     // 'closeOnTrigger': false, // implicit reduceOnly and cancel other orders in the same direction
-        //     'takeProfitEp' Integer - Scaled take profit price
-        //     'stopLossEp' Integer - Scaled stop loss price
-        //     'triggerType' Enum - Trigger source, whether trigger by mark price, index price or last price ByMarkPrice, ByLastPrice
-        //     'pegOffsetValueEp' Integer - Trailing offset from current price. Negative value when position is long, positive when position is short
-        //     'pegPriceType' Enum - Peg price type TrailingStopPeg, TrailingTakeProfitPeg
-        //     // 'text': 'comment',
-
-
-
-        //     // 'clOrdID': this.uuid (),
-        //     // 'symbol': market['id'],
-        //     // 'side': this.capitalize (side),
-        //     // 'orderQty': amount,
-        //     // 'ordType': this.capitalize (type),
-        //     // 'postOnly': false,
-        //     // 'reduceOnly': false,
-        //     // 'timeInForce': this.safeString (params, 'timeInForce', 'GoodTillCancel'),
-        // };
-        if (price !== undefined) {
-            request['priceEp'] = this.convertToEp (price);
+        type = this.capitalize (type);
+        const request = {
+            // common
+            'symbol': market['id'],
+            'side': side, // Sell, Buy
+            'ordType': type, // Market, Limit, Stop, StopLimit, MarketIfTouched, LimitIfTouched or Pegged for swap orders
+            // 'stopPxEp': this.toEp (stopPrice, market), // for conditional orders
+            // 'priceEp': this.toEp (price, market), // required for limit orders
+            // 'timeInForce': 'GoodTillCancel', // GoodTillCancel, PostOnly, ImmediateOrCancel, FillOrKill
+            // ----------------------------------------------------------------
+            // spot
+            // 'qtyType': 'ByBase', // ByBase, ByQuote
+            // 'quoteQtyEv': this.toEp (cost, market),
+            // 'baseQtyEv': this.toEv (amount, market),
+            // 'trigger': 'ByLastPrice', // required for conditional orders
+            // ----------------------------------------------------------------
+            // swap
+            // 'clOrdID': this.uuid () // required for swap orders, max length 40
+            // 'orderQty' Integer Yes Order quntity
+            // 'reduceOnly': false,
+            // 'closeOnTrigger': false, // implicit reduceOnly and cancel other orders in the same direction
+            // 'takeProfitEp' Integer - Scaled take profit price
+            // 'stopLossEp' Integer - Scaled stop loss price
+            // 'triggerType' Enum - Trigger source, whether trigger by mark price, index price or last price ByMarkPrice, ByLastPrice
+            // 'pegOffsetValueEp' Integer - Trailing offset from current price. Negative value when position is long, positive when position is short
+            // 'pegPriceType' Enum - Peg price type TrailingStopPeg, TrailingTakeProfitPeg
+            // 'text': 'comment',
+            // ----------------------------------------------------------------
+            // 'clOrdID': this.uuid (),
+            // 'symbol': market['id'],
+            // 'side': this.capitalize (side),
+            // 'orderQty': amount,
+            // 'ordType': this.capitalize (type),
+            // 'postOnly': false,
+            // 'reduceOnly': false,
+            // 'timeInForce': this.safeString (params, 'timeInForce', 'GoodTillCancel'),
+        };
+        if (type === 'Market') {
+            if (market['spot']) {
+                let qtyType = this.safeValue (params, 'qtyType', 'ByBase');
+                if (price !== undefined) {
+                    qtyType = 'ByQuote';
+                }
+                request['qtyType'] = qtyType;
+                if (qtyType === 'ByQuote') {
+                    let cost = this.safeFloat (params, 'cost');
+                    params = this.omit (params, 'cost');
+                    if (this.options['createMarketOrderByQuoteRequiresPrice']) {
+                        if (price !== undefined) {
+                            cost = amount * price;
+                        } else if (cost === undefined) {
+                            throw new ArgumentsRequired (this.id + ' createOrder ' + qtyType + ' requires a price argument or a cost parameter');
+                        }
+                    }
+                    cost = (cost === undefined) ? amount : cost;
+                    request['quoteQtyEv'] = this.toEp (cost, market);
+                } else {
+                    request['baseQtyEv'] = this.toEv (amount, market);
+                }
+                // // for market buy it requires the amount of quote currency to spend
+                // let cost = this.safeFloat (params, 'cost');
+                // if (this.options['createMarketBuyOrderRequiresPrice']) {
+                //     if (cost === undefined) {
+                //         if (price !== undefined) {
+                //             cost = amount * price;
+                //         } else {
+                //             throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
+                //         }
+                //     }
+                // } else {
+                //     cost = (cost === undefined) ? amount : cost;
+                // }
+                // const precision = market['precision']['price'];
+                // request['cost'] = this.decimalToPrecision (cost, TRUNCATE, precision, this.precisionMode);
+                // if (price !== undefined) {
+                // } else {
+                //     const priceEp = this.safeValue (params, 'priceEp');
+                //     if (priceEp !== undefined) {
+                //     }
+                // }
+            } else if (market['swap']) {
+                request['orderQty'] = this.toEv (amount, market);
+            }
+        } else if (type === 'Limit') {
         }
-        const method = 'privatePostOrders';
+        const method = market['spot'] ? 'privatePostSpotOrders' : 'privatePostOrders';
+        // if (price !== undefined) {
+        //     request['priceEp'] = this.convertToEp (price);
+        // }
         const response = await this[method] (this.extend (request, params));
         const order = this.parseOrder (response, market);
         const id = this.safeString (order, 'id');
