@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, InvalidAddress, BadRequest, RateLimitExceeded, PermissionDenied, ExchangeNotAvailable, AccountSuspended, OnMaintenance, CancelPending, DDoSProtection, DuplicateOrderId } = require ('./base/errors');
+const { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, InvalidAddress, BadRequest, RateLimitExceeded, PermissionDenied, ExchangeNotAvailable, AccountSuspended, OnMaintenance, CancelPending, DDoSProtection, DuplicateOrderId, NotSupported } = require ('./base/errors');
 const { TICK_SIZE, ROUND } = require ('./base/functions/number');
 
 // ----------------------------------------------------------------------------
@@ -25,6 +25,7 @@ module.exports = class phemex extends Exchange {
                 'fetchOHLCV': true,
                 'fetchTicker': true,
                 'fetchTrades': true,
+                'fetchBalance': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/83165440-2f1cf200-a116-11ea-9046-a255d09fb2ed.jpg',
@@ -67,7 +68,6 @@ module.exports = class phemex extends Exchange {
                         'products', // contracts only
                         'nomics/trades', // ?market=<symbol>&since=<since>
                         'md/kline', // ?from=1589811875&resolution=1800&symbol=sBTCUSDT&to=1592457935
-                        'md/ticker/24hr/all', // ?id=<id>
                     ],
                 },
                 'v1': {
@@ -363,35 +363,20 @@ module.exports = class phemex extends Exchange {
         const priceScale = this.safeInteger (market, 'priceScale');
         const ratioScale = this.safeInteger (market, 'ratioScale');
         // const valueScale = this.safeInteger (market, 'valueScale');
-        const ep = parseFloat (this.decimalToPrecision (Math.pow (10, -priceScale), ROUND, 0.00000001, this.precisionMode));
-        const er = parseFloat (this.decimalToPrecision (Math.pow (10, -ratioScale), ROUND, 0.00000001, this.precisionMode));
-        // const ev = parseFloat (this.decimalToPrecision (Math.pow (10, -valueScale), ROUND, 0.00000001, this.precisionMode));
         const minPriceEp = this.safeFloat (market, 'minPriceEp');
         const maxPriceEp = this.safeFloat (market, 'maxPriceEp');
         const makerFeeRateEr = this.safeFloat (market, 'makerFeeRateEr');
         const takerFeeRateEr = this.safeFloat (market, 'takerFeeRateEr');
-        let minPrice = undefined;
-        let maxPrice = undefined;
-        if ((minPriceEp !== undefined) && (precision['price'] !== undefined)) {
-            minPrice = parseFloat (this.decimalToPrecision (minPriceEp * ep, ROUND, precision['price'], this.precisionMode));
-        }
-        if ((maxPriceEp !== undefined) && (precision['price'] !== undefined)) {
-            maxPrice = parseFloat (this.decimalToPrecision (maxPriceEp * ep, ROUND, precision['price'], this.precisionMode));
-        }
-        if (makerFeeRateEr !== undefined) {
-            maker = parseFloat (this.decimalToPrecision (makerFeeRateEr * er, ROUND, 0.00000001, this.precisionMode));
-        }
-        if (takerFeeRateEr !== undefined) {
-            taker = parseFloat (this.decimalToPrecision (takerFeeRateEr * er, ROUND, 0.00000001, this.precisionMode));
-        }
+        maker = this.fromEn (makerFeeRateEr, ratioScale, 0.00000001);
+        taker = this.fromEn (takerFeeRateEr, ratioScale, 0.00000001);
         const limits = {
             'amount': {
                 'min': precision['amount'],
                 'max': undefined,
             },
             'price': {
-                'min': minPrice,
-                'max': maxPrice,
+                'min': this.fromEn (minPriceEp, priceScale, precision['price']),
+                'max': this.fromEn (maxPriceEp, priceScale, precision['price']),
             },
             'cost': {
                 'min': undefined,
@@ -418,9 +403,12 @@ module.exports = class phemex extends Exchange {
             'active': active,
             'taker': taker,
             'maker': maker,
-            'ep': ep,
-            'er': er,
-            'ev': 1,
+            'priceScale': priceScale,
+            'valueScale': 0, // valueScale,
+            'ratioScale': ratioScale,
+            // 'ep': ep,
+            // 'er': er,
+            // 'ev': 1,
             'precision': precision,
             'limits': limits,
         };
@@ -507,6 +495,9 @@ module.exports = class phemex extends Exchange {
             'taker': taker,
             'maker': maker,
             'precision': precision,
+            'priceScale': 8,
+            'valueScale': 8,
+            'ratioScale': 8,
             'ep': 0.00000001,
             'er': 0.00000001,
             'ev': 0.00000001,
@@ -797,22 +788,36 @@ module.exports = class phemex extends Exchange {
         return orderbook;
     }
 
+    toEp (price, market = undefined) {
+        if ((price === undefined) || (market === undefined)) {
+            return price;
+        }
+        return parseInt (price * Math.pow (10, market['priceScale']));
+    }
+
     fromEn (en, scale, precision) {
-        return parseFloat (this.decimalToPrecision (en * scale, ROUND, precision, this.precisionMode));
+        return parseFloat (this.decimalToPrecision (en * Math.pow (10, -scale), ROUND, precision, this.precisionMode));
     }
 
     fromEp (ep, market = undefined) {
         if ((ep === undefined) || (market === undefined)) {
             return ep;
         }
-        return this.fromEn (ep, market['ep'], market['precision']['price']);
+        return this.fromEn (ep, market['priceScale'], market['precision']['price']);
     }
 
     fromEv (ev, market = undefined) {
         if ((ev === undefined) || (market === undefined)) {
             return ev;
         }
-        return this.fromEn (ev, market['ev'], market['precision']['amount']);
+        return this.fromEn (ev, market['valueScale'], market['precision']['amount']);
+    }
+
+    fromEr (er, market = undefined) {
+        if ((er === undefined) || (market === undefined)) {
+            return er;
+        }
+        return this.fromEn (er, market['ratioScale'], market['precision']['amount']);
     }
 
     parseOHLCV (ohlcv, market = undefined) {
@@ -983,7 +988,7 @@ module.exports = class phemex extends Exchange {
             'symbol': market['id'],
             // 'id': 123456789, // optional request id
         };
-        const method = market['spot'] ? 'v0GetMdSpotTicker24hr' : 'v1GetMdTicker24hr';
+        const method = market['spot'] ? 'v1GetMdSpotTicker24hr' : 'v1GetMdTicker24hr';
         const response = await this[method] (this.extend (request, params));
         //
         // spot
@@ -1416,6 +1421,72 @@ module.exports = class phemex extends Exchange {
         //
         const result = (type === 'swap') ? this.parseSwapBalance (response) : this.parseSpotBalance (response);
         return result;
+    }
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const defaultType = this.safeString2 (this.options, 'defaultType', 'fetchBalance', 'spot');
+        const orderType = this.safeString (params, 'type', defaultType);
+        if (orderType === 'spot') {
+        } else if (orderType === 'swap') {
+        } else {
+            if (orderType === undefined) {
+                throw ArgumentsRequired (this.id + ' createOrder requires a type parameter');
+            } else {
+                throw NotSupported (this.id + ' createOrder type parameter must be either spot or swap, ' + orderType + ' not supported');
+            }
+        }
+        side = this.capitalize (side);
+        // const request = {
+        //     // common
+        //     'symbol': market['id'],
+        //     'side': side, // Sell, Buy
+        //     // 'ordType': 'Limit', // Market, Limit, Stop, StopLimit, MarketIfTouched, LimitIfTouched or Pegged for swap orders
+        //     'stopPxEp' Number -- used in conditional order
+        //     'stopPxEp' Integer - Trigger price for stop orders
+        //     'priceEp' Number   Scaled price
+        //     'priceEp' Integer - Scaled price, required for limit order
+        //     // 'timeInForce': 'GoodTillCancel', // GoodTillCancel, PostOnly, ImmediateOrCancel, FillOrKill
+
+        //     // spot
+        //     'qtyType': 'ByBase', // ByBase, ByQuote
+        //     'quoteQtyEv' Number -- Required when qtyType = ByQuote
+        //     'baseQtyEv' Number --  Required when qtyType = ByBase
+        //     // 'trigger': 'ByLastPrice', // required for conditional orders
+
+        //     // swap
+        //     'clOrdID': this.uuid () // required for swap orders, max length 40
+        //     'orderQty' Integer Yes Order quntity
+        //     // 'reduceOnly': false,
+        //     // 'closeOnTrigger': false, // implicit reduceOnly and cancel other orders in the same direction
+        //     'takeProfitEp' Integer - Scaled take profit price
+        //     'stopLossEp' Integer - Scaled stop loss price
+        //     'triggerType' Enum - Trigger source, whether trigger by mark price, index price or last price ByMarkPrice, ByLastPrice
+        //     'pegOffsetValueEp' Integer - Trailing offset from current price. Negative value when position is long, positive when position is short
+        //     'pegPriceType' Enum - Peg price type TrailingStopPeg, TrailingTakeProfitPeg
+        //     // 'text': 'comment',
+
+
+
+        //     // 'clOrdID': this.uuid (),
+        //     // 'symbol': market['id'],
+        //     // 'side': this.capitalize (side),
+        //     // 'orderQty': amount,
+        //     // 'ordType': this.capitalize (type),
+        //     // 'postOnly': false,
+        //     // 'reduceOnly': false,
+        //     // 'timeInForce': this.safeString (params, 'timeInForce', 'GoodTillCancel'),
+        // };
+        if (price !== undefined) {
+            request['priceEp'] = this.convertToEp (price);
+        }
+        const method = 'privatePostOrders';
+        const response = await this[method] (this.extend (request, params));
+        const order = this.parseOrder (response, market);
+        const id = this.safeString (order, 'id');
+        this.orders[id] = order;
+        return this.extend ({ 'info': response }, order);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
