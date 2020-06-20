@@ -362,39 +362,59 @@ module.exports = class bitclude extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        let orderId = undefined;
+        let response = undefined;
+        let feeCost = undefined;
+        let feeCurrency = undefined;
         if (type === 'limit') {
             const request = {
                 'method': 'transactions',
-                'action': side, // "buy" or "sell"
+                'action': side,
                 'market1': market['baseId'],
                 'market2': market['quoteId'],
-                'amount': this.numberToString (amount), // amount in base currency todo check
-                'rate': this.numberToString (price), // todo check
+                'amount': this.currencyToPrecision (market['base'], amount),
+                'rate': this.currencyToPrecision (market['quote'], price),
             };
-            const response = await this.privateGet (this.extend (request, params));
+            response = await this.privateGet (this.extend (request, params));
             const order = this.safeValue (response, 'actions');
-            const orderId = this.safeString (order, 'order');
-            const timestamp = this.milliseconds ();
-            return {
-                'id': orderId,
-                'clientOrderId': undefined,
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-                'lastTradeTimestamp': undefined,
-                'status': undefined, // todo idk maybe open
-                'symbol': market['symbol'],
-                'type': type,
-                'side': side,
-                'price': price,
-                'amount': amount,
-                'filled': undefined,
-                'remaining': undefined,
-                'cost': undefined,
-                'fee': undefined,
-                'trades': undefined,
-                'info': response,
+            orderId = this.safeString (order, 'order');
+        } else if (type === 'market') {
+            const request = {
+                'method': 'account',
+                'action': 'convert',
             };
+            request['market1'] = (side === 'sell') ? market['baseId'] : market['quoteId'];
+            request['market2'] = (side === 'sell') ? market['quoteId'] : market['baseId'];
+            const currencyOfAmount = (side === 'sell') ? market['base'] : market['quote'];
+            request['amount'] = this.currencyToPrecision (currencyOfAmount, amount);
+            response = await this.privateGet (this.extend (request, params));
+            feeCurrency = (side === 'sell') ? market['quote'] : market['base'];
+            feeCost = this.safeString (response, 'fee');
         }
+        const timestamp = this.milliseconds ();
+        return {
+            'id': orderId,
+            'clientOrderId': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'status': undefined, // todo idk maybe open
+            'symbol': market['symbol'],
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'filled': undefined,
+            'remaining': undefined,
+            'cost': undefined,
+            'fee': {
+                'currency': feeCurrency,
+                'cost': feeCost,
+                'rate': undefined,
+            },
+            'trades': undefined,
+            'info': response,
+        };
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
