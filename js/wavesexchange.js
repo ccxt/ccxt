@@ -242,6 +242,7 @@ module.exports = class wavesexchange extends Exchange {
                 'wavesAddress': undefined,
                 'matcherFee': 300000,
                 'withdrawFeeUSDN': 7420,
+                'withdrawFeeWAVES': 100000,
             },
             'requiresEddsa': true,
             'exceptions': {
@@ -1387,7 +1388,7 @@ module.exports = class wavesexchange extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
-        // currently only works for BTC
+        // currently only works for BTC and WAVES
         if (code !== 'WAVES') {
             const supportedCurrencies = await this.privateGetWithdrawCurrencies ();
             const currencies = {};
@@ -1437,8 +1438,15 @@ module.exports = class wavesexchange extends Exchange {
         } else {
             proxyAddress = address;
         }
-        const fee = this.safeInteger (this.options, 'withdrawFeeUSDN', 7420);
-        const feeAssetId = this.currency ('USDN')['id'];
+        let fee = undefined;
+        let feeAssetId = undefined;
+        if (code === 'WAVES') {
+            fee = this.safeInteger (this.options, 'withdrawFeeWAVES', 100000);
+            feeAssetId = 'WAVES';
+        } else {
+            fee = this.safeInteger (this.options, 'withdrawFeeUSDN', 7420);
+            feeAssetId = this.currency ('USDN')['id'];
+        }
         const type = 4;  // transfer
         const version = 2;
         const amountInteger = this.currencyToPrecision (code, amount);
@@ -1466,11 +1474,11 @@ module.exports = class wavesexchange extends Exchange {
             'type': type,
             'version': version,
             'attachment': '',
-            'feeAssetId': feeAssetId,
+            'feeAssetId': this.getAssetId (feeAssetId),
             'proofs': [
                 signature,
             ],
-            'assetId': currency['id'],
+            'assetId': this.getAssetId (currency['id']),
             'recipient': proxyAddress,
             'timestamp': timestamp,
             'signature': signature,
