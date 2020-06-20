@@ -230,7 +230,12 @@ module.exports = class bitclude extends Exchange {
         const response = await this.publicGetStatsOrderbookBaseQuoteJson (this.extend (request, params));
         const data = this.safeValue (response, 'data');
         const timestamp = this.safeTimestamp (data, 'timestamp');
-        return this.parseOrderBook (response, timestamp, 'bids', 'asks', 1, 0); // todo check if correct
+        const parsedOrderBook = this.parseOrderBook (response, timestamp, 'bids', 'asks', 1, 0); // todo check if correct
+        if (limit !== undefined) {
+            parsedOrderBook['bids'] = this.filterBySinceLimit (parsedOrderBook['bids'], undefined, limit);
+            parsedOrderBook['asks'] = this.filterBySinceLimit (parsedOrderBook['asks'], undefined, limit);
+        }
+        return parsedOrderBook;
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
