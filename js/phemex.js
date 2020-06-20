@@ -85,7 +85,7 @@ module.exports = class phemex extends Exchange {
                     'get': [
                         // spot
                         'spot/orders/active', // ?symbol=<symbol>&orderID=<orderID>
-                        'spot/orders/active', // ?symbol=<symbol>&clOrDID=<clOrdID>
+                        // 'spot/orders/active', // ?symbol=<symbol>&clOrDID=<clOrdID>
                         'spot/orders', // ?symbol=<symbol>
                         'spot/wallets', // ?currency=<currency>
                         'exchange/spot/order', // ?symbol=<symbol>&ordStatus=<ordStatus1,orderStatus2>ordType=<ordType1,orderType2>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
@@ -95,7 +95,7 @@ module.exports = class phemex extends Exchange {
                         'orders/activeList', // ?symbol=<symbol>
                         'exchange/order/list', // ?symbol=<symbol>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&ordStatus=<ordStatus>&withCount=<withCount>
                         'exchange/order', // ?symbol=<symbol>&orderID=<orderID1,orderID2>
-                        'exchange/order', // ?symbol=<symbol>&clOrdID=<clOrdID1,clOrdID2>
+                        // 'exchange/order', // ?symbol=<symbol>&clOrdID=<clOrdID1,clOrdID2>
                         'exchange/order/trade', // ?symbol=<symbol>&start=<start>&end=<end>&limit=<limit>&offset=<offset>&withCount=<withCount>
                         'phemex-user/users/children', // ?offset=<offset>&limit=<limit>&withCount=<withCount>
                         'exchange/margins/transfer', // ?start=<start>&end=<end>&offset=<offset>&limit=<limit>&withCount=<withCount>
@@ -126,7 +126,7 @@ module.exports = class phemex extends Exchange {
                     'delete': [
                         // spot
                         'spot/orders', // ?symbol=<symbol>&orderID=<orderID>
-                        'spot/orders', // ?symbol=<symbol>&clOrdID=<clOrdID>
+                        // 'spot/orders', // ?symbol=<symbol>&clOrdID=<clOrdID>
                         // swap
                         'orders/cancel', // ?symbol=<symbol>&orderID=<orderID>
                         'orders', // ?symbol=<symbol>&orderID=<orderID1>,<orderID2>,<orderID3>
@@ -1146,6 +1146,276 @@ module.exports = class phemex extends Exchange {
             'cost': cost,
             'fee': fee,
         };
+    }
+
+    parseSpotBalance (response) {
+        //
+        //     {
+        //         "code":0,
+        //         "msg":"",
+        //         "data":[
+        //             {
+        //                 "currency":"USDT",
+        //                 "balanceEv":0,
+        //                 "lockedTradingBalanceEv":0,
+        //                 "lockedWithdrawEv":0,
+        //                 "lastUpdateTimeNs":1592065834511322514,
+        //                 "walletVid":0
+        //             },
+        //             {
+        //                 "currency":"ETH",
+        //                 "balanceEv":0,
+        //                 "lockedTradingBalanceEv":0,
+        //                 "lockedWithdrawEv":0,
+        //                 "lastUpdateTimeNs":1592065834511322514,
+        //                 "walletVid":0
+        //             }
+        //         ]
+        //     }
+        //
+        const result = { 'info': response };
+        const data = this.safeValue (response, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            const balance = data[i];
+            const currencyId = this.safeString (balance, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            let scale = 0.00000001;
+            let precision = 0.00000001;
+            if (code in this.currencies) {
+                const currency = this.currency (code);
+                const valueScale = this.safeInteger (currency['info'], 'valueScale');
+                scale = Math.pow (10, -valueScale);
+                precision = (code === 'USD') ? 0.01 : 0.00000001;
+            }
+            const account = this.account ();
+            const total = this.fromEn (this.safeFloat (balance, 'balanceEv'), scale, precision);
+            const lockedTradingBalance = this.fromEn (this.safeFloat (balance, 'lockedTradingBalanceEv'), scale, precision);
+            const lockedWithdraw = this.fromEn (this.safeFloat (balance, 'lockedWithdrawEv'), scale, precision);
+            const used = this.sum (lockedTradingBalance, lockedWithdraw);
+            account['total'] = total;
+            account['used'] = used;
+            result[code] = account;
+        }
+        return this.parseBalance (result);
+
+    }
+
+    parseSwapBalance (response) {
+        //
+        //     {
+        //         "code":0,
+        //         "msg":"",
+        //         "data":{
+        //             "account":{
+        //                 "accountId":6192120001,
+        //                 "currency":"BTC",
+        //                 "accountBalanceEv":1254744,
+        //                 "totalUsedBalanceEv":0,
+        //                 "bonusBalanceEv":1254744
+        //             },
+        //             "positions":[
+        //                 {
+        //                     "accountID":6192120001,
+        //                     "symbol":"BTCUSD",
+        //                     "currency":"BTC",
+        //                     "side":"None",
+        //                     "positionStatus":"Normal",
+        //                     "crossMargin":false,
+        //                     "leverageEr":0,
+        //                     "leverage":0E-8,
+        //                     "initMarginReqEr":1000000,
+        //                     "initMarginReq":0.01000000,
+        //                     "maintMarginReqEr":500000,
+        //                     "maintMarginReq":0.00500000,
+        //                     "riskLimitEv":10000000000,
+        //                     "riskLimit":100.00000000,
+        //                     "size":0,
+        //                     "value":0E-8,
+        //                     "valueEv":0,
+        //                     "avgEntryPriceEp":0,
+        //                     "avgEntryPrice":0E-8,
+        //                     "posCostEv":0,
+        //                     "posCost":0E-8,
+        //                     "assignedPosBalanceEv":0,
+        //                     "assignedPosBalance":0E-8,
+        //                     "bankruptCommEv":0,
+        //                     "bankruptComm":0E-8,
+        //                     "bankruptPriceEp":0,
+        //                     "bankruptPrice":0E-8,
+        //                     "positionMarginEv":0,
+        //                     "positionMargin":0E-8,
+        //                     "liquidationPriceEp":0,
+        //                     "liquidationPrice":0E-8,
+        //                     "deleveragePercentileEr":0,
+        //                     "deleveragePercentile":0E-8,
+        //                     "buyValueToCostEr":1150750,
+        //                     "buyValueToCost":0.01150750,
+        //                     "sellValueToCostEr":1149250,
+        //                     "sellValueToCost":0.01149250,
+        //                     "markPriceEp":96359083,
+        //                     "markPrice":9635.90830000,
+        //                     "markValueEv":0,
+        //                     "markValue":null,
+        //                     "unRealisedPosLossEv":0,
+        //                     "unRealisedPosLoss":null,
+        //                     "estimatedOrdLossEv":0,
+        //                     "estimatedOrdLoss":0E-8,
+        //                     "usedBalanceEv":0,
+        //                     "usedBalance":0E-8,
+        //                     "takeProfitEp":0,
+        //                     "takeProfit":null,
+        //                     "stopLossEp":0,
+        //                     "stopLoss":null,
+        //                     "realisedPnlEv":0,
+        //                     "realisedPnl":null,
+        //                     "cumRealisedPnlEv":0,
+        //                     "cumRealisedPnl":null
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const result = { 'info': response };
+        const data = this.safeValue (response, 'data', {});
+        const balance = this.safeValue (data, 'account', {});
+        const currencyId = this.safeString (balance, 'currency');
+        const code = this.safeCurrencyCode (currencyId);
+        const currency = this.currency (code);
+        const account = this.account ();
+        const valueScale = this.safeInteger (currency['info'], 'valueScale');
+        const scale = Math.pow (10, -valueScale);
+        const precision = (code === 'USD') ? 0.01 : 0.00000001;
+        account['total'] = this.fromEn (this.safeFloat (balance, 'accountBalanceEv'), scale, precision);
+        account['used'] = this.fromEn (this.safeFloat (balance, 'totalUsedBalanceEv'), scale, precision);
+        result[code] = account;
+        return this.parseBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const defaultType = this.safeString2 (this.options, 'defaultType', 'fetchBalance', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
+        let method = 'privateGetSpotWallets';
+        const request = {};
+        if (type === 'swap') {
+            const code = this.safeString (params, 'code');
+            if (code !== undefined) {
+                const currency = this.currency (code);
+                request['currency'] = currency['id'];
+                params = this.omit (params, 'code');
+            } else {
+                const currency = this.safeString (params, 'currency');
+                if (currency === undefined) {
+                    throw new ArgumentsRequired (this.id + ' fetchBalance requires a code parameter or a currency parameter for ' + type + ' type');
+                }
+            }
+            method = 'privateGetAccountsAccountPositions';
+        }
+        params = this.omit (params, 'type');
+        const response = await this[method] (this.extend (request, params));
+        //
+        // spot
+        //
+        //     {
+        //         "code":0,
+        //         "msg":"",
+        //         "data":[
+        //             {
+        //                 "currency":"USDT",
+        //                 "balanceEv":0,
+        //                 "lockedTradingBalanceEv":0,
+        //                 "lockedWithdrawEv":0,
+        //                 "lastUpdateTimeNs":1592065834511322514,
+        //                 "walletVid":0
+        //             },
+        //             {
+        //                 "currency":"ETH",
+        //                 "balanceEv":0,
+        //                 "lockedTradingBalanceEv":0,
+        //                 "lockedWithdrawEv":0,
+        //                 "lastUpdateTimeNs":1592065834511322514,
+        //                 "walletVid":0
+        //             }
+        //         ]
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "code":0,
+        //         "msg":"",
+        //         "data":{
+        //             "account":{
+        //                 "accountId":6192120001,
+        //                 "currency":"BTC",
+        //                 "accountBalanceEv":1254744,
+        //                 "totalUsedBalanceEv":0,
+        //                 "bonusBalanceEv":1254744
+        //             },
+        //             "positions":[
+        //                 {
+        //                     "accountID":6192120001,
+        //                     "symbol":"BTCUSD",
+        //                     "currency":"BTC",
+        //                     "side":"None",
+        //                     "positionStatus":"Normal",
+        //                     "crossMargin":false,
+        //                     "leverageEr":0,
+        //                     "leverage":0E-8,
+        //                     "initMarginReqEr":1000000,
+        //                     "initMarginReq":0.01000000,
+        //                     "maintMarginReqEr":500000,
+        //                     "maintMarginReq":0.00500000,
+        //                     "riskLimitEv":10000000000,
+        //                     "riskLimit":100.00000000,
+        //                     "size":0,
+        //                     "value":0E-8,
+        //                     "valueEv":0,
+        //                     "avgEntryPriceEp":0,
+        //                     "avgEntryPrice":0E-8,
+        //                     "posCostEv":0,
+        //                     "posCost":0E-8,
+        //                     "assignedPosBalanceEv":0,
+        //                     "assignedPosBalance":0E-8,
+        //                     "bankruptCommEv":0,
+        //                     "bankruptComm":0E-8,
+        //                     "bankruptPriceEp":0,
+        //                     "bankruptPrice":0E-8,
+        //                     "positionMarginEv":0,
+        //                     "positionMargin":0E-8,
+        //                     "liquidationPriceEp":0,
+        //                     "liquidationPrice":0E-8,
+        //                     "deleveragePercentileEr":0,
+        //                     "deleveragePercentile":0E-8,
+        //                     "buyValueToCostEr":1150750,
+        //                     "buyValueToCost":0.01150750,
+        //                     "sellValueToCostEr":1149250,
+        //                     "sellValueToCost":0.01149250,
+        //                     "markPriceEp":96359083,
+        //                     "markPrice":9635.90830000,
+        //                     "markValueEv":0,
+        //                     "markValue":null,
+        //                     "unRealisedPosLossEv":0,
+        //                     "unRealisedPosLoss":null,
+        //                     "estimatedOrdLossEv":0,
+        //                     "estimatedOrdLoss":0E-8,
+        //                     "usedBalanceEv":0,
+        //                     "usedBalance":0E-8,
+        //                     "takeProfitEp":0,
+        //                     "takeProfit":null,
+        //                     "stopLossEp":0,
+        //                     "stopLoss":null,
+        //                     "realisedPnlEv":0,
+        //                     "realisedPnl":null,
+        //                     "cumRealisedPnlEv":0,
+        //                     "cumRealisedPnl":null
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const result = (type === 'swap') ? this.parseSwapBalance (response) : this.parseSpotBalance (response);
+        return result;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
