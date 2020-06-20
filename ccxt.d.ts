@@ -235,6 +235,24 @@ declare module 'ccxt' {
     /** Request parameters */
     type Params = Dictionary<string | number | boolean | string[]>;
 
+    // Represents the known, that is non-dynamic, keys of T.
+    // https://stackoverflow.com/a/51955852
+    type KnownKeys<T> = {
+        [K in keyof T]: string extends K ? never : number extends K ? never : K
+    } extends { [_ in keyof T]: infer U } ? U : never;
+
+    /**
+     * Represents the known, that is non-dynamic, keys of Exchange.
+     */
+    export type ExchangeKnownKeys = KnownKeys<Exchange>;
+
+    /**
+     * Represents the known, that is non-dynamic, options of Exchange.
+     */
+    export type ExchangeKnownOptions = {
+        [key in ExchangeKnownKeys]?: Exchange[key];
+    };
+
     export class Exchange {
         constructor(config?: {[key in keyof Exchange]?: Exchange[key]});
         // allow dynamic keys
