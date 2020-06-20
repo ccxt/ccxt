@@ -214,6 +214,8 @@ module.exports = class wavesexchange extends Exchange {
                     'get': [
                         'deposit/addresses/{code}',
                         'deposit/currencies',
+                        'withdraw/currencies',
+                        'withdraw/addresses/{currency}/{address}',
                     ],
                     'post': [
                         'oauth2/token',
@@ -239,10 +241,12 @@ module.exports = class wavesexchange extends Exchange {
                 'createOrderDefaultExpiry': 2419200000, // 60 * 60 * 24 * 28 * 1000
                 'wavesAddress': undefined,
                 'matcherFee': 300000,
+                'withdrawFeeUSDN': 7420,
             },
             'requiresEddsa': true,
             'exceptions': {
                 '3147270': InsufficientFunds,  // https://github.com/wavesplatform/matcher/wiki/List-of-all-errors
+                '112': InsufficientFunds,
                 '4': ExchangeError,
                 '13': ExchangeNotAvailable,
                 '14': ExchangeNotAvailable,
@@ -438,13 +442,19 @@ module.exports = class wavesexchange extends Exchange {
         let url = this.urls['api'][api] + '/' + path;
         const queryString = this.urlencode (query);
         if ((api === 'private') || (api === 'forward')) {
-            headers = {};
+            headers = {
+                'Accept': 'application/json',
+            };
             const accessToken = this.safeString (this.options, 'accessToken');
             if (accessToken) {
                 headers['Authorization'] = 'Bearer ' + accessToken;
             }
-            headers['content-type'] = 'application/x-www-form-urlencoded';
-            url += '?' + queryString;
+            if (method !== 'POST') {
+                headers['content-type'] = 'application/x-www-form-urlencoded';
+            }
+            if (queryString.length > 0) {
+                url += '?' + queryString;
+            }
         } else if (api === 'matcher') {
             if (method === 'POST') {
                 headers = {
@@ -464,7 +474,9 @@ module.exports = class wavesexchange extends Exchange {
                 headers = {
                     'content-type': 'application/x-www-form-urlencoded',
                 };
-                url += '?' + queryString;
+                if (queryString.length > 0) {
+                    url += '?' + queryString;
+                }
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
@@ -790,6 +802,10 @@ module.exports = class wavesexchange extends Exchange {
         return parseInt (parseFloat (this.toWei (amount, this.markets[symbol]['precision']['amount'])));
     }
 
+    currencyToPrecision (currency, amount) {
+        return parseInt (parseFloat (this.toWei (amount, this.currencies[currency]['precision'])));
+    }
+
     currencyFromPrecision (currency, amount) {
         return this.fromWei (amount, this.currencies[currency]['precision']);
     }
@@ -817,7 +833,31 @@ module.exports = class wavesexchange extends Exchange {
         const orderType = (side === 'buy') ? 0 : 1;
         const timestamp = this.milliseconds ();
         const expiration = this.sum (timestamp, this.getDefaultExpiry ());
-        const matcherFee = this.safeInteger (this.options, 'matcherFee', 300000);
+        // calculate the fee
+        const baseMatcherFee = this.safeInteger (this.options, 'matcherFee', 300000);
+        const rates = await this.matcherGetMatcherSettingsRates ();
+        // { '34N9YcEETLWn93qYQ64EsP1x89tSruJU44RrEMSXXEPJ': 1.23762376,
+        //   '62LyMjcr2DtiyF5yVXFhoQ2q414VPPJXjsNYp72SuDCH': 0.01101575,
+        //   HZk1mbfuJpmxU1Fs4AX5MWLVYtctsNcg6e2C6VKqK8zk: 0.04266412,
+        //   '8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS': 0.00019575,
+        //   '4LHHvYGNKJUg5hj65aGD5vgScvCBmLpdRFtjokvCjSL8': 28.79078695,
+        //   '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu': 0.00798174,
+        //   DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p: 1.8201,
+        //   B3uGHFRpSUuGEDWjqB9LWWxafQj8VTvpMucEyoxzws5H: 0.02608696,
+        //   zMFqXuoyrn5w17PFurTqxB7GsS71fp9dfk6XFwxbPCy: 0.00788827,
+        //   '5WvPKSJXzVE2orvbkJ8wsQmmQKqTv9sGBPksV4adViw3': 0.02873582,
+        //   WAVES: 1,
+        //   BrjUWjndUanm5VsJkbUip8VRYy6LWJePtxya3FNv4TQa: 0.03614366 }
+        let matcherFeeAssetId = undefined;
+        if ((side === 'buy') && (market['quoteId'] in rates)) {
+            matcherFeeAssetId = market['quoteId'];
+        } else if ((side === 'sell') && (market['baseId'] in rates)) {
+            matcherFeeAssetId = market['baseId'];
+        } else {
+            matcherFeeAssetId = 'WAVES';
+        }
+        const rate = this.safeFloat (rates, matcherFeeAssetId);
+        const matcherFee = parseInt (Math.ceil (baseMatcherFee * rate));
         const byteArray = [
             this.numberToBE (3, 1),
             this.base58ToBinary (this.apiKey),
@@ -830,7 +870,7 @@ module.exports = class wavesexchange extends Exchange {
             this.numberToBE (timestamp, 8),
             this.numberToBE (expiration, 8),
             this.numberToBE (matcherFee, 8),
-            this.numberToBE (0, 1),
+            this.getAssetBytes (matcherFeeAssetId),
         ];
         const binary = this.binaryConcatArray (byteArray);
         const signature = this.eddsa (this.binaryToBase16 (binary), this.binaryToBase16 (this.base58ToBinary (this.secret)), 'ed25519');
@@ -848,6 +888,7 @@ module.exports = class wavesexchange extends Exchange {
             'timestamp': timestamp,
             'expiration': expiration,
             'matcherFee': matcherFee,
+            'matcherFeeAssetId': market['baseId'],
             'signature': signature,
             'version': 3,
         };
@@ -1068,7 +1109,7 @@ module.exports = class wavesexchange extends Exchange {
         const average = this.currencyFromPrecision (priceCurrency, this.safeString (order, 'avgWeighedPrice'));
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const fee = {
-            'currency': this.safeCurrencyCode (this.safeString (order, 'feeAsset')),
+            'currency': this.safeCurrencyCode (this.safeString2 (order, 'feeAsset', 'matcherFeeAssetId')),
             'fee': this.safeString (order, 'filledFee'),
         };
         return {
@@ -1343,5 +1384,97 @@ module.exports = class wavesexchange extends Exchange {
         if (!success) {
             throw new ExchangeError (this.id + ' ' + body);
         }
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        // currently only works for BTC
+        if (code !== 'WAVES') {
+            const supportedCurrencies = await this.privateGetWithdrawCurrencies ();
+            const currencies = {};
+            const items = this.safeValue (supportedCurrencies, 'items', []);
+            for (let i = 0; i < items.length; i++) {
+                const entry = items[i];
+                const code = this.safeString (entry, 'id');
+                currencies[code] = true;
+            }
+            if (!(code in currencies)) {
+                const codes = Object.keys (currencies);
+                throw new ExchangeError (this.id + ' fetch ' + code + ' withdrawals are not supported. Currency code must be one of ' + codes.toString ());
+            }
+        }
+        await this.loadMarkets ();
+        const withdrawAddressRequest = {
+            'address': address,
+            'currency': code,
+        };
+        await this.getAccessToken ();
+        let proxyAddress = undefined;
+        if (code !== 'WAVES') {
+            const withdrawAddress = await this.privateGetWithdrawAddressesCurrencyAddress (withdrawAddressRequest);
+            // {
+            //   "type": "withdrawal_addresses",
+            //   "currency": {
+            //     "type": "withdrawal_currency",
+            //     "id": "BTC",
+            //     "waves_asset_id": "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS",
+            //     "decimals": 8,
+            //     "status": "active",
+            //     "allowed_amount": {
+            //       "min": 0.001,
+            //       "max": 20
+            //     },
+            //     "fees": {
+            //       "flat": 0.001,
+            //       "rate": 0
+            //     }
+            //   },
+            //   "proxy_addresses": [
+            //     "3P3qqmkiLwNHB7x1FeoE8bvkRtULwGpo9ga"
+            //   ]
+            // }
+            const proxyAddresses = this.safeValue (withdrawAddress, 'proxy_addresses', []);
+            proxyAddress = this.safeString (proxyAddresses, 0);
+        } else {
+            proxyAddress = address;
+        }
+        const fee = this.safeInteger (this.options, 'withdrawFeeUSDN', 7420);
+        const feeAssetId = this.currency ('USDN')['id'];
+        const type = 4;  // transfer
+        const version = 2;
+        const amountInteger = this.currencyToPrecision (code, amount);
+        const currency = this.currency (code);
+        const timestamp = this.milliseconds ();
+        const byteArray = [
+            this.numberToBE (4, 1),
+            this.numberToBE (2, 1),
+            this.base58ToBinary (this.apiKey),
+            this.getAssetBytes (currency['id']),
+            this.getAssetBytes (feeAssetId),
+            this.numberToBE (timestamp, 8),
+            this.numberToBE (amountInteger, 8),
+            this.numberToBE (fee, 8),
+            this.base58ToBinary (proxyAddress),
+            this.numberToBE (0, 2),
+        ];
+        const binary = this.binaryConcatArray (byteArray);
+        const hexSecret = this.binaryToBase16 (this.base58ToBinary (this.secret));
+        const signature = this.eddsa (this.binaryToBase16 (binary), hexSecret, 'ed25519');
+        const request = {
+            'senderPublicKey': this.apiKey,
+            'amount': amountInteger,
+            'fee': fee,
+            'type': type,
+            'version': version,
+            'attachment': '',
+            'feeAssetId': feeAssetId,
+            'proofs': [
+                signature,
+            ],
+            'assetId': currency['id'],
+            'recipient': proxyAddress,
+            'timestamp': timestamp,
+            'signature': signature,
+        };
+        return await this.nodePostTransactionsBroadcast (request);
     }
 };
