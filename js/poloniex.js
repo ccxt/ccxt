@@ -503,19 +503,20 @@ module.exports = class poloniex extends Exchange {
         //
         // fetchMyTrades
         //
-        //     {
-        //       globalTradeID: 471030550,
-        //       tradeID: '42582',
-        //       date: '2020-06-16 09:47:50',
-        //       rate: '0.000079980000',
-        //       amount: '75215.00000000',
-        //       total: '6.01569570',
-        //       fee: '0.00095000',
-        //       feeDisplay: '0.26636100 TRX (0.07125%)',
-        //       orderNumber: '5963454848',
-        //       type: 'sell',
-        //       category: 'exchange'
-        //     }
+        trade =
+            {
+              globalTradeID: 471030550,
+              tradeID: '42582',
+              date: '2020-06-16 09:47:50',
+              rate: '0.000079980000',
+              amount: '75215.00000000',
+              total: '6.01569570',
+              fee: '0.00095000',
+              feeDisplay: '0.26636100 TRX (0.07125%)',
+              orderNumber: '5963454848',
+              type: 'sell',
+              category: 'exchange'
+            }
         //
         // createOrder (taker trades)
         //
@@ -566,8 +567,8 @@ module.exports = class poloniex extends Exchange {
                 let feeRate = this.safeString (parts, 2);
                 if (feeRate !== undefined) {
                     feeRate = feeRate.replace ('(', '');
-                    feeRate = feeRate.replace (')', '');
-                    feeRate = feeRate.replace ('%', '');
+                    const feeRateParts = feeRate.split ('%');
+                    feeRate = this.safeString (feeRateParts, 0);
                     feeRate = parseFloat (feeRate) / 100;
                 }
                 fee = {
