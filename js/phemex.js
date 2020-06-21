@@ -1124,7 +1124,6 @@ module.exports = class phemex extends Exchange {
                     }
                 }
             }
-        } else {
         }
         // const timestamp = this.safeInteger (trade, 'timestamp');
         // const side = this.safeString (trade, 'side');
@@ -2017,9 +2016,6 @@ module.exports = class phemex extends Exchange {
         const trades = this.safeValue (data, 'rows', []);
         return this.parseMyTrades (trades, market);
     }
-
-
-
 
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
