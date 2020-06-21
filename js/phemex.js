@@ -98,6 +98,7 @@ module.exports = class phemex extends Exchange {
                         // 'exchange/order', // ?symbol=<symbol>&clOrdID=<clOrdID1,clOrdID2>
                         'exchange/order/trade', // ?symbol=<symbol>&start=<start>&end=<end>&limit=<limit>&offset=<offset>&withCount=<withCount>
                         'phemex-user/users/children', // ?offset=<offset>&limit=<limit>&withCount=<withCount>
+                        'phemex-user/wallets/v2/depositAddress', // ?_t=1592722635531&currency=USDT
                         'exchange/margins/transfer', // ?start=<start>&end=<end>&offset=<offset>&limit=<limit>&withCount=<withCount>
                         'exchange/wallets/confirm/withdraw', // ?code=<withdrawConfirmCode>
                         'exchange/wallets/withdrawList', // ?currency=<currency>&limit=<limit>&offset=<offset>&withCount=<withCount>
@@ -284,7 +285,7 @@ module.exports = class phemex extends Exchange {
             },
             'options': {
                 'x-phemex-request-expiry': 60, // in seconds
-                'createMarketOrderByQuoteRequiresPrice': true,
+                'createOrderByQuoteRequiresPrice': true,
             },
         });
     }
@@ -712,6 +713,7 @@ module.exports = class phemex extends Exchange {
                         'max': undefined,
                     },
                 },
+                'valueScale': valueScale,
             };
         }
         return result;
@@ -807,8 +809,9 @@ module.exports = class phemex extends Exchange {
         return this.toEn (price, market['priceScale'], 0);
     }
 
-    fromEn (en, scale, precision) {
-        return parseFloat (this.decimalToPrecision (en * Math.pow (10, -scale), ROUND, precision, this.precisionMode));
+    fromEn (en, scale, precision, precisionMode = undefined) {
+        precisionMode = (precisionMode === undefined) ? this.precisionMode : precisionMode;
+        return parseFloat (this.decimalToPrecision (en * Math.pow (10, -scale), ROUND, precision, precisionMode));
     }
 
     fromEp (ep, market = undefined) {
@@ -1196,18 +1199,15 @@ module.exports = class phemex extends Exchange {
             const balance = data[i];
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
-            let scale = 0.00000001;
-            let precision = 0.00000001;
-            if (code in this.currencies) {
-                const currency = this.currency (code);
-                const valueScale = this.safeInteger (currency['info'], 'valueScale');
-                scale = Math.pow (10, -valueScale);
-                precision = (code === 'USD') ? 0.01 : 0.00000001;
-            }
+            const currency = this.safeValue (this.currencies, code, {});
+            const scale = this.safeInteger (currency, 'valueScale', 8);
             const account = this.account ();
-            const total = this.fromEn (this.safeFloat (balance, 'balanceEv'), scale, precision);
-            const lockedTradingBalance = this.fromEn (this.safeFloat (balance, 'lockedTradingBalanceEv'), scale, precision);
-            const lockedWithdraw = this.fromEn (this.safeFloat (balance, 'lockedWithdrawEv'), scale, precision);
+            const balanceEv = this.safeFloat (balance, 'balanceEv');
+            const lockedTradingBalanceEv = this.safeFloat (balance, 'lockedTradingBalanceEv');
+            const lockedWithdrawEv = this.safeFloat (balance, 'lockedWithdrawEv');
+            const total = this.fromEn (balanceEv, scale, scale, DECIMAL_PLACES);
+            const lockedTradingBalance = this.fromEn (lockedTradingBalanceEv, scale, scale, DECIMAL_PLACES);
+            const lockedWithdraw = this.fromEn (lockedWithdrawEv, scale, scale, DECIMAL_PLACES);
             const used = this.sum (lockedTradingBalance, lockedWithdraw);
             account['total'] = total;
             account['used'] = used;
@@ -1298,11 +1298,11 @@ module.exports = class phemex extends Exchange {
         const code = this.safeCurrencyCode (currencyId);
         const currency = this.currency (code);
         const account = this.account ();
-        const valueScale = this.safeInteger (currency['info'], 'valueScale');
-        const scale = Math.pow (10, -valueScale);
-        const precision = (code === 'USD') ? 0.01 : 0.00000001;
-        account['total'] = this.fromEn (this.safeFloat (balance, 'accountBalanceEv'), scale, precision);
-        account['used'] = this.fromEn (this.safeFloat (balance, 'totalUsedBalanceEv'), scale, precision);
+        const accountBalanceEv = this.safeFloat (balance, 'accountBalanceEv');
+        const totalUsedBalanceEv = this.safeFloat (balance, 'totalUsedBalanceEv');
+        const valueScale = this.safeInteger (currency, 'valueScale', 8);
+        account['total'] = this.fromEn (accountBalanceEv, valueScale, valueScale, DECIMAL_PLACES);
+        account['used'] = this.fromEn (totalUsedBalanceEv, valueScale, valueScale, DECIMAL_PLACES);
         result[code] = account;
         return this.parseBalance (result);
     }
@@ -1439,14 +1439,9 @@ module.exports = class phemex extends Exchange {
         const market = this.market (symbol);
         const defaultType = this.safeString2 (this.options, 'defaultType', 'fetchBalance', 'spot');
         const orderType = this.safeString (params, 'type', defaultType);
-        if (orderType === 'spot') {
-        } else if (orderType === 'swap') {
-        } else {
-            if (orderType === undefined) {
-                throw ArgumentsRequired (this.id + ' createOrder requires a type parameter');
-            } else {
-                throw NotSupported (this.id + ' createOrder type parameter must be either spot or swap, ' + orderType + ' not supported');
-            }
+        params = this.omit (params, 'type');
+        if (orderType === undefined) {
+            throw ArgumentsRequired (this.id + ' createOrder requires a type parameter, spot or swap');
         }
         side = this.capitalize (side);
         type = this.capitalize (type);
@@ -1455,7 +1450,7 @@ module.exports = class phemex extends Exchange {
             'symbol': market['id'],
             'side': side, // Sell, Buy
             'ordType': type, // Market, Limit, Stop, StopLimit, MarketIfTouched, LimitIfTouched or Pegged for swap orders
-            // 'stopPxEp': this.toEp (stopPrice, market), // for conditional orders
+            // 'stopPxEp': this.toEp (stopPx, market), // for conditional orders
             // 'priceEp': this.toEp (price, market), // required for limit orders
             // 'timeInForce': 'GoodTillCancel', // GoodTillCancel, PostOnly, ImmediateOrCancel, FillOrKill
             // ----------------------------------------------------------------
@@ -1466,83 +1461,120 @@ module.exports = class phemex extends Exchange {
             // 'trigger': 'ByLastPrice', // required for conditional orders
             // ----------------------------------------------------------------
             // swap
-            // 'clOrdID': this.uuid () // required for swap orders, max length 40
-            // 'orderQty' Integer Yes Order quntity
+            // 'clOrdID': this.uuid (), // max length 40
+            // 'orderQty': this.amountToPrecision (amount, symbol),
             // 'reduceOnly': false,
             // 'closeOnTrigger': false, // implicit reduceOnly and cancel other orders in the same direction
-            // 'takeProfitEp' Integer - Scaled take profit price
-            // 'stopLossEp' Integer - Scaled stop loss price
-            // 'triggerType' Enum - Trigger source, whether trigger by mark price, index price or last price ByMarkPrice, ByLastPrice
-            // 'pegOffsetValueEp' Integer - Trailing offset from current price. Negative value when position is long, positive when position is short
-            // 'pegPriceType' Enum - Peg price type TrailingStopPeg, TrailingTakeProfitPeg
+            // 'takeProfitEp': this.toEp (takeProfit, market),
+            // 'stopLossEp': this.toEp (stopLossEp, market),
+            // 'triggerType': 'ByMarkPrice', // ByMarkPrice, ByLastPrice
+            // 'pegOffsetValueEp': integer, // Trailing offset from current price. Negative value when position is long, positive when position is short
+            // 'pegPriceType': 'TrailingStopPeg', // TrailingTakeProfitPeg
             // 'text': 'comment',
-            // ----------------------------------------------------------------
-            // 'clOrdID': this.uuid (),
-            // 'symbol': market['id'],
-            // 'side': this.capitalize (side),
-            // 'orderQty': amount,
-            // 'ordType': this.capitalize (type),
-            // 'postOnly': false,
-            // 'reduceOnly': false,
-            // 'timeInForce': this.safeString (params, 'timeInForce', 'GoodTillCancel'),
         };
-        if (type === 'Market') {
-            if (market['spot']) {
-                let qtyType = this.safeValue (params, 'qtyType', 'ByBase');
-                if (price !== undefined) {
-                    qtyType = 'ByQuote';
-                }
-                request['qtyType'] = qtyType;
-                if (qtyType === 'ByQuote') {
-                    let cost = this.safeFloat (params, 'cost');
-                    params = this.omit (params, 'cost');
-                    if (this.options['createMarketOrderByQuoteRequiresPrice']) {
-                        if (price !== undefined) {
-                            cost = amount * price;
-                        } else if (cost === undefined) {
-                            throw new ArgumentsRequired (this.id + ' createOrder ' + qtyType + ' requires a price argument or a cost parameter');
-                        }
-                    }
-                    cost = (cost === undefined) ? amount : cost;
-                    request['quoteQtyEv'] = this.toEp (cost, market);
-                } else {
-                    request['baseQtyEv'] = this.toEv (amount, market);
-                }
-                // // for market buy it requires the amount of quote currency to spend
-                // let cost = this.safeFloat (params, 'cost');
-                // if (this.options['createMarketBuyOrderRequiresPrice']) {
-                //     if (cost === undefined) {
-                //         if (price !== undefined) {
-                //             cost = amount * price;
-                //         } else {
-                //             throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
-                //         }
-                //     }
-                // } else {
-                //     cost = (cost === undefined) ? amount : cost;
-                // }
-                // const precision = market['precision']['price'];
-                // request['cost'] = this.decimalToPrecision (cost, TRUNCATE, precision, this.precisionMode);
-                // if (price !== undefined) {
-                // } else {
-                //     const priceEp = this.safeValue (params, 'priceEp');
-                //     if (priceEp !== undefined) {
-                //     }
-                // }
-            } else if (market['swap']) {
-                request['orderQty'] = this.toEv (amount, market);
+        if (market['spot']) {
+            let qtyType = this.safeValue (params, 'qtyType', 'ByBase');
+            if (price !== undefined) {
+                qtyType = 'ByQuote';
             }
-        } else if (type === 'Limit') {
+            request['qtyType'] = qtyType;
+            if (qtyType === 'ByQuote') {
+                let cost = this.safeFloat (params, 'cost');
+                params = this.omit (params, 'cost');
+                if (this.options['createOrderByQuoteRequiresPrice']) {
+                    if (price !== undefined) {
+                        cost = amount * price;
+                    } else if (cost === undefined) {
+                        throw new ArgumentsRequired (this.id + ' createOrder ' + qtyType + ' requires a price argument or a cost parameter');
+                    }
+                }
+                cost = (cost === undefined) ? amount : cost;
+                request['quoteQtyEv'] = this.toEp (cost, market);
+            } else {
+                request['baseQtyEv'] = this.toEv (amount, market);
+            }
+        } else if (market['swap']) {
+            request['orderQty'] = this.toEv (amount, market);
+        }
+        if (type === 'Limit') {
+            request['priceEp'] = this.toEp (price, market);
         }
         const method = market['spot'] ? 'privatePostSpotOrders' : 'privatePostOrders';
-        // if (price !== undefined) {
-        //     request['priceEp'] = this.convertToEp (price);
-        // }
         const response = await this[method] (this.extend (request, params));
-        const order = this.parseOrder (response, market);
-        const id = this.safeString (order, 'id');
-        this.orders[id] = order;
-        return this.extend ({ 'info': response }, order);
+        //
+        // spot
+        //
+        //
+        // swap
+        //
+        //     {
+        //         "code":0,
+        //         "msg":"",
+        //         "data":{
+        //             "bizError":0,
+        //             "orderID":"7a1ad384-44a3-4e54-a102-de4195a29e32",
+        //             "clOrdID":"",
+        //             "symbol":"ETHUSD",
+        //             "side":"Buy",
+        //             "actionTimeNs":1592668973945065381,
+        //             "transactTimeNs":0,
+        //             "orderType":"Market",
+        //             "priceEp":2267500,
+        //             "price":226.75000000,
+        //             "orderQty":1,
+        //             "displayQty":0,
+        //             "timeInForce":"ImmediateOrCancel",
+        //             "reduceOnly":false,
+        //             "closedPnlEv":0,
+        //             "closedPnl":0E-8,
+        //             "closedSize":0,
+        //             "cumQty":0,
+        //             "cumValueEv":0,
+        //             "cumValue":0E-8,
+        //             "leavesQty":1,
+        //             "leavesValueEv":11337,
+        //             "leavesValue":1.13370000,
+        //             "stopDirection":"UNSPECIFIED",
+        //             "stopPxEp":0,
+        //             "stopPx":0E-8,
+        //             "trigger":"UNSPECIFIED",
+        //             "pegOffsetValueEp":0,
+        //             "execStatus":"PendingNew",
+        //             "pegPriceType":"UNSPECIFIED",
+        //             "ordStatus":"Created"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseOrder (data, market);
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
+        const response = await this.phemex.privateGetPhemexUserWalletsV2DepositAddress (this.extend (request, params));
+        //     {
+        //         "code":0,
+        //         "msg":"OK",
+        //         "data":{
+        //             "address":"0x5bfbf60e0fa7f63598e6cfd8a7fd3ffac4ccc6ad",
+        //             "tag":null
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const address = this.safeString (data, 'address');
+        const tag = this.safeString (data, 'paymentId');
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'info': response,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
