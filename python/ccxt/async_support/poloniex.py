@@ -551,8 +551,8 @@ class poloniex(Exchange):
                 feeRate = self.safe_string(parts, 2)
                 if feeRate is not None:
                     feeRate = feeRate.replace('(', '')
-                    feeRate = feeRate.replace(')', '')
-                    feeRate = feeRate.replace('%', '')
+                    feeRateParts = feeRate.split('%')
+                    feeRate = self.safe_string(feeRateParts, 0)
                     feeRate = float(feeRate) / 100
                 fee = {
                     'cost': feeCost,
