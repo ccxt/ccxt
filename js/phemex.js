@@ -373,7 +373,6 @@ module.exports = class phemex extends Exchange {
         };
         const priceScale = this.safeInteger (market, 'priceScale');
         const ratioScale = this.safeInteger (market, 'ratioScale');
-        // const valueScale = this.safeInteger (market, 'valueScale');
         const minPriceEp = this.safeFloat (market, 'minPriceEp');
         const maxPriceEp = this.safeFloat (market, 'maxPriceEp');
         const makerFeeRateEr = this.safeFloat (market, 'makerFeeRateEr');
@@ -415,11 +414,8 @@ module.exports = class phemex extends Exchange {
             'taker': taker,
             'maker': maker,
             'priceScale': priceScale,
-            'valueScale': 0, // valueScale,
+            'valueScale': 0,
             'ratioScale': ratioScale,
-            // 'ep': ep,
-            // 'er': er,
-            // 'ev': 1,
             'precision': precision,
             'limits': limits,
         };
@@ -504,9 +500,6 @@ module.exports = class phemex extends Exchange {
             'priceScale': 8,
             'valueScale': 8,
             'ratioScale': 8,
-            'ep': 0.00000001,
-            'er': 0.00000001,
-            'ev': 0.00000001,
             'limits': limits,
         };
     }
