@@ -36,7 +36,7 @@ module.exports = class phemex extends Exchange {
                 'fetchMyTrades': true,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/83165440-2f1cf200-a116-11ea-9046-a255d09fb2ed.jpg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/85225056-221eb600-b3d7-11ea-930d-564d2690e3f6.jpg',
                 'test': {
                     'v1': 'https://testnet-api.phemex.com/v1',
                     'public': 'https://testnet-api.phemex.com/exchange/public',
@@ -45,7 +45,6 @@ module.exports = class phemex extends Exchange {
                 'api': {
                     'v1': 'https://api.phemex.com/v1',
                     'public': 'https://api.phemex.com/exchange/public',
-                    // 'public': 'https://api.phemex.com',
                     'private': 'https://api.phemex.com',
                 },
                 'www': 'https://phemex.com',
