@@ -82,7 +82,7 @@ module.exports = class bitclude extends Exchange {
                     'An unexpected error occurred': ExchangeError, // {"error":"An unexpected error occurred, please try again later (58BC21C795).","success":false}
                 },
             },
-            'precisionMode': DECIMAL_PLACES, // todo
+            'precisionMode': DECIMAL_PLACES,
         });
     }
 
@@ -110,8 +110,8 @@ module.exports = class bitclude extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': true,
-                'precision': precision, // todo
-                'limits': undefined, // this exchange have user-specific limits
+                'precision': precision,
+                'limits': undefined,
                 'info': info,
             };
             result.push (entry);
@@ -219,7 +219,6 @@ module.exports = class bitclude extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        // todo idk what do with limit
         await this.loadMarkets ();
         const market = this.market (symbol);
         const [ baseId, quoteId ] = market['id'].split ('_');
@@ -230,7 +229,7 @@ module.exports = class bitclude extends Exchange {
         const response = await this.publicGetStatsOrderbookBaseQuoteJson (this.extend (request, params));
         const data = this.safeValue (response, 'data');
         const timestamp = this.safeTimestamp (data, 'timestamp');
-        const parsedOrderBook = this.parseOrderBook (response, timestamp, 'bids', 'asks', 1, 0); // todo check if correct
+        const parsedOrderBook = this.parseOrderBook (response, timestamp, 'bids', 'asks', 1, 0);
         if (limit !== undefined) {
             parsedOrderBook['bids'] = this.filterBySinceLimit (parsedOrderBook['bids'], undefined, limit);
             parsedOrderBook['asks'] = this.filterBySinceLimit (parsedOrderBook['asks'], undefined, limit);
@@ -289,7 +288,7 @@ module.exports = class bitclude extends Exchange {
         const id = this.safeString (trade, 'nr');
         let timestamp = this.safeInteger2 (trade, 'time', 'time_close');
         if ('time' in trade) {
-            // API return timestamp in different formats depending on endpoint. Of course this is not specified in docs xD
+            // API return timestamp in different formats depending on endpoint. Of course this isn't specified in docs xD
             timestamp = timestamp * 1000;
         }
         const type = undefined;
@@ -305,7 +304,6 @@ module.exports = class bitclude extends Exchange {
         }
         let side = this.safeString (trade, 'type');
         if (side === 'a' || side === 'ask') {
-            // todo ensure
             side = 'sell';
         } else if (side === 'b' || side === 'bid') {
             side = 'buy';
@@ -433,11 +431,10 @@ module.exports = class bitclude extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        // only for fetchOpenOrders
-        const status = 'open'; // hardcoded shit
+        // due to very diverse structure of orders this method only work for these returned by fetchOpenOrders
+        const status = 'open';
         let side = this.safeString (order, 'offertype');
         if (side === 'ask') {
-            // todo ensure
             side = 'sell';
         } else if (side === 'bid') {
             side = 'buy';
@@ -461,7 +458,7 @@ module.exports = class bitclude extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
-            'type': undefined, // todo: limit I guess
+            'type': undefined,
             'side': side,
             'price': this.safeFloat (order, 'price'),
             'amount': this.safeFloat (order, 'amount'),
@@ -509,8 +506,6 @@ module.exports = class bitclude extends Exchange {
         };
         const response = await this.privateGet (this.extend (request, params));
         const address = this.safeString (response, 'address');
-        // waiting for documentation
-        // const tag = this.safeString
         this.checkAddress (address);
         return {
             'currency': code,
@@ -598,7 +593,7 @@ module.exports = class bitclude extends Exchange {
         const currencyCode = this.safeString (currency, 'code');
         const amount = this.safeFloat (transaction, 'amount');
         const address = this.safeString (transaction, 'address');
-        const status = this.safeString (transaction, 'state'); // todo
+        const status = this.safeString (transaction, 'state'); // todo: ask support
         const txid = this.safeString2 (transaction, 'type', 'tx');
         return {
             'info': transaction,
