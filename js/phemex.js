@@ -2165,8 +2165,8 @@ module.exports = class phemex extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
-        const request = '/' + this.implodeParams (path, params);
-        let url = request;
+        const requestPath = '/' + this.implodeParams (path, params);
+        let url = requestPath;
         let queryString = '';
         if ((method === 'GET') || (method === 'DELETE')) {
             if (Object.keys (query).length) {
@@ -2190,7 +2190,7 @@ module.exports = class phemex extends Exchange {
                 body = payload;
                 headers['Content-Type'] = 'application/json';
             }
-            const auth = request + queryString + expiryString + payload;
+            const auth = requestPath + queryString + expiryString + payload;
             headers['x-phemex-request-signature'] = this.hmac (this.encode (auth), this.encode (this.secret));
         }
         url = this.urls['api'][api] + url;
