@@ -342,7 +342,7 @@ class phemex extends Exchange {
         //         "underlyingSymbol":".BTC",
         //         "baseCurrency":"BTC",
         //         "settlementCurrency":"BTC",
-        //         "$valueScale":8,
+        //         "valueScale":8,
         //         "defaultLeverage":0,
         //         "maxLeverage":100,
         //         "initMarginEr":"1000000",
@@ -376,7 +376,6 @@ class phemex extends Exchange {
         );
         $priceScale = $this->safe_integer($market, 'priceScale');
         $ratioScale = $this->safe_integer($market, 'ratioScale');
-        // $valueScale = $this->safe_integer($market, 'valueScale');
         $minPriceEp = $this->safe_float($market, 'minPriceEp');
         $maxPriceEp = $this->safe_float($market, 'maxPriceEp');
         $makerFeeRateEr = $this->safe_float($market, 'makerFeeRateEr');
@@ -418,11 +417,8 @@ class phemex extends Exchange {
             'taker' => $taker,
             'maker' => $maker,
             'priceScale' => $priceScale,
-            'valueScale' => 0, // $valueScale,
+            'valueScale' => 0,
             'ratioScale' => $ratioScale,
-            // 'ep' => ep,
-            // 'er' => er,
-            // 'ev' => 1,
             'precision' => $precision,
             'limits' => $limits,
         );
@@ -507,9 +503,6 @@ class phemex extends Exchange {
             'priceScale' => 8,
             'valueScale' => 8,
             'ratioScale' => 8,
-            'ep' => 0.00000001,
-            'er' => 0.00000001,
-            'ev' => 0.00000001,
             'limits' => $limits,
         );
     }

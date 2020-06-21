@@ -385,7 +385,6 @@ class phemex(Exchange):
         }
         priceScale = self.safe_integer(market, 'priceScale')
         ratioScale = self.safe_integer(market, 'ratioScale')
-        # valueScale = self.safe_integer(market, 'valueScale')
         minPriceEp = self.safe_float(market, 'minPriceEp')
         maxPriceEp = self.safe_float(market, 'maxPriceEp')
         makerFeeRateEr = self.safe_float(market, 'makerFeeRateEr')
@@ -427,11 +426,8 @@ class phemex(Exchange):
             'taker': taker,
             'maker': maker,
             'priceScale': priceScale,
-            'valueScale': 0,  # valueScale,
+            'valueScale': 0,
             'ratioScale': ratioScale,
-            # 'ep': ep,
-            # 'er': er,
-            # 'ev': 1,
             'precision': precision,
             'limits': limits,
         }
@@ -515,9 +511,6 @@ class phemex(Exchange):
             'priceScale': 8,
             'valueScale': 8,
             'ratioScale': 8,
-            'ep': 0.00000001,
-            'er': 0.00000001,
-            'ev': 0.00000001,
             'limits': limits,
         }
 
