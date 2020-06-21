@@ -537,7 +537,7 @@ class bitvavo(Exchange):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def parse_trade(self, trade, market):
+    def parse_trade(self, trade, market=None):
         #
         # fetchTrades(public)
         #

@@ -53,6 +53,7 @@ module.exports = class wavesexchange extends Exchange {
                     'public': 'https://api.wavesplatform.com/v0',
                     'private': 'https://api.waves.exchange/v1',
                     'forward': 'https://waves.exchange/api/v1/forward/matcher',
+                    'market': 'https://marketdata.wavesplatform.com/api/v1',
                 },
                 'doc': 'https://docs.waves.exchange',
                 'www': 'https://waves.exchange',
@@ -213,6 +214,8 @@ module.exports = class wavesexchange extends Exchange {
                     'get': [
                         'deposit/addresses/{code}',
                         'deposit/currencies',
+                        'withdraw/currencies',
+                        'withdraw/addresses/{currency}/{address}',
                     ],
                     'post': [
                         'oauth2/token',
@@ -224,16 +227,11 @@ module.exports = class wavesexchange extends Exchange {
                         'matcher/orders/{address}/{orderId}',
                     ],
                 },
-            },
-            'commonCurrencies': {
-                'BITCOIN CASH': 'BCH',
-                'LITECOIN': 'LTC',
-                'MONERO': 'XMR',
-                'TIDEX': 'TDX',
-                'USD-N': 'USDN',
-                'WBTC': 'BTC',
-                'WETH': 'ETH',
-                'ZCASH': 'ZEC',
+                'market': {
+                    'get': [
+                        'tickers',
+                    ],
+                },
             },
             'options': {
                 'allowedCandles': 1440,
@@ -243,10 +241,13 @@ module.exports = class wavesexchange extends Exchange {
                 'createOrderDefaultExpiry': 2419200000, // 60 * 60 * 24 * 28 * 1000
                 'wavesAddress': undefined,
                 'matcherFee': 300000,
+                'withdrawFeeUSDN': 7420,
+                'withdrawFeeWAVES': 100000,
             },
             'requiresEddsa': true,
             'exceptions': {
                 '3147270': InsufficientFunds,  // https://github.com/wavesplatform/matcher/wiki/List-of-all-errors
+                '112': InsufficientFunds,
                 '4': ExchangeError,
                 '13': ExchangeNotAvailable,
                 '14': ExchangeNotAvailable,
@@ -342,45 +343,30 @@ module.exports = class wavesexchange extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const quotes = await this.getQuotes ();
-        const response = await this.matcherGetMatcherOrderbook (params);
-        const markets = this.safeValue (response, 'markets');
-        const result = {};
-        for (let i = 0; i < markets.length; i++) {
-            const entry = markets[i];
-            const baseId = this.safeString (entry, 'amountAssetName');
-            const quoteId = this.safeString (entry, 'priceAssetName');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            const baseAsset = this.safeString (entry, 'amountAsset');
-            const quoteAsset = this.safeString (entry, 'priceAsset');
-            const id = baseAsset + '/' + quoteAsset;
-            const symbol = base + '/' + quote;
-            const amountPrecision = this.safeValue (entry, 'amountAssetInfo');
-            const pricePricision = this.safeValue (entry, 'priceAssetInfo');
+        const response = await this.marketGetTickers ();
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const baseId = this.safeString (entry, 'amountAssetID');
+            const quoteId = this.safeString (entry, 'priceAssetID');
+            const id = baseId + '/' + quoteId;
+            const marketId = this.safeString (entry, 'symbol');
+            const [ base, quote ] = marketId.split ('/');
+            const symbol = this.safeCurrencyCode (base) + '/' + this.safeCurrencyCode (quote);
             const precision = {
-                'amount': this.safeInteger (amountPrecision, 'decimals'),
-                'price': this.safeInteger (pricePricision, 'decimals'),
+                'amount': this.safeInteger (entry, 'amountAssetDecimals'),
+                'price': this.safeInteger (entry, 'priceAssetDecimals'),
             };
-            if (symbol in result) {
-                // determine which symbol is "fake news"
-                const entry = result[symbol];
-                const entryCount = (entry['baseId'] in quotes) + (entry['quoteId'] in quotes);
-                const myCount = (baseId in quotes) + (quoteId in quotes);
-                if (entryCount > myCount) {
-                    continue;
-                }
-            }
-            result[symbol] = {
+            result.push ({
                 'symbol': symbol,
                 'id': id,
                 'base': base,
                 'quote': quote,
-                'baseId': baseAsset,
-                'quoteId': quoteAsset,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'info': entry,
                 'precision': precision,
-            };
+            });
         }
         return result;
     }
@@ -422,19 +408,54 @@ module.exports = class wavesexchange extends Exchange {
         return result;
     }
 
+    checkRequiredKeys () {
+        if (this.apiKey === undefined) {
+            throw new AuthenticationError (this.id + ' requires apiKey credential');
+        }
+        if (this.secret === undefined) {
+            throw new AuthenticationError (this.id + ' requires secret credential');
+        }
+        let apiKeyBytes = undefined;
+        let secretKeyBytes = undefined;
+        try {
+            apiKeyBytes = this.base58ToBinary (this.apiKey);
+        } catch (e) {
+            throw new AuthenticationError (this.id + ' apiKey must be a base58 encoded public key');
+        }
+        try {
+            secretKeyBytes = this.base58ToBinary (this.secret);
+        } catch (e) {
+            throw new AuthenticationError (this.id + ' secret must be a base58 encoded private key');
+        }
+        const hexApiKeyBytes = this.binaryToBase16 (apiKeyBytes);
+        const hexSecretKeyBytes = this.binaryToBase16 (secretKeyBytes);
+        if (hexApiKeyBytes.length !== 64) {
+            throw new AuthenticationError (this.id + ' apiKey must be a base58 encoded public key');
+        }
+        if (hexSecretKeyBytes.length !== 64) {
+            throw new AuthenticationError (this.id + ' secret must be a base58 encoded private key');
+        }
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
         path = this.implodeParams (path, params);
         let url = this.urls['api'][api] + '/' + path;
         const queryString = this.urlencode (query);
         if ((api === 'private') || (api === 'forward')) {
-            headers = {};
+            headers = {
+                'Accept': 'application/json',
+            };
             const accessToken = this.safeString (this.options, 'accessToken');
             if (accessToken) {
                 headers['Authorization'] = 'Bearer ' + accessToken;
             }
-            headers['content-type'] = 'application/x-www-form-urlencoded';
-            url += '?' + queryString;
+            if (method !== 'POST') {
+                headers['content-type'] = 'application/x-www-form-urlencoded';
+            }
+            if (queryString.length > 0) {
+                url += '?' + queryString;
+            }
         } else if (api === 'matcher') {
             if (method === 'POST') {
                 headers = {
@@ -454,7 +475,9 @@ module.exports = class wavesexchange extends Exchange {
                 headers = {
                     'content-type': 'application/x-www-form-urlencoded',
                 };
-                url += '?' + queryString;
+                if (queryString.length > 0) {
+                    url += '?' + queryString;
+                }
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
@@ -773,11 +796,15 @@ module.exports = class wavesexchange extends Exchange {
     }
 
     priceToPrecision (symbol, price) {
-        return this.toWei (price, this.markets[symbol]['precision']['price']);
+        return parseInt (parseFloat (this.toWei (price, this.markets[symbol]['precision']['price'])));
     }
 
     amountToPrecision (symbol, amount) {
-        return this.toWei (amount, this.markets[symbol]['precision']['amount']);
+        return parseInt (parseFloat (this.toWei (amount, this.markets[symbol]['precision']['amount'])));
+    }
+
+    currencyToPrecision (currency, amount) {
+        return parseInt (parseFloat (this.toWei (amount, this.currencies[currency]['precision'])));
     }
 
     currencyFromPrecision (currency, amount) {
@@ -796,18 +823,42 @@ module.exports = class wavesexchange extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         this.checkRequiredDependencies ();
-        this.checkRequiredCredentials ();
+        this.checkRequiredKeys ();
         await this.loadMarkets ();
         const market = this.market (symbol);
         const matcherPublicKey = await this.getMatcherPublicKey ();
         const amountAsset = this.getAssetId (market['baseId']);
         const priceAsset = this.getAssetId (market['quoteId']);
-        amount = parseInt (this.amountToPrecision (symbol, amount));
-        price = parseInt (this.priceToPrecision (symbol, price));
+        amount = this.amountToPrecision (symbol, amount);
+        price = this.priceToPrecision (symbol, price);
         const orderType = (side === 'buy') ? 0 : 1;
         const timestamp = this.milliseconds ();
         const expiration = this.sum (timestamp, this.getDefaultExpiry ());
-        const matcherFee = this.safeInteger (this.options, 'matcherFee', 300000);
+        // calculate the fee
+        const baseMatcherFee = this.safeInteger (this.options, 'matcherFee', 300000);
+        const rates = await this.matcherGetMatcherSettingsRates ();
+        // { '34N9YcEETLWn93qYQ64EsP1x89tSruJU44RrEMSXXEPJ': 1.23762376,
+        //   '62LyMjcr2DtiyF5yVXFhoQ2q414VPPJXjsNYp72SuDCH': 0.01101575,
+        //   HZk1mbfuJpmxU1Fs4AX5MWLVYtctsNcg6e2C6VKqK8zk: 0.04266412,
+        //   '8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS': 0.00019575,
+        //   '4LHHvYGNKJUg5hj65aGD5vgScvCBmLpdRFtjokvCjSL8': 28.79078695,
+        //   '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu': 0.00798174,
+        //   DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p: 1.8201,
+        //   B3uGHFRpSUuGEDWjqB9LWWxafQj8VTvpMucEyoxzws5H: 0.02608696,
+        //   zMFqXuoyrn5w17PFurTqxB7GsS71fp9dfk6XFwxbPCy: 0.00788827,
+        //   '5WvPKSJXzVE2orvbkJ8wsQmmQKqTv9sGBPksV4adViw3': 0.02873582,
+        //   WAVES: 1,
+        //   BrjUWjndUanm5VsJkbUip8VRYy6LWJePtxya3FNv4TQa: 0.03614366 }
+        let matcherFeeAssetId = undefined;
+        if ((side === 'buy') && (market['quoteId'] in rates)) {
+            matcherFeeAssetId = market['quoteId'];
+        } else if ((side === 'sell') && (market['baseId'] in rates)) {
+            matcherFeeAssetId = market['baseId'];
+        } else {
+            matcherFeeAssetId = 'WAVES';
+        }
+        const rate = this.safeFloat (rates, matcherFeeAssetId);
+        const matcherFee = parseInt (Math.ceil (baseMatcherFee * rate));
         const byteArray = [
             this.numberToBE (3, 1),
             this.base58ToBinary (this.apiKey),
@@ -820,7 +871,7 @@ module.exports = class wavesexchange extends Exchange {
             this.numberToBE (timestamp, 8),
             this.numberToBE (expiration, 8),
             this.numberToBE (matcherFee, 8),
-            this.numberToBE (0, 1),
+            this.getAssetBytes (matcherFeeAssetId),
         ];
         const binary = this.binaryConcatArray (byteArray);
         const signature = this.eddsa (this.binaryToBase16 (binary), this.binaryToBase16 (this.base58ToBinary (this.secret)), 'ed25519');
@@ -838,6 +889,7 @@ module.exports = class wavesexchange extends Exchange {
             'timestamp': timestamp,
             'expiration': expiration,
             'matcherFee': matcherFee,
+            'matcherFeeAssetId': market['baseId'],
             'signature': signature,
             'version': 3,
         };
@@ -869,7 +921,7 @@ module.exports = class wavesexchange extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         this.checkRequiredDependencies ();
-        this.checkRequiredCredentials ();
+        this.checkRequiredKeys ();
         await this.loadMarkets ();
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' symbol is required for cancelOrder');
@@ -918,7 +970,7 @@ module.exports = class wavesexchange extends Exchange {
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         this.checkRequiredDependencies ();
-        this.checkRequiredCredentials ();
+        this.checkRequiredKeys ();
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders requires symbol argument');
         }
@@ -1058,7 +1110,7 @@ module.exports = class wavesexchange extends Exchange {
         const average = this.currencyFromPrecision (priceCurrency, this.safeString (order, 'avgWeighedPrice'));
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const fee = {
-            'currency': this.safeCurrencyCode (this.safeString (order, 'feeAsset')),
+            'currency': this.safeCurrencyCode (this.safeString2 (order, 'feeAsset', 'matcherFeeAssetId')),
             'fee': this.safeString (order, 'filledFee'),
         };
         return {
@@ -1105,7 +1157,7 @@ module.exports = class wavesexchange extends Exchange {
         // getReservedBalance (includes WAVES)
         // I couldn't find another way to get all the data
         this.checkRequiredDependencies ();
-        this.checkRequiredCredentials ();
+        this.checkRequiredKeys ();
         await this.loadMarkets ();
         const wavesAddress = await this.getWavesAddress ();
         const request = {
@@ -1333,5 +1385,104 @@ module.exports = class wavesexchange extends Exchange {
         if (!success) {
             throw new ExchangeError (this.id + ' ' + body);
         }
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        // currently only works for BTC and WAVES
+        if (code !== 'WAVES') {
+            const supportedCurrencies = await this.privateGetWithdrawCurrencies ();
+            const currencies = {};
+            const items = this.safeValue (supportedCurrencies, 'items', []);
+            for (let i = 0; i < items.length; i++) {
+                const entry = items[i];
+                const code = this.safeString (entry, 'id');
+                currencies[code] = true;
+            }
+            if (!(code in currencies)) {
+                const codes = Object.keys (currencies);
+                throw new ExchangeError (this.id + ' fetch ' + code + ' withdrawals are not supported. Currency code must be one of ' + codes.toString ());
+            }
+        }
+        await this.loadMarkets ();
+        const withdrawAddressRequest = {
+            'address': address,
+            'currency': code,
+        };
+        await this.getAccessToken ();
+        let proxyAddress = undefined;
+        if (code !== 'WAVES') {
+            const withdrawAddress = await this.privateGetWithdrawAddressesCurrencyAddress (withdrawAddressRequest);
+            // {
+            //   "type": "withdrawal_addresses",
+            //   "currency": {
+            //     "type": "withdrawal_currency",
+            //     "id": "BTC",
+            //     "waves_asset_id": "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS",
+            //     "decimals": 8,
+            //     "status": "active",
+            //     "allowed_amount": {
+            //       "min": 0.001,
+            //       "max": 20
+            //     },
+            //     "fees": {
+            //       "flat": 0.001,
+            //       "rate": 0
+            //     }
+            //   },
+            //   "proxy_addresses": [
+            //     "3P3qqmkiLwNHB7x1FeoE8bvkRtULwGpo9ga"
+            //   ]
+            // }
+            const proxyAddresses = this.safeValue (withdrawAddress, 'proxy_addresses', []);
+            proxyAddress = this.safeString (proxyAddresses, 0);
+        } else {
+            proxyAddress = address;
+        }
+        let fee = undefined;
+        let feeAssetId = undefined;
+        if (code === 'WAVES') {
+            fee = this.safeInteger (this.options, 'withdrawFeeWAVES', 100000);
+            feeAssetId = 'WAVES';
+        } else {
+            fee = this.safeInteger (this.options, 'withdrawFeeUSDN', 7420);
+            feeAssetId = this.currency ('USDN')['id'];
+        }
+        const type = 4;  // transfer
+        const version = 2;
+        const amountInteger = this.currencyToPrecision (code, amount);
+        const currency = this.currency (code);
+        const timestamp = this.milliseconds ();
+        const byteArray = [
+            this.numberToBE (4, 1),
+            this.numberToBE (2, 1),
+            this.base58ToBinary (this.apiKey),
+            this.getAssetBytes (currency['id']),
+            this.getAssetBytes (feeAssetId),
+            this.numberToBE (timestamp, 8),
+            this.numberToBE (amountInteger, 8),
+            this.numberToBE (fee, 8),
+            this.base58ToBinary (proxyAddress),
+            this.numberToBE (0, 2),
+        ];
+        const binary = this.binaryConcatArray (byteArray);
+        const hexSecret = this.binaryToBase16 (this.base58ToBinary (this.secret));
+        const signature = this.eddsa (this.binaryToBase16 (binary), hexSecret, 'ed25519');
+        const request = {
+            'senderPublicKey': this.apiKey,
+            'amount': amountInteger,
+            'fee': fee,
+            'type': type,
+            'version': version,
+            'attachment': '',
+            'feeAssetId': this.getAssetId (feeAssetId),
+            'proofs': [
+                signature,
+            ],
+            'assetId': this.getAssetId (currency['id']),
+            'recipient': proxyAddress,
+            'timestamp': timestamp,
+            'signature': signature,
+        };
+        return await this.nodePostTransactionsBroadcast (request);
     }
 };
