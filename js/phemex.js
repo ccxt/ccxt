@@ -29,6 +29,8 @@ module.exports = class phemex extends Exchange {
                 'createOrder': true,
                 'cancelOrder': true,
                 'fetchDepositAddress': true,
+                'fetchOrder': true,
+                'fetchOrders': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/83165440-2f1cf200-a116-11ea-9046-a255d09fb2ed.jpg',
@@ -1787,7 +1789,7 @@ module.exports = class phemex extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1806,6 +1808,120 @@ module.exports = class phemex extends Exchange {
         const data = this.safeValue (response, 'data', {});
         return this.parseOrder (data, market);
     }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const method = market['spot'] ? 'privateGetSpotOrdersActive' : 'privateGetExchangeOrder';
+        const request = {
+            'symbol': market['id'],
+        };
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clOrdID');
+        params = this.omit (params, [ 'clientOrderId', 'clOrdID' ]);
+        if (clientOrderId !== undefined) {
+            request['clOrdID'] = clientOrderId;
+        } else {
+            request['orderID'] = id;
+        }
+        const response = await this[method] (this.extend (request, params));
+        const data = this.safeValue (response, 'data', {});
+        let order = data;
+        if (Array.isArray (data)) {
+            const numOrders = data.length;
+            if (numOrders < 1) {
+                if (clientOrderId !== undefined) {
+                    throw new OrderNotFound (this.id + ' fetchOrder ' + symbol + ' order with clientOrderId ' + clientOrderId + ' not found');
+                } else {
+                    throw new OrderNotFound (this.id + ' fetchOrder ' + symbol + ' order with id ' + id + ' not found');
+                }
+            }
+            order = this.safeValue (data, 0, {});
+        }
+        return this.parseOrder (order, market);
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const method = market['spot'] ? 'privateGetSpotOrders' : 'privateGetExchangeOrderList';
+        const request = {
+            'symbol': market['id'],
+        };
+        if (since !== undefined) {
+            request['start'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this[method] (this.extend (request, params));
+        const data = this.safeValue (response, 'data', {});
+        const rows = this.safeValue (data, 'rows', []);
+        return this.parseOrders (rows, market, since, limit);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const marketID = market['id'];
+        const method = 'privateGetOrdersActiveList';
+        try {
+            const response = await this[method] ({ 'symbol': marketID });
+            const data = this.parseResponse (response);
+            const orders = this.safeValue (data, 'rows');
+            return this.parseOrders (orders, market, since, limit);
+        } catch (e) {
+            return [];
+        }
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const marketID = market['id'];
+        const method = 'privateGetPhemexUserOrderList';
+        const response = await this[method] ({ 'symbol': marketID, 'start': since, 'limit': limit });
+        const data = this.parseResponse (response);
+        const rawOrders = this.safeValue (data, 'rows');
+        const orders = this.parseOrders (rawOrders, market);
+        const orderCount = orders.length;
+        const result = [];
+        for (let i = 0; i < orderCount; i++) {
+            const order = orders[i];
+            const status = this.safeString (order, 'status');
+            if (status === 'closed') {
+                result.push (order);
+            }
+        }
+        return result;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
