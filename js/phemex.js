@@ -151,7 +151,6 @@ module.exports = class phemex extends Exchange {
             'exceptions': {
                 'exact': {
                     // not documented
-                    '30018': BadRequest, // {"code":30018,"msg":"phemex.data.size.uplimt","data":null}
                     '412': BadRequest, // {"code":412,"msg":"Missing parameter - resolution","data":null}
                     '6001': BadRequest, // {"error":{"code":6001,"message":"invalid argument"},"id":null,"result":null}
                     // documented
@@ -276,6 +275,9 @@ module.exports = class phemex extends Exchange {
                     '11113': BadRequest, // TE_USER_ID_INVALID UserId is invalid
                     '11114': InvalidOrder, // TE_ORDER_VALUE_TOO_LARGE Order value is too large
                     '11115': InvalidOrder, // TE_ORDER_VALUE_TOO_SMALL Order value is too small
+                    // not documented
+                    '30018': BadRequest, // {"code":30018,"msg":"phemex.data.size.uplimt","data":null}
+                    '39996': PermissionDenied, // {"code": "39996","msg": "Access denied."}
                 },
                 'broad': {
                     'Failed to find api-key': AuthenticationError, // {"msg":"Failed to find api-key 1c5ec63fd-660d-43ea-847a-0d3ba69e106e","code":10500}
@@ -1434,6 +1436,205 @@ module.exports = class phemex extends Exchange {
         return result;
     }
 
+    parseOrderStatus (status) {
+        const statuses = {
+            'Created': 'open',
+            'Untriggered': 'open',
+            'Deactivated': 'closed',
+            'Triggered': 'open',
+            'Rejected': 'rejected',
+            'New': 'open',
+            'PartiallyFilled': 'open',
+            'Filled': 'closed',
+            'Canceled': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrderType (type) {
+        const types = {
+            'Limit': 'limit',
+            'Market': 'market',
+        };
+        return this.safeString (types, type, type);
+    }
+
+    parseSpotOrder (order, market = undefined) {
+        //
+        // spot
+        //
+        //     {
+        //         "orderID": "d1d09454-cabc-4a23-89a7-59d43363f16d",
+        //         "clOrdID": "309bcd5c-9f6e-4a68-b775-4494542eb5cb",
+        //         "priceEp": 0,
+        //         "action": "New",
+        //         "trigger": "UNSPECIFIED",
+        //         "pegPriceType": "UNSPECIFIED",
+        //         "stopDirection": "UNSPECIFIED",
+        //         "bizError": 0,
+        //         "symbol": "sBTCUSDT",
+        //         "side": "Buy",
+        //         "baseQtyEv": 0,
+        //         "ordType": "Limit",
+        //         "timeInForce": "GoodTillCancel",
+        //         "ordStatus": "Created",
+        //         "cumFeeEv": 0,
+        //         "cumBaseQtyEv": 0,
+        //         "cumQuoteQtyEv": 0,
+        //         "leavesBaseQtyEv": 0,
+        //         "leavesQuoteQtyEv": 0,
+        //         "avgPriceEp": 0,
+        //         "cumBaseAmountEv": 0,
+        //         "cumQuoteAmountEv": 0,
+        //         "quoteQtyEv": 0,
+        //         "qtyType": "ByBase",
+        //         "stopPxEp": 0,
+        //         "pegOffsetValueEp": 0
+        //     }
+        //
+        const id = this.safeString (order, 'orderID');
+        let clientOrderId = this.safeString (order, 'clOrdID');
+        if (clientOrderId.length < 1) {
+            clientOrderId = undefined;
+        }
+        const marketId = this.safeString (order, 'symbol');
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+        }
+        const price = this.fromEp (this.safeFloat (order, 'priceEp'), market);
+        const amount = this.fromEv (this.safeFloat (order, 'baseQtyEv'), market);
+        const remaining = this.fromEv (this.safeFloat (order, 'leavesBaseQtyEv'), market);
+        const filled = this.fromEv (this.safeFloat (order, 'cumBaseQtyEv'), market);
+        const cost = this.fromEv (this.safeFloat (order, 'cumQuoteQtyEv'), market);
+        const average = this.fromEp (this.safeFloat (order, 'avgPriceEp'), market);
+        const status = this.parseOrderStatus (this.safeString (order, 'ordStatus'));
+        const side = this.safeStringLower (order, 'side');
+        const type = this.parseOrderType (this.safeString (order, 'orderType'));
+        const timestamp = this.safeIntegerProduct (order, 'actionTimeNs', 0.000001);
+        let symbol = undefined;
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
+        let fee = undefined;
+        const feeCost = this.fromEv (this.safeFloat (order, 'cumFeeEv'), market);
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': undefined,
+            };
+        }
+        return {
+            'info': order,
+            'id': id,
+            'clientOrderId': clientOrderId,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'average': average,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': fee,
+            'trades': undefined,
+        };
+    }
+
+    parseSwapOrder (order, market = undefined) {
+        //
+        //     {
+        //         "bizError":0,
+        //         "orderID":"7a1ad384-44a3-4e54-a102-de4195a29e32",
+        //         "clOrdID":"",
+        //         "symbol":"ETHUSD",
+        //         "side":"Buy",
+        //         "actionTimeNs":1592668973945065381,
+        //         "transactTimeNs":0,
+        //         "orderType":"Market",
+        //         "priceEp":2267500,
+        //         "price":226.75000000,
+        //         "orderQty":1,
+        //         "displayQty":0,
+        //         "timeInForce":"ImmediateOrCancel",
+        //         "reduceOnly":false,
+        //         "closedPnlEv":0,
+        //         "closedPnl":0E-8,
+        //         "closedSize":0,
+        //         "cumQty":0,
+        //         "cumValueEv":0,
+        //         "cumValue":0E-8,
+        //         "leavesQty":1,
+        //         "leavesValueEv":11337,
+        //         "leavesValue":1.13370000,
+        //         "stopDirection":"UNSPECIFIED",
+        //         "stopPxEp":0,
+        //         "stopPx":0E-8,
+        //         "trigger":"UNSPECIFIED",
+        //         "pegOffsetValueEp":0,
+        //         "execStatus":"PendingNew",
+        //         "pegPriceType":"UNSPECIFIED",
+        //         "ordStatus":"Created"
+        //     }
+        //
+        const id = this.safeString (order, 'orderID');
+        let clientOrderId = this.safeString (order, 'clOrdID');
+        if (clientOrderId.length < 1) {
+            clientOrderId = undefined;
+        }
+        const marketId = this.safeString (order, 'symbol');
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+        }
+        const status = this.parseOrderStatus (this.safeString (order, 'ordStatus'));
+        const side = this.safeStringLower (order, 'side');
+        const type = this.parseOrderType (this.safeString (order, 'orderType'));
+        const price = this.fromEp (this.safeInteger (order, 'priceEp'), market);
+        const amount = this.safeFloat (order, 'orderQty');
+        const filled = this.safeFloat (order, 'cumQty');
+        const remaining = this.safeFloat (order, 'leavesQty');
+        const timestamp = this.safeIntegerProduct (order, 'actionTimeNs', 0.000001);
+        let lastTradeTimestamp = this.safeIntegerProduct (order, 'transactTimeNs', 0.000001);
+        if (lastTradeTimestamp === 0) {
+            lastTradeTimestamp = undefined;
+        }
+        let symbol = undefined;
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
+        return {
+            'info': order,
+            'id': id,
+            'clientOrderId': clientOrderId,
+            'datetime': this.iso8601 (timestamp),
+            'timestamp': timestamp,
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'cost': undefined,
+            'average': undefined,
+            'status': status,
+            'fee': undefined,
+            'trades': undefined,
+        };
+    }
+
+    parseOrder (order, market = undefined) {
+        if ('closedPnl' in order) {
+            return this.parseSwapOrder (order, market);
+        }
+        return this.parseSpotOrder (order, market);
+    }
+
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1504,6 +1705,38 @@ module.exports = class phemex extends Exchange {
         //
         // spot
         //
+        //     {
+        //         "code": 0,
+        //         "msg": "",
+        //         "data": {
+        //             "orderID": "d1d09454-cabc-4a23-89a7-59d43363f16d",
+        //             "clOrdID": "309bcd5c-9f6e-4a68-b775-4494542eb5cb",
+        //             "priceEp": 0,
+        //             "action": "New",
+        //             "trigger": "UNSPECIFIED",
+        //             "pegPriceType": "UNSPECIFIED",
+        //             "stopDirection": "UNSPECIFIED",
+        //             "bizError": 0,
+        //             "symbol": "sBTCUSDT",
+        //             "side": "Buy",
+        //             "baseQtyEv": 0,
+        //             "ordType": "Limit",
+        //             "timeInForce": "GoodTillCancel",
+        //             "ordStatus": "Created",
+        //             "cumFeeEv": 0,
+        //             "cumBaseQtyEv": 0,
+        //             "cumQuoteQtyEv": 0,
+        //             "leavesBaseQtyEv": 0,
+        //             "leavesQuoteQtyEv": 0,
+        //             "avgPriceEp": 0,
+        //             "cumBaseAmountEv": 0,
+        //             "cumQuoteAmountEv": 0,
+        //             "quoteQtyEv": 0,
+        //             "qtyType": "ByBase",
+        //             "stopPxEp": 0,
+        //             "pegOffsetValueEp": 0
+        //         }
+        //     }
         //
         // swap
         //
@@ -1547,6 +1780,20 @@ module.exports = class phemex extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         return this.parseOrder (data, market);
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const marketID = market['id'];
+        const method = 'privateDeleteOrdersCancel';
+        try {
+            const response = await this[method] ({ 'orderID': id, 'symbol': marketID });
+            const order = this.parseResponse (response);
+            return this.parseOrder (order, market);
+        } catch (e) {
+            throw new OrderNotFound (this.id + ': The order ' + id + ' not found.');
+        }
     }
 
     async fetchDepositAddress (code, params = {}) {
