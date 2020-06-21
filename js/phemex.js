@@ -17,7 +17,7 @@ module.exports = class phemex extends Exchange {
             'rateLimit': 100,
             'version': 'v1',
             'certified': false,
-            'pro': true,
+            'pro': false,
             'has': {
                 'fetchMarkets': true,
                 'fetchCurrencies': true,
