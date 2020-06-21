@@ -46,6 +46,7 @@ module.exports = class bitclude extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchTickers': true,
+                'fetchTicker': 'emulated',
                 'fetchTrades': true,
                 'fetchTradingFees': false,
                 'fetchWithdrawals': false,
