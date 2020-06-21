@@ -1555,7 +1555,7 @@ module.exports = class phemex extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await this.phemex.privateGetPhemexUserWalletsV2DepositAddress (this.extend (request, params));
+        const response = await this.privateGetPhemexUserWalletsV2DepositAddress (this.extend (request, params));
         //     {
         //         "code":0,
         //         "msg":"OK",
@@ -1567,7 +1567,7 @@ module.exports = class phemex extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const address = this.safeString (data, 'address');
-        const tag = this.safeString (data, 'paymentId');
+        const tag = this.safeString (data, 'tag');
         this.checkAddress (address);
         return {
             'currency': code,
