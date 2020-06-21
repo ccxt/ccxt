@@ -1178,7 +1178,7 @@ class wavesexchange extends Exchange {
         //       "minSponsoredAssetFee" => 7420,
         //       "sponsorBalance" => 47492147189709,
         //       "quantity" => 999999999775381400,
-        //       "issueTransaction" => {
+        //       "$issueTransaction" => {
         //         "senderPublicKey" => "BRnVwSVctnV8pge5vRpsJdWnkjWEJspFb6QvrmZvu3Ht",
         //         "quantity" => 1000000000000000000,
         //         "fee" => 100400000,
@@ -1194,7 +1194,7 @@ class wavesexchange extends Exchange {
         //           "3HNpbVkgP69NWSeb9hGYauiQDaXrRXh3tXFzNsGwsAAXnFrA29SYGbLtziW9JLpXEq7qW1uytv5Fnm5XTUMB2BxU"
         //         ),
         //         "assetId" => "DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p",
-        //         "decimals" => 6,
+        //         "$decimals" => 6,
         //         "name" => "USD-N",
         //         "id" => "DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p",
         //         "$timestamp" => 1574429393962
@@ -1206,11 +1206,18 @@ class wavesexchange extends Exchange {
         $result = array();
         for ($i = 0; $i < count($balances); $i++) {
             $entry = $balances[$i];
+            $issueTransaction = $this->safe_value($entry, 'issueTransaction');
+            $decimals = $this->safe_integer($issueTransaction, 'decimals');
             $currencyId = $this->safe_string($entry, 'assetId');
             $balance = $this->safe_float($entry, 'balance');
-            $code = $this->safe_currency_code($currencyId);
+            $code = null;
+            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
+                $code = $this->safe_currency_code($currencyId);
+            } else {
+                $code = $this->safe_currency_code($this->safe_string($issueTransaction, 'name'));
+            }
             $result[$code] = $this->account();
-            $result[$code]['total'] = $this->currency_from_precision($code, $balance);
+            $result[$code]['total'] = $this->from_wei($balance, $decimals);
         }
         $timestamp = $this->milliseconds();
         $byteArray = array(

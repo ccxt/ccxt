@@ -1143,11 +1143,17 @@ class wavesexchange(Exchange):
         result = {}
         for i in range(0, len(balances)):
             entry = balances[i]
+            issueTransaction = self.safe_value(entry, 'issueTransaction')
+            decimals = self.safe_integer(issueTransaction, 'decimals')
             currencyId = self.safe_string(entry, 'assetId')
             balance = self.safe_float(entry, 'balance')
-            code = self.safe_currency_code(currencyId)
+            code = None
+            if currencyId in self.currencies_by_id:
+                code = self.safe_currency_code(currencyId)
+            else:
+                code = self.safe_currency_code(self.safe_string(issueTransaction, 'name'))
             result[code] = self.account()
-            result[code]['total'] = self.currency_from_precision(code, balance)
+            result[code]['total'] = self.from_wei(balance, decimals)
         timestamp = self.milliseconds()
         byteArray = [
             self.base58_to_binary(self.apiKey),
