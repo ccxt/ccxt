@@ -1210,7 +1210,7 @@ module.exports = class wavesexchange extends Exchange {
             if (currencyId in this.currencies_by_id) {
                 code = this.safeCurrencyCode (currencyId);
             } else {
-                code = this.safeString (issueTransaction, 'name');
+                code = this.safeCurrencyCode (this.safeString (issueTransaction, 'name'));
             }
             result[code] = this.account ();
             result[code]['total'] = this.fromWei (balance, decimals);
