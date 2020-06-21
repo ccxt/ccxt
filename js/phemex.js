@@ -26,6 +26,9 @@ module.exports = class phemex extends Exchange {
                 'fetchTicker': true,
                 'fetchTrades': true,
                 'fetchBalance': true,
+                'createOrder': true,
+                'cancelOrder': true,
+                'fetchDepositAddress': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/83165440-2f1cf200-a116-11ea-9046-a255d09fb2ed.jpg',
@@ -1783,17 +1786,25 @@ module.exports = class phemex extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const marketID = market['id'];
-        const method = 'privateDeleteOrdersCancel';
-        try {
-            const response = await this[method] ({ 'orderID': id, 'symbol': marketID });
-            const order = this.parseResponse (response);
-            return this.parseOrder (order, market);
-        } catch (e) {
-            throw new OrderNotFound (this.id + ': The order ' + id + ' not found.');
+        const request = {
+            'symbol': market['id'],
+        };
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clOrdID');
+        params = this.omit (params, [ 'clientOrderId', 'clOrdID' ]);
+        if (clientOrderId !== undefined) {
+            request['clOrdID'] = clientOrderId;
+        } else {
+            request['orderID'] = id;
         }
+        const method = market['spot'] ? 'privateDeleteSpotOrders' : 'privateDeleteOrdersCancel';
+        const response = await this[method] (this.extend (request, params));
+        const data = this.safeValue (response, 'data', {});
+        return this.parseOrder (data, market);
     }
 
     async fetchDepositAddress (code, params = {}) {
