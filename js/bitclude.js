@@ -397,7 +397,7 @@ module.exports = class bitclude extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'status': undefined, // todo idk maybe open
+            'status': 'open',
             'symbol': market['symbol'],
             'type': type,
             'side': side,
