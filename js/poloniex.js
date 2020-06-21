@@ -503,20 +503,19 @@ module.exports = class poloniex extends Exchange {
         //
         // fetchMyTrades
         //
-        trade =
-            {
-              globalTradeID: 471030550,
-              tradeID: '42582',
-              date: '2020-06-16 09:47:50',
-              rate: '0.000079980000',
-              amount: '75215.00000000',
-              total: '6.01569570',
-              fee: '0.00095000',
-              feeDisplay: '0.26636100 TRX (0.07125%)',
-              orderNumber: '5963454848',
-              type: 'sell',
-              category: 'exchange'
-            }
+        //     {
+        //       globalTradeID: 471030550,
+        //       tradeID: '42582',
+        //       date: '2020-06-16 09:47:50',
+        //       rate: '0.000079980000',
+        //       amount: '75215.00000000',
+        //       total: '6.01569570',
+        //       fee: '0.00095000',
+        //       feeDisplay: '0.26636100 TRX (0.07125%)',
+        //       orderNumber: '5963454848',
+        //       type: 'sell',
+        //       category: 'exchange'
+        //     }
         //
         // createOrder (taker trades)
         //
