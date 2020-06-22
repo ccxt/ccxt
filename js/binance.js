@@ -213,6 +213,7 @@ module.exports = class binance extends Exchange {
                 },
                 'fapiPrivate': {
                     'get': [
+                        'allForceOrders',
                         'allOrders',
                         'openOrder',
                         'openOrders',
