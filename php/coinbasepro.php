@@ -166,6 +166,7 @@ class coinbasepro extends Exchange {
                     'price too small' => '\\ccxt\\InvalidOrder',
                     'price too precise' => '\\ccxt\\InvalidOrder',
                     'under maintenance' => '\\ccxt\\OnMaintenance',
+                    'size is too small' => '\\ccxt\\InvalidOrder',
                 ),
             ),
         ));
