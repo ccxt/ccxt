@@ -955,7 +955,7 @@ class phemex extends Exchange {
         $quoteVolume = $this->from_ep($this->safe_float($ticker, 'turnoverEv'), $market);
         $baseVolume = $this->from_ev($this->safe_float_2($ticker, 'volumeEv', 'volume'), $market);
         $vwap = null;
-        if ($market['spot']) {
+        if (($market !== null) && ($market['spot'])) {
             if (($quoteVolume !== null) && ($baseVolume !== null) && ($baseVolume > 0)) {
                 $vwap = $quoteVolume / $baseVolume;
             }
