@@ -264,7 +264,7 @@ class coinbasepro(Exchange, ccxt.coinbasepro):
                 client.resolve(orderbook, messageHash)
 
     def sign_message(self, client, messageHash, message, params={}):
-        # todo: implement coinbasepro signMessage() via parent sign()
+        # todo: implement signMessage() via parent sign()
         return message
 
     def handle_subscription_status(self, client, message):

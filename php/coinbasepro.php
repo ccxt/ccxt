@@ -288,7 +288,7 @@ class coinbasepro extends \ccxt\coinbasepro {
     }
 
     public function sign_message($client, $messageHash, $message, $params = array ()) {
-        // todo => implement coinbasepro signMessage() via parent sign()
+        // todo => implement signMessage() via parent sign()
         return $message;
     }
 

@@ -77,7 +77,7 @@ class gateio(Exchange, ccxt.gateio):
         return await self.after(future, self.limit_order_book, symbol, limit, params)
 
     def sign_message(self, client, messageHash, message, params={}):
-        # todo: implement gateio signMessage
+        # todo: implement signMessage
         return message
 
     def handle_delta(self, bookside, delta):

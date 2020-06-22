@@ -383,7 +383,7 @@ class kucoin(Exchange, ccxt.kucoin):
             client.resolve(orderbook, messageHash)
 
     def sign_message(self, client, messageHash, message, params={}):
-        # todo: implement kucoin signMessage
+        # todo: implement signMessage
         return message
 
     def handle_order_book_subscription(self, client, message, subscription):

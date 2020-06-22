@@ -447,7 +447,7 @@ class huobipro extends \ccxt\huobipro {
     }
 
     public function sign_message($client, $messageHash, $message, $params = array ()) {
-        // todo => implement huobipro signMessage
+        // todo => implement signMessage
         return $message;
     }
 

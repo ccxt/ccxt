@@ -509,7 +509,7 @@ class kraken extends \ccxt\kraken {
     }
 
     public function sign_message($client, $messageHash, $message, $params = array ()) {
-        // todo => kraken signMessage not implemented yet
+        // todo => signMessage not implemented yet
         return $message;
     }
 

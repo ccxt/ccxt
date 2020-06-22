@@ -270,7 +270,7 @@ class bitstamp(Exchange, ccxt.bitstamp):
         client.resolve(array, channel)
 
     def sign_message(self, client, messageHash, message, params={}):
-        # todo: implement binance signMessage
+        # todo: implement signMessage
         return message
 
     def handle_order_book_subscription(self, client, message, subscription):

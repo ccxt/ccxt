@@ -418,7 +418,7 @@ class kucoin extends \ccxt\kucoin {
     }
 
     public function sign_message($client, $messageHash, $message, $params = array ()) {
-        // todo => implement kucoin signMessage
+        // todo => implement signMessage
         return $message;
     }
 
