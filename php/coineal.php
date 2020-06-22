@@ -6,6 +6,8 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use \ccxt\ExchangeError;
+use \ccxt\ArgumentsRequired;
 use \ccxt\InvalidOrder;
 
 class coineal extends Exchange {
@@ -27,6 +29,13 @@ class coineal extends Exchange {
                 'fetchMyTrades' => true,
                 'fetchOpenOrders' => true,
                 'fetchBalance' => true,
+                'fetchOrder' => true,
+                'fetchClosedOrders' => true,
+                'fetchTicker' => true,
+            ),
+            'timeframes' => array(
+                '1m' => '1',
+                '1d' => '1440',
             ),
             'urls' => array(
                 'api' => array(
@@ -42,6 +51,7 @@ class coineal extends Exchange {
                         'open/api/get_records',
                         'open/api/market_dept',
                         'open/api/get_trades',
+                        'open/api/get_ticker',
                     ),
                 ),
                 'private' => array(
@@ -49,12 +59,51 @@ class coineal extends Exchange {
                         'open/api/all_trade',
                         'open/api/new_order',
                         'open/api/user/account',
+                        'open/api/order_info',
                     ),
                     'post' => array(
                         'open/api/create_order',
                         'open/api/cancel_order',
                     ),
                 ),
+            ),
+            'exceptions' => array(
+                '5' => '\\ccxt\\InvalidOrder',
+                '6' => '\\ccxt\\InvalidOrder',
+                '7' => '\\ccxt\\InvalidOrder',
+                '8' => '\\ccxt\\InvalidOrder',
+                '19' => '\\ccxt\\InsufficientFunds',
+                '22' => '\\ccxt\\OrderNotFound',
+                '23' => '\\ccxt\\ArgumentsRequired',
+                '24' => '\\ccxt\\ArgumentsRequired',
+                '100004' => '\\ccxt\\BadRequest',
+                '100005' => '\\ccxt\\BadRequest',
+                '100007' => '\\ccxt\\AuthenticationError',
+                '110002' => '\\ccxt\\BadSymbol',
+                '110005' => '\\ccxt\\InsufficientFunds',
+                '110032' => '\\ccxt\\AuthenticationError',
+            ),
+            'errorMessages' => array(
+                '5' => 'Order Failed',
+                '6' => 'Exceed the minimum volume requirement',
+                '7' => 'Exceed the maximum volume requirement',
+                '8' => 'Order cancellation failed',
+                '9' => 'The transaction is frozen',
+                '13' => 'Sorry, the program has a system error, please contact the webmaster',
+                '19' => 'Insufficient balance available',
+                '22' => 'Order does not exist',
+                '23' => 'Missing transaction quantity parameter',
+                '24' => 'Missing transaction price parameter',
+                '25' => 'Quantity Precision Error',
+                '100001' => 'System error',
+                '100002' => 'System upgrade',
+                '100004' => 'Parameter request is invalid',
+                '100005' => 'Parameter signature error',
+                '100007' => 'Unathorized IP',
+                '110002' => 'Unknown currency code',
+                '110005' => 'Insufficient balance available',
+                '110025' => 'Account locked by background administrator',
+                '110032' => 'This user is not athorized to do this',
             ),
         ));
     }
@@ -63,12 +112,6 @@ class coineal extends Exchange {
         $url = $this->urls['api'][$api];
         $url .= '/' . $path;
         $query = $this->omit ($params, $this->extract_params($path));
-        if ($api === 'public') {
-            // Case When Public $method and has QueryParams
-            if ($query) {
-                $url .= '?' . $this->urlencode ($query);
-            }
-        }
         if ($api === 'private') {
             $content = '';
             $query['api_key'] = $this->apiKey;
@@ -81,24 +124,16 @@ class coineal extends Exchange {
             $signature = $content . $this->secret;
             $hash = $this->hash ($this->encode ($signature), 'md5');
             $query['sign'] = $hash;
-            if ($method === 'GET') {
-                if ($query) {
-                    // Api Key need to be binded
-                    $url .= '?' . $this->urlencode ($query);
-                }
-            }
             if ($method === 'POST') {
-                $body = $this->json ($query);
                 $headers = array(
                     'Content-Type' => 'application/x-www-form-urlencoded',
                 );
             }
         }
+        if ($query) {
+            $url .= '?' . $this->urlencode ($query);
+        }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
-    }
-
-    public function normalize_symbol ($symbol) {
-        return strtolower(str_replace('/', '', $symbol));
     }
 
     public function fetch_markets ($params = array ()) {
@@ -131,7 +166,7 @@ class coineal extends Exchange {
                 'amount' => $this->safe_integer($market, 'amount_precision'),
                 'price' => $this->safe_integer($market, 'price_precision'),
             );
-            $active = true; // Assuemed If true than only query will return $result
+            $active = true;
             $entry = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -162,7 +197,7 @@ class coineal extends Exchange {
         return $result;
     }
 
-    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '5m', $since = null, $limit = null) {
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
         return [
             $ohlcv[0] * 1000,
             floatval ($ohlcv[1]),
@@ -173,13 +208,12 @@ class coineal extends Exchange {
         ];
     }
 
-    public function fetch_ohlcv ($symbol = 'BTC/USDT', $timeframe = 1, $params = array (), $since = null, $limit = null) {
+    public function fetch_ohlcv ($symbol = 'BTC/USDT', $timeframe = '1m', $params = array (), $since = null, $limit = null) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $updatedSymbol = $this->normalize_symbol ($symbol);
         $request = array(
-            'symbol' => $updatedSymbol,
-            'period' => $timeframe,
+            'symbol' => $market['id'],
+            'period' => $this->timeframes[$timeframe],
         );
         $response = $this->publicGetOpenApiGetRecords (array_merge($request, $params));
         // Exchange $response
@@ -202,11 +236,10 @@ class coineal extends Exchange {
 
     public function fetch_order_book ($symbol = 'BTC/USDT', $limit = null, $params = array ()) {
         $this->load_markets();
-        $updatedSymbol = $this->normalize_symbol ($symbol);
-        $type = 'step0';
+        $market = $this->market ($symbol);
         $request = array(
-            'symbol' => $updatedSymbol,
-            'type' => $type,
+            'symbol' => $market['id'],
+            'type' => 'step0',
         );
         $response = $this->publicGetOpenApiMarketDept (array_merge($request, $params));
         // Exchange $response
@@ -246,11 +279,94 @@ class coineal extends Exchange {
         return $this->parse_order_book($detailData, $this->safe_value($detailData, 'time'));
     }
 
+    public function parse_ticker ($ticker, $market = null) {
+        $timestamp = $this->safe_integer($ticker, 'time');
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
+        $last = $this->safe_float($ticker, 'last');
+        return array(
+            'symbol' => $symbol,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => $this->safe_float($ticker, 'high'),
+            'low' => $this->safe_float($ticker, 'low'),
+            'bid' => null,
+            'bidVolume' => null,
+            'ask' => null,
+            'askVolume' => null,
+            'vwap' => null,
+            'open' => null,
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => $this->safe_float($ticker, 'vol'),
+            'quoteVolume' => null,
+            'info' => $ticker,
+        );
+    }
+
+    public function fetch_ticker ($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->publicGetOpenApiGetTicker (array_merge($request));
+        // {
+        //     "code" => "0",
+        //     "msg" => "suc",
+        //     "data" => {
+        //         "high" => 6796.63,
+        //         "vol" => 2364.85442742,
+        //         "last" => 6722.37,
+        //         "low" => 6399.28,
+        //         "buy" => "6721.56",
+        //         "sell" => "6747.47",
+        //         "time" => 1529406706715
+        //     }
+        // }
+        $result = $this->safe_value($response, 'data');
+        return $this->parse_ticker($result, $market);
+    }
+
     public function parse_trade ($trade, $market = null) {
+        // Fetch My Trades Object
+        //             {
+        //                 "volume" => "1.000",
+        //                 "$side" => "BUY",
+        //                 "$price" => "0.10000000",
+        //                 "$fee" => "0.16431104",
+        //                 "ctime" => 1510996571195,
+        //                 "deal_price" => "0.10000000",
+        //                 "id" => 306,
+        //                 "type" => "买入"
+        //             }
+        // Fetch Trades Object
+        //         {
+        //             "$amount" => 0.99583,
+        //             "trade_time" => 1529408112000,
+        //             "$price" => 6763.9,
+        //             "id" => 280101,
+        //             "type" => "sell"
+        //         }
         $timestamp = $this->safe_string($trade, 'trade_time');
+        if ($timestamp === null) {
+            $timestamp = $this->safe_string($trade, 'ctime');
+        }
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
-        $symbol = $this->safe_string($market, 'symbol');
+        if ($amount === null) {
+            $amount = $this->safe_float($trade, 'volume');
+        }
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $this->safe_string($market, 'symbol');
+        }
         $cost = null;
         if ($price !== null) {
             if ($amount !== null) {
@@ -258,7 +374,18 @@ class coineal extends Exchange {
             }
         }
         $tradeId = $this->safe_string($trade, 'id');
-        $side = $this->safe_string($trade, 'type');
+        $side = $this->safe_string($trade, 'side');
+        if ($side === null) {
+            $side = $this->safe_string($trade, 'type');
+        }
+        $feecost = $this->safe_float($trade, 'fee');
+        $fee = null;
+        if ($feecost !== null) {
+            $fee = array(
+                'cost' => $feecost,
+                'currency' => $this->safe_string($trade, 'feeCoin'),
+            );
+        }
         return array(
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -272,16 +399,15 @@ class coineal extends Exchange {
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
-            'fee' => null,
+            'fee' => $fee,
         );
     }
 
     public function fetch_trades ($symbol = 'BTC/USDT', $params = array (), $since = null, $limit = null) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $updatedSymbol = $this->normalize_symbol ($symbol);
         $request = array(
-            'symbol' => $updatedSymbol,
+            'symbol' => $market['id'],
         );
         $response = $this->publicGetOpenApiGetTrades (array_merge($request, $params));
         // Exchange $response
@@ -303,64 +429,80 @@ class coineal extends Exchange {
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = null) {
         $this->load_markets();
-        $updatePrice = $price;
-        if ($type === '2') {
-            $updatePrice = $this->price_to_precision($symbol, $price);
-        }
-        $updatedSymbol = $this->normalize_symbol ($symbol);
+        $market = $this->market ($symbol);
         $request = array(
-            'time' => $this->ymdhms ($this->milliseconds ()),
-            'symbol' => $updatedSymbol,
-            'side' => $side,
-            'type' => $type,
-            'price' => $updatePrice,
+            'time' => (string) $this->milliseconds (),
+            'symbol' => $market['id'],
+            'side' => strtoupper($side),
             'volume' => $amount,
-            // Work In Progress
         );
-        $respose = $this->privatePostOpenApiCreateOrder (array_merge($request, $params));
-        // Exchange response
+        if ($type === 'limit') {
+            $request['type'] = '1';
+            $request['price'] = $this->price_to_precision($symbol, $price);
+        } else {
+            $request['type'] = '2';
+            if (strtoupper($side) === 'BUY') {
+                $currentSymbolDetail = $this->fetch_ticker($symbol);
+                $currentPrice = $this->safe_float($currentSymbolDetail, 'last');
+                if ($currentPrice === null) {
+                    throw new InvalidOrder('Provide correct Symbol');
+                }
+                $request['volume'] = $this->cost_to_precision($symbol, $amount * $currentPrice);
+            }
+        }
+        $response = $this->privatePostOpenApiCreateOrder (array_merge($request, $params));
+        // Exchange $response
         // {
-        //     "code" => "0",
+        //     "$code" => "0",
         //     "msg" => "suc",
         //     "data" => {
         //         "order_id" => 34343
         //     }
         // }
-        if ($respose['msg'] !== 'suc') {
-            throw new InvalidOrder($respose['msg'] . ' order was rejected by the exchange ' . $this->json ($respose));
+        $code = $this->safe_string($response, 'code');
+        if ($code !== '0') {
+            throw new InvalidOrder($response['msg'] . ' ' . $this->json ($response));
         }
-        return $respose;
+        $result = $this->safe_value($response, 'data');
+        return $this->fetch_order($this->safe_string($result, 'order_id'), $symbol);
     }
 
-    public function cancel_order ($id, $symbol = 'BTC/USDT', $params = array ()) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' CancelOrder requires a $symbol argument');
+        }
         $this->load_markets();
-        $updatedSymbol = $this->normalize_symbol ($symbol);
+        $market = $this->market ($symbol);
         $request = array(
-            'symbol' => $updatedSymbol,
+            'symbol' => $market['id'],
             'order_id' => $id,
-            'time' => $this->ymdhms ($this->milliseconds ()),
-            // Work In Progress
+            'time' => $this->milliseconds (),
         );
         $response = $this->privatePostOpenApiCancelOrder (array_merge($request, $params));
         // Exchange $response
         // {
-        //     "code" => "0",
+        //     "$code" => "0",
         //     "msg" => "suc",
         //     "data" => array()
         // }
-        return $response;
+        $code = $this->safe_string($response, 'code');
+        if ($code !== '0') {
+            throw new InvalidOrder($response['msg'] . ' ' . $this->json ($response));
+        }
+        return $this->fetch_order($id, $symbol);
     }
 
-    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades ($symbol = null, $since = null, $limit = 100, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a $symbol argument');
+        }
         $this->load_markets();
-        $updatedSymbol = $this->normalize_symbol ($symbol);
+        $market = $this->market ($symbol);
         $request = array(
-            'symbol' => $updatedSymbol,
-            'time' => $this->ymdhms ($this->milliseconds ()),
-            'page' => '',
-            'pageSize' => '',
-            'sign' => '',
-            // Work In Progress
+            'symbol' => $market['id'],
+            'time' => $this->milliseconds (),
+            'page' => 1,
+            'pageSize' => $limit,
         );
         $response = $this->privateGetOpenApiAllTrade (array_merge($request, $params));
         // Exchange $response
@@ -383,21 +525,137 @@ class coineal extends Exchange {
         //         )
         //     }
         // }
-        return $response;
+        $result = $this->safe_value($response, 'data');
+        return $this->parse_trades($this->safe_value($result, 'resultList'), $market, $since, $limit);
     }
 
-    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
-        $updatedSymbol = $this->normalize_symbol ($symbol);
-        $request = array(
-            'symbol' => $updatedSymbol,
-            'time' => $this->ymdhms ($this->milliseconds ()),
-            'page' => '',
-            'pageSize' => '',
-            'sign' => '',
-            // Work In Progress
+    public function parse_order_status ($status) {
+        $statuses = array(
+            '0' => 'Historical Order Unsuccessful',
+            '1' => 'Open',
+            '2' => 'Closed',
+            '3' => 'Open',
+            '4' => 'Cancelled',
+            '5' => 'Cancelling',
+            '6' => 'Abnormal Orders',
         );
-        $response = $this->privateGetOpenApiNewOrder (array_merge($request, $params));
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_order ($order, $market = null) {
+        $status = $this->parse_order_status($this->safe_string($order, 'status'));
+        $symbol = null;
+        $baseId = $this->safe_string($order, 'baseCoin');
+        $quoteId = $this->safe_string($order, 'countCoin');
+        $base = $this->safe_currency_code($baseId); // unified
+        $quote = $this->safe_currency_code($quoteId);
+        if ($base !== null) {
+            if ($quote !== null) {
+                $symbol = $base . '/' . $quote;
+            }
+        }
+        $timestamp = $this->safe_string($order, 'created_at');
+        $price = $this->safe_float($order, 'price');
+        $filled = $this->safe_float($order, 'deal_volume');
+        $remaining = $this->safe_float($order, 'remain_volume');
+        $amount = $this->safe_float($order, 'volume');
+        $id = $this->safe_string($order, 'order_id');
+        if ($id === null) {
+            $id = $this->safe_string($order, 'id');
+        }
+        $side = $this->safe_string($order, 'side');
+        $cost = null;
+        $type = null;
+        if ($filled !== null) {
+            if ($price !== null) {
+                $cost = $filled * $price;
+            }
+        }
+        $typeId = $this->safe_integer($order, 'type');
+        if ($typeId !== null) {
+            if ($typeId === 1) {
+                $type = 'limit';
+            } else {
+                $type = 'market';
+            }
+        }
+        $trades = $this->safe_value($order, 'tradeList');
+        $fee = null;
+        $average = $this->safe_float($order, 'avg_price');
+        if ($trades !== null) {
+            $trades = $this->parse_trades($trades, $market);
+            $feeCost = null;
+            $numTrades = is_array($trades) ? count($trades) : 0;
+            for ($i = 0; $i < $numTrades; $i++) {
+                if ($feeCost === null) {
+                    $feeCost = 0;
+                }
+                $tradeFee = $this->safe_float($trades[$i], 'fee');
+                if ($tradeFee !== null) {
+                    $feeCost = $this->sum ($feeCost, $tradeFee);
+                }
+            }
+            $feeCurrency = null;
+            if ($market !== null) {
+                $feeCurrency = $market['quote'];
+            }
+            if ($feeCost !== null) {
+                $fee = array(
+                    'cost' => $feeCost,
+                    'currency' => $feeCurrency,
+                );
+            }
+        }
+        return array(
+            'info' => $order,
+            'id' => $id,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => null,
+            'symbol' => $symbol,
+            'type' => $type,
+            'side' => $side,
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $cost,
+            'average' => $average,
+            'filled' => $filled,
+            'remaining' => $remaining,
+            'status' => $status,
+            'fee' => $fee,
+            'trades' => $trades,
+        );
+    }
+
+    public function fetch_common_orders ($symbol, $limit, $params) {
+        $request = array(
+            'symbol' => $symbol,
+            'time' => $this->milliseconds (),
+            'page' => 1,
+            'pageSize' => $limit,
+        );
+        return $this->privateGetOpenApiNewOrder (array_merge($request, $params));
+    }
+
+    public function fetch_closed_orders ($symbol = null, $since = null, $limit = 100, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' FetchOpenOrder requires a $symbol argument');
+        }
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $response = $this->fetch_common_orders ($market['id'], $limit, $params);
+        $result = $this->safe_value($response, 'data');
+        $closedOrdered = $this->filter_by($this->safe_value($result, 'resultList', array()), 'status', 2);
+        return $this->parse_orders($closedOrdered, $market, $since, $limit);
+    }
+
+    public function fetch_open_orders ($symbol = 'null', $since = null, $limit = 100, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' FetchOpenOrder requires a $symbol argument');
+        }
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $response = $this->fetch_common_orders ($market['id'], $limit, $params);
         // Exchange $response
         // {
         //     "code" => "0",
@@ -458,6 +716,75 @@ class coineal extends Exchange {
         //         )
         //     }
         // }
-        return $response;
+        $result = $this->safe_value($response, 'data');
+        $ordered = $this->filter_by($this->safe_value($result, 'resultList', array()), 'status', 1);
+        $partialOrdered = $this->filter_by($this->safe_value($result, 'resultList', array()), 'status', 3);
+        $allOrders = $this->array_concat($ordered, $partialOrdered);
+        return $this->parse_orders($allOrders, $market, $since, $limit);
+    }
+
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' FetchOrder requires a $symbol argument');
+        }
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+            'time' => ($this->milliseconds ()),
+            'order_id' => $id,
+        );
+        $response = $this->privateGetOpenApiOrderInfo (array_merge($request, $params));
+        $result = $this->safe_value($response, 'data');
+        return $this->parse_order($this->safe_value($result, 'order_info', array()));
+    }
+
+    public function fetch_balance ($params = array ()) {
+        $this->load_markets();
+        $request = array(
+            'time' => $this->milliseconds (),
+        );
+        $response = $this->privateGetOpenApiUserAccount (array_merge($request, $params));
+        $result = array( 'info' => $response );
+        $resultData = $this->safe_value($response, 'data');
+        $balances = $this->safe_value($resultData, 'coin_list');
+        for ($i = 0; $i < count($balances); $i++) {
+            $balance = $balances[$i];
+            $currencyId = $this->safe_string($balance, 'coin');
+            $code = $this->safe_currency_code($currencyId);
+            $account = array(
+                'free' => $this->safe_float($balance, 'normal'),
+                'used' => $this->safe_float($balance, 'locked'),
+                // 'total' => $this->safe_float($balance, 'balance'),
+            );
+            $result[$code] = $account;
+        }
+        return $this->parse_balance($result);
+    }
+
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+        if ($response === null) {
+            return;
+        }
+        // EndPoints Result common pattern
+        // {
+        //     "$code" : "code_id",
+        //     "msg" : "",
+        //     "data" : array()
+        // }
+        $errorCode = $this->safe_string($response, 'code');
+        if ($errorCode === '0') {
+            // success
+            return;
+        }
+        $errorMessages = $this->errorMessages;
+        $message = null;
+        $message = $this->safe_string($response, 'msg');
+        if ($message === null) {
+            $message = $this->safe_string($errorMessages, $errorCode, 'Unknown Error');
+        }
+        $feedback = $this->id . ' ' . $message;
+        $this->throw_exactly_matched_exception($this->exceptions, $errorCode, $feedback);
+        throw new ExchangeError($feedback);
     }
 }
