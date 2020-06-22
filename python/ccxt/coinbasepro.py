@@ -15,6 +15,7 @@ import base64
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
@@ -173,6 +174,8 @@ class coinbasepro(Exchange):
                     'Invalid Passphrase': AuthenticationError,
                     'Invalid order id': InvalidOrder,
                     'Private rate limit exceeded': RateLimitExceeded,
+                    'Trading pair not available': PermissionDenied,
+                    'Product not found': InvalidOrder,
                 },
                 'broad': {
                     'Order already done': OrderNotFound,
