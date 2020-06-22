@@ -414,7 +414,7 @@ module.exports = class kucoin extends ccxt.kucoin {
     }
 
     signMessage (client, messageHash, message, params = {}) {
-        // todo: implement kucoin signMessage
+        // todo: implement signMessage
         return message;
     }
 

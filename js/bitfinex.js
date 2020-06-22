@@ -390,7 +390,7 @@ module.exports = class bitfinex extends ccxt.bitfinex {
     }
 
     signMessage (client, messageHash, message, params = {}) {
-        // todo: bitfinex signMessage not implemented yet
+        // todo: signMessage not implemented yet
         return message;
     }
 

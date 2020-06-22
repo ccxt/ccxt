@@ -76,7 +76,7 @@ module.exports = class gateio extends ccxt.gateio {
     }
 
     signMessage (client, messageHash, message, params = {}) {
-        // todo: implement gateio signMessage
+        // todo: implement signMessage
         return message;
     }
 

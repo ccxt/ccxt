@@ -294,7 +294,7 @@ module.exports = class bitstamp extends ccxt.bitstamp {
     }
 
     signMessage (client, messageHash, message, params = {}) {
-        // todo: implement binance signMessage
+        // todo: implement signMessage
         return message;
     }
 

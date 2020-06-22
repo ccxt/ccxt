@@ -346,7 +346,7 @@ module.exports = class hitbtc extends ccxt.hitbtc {
     }
 
     signMessage (client, messageHash, message, params = {}) {
-        // todo: implement hitbtc signMessage
+        // todo: implement signMessage
         return message;
     }
 

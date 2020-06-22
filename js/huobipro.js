@@ -444,7 +444,7 @@ module.exports = class huobipro extends ccxt.huobipro {
     }
 
     signMessage (client, messageHash, message, params = {}) {
-        // todo: implement huobipro signMessage
+        // todo: implement signMessage
         return message;
     }
 
