@@ -161,6 +161,7 @@ module.exports = class coinbasepro extends Exchange {
                     'price too small': InvalidOrder,
                     'price too precise': InvalidOrder,
                     'under maintenance': OnMaintenance,
+                    'size is too small': InvalidOrder,
                 },
             },
         });
