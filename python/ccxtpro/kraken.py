@@ -467,7 +467,7 @@ class kraken(Exchange, ccxt.kraken):
         return True
 
     def sign_message(self, client, messageHash, message, params={}):
-        # todo: kraken signMessage not implemented yet
+        # todo: signMessage not implemented yet
         return message
 
     def handle_message(self, client, message):

@@ -317,7 +317,7 @@ class hitbtc(Exchange, ccxt.hitbtc):
         return message
 
     def sign_message(self, client, messageHash, message, params={}):
-        # todo: implement hitbtc signMessage
+        # todo: implement signMessage
         return message
 
     def handle_notification(self, client, message):

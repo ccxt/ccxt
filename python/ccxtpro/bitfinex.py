@@ -362,7 +362,7 @@ class bitfinex(Exchange, ccxt.bitfinex):
         return message
 
     def sign_message(self, client, messageHash, message, params={}):
-        # todo: bitfinex signMessage not implemented yet
+        # todo: signMessage not implemented yet
         return message
 
     async def authenticate(self):

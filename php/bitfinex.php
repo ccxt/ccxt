@@ -394,7 +394,7 @@ class bitfinex extends \ccxt\bitfinex {
     }
 
     public function sign_message($client, $messageHash, $message, $params = array ()) {
-        // todo => bitfinex signMessage not implemented yet
+        // todo => signMessage not implemented yet
         return $message;
     }
 

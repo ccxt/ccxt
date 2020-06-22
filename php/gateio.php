@@ -80,7 +80,7 @@ class gateio extends \ccxt\gateio {
     }
 
     public function sign_message($client, $messageHash, $message, $params = array ()) {
-        // todo => implement gateio signMessage
+        // todo => implement signMessage
         return $message;
     }
 
