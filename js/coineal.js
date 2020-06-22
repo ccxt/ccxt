@@ -26,7 +26,11 @@ module.exports = class coineal extends Exchange {
                 'fetchTicker': true,
             },
             'timeframes': {
-                '1m': '1',
+                '1m': '1', // default
+                '5m': '5',
+                '15m': '15',
+                '30m': '30',
+                '1h': '60',
                 '1d': '1440',
             },
             'urls': {
