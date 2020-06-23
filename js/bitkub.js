@@ -252,7 +252,7 @@ module.exports = class bitkub extends Exchange {
         for (let i = 0; i < keys.length; i++) {
             const market = this.safeValue (this.markets_by_id, keys[i]);
             tickers.push (this.parseTicker (response[keys[i]], market));
-        return this.filterByArray (tickers, 'symbol', symbols);
+            return this.filterByArray (tickers, 'symbol', symbols);
         }
     }
 
