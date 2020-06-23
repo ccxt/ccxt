@@ -1162,12 +1162,15 @@ class phemex extends Exchange {
         $orderId = null;
         $takerOrMaker = null;
         if (gettype($trade) === 'array' && count(array_filter(array_keys($trade), 'is_string')) == 0) {
+            $tradeLength = is_array($trade) ? count($trade) : 0;
             $timestamp = $this->safe_integer_product($trade, 0, 0.000001);
-            $id = $this->safe_string($trade, 1);
-            $side = $this->safe_string_lower($trade, 2);
+            if ($tradeLength > 4) {
+                $id = $this->safe_string($trade, $tradeLength - 4);
+            }
+            $side = $this->safe_string_lower($trade, $tradeLength - 3);
             if ($market !== null) {
-                $price = $this->from_ep($this->safe_float($trade, 3), $market);
-                $amount = $this->from_ev($this->safe_float($trade, 4), $market);
+                $price = $this->from_ep($this->safe_float($trade, $tradeLength - 2), $market);
+                $amount = $this->from_ev($this->safe_float($trade, $tradeLength - 1), $market);
                 if ($market['spot']) {
                     if (($price !== null) && ($amount !== null)) {
                         $cost = $price * $amount;
