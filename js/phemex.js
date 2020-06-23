@@ -1167,7 +1167,7 @@ module.exports = class phemex extends Exchange {
             side = this.safeStringLower (trade, tradeLength - 3);
             if (market !== undefined) {
                 price = this.fromEp (this.safeFloat (trade, tradeLength - 2), market);
-                amount = this.fromEv (this.safeFloat (trade, 4), tradeLength - 1);
+                amount = this.fromEv (this.safeFloat (trade, tradeLength - 1), market);
                 if (market['spot']) {
                     if ((price !== undefined) && (amount !== undefined)) {
                         cost = price * amount;
