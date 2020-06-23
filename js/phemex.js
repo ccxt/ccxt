@@ -1159,12 +1159,15 @@ module.exports = class phemex extends Exchange {
         let orderId = undefined;
         let takerOrMaker = undefined;
         if (Array.isArray (trade)) {
+            const tradeLength = trade.length;
             timestamp = this.safeIntegerProduct (trade, 0, 0.000001);
-            id = this.safeString (trade, 1);
-            side = this.safeStringLower (trade, 2);
+            if (tradeLength > 4) {
+                id = this.safeString (trade, tradeLength - 4);
+            }
+            side = this.safeStringLower (trade, tradeLength - 3);
             if (market !== undefined) {
-                price = this.fromEp (this.safeFloat (trade, 3), market);
-                amount = this.fromEv (this.safeFloat (trade, 4), market);
+                price = this.fromEp (this.safeFloat (trade, tradeLength - 2), market);
+                amount = this.fromEv (this.safeFloat (trade, 4), tradeLength - 1);
                 if (market['spot']) {
                     if ((price !== undefined) && (amount !== undefined)) {
                         cost = price * amount;
