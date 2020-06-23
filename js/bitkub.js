@@ -188,17 +188,28 @@ module.exports = class bitkub extends Exchange {
         return this.parseOrderBook (orderbook, timestamp * 1000, 'bids', 'asks', 3, 4);
     }
 
-    async fetchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'sym': market['id'],
-        };
-        const response = await this.publicGetApiMarketTicker (this.extend (request, params));
+    parseTicker (ticker, market = undefined) {
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
         const timestamp = this.milliseconds ();
-        const ticker = response[market['id']];
-        const open = this.safeFloat (ticker, 'last') - this.safeFloat (ticker, 'change');
-        const average = parseFloat (this.sum (this.safeFloat (ticker, 'last'), open) / 2);
+        const last = this.safeFloat (ticker, 'last');
+        const change = this.safeFloat (ticker, 'change');
+        let open = undefined;
+        let average = undefined;
+        if ((last !== undefined) && (change !== undefined)) {
+            open = last - change;
+            average = (last + open) / 2;
+        }
+        const baseVolume = this.safeFloat (ticker, 'baseVolume');
+        const quoteVolume = this.safeFloat (ticker, 'quoteVolume');
+        let vwap = undefined;
+        if (quoteVolume !== undefined) {
+            if ((baseVolume !== undefined) && (baseVolume > 0)) {
+                vwap = quoteVolume / baseVolume;
+            }
+        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -209,55 +220,39 @@ module.exports = class bitkub extends Exchange {
             'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'lowestAsk'),
             'askVolume': undefined,
-            'vwap': undefined,
+            'vwap': vwap,
             'open': open,
-            'close': this.safeFloat (ticker, 'last'),
-            'last': this.safeFloat (ticker, 'last'),
+            'close': last,
+            'last': last,
             'previousClose': this.safeFloat (ticker, 'prevClose'),
-            'change': this.safeFloat (ticker, 'change'),
+            'change': change,
             'percentage': this.safeFloat (ticker, 'percentChange'),
             'average': average,
-            'baseVolume': this.safeFloat (ticker, 'baseVolume'),
-            'quoteVolume': this.safeFloat (ticker, 'quoteVolume'),
-            'info': response,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
+            'info': ticker,
         };
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'sym': market['id'],
+        };
+        const response = await this.publicGetApiMarketTicker (this.extend (request, params));
+        return this.parseTicker (this.safeValue (response, market['id']), market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.publicGetApiMarketTicker (params);
-        const timestamp = this.milliseconds ();
-        const result = {};
-        for (let i = 0; i < symbols.length; i++) {
-            const market = this.market (symbols[i]);
-            const ticker = response[market['id']];
-            const open = this.safeFloat (ticker, 'last');
-            const average = parseFloat (this.sum (this.safeFloat (ticker, 'last'), open) / 2);
-            result[symbols[i]] = {
-                'symbol': symbols[i],
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-                'high': this.safeFloat (ticker, 'high24hr'),
-                'low': this.safeFloat (ticker, 'low24hr'),
-                'bid': this.safeFloat (ticker, 'highestBid'),
-                'bidVolume': undefined,
-                'ask': this.safeFloat (ticker, 'lowestAsk'),
-                'askVolume': undefined,
-                'vwap': undefined,
-                'open': open,
-                'close': this.safeFloat (ticker, 'last'),
-                'last': this.safeFloat (ticker, 'last'),
-                'previousClose': this.safeFloat (ticker, 'prevClose'),
-                'change': this.safeFloat (ticker, 'change'),
-                'percentage': this.safeFloat (ticker, 'percentage'),
-                'average': average,
-                'baseVolume': this.safeFloat (ticker, 'baseVolume'),
-                'quoteVolume': this.safeFloat (ticker, 'quoteVolume'),
-                'info': ticker,
-            };
-        }
-        // result['info'] = response;
-        return result;
+        const keys = Object.keys (response);
+        const tickers = [];
+        for (let i = 0; i < keys.length; i++) {
+            const market = this.safeValue (this.markets_by_id, keys[i]);
+            tickers.push (this.parseTicker (response[keys[i]], market));
+        return this.filterByArray (tickers, 'symbol', symbols);
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -281,7 +276,7 @@ module.exports = class bitkub extends Exchange {
         const length = objOHLCV.length;
         const result = [];
         for (let i = 0; i < length; i++) {
-            const ts = ohlcv['t'][i];
+            const ts = this.safeTimestamp (ohlcv['t'], i);
             const open = ohlcv['o'][i];
             const high = ohlcv['h'][i];
             const low = ohlcv['l'][i];
