@@ -31,7 +31,7 @@ module.exports = class phemex extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
-                'fetchOpenOrdrs': true,
+                'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchMyTrades': true,
             },
