@@ -248,12 +248,15 @@ module.exports = class bitkub extends Exchange {
         await this.loadMarkets ();
         const response = await this.publicGetApiMarketTicker (params);
         const keys = Object.keys (response);
-        const tickers = [];
+        let tickers = [];
+        let market = undefined;
         for (let i = 0; i < keys.length; i++) {
-            const market = this.safeValue (this.markets_by_id, keys[i]);
-            tickers.push (this.parseTicker (response[keys[i]], market));
-            return this.filterByArray (tickers, 'symbol', symbols);
+            market = this.safeValue(this.markets_by_id, keys[i]);
+            if (market !== undefined) {
+                tickers.push(this.parseTicker(response[keys[i]], market));
+            }
         }
+        return this.filterByArray (tickers, 'symbol', symbols);
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
