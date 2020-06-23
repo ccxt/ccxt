@@ -33,7 +33,7 @@ class phemex(Exchange):
             'rateLimit': 100,
             'version': 'v1',
             'certified': False,
-            'pro': False,
+            'pro': True,
             'has': {
                 'fetchMarkets': True,
                 'fetchCurrencies': True,

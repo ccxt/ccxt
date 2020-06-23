@@ -20,7 +20,7 @@ class phemex extends Exchange {
             'rateLimit' => 100,
             'version' => 'v1',
             'certified' => false,
-            'pro' => false,
+            'pro' => true,
             'has' => array(
                 'fetchMarkets' => true,
                 'fetchCurrencies' => true,
