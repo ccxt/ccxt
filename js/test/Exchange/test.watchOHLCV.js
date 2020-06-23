@@ -59,7 +59,6 @@ module.exports = async (exchange, symbol) => {
 
             response = response.map ((ohlcv) => [
                 exchange.iso8601 (ohlcv[0]),
-                symbol,
                 ohlcv[1],
                 ohlcv[2],
                 ohlcv[3],
@@ -68,7 +67,7 @@ module.exports = async (exchange, symbol) => {
             ])
 
             if (response.length > 0) {
-                log (exchange.iso8601 (now), exchange.id, symbol, JSON.stringify (response[response.length - 1]))
+                log (exchange.iso8601 (now), exchange.id, timeframe, symbol, JSON.stringify (response[response.length - 1]))
             }
 
         } catch (e) {

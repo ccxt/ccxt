@@ -6,7 +6,7 @@ const fs = require ('fs')
     , ccxtpro = require (__dirname + '/../../ccxt.pro.js')
 
 const [processPath, , exchangeId, exchangeSymbol] = process.argv.filter (x => !x.startsWith ('--'))
-let verbose = process.argv.includes ('--verbose') || false
+const verbose = process.argv.includes ('--verbose') || false
 
 // ----------------------------------------------------------------------------
 
@@ -15,7 +15,8 @@ if (!exchangeId) {
     process.exit ()
 }
 
-log.bright ('\nTESTING', { exchangeId, symbol: exchangeSymbol || 'all' }, '\n')
+const symbol = exchangeSymbol || 'all'
+log.bright ('\nTESTING', { exchangeId, symbol }, '\n')
 
 // ----------------------------------------------------------------------------
 
@@ -83,7 +84,7 @@ if (settings) {
 Object.assign (exchange, settings)
 
 if (settings && settings.skip) {
-    log.error.bright ('[Skipped]', { exchange: exchangeId, symbol: exchangeSymbol || 'all' })
+    log.error.bright ('[Skipped]', { exchangeId, symbol })
     process.exit ()
 }
 
