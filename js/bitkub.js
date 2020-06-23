@@ -248,12 +248,12 @@ module.exports = class bitkub extends Exchange {
         await this.loadMarkets ();
         const response = await this.publicGetApiMarketTicker (params);
         const keys = Object.keys (response);
-        let tickers = [];
+        const tickers = [];
         let market = undefined;
         for (let i = 0; i < keys.length; i++) {
-            market = this.safeValue(this.markets_by_id, keys[i]);
+            market = this.safeValue (this.markets_by_id, keys[i]);
             if (market !== undefined) {
-                tickers.push(this.parseTicker(response[keys[i]], market));
+                tickers.push (this.parseTicker (response[keys[i]], market));
             }
         }
         return this.filterByArray (tickers, 'symbol', symbols);
