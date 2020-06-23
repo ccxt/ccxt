@@ -39,6 +39,9 @@ use \ccxt\RequestTimeout;
 use Generator;
 use Psr\Http\Message\ResponseInterface;
 use React\EventLoop\LoopInterface;
+use React\Promise\Deferred;
+use React\Promise\Promise;
+use React\Promise\PromiseInterface;
 use React\Socket\Connector;
 use Recoil\React\ReactKernel;
 use Recoil\Recoil;
@@ -59,12 +62,17 @@ class Exchange extends \ccxt\Exchange {
     public function __construct($options = array())
     {
         /** @var LoopInterface $loop Populated by $options */
-        $this->loop = NULL;
+        $this->loop = null;
         /** @var ReactKernel $kernel Populated by $options */
-        $this->kernel = NULL;
+        $this->kernel = null;
 
         /** @var Browser $browser */
-        $this->browser = NULL;
+        $this->browser = null;
+
+        /** @var bool reloading_markets Whether the markets are currently force reloading */
+        $this->reloading_markets = null;
+        /** @var PromiseInterface markets_loading Promise for in-progress market loading */
+        $this->markets_loading = null;
 
         parent::__construct($options);
     }
@@ -117,6 +125,7 @@ class Exchange extends \ccxt\Exchange {
         $verbose_headers = $headers;
 
         if (!$this->browser) {
+            //set up browser and connector options
             $connectorOptions = [
                 'tls' => array(
                     'verify_peer' => false,
@@ -136,8 +145,13 @@ class Exchange extends \ccxt\Exchange {
                 $connectorOptions['tcp'] = $proxy;
             }
 
+            $browserOptions = [
+                'obeySuccessCode' => false, //don't throw errors on HTTP codes other than 200
+            ];
+
             $connector = new Connector($this->loop, $connectorOptions);
-            $this->browser = new Browser($this->loop);
+            $this->browser = new Browser($this->loop, $connector);
+            $this->browser = $this->browser->withOptions($browserOptions);
         }
 
         if ($this->verbose) {
@@ -257,19 +271,30 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function load_markets($reload = false, $params = array()) : Generator {
-        yield;
         if (!$reload && $this->markets) {
             if (!$this->markets_by_id) {
                 return $this->set_markets($this->markets);
             }
             return $this->markets;
         }
-        $currencies = null;
-        if (array_key_exists('fetchCurrencies', $this->has) && $this->has['fetchCurrencies']) {
-            $currencies = yield $this->fetch_currencies();
+        if (($reload && !$this->reloading_markets) || !$this->markets_loading) {
+            $this->reloading_markets = true;
+            $deferred = new Deferred();
+            $this->markets_loading = $deferred->promise();
+            $this->kernel->execute(function () use ($deferred, $params) {
+                try {
+                    $currencies = null;
+                    if (array_key_exists('fetchCurrencies', $this->has) && $this->has['fetchCurrencies']) {
+                        $currencies = yield $this->fetch_currencies();
+                    }
+                    $markets = yield $this->fetch_markets($params);
+                    $deferred->resolve($this->set_markets($markets, $currencies));
+                } catch (\Exception $e) {
+                    $deferred->reject($e);
+                }
+            });
         }
-        $markets = yield $this->fetch_markets($params);
-        return $this->set_markets($markets, $currencies);
+        return yield $this->markets_loading;
     }
 
     public function loadAccounts($reload = false, $params = array()) : Generator {
@@ -491,7 +516,7 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function fetch_currencies($params = array()) : Generator {
-        yield; //done as a generator despite not needing it, to keep consistency that all fetch_ methods are generators
+        yield; //done as a generator despite not necessarily needing it, to keep consistency that all fetch_ methods are generators
         // markets are returned as a list
         // currencies are returned as a dict
         // this is for historical reasons
