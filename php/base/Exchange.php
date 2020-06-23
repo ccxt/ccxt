@@ -2,7 +2,11 @@
 
 namespace ccxtpro;
 
-$version = 'undefined';
+// rounding mode duplicated from CCXT
+const TRUNCATE = 0;
+const ROUND = 1;
+const ROUND_UP = 2;
+const ROUND_DOWN = 3;
 
 class Exchange extends \ccxt\Exchange {
 
@@ -37,6 +41,7 @@ Exchange::$exchanges = array(
     'kucoin',
     'okcoin',
     'okex',
+    'phemex',
     'poloniex',
     'upbit',
 );
