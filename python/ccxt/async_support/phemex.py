@@ -47,7 +47,7 @@ class phemex(Exchange):
                 'fetchDepositAddress': True,
                 'fetchOrder': True,
                 'fetchOrders': True,
-                'fetchOpenOrdrs': True,
+                'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'fetchMyTrades': True,
             },
