@@ -34,7 +34,7 @@
   },
   "types": "./ccxt.pro.d.ts",
   "dependencies": {
-    "ccxt": "^1.30.36",
+    "ccxt": "^1.30.37",
     "ws": "^7.2.1"
   },
   "devDependencies": {
@@ -472,6 +472,8 @@
     "FTX",
     "dsxglobal.com",
     "bitvavo.com",
-    "Bitvavo"
+    "Bitvavo",
+    "phemex.com",
+    "Phemex"
   ]
 }
