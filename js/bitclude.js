@@ -296,12 +296,14 @@ module.exports = class bitclude extends Exchange {
         const baseId = this.safeString (trade, 'currency1');
         const quoteId = this.safeString (trade, 'currency2');
         let symbol = undefined;
+        let quote = undefined;
         if (baseId !== undefined && quoteId !== undefined) {
             const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
+            quote = this.safeCurrencyCode (quoteId);
             symbol = (base + '/' + quote);
         } else {
             symbol = market['symbol'];
+            quote = market['quote'];
         }
         let side = this.safeString (trade, 'type');
         if (side === 'a' || side === 'ask') {
@@ -315,9 +317,12 @@ module.exports = class bitclude extends Exchange {
         if (price !== undefined) {
             if (amount !== undefined) {
                 cost = price * amount;
+                if (this.currency (quote)['precision'] !== undefined) {
+                    cost = this.currencyToPrecision (quote, cost);
+                }
             }
         }
-        const fee = undefined;
+        const fee = undefined; // todo
         return {
             'id': id,
             'info': trade,
