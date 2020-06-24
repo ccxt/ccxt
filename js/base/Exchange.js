@@ -1089,12 +1089,10 @@ module.exports = class Exchange {
     filterBySinceLimit (array, since = undefined, limit = undefined, key = 'timestamp', tail = false) {
         const sinceIsDefined = (since !== undefined && since !== null)
         if (sinceIsDefined) {
-            array = Object.values (array).filter ((entry) => entry[key] >= since)
+            array = array.filter ((entry) => entry[key] >= since)
         }
         if (limit !== undefined && limit !== null) {
-            array = (tail && !sinceIsDefined) ?
-                Object.values (array).slice (-limit) :
-                Object.values (array).slice (0, limit)
+            array = (tail && !sinceIsDefined) ? array.slice (-limit) : array.slice (0, limit)
         }
         return array
     }
@@ -1106,15 +1104,13 @@ module.exports = class Exchange {
 
         // single-pass filter for both symbol and since
         if (valueIsDefined || sinceIsDefined) {
-            array = Object.values (array).filter ((entry) =>
+            array = array.filter ((entry) =>
                 ((valueIsDefined ? (entry[field] === value) : true) &&
                  (sinceIsDefined ? (entry[key] >= since) : true)))
         }
 
         if (limit !== undefined && limit !== null) {
-            array = ((tail && !sinceIsDefined) ?
-                Object.values (array).slice (-limit) :
-                Object.values (array).slice (0, limit))
+            array = (tail && !sinceIsDefined) ? array.slice (-limit) : array.slice (0, limit)
         }
 
         return array
