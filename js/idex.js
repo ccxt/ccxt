@@ -802,8 +802,11 @@ module.exports = class idex extends Exchange {
             market = this.market (symbol);
             request['market'] = market['id'];
         }
+        if (since !== undefined) {
+            request['start'] = parseInt (since / 1000);
+        }
         if (limit !== undefined) {
-            request['start'] = parseInt (Math.floor (limit));
+            request['count'] = limit;
         }
         const response = await this.publicPostReturnTradeHistory (this.extend (request, params));
         // { ETH_IDEX:
