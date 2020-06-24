@@ -8,7 +8,7 @@ class ArrayCache extends \ArrayObject implements \JsonSerializable {
     public $max_size;
     public $deque;
 
-    public function __construct($max_size) {
+    public function __construct($max_size = null) {
         parent::__construct();
         $this->max_size = $max_size;
         // the deque implemented in Ds has fast shifting by using doubly linked lists
@@ -27,7 +27,7 @@ class ArrayCache extends \ArrayObject implements \JsonSerializable {
 
     public function append($item) {
         $this->deque->push($item);
-        if ($this->deque->count() > $this->max_size) {
+        if ($this->max_size && ($this->deque->count() > $this->max_size)) {
             $this->deque->shift();
         }
     }
