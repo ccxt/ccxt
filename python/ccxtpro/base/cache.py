@@ -21,7 +21,7 @@ class ArrayCache(list):
     __contains__ = Delegate('__contains__')
     __reversed__ = Delegate('__reversed__')
 
-    def __init__(self, max_size):
+    def __init__(self, max_size=None):
         super(list, self).__init__()
         self._deque = collections.deque([], max_size)
 
