@@ -535,7 +535,7 @@ module.exports = class idex extends Exchange {
             'address': this.walletAddress,
         };
         if (since !== undefined) {
-            request['start'] = parseInt (Math.floor (since / 1000));
+            request['start'] = parseInt (since / 1000);
         }
         const response = await this.publicPostReturnDepositsWithdrawals (this.extend (request, params));
         // { deposits:
