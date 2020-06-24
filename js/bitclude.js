@@ -38,7 +38,7 @@ module.exports = class bitclude extends Exchange {
                 'createDepositAddress': true,
                 'fetchDepositAddress': 'emulated',
                 'fetchDeposits': true,
-                'fetchFundingFees': false,
+                'fetchFundingFees': 'emulated',
                 'fetchMyTrades': true,
                 'fetchOHLCV': false,
                 'fetchOpenOrders': true,
@@ -615,6 +615,22 @@ module.exports = class bitclude extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'fee': undefined,
+        };
+    }
+
+    async fetchTradingFees (params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'method': 'account',
+            'action': 'info',
+        };
+        const response = await this.privateGet (this.extend (request, params));
+        const account = this.safeValue (response, 'account');
+        const fees = this.safeValue (account, 'fee');
+        return {
+            'info': response,
+            'maker': this.safeFloat (fees, 'maker'),
+            'taker': this.safeFloat (fees, 'taker'),
         };
     }
 
