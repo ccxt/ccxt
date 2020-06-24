@@ -515,7 +515,7 @@ class idex(Exchange):
             'address': self.walletAddress,
         }
         if since is not None:
-            request['start'] = int(int(math.floor(since / 1000)))
+            request['start'] = int(since / 1000)
         response = self.publicPostReturnDepositsWithdrawals(self.extend(request, params))
         # {deposits:
         #    [{currency: 'ETH',
@@ -609,6 +609,8 @@ class idex(Exchange):
         if symbol is not None:
             market = self.market(symbol)
             request['market'] = market['id']
+        if limit is not None:
+            request['count'] = limit
         response = self.publicPostReturnOpenOrders(self.extend(request, params))
         # [{timestamp: 1564041428,
         #     orderHash:
@@ -760,8 +762,10 @@ class idex(Exchange):
         if symbol is not None:
             market = self.market(symbol)
             request['market'] = market['id']
+        if since is not None:
+            request['start'] = int(since / 1000)
         if limit is not None:
-            request['start'] = int(int(math.floor(limit)))
+            request['count'] = limit
         response = self.publicPostReturnTradeHistory(self.extend(request, params))
         # {ETH_IDEX:
         #    [{type: 'buy',
