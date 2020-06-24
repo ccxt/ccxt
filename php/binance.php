@@ -220,6 +220,7 @@ class binance extends Exchange {
                 ),
                 'fapiPrivate' => array(
                     'get' => array(
+                        'allForceOrders',
                         'allOrders',
                         'openOrder',
                         'openOrders',

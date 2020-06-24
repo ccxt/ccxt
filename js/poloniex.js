@@ -566,8 +566,8 @@ module.exports = class poloniex extends Exchange {
                 let feeRate = this.safeString (parts, 2);
                 if (feeRate !== undefined) {
                     feeRate = feeRate.replace ('(', '');
-                    feeRate = feeRate.replace (')', '');
-                    feeRate = feeRate.replace ('%', '');
+                    const feeRateParts = feeRate.split ('%');
+                    feeRate = this.safeString (feeRateParts, 0);
                     feeRate = parseFloat (feeRate) / 100;
                 }
                 fee = {

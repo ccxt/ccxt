@@ -548,7 +548,7 @@ class bitvavo extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, $market) {
+    public function parse_trade($trade, $market = null) {
         //
         // fetchTrades (public)
         //

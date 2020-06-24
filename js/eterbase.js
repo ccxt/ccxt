@@ -57,6 +57,7 @@ module.exports = class eterbase extends Exchange {
                 'www': 'https://www.eterbase.com',
                 'doc': 'https://developers.eterbase.exchange',
                 'fees': 'https://www.eterbase.com/exchange/fees',
+                'referral': 'https://eterbase.exchange/invite/1wjjh4Pe',
             },
             'api': {
                 'markets': {
