@@ -11,7 +11,7 @@ const ccxt = require ('ccxt')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '0.2.69'
+const version = '0.2.70'
 
 // Exchange.ccxtVersion = version
 
