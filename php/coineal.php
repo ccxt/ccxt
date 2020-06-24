@@ -17,8 +17,7 @@ class coineal extends Exchange {
             'id' => 'coineal',
             'name' => 'Coineal',
             'countries' => array(),
-            'rateLimit' => 25000,
-            'timeout' => 40000,
+            'rateLimit' => 1000,
             'has' => array(
                 'fetchMarkets' => true,
                 'fetchOHLCV' => true,
