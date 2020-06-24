@@ -636,6 +636,9 @@ module.exports = class idex extends Exchange {
             market = this.market (symbol);
             request['market'] = market['id'];
         }
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
         const response = await this.publicPostReturnOpenOrders (this.extend (request, params));
         // [ { timestamp: 1564041428,
         //     orderHash:
