@@ -36,7 +36,7 @@ use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
 
-$version = '1.30.42';
+$version = '1.30.43';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.30.42';
+    const VERSION = '1.30.43';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -140,6 +140,7 @@ class Exchange {
         'hbtc',
         'hitbtc',
         'hollaex',
+        'huobijp',
         'huobipro',
         'huobiru',
         'ice3x',

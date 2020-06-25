@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.30.42'
+__version__ = '1.30.43'
 
 # ----------------------------------------------------------------------------
 
@@ -146,6 +146,7 @@ from ccxt.gemini import gemini                              # noqa: F401
 from ccxt.hbtc import hbtc                                  # noqa: F401
 from ccxt.hitbtc import hitbtc                              # noqa: F401
 from ccxt.hollaex import hollaex                            # noqa: F401
+from ccxt.huobijp import huobijp                            # noqa: F401
 from ccxt.huobipro import huobipro                          # noqa: F401
 from ccxt.huobiru import huobiru                            # noqa: F401
 from ccxt.ice3x import ice3x                                # noqa: F401
@@ -271,6 +272,7 @@ exchanges = [
     'hbtc',
     'hitbtc',
     'hollaex',
+    'huobijp',
     'huobipro',
     'huobiru',
     'ice3x',
