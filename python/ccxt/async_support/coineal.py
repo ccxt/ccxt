@@ -36,6 +36,7 @@ class coineal(Exchange):
                 'fetchOrder': True,
                 'fetchClosedOrders': True,
                 'fetchTicker': True,
+                'fetchOrders': True,
             },
             'timeframes': {
                 '1m': '1',  # default
@@ -329,6 +330,18 @@ class coineal(Exchange):
         return self.parse_ticker(result, market)
 
     def parse_trade(self, trade, market=None):
+        # Fetch Trades Object When Symbol is Undefined
+        #             {
+        #                 "volume": "1.000",
+        #                 "side": "BUY",
+        #                 "price": "0.10000000",
+        #                 "fee": "0.16431104",
+        #                 "ctime": 1510996571195,
+        #                 "deal_price": "0.10000000",
+        #                 "id": 306,
+        #                 "type": "买入",
+        #                 "market": "marketObj"
+        #             }
         # Fetch My Trades Object
         #             {
         #                 "volume": "1.000",
@@ -356,13 +369,16 @@ class coineal(Exchange):
         if amount is None:
             amount = self.safe_float(trade, 'volume')
         symbol = None
+        if market is None:
+            market = self.safe_value(trade, 'market')
         if market is not None:
             symbol = self.safe_string(market, 'symbol')
         cost = None
         if price is not None:
             if amount is not None:
-                cost = float(self.cost_to_precision(symbol, price * amount))
-        tradeId = self.safe_string(trade, 'id')
+                if symbol is not None:
+                    cost = float(self.cost_to_precision(symbol, price * amount))
+        transactionId = self.safe_string(trade, 'id')
         side = self.safe_string(trade, 'side')
         if side is None:
             side = self.safe_string(trade, 'type')
@@ -378,8 +394,8 @@ class coineal(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'id': tradeId,
-            'order': None,
+            'id': transactionId,
+            'order': transactionId,
             'type': None,
             'side': side,
             'takerOrMaker': None,
@@ -469,18 +485,19 @@ class coineal(Exchange):
             raise InvalidOrder(response['msg'] + ' ' + self.json(response))
         return await self.fetch_order(id, symbol)
 
-    async def fetch_my_trades(self, symbol=None, since=None, limit=100, params={}):
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
-        await self.load_markets()
-        market = self.market(symbol)
+    async def get_trades(self, symbol, limit, params):
         request = {
-            'symbol': market['id'],
+            'symbol': symbol,
             'time': self.milliseconds(),
             'page': 1,
             'pageSize': limit,
         }
         response = await self.privateGetOpenApiAllTrade(self.extend(request, params))
+        result = self.safe_value(response, 'data')
+        return self.safe_value(result, 'resultList', [])
+
+    async def fetch_my_trades(self, symbol=None, since=None, limit=100, params={}):
+        await self.load_markets()
         # Exchange response
         # {
         #     "code": "0",
@@ -496,20 +513,31 @@ class coineal(Exchange):
         #                 "ctime": 1510996571195,
         #                 "deal_price": "0.10000000",
         #                 "id": 306,
-        #                 "type": "买入"
+        #                 "type": "买入",
         #             }
         #         ]
         #     }
         # }
-        result = self.safe_value(response, 'data')
-        return self.parse_trades(self.safe_value(result, 'resultList'), market, since, limit)
+        if symbol is None:
+            totalMarkets = list(self.markets.keys())
+            trades = []
+            for i in range(0, len(totalMarkets)):
+                market = self.market(totalMarkets[i])
+                result = await self.get_trades(market['id'], limit, params)
+                for i in range(0, len(result)):
+                    result[i]['market'] = market
+                trades = self.array_concat(trades, result)
+            return self.parse_trades(trades, None, since, limit)
+        market = self.market(symbol)
+        result = await self.get_trades(market['id'], limit, params)
+        return self.parse_trades(result, market, since, limit)
 
     def parse_order_status(self, status):
         statuses = {
             '0': 'Historical Order Unsuccessful',
             '1': 'Open',
             '2': 'Closed',
-            '3': 'Open',
+            '3': 'Open',  # Partially Opened
             '4': 'Cancelled',
             '5': 'Cancelling',
             '6': 'Abnormal Orders',
@@ -594,24 +622,25 @@ class coineal(Exchange):
             'page': 1,
             'pageSize': limit,
         }
-        return await self.privateGetOpenApiNewOrder(self.extend(request, params))
+        response = await self.privateGetOpenApiNewOrder(self.extend(request, params))
+        result = self.safe_value(response, 'data')
+        return self.safe_value(result, 'resultList', [])
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=100, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' FetchOpenOrder requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.fetch_common_orders(market['id'], limit, params)
-        result = self.safe_value(response, 'data')
-        closedOrdered = self.filter_by(self.safe_value(result, 'resultList', {}), 'status', 2)
+        orderData = await self.fetch_common_orders(market['id'], limit, params)
+        closedOrdered = self.filter_by(orderData, 'status', 2)
         return self.parse_orders(closedOrdered, market, since, limit)
 
-    async def fetch_open_orders(self, symbol='None', since=None, limit=100, params={}):
+    async def fetch_open_orders(self, symbol=None, since=None, limit=100, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' FetchOpenOrder requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.fetch_common_orders(market['id'], limit, params)
+        orderData = await self.fetch_common_orders(market['id'], limit, params)
         # Exchange response
         # {
         #     "code": "0",
@@ -672,11 +701,24 @@ class coineal(Exchange):
         #         ]
         #     }
         # }
-        result = self.safe_value(response, 'data')
-        ordered = self.filter_by(self.safe_value(result, 'resultList', {}), 'status', 1)
-        partialOrdered = self.filter_by(self.safe_value(result, 'resultList', {}), 'status', 3)
-        allOrders = self.array_concat(ordered, partialOrdered)
-        return self.parse_orders(allOrders, market, since, limit)
+        allOpenOrders = self.filter_by_array(orderData, 'status', [1, 3], False)
+        return self.parse_orders(allOpenOrders, market, since, limit)
+
+    async def fetch_orders(self, symbol=None, since=None, limit=100, params={}):
+        await self.load_markets()
+        openCloseOrders = []
+        if symbol is None:
+            totalMarkets = list(self.markets.keys())
+            for i in range(0, len(totalMarkets)):
+                market = self.market(totalMarkets[i])
+                orderData = await self.fetch_common_orders(market['id'], limit, params)
+                parseOpenCloseOrderResult = self.filter_by_array(orderData, 'status', [1, 2, 3], False)
+                openCloseOrders = self.array_concat(openCloseOrders, parseOpenCloseOrderResult)
+            return self.parse_orders(openCloseOrders, None, since, limit)
+        market = self.market(symbol)
+        orderData = await self.fetch_common_orders(market['id'], limit, params)
+        openCloseOrders = self.filter_by_array(orderData, 'status', [1, 2, 3], False)
+        return self.parse_orders(openCloseOrders, market, since, limit)
 
     async def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
@@ -690,7 +732,7 @@ class coineal(Exchange):
         }
         response = await self.privateGetOpenApiOrderInfo(self.extend(request, params))
         result = self.safe_value(response, 'data')
-        return self.parse_order(self.safe_value(result, 'order_info', {}))
+        return self.parse_order(self.safe_value(result, 'order_info', {}), market)
 
     async def fetch_balance(self, params={}):
         await self.load_markets()

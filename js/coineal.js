@@ -23,6 +23,7 @@ module.exports = class coineal extends Exchange {
                 'fetchOrder': true,
                 'fetchClosedOrders': true,
                 'fetchTicker': true,
+                'fetchOrders': true,
             },
             'timeframes': {
                 '1m': '1', // default
@@ -330,6 +331,18 @@ module.exports = class coineal extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        // Fetch Trades Object When Symbol is Undefined
+        //             {
+        //                 "volume": "1.000",
+        //                 "side": "BUY",
+        //                 "price": "0.10000000",
+        //                 "fee": "0.16431104",
+        //                 "ctime": 1510996571195,
+        //                 "deal_price": "0.10000000",
+        //                 "id": 306,
+        //                 "type": "买入",
+        //                 "market": "marketObj"
+        //             }
         // Fetch My Trades Object
         //             {
         //                 "volume": "1.000",
@@ -359,16 +372,21 @@ module.exports = class coineal extends Exchange {
             amount = this.safeFloat (trade, 'volume');
         }
         let symbol = undefined;
+        if (market === undefined) {
+            market = this.safeValue (trade, 'market');
+        }
         if (market !== undefined) {
             symbol = this.safeString (market, 'symbol');
         }
         let cost = undefined;
         if (price !== undefined) {
             if (amount !== undefined) {
-                cost = parseFloat (this.costToPrecision (symbol, price * amount));
+                if (symbol !== undefined) {
+                    cost = parseFloat (this.costToPrecision (symbol, price * amount));
+                }
             }
         }
-        const tradeId = this.safeString (trade, 'id');
+        const transactionId = this.safeString (trade, 'id');
         let side = this.safeString (trade, 'side');
         if (side === undefined) {
             side = this.safeString (trade, 'type');
@@ -386,8 +404,8 @@ module.exports = class coineal extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'id': tradeId,
-            'order': undefined,
+            'id': transactionId,
+            'order': transactionId,
             'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
@@ -487,19 +505,20 @@ module.exports = class coineal extends Exchange {
         return await this.fetchOrder (id, symbol);
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = 100, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
+    async getTrades (symbol, limit, params) {
         const request = {
-            'symbol': market['id'],
+            'symbol': symbol,
             'time': this.milliseconds (),
             'page': 1,
             'pageSize': limit,
         };
         const response = await this.privateGetOpenApiAllTrade (this.extend (request, params));
+        const result = this.safeValue (response, 'data');
+        return this.safeValue (result, 'resultList', []);
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = 100, params = {}) {
+        await this.loadMarkets ();
         // Exchange response
         // {
         //     "code": "0",
@@ -515,13 +534,27 @@ module.exports = class coineal extends Exchange {
         //                 "ctime": 1510996571195,
         //                 "deal_price": "0.10000000",
         //                 "id": 306,
-        //                 "type": "买入"
+        //                 "type": "买入",
         //             }
         //         ]
         //     }
         // }
-        const result = this.safeValue (response, 'data');
-        return this.parseTrades (this.safeValue (result, 'resultList'), market, since, limit);
+        if (symbol === undefined) {
+            const totalMarkets = Object.keys (this.markets);
+            let trades = [];
+            for (let i = 0; i < totalMarkets.length; i++) {
+                const market = this.market (totalMarkets[i]);
+                const result = await this.getTrades (market['id'], limit, params);
+                for (let i = 0; i < result.length; i++) {
+                    result[i]['market'] = market;
+                }
+                trades = this.arrayConcat (trades, result);
+            }
+            return this.parseTrades (trades, undefined, since, limit);
+        }
+        const market = this.market (symbol);
+        const result = await this.getTrades (market['id'], limit, params);
+        return this.parseTrades (result, market, since, limit);
     }
 
     parseOrderStatus (status) {
@@ -529,7 +562,7 @@ module.exports = class coineal extends Exchange {
             '0': 'Historical Order Unsuccessful',
             '1': 'Open',
             '2': 'Closed',
-            '3': 'Open',
+            '3': 'Open', // Partially Opened
             '4': 'Cancelled',
             '5': 'Cancelling',
             '6': 'Abnormal Orders',
@@ -629,7 +662,9 @@ module.exports = class coineal extends Exchange {
             'page': 1,
             'pageSize': limit,
         };
-        return await this.privateGetOpenApiNewOrder (this.extend (request, params));
+        const response = await this.privateGetOpenApiNewOrder (this.extend (request, params));
+        const result = this.safeValue (response, 'data');
+        return this.safeValue (result, 'resultList', []);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = 100, params = {}) {
@@ -638,19 +673,18 @@ module.exports = class coineal extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const response = await this.fetchCommonOrders (market['id'], limit, params);
-        const result = this.safeValue (response, 'data');
-        const closedOrdered = this.filterBy (this.safeValue (result, 'resultList', {}), 'status', 2);
+        const orderData = await this.fetchCommonOrders (market['id'], limit, params);
+        const closedOrdered = this.filterBy (orderData, 'status', 2);
         return this.parseOrders (closedOrdered, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol = 'undefined', since = undefined, limit = 100, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = 100, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' FetchOpenOrder requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const response = await this.fetchCommonOrders (market['id'], limit, params);
+        const orderData = await this.fetchCommonOrders (market['id'], limit, params);
         // Exchange response
         // {
         //     "code": "0",
@@ -711,11 +745,27 @@ module.exports = class coineal extends Exchange {
         //         ]
         //     }
         // }
-        const result = this.safeValue (response, 'data');
-        const ordered = this.filterBy (this.safeValue (result, 'resultList', {}), 'status', 1);
-        const partialOrdered = this.filterBy (this.safeValue (result, 'resultList', {}), 'status', 3);
-        const allOrders = this.arrayConcat (ordered, partialOrdered);
-        return this.parseOrders (allOrders, market, since, limit);
+        const allOpenOrders = this.filterByArray (orderData, 'status', [1, 3], false);
+        return this.parseOrders (allOpenOrders, market, since, limit);
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = 100, params = {}) {
+        await this.loadMarkets ();
+        let openCloseOrders = [];
+        if (symbol === undefined) {
+            const totalMarkets = Object.keys (this.markets);
+            for (let i = 0; i < totalMarkets.length; i++) {
+                const market = this.market (totalMarkets[i]);
+                const orderData = await this.fetchCommonOrders (market['id'], limit, params);
+                const parseOpenCloseOrderResult = this.filterByArray (orderData, 'status', [1, 2, 3], false);
+                openCloseOrders = this.arrayConcat (openCloseOrders, parseOpenCloseOrderResult);
+            }
+            return this.parseOrders (openCloseOrders, undefined, since, limit);
+        }
+        const market = this.market (symbol);
+        const orderData = await this.fetchCommonOrders (market['id'], limit, params);
+        openCloseOrders = this.filterByArray (orderData, 'status', [1, 2, 3], false);
+        return this.parseOrders (openCloseOrders, market, since, limit);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -731,7 +781,7 @@ module.exports = class coineal extends Exchange {
         };
         const response = await this.privateGetOpenApiOrderInfo (this.extend (request, params));
         const result = this.safeValue (response, 'data');
-        return this.parseOrder (this.safeValue (result, 'order_info', {}));
+        return this.parseOrder (this.safeValue (result, 'order_info', {}), market);
     }
 
     async fetchBalance (params = {}) {
