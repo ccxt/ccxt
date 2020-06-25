@@ -133,7 +133,7 @@ module.exports = class deribit extends Exchange {
                         'get_email_language',
                         'get_new_announcements',
                         'get_position',
-                        'get_positions',
+                        'positions',
                         'get_subaccounts',
                         'list_api_keys',
                         'remove_api_key',
