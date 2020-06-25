@@ -34,7 +34,7 @@ module.exports = class indodax extends Exchange {
                     'private': 'https://indodax.com/tapi',
                 },
                 'www': 'https://www.indodax.com',
-                'doc': 'https://indodax.com/downloads/BITCOINCOID-API-DOCUMENTATION.pdf',
+                'doc': 'https://github.com/btcid/indodax-official-api-docs',
                 'referral': 'https://indodax.com/ref/testbitcoincoid/1',
             },
             'api': {
