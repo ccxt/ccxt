@@ -2,19 +2,18 @@
 
 //  ---------------------------------------------------------------------------
 
-const huobipro = require ('./huobipro.js');
+const ccxt = require ('ccxt');
 const { NotSupported } = require ('ccxt/js/base/errors');
 
 // ---------------------------------------------------------------------------
 
-module.exports = class huobijp extends huobipro {
+module.exports = class huobijp extends ccxt.huobipro {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'huobijp',
             'name': 'Huobi Japan',
             'countries': [ 'JP' ],
             'hostname': 'api-cloud.huobi.co.jp',
-            'pro': true,
             'has': {
                 'fetchDepositAddress': false,
             },
