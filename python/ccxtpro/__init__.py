@@ -8,7 +8,7 @@ import ccxt.async_support as ccxt
 
 # -----------------------------------------------------------------------------
 
-__version__ = '0.2.71'
+__version__ = '0.2.72'
 
 # -----------------------------------------------------------------------------
 
@@ -175,6 +175,7 @@ from ccxtpro.coinbasepro import coinbasepro                               # noqa
 from ccxtpro.ftx import ftx                                               # noqa: F401
 from ccxtpro.gateio import gateio                                         # noqa: F401
 from ccxtpro.hitbtc import hitbtc                                         # noqa: F401
+from ccxtpro.huobijp import huobijp                                       # noqa: F401
 from ccxtpro.huobipro import huobipro                                     # noqa: F401
 from ccxtpro.huobiru import huobiru                                       # noqa: F401
 from ccxtpro.kraken import kraken                                         # noqa: F401
