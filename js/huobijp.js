@@ -21,9 +21,9 @@ module.exports = class huobijp extends huobipro {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/85734211-85755480-b705-11ea-8b35-0b7f1db33a2f.jpg',
                 'api': {
-                    'market': 'https://{hostname}/api',
-                    'public': 'https://{hostname}/api',
-                    'private': 'https://{hostname}/api',
+                    'market': 'https://{hostname}',
+                    'public': 'https://{hostname}',
+                    'private': 'https://{hostname}',
                 },
                 'www': 'https://www.huobi.co.jp',
                 'referral': 'https://www.huobi.co.jp/register/?invite_code=znnq3',
