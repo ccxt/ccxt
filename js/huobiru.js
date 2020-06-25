@@ -25,7 +25,6 @@ module.exports = class huobiru extends huobipro {
                     'market': 'https://{hostname}/api',
                     'public': 'https://{hostname}/api',
                     'private': 'https://{hostname}/api',
-                    'zendesk': 'https://huobiglobal.zendesk.com/hc/en-us/articles',
                 },
                 'www': 'https://www.huobi.com.ru/ru-ru',
                 'referral': 'https://www.huobi.com.ru/invite?invite_code=esc74',
