@@ -8,7 +8,7 @@ import ccxt.async_support as ccxt
 
 # -----------------------------------------------------------------------------
 
-__version__ = '0.2.70'
+__version__ = '0.2.71'
 
 # -----------------------------------------------------------------------------
 
@@ -150,7 +150,6 @@ from ccxt.async_support.therock import therock                            # noqa
 from ccxt.async_support.tidebit import tidebit                            # noqa: F401
 from ccxt.async_support.tidex import tidex                                # noqa: F401
 from ccxt.async_support.timex import timex                                # noqa: F401
-from ccxt.async_support.topq import topq                                  # noqa: F401
 from ccxt.async_support.vaultoro import vaultoro                          # noqa: F401
 from ccxt.async_support.vbtc import vbtc                                  # noqa: F401
 from ccxt.async_support.wavesexchange import wavesexchange                # noqa: F401
