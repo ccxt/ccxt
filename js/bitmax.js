@@ -1216,7 +1216,16 @@ module.exports = class bitmax extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parseOrders (data, market, since, limit);
+        if (accountCategory === 'futures') {
+            return this.parseOrders (data, market, since, limit);
+        }
+        // a workaround for https://github.com/ccxt/ccxt/issues/7187
+        const orders = [];
+        for (let i = 0; i < data.length; i++) {
+            const order = this.parseOrder (data[i], market);
+            orders.push (order);
+        }
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
