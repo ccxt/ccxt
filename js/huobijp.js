@@ -2,12 +2,12 @@
 
 //  ---------------------------------------------------------------------------
 
-const ccxt = require ('ccxt');
 const { NotSupported } = require ('ccxt/js/base/errors');
+const huobipro = require ('./huobipro.js');
 
 // ---------------------------------------------------------------------------
 
-module.exports = class huobijp extends ccxt.huobipro {
+module.exports = class huobijp extends huobipro {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'huobijp',
