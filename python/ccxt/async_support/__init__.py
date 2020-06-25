@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.30.24'
+__version__ = '1.30.38'
 
 # -----------------------------------------------------------------------------
 
@@ -151,6 +151,7 @@ from ccxt.async_support.oceanex import oceanex                            # noqa
 from ccxt.async_support.okcoin import okcoin                              # noqa: F401
 from ccxt.async_support.okex import okex                                  # noqa: F401
 from ccxt.async_support.paymium import paymium                            # noqa: F401
+from ccxt.async_support.phemex import phemex                              # noqa: F401
 from ccxt.async_support.poloniex import poloniex                          # noqa: F401
 from ccxt.async_support.probit import probit                              # noqa: F401
 from ccxt.async_support.qtrade import qtrade                              # noqa: F401
@@ -159,7 +160,6 @@ from ccxt.async_support.southxchange import southxchange                  # noqa
 from ccxt.async_support.stex import stex                                  # noqa: F401
 from ccxt.async_support.stronghold import stronghold                      # noqa: F401
 from ccxt.async_support.surbitcoin import surbitcoin                      # noqa: F401
-from ccxt.async_support.theocean import theocean                          # noqa: F401
 from ccxt.async_support.therock import therock                            # noqa: F401
 from ccxt.async_support.tidebit import tidebit                            # noqa: F401
 from ccxt.async_support.tidex import tidex                                # noqa: F401
@@ -277,6 +277,7 @@ exchanges = [
     'okcoin',
     'okex',
     'paymium',
+    'phemex',
     'poloniex',
     'probit',
     'qtrade',
@@ -285,7 +286,6 @@ exchanges = [
     'stex',
     'stronghold',
     'surbitcoin',
-    'theocean',
     'therock',
     'tidebit',
     'tidex',
