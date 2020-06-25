@@ -37,9 +37,11 @@ Basically the same answer as the previous question. Read and follow **precisely*
 
 ## Can you implement feature `foo` in exchange `bar`?
 
-Yes, we can. And we will, if nobody else does that before us. There's very little point in asking this type of questions, because the answer is always positive. When someone asks if we can do this or that, the question is not about our abilities, it all boils down to time and management needed for implementing all accumulated feature requests. 
+Yes, we can. And we will, if nobody else does that before us. There's very little point in asking this type of questions, because the answer is always positive. When someone asks if we can do this or that, the question is not about our abilities, it all boils down to time and management needed for implementing all accumulated feature requests.
 
 Moreover, this is an open-source library which is a work in progress. This means, that this project is intended to be developed by the community of users, who are using it. What you're asking is not whether we can or cannot implement it, in fact you're actually telling us to go do that particular task and this is not how we see a voluntary collaboration. Your contributions, PRs and commits are welcome: https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code.
+
+We don't give promises or estimates on the free open-source work. If you wish to speed it up, feel free to reach out to us via info@ccxt.trade.
 
 ## When will you add feature `foo` for exchange `bar` ? What's the estimated time? When should we expect this?
 
@@ -63,11 +65,11 @@ Unfortunately, we don't always have the time to quickly list out each and every 
 
 ## Hey! The fix you've uploaded is in JS, would you fix Python / PHP as well, please?
 
-Our build system generates exchange-specific Python and PHP code for us automatically, so it is transpiled from JS, and there's no need to fix all languages separately one by one. 
+Our build system generates exchange-specific Python and PHP code for us automatically, so it is transpiled from JS, and there's no need to fix all languages separately one by one.
 
-Thus, if it is fixed in JS, it is fixed in Python pip and PHP Composer as well. The automatic build usually takes 15-20 minutes. Just upgrade your version with `pip` or `composer` **after the new version arrives** and you'll be fine. 
+Thus, if it is fixed in JS, it is fixed in Python pip and PHP Composer as well. The automatic build usually takes 15-20 minutes. Just upgrade your version with `pip` or `composer` **after the new version arrives** and you'll be fine.
 
-More about it here: 
+More about it here:
 
 - https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#multilanguage-support
 - https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#transpiled-generated-files
