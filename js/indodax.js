@@ -559,8 +559,8 @@ module.exports = class indodax extends Exchange {
             const maker = 0;
             const taker = this.safeFloat (market, 'trade_fee_percent');
             const isMaintenance = this.safeInteger (market, 'is_maintenance');
-            const active = (isMaintenance) ? 0 : 1;
-            const pricePrecision = (quoteId === 'idr') ? 0 : 8;
+            const active = (isMaintenance) ? false : true;
+            const pricePrecision = this.safeInteger (market, 'price_round');
             const precision = {
                 'amount': 8,
                 'price': pricePrecision,
