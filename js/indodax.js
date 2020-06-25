@@ -533,14 +533,15 @@ module.exports = class indodax extends Exchange {
         //         "ticker_id": "btc_idr",
         //         "volume_precision": 0,
         //         "price_precision": 1000,
+        //         "price_round": 8,
         //         "pricescale": 1000,
         //         "trade_min_base_currency": 10000,
-        //         "trade_min_traded_currency": 7.321e-5,
+        //         "trade_min_traded_currency": 0.00007457,
         //         "has_memo": false,
         //         "memo_name": false,
         //         "has_payment_id": false,
         //         "trade_fee_percent": 0.3,
-        //         "url_logo": "https:/indodax.com/v2/logo/svg/color/btc.svg",
+        //         "url_logo": "https://indodax.com/v2/logo/svg/color/btc.svg",
         //         "url_logo_png": "https://indodax.com/v2/logo/png/color/btc.png",
         //         "is_maintenance": 0
         //     }
