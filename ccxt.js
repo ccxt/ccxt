@@ -35,7 +35,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.30.41'
+const version = '1.30.45'
 
 Exchange.ccxtVersion = version
 
@@ -120,6 +120,7 @@ const exchanges = {
     'hbtc':                    require ('./js/hbtc.js'),
     'hitbtc':                  require ('./js/hitbtc.js'),
     'hollaex':                 require ('./js/hollaex.js'),
+    'huobijp':                 require ('./js/huobijp.js'),
     'huobipro':                require ('./js/huobipro.js'),
     'huobiru':                 require ('./js/huobiru.js'),
     'ice3x':                   require ('./js/ice3x.js'),
@@ -156,7 +157,6 @@ const exchanges = {
     'tidebit':                 require ('./js/tidebit.js'),
     'tidex':                   require ('./js/tidex.js'),
     'timex':                   require ('./js/timex.js'),
-    'topq':                    require ('./js/topq.js'),
     'upbit':                   require ('./js/upbit.js'),
     'vaultoro':                require ('./js/vaultoro.js'),
     'vbtc':                    require ('./js/vbtc.js'),

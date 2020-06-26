@@ -1173,7 +1173,14 @@ class bitmax(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        return self.parse_orders(data, market, since, limit)
+        if accountCategory == 'futures':
+            return self.parse_orders(data, market, since, limit)
+        # a workaround for https://github.com/ccxt/ccxt/issues/7187
+        orders = []
+        for i in range(0, len(data)):
+            order = self.parse_order(data[i], market)
+            orders.append(order)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
