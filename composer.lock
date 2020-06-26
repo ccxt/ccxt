@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "bdf4392b31177d9dbb2b08957a0f43c4",
+    "content-hash": "6c6d7b39ec0f4a0596169b365a9f6f18",
     "packages": [
         {
             "name": "ccxt/ccxt",
-            "version": "1.30.45",
+            "version": "1.30.46",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ccxt/ccxt.git",
-                "reference": "9d0f021cee9e59224d7a8b91eedbb6a5b24f5af1"
+                "reference": "2a8fe8b58ae0403f67d6dac2590179a365d28d0c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/9d0f021cee9e59224d7a8b91eedbb6a5b24f5af1",
-                "reference": "9d0f021cee9e59224d7a8b91eedbb6a5b24f5af1",
+                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/2a8fe8b58ae0403f67d6dac2590179a365d28d0c",
+                "reference": "2a8fe8b58ae0403f67d6dac2590179a365d28d0c",
                 "shasum": ""
             },
             "require": {
@@ -269,7 +269,7 @@
                 "zec",
                 "zerocoin"
             ],
-            "time": "2020-06-25T22:34:48+00:00"
+            "time": "2020-06-26T19:06:10+00:00"
         },
         {
             "name": "evenement/evenement",
