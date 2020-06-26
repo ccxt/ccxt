@@ -340,22 +340,22 @@ module.exports = class gemini extends Exchange {
             'symbol': market['id'],
         };
         const ticker = await this.publicGetV1PubtickerSymbol (this.extend (request, params));
-        const tickerB = await this.publicGetV2TickerSymbol (this.extend(request, params));
+        const tickerB = await this.publicGetV2TickerSymbol (this.extend (request, params));
         const timestamp = this.safeInteger (ticker['volume'], 'timestamp');
         const baseCurrency = market['base']; // unified structures are guaranteed to have unified fields
         const quoteCurrency = market['quote']; // so we don't need safe-methods for unified structures
-        const last = this.safeFloat (ticker, 'last');	
-        const open = this.safeFloat (tickerB, 'open');	
-        const close = this.safeFloat (tickerB, 'close');	
-        const high = this.safeFloat (tickerB, 'high');	
-        const low = this.safeFloat (tickerB, 'low');	
-        let change = undefined;	
-        let percentage = undefined;	
-        if (last !== undefined) {	
-            if ((open !== undefined) && (open > 0)) {	
-                change = last - open;	
-                percentage = ((100 / open) * last) - 100;	
-            }	
+        const last = this.safeFloat (ticker, 'last');
+        const open = this.safeFloat (tickerB, 'open');
+        const close = this.safeFloat (tickerB, 'close');
+        const high = this.safeFloat (tickerB, 'high');
+        const low = this.safeFloat (tickerB, 'low');
+        let change = undefined;
+        let percentage = undefined;
+        if (last !== undefined) {
+            if ((open !== undefined) && (open > 0)) {
+                change = last - open;
+                percentage = ((100 / open) * last) - 100;
+            }
         }
         return {
             'symbol': symbol,
@@ -380,7 +380,7 @@ module.exports = class gemini extends Exchange {
             'info': ticker,
         };
     }
-    
+
     parseTicker (ticker, market = undefined) {
         const timestamp = undefined;
         let symbol = undefined;
@@ -390,19 +390,18 @@ module.exports = class gemini extends Exchange {
             let baseId = undefined;
             let quoteId = undefined;
             if (idLength === 7) {
-                baseId = marketId.slice(0, 4);
-                quoteId = marketId.slice(4, 7);
+                baseId = marketId.slice (0, 4);
+                quoteId = marketId.slice (4, 7);
             } else {
-                baseId = marketId.slice(0, 3);
-                quoteId = marketId.slice(3, 6);
+                baseId = marketId.slice (0, 3);
+                quoteId = marketId.slice (3, 6);
             }
-            const base = this.safeCurrencyCode(baseId);
-            const quote = this.safeCurrencyCode(quoteId);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             symbol = base + '/' + quote;
         }
-
         const last = this.safeFloat (ticker, 'price');
-        let percentage = this.safeFloat (ticker, 'percentChange24h');
+        const percentage = this.safeFloat (ticker, 'percentChange24h');
         let change = undefined;
         if (percentage !== undefined && last !== undefined) {
             change = last * percentage;
@@ -439,9 +438,9 @@ module.exports = class gemini extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
-        const tickers = await this.publicGetV1Pricefeed(params);
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const tickers = await this.publicGetV1Pricefeed (params);
         // [
         //     {
         //       "pair": "BATUSD",
@@ -455,9 +454,9 @@ module.exports = class gemini extends Exchange {
         //     },
         //     ...
         //   ]
-        return this.parseTickers(tickers, symbols);
+        return this.parseTickers (tickers, symbols);
     }
-    
+
     parseTrade (trade, market = undefined) {
         const timestamp = this.safeInteger (trade, 'timestampms');
         const id = this.safeString (trade, 'tid');
