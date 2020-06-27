@@ -320,7 +320,7 @@ module.exports = class bytetrade extends Exchange {
         //             "name":"ETH/BTC",
         //             "base":"2",
         //             "quote":"32",
-        //             "timestampf":1575905991933,
+        //             "timestamp":1575905991933,
         //             "datetime":"2019-12-09T15:39:51.933Z",
         //             "high":"0",
         //             "low":"0",
