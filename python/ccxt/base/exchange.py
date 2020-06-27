@@ -1194,11 +1194,11 @@ class Exchange(object):
 
     @staticmethod
     def encode(string):
-        return string.encode()
+        return string.encode('utf8')
 
     @staticmethod
     def decode(string):
-        return string.decode()
+        return string.decode('utf8')
 
     @staticmethod
     def to_array(value):
