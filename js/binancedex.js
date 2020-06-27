@@ -499,8 +499,8 @@ module.exports = class binancedex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response) {
-        if (!response || httpCode === 200) {
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (!response || code === 200) {
             return; // fallback to default error handler
         }
         const error = this.safeValue (response, 'message');
