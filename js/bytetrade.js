@@ -320,7 +320,7 @@ module.exports = class bytetrade extends Exchange {
         //             "name":"ETH/BTC",
         //             "base":"2",
         //             "quote":"32",
-        //             "timestamp":1575905991933,
+        //             "timestampf":1575905991933,
         //             "datetime":"2019-12-09T15:39:51.933Z",
         //             "high":"0",
         //             "low":"0",
@@ -633,11 +633,11 @@ module.exports = class bytetrade extends Exchange {
             this.numberToLE (0, 8),
             this.numberToLE (fee, 8),  // string for 32 bit php
             this.numberToLE (this.apiKey.length, 1),
-            this.stringToBinary (this.encode (this.apiKey)),
+            this.encode (this.apiKey),
             this.numberToLE (sideNum, 1),
             this.numberToLE (typeNum, 1),
             this.numberToLE (normalSymbol.length, 1),
-            this.stringToBinary (this.encode (normalSymbol)),
+            this.encode (normalSymbol),
             this.numberToLE (this.integerDivide (amountChain, eightBytes), 8),
             this.numberToLE (this.integerModulo (amountChain, eightBytes), 8),
             this.numberToLE (this.integerDivide (priceChain, eightBytes), 8),
@@ -651,7 +651,7 @@ module.exports = class bytetrade extends Exchange {
             this.numberToLE (0, 1),
             this.numberToLE (1, 1),
             this.numberToLE (dappId.length, 1),
-            this.stringToBinary (this.encode (dappId)),
+            this.encode (dappId),
             this.numberToLE (0, 1),
         ];
         const txByteStringArray = [
@@ -663,11 +663,11 @@ module.exports = class bytetrade extends Exchange {
             this.numberToLE (0, 8),
             this.numberToLE (fee, 8),  // string for 32 bit php
             this.numberToLE (this.apiKey.length, 1),
-            this.stringToBinary (this.encode (this.apiKey)),
+            this.encode (this.apiKey),
             this.numberToLE (sideNum, 1),
             this.numberToLE (typeNum, 1),
             this.numberToLE (normalSymbol.length, 1),
-            this.stringToBinary (this.encode (normalSymbol)),
+            this.encode (normalSymbol),
             this.numberToLE (this.integerDivide (amountChain, eightBytes), 8),
             this.numberToLE (this.integerModulo (amountChain, eightBytes), 8),
             this.numberToLE (this.integerDivide (priceChain, eightBytes), 8),
@@ -681,7 +681,7 @@ module.exports = class bytetrade extends Exchange {
             this.numberToLE (0, 1),
             this.numberToLE (1, 1),
             this.numberToLE (dappId.length, 1),
-            this.stringToBinary (this.encode (dappId)),
+            this.encode (dappId),
             this.numberToLE (0, 1),
         ];
         const txbytestring = this.binaryConcatArray (txByteStringArray);
@@ -689,7 +689,7 @@ module.exports = class bytetrade extends Exchange {
         const txid = txidhash.slice (0, 40);
         const orderidByteStringArray = [
             this.numberToLE (txid.length, 1),
-            this.stringToBinary (this.encode (txid)),
+            this.encode (txid),
             this.numberToBE (0, 4),
         ];
         const orderidbytestring = this.binaryConcatArray (orderidByteStringArray);

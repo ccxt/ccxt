@@ -27,27 +27,20 @@ module.exports =
         ((object[0] === '{') || (object[0] === '['))
     )
 
-    , stringToBinary (str) {
-        const arr = new Uint8Array (str.length)
-        for (let i = 0; i < str.length; i++) { arr[i] = str.charCodeAt (i); }
-        return CryptoJS.lib.WordArray.create (arr)
-    }
-
-    , stringToBase64: string => CryptoJS.enc.Latin1.parse (string).toString (CryptoJS.enc.Base64)
-    , utf16ToBase64:  string => CryptoJS.enc.Utf16 .parse (string).toString (CryptoJS.enc.Base64)
-    , base64ToBinary: string => CryptoJS.enc.Base64.parse (string)
+    , stringToBase64: string => CryptoJS.enc.Utf8.parse (string).toString (CryptoJS.enc.Base64)
+    , base64ToBinary: CryptoJS.enc.Base64.parse
     , base64ToString: string => CryptoJS.enc.Base64.parse (string).toString (CryptoJS.enc.Utf8)
-    , binaryToBase64: binary => binary.toString (CryptoJS.enc.Base64)
-    , base16ToBinary: string => CryptoJS.enc.Hex.parse (string)
-    , binaryToBase16: binary => binary.toString (CryptoJS.enc.Hex)
+    , binaryToBase64: CryptoJS.enc.Base64.stringify
+    , base16ToBinary: CryptoJS.enc.Hex.parse
+    , binaryToBase16: CryptoJS.enc.Hex.stringify
     , binaryConcat: (...args) => args.reduce ((a, b) => a.concat (b))
     , binaryConcatArray: (arr) => arr.reduce ((a, b) => a.concat (b))
 
     , urlencode: object => qs.stringify (object)
     , urlencodeWithArrayRepeat: object => qs.stringify (object, { arrayFormat: 'repeat' })
     , rawencode: object => qs.stringify (object, { encode: false })
-    , encode: x => x
-    , decode: x => x
+    , encode: CryptoJS.enc.Utf8.parse
+    , decode: CryptoJS.enc.Utf8.stringify
 
     // Url-safe-base64 without equals signs, with + replaced by - and slashes replaced by underscores
 
