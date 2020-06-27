@@ -294,6 +294,7 @@ class Exchange(object):
         'fetchWithdrawals': False,
         'privateAPI': True,
         'publicAPI': True,
+        'signIn': False,
         'withdraw': False,
     }
     precisionMode = DECIMAL_PLACES

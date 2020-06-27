@@ -989,6 +989,7 @@ class Exchange {
             'fetchWithdrawals' => false,
             'privateAPI' => true,
             'publicAPI' => true,
+            'signIn' => false,
             'withdraw' => false,
         );
 
