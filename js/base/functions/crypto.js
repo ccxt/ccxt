@@ -39,6 +39,7 @@ const hmac = (request, secret, hash = 'sha256', digest = 'hex') => {
 /*  .............................................   */
 
 function rsa (request, secret, alg = 'RS256') {
+    secret = decode (secret)
     const algos = {
         'RS256': 'pkcs1-sha256',
         'RS512': 'pkcs1-sha512',
