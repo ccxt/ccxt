@@ -222,7 +222,7 @@ module.exports = class beaxy extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const response = await this.publicGetSymbolsMarketRate (this.extend (request, params));       
+        const response = await this.publicGetSymbolsMarketRate (this.extend (request, params));
         return this.parseTicker (response, market);
     }
 
