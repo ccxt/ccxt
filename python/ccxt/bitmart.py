@@ -187,7 +187,7 @@ class bitmart(Exchange):
         if not accessToken:
             raise AuthenticationError(self.id + ' signIn() failed to authenticate. Access token missing from response.')
         expiresIn = self.safe_integer(response, 'expires_in')
-        self.options['expires'] = self.sum(self.nonce(), expiresIn * 1000)
+        self.options['expires'] = self.sum(self.milliseconds(), expiresIn * 1000)
         self.options['accessToken'] = accessToken
         return response
 
