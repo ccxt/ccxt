@@ -10,7 +10,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.binancedex_pb2 import create_order_msg, cancel_order_msg, Wallet
 
 
-class binancedex (Exchange):
+class binancedex(Exchange):
 
     def describe(self):
         return self.deep_extend(super(binancedex, self).describe(), {
@@ -134,7 +134,45 @@ class binancedex (Exchange):
             },
         })
 
+    def fetch_currencies(self, params={}):
+        params['limit'] = self.safe_value(params, 'limit', 1000)
+        response = self.publicGetTokens(params)
+        responseLen = len(response)
+        result = {}
+        for i in range(0, responseLen):
+            currency = response[i]
+            id = self.safe_string(currency, 'symbol')
+            symbol = self.safe_string(currency, 'original_symbol')
+            result[symbol] = {
+                'id': id,
+                'code': self.safe_currency_code(symbol),
+                'info': self.safe_string(currency, 'name'),
+                'name': symbol,
+                'active': True,
+                'fee': None,
+                'limits': {
+                    'amount': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+            }
+        return result
+
     def fetch_markets(self, params={}):
+        params['limit'] = self.safe_value(params, 'limit', 1000)
         markets = self.publicGetMarkets(params)
         result = []
         for i in range(0, len(markets)):
@@ -423,8 +461,8 @@ class binancedex (Exchange):
                 body = self.json(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
-        if not response or httpCode == 200:
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        if not response or code == 200:
             return  # fallback to default error handler
         error = self.safe_value(response, 'message')
         if error:
@@ -433,7 +471,7 @@ class binancedex (Exchange):
             if error in exact:
                 raise exact[error](feedback)
             broad = self.exceptions['broad']
-            broadKey = self.findBroadlyMatchedKey(broad, error)
+            broadKey = self.find_broadly_matched_key(broad, error)
             if broadKey is not None:
                 raise broad[broadKey](feedback)
             raise ExchangeError(feedback)  # unknown error
