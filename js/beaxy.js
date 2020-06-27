@@ -3,7 +3,6 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -17,7 +16,7 @@ module.exports = class beaxy extends Exchange {
             'userAgent': this.userAgents['chrome'],
             'has': {
                 'CORS': false,
-                'fetchMarkets': true,   
+                'fetchMarkets': true,
                 'fetchCurrencies': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
@@ -37,7 +36,7 @@ module.exports = class beaxy extends Exchange {
             },
             'urls': {
                 'api': {
-                    'public': 'https://services.beaxy.com/api/v2'
+                    'public': 'https://services.beaxy.com/api/v2',
                 },
                 'www': 'https://beaxy.com',
                 'doc': 'https://beaxyapiv2.docs.apiary.io',
@@ -51,10 +50,10 @@ module.exports = class beaxy extends Exchange {
                         'symbols/{market}/rate',
                         'symbols/{market}/trades',
                         'symbols/{market}/chart',
-                        'symbols/{market}/book'
+                        'symbols/{market}/book',
                     ],
-                }                
-            }
+                },
+            },
         });
     }
 
@@ -99,7 +98,7 @@ module.exports = class beaxy extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'precision': precision,
-                'active': !suspended
+                'active': !suspended,
             };
             result.push (entry);
         }
@@ -129,7 +128,7 @@ module.exports = class beaxy extends Exchange {
         //        "minimalWithdrawal":875.0,
         //        "type":"crypto"
         //     }
-        //]
+        // ]
         //
         const result = {};
         for (let i = 0; i < response.length; i++) {
@@ -189,7 +188,7 @@ module.exports = class beaxy extends Exchange {
             'order': undefined,
             'type': undefined,
             'takerOrMaker': undefined,
-            'side': side.toLowerCase(),
+            'side': side.toLowerCase (),
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -203,7 +202,7 @@ module.exports = class beaxy extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const response = await this.publicGetSymbolsMarketTrades(this.extend (request, params));
+        const response = await this.publicGetSymbolsMarketTrades (this.extend (request, params));
         //
         // [
         //     {
@@ -213,19 +212,19 @@ module.exports = class beaxy extends Exchange {
         //        "timestamp":1593082296713
         //     }
         //  ]
-        //        
+        //
         return this.parseTrades (response, market, since, limit);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.publicGetSymbolsRates(params);
+        const response = await this.publicGetSymbolsRates (params);
         const result = {};
         const ids = Object.keys (response);
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            let market = this.markets_by_id[id];
-            let symbol = market['symbol'];
+            const market = this.markets_by_id[id];
+            const symbol = market['symbol'];
             const ticker = response[id];
             result[symbol] = this.parseTicker (ticker, market);
         }
@@ -234,7 +233,7 @@ module.exports = class beaxy extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         //
-        //{
+        // {
         //    "ETCBTC":{
         //       "ask":6.67E-4,
         //       "bid":6.63E-4,
@@ -246,7 +245,7 @@ module.exports = class beaxy extends Exchange {
         //       "volume":0.8439548,
         //       "timestamp":1593183000000
         //    }
-        //}
+        // }
         //
         const timestamp = this.milliseconds ();
         let symbol = undefined;
@@ -276,11 +275,11 @@ module.exports = class beaxy extends Exchange {
             'quoteVolume': undefined,
             'info': ticker,
         };
-    }    
+    }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         //
-        //{
+        // {
         //    "symbol":"ETHBTC",
         //    "barType":"MINUTE5",
         //    "bars":[
@@ -299,7 +298,7 @@ module.exports = class beaxy extends Exchange {
         //          "time":1593034200000
         //       }
         //    ]
-        //}
+        // }
         //
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -347,11 +346,11 @@ module.exports = class beaxy extends Exchange {
         const market = this.market (symbol);
         const request = {
             'market': market['id'],
-            'depth': 20
+            'depth': 20,
         };
         const response = await this.publicGetSymbolsMarketBook (this.extend (request, params));
         //
-        //{
+        // {
         //    "type":"SNAPSHOT_FULL_REFRESH",
         //    "security":"BXYBTC",
         //    "timestamp":1593185579378,
@@ -365,7 +364,7 @@ module.exports = class beaxy extends Exchange {
         //          "quantity":129541.0,
         //          "price":8.4E-7
         //       }]
-        //}
+        // }
         //
         const result = this.safeValue (response, 'entries', []);
         const timestamp = this.safeTimestamp (response, 'timestamp');
@@ -380,7 +379,7 @@ module.exports = class beaxy extends Exchange {
             const side = this.safeString (bidask, 'side');
             if (side === 'ASK') {
                 asks.push (this.parseBidAsk (bidask, priceKey, amountKey));
-            } else{
+            } else {
                 bids.push (this.parseBidAsk (bidask, priceKey, amountKey));
             }
         }
@@ -402,4 +401,4 @@ module.exports = class beaxy extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-}; 
+};
