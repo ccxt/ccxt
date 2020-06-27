@@ -159,6 +159,7 @@ module.exports = class gemini extends Exchange {
             },
             'options': {
                 'fetchMarketsMethod': 'fetch_markets_from_web',
+                'fetchTickerMethod': 'fetchTickerV1', // Method for fetching ticker. Available values are: fetchTickerV1, fetchTickerV2, fetchTickerV1AndV2. Where fetchTickerV1AndV2 is doing both v1 and v2 calls
             },
         });
     }
@@ -339,8 +340,18 @@ module.exports = class gemini extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const ticker = await this.publicGetV1PubtickerSymbol (this.extend (request, params));
-        const tickerB = await this.publicGetV2TickerSymbol (this.extend (request, params));
+        const tickerType = this.safeValue (this.options, 'fetchTickerMethod');
+        if ((tickerType !== 'fetchTickerV1') && (tickerType !== 'fetchTickerV2') && (tickerType !== 'fetchTickerV1AndV2')) {
+            throw new ExchangeError (this.id + " does not support '" + tickerType + "' ticker type method. Set exchange.options['fetchTickerMethod'] to 'fetchTickerV1', 'fetchTickerV2' or 'fetchTickerV1AndV2'"); // eslint-disable-line quotes
+        }
+        let ticker = {};
+        let tickerB = {};
+        if ((tickerType === 'fetchTickerV1') || (tickerType === 'fetchTickerV1AndV2')) {
+            ticker = await this.publicGetV1PubtickerSymbol (this.extend (request, params));
+        }
+        if ((tickerType === 'fetchTickerV2') || (tickerType === 'fetchTickerV1AndV2')) {
+            tickerB = await this.publicGetV2TickerSymbol (this.extend (request, params));
+        }
         const timestamp = this.safeInteger (ticker['volume'], 'timestamp');
         const baseCurrency = market['base']; // unified structures are guaranteed to have unified fields
         const quoteCurrency = market['quote']; // so we don't need safe-methods for unified structures
