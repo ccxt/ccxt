@@ -123,6 +123,7 @@ module.exports = class binancedex extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        params['limit'] = this.safeValue (params, 'limit', 1000);
         const response = await this.publicGetTokens (params);
         const responseLen = response.length;
         const result = {};
@@ -161,6 +162,7 @@ module.exports = class binancedex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        params['limit'] = this.safeValue (params, 'limit', 1000);
         const markets = await this.publicGetMarkets (params);
         const result = [];
         const marketsLen = markets.length;
