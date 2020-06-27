@@ -2,25 +2,23 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require('./base/Exchange');
-const {
-    ExchangeError
-} = require('./base/errors');
+const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class beaxy extends Exchange {
-    describe() {
-        return this.deepExtend(super.describe(), {
+    describe () {
+        return this.deepExtend (super.describe (), {
             'id': 'beaxy',
             'name': 'Beaxy',
-            'countries': ['US'],
+            'countries': [ 'US' ],
             'rateLimit': 500,
             'userAgent': this.userAgents['chrome'],
             'has': {
-                'CORS': false,
-                'fetchMarkets': true,
-                'fetchCurrencies': true,
+                'CORS': false,                
+                'fetchMarkets': true,   
+                'fetchCurrencies': true,            
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchOrderBook': true,
@@ -32,8 +30,8 @@ module.exports = class beaxy extends Exchange {
                 '15m': 'MINUTE15',
                 '30m': 'MINUTE30',
                 '1h': 'HOUR',
-                '4h': 'HOUR4',
-                '8h': 'HOUR8',
+		        '4h': 'HOUR4',
+		        '8h': 'HOUR8',
                 '1d': 'DAY',
                 '1w': 'WEEK',
             },
@@ -49,19 +47,19 @@ module.exports = class beaxy extends Exchange {
                     'get': [
                         'symbols',
                         'currencies',
-                        'symbols/rates',
+                        'symbols/rates',        
                         'symbols/{market}/rate',
                         'symbols/{market}/trades',
                         'symbols/{market}/chart',
                         'symbols/{market}/book'
                     ],
-                }
+                }                
             }
         });
     }
 
-    async fetchMarkets(params = {}) {
-        const response = await this.publicGetSymbols(params);
+    async fetchMarkets (params = {}) {
+        const response = await this.publicGetSymbols (params);        
         //
         // [{
         //     symbol: "ETCBTC",
@@ -80,17 +78,17 @@ module.exports = class beaxy extends Exchange {
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
-            const id = this.safeString(market, 'name');
-            const uuid = this.safeString(market, 'symbol');
-            const baseId = this.safeString(market, 'baseCurrency');
-            const quoteId = this.safeString(market, 'termCurrency');
-            const base = this.safeCurrencyCode(baseId);
-            const quote = this.safeCurrencyCode(quoteId);
+            const id = this.safeString (market, 'name');
+            const uuid = this.safeString (market, 'symbol');        
+            const baseId = this.safeString (market, 'baseCurrency');
+            const quoteId = this.safeString (market, 'termCurrency');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
-            const suspended = this.safeValue(market, 'suspendedForTrading', false);
+            const suspended = this.safeValue (market, 'suspendedForTrading', false);
             const precision = {
-                'amount': this.safeInteger(market, 'quantityPrecision'),
-                'price': this.safeInteger(market, 'pricePrecision'),
+                'amount': this.safeInteger (market, 'quantityPrecision'),
+                'price': this.safeInteger (market, 'pricePrecision'),
             };
             const entry = {
                 'id': id,
@@ -100,16 +98,16 @@ module.exports = class beaxy extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'precision': precision,
-                'active': !suspended
+                'precision': precision,    
+                'active': !suspended                
             };
-            result.push(entry);
+            result.push (entry);
         }
         return result;
     }
 
-    async fetchCurrencies(params = {}) {
-        const response = await this.publicGetCurrencies(params);
+    async fetchCurrencies (params = {}) {
+        const response = await this.publicGetCurrencies (params);
         //
         // [
         //     {
@@ -136,9 +134,9 @@ module.exports = class beaxy extends Exchange {
         const result = {};
         for (let i = 0; i < response.length; i++) {
             const currency = response[i];
-            const code = this.safeString(currency, 'currency');
-            const precision = this.safeInteger(currency, 'precision');
-            const name = this.safeString(currency, 'name');
+            const code = this.safeString (currency, 'currency');            
+            const precision = this.safeInteger (currency, 'precision');
+            const name = this.safeString (currency, 'name');
             result[code] = {
                 'id': code,
                 'code': code,
@@ -169,15 +167,15 @@ module.exports = class beaxy extends Exchange {
         return result;
     }
 
-    parseTrade(trade, market = undefined) {
-        const side = this.safeString(trade, 'side');
-        const timestamp = this.safeInteger(trade, 'timestamp');
-        const price = this.safeFloat(trade, 'price');
-        const amount = this.safeFloat(trade, 'size');
+    parseTrade (trade, market = undefined) {        
+        const side = this.safeString (trade, 'side');
+        const timestamp = this.safeInteger (trade, 'timestamp');
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'size');
         let cost = undefined;
         if ((price !== undefined) && (amount !== undefined)) {
             cost = price * amount;
-        }
+        }        
         let symbol = undefined;
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
@@ -185,7 +183,7 @@ module.exports = class beaxy extends Exchange {
         return {
             'info': trade,
             'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'id': undefined,
             'order': undefined,
@@ -199,13 +197,13 @@ module.exports = class beaxy extends Exchange {
         };
     }
 
-    async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
-        const market = this.market(symbol);
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
             'market': market['id'],
-        };
-        const response = await this.publicGetSymbolsMarketTrades(this.extend(request, params));
+        };       
+        const response = await this.publicGetSymbolsMarketTrades(this.extend (request, params));
         //
         // [
         //     {
@@ -216,26 +214,25 @@ module.exports = class beaxy extends Exchange {
         //     }
         //  ]
         //        
-        return this.parseTrades(response, market, since, limit);
+        return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
         const response = await this.publicGetSymbolsRates(params);
         const result = {};
-        const ids = Object.keys(response);
+        const ids = Object.keys (response);
         for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
+            const id = ids[i];           
             let market = this.markets_by_id[id];
             let symbol = market['symbol'];
-
             const ticker = response[id];
-            result[symbol] = this.parseTicker(ticker, market);
+            result[symbol] = this.parseTicker (ticker, market);
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
-    parseTicker(ticker, market = undefined) {
+    parseTicker (ticker, market = undefined) {
         //
         //{
         //    "ETCBTC":{
@@ -251,21 +248,21 @@ module.exports = class beaxy extends Exchange {
         //    }
         //}
         //
-        const timestamp = this.milliseconds();
+        const timestamp = this.milliseconds ();
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const last = this.safeFloat(ticker, 'last');
+        const last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
-            'high': this.safeFloat(ticker, 'high24'),
-            'low': this.safeFloat(ticker, 'low24'),
-            'bid': this.safeFloat(ticker, 'bid'),
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeFloat (ticker, 'high24'),
+            'low': this.safeFloat (ticker, 'low24'),
+            'bid': this.safeFloat (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat(ticker, 'ask'),
+            'ask': this.safeFloat (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -275,13 +272,13 @@ module.exports = class beaxy extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeFloat(ticker, 'volume24'),
+            'baseVolume': this.safeFloat (ticker, 'volume24'),
             'quoteVolume': undefined,
             'info': ticker,
         };
-    }
+    }    
 
-    async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         //
         //{
         //    "symbol":"ETHBTC",
@@ -304,21 +301,21 @@ module.exports = class beaxy extends Exchange {
         //    ]
         //}
         //
-        await this.loadMarkets();
-        const market = this.market(symbol);
+        await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
             'market': market['id'],
             'barType': this.timeframes[timeframe],
-        };
+        };        
         if (limit !== undefined) {
             request['count'] = limit;
-        }
-        const response = await this.publicGetSymbolsMarketChart(this.extend(request, params));
-        const result = this.safeValue(response, 'bars', []);
-        return this.parseOHLCVs(result, market, timeframe, since, limit);
+        }        
+        const response = await this.publicGetSymbolsMarketChart (this.extend (request, params));       
+        const result = this.safeValue (response, 'bars', []);
+        return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
-    parseOHLCV(ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         //
         //    {
         //       "closeAsk":0.025308,
@@ -336,23 +333,23 @@ module.exports = class beaxy extends Exchange {
         //    }
         //
         return [
-            this.safeTimestamp(ohlcv, 'time'),
-            this.safeFloat(ohlcv, 'openBid'),
-            this.safeFloat(ohlcv, 'highBid'),
-            this.safeFloat(ohlcv, 'lowBid'),
-            this.safeFloat(ohlcv, 'closeBid'),
-            this.safeFloat(ohlcv, 'volume'),
+            this.safeTimestamp (ohlcv, 'time'),
+            this.safeFloat (ohlcv, 'openBid'),
+            this.safeFloat (ohlcv, 'highBid'),
+            this.safeFloat (ohlcv, 'lowBid'),
+            this.safeFloat (ohlcv, 'closeBid'),
+            this.safeFloat (ohlcv, 'volume'),
         ];
-    }
+    }    
 
-    async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
-        const market = this.market(symbol);
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
             'market': market['id'],
             'depth': 20
         };
-        const response = await this.publicGetSymbolsMarketBook(this.extend(request, params));
+        const response = await this.publicGetSymbolsMarketBook (this.extend (request, params));
         //
         //{
         //    "type":"SNAPSHOT_FULL_REFRESH",
@@ -370,44 +367,39 @@ module.exports = class beaxy extends Exchange {
         //       }]
         //}
         //
-        const result = this.safeValue(response, 'entries', []);
-        const timestamp = this.safeTimestamp(response, 'timestamp');
-        return this.parseOrderBook(result, timestamp, 'Buy', 'Sell', 'price', 'quantity');
+        const result = this.safeValue (response, 'entries', []);
+        const timestamp = this.safeTimestamp (response, 'timestamp');
+        return this.parseOrderBook (result, timestamp, 'Buy', 'Sell', 'price', 'quantity');
     }
 
-    parseOrderBook(orderbook, timestamp = undefined, bidsKey = 'Buy', asksKey = 'Sell', priceKey = 'price', amountKey = 'size') {
+    parseOrderBook (orderbook, timestamp = undefined, bidsKey = 'Buy', asksKey = 'Sell', priceKey = 'price', amountKey = 'size') {
         const bids = [];
         const asks = [];
         for (let i = 0; i < orderbook.length; i++) {
             const bidask = orderbook[i];
-            const side = this.safeString(bidask, 'side');
+            const side = this.safeString (bidask, 'side');
             if (side === 'ASK') {
-                asks.push(this.parseBidAsk(bidask, priceKey, amountKey));
-            } else {
-                bids.push(this.parseBidAsk(bidask, priceKey, amountKey));
+                asks.push (this.parseBidAsk (bidask, priceKey, amountKey));
+            } else{
+                bids.push (this.parseBidAsk (bidask, priceKey, amountKey));
             }
         }
         return {
-            'bids': this.sortBy(bids, 0, true),
-            'asks': this.sortBy(asks, 0),
+            'bids': this.sortBy (bids, 0, true),
+            'asks': this.sortBy (asks, 0),
             'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'datetime': this.iso8601 (timestamp),
             'nonce': undefined,
         };
     }
 
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/';
-        const query = this.omit(params, this.extractParams(path));
-        url += this.implodeParams(path, params);
-        if (Object.keys(query).length) {
-            url += '?' + this.urlencode(query);
+        const query = this.omit (params, this.extractParams (path));
+        url += this.implodeParams (path, params);
+        if (Object.keys (query).length) {
+            url += '?' + this.urlencode (query);
         }
-        return {
-            'url': url,
-            'method': method,
-            'body': body,
-            'headers': headers
-        };
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-};
+}; 
