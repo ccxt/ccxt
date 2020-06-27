@@ -132,7 +132,47 @@ module.exports = class binancedex extends Exchange {
         });
     }
 
+    async fetchCurrencies (params = {}) {
+        params['limit'] = this.safeValue (params, 'limit', 1000);
+        const response = await this.publicGetTokens (params);
+        const responseLen = response.length;
+        const result = {};
+        for (let i = 0; i < responseLen; i++) {
+            const currency = response[i];
+            const id = this.safeString (currency, 'symbol');
+            const symbol = this.safeString (currency, 'original_symbol');
+            result[symbol] = {
+                'id': id,
+                'code': this.safeCurrencyCode (symbol),
+                'info': this.safeString (currency, 'name'),
+                'name': symbol,
+                'active': true,
+                'fee': undefined,
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+            };
+        }
+        return result;
+    }
+
     async fetchMarkets (params = {}) {
+        params['limit'] = this.safeValue (params, 'limit', 1000);
         const markets = await this.publicGetMarkets (params);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
