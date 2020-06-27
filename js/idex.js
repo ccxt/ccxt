@@ -535,7 +535,7 @@ module.exports = class idex extends Exchange {
             'address': this.walletAddress,
         };
         if (since !== undefined) {
-            request['start'] = parseInt (Math.floor (since / 1000));
+            request['start'] = parseInt (since / 1000);
         }
         const response = await this.publicPostReturnDepositsWithdrawals (this.extend (request, params));
         // { deposits:
@@ -635,6 +635,9 @@ module.exports = class idex extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['market'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['count'] = limit;
         }
         const response = await this.publicPostReturnOpenOrders (this.extend (request, params));
         // [ { timestamp: 1564041428,
@@ -799,8 +802,11 @@ module.exports = class idex extends Exchange {
             market = this.market (symbol);
             request['market'] = market['id'];
         }
+        if (since !== undefined) {
+            request['start'] = parseInt (since / 1000);
+        }
         if (limit !== undefined) {
-            request['start'] = parseInt (Math.floor (limit));
+            request['count'] = limit;
         }
         const response = await this.publicPostReturnTradeHistory (this.extend (request, params));
         // { ETH_IDEX:

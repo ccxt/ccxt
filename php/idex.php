@@ -538,7 +538,7 @@ class idex extends Exchange {
             'address' => $this->walletAddress,
         );
         if ($since !== null) {
-            $request['start'] = intval ((int) floor($since / 1000));
+            $request['start'] = intval ($since / 1000);
         }
         $response = $this->publicPostReturnDepositsWithdrawals (array_merge($request, $params));
         // { $deposits:
@@ -638,6 +638,9 @@ class idex extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['market'] = $market['id'];
+        }
+        if ($limit !== null) {
+            $request['count'] = $limit;
         }
         $response = $this->publicPostReturnOpenOrders (array_merge($request, $params));
         // array( { timestamp => 1564041428,
@@ -802,8 +805,11 @@ class idex extends Exchange {
             $market = $this->market($symbol);
             $request['market'] = $market['id'];
         }
+        if ($since !== null) {
+            $request['start'] = intval ($since / 1000);
+        }
         if ($limit !== null) {
-            $request['start'] = intval ((int) floor($limit));
+            $request['count'] = $limit;
         }
         $response = $this->publicPostReturnTradeHistory (array_merge($request, $params));
         // { ETH_IDEX:

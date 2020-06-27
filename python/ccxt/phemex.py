@@ -33,7 +33,7 @@ class phemex(Exchange):
             'rateLimit': 100,
             'version': 'v1',
             'certified': False,
-            'pro': False,
+            'pro': True,
             'has': {
                 'fetchMarkets': True,
                 'fetchCurrencies': True,
@@ -47,7 +47,7 @@ class phemex(Exchange):
                 'fetchDepositAddress': True,
                 'fetchOrder': True,
                 'fetchOrders': True,
-                'fetchOpenOrdrs': True,
+                'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'fetchMyTrades': True,
             },
@@ -930,7 +930,7 @@ class phemex(Exchange):
         quoteVolume = self.from_ep(self.safe_float(ticker, 'turnoverEv'), market)
         baseVolume = self.from_ev(self.safe_float_2(ticker, 'volumeEv', 'volume'), market)
         vwap = None
-        if market['spot']:
+        if (market is not None) and (market['spot']):
             if (quoteVolume is not None) and (baseVolume is not None) and (baseVolume > 0):
                 vwap = quoteVolume / baseVolume
         change = None
@@ -1130,12 +1130,14 @@ class phemex(Exchange):
         orderId = None
         takerOrMaker = None
         if isinstance(trade, list):
+            tradeLength = len(trade)
             timestamp = self.safe_integer_product(trade, 0, 0.000001)
-            id = self.safe_string(trade, 1)
-            side = self.safe_string_lower(trade, 2)
+            if tradeLength > 4:
+                id = self.safe_string(trade, tradeLength - 4)
+            side = self.safe_string_lower(trade, tradeLength - 3)
             if market is not None:
-                price = self.from_ep(self.safe_float(trade, 3), market)
-                amount = self.from_ev(self.safe_float(trade, 4), market)
+                price = self.from_ep(self.safe_float(trade, tradeLength - 2), market)
+                amount = self.from_ev(self.safe_float(trade, tradeLength - 1), market)
                 if market['spot']:
                     if (price is not None) and (amount is not None):
                         cost = price * amount

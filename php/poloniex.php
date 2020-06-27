@@ -571,8 +571,8 @@ class poloniex extends Exchange {
                 $feeRate = $this->safe_string($parts, 2);
                 if ($feeRate !== null) {
                     $feeRate = str_replace('(', '', $feeRate);
-                    $feeRate = str_replace(', $feeRate)', '');
-                    $feeRate = str_replace('%', '', $feeRate);
+                    $feeRateParts = explode('%', $feeRate);
+                    $feeRate = $this->safe_string($feeRateParts, 0);
                     $feeRate = floatval ($feeRate) / 100;
                 }
                 $fee = array(

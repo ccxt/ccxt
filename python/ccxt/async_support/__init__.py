@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.30.28'
+__version__ = '1.30.47'
 
 # -----------------------------------------------------------------------------
 
@@ -128,6 +128,7 @@ from ccxt.async_support.gemini import gemini                              # noqa
 from ccxt.async_support.hbtc import hbtc                                  # noqa: F401
 from ccxt.async_support.hitbtc import hitbtc                              # noqa: F401
 from ccxt.async_support.hollaex import hollaex                            # noqa: F401
+from ccxt.async_support.huobijp import huobijp                            # noqa: F401
 from ccxt.async_support.huobipro import huobipro                          # noqa: F401
 from ccxt.async_support.huobiru import huobiru                            # noqa: F401
 from ccxt.async_support.ice3x import ice3x                                # noqa: F401
@@ -160,12 +161,10 @@ from ccxt.async_support.southxchange import southxchange                  # noqa
 from ccxt.async_support.stex import stex                                  # noqa: F401
 from ccxt.async_support.stronghold import stronghold                      # noqa: F401
 from ccxt.async_support.surbitcoin import surbitcoin                      # noqa: F401
-from ccxt.async_support.theocean import theocean                          # noqa: F401
 from ccxt.async_support.therock import therock                            # noqa: F401
 from ccxt.async_support.tidebit import tidebit                            # noqa: F401
 from ccxt.async_support.tidex import tidex                                # noqa: F401
 from ccxt.async_support.timex import timex                                # noqa: F401
-from ccxt.async_support.topq import topq                                  # noqa: F401
 from ccxt.async_support.upbit import upbit                                # noqa: F401
 from ccxt.async_support.vaultoro import vaultoro                          # noqa: F401
 from ccxt.async_support.vbtc import vbtc                                  # noqa: F401
@@ -255,6 +254,7 @@ exchanges = [
     'hbtc',
     'hitbtc',
     'hollaex',
+    'huobijp',
     'huobipro',
     'huobiru',
     'ice3x',
@@ -287,12 +287,10 @@ exchanges = [
     'stex',
     'stronghold',
     'surbitcoin',
-    'theocean',
     'therock',
     'tidebit',
     'tidex',
     'timex',
-    'topq',
     'upbit',
     'vaultoro',
     'vbtc',

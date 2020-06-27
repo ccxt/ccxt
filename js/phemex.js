@@ -17,7 +17,7 @@ module.exports = class phemex extends Exchange {
             'rateLimit': 100,
             'version': 'v1',
             'certified': false,
-            'pro': false,
+            'pro': true,
             'has': {
                 'fetchMarkets': true,
                 'fetchCurrencies': true,
@@ -31,7 +31,7 @@ module.exports = class phemex extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
-                'fetchOpenOrdrs': true,
+                'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchMyTrades': true,
             },
@@ -952,7 +952,7 @@ module.exports = class phemex extends Exchange {
         const quoteVolume = this.fromEp (this.safeFloat (ticker, 'turnoverEv'), market);
         const baseVolume = this.fromEv (this.safeFloat2 (ticker, 'volumeEv', 'volume'), market);
         let vwap = undefined;
-        if (market['spot']) {
+        if ((market !== undefined) && (market['spot'])) {
             if ((quoteVolume !== undefined) && (baseVolume !== undefined) && (baseVolume > 0)) {
                 vwap = quoteVolume / baseVolume;
             }
@@ -1159,12 +1159,15 @@ module.exports = class phemex extends Exchange {
         let orderId = undefined;
         let takerOrMaker = undefined;
         if (Array.isArray (trade)) {
+            const tradeLength = trade.length;
             timestamp = this.safeIntegerProduct (trade, 0, 0.000001);
-            id = this.safeString (trade, 1);
-            side = this.safeStringLower (trade, 2);
+            if (tradeLength > 4) {
+                id = this.safeString (trade, tradeLength - 4);
+            }
+            side = this.safeStringLower (trade, tradeLength - 3);
             if (market !== undefined) {
-                price = this.fromEp (this.safeFloat (trade, 3), market);
-                amount = this.fromEv (this.safeFloat (trade, 4), market);
+                price = this.fromEp (this.safeFloat (trade, tradeLength - 2), market);
+                amount = this.fromEv (this.safeFloat (trade, tradeLength - 1), market);
                 if (market['spot']) {
                     if ((price !== undefined) && (amount !== undefined)) {
                         cost = price * amount;

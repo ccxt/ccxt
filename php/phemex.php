@@ -20,7 +20,7 @@ class phemex extends Exchange {
             'rateLimit' => 100,
             'version' => 'v1',
             'certified' => false,
-            'pro' => false,
+            'pro' => true,
             'has' => array(
                 'fetchMarkets' => true,
                 'fetchCurrencies' => true,
@@ -34,7 +34,7 @@ class phemex extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchOrder' => true,
                 'fetchOrders' => true,
-                'fetchOpenOrdrs' => true,
+                'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
                 'fetchMyTrades' => true,
             ),
@@ -955,7 +955,7 @@ class phemex extends Exchange {
         $quoteVolume = $this->from_ep($this->safe_float($ticker, 'turnoverEv'), $market);
         $baseVolume = $this->from_ev($this->safe_float_2($ticker, 'volumeEv', 'volume'), $market);
         $vwap = null;
-        if ($market['spot']) {
+        if (($market !== null) && ($market['spot'])) {
             if (($quoteVolume !== null) && ($baseVolume !== null) && ($baseVolume > 0)) {
                 $vwap = $quoteVolume / $baseVolume;
             }
@@ -1162,12 +1162,15 @@ class phemex extends Exchange {
         $orderId = null;
         $takerOrMaker = null;
         if (gettype($trade) === 'array' && count(array_filter(array_keys($trade), 'is_string')) == 0) {
+            $tradeLength = is_array($trade) ? count($trade) : 0;
             $timestamp = $this->safe_integer_product($trade, 0, 0.000001);
-            $id = $this->safe_string($trade, 1);
-            $side = $this->safe_string_lower($trade, 2);
+            if ($tradeLength > 4) {
+                $id = $this->safe_string($trade, $tradeLength - 4);
+            }
+            $side = $this->safe_string_lower($trade, $tradeLength - 3);
             if ($market !== null) {
-                $price = $this->from_ep($this->safe_float($trade, 3), $market);
-                $amount = $this->from_ev($this->safe_float($trade, 4), $market);
+                $price = $this->from_ep($this->safe_float($trade, $tradeLength - 2), $market);
+                $amount = $this->from_ev($this->safe_float($trade, $tradeLength - 1), $market);
                 if ($market['spot']) {
                     if (($price !== null) && ($amount !== null)) {
                         $cost = $price * $amount;

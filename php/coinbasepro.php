@@ -159,6 +159,8 @@ class coinbasepro extends Exchange {
                     'Invalid Passphrase' => '\\ccxt\\AuthenticationError',
                     'Invalid order id' => '\\ccxt\\InvalidOrder',
                     'Private rate limit exceeded' => '\\ccxt\\RateLimitExceeded',
+                    'Trading pair not available' => '\\ccxt\\PermissionDenied',
+                    'Product not found' => '\\ccxt\\InvalidOrder',
                 ),
                 'broad' => array(
                     'Order already done' => '\\ccxt\\OrderNotFound',
@@ -166,6 +168,7 @@ class coinbasepro extends Exchange {
                     'price too small' => '\\ccxt\\InvalidOrder',
                     'price too precise' => '\\ccxt\\InvalidOrder',
                     'under maintenance' => '\\ccxt\\OnMaintenance',
+                    'size is too small' => '\\ccxt\\InvalidOrder',
                 ),
             ),
         ));

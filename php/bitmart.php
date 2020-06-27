@@ -185,7 +185,7 @@ class bitmart extends Exchange {
             throw new AuthenticationError($this->id . ' signIn() failed to authenticate. Access token missing from $response->');
         }
         $expiresIn = $this->safe_integer($response, 'expires_in');
-        $this->options['expires'] = $this->sum($this->nonce(), $expiresIn * 1000);
+        $this->options['expires'] = $this->sum($this->milliseconds(), $expiresIn * 1000);
         $this->options['accessToken'] = $accessToken;
         return $response;
     }

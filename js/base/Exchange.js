@@ -116,6 +116,7 @@ module.exports = class Exchange {
                 'fetchWithdrawals': false,
                 'privateAPI': true,
                 'publicAPI': true,
+                'signIn': false,
                 'withdraw': false,
             },
             'urls': {
@@ -1104,15 +1105,13 @@ module.exports = class Exchange {
 
         // single-pass filter for both symbol and since
         if (valueIsDefined || sinceIsDefined) {
-            array = Object.values (array).filter ((entry) =>
+            array = array.filter ((entry) =>
                 ((valueIsDefined ? (entry[field] === value) : true) &&
                  (sinceIsDefined ? (entry[key] >= since) : true)))
         }
 
         if (limit !== undefined && limit !== null) {
-            array = ((tail && !sinceIsDefined) ?
-                Object.values (array).slice (-limit) :
-                Object.values (array).slice (0, limit))
+            array = (tail && !sinceIsDefined) ? array.slice (-limit) : array.slice (0, limit)
         }
 
         return array
