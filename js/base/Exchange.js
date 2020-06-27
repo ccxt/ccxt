@@ -1338,7 +1338,7 @@ module.exports = class Exchange {
                 if (noPrefix.length === 40 && noPrefix.toLowerCase ().match (/^[0-9a-f]+$/)) { // check if it is an address
                     encoded.push (this.base16ToBinary (noPrefix))
                 } else {
-                    encoded.push (this.stringToBinary (noPrefix))
+                    encoded.push (this.encode (noPrefix))
                 }
             }
         }
@@ -1458,7 +1458,7 @@ module.exports = class Exchange {
     hashMessage (message) {
         // takes a hex encoded message
         const binaryMessage = this.base16ToBinary (Exchange.remove0xPrefix (message))
-        const prefix = this.stringToBinary ('\x19Ethereum Signed Message:\n' + binaryMessage.sigBytes)
+        const prefix = this.encode ('\x19Ethereum Signed Message:\n' + binaryMessage.sigBytes)
         return '0x' + this.hash (this.binaryConcat (prefix, binaryMessage), 'keccak', 'hex')
     }
 

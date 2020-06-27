@@ -181,7 +181,6 @@ class Transpiler {
             [ /undefined/g, 'None' ],
             [ /\=\=\=?/g, '==' ],
             [ /\!\=\=?/g, '!=' ],
-            [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
             [ /this\.stringToBase64\s/g, 'base64.b64encode' ],
             [ /this\.binaryToBase16\s/g, 'base64.b16encode' ],
             [ /this\.base64ToBinary\s/g, 'base64.b64decode' ],
@@ -304,7 +303,6 @@ class Transpiler {
 
             [ /undefined/g, 'null' ],
             [ /this\.extend\s/g, 'array_merge' ],
-            [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
             [ /this\.stringToBase64\s/g, 'base64_encode' ],
             [ /this\.binaryToBase16\s/g, 'bin2hex' ],
             [ /this\.base64ToBinary\s/g, 'base64_decode' ],
