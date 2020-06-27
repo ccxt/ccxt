@@ -39,7 +39,7 @@ const hmac = (request, secret, hash = 'sha256', digest = 'hex') => {
 /*  .............................................   */
 
 function rsa (request, secret, alg = 'RS256') {
-    secret = decode (secret)
+    secret = decode (secret)  // is a CryptoJS wordArray
     const algos = {
         'RS256': 'pkcs1-sha256',
         'RS512': 'pkcs1-sha512',
@@ -60,7 +60,6 @@ function rsa (request, secret, alg = 'RS256') {
  * @return {string}
  */
 function jwt (request, secret, alg = 'HS256') {
-    secret = decode (secret)  // is a CryptoJS wordArray
     const algos = {
         'HS256': 'sha256',
         'HS384': 'sha384',
