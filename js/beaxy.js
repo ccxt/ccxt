@@ -342,7 +342,7 @@ module.exports = class beaxy extends Exchange {
         //    }
         //
         return [
-            this.safeTimestamp (ohlcv, 'time'),
+            this.safeInteger (ohlcv, 'time'),
             this.safeFloat (ohlcv, 'openBid'),
             this.safeFloat (ohlcv, 'highBid'),
             this.safeFloat (ohlcv, 'lowBid'),
@@ -377,7 +377,7 @@ module.exports = class beaxy extends Exchange {
         // }
         //
         const result = this.safeValue (response, 'entries', []);
-        const timestamp = this.safeTimestamp (response, 'timestamp');
+        const timestamp = this.safeInteger (response, 'timestamp');
         return this.parseOrderBook (result, timestamp, 'Buy', 'Sell', 'price', 'quantity');
     }
 
