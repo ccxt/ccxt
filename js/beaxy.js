@@ -216,6 +216,16 @@ module.exports = class beaxy extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+        };
+        const response = await this.publicGetSymbolsMarketRate (this.extend (request, params));       
+        return this.parseTicker (response, market);
+    }
+
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.publicGetSymbolsRates (params);
