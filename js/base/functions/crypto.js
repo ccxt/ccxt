@@ -6,7 +6,7 @@ const CryptoJS = require ('../../static_dependencies/crypto-js/crypto-js')
 const { capitalize } = require ('./string')
 const { stringToBase64, urlencodeBase64 } = require ('./encode')
 const NodeRSA = require ('./../../static_dependencies/node-rsa/NodeRSA')
-const { binaryToBase58, byteArrayToWordArray } = require ('./encode')
+const { binaryToBase58, byteArrayToWordArray, decode } = require ('./encode')
 const elliptic = require ('./../../static_dependencies/elliptic/lib/elliptic')
 const EC = elliptic.ec
 const EDDSA = elliptic.eddsa
@@ -59,6 +59,7 @@ function rsa (request, secret, alg = 'RS256') {
  * @return {string}
  */
 function jwt (request, secret, alg = 'HS256') {
+    secret = decode (secret)  // is a CryptoJS wordArray
     const algos = {
         'HS256': 'sha256',
         'HS384': 'sha384',
