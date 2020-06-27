@@ -16,9 +16,9 @@ module.exports = class beaxy extends Exchange {
             'rateLimit': 500,
             'userAgent': this.userAgents['chrome'],
             'has': {
-                'CORS': false,                
+                'CORS': false,
                 'fetchMarkets': true,   
-                'fetchCurrencies': true,            
+                'fetchCurrencies': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchOrderBook': true,
@@ -30,8 +30,8 @@ module.exports = class beaxy extends Exchange {
                 '15m': 'MINUTE15',
                 '30m': 'MINUTE30',
                 '1h': 'HOUR',
-		        '4h': 'HOUR4',
-		        '8h': 'HOUR8',
+                '4h': 'HOUR4',
+                '8h': 'HOUR8',
                 '1d': 'DAY',
                 '1w': 'WEEK',
             },
@@ -47,7 +47,7 @@ module.exports = class beaxy extends Exchange {
                     'get': [
                         'symbols',
                         'currencies',
-                        'symbols/rates',        
+                        'symbols/rates',
                         'symbols/{market}/rate',
                         'symbols/{market}/trades',
                         'symbols/{market}/chart',
@@ -59,7 +59,7 @@ module.exports = class beaxy extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.publicGetSymbols (params);        
+        const response = await this.publicGetSymbols (params);
         //
         // [{
         //     symbol: "ETCBTC",
@@ -79,7 +79,7 @@ module.exports = class beaxy extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
             const id = this.safeString (market, 'name');
-            const uuid = this.safeString (market, 'symbol');        
+            const uuid = this.safeString (market, 'symbol');
             const baseId = this.safeString (market, 'baseCurrency');
             const quoteId = this.safeString (market, 'termCurrency');
             const base = this.safeCurrencyCode (baseId);
@@ -98,8 +98,8 @@ module.exports = class beaxy extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'precision': precision,    
-                'active': !suspended                
+                'precision': precision,
+                'active': !suspended
             };
             result.push (entry);
         }
@@ -134,7 +134,7 @@ module.exports = class beaxy extends Exchange {
         const result = {};
         for (let i = 0; i < response.length; i++) {
             const currency = response[i];
-            const code = this.safeString (currency, 'currency');            
+            const code = this.safeString (currency, 'currency');
             const precision = this.safeInteger (currency, 'precision');
             const name = this.safeString (currency, 'name');
             result[code] = {
@@ -167,7 +167,7 @@ module.exports = class beaxy extends Exchange {
         return result;
     }
 
-    parseTrade (trade, market = undefined) {        
+    parseTrade (trade, market = undefined) {
         const side = this.safeString (trade, 'side');
         const timestamp = this.safeInteger (trade, 'timestamp');
         const price = this.safeFloat (trade, 'price');
@@ -175,7 +175,7 @@ module.exports = class beaxy extends Exchange {
         let cost = undefined;
         if ((price !== undefined) && (amount !== undefined)) {
             cost = price * amount;
-        }        
+        }
         let symbol = undefined;
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
@@ -202,7 +202,7 @@ module.exports = class beaxy extends Exchange {
         const market = this.market (symbol);
         const request = {
             'market': market['id'],
-        };       
+        };
         const response = await this.publicGetSymbolsMarketTrades(this.extend (request, params));
         //
         // [
@@ -223,7 +223,7 @@ module.exports = class beaxy extends Exchange {
         const result = {};
         const ids = Object.keys (response);
         for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];           
+            const id = ids[i];
             let market = this.markets_by_id[id];
             let symbol = market['symbol'];
             const ticker = response[id];
@@ -306,11 +306,11 @@ module.exports = class beaxy extends Exchange {
         const request = {
             'market': market['id'],
             'barType': this.timeframes[timeframe],
-        };        
+        };
         if (limit !== undefined) {
             request['count'] = limit;
-        }        
-        const response = await this.publicGetSymbolsMarketChart (this.extend (request, params));       
+        }
+        const response = await this.publicGetSymbolsMarketChart (this.extend (request, params));
         const result = this.safeValue (response, 'bars', []);
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
@@ -340,7 +340,7 @@ module.exports = class beaxy extends Exchange {
             this.safeFloat (ohlcv, 'closeBid'),
             this.safeFloat (ohlcv, 'volume'),
         ];
-    }    
+    }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
