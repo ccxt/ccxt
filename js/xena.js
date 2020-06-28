@@ -116,55 +116,41 @@ module.exports = class xena extends Exchange {
         //
         //     [
         //         {
-        //             "id":"100",
-        //             "type":"Spot",
-        //             "symbol":"BTC/USDT",
-        //             "baseCurrency":"BTC",
-        //             "quoteCurrency":"USDT",
-        //             "settlCurrency":"USDT",
-        //             "tickSize":1,
-        //             "minOrderQuantity":"0.001",
-        //             "orderQtyStep":"0.001",
-        //             "limitOrderMaxDistance":"0",
-        //             "priceInputMask":"00000.0",
-        //             "enabled":true
-        //         },
-        //         {
-        //             "id":"1000",
+        //             "id":"ETHUSD_3M_250920",
         //             "type":"Margin",
-        //             "symbol":"XBTUSD",
-        //             "baseCurrency":"BTC",
+        //             "marginType":"XenaFuture",
+        //             "symbol":"ETHUSD_3M_250920",
+        //             "baseCurrency":"ETH",
         //             "quoteCurrency":"USD",
         //             "settlCurrency":"BTC",
-        //             "tickSize":1,
+        //             "tickSize":2,
         //             "minOrderQuantity":"1",
         //             "orderQtyStep":"1",
         //             "limitOrderMaxDistance":"10",
-        //             "priceInputMask":"00000.0",
-        //             "indexes":[".BTC3_TWAP"],
+        //             "priceInputMask":"0000.00",
         //             "enabled":true,
         //             "liquidationMaxDistance":"0.01",
         //             "contractValue":"1",
-        //             "contractCurrency":"USD",
+        //             "contractCurrency":"BTC",
         //             "lotSize":"1",
-        //             "tickValue":"0",
-        //             "maxOrderQty":"500000",
-        //             "maxPosVolume":"10000000",
-        //             "mark":".BTC3_TWAP",
-        //             "floatingPL":"BidAsk",
+        //             "tickValue":"0.00000001", // linear contracts only
+        //             "maxOrderQty":"175000",
+        //             "maxPosVolume":"1750000",
+        //             "mark":".ETHUSD_3M_250920",
+        //             "underlying":".ETHUSD_TWAP",
+        //             "openInterest":".ETHUSD_3M_250920_OpenInterest",
+        //             "floatingPL":"BidAsk", // perpetual contracts only
         //             "addUvmToFreeMargin":"ProfitAndLoss",
-        //             "minLeverage":"0",
-        //             "maxLeverage":"20",
         //             "margin":{
         //                 "netting":"PositionsAndOrders",
         //                 "rates":[
-        //                     { "maxVolume":"500000", "initialRate":"0.05", "maintenanceRate":"0.0125"},
-        //                     { "maxVolume":"1000000", "initialRate":"0.1", "maintenanceRate":"0.025"},
-        //                     { "maxVolume":"1500000", "initialRate":"0.2", "maintenanceRate":"0.05"},
-        //                     { "maxVolume":"2000000", "initialRate":"0.3", "maintenanceRate":"0.075"},
-        //                     { "maxVolume":"3000000", "initialRate":"0.4", "maintenanceRate":"0.1"},
-        //                     { "maxVolume":"4000000", "initialRate":"0.5", "maintenanceRate":"0.125"},
-        //                     { "maxVolume":"5000000", "initialRate":"1", "maintenanceRate":"0.25"}
+        //                     {"maxVolume":"175000","initialRate":"0.05","maintenanceRate":"0.0125"},
+        //                     {"maxVolume":"350000","initialRate":"0.1","maintenanceRate":"0.025"},
+        //                     {"maxVolume":"500000","initialRate":"0.2","maintenanceRate":"0.05"},
+        //                     {"maxVolume":"750000","initialRate":"0.3","maintenanceRate":"0.075"},
+        //                     {"maxVolume":"1050000","initialRate":"0.4","maintenanceRate":"0.1"},
+        //                     {"maxVolume":"1400000","initialRate":"0.5","maintenanceRate":"0.125"},
+        //                     {"maxVolume":"1750000","initialRate":"1","maintenanceRate":"0.25"}
         //                 ],
         //                 "rateMultipliers":{
         //                     "LimitBuy":"1",
@@ -177,81 +163,103 @@ module.exports = class xena extends Exchange {
         //                     "StopSell":"0"
         //                 }
         //             },
-        //             "clearing":{ "enabled":true, "index":".BTC3_TWAP"},
-        //             "premium":{ "enabled":true, "index":".XBTUSD_Premium_IR_Corrected"},
-        //             "riskAdjustment":{ "enabled":true, "index":".RiskAdjustment_IR"},
-        //             "pricePrecision":2,
+        //             "clearing":{"enabled":true,"index":".ETHUSD_3M_250920"},
+        //             "premium":{"enabled":true,"index":".XBTUSD_Premium_IR_Corrected"}, // perpetual contracts only
+        //             "riskAdjustment":{"enabled":true,"index":".RiskAdjustment_IR"},
+        //             "expiration":{"enabled":true,"index":".ETHUSD_TWAP"}, // futures only
+        //             "pricePrecision":3,
         //             "priceRange":{
         //                 "enabled":true,
-        //                 "distance":"0.2",
-        //                 "movingBoundary":"0.2",
-        //                 "movingTime":60000000000,
-        //                 "lowIndex":".XBTUSD_LOWRANGE",
-        //                 "highIndex":".XBTUSD_HIGHRANGE"
+        //                 "distance":"0.03",
+        //                 "movingBoundary":"0",
+        //                 "lowIndex":".ETHUSD_3M_250920_LOWRANGE",
+        //                 "highIndex":".ETHUSD_3M_250920_HIGHRANGE"
         //             },
-        //             "priceLimits":{ "enabled":true, "distance":"0.2", "lowIndex":".XBTUSD_LOWLIMIT", "highIndex":".XBTUSD_HIGHLIMIT" },
-        //             "inverse":true,
-        //             "tradingStartDate":"0001-01-01 00:00:00",
-        //             "expiryDate":"0001-01-01 00:00:00"
+        //             "priceLimits":{
+        //                 "enabled":true,
+        //                 "distance":"0.5",
+        //                 "movingBoundary":"0",
+        //                 "lowIndex":".ETHUSD_3M_250920_LOWLIMIT",
+        //                 "highIndex":".ETHUSD_3M_250920_HIGHLIMIT"
+        //             },
+        //             "inverse":true, // inverse contracts only
+        //             "serie":"ETHUSD", // futures only
+        //             "tradingStartDate":"2020-03-27 07:00:00",
+        //             "expiryDate":"2020-09-25 08:00:00" // futures only
         //         },
-        //         { "type":"Index", "symbol":".ETHUSD_Asks", "tickSize":3, "enabled":true, "basis":365},
+        //         {
+        //             "type":"Index",
+        //             "symbol":".ETHUSD_Premium_IR_Corrected",
+        //             "tickSize":6,
+        //             "enabled":true,
+        //             "basis":365
+        //         },
         //     ]
         //
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
-            const type = this.safeStringLower (market, 'type');
-            const margin = (type === 'margin');
-            const spot = (type === 'spot');
-            if (spot || margin) {
-                const id = this.safeString (market, 'symbol');
-                const numericId = this.safeInteger (market, 'id');
-                const baseId = this.safeString (market, 'baseCurrency');
-                const quoteId = this.safeString (market, 'quoteCurrency');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                const symbol = (base && quote) ? (base + '/' + quote) : id;
-                const maxCost = this.safeFloat (market, 'maxOrderQty');
-                const minCost = this.safeFloat (market, 'minOrderQuantity');
-                const pricePrecision = this.safeInteger2 (market, 'tickSize', 'pricePrecision');
-                const tickValue = this.safeString (market, 'orderQtyStep');
-                const amountPrecision = (tickValue === undefined) ? undefined : this.precisionFromString (tickValue);
-                const precision = {
-                    'price': pricePrecision,
-                    'amount': amountPrecision,
-                };
-                const limits = {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': minCost,
-                        'max': maxCost,
-                    },
-                };
-                const active = this.safeValue (market, 'enabled');
-                result.push ({
-                    'id': id,
-                    'symbol': symbol,
-                    'base': base,
-                    'quote': quote,
-                    'baseId': baseId,
-                    'quoteId': quoteId,
-                    'numericId': numericId,
-                    'active': active,
-                    'type': type,
-                    'spot': spot,
-                    'margin': margin,
-                    'precision': precision,
-                    'limits': limits,
-                    'info': market,
-                });
+            let type = this.safeStringLower (market, 'type');
+            const id = this.safeString (market, 'symbol');
+            const numericId = this.safeString (market, 'id');
+            const marginType = this.safeString (market, 'marginType');
+            const baseId = this.safeString (market, 'baseCurrency');
+            const quoteId = this.safeString (market, 'quoteCurrency');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            if (type === 'margin') {
+                if (marginType === 'XenaFuture') {
+                    type = 'future';
+                } else if (marginType === 'XenaListedPerpetual') {
+                    type = 'swap';
+                }
             }
+            const future = (type === 'future');
+            const swap = (type === 'swap');
+            const symbol = id;
+            const pricePrecision = this.safeInteger2 (market, 'tickSize', 'pricePrecision');
+            const tickValue = this.safeString (market, 'orderQtyStep');
+            // const amountPrecision = (tickValue === undefined) ? undefined : this.precisionFromString (tickValue);
+            const precision = {
+                'price': pricePrecision,
+                'amount': 0,
+            };
+            const maxCost = this.safeFloat (market, 'maxOrderQty');
+            const minCost = this.safeFloat (market, 'minOrderQuantity');
+            const limits = {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': minCost,
+                    'max': maxCost,
+                },
+            };
+            const active = this.safeValue (market, 'enabled', false);
+            const inverse = this.safeValue (market, 'inverse', false);
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'numericId': numericId,
+                'active': active,
+                'type': type,
+                'spot': false,
+                'future': future,
+                'swap': swap,
+                'inverse': inverse,
+                'precision': precision,
+                'limits': limits,
+                'info': market,
+            });
         }
         return result;
     }
