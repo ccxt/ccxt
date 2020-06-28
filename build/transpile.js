@@ -508,7 +508,6 @@ class Transpiler {
     createPythonClass (className, baseClass, body, methods, async = false) {
 
         const pythonStandardLibraries = {
-            'base64': 'base64',
             'hashlib': 'hashlib',
             'math': 'math',
             'json.loads': 'json',
