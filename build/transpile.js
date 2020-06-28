@@ -181,9 +181,6 @@ class Transpiler {
             [ /undefined/g, 'None' ],
             [ /\=\=\=?/g, '==' ],
             [ /\!\=\=?/g, '!=' ],
-            [ /this\.stringToBase64\s/g, 'base64.b64encode' ],
-            [ /this\.binaryToBase16\s/g, 'base64.b16encode' ],
-            [ /this\.base64ToBinary\s/g, 'base64.b64decode' ],
             [ /\.shift\s*\(\)/g, '.pop(0)' ],
             [ /Number\.MAX_SAFE_INTEGER/g, 'float(\'inf\')']
 

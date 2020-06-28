@@ -1098,6 +1098,14 @@ class Exchange(object):
         return Exchange.decode(base64.standard_b64encode(s))
 
     @staticmethod
+    def base64_to_binary(s):
+        return base64.standard_b64decode(s)
+
+    @staticmethod
+    def string_to_base64(s):
+        return Exchange.binary_to_base64(Exchange.encode(s))
+
+    @staticmethod
     def jwt(request, secret, alg='HS256'):
         algos = {
             'HS256': hashlib.sha256,
@@ -2066,6 +2074,10 @@ class Exchange(object):
     @staticmethod
     def base16_to_binary(s):
         return base64.b16decode(s, True)
+
+    @staticmethod
+    def binary_to_base16(s):
+        return Exchange.decode(base64.b16encode(s))
 
     # python supports arbitrarily big integers
     @staticmethod
