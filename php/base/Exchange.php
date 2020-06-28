@@ -608,7 +608,7 @@ class Exchange {
         return urldecode($this->urlencode($array));
     }
 
-    public function encode_uri_component($string) {
+    public static function encode_uri_component($string) {
         return urlencode($string);
     }
 
@@ -621,16 +621,16 @@ class Exchange {
         return $result;
     }
 
-    public function seconds() {
+    public static function seconds() {
         return time();
     }
 
-    public function milliseconds() {
+    public static function milliseconds() {
         list($msec, $sec) = explode(' ', microtime());
         return (int) ($sec . substr($msec, 2, 3));
     }
 
-    public function microseconds() {
+    public static function microseconds() {
         list($msec, $sec) = explode(' ', microtime());
         return $sec . str_pad(substr($msec, 2, 6), 6, '0');
     }
@@ -688,7 +688,7 @@ class Exchange {
 
     public static function rfc2616($timestamp) {
         if (!$timestamp) {
-            $timestamp = $this->milliseconds();
+            $timestamp = static::milliseconds();
         }
         return gmdate('D, d M Y H:i:s T', (int) round($timestamp / 1000));
     }
