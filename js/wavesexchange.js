@@ -889,10 +889,12 @@ module.exports = class wavesexchange extends Exchange {
             'timestamp': timestamp,
             'expiration': expiration,
             'matcherFee': matcherFee,
-            'matcherFeeAssetId': market['baseId'],
             'signature': signature,
             'version': 3,
         };
+        if (matcherFeeAssetId !== 'WAVES') {
+            body['matcherFeeAssetId'] = matcherFeeAssetId;
+        }
         const response = await this.matcherPostMatcherOrderbook (body);
         // { success: true,
         //   message:
