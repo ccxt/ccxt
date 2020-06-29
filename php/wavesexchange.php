@@ -893,10 +893,12 @@ class wavesexchange extends Exchange {
             'timestamp' => $timestamp,
             'expiration' => $expiration,
             'matcherFee' => $matcherFee,
-            'matcherFeeAssetId' => $market['baseId'],
             'signature' => $signature,
             'version' => 3,
         );
+        if ($matcherFeeAssetId !== 'WAVES') {
+            $body['matcherFeeAssetId'] = $matcherFeeAssetId;
+        }
         $response = $this->matcherPostMatcherOrderbook ($body);
         // { success => true,
         //   message:
