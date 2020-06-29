@@ -8,6 +8,7 @@ import hashlib
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -215,6 +216,7 @@ class kucoin(Exchange):
                 },
                 'broad': {
                     'Exceeded the access frequency': RateLimitExceeded,
+                    'require more permission': PermissionDenied,
                 },
             },
             'fees': {
