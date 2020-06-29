@@ -336,8 +336,8 @@ class bitrue(Exchange):
         if ord_type == 'LIMIT':
             request['price'] = self.price_to_precision(symbol, price)
         response = self.privatePostOrder(self.extend(request, params))
-        data = self.safe_value(response, 'data')
-        return self.parse_order(data, market)
+        return self.parse_order(response, market)
+        
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
@@ -425,10 +425,13 @@ class bitrue(Exchange):
             symbol = market['symbol']
         else:
             market = self.markets_by_id[self.safe_string(order, 'symbol').lower()]
-        timestamp = self.safe_integer(order, 'time')
+        timestamp = self.safe_integer_2(order, 'time', 'transactTime')
         if timestamp is None:
             timestamp = self.parse8601(self.safe_string(order, 'updateTime'))
         execute_qty = self.safe_float(order, 'executedQty')
+        orig_qty = self.safe_float(order, 'origQty')
+        if execute_qty is None:
+            execute_qty = 0
         return {
             'info': order,
             'id': self.safe_string(order, 'orderId'),
@@ -441,8 +444,8 @@ class bitrue(Exchange):
             'side': self.safe_value(order, 'side'),
             'price': self.safe_float(order, 'price'),
             'average': self.safe_float(order, 'cummulativeQuoteQty')/ execute_qty if execute_qty > 0 else .0,
-            'amount': self.safe_float(order, 'origQty'),
-            'remaining': self.safe_float(order, 'origQty') - execute_qty,
+            'amount': orig_qty,
+            'remaining': orig_qty - execute_qty if orig_qty else None,
             'filled': execute_qty,
             'status': status,
             'cost': None,
