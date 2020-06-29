@@ -394,10 +394,21 @@ class coineal extends Exchange {
                 }
             }
         }
-        $transactionId = $this->safe_string($trade, 'id');
         $side = $this->safe_string($trade, 'side');
         if ($side === null) {
             $side = $this->safe_string($trade, 'type');
+        }
+        $transactionId = null;
+        if ($side !== null) {
+            if (strtoupper($side) === 'BUY') {
+                $transactionId = $this->safe_string($trade, 'bid_id');
+            }
+            if (strtoupper($side) === 'SELL') {
+                $transactionId = $this->safe_string($trade, 'ask_id');
+            }
+        }
+        if ($transactionId === null) {
+            $transactionId = $this->safe_string($trade, 'id');
         }
         $feecost = $this->safe_float($trade, 'fee');
         $fee = null;
@@ -567,7 +578,7 @@ class coineal extends Exchange {
 
     public function parse_order_status ($status) {
         $statuses = array(
-            '0' => 'Historical Order Unsuccessful',
+            '0' => 'Open', // Historical Order Unsuccessful
             '1' => 'Open',
             '2' => 'Closed',
             '3' => 'Open', // Partially Opened
@@ -591,10 +602,14 @@ class coineal extends Exchange {
             }
         }
         $timestamp = $this->safe_string($order, 'created_at');
-        $price = $this->safe_float($order, 'price');
         $filled = $this->safe_float($order, 'deal_volume');
         $remaining = $this->safe_float($order, 'remain_volume');
         $amount = $this->safe_float($order, 'volume');
+        if ($filled !== null) {
+            if ($remaining !== null) {
+                $amount = $this->amount_to_precision($symbol, $filled . $remaining);
+            }
+        }
         $id = $this->safe_string($order, 'order_id');
         if ($id === null) {
             $id = $this->safe_string($order, 'id');
@@ -602,11 +617,6 @@ class coineal extends Exchange {
         $side = $this->safe_string($order, 'side');
         $cost = null;
         $type = null;
-        if ($filled !== null) {
-            if ($price !== null) {
-                $cost = $filled * $price;
-            }
-        }
         $typeId = $this->safe_integer($order, 'type');
         if ($typeId !== null) {
             if ($typeId === 1) {
@@ -616,6 +626,20 @@ class coineal extends Exchange {
             }
         }
         $trades = $this->safe_value($order, 'tradeList');
+        $price = $this->safe_float($order, 'total_price');
+        if ($type === 'limit') {
+            $price = $this->safe_float($order, 'price');
+        }
+        if ($trades !== null) {
+            if (strlen($trades) > 0) {
+                $price = $this->safe_float($order, 'avg_price');
+            }
+        }
+        if ($filled !== null) {
+            if ($price !== null) {
+                $cost = $filled * $price;
+            }
+        }
         $fee = null;
         $average = $this->safe_float($order, 'avg_price');
         if ($trades !== null) {
@@ -753,7 +777,7 @@ class coineal extends Exchange {
         //         )
         //     }
         // }
-        $allOpenOrders = $this->filter_by_array($orderData, 'status', [1, 3], false);
+        $allOpenOrders = $this->filter_by_array($orderData, 'status', [0, 1, 3], false);
         return $this->parse_orders($allOpenOrders, $market, $since, $limit);
     }
 
@@ -765,7 +789,7 @@ class coineal extends Exchange {
             for ($i = 0; $i < count($totalMarkets); $i++) {
                 $market = $this->market ($totalMarkets[$i]);
                 $orderData = $this->fetch_common_orders ($market['id'], $limit, $params);
-                $parseOpenCloseOrderResult = $this->filter_by_array($orderData, 'status', [1, 2, 3], false);
+                $parseOpenCloseOrderResult = $this->filter_by_array($orderData, 'status', [0, 1, 2, 3], false);
                 $openCloseOrders = $this->array_concat($openCloseOrders, $parseOpenCloseOrderResult);
             }
             return $this->parse_orders($openCloseOrders, null, $since, $limit);

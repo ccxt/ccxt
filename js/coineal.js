@@ -386,10 +386,21 @@ module.exports = class coineal extends Exchange {
                 }
             }
         }
-        const transactionId = this.safeString (trade, 'id');
         let side = this.safeString (trade, 'side');
         if (side === undefined) {
             side = this.safeString (trade, 'type');
+        }
+        let transactionId = undefined;
+        if (side !== undefined) {
+            if (side.toUpperCase () === 'BUY') {
+                transactionId = this.safeString (trade, 'bid_id');
+            }
+            if (side.toUpperCase () === 'SELL') {
+                transactionId = this.safeString (trade, 'ask_id');
+            }
+        }
+        if (transactionId === undefined) {
+            transactionId = this.safeString (trade, 'id');
         }
         const feecost = this.safeFloat (trade, 'fee');
         let fee = undefined;
@@ -559,7 +570,7 @@ module.exports = class coineal extends Exchange {
 
     parseOrderStatus (status) {
         const statuses = {
-            '0': 'Historical Order Unsuccessful',
+            '0': 'Open', // Historical Order Unsuccessful
             '1': 'Open',
             '2': 'Closed',
             '3': 'Open', // Partially Opened
@@ -583,10 +594,14 @@ module.exports = class coineal extends Exchange {
             }
         }
         const timestamp = this.safeString (order, 'created_at');
-        const price = this.safeFloat (order, 'price');
         const filled = this.safeFloat (order, 'deal_volume');
         const remaining = this.safeFloat (order, 'remain_volume');
-        const amount = this.safeFloat (order, 'volume');
+        let amount = this.safeFloat (order, 'volume');
+        if (filled !== undefined) {
+            if (remaining !== undefined) {
+                amount = this.amountToPrecision (symbol, filled + remaining);
+            }
+        }
         let id = this.safeString (order, 'order_id');
         if (id === undefined) {
             id = this.safeString (order, 'id');
@@ -594,11 +609,6 @@ module.exports = class coineal extends Exchange {
         const side = this.safeString (order, 'side');
         let cost = undefined;
         let type = undefined;
-        if (filled !== undefined) {
-            if (price !== undefined) {
-                cost = filled * price;
-            }
-        }
         const typeId = this.safeInteger (order, 'type');
         if (typeId !== undefined) {
             if (typeId === 1) {
@@ -608,6 +618,20 @@ module.exports = class coineal extends Exchange {
             }
         }
         let trades = this.safeValue (order, 'tradeList');
+        let price = this.safeFloat (order, 'total_price');
+        if (type === 'limit') {
+            price = this.safeFloat (order, 'price');
+        }
+        if (trades !== undefined) {
+            if (trades.length > 0) {
+                price = this.safeFloat (order, 'avg_price');
+            }
+        }
+        if (filled !== undefined) {
+            if (price !== undefined) {
+                cost = filled * price;
+            }
+        }
         let fee = undefined;
         const average = this.safeFloat (order, 'avg_price');
         if (trades !== undefined) {
@@ -745,7 +769,7 @@ module.exports = class coineal extends Exchange {
         //         ]
         //     }
         // }
-        const allOpenOrders = this.filterByArray (orderData, 'status', [1, 3], false);
+        const allOpenOrders = this.filterByArray (orderData, 'status', [0, 1, 3], false);
         return this.parseOrders (allOpenOrders, market, since, limit);
     }
 
@@ -757,7 +781,7 @@ module.exports = class coineal extends Exchange {
             for (let i = 0; i < totalMarkets.length; i++) {
                 const market = this.market (totalMarkets[i]);
                 const orderData = await this.fetchCommonOrders (market['id'], limit, params);
-                const parseOpenCloseOrderResult = this.filterByArray (orderData, 'status', [1, 2, 3], false);
+                const parseOpenCloseOrderResult = this.filterByArray (orderData, 'status', [0, 1, 2, 3], false);
                 openCloseOrders = this.arrayConcat (openCloseOrders, parseOpenCloseOrderResult);
             }
             return this.parseOrders (openCloseOrders, undefined, since, limit);
