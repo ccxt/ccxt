@@ -491,7 +491,7 @@ module.exports = class wavesexchange extends Exchange {
             seconds = seconds.toString ();
             const clientId = 'waves.exchange';
             const message = 'W:' + clientId + ':' + seconds;
-            const messageHex = this.decode (this.binaryToBase16 (this.stringToBinary (this.encode (message))));
+            const messageHex = this.binaryToBase16 (this.encode (message));
             const payload = prefix + messageHex;
             const hexKey = this.binaryToBase16 (this.base58ToBinary (this.secret));
             const signature = this.eddsa (payload, hexKey, 'ed25519');
@@ -889,10 +889,12 @@ module.exports = class wavesexchange extends Exchange {
             'timestamp': timestamp,
             'expiration': expiration,
             'matcherFee': matcherFee,
-            'matcherFeeAssetId': market['baseId'],
             'signature': signature,
             'version': 3,
         };
+        if (matcherFeeAssetId !== 'WAVES') {
+            body['matcherFeeAssetId'] = matcherFeeAssetId;
+        }
         const response = await this.matcherPostMatcherOrderbook (body);
         // { success: true,
         //   message:
