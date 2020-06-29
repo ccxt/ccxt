@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.30.12'
+__version__ = '1.30.48'
 
 # ----------------------------------------------------------------------------
 
@@ -147,6 +147,7 @@ from ccxt.gemini import gemini                              # noqa: F401
 from ccxt.hbtc import hbtc                                  # noqa: F401
 from ccxt.hitbtc import hitbtc                              # noqa: F401
 from ccxt.hollaex import hollaex                            # noqa: F401
+from ccxt.huobijp import huobijp                            # noqa: F401
 from ccxt.huobipro import huobipro                          # noqa: F401
 from ccxt.huobiru import huobiru                            # noqa: F401
 from ccxt.ice3x import ice3x                                # noqa: F401
@@ -170,6 +171,7 @@ from ccxt.oceanex import oceanex                            # noqa: F401
 from ccxt.okcoin import okcoin                              # noqa: F401
 from ccxt.okex import okex                                  # noqa: F401
 from ccxt.paymium import paymium                            # noqa: F401
+from ccxt.phemex import phemex                              # noqa: F401
 from ccxt.poloniex import poloniex                          # noqa: F401
 from ccxt.probit import probit                              # noqa: F401
 from ccxt.qtrade import qtrade                              # noqa: F401
@@ -178,12 +180,10 @@ from ccxt.southxchange import southxchange                  # noqa: F401
 from ccxt.stex import stex                                  # noqa: F401
 from ccxt.stronghold import stronghold                      # noqa: F401
 from ccxt.surbitcoin import surbitcoin                      # noqa: F401
-from ccxt.theocean import theocean                          # noqa: F401
 from ccxt.therock import therock                            # noqa: F401
 from ccxt.tidebit import tidebit                            # noqa: F401
 from ccxt.tidex import tidex                                # noqa: F401
 from ccxt.timex import timex                                # noqa: F401
-from ccxt.topq import topq                                  # noqa: F401
 from ccxt.upbit import upbit                                # noqa: F401
 from ccxt.vaultoro import vaultoro                          # noqa: F401
 from ccxt.vbtc import vbtc                                  # noqa: F401
@@ -274,6 +274,7 @@ exchanges = [
     'hbtc',
     'hitbtc',
     'hollaex',
+    'huobijp',
     'huobipro',
     'huobiru',
     'ice3x',
@@ -297,6 +298,7 @@ exchanges = [
     'okcoin',
     'okex',
     'paymium',
+    'phemex',
     'poloniex',
     'probit',
     'qtrade',
@@ -305,12 +307,10 @@ exchanges = [
     'stex',
     'stronghold',
     'surbitcoin',
-    'theocean',
     'therock',
     'tidebit',
     'tidex',
     'timex',
-    'topq',
     'upbit',
     'vaultoro',
     'vbtc',

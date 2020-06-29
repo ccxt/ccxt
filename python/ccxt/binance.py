@@ -229,6 +229,7 @@ class binance(Exchange):
                 },
                 'fapiPrivate': {
                     'get': [
+                        'allForceOrders',
                         'allOrders',
                         'openOrder',
                         'openOrders',

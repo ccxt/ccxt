@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.30.12",
+  "version": "1.30.48",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 130+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "dist/ccxt.browser.js",
@@ -513,7 +513,11 @@
     "currency.com",
     "Currency.com",
     "waves.exchange",
-    "Waves.Exchange"
+    "Waves.Exchange",
+    "phemex.com",
+    "Phemex",
+    "huobi.co.jp",
+    "Huobi Japan"
   ],
   "collective": {
     "type": "opencollective",

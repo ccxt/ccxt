@@ -111,6 +111,7 @@ class bitmex(Exchange):
                         'user/checkReferralCode',
                         'user/commission',
                         'user/depositAddress',
+                        'user/executionHistory',
                         'user/margin',
                         'user/minWithdrawalFee',
                         'user/wallet',
@@ -632,10 +633,10 @@ class bitmex(Exchange):
             addressTo = address
         amount = self.safe_integer(transaction, 'amount')
         if amount is not None:
-            amount = abs(amount) * 1e-8
+            amount = abs(amount) / 10000000
         feeCost = self.safe_integer(transaction, 'fee')
         if feeCost is not None:
-            feeCost = feeCost * 1e-8
+            feeCost = feeCost / 10000000
         fee = {
             'cost': feeCost,
             'currency': 'BTC',
@@ -888,6 +889,8 @@ class bitmex(Exchange):
                 timestamp = self.sum(timestamp, duration)
             ymdhms = self.ymdhms(timestamp)
             request['startTime'] = ymdhms  # starting date filter for results
+        else:
+            request['reverse'] = True
         response = self.publicGetTradeBucketed(self.extend(request, params))
         #
         #     [
@@ -1100,6 +1103,9 @@ class bitmex(Exchange):
         }
         if since is not None:
             request['startTime'] = self.iso8601(since)
+        else:
+            # by default reverse=false, i.e. trades are fetched since the time of market inception(year 2015 for XBTUSD)
+            request['reverse'] = True
         if limit is not None:
             request['count'] = limit
         response = self.publicGetTrade(self.extend(request, params))

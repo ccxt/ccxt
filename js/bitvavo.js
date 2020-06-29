@@ -546,7 +546,7 @@ module.exports = class bitvavo extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseTrade (trade, market) {
+    parseTrade (trade, market = undefined) {
         //
         // fetchTrades (public)
         //

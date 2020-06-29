@@ -106,6 +106,7 @@ class bitmex extends Exchange {
                         'user/checkReferralCode',
                         'user/commission',
                         'user/depositAddress',
+                        'user/executionHistory',
                         'user/margin',
                         'user/minWithdrawalFee',
                         'user/wallet',
@@ -669,11 +670,11 @@ class bitmex extends Exchange {
         }
         $amount = $this->safe_integer($transaction, 'amount');
         if ($amount !== null) {
-            $amount = abs($amount) * 1e-8;
+            $amount = abs($amount) / 10000000;
         }
         $feeCost = $this->safe_integer($transaction, 'fee');
         if ($feeCost !== null) {
-            $feeCost = $feeCost * 1e-8;
+            $feeCost = $feeCost / 10000000;
         }
         $fee = array(
             'cost' => $feeCost,
@@ -942,6 +943,8 @@ class bitmex extends Exchange {
             }
             $ymdhms = $this->ymdhms($timestamp);
             $request['startTime'] = $ymdhms; // starting date $filter for results
+        } else {
+            $request['reverse'] = true;
         }
         $response = $this->publicGetTradeBucketed (array_merge($request, $params));
         //
@@ -1172,6 +1175,9 @@ class bitmex extends Exchange {
         );
         if ($since !== null) {
             $request['startTime'] = $this->iso8601($since);
+        } else {
+            // by default reverse=false, i.e. trades are fetched $since the time of $market inception (year 2015 for XBTUSD)
+            $request['reverse'] = true;
         }
         if ($limit !== null) {
             $request['count'] = $limit;

@@ -102,6 +102,7 @@ module.exports = class bitmex extends Exchange {
                         'user/checkReferralCode',
                         'user/commission',
                         'user/depositAddress',
+                        'user/executionHistory',
                         'user/margin',
                         'user/minWithdrawalFee',
                         'user/wallet',
@@ -665,11 +666,11 @@ module.exports = class bitmex extends Exchange {
         }
         let amount = this.safeInteger (transaction, 'amount');
         if (amount !== undefined) {
-            amount = Math.abs (amount) * 1e-8;
+            amount = Math.abs (amount) / 10000000;
         }
         let feeCost = this.safeInteger (transaction, 'fee');
         if (feeCost !== undefined) {
-            feeCost = feeCost * 1e-8;
+            feeCost = feeCost / 10000000;
         }
         const fee = {
             'cost': feeCost,
@@ -938,6 +939,8 @@ module.exports = class bitmex extends Exchange {
             }
             const ymdhms = this.ymdhms (timestamp);
             request['startTime'] = ymdhms; // starting date filter for results
+        } else {
+            request['reverse'] = true;
         }
         const response = await this.publicGetTradeBucketed (this.extend (request, params));
         //
@@ -1168,6 +1171,9 @@ module.exports = class bitmex extends Exchange {
         };
         if (since !== undefined) {
             request['startTime'] = this.iso8601 (since);
+        } else {
+            // by default reverse=false, i.e. trades are fetched since the time of market inception (year 2015 for XBTUSD)
+            request['reverse'] = true;
         }
         if (limit !== undefined) {
             request['count'] = limit;

@@ -507,6 +507,7 @@ declare module 'ccxt' {
     export class hbtc extends Exchange {}
     export class hitbtc extends Exchange {}
     export class hollaex extends Exchange {}
+    export class huobijp extends huobipro {}
     export class huobipro extends Exchange {}
     export class huobiru extends huobipro {}
     export class ice3x extends Exchange {}
@@ -530,6 +531,7 @@ declare module 'ccxt' {
     export class okcoin extends okex {}
     export class okex extends Exchange {}
     export class paymium extends Exchange {}
+    export class phemex extends Exchange {}
     export class poloniex extends Exchange {}
     export class probit extends Exchange {}
     export class qtrade extends Exchange {}
@@ -538,12 +540,10 @@ declare module 'ccxt' {
     export class stex extends Exchange {}
     export class stronghold extends Exchange {}
     export class surbitcoin extends foxbit {}
-    export class theocean extends Exchange {}
     export class therock extends Exchange {}
     export class tidebit extends Exchange {}
     export class tidex extends Exchange {}
     export class timex extends Exchange {}
-    export class topq extends bw {}
     export class upbit extends Exchange {}
     export class vaultoro extends Exchange {}
     export class vbtc extends foxbit {}

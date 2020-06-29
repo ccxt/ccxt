@@ -1198,20 +1198,20 @@ class bitmax extends Exchange {
         //         "code" => 0,
         //         "$data" => array(
         //             {
-        //                 "avgPx" => "0",         // Average filled price of the order
-        //                 "cumFee" => "0",       // cumulative fee paid for this order
+        //                 "avgPx" => "0",         // Average filled price of the $order
+        //                 "cumFee" => "0",       // cumulative fee paid for this $order
         //                 "cumFilledQty" => "0", // cumulative filled quantity
         //                 "errorCode" => "",     // error code; could be empty
         //                 "feeAsset" => "USDT",  // fee asset
-        //                 "lastExecTime" => 1576019723550, //  The last execution time of the order
+        //                 "lastExecTime" => 1576019723550, //  The last execution time of the $order
         //                 "orderId" => "s16ef21882ea0866943712034f36d83", // server provided orderId
-        //                 "orderQty" => "0.0083",  // order quantity
-        //                 "orderType" => "Limit",  // order type
-        //                 "price" => "7105",       // order price
+        //                 "orderQty" => "0.0083",  // $order quantity
+        //                 "orderType" => "Limit",  // $order type
+        //                 "price" => "7105",       // $order price
         //                 "seqNum" => 8193258,     // sequence number
-        //                 "side" => "Buy",         // order side
-        //                 "status" => "New",       // order status on matching engine
-        //                 "stopPrice" => "",       // only available for stop $market and stop $limit orders; otherwise empty
+        //                 "side" => "Buy",         // $order side
+        //                 "status" => "New",       // $order status on matching engine
+        //                 "stopPrice" => "",       // only available for stop $market and stop $limit $orders; otherwise empty
         //                 "$symbol" => "BTC/USDT",
         //                 "execInst" => "NULL_VAL" // execution instruction
         //             },
@@ -1219,7 +1219,16 @@ class bitmax extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        return $this->parse_orders($data, $market, $since, $limit);
+        if ($accountCategory === 'futures') {
+            return $this->parse_orders($data, $market, $since, $limit);
+        }
+        // a workaround for https://github.com/ccxt/ccxt/issues/7187
+        $orders = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $order = $this->parse_order($data[$i], $market);
+            $orders[] = $order;
+        }
+        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
