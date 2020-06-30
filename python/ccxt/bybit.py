@@ -71,7 +71,7 @@ class bybit(Exchange):
                 'test': 'https://api-testnet.bybit.com',
                 'logo': 'https://user-images.githubusercontent.com/51840849/76547799-daff5b80-649e-11ea-87fb-3be9bac08954.jpg',
                 'api': 'https://api.bybit.com',
-                'www': 'https://www.bybit.com/',
+                'www': 'https://www.bybit.com',
                 'doc': [
                     'https://bybit-exchange.github.io/docs/inverse/',
                     'https://bybit-exchange.github.io/docs/linear/',
@@ -143,11 +143,6 @@ class bybit(Exchange):
                         'stop-order/list',
                         'stop-order/search',
                         'position/list',
-                        'position/set-auto-add-margin',
-                        'position/set-leverage',
-                        'position/switch-isolated',
-                        'position/trading-stop',
-                        'position/add-margin',
                         'trade/execution/list',
                         'trade/closed-pnl/list',
                         'risk-limit',
@@ -161,6 +156,11 @@ class bybit(Exchange):
                         'stop-order/create',
                         'stop-order/cancel',
                         'stop-order/cancelAll',
+                        'position/switch-isolated',
+                        'position/set-auto-add-margin',
+                        'position/set-leverage',
+                        'position/trading-stop',
+                        'position/add-margin',
                     ],
                 },
                 'position': {
@@ -307,8 +307,8 @@ class bybit(Exchange):
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
-    def load_time_difference(self):
-        serverTime = self.fetch_time()
+    def load_time_difference(self, params={}):
+        serverTime = self.fetch_time(params)
         after = self.milliseconds()
         self.options['timeDifference'] = after - serverTime
         return self.options['timeDifference']
@@ -367,6 +367,9 @@ class bybit(Exchange):
             linear = (quote in linearQuoteCurrencies)
             inverse = not linear
             symbol = base + '/' + quote
+            baseQuote = base + quote
+            if baseQuote != id:
+                symbol = id
             lotSizeFilter = self.safe_value(market, 'lot_size_filter', {})
             priceFilter = self.safe_value(market, 'price_filter', {})
             precision = {
@@ -634,7 +637,9 @@ class bybit(Exchange):
             tickers[symbol] = ticker
         return self.filter_by_array(tickers, 'symbol', symbols)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
+        #
+        # inverse perpetual BTC/USD
         #
         #     {
         #         symbol: 'BTCUSD',
@@ -646,7 +651,9 @@ class bybit(Exchange):
         #         close: '7763.5',
         #         volume: '1259766',
         #         turnover: '162.32773718999994'
-        #     },
+        #     }
+        #
+        # linear perpetual BTC/USDT
         #
         #     {
         #         "id":143536,
@@ -798,11 +805,6 @@ class bybit(Exchange):
             if symbol is None:
                 symbol = market['symbol']
                 base = market['base']
-            # if private trade
-            if 'exec_fee' in trade:
-                if market['inverse']:
-                    amount = self.safe_float(trade, 'exec_value')
-                    cost = self.safe_float(trade, 'exec_qty')
         if cost is None:
             if amount is not None:
                 if price is not None:
@@ -927,11 +929,11 @@ class bybit(Exchange):
             'Rejected': 'rejected',  # order is triggered but failed upon being placed
             'New': 'open',
             'PartiallyFilled': 'open',
-            'Filled': 'filled',
+            'Filled': 'closed',
             'Cancelled': 'canceled',
             'PendingCancel': 'canceling',  # the engine has received the cancellation but there is no guarantee that it will be successful
             # conditional orders
-            'Active': 'closed',  # order is triggered and placed successfully
+            'Active': 'open',  # order is triggered and placed successfully
             'Untriggered': 'open',  # order waits to be triggered
             'Triggered': 'closed',  # order is triggered
             # 'Cancelled': 'canceled',  # order is cancelled
@@ -1005,23 +1007,13 @@ class bybit(Exchange):
         id = self.safe_string(order, 'order_id')
         price = self.safe_float(order, 'price')
         average = self.safe_float(order, 'average_price')
-        amount = None
-        cost = None
-        filled = None
-        remaining = None
+        amount = self.safe_float(order, 'qty')
+        cost = self.safe_float(order, 'cum_exec_value')
+        filled = self.safe_float(order, 'cum_exec_qty')
+        remaining = self.safe_float(order, 'leaves_qty')
         if market is not None:
             symbol = market['symbol']
             base = market['base']
-            if market['inverse']:
-                cost = self.safe_float(order, 'cum_exec_qty')
-                filled = self.safe_float(order, 'cum_exec_value')
-                remaining = self.safe_float(order, 'leaves_value')
-                amount = self.sum(filled, remaining)
-            else:
-                amount = self.safe_float(order, 'qty')
-                cost = self.safe_float(order, 'cum_exec_value')
-                filled = self.safe_float(order, 'cum_exec_qty')
-                remaining = self.safe_float(order, 'leaves_qty')
         lastTradeTimestamp = self.safe_timestamp(order, 'last_exec_time')
         if lastTradeTimestamp == 0:
             lastTradeTimestamp = None
@@ -1606,6 +1598,8 @@ class bybit(Exchange):
         method = 'privateLinearGetTradeExecutionList' if (marketType == 'linear') else 'privateGetExecutionList'
         response = getattr(self, method)(self.extend(request, params))
         #
+        # inverse
+        #
         #     {
         #         "ret_code": 0,
         #         "ret_msg": "OK",
@@ -1645,8 +1639,48 @@ class bybit(Exchange):
         #         "rate_limit": 120
         #     }
         #
+        # linear
+        #
+        #     {
+        #         "ret_code":0,
+        #         "ret_msg":"OK",
+        #         "ext_code":"",
+        #         "ext_info":"",
+        #         "result":{
+        #             "current_page":1,
+        #             "data":[
+        #                 {
+        #                     "order_id":"b59418ec-14d4-4ef9-b9f4-721d5d576974",
+        #                     "order_link_id":"",
+        #                     "side":"Sell",
+        #                     "symbol":"BTCUSDT",
+        #                     "exec_id":"0327284d-faec-5191-bd89-acc5b4fafda9",
+        #                     "price":0.5,
+        #                     "order_price":0.5,
+        #                     "order_qty":0.01,
+        #                     "order_type":"Market",
+        #                     "fee_rate":0.00075,
+        #                     "exec_price":9709.5,
+        #                     "exec_type":"Trade",
+        #                     "exec_qty":0.01,
+        #                     "exec_fee":0.07282125,
+        #                     "exec_value":97.095,
+        #                     "leaves_qty":0,
+        #                     "closed_size":0.01,
+        #                     "last_liquidity_ind":"RemovedLiquidity",
+        #                     "trade_time":1591648052,
+        #                     "trade_time_ms":1591648052861
+        #                 }
+        #             ]
+        #         },
+        #         "time_now":"1591736501.979264",
+        #         "rate_limit_status":119,
+        #         "rate_limit_reset_ms":1591736501974,
+        #         "rate_limit":120
+        #     }
+        #
         result = self.safe_value(response, 'result', {})
-        trades = self.safe_value(result, 'trade_list', [])
+        trades = self.safe_value_2(result, 'trade_list', 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):

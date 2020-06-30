@@ -603,14 +603,24 @@ class digifinex(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
+        #
+        #     [
+        #         1556712900,
+        #         2205.899,
+        #         0.029967,
+        #         0.02997,
+        #         0.029871,
+        #         0.029927
+        #     ]
+        #
         return [
-            ohlcv[0] * 1000,  # timestamp
-            ohlcv[5],  # open
-            ohlcv[3],  # high
-            ohlcv[4],  # low
-            ohlcv[2],  # close
-            ohlcv[1],  # volume
+            self.safe_timestamp(ohlcv, 0),
+            self.safe_float(ohlcv, 5),  # open
+            self.safe_float(ohlcv, 3),  # high
+            self.safe_float(ohlcv, 4),  # low
+            self.safe_float(ohlcv, 2),  # close
+            self.safe_float(ohlcv, 1),  # volume
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):

@@ -152,7 +152,7 @@ class _1btcxe extends Exchange {
         );
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1d', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         return [
             $this->parse8601($ohlcv['date'] . ' 00:00:00'),
             null,
@@ -166,10 +166,11 @@ class _1btcxe extends Exchange {
     public function fetch_ohlcv($symbol, $timeframe = '1d', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
-        $response = $this->publicGetHistoricalPrices (array_merge(array(
+        $request = array(
             'currency' => $market['id'],
             'timeframe' => $this->timeframes[$timeframe],
-        ), $params));
+        );
+        $response = $this->publicGetHistoricalPrices (array_merge($request, $params));
         $ohlcvs = $this->to_array($this->omit($response['historical-prices'], 'request_currency'));
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }

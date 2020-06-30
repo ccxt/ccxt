@@ -149,7 +149,7 @@ module.exports = class _1btcxe extends Exchange {
         };
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1d', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         return [
             this.parse8601 (ohlcv['date'] + ' 00:00:00'),
             undefined,
@@ -163,10 +163,11 @@ module.exports = class _1btcxe extends Exchange {
     async fetchOHLCV (symbol, timeframe = '1d', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const response = await this.publicGetHistoricalPrices (this.extend ({
+        const request = {
             'currency': market['id'],
             'timeframe': this.timeframes[timeframe],
-        }, params));
+        };
+        const response = await this.publicGetHistoricalPrices (this.extend (request, params));
         const ohlcvs = this.toArray (this.omit (response['historical-prices'], 'request_currency'));
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }

@@ -265,15 +265,15 @@ class xbtce extends Exchange {
         return $this->privateGetTrade ($params);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
-        return [
-            $ohlcv['Timestamp'],
-            $ohlcv['Open'],
-            $ohlcv['High'],
-            $ohlcv['Low'],
-            $ohlcv['Close'],
-            $ohlcv['Volume'],
-        ];
+    public function parse_ohlcv($ohlcv, $market = null) {
+        return array(
+            $this->safe_integer($ohlcv, 'Timestamp'),
+            $this->safe_float($ohlcv, 'Open'),
+            $this->safe_float($ohlcv, 'High'),
+            $this->safe_float($ohlcv, 'Low'),
+            $this->safe_float($ohlcv, 'Close'),
+            $this->safe_float($ohlcv, 'Volume'),
+        );
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {

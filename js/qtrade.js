@@ -290,7 +290,7 @@ module.exports = class qtrade extends Exchange {
         return result;
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '5m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         //
         //     {
         //         "time":"2019-12-07T22:55:00Z",
@@ -302,7 +302,7 @@ module.exports = class qtrade extends Exchange {
         //         "market_volume":"0.08465047"
         //     }
         //
-        const result = [
+        return [
             this.parse8601 (this.safeString (ohlcv, 'time')),
             this.safeFloat (ohlcv, 'open'),
             this.safeFloat (ohlcv, 'high'),
@@ -310,7 +310,6 @@ module.exports = class qtrade extends Exchange {
             this.safeFloat (ohlcv, 'close'),
             this.safeFloat (ohlcv, 'market_volume'),
         ];
-        return result;
     }
 
     async fetchOHLCV (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {

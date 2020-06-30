@@ -831,26 +831,29 @@ class bitbay extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
-        // array(
-        //     '1582399800000',
-        //     {
-        //         o => '0.0001428',
-        //         c => '0.0001428',
-        //         h => '0.0001428',
-        //         l => '0.0001428',
-        //         v => '4',
-        //         co => '1'
-        //     }
-        // )
-        return [
-            intval ($ohlcv[0]),
-            $this->safe_float($ohlcv[1], 'o'),
-            $this->safe_float($ohlcv[1], 'h'),
-            $this->safe_float($ohlcv[1], 'l'),
-            $this->safe_float($ohlcv[1], 'c'),
-            $this->safe_float($ohlcv[1], 'v'),
-        ];
+    public function parse_ohlcv($ohlcv, $market = null) {
+        //
+        //     array(
+        //         '1582399800000',
+        //         {
+        //             o => '0.0001428',
+        //             c => '0.0001428',
+        //             h => '0.0001428',
+        //             l => '0.0001428',
+        //             v => '4',
+        //             co => '1'
+        //         }
+        //     )
+        //
+        $first = $this->safe_value($ohlcv, 1, array());
+        return array(
+            $this->safe_integer($ohlcv, 0),
+            $this->safe_float($first, 'o'),
+            $this->safe_float($first, 'h'),
+            $this->safe_float($first, 'l'),
+            $this->safe_float($first, 'c'),
+            $this->safe_float($first, 'v'),
+        );
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
@@ -876,8 +879,18 @@ class bitbay extends Exchange {
             $request['to'] = $this->sum($request['from'], $timerange);
         }
         $response = $this->v1_01PublicGetTradingCandleHistorySymbolResolution (array_merge($request, $params));
-        $ohlcvs = $this->safe_value($response, 'items', array());
-        return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
+        //
+        //     {
+        //         "status":"Ok",
+        //         "$items":[
+        //             ["1591503060000",array("o":"0.02509572","c":"0.02509438","h":"0.02509664","l":"0.02509438","v":"0.02082165","co":"17")],
+        //             ["1591503120000",array("o":"0.02509606","c":"0.02509515","h":"0.02509606","l":"0.02509487","v":"0.04971703","co":"13")],
+        //             ["1591503180000",array("o":"0.02509532","c":"0.02509589","h":"0.02509589","l":"0.02509454","v":"0.01332236","co":"7")],
+        //         ]
+        //     }
+        //
+        $items = $this->safe_value($response, 'items', array());
+        return $this->parse_ohlcvs($items, $market, $timeframe, $since, $limit);
     }
 
     public function parse_trade($trade, $market = null) {

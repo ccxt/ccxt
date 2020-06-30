@@ -10,7 +10,7 @@ WORKDIR /ccxt
 RUN sed -i 's/archive\.ubuntu\.com/us\.archive\.ubuntu\.com/' /etc/apt/sources.list \
     && apt-get update \
 # Miscellaneous deps
-    && apt-get install -y --no-install-recommends curl gnupg git pandoc ca-certificates \
+    && apt-get install -y --no-install-recommends curl gnupg git ca-certificates \
 # PHP
     && apt-get install -y --no-install-recommends php php-curl php-iconv php-mbstring php-bcmath \
 # Node

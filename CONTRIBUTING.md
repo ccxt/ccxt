@@ -99,6 +99,8 @@ The easiest way is to use Docker to run an isolated build & test enviroment with
 docker-compose run --rm ccxt
 ```
 
+You don't need the Docker image if you're not going to develop CCXT. If you just want to use CCXT – just install it as a regular package.
+
 That builds a container and opens a shell, where the `npm run build` and `node run-tests` commands should simply work out of the box.
 
 The CCXT folder is mapped inside of the container, except the `node_modules` folder — the container would have its own ephemeral copy — so that won't mess up your locally installed modules. This means that you can edit sources on your host machine using your favorite editor and build/test them in the running container.
@@ -118,7 +120,6 @@ If you choose the hard way, here is the list of the dependencies you will need. 
   - mbstring
   - PCRE
   - bcmath (php<7.1)
-- [Pandoc](https://pandoc.org/installing.html) 1.19+
 
 ## What You Need To Know
 
@@ -153,7 +154,7 @@ The contents of the repository are structured as follows:
 /python/async/__init__.py  # asynchronous version of the ccxt.library for Python 3.5.3+ asyncio
 /python/base/              # base code for the Python version of the ccxt library
 /python/MANIFEST.in        # a PyPI-package file listing extra package files (license, configs, etc...)
-/python/README.rst         # generated reStructuredText for PyPI
+/python/README.md          # a copy of README.md for PyPI
 /python/setup.cfg          # wheels config file for the Python package
 /python/setup.py           # pip/setuptools script (build/install) for ccxt in Python
 /python/tox.ini            # tox config for Python

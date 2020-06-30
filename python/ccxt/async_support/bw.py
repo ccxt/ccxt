@@ -543,7 +543,25 @@ class bw(Exchange):
         trades = self.safe_value(response, 'datas', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
+        #
+        #     [
+        #         "K",
+        #         "305",
+        #         "eth_btc",
+        #         "1591511280",
+        #         "0.02504",
+        #         "0.02504",
+        #         "0.02504",
+        #         "0.02504",
+        #         "0.0123",
+        #         "0",
+        #         "285740.17",
+        #         "1M",
+        #         "false",
+        #         "0.000308"
+        #     ]
+        #
         return [
             self.safe_timestamp(ohlcv, 3),
             self.safe_float(ohlcv, 4),
@@ -564,9 +582,18 @@ class bw(Exchange):
         if limit is not None:
             request['dataSize'] = limit
         response = await self.publicGetApiDataV1Klines(self.extend(request, params))
+        #
+        #     {
+        #         "datas":[
+        #             ["K","305","eth_btc","1591511280","0.02504","0.02504","0.02504","0.02504","0.0123","0","285740.17","1M","false","0.000308"],
+        #             ["K","305","eth_btc","1591511220","0.02504","0.02504","0.02504","0.02504","0.0006","0","285740.17","1M","false","0.00001502"],
+        #             ["K","305","eth_btc","1591511100","0.02505","0.02505","0.02504","0.02504","0.0012","-0.0399","285740.17","1M","false","0.00003005"],
+        #         ],
+        #         "resMsg":{"code":"1","method":null,"message":"success !"}
+        #     }
+        #
         data = self.safe_value(response, 'datas', [])
-        ohlcvs = self.parse_ohlcvs(data, market, timeframe, since, limit)
-        return self.sort_by(ohlcvs, 0)
+        return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     async def fetch_balance(self, params={}):
         await self.load_markets()

@@ -600,7 +600,7 @@ class stex extends Exchange {
         return $this->parse_tickers($tickers, $symbols);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1d', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     {
         //         "time" => 1566086400000,
@@ -650,7 +650,7 @@ class stex extends Exchange {
         //
         //     {
         //         "success" => true,
-        //         "data" => array(
+        //         "$data" => array(
         //             array(
         //                 "time" => 1566086400000,
         //                 "close" => 0.01895,
@@ -662,8 +662,8 @@ class stex extends Exchange {
         //         )
         //     }
         //
-        $ohlcvs = $this->safe_value($response, 'data', array());
-        return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
     public function parse_trade($trade, $market = null) {

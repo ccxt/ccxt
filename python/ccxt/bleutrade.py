@@ -323,10 +323,9 @@ class bleutrade(Exchange):
             'info': ticker,
         }
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1d', since=None, limit=None):
-        timestamp = self.parse8601(ohlcv['TimeStamp'] + '+00:00')
+    def parse_ohlcv(self, ohlcv, market=None):
         return [
-            timestamp,
+            self.parse8601(ohlcv['TimeStamp'] + '+00:00'),
             self.safe_float(ohlcv, 'Open'),
             self.safe_float(ohlcv, 'High'),
             self.safe_float(ohlcv, 'Low'),
@@ -343,7 +342,8 @@ class bleutrade(Exchange):
             'count': limit,
         }
         response = self.v3PublicGetGetcandles(self.extend(request, params))
-        return self.parse_ohlcvs(response['result'], market, timeframe, since, limit)
+        result = self.safe_value(response, 'result', [])
+        return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type != 'limit':

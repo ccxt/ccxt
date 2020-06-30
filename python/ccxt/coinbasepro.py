@@ -15,6 +15,7 @@ import base64
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
@@ -173,6 +174,8 @@ class coinbasepro(Exchange):
                     'Invalid Passphrase': AuthenticationError,
                     'Invalid order id': InvalidOrder,
                     'Private rate limit exceeded': RateLimitExceeded,
+                    'Trading pair not available': PermissionDenied,
+                    'Product not found': InvalidOrder,
                 },
                 'broad': {
                     'Order already done': OrderNotFound,
@@ -180,6 +183,7 @@ class coinbasepro(Exchange):
                     'price too small': InvalidOrder,
                     'price too precise': InvalidOrder,
                     'under maintenance': OnMaintenance,
+                    'size is too small': InvalidOrder,
                 },
             },
         })
@@ -483,14 +487,24 @@ class coinbasepro(Exchange):
         response = self.publicGetProductsIdTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
+        #
+        #     [
+        #         1591514160,
+        #         0.02507,
+        #         0.02507,
+        #         0.02507,
+        #         0.02507,
+        #         0.02816506
+        #     ]
+        #
         return [
-            ohlcv[0] * 1000,
-            ohlcv[3],
-            ohlcv[2],
-            ohlcv[1],
-            ohlcv[4],
-            ohlcv[5],
+            self.safe_timestamp(ohlcv, 0),
+            self.safe_float(ohlcv, 3),
+            self.safe_float(ohlcv, 2),
+            self.safe_float(ohlcv, 1),
+            self.safe_float(ohlcv, 4),
+            self.safe_float(ohlcv, 5),
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -508,6 +522,13 @@ class coinbasepro(Exchange):
                 limit = 300  # max = 300
             request['end'] = self.iso8601(self.sum((limit - 1) * granularity * 1000, since))
         response = self.publicGetProductsIdCandles(self.extend(request, params))
+        #
+        #     [
+        #         [1591514160,0.02507,0.02507,0.02507,0.02507,0.02816506],
+        #         [1591514100,0.02507,0.02507,0.02507,0.02507,1.63830323],
+        #         [1591514040,0.02505,0.02507,0.02505,0.02507,0.19918178]
+        #     ]
+        #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def fetch_time(self, params={}):

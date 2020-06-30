@@ -501,13 +501,17 @@ class liquid(Exchange):
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
+        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_order_id')
+        params = self.omit(params, ['clientOrderId', 'client_order_id'])
         request = {
             'order_type': type,
             'product_id': self.market_id(symbol),
             'side': side,
             'quantity': self.amount_to_precision(symbol, amount),
         }
-        if type == 'limit':
+        if clientOrderId is not None:
+            request['client_order_id'] = clientOrderId
+        if (type == 'limit') or (type == 'limit_post_only') or (type == 'market_with_range') or (type == 'stop'):
             request['price'] = self.price_to_precision(symbol, price)
         response = await self.privatePostOrders(self.extend(request, params))
         #
@@ -529,7 +533,8 @@ class liquid(Exchange):
         #         "product_code": "CASH",
         #         "funding_currency": "USD",
         #         "currency_pair_code": "BTCUSD",
-        #         "order_fee": "0.0"
+        #         "order_fee": "0.0",
+        #         "client_order_id": null,
         #     }
         #
         return self.parse_order(response)
@@ -591,6 +596,7 @@ class liquid(Exchange):
         #         "funding_currency": "USD",
         #         "currency_pair_code": "BTCUSD",
         #         "order_fee": "0.0"
+        #         "client_order_id": null,
         #     }
         #
         # fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders
@@ -670,9 +676,10 @@ class liquid(Exchange):
         if amount is not None and filled is not None:
             remaining = amount - filled
         side = self.safe_string(order, 'side')
+        clientOrderId = self.safe_string(order, 'client_order_id')
         return {
             'id': orderId,
-            'clientOrderId': None,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -870,10 +877,11 @@ class liquid(Exchange):
             nonce = self.nonce()
             request = {
                 'path': url,
-                'nonce': nonce,
                 'token_id': self.apiKey,
                 'iat': int(math.floor(nonce / 1000)),  # issued at
             }
+            if not ('client_order_id' in query):
+                request['nonce'] = nonce
             headers['X-Quoine-Auth'] = self.jwt(request, self.encode(self.secret))
         else:
             if query:

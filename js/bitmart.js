@@ -180,7 +180,7 @@ module.exports = class bitmart extends Exchange {
             throw new AuthenticationError (this.id + ' signIn() failed to authenticate. Access token missing from response.');
         }
         const expiresIn = this.safeInteger (response, 'expires_in');
-        this.options['expires'] = this.sum (this.nonce (), expiresIn * 1000);
+        this.options['expires'] = this.sum (this.milliseconds (), expiresIn * 1000);
         this.options['accessToken'] = accessToken;
         return response;
     }
@@ -620,7 +620,17 @@ module.exports = class bitmart extends Exchange {
         return await this.fetchMyTrades (symbol, since, limit, this.extend (request, params));
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //     {
+        //         "timestamp":1525761000000,
+        //         "open_price":"0.010130",
+        //         "highest_price":"0.010130",
+        //         "lowest_price":"0.010130",
+        //         "current_price":"0.010130",
+        //         "volume":"0.000000"
+        //     }
+        //
         return [
             this.safeInteger (ohlcv, 'timestamp'),
             this.safeFloat (ohlcv, 'open_price'),

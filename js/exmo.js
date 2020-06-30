@@ -726,7 +726,7 @@ module.exports = class exmo extends Exchange {
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '5m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         //
         //     {
         //         "t":1584057600000,
@@ -1329,15 +1329,15 @@ module.exports = class exmo extends Exchange {
             }
             lastTradeTimestamp = trades[numTransactions - 1]['timestamp'];
         }
+        let status = this.safeString (order, 'status'); // in case we need to redefine it for canceled orders
         let remaining = undefined;
         if (amount !== undefined) {
             remaining = amount - filled;
-        }
-        let status = this.safeString (order, 'status'); // in case we need to redefine it for canceled orders
-        if (filled >= amount) {
-            status = 'closed';
-        } else {
-            status = 'open';
+            if (filled >= amount) {
+                status = 'closed';
+            } else {
+                status = 'open';
+            }
         }
         if (market === undefined) {
             market = this.getMarketFromTrades (trades);

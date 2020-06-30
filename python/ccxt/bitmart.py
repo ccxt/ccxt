@@ -187,7 +187,7 @@ class bitmart(Exchange):
         if not accessToken:
             raise AuthenticationError(self.id + ' signIn() failed to authenticate. Access token missing from response.')
         expiresIn = self.safe_integer(response, 'expires_in')
-        self.options['expires'] = self.sum(self.nonce(), expiresIn * 1000)
+        self.options['expires'] = self.sum(self.milliseconds(), expiresIn * 1000)
         self.options['accessToken'] = accessToken
         return response
 
@@ -598,7 +598,17 @@ class bitmart(Exchange):
         }
         return self.fetch_my_trades(symbol, since, limit, self.extend(request, params))
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
+        #
+        #     {
+        #         "timestamp":1525761000000,
+        #         "open_price":"0.010130",
+        #         "highest_price":"0.010130",
+        #         "lowest_price":"0.010130",
+        #         "current_price":"0.010130",
+        #         "volume":"0.000000"
+        #     }
+        #
         return [
             self.safe_integer(ohlcv, 'timestamp'),
             self.safe_float(ohlcv, 'open_price'),

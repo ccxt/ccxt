@@ -62,14 +62,14 @@ JavaScript (for use with the ``<script>`` tag):
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
--  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.28.78/dist/ccxt.browser.js
--  unpkg: https://unpkg.com/ccxt@1.28.78/dist/ccxt.browser.js
+-  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.29.75/dist/ccxt.browser.js
+-  unpkg: https://unpkg.com/ccxt@1.29.75/dist/ccxt.browser.js
 
 You can obtain a live-updated version of the bundle by removing the version number from the URL (the ``@a.b.c`` thing) — however, we do not recommend to do that, as it may break your app eventually. Also, please keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code:: html
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.28.78/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.29.75/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 
@@ -121,6 +121,8 @@ Docker
 ~~~~~~
 
 You can get CCXT installed in a container along with all the supported languages and dependencies. This may be useful if you want to contribute to CCXT (e.g. run the build scripts and tests — please see the `Contributing <https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md>`__ document for the details on that).
+
+You don’t need the Docker image if you’re not going to develop CCXT. If you just want to use CCXT – just install it as a regular package into your project.
 
 Using ``docker-compose`` (in the cloned CCXT repository):
 

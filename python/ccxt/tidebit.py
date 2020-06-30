@@ -279,14 +279,24 @@ class tidebit(Exchange):
         response = self.publicGetTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
+        #
+        #     [
+        #         1498530360,
+        #         2700.0,
+        #         2700.0,
+        #         2700.0,
+        #         2700.0,
+        #         0.01
+        #     ]
+        #
         return [
-            ohlcv[0] * 1000,
-            ohlcv[1],
-            ohlcv[2],
-            ohlcv[3],
-            ohlcv[4],
-            ohlcv[5],
+            self.safe_timestamp(ohlcv, 0),
+            self.safe_float(ohlcv, 1),
+            self.safe_float(ohlcv, 2),
+            self.safe_float(ohlcv, 3),
+            self.safe_float(ohlcv, 4),
+            self.safe_float(ohlcv, 5),
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -304,6 +314,13 @@ class tidebit(Exchange):
         else:
             request['timestamp'] = 1800000
         response = self.publicGetK(self.extend(request, params))
+        #
+        #     [
+        #         [1498530360,2700.0,2700.0,2700.0,2700.0,0.01],
+        #         [1498530420,2700.0,2700.0,2700.0,2700.0,0],
+        #         [1498530480,2700.0,2700.0,2700.0,2700.0,0],
+        #     ]
+        #
         if response == 'None':
             return []
         return self.parse_ohlcvs(response, market, timeframe, since, limit)

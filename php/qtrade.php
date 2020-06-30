@@ -293,7 +293,7 @@ class qtrade extends Exchange {
         return $result;
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '5m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     {
         //         "time":"2019-12-07T22:55:00Z",
@@ -305,7 +305,7 @@ class qtrade extends Exchange {
         //         "market_volume":"0.08465047"
         //     }
         //
-        $result = array(
+        return array(
             $this->parse8601($this->safe_string($ohlcv, 'time')),
             $this->safe_float($ohlcv, 'open'),
             $this->safe_float($ohlcv, 'high'),
@@ -313,7 +313,6 @@ class qtrade extends Exchange {
             $this->safe_float($ohlcv, 'close'),
             $this->safe_float($ohlcv, 'market_volume'),
         );
-        return $result;
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {

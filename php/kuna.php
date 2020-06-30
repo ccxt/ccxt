@@ -62,7 +62,7 @@ class kuna extends acx {
     }
 
     public function fetch_markets($params = array ()) {
-        $quotes = array( 'btc', 'eth', 'eurs', 'rub', 'uah', 'usd', 'usdt' );
+        $quotes = array( 'btc', 'eth', 'eurs', 'rub', 'uah', 'usd', 'usdt', 'gol' );
         $pricePrecisions = array(
             'UAH' => 0,
         );
@@ -148,7 +148,7 @@ class kuna extends acx {
                 'ask' => 'sell',
                 'bid' => 'buy',
             );
-            $side = $this->safe_string($sideMap, $side);
+            $side = $this->safe_string($sideMap, $side, $side);
         }
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'volume');

@@ -752,10 +752,23 @@ class probit(Exchange):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_value(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
+        #
+        #     {
+        #         "market_id":"ETH-BTC",
+        #         "open":"0.02811",
+        #         "close":"0.02811",
+        #         "low":"0.02811",
+        #         "high":"0.02811",
+        #         "base_volume":"0.0005",
+        #         "quote_volume":"0.000014055",
+        #         "start_time":"2018-11-30T18:19:00.000Z",
+        #         "end_time":"2018-11-30T18:20:00.000Z"
+        #     }
+        #
         return [
             self.parse8601(self.safe_string(ohlcv, 'start_time')),
             self.safe_float(ohlcv, 'open'),

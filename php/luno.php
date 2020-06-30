@@ -55,6 +55,7 @@ class luno extends Exchange {
                         'accounts/{id}/pending',
                         'accounts/{id}/transactions',
                         'balance',
+                        'beneficiaries',
                         'fee_info',
                         'funding_address',
                         'listorders',
@@ -76,6 +77,7 @@ class luno extends Exchange {
                         'oauth2/grant',
                     ),
                     'put' => array(
+                        'accounts/{id}/name',
                         'quotes/{id}',
                     ),
                     'delete' => array(

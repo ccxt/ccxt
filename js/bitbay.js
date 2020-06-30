@@ -829,25 +829,28 @@ module.exports = class bitbay extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
-        // [
-        //     '1582399800000',
-        //     {
-        //         o: '0.0001428',
-        //         c: '0.0001428',
-        //         h: '0.0001428',
-        //         l: '0.0001428',
-        //         v: '4',
-        //         co: '1'
-        //     }
-        // ]
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //     [
+        //         '1582399800000',
+        //         {
+        //             o: '0.0001428',
+        //             c: '0.0001428',
+        //             h: '0.0001428',
+        //             l: '0.0001428',
+        //             v: '4',
+        //             co: '1'
+        //         }
+        //     ]
+        //
+        const first = this.safeValue (ohlcv, 1, {});
         return [
-            parseInt (ohlcv[0]),
-            this.safeFloat (ohlcv[1], 'o'),
-            this.safeFloat (ohlcv[1], 'h'),
-            this.safeFloat (ohlcv[1], 'l'),
-            this.safeFloat (ohlcv[1], 'c'),
-            this.safeFloat (ohlcv[1], 'v'),
+            this.safeInteger (ohlcv, 0),
+            this.safeFloat (first, 'o'),
+            this.safeFloat (first, 'h'),
+            this.safeFloat (first, 'l'),
+            this.safeFloat (first, 'c'),
+            this.safeFloat (first, 'v'),
         ];
     }
 
@@ -874,8 +877,18 @@ module.exports = class bitbay extends Exchange {
             request['to'] = this.sum (request['from'], timerange);
         }
         const response = await this.v1_01PublicGetTradingCandleHistorySymbolResolution (this.extend (request, params));
-        const ohlcvs = this.safeValue (response, 'items', []);
-        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
+        //
+        //     {
+        //         "status":"Ok",
+        //         "items":[
+        //             ["1591503060000",{"o":"0.02509572","c":"0.02509438","h":"0.02509664","l":"0.02509438","v":"0.02082165","co":"17"}],
+        //             ["1591503120000",{"o":"0.02509606","c":"0.02509515","h":"0.02509606","l":"0.02509487","v":"0.04971703","co":"13"}],
+        //             ["1591503180000",{"o":"0.02509532","c":"0.02509589","h":"0.02509589","l":"0.02509454","v":"0.01332236","co":"7"}],
+        //         ]
+        //     }
+        //
+        const items = this.safeValue (response, 'items', []);
+        return this.parseOHLCVs (items, market, timeframe, since, limit);
     }
 
     parseTrade (trade, market = undefined) {

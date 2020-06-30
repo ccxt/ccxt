@@ -296,7 +296,7 @@ class qtrade(Exchange):
             }
         return result
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='5m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     {
         #         "time":"2019-12-07T22:55:00Z",
@@ -308,7 +308,7 @@ class qtrade(Exchange):
         #         "market_volume":"0.08465047"
         #     }
         #
-        result = [
+        return [
             self.parse8601(self.safe_string(ohlcv, 'time')),
             self.safe_float(ohlcv, 'open'),
             self.safe_float(ohlcv, 'high'),
@@ -316,7 +316,6 @@ class qtrade(Exchange):
             self.safe_float(ohlcv, 'close'),
             self.safe_float(ohlcv, 'market_volume'),
         ]
-        return result
 
     async def fetch_ohlcv(self, symbol, timeframe='5m', since=None, limit=None, params={}):
         await self.load_markets()

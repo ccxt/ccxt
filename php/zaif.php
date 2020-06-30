@@ -375,7 +375,7 @@ class zaif extends Exchange {
             'remaining' => null,
             'trades' => null,
             'fee' => null,
-            'info' => null,
+            'info' => $order,
             'average' => null,
         );
     }

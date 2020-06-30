@@ -585,17 +585,19 @@ class crex24 extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
-        // { $timestamp => '2019-09-21T10:36:00Z',
-        //     open => 0.02152,
-        //     high => 0.02156,
-        //     low => 0.02152,
-        //     close => 0.02156,
-        //     volume => 0.01741259 }
-        $date = $this->safe_string($ohlcv, 'timestamp');
-        $timestamp = $this->parse8601($date);
+    public function parse_ohlcv($ohlcv, $market = null) {
+        //
+        //     {
+        //         timestamp => '2019-09-21T10:36:00Z',
+        //         open => 0.02152,
+        //         high => 0.02156,
+        //         low => 0.02152,
+        //         close => 0.02156,
+        //         volume => 0.01741259
+        //     }
+        //
         return array(
-            $timestamp,
+            $this->parse8601($this->safe_string($ohlcv, 'timestamp')),
             $this->safe_float($ohlcv, 'open'),
             $this->safe_float($ohlcv, 'high'),
             $this->safe_float($ohlcv, 'low'),
@@ -615,6 +617,18 @@ class crex24 extends Exchange {
             $request['limit'] = $limit; // Accepted values => 1 - 1000. If the parameter is not specified, the number of results is limited to 100
         }
         $response = $this->publicGetOhlcv (array_merge($request, $params));
+        //
+        //     array(
+        //         {
+        //             "timestamp" => "2020-06-06T17:36:00Z",
+        //             "open" => 0.025,
+        //             "high" => 0.025,
+        //             "low" => 0.02499,
+        //             "close" => 0.02499,
+        //             "volume" => 0.00643127
+        //         }
+        //     )
+        //
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
