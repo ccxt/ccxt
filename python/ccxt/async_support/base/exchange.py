@@ -301,5 +301,17 @@ class Exchange(BaseExchange):
     async def fetch_ticker(self, symbol, params={}):
         raise NotSupported('fetch_ticker() not supported yet')
 
+    async def fetch_transactions(self, symbol=None, since=None, limit=None, params={}):
+        raise NotSupported('fetch_transactions() is not supported yet')
+
+    async def fetch_deposits(self, symbol=None, since=None, limit=None, params={}):
+        raise NotSupported('fetch_deposits() is not supported yet')
+
+    async def fetch_withdrawals(self, symbol=None, since=None, limit=None, params={}):
+        raise NotSupported('fetch_withdrawals() is not supported yet')
+
+    async def fetch_deposit_address(self, symbol=None, since=None, limit=None, params={}):
+        raise NotSupported('fetch_deposit_address() is not supported yet')
+
     async def sleep(self, milliseconds):
         return await asyncio.sleep(milliseconds / 1000)
