@@ -683,6 +683,8 @@ module.exports = class hitbtc extends Exchange {
             'payin': 'deposit',
             'payout': 'withdrawal',
             'withdraw': 'withdrawal',
+			'exchangeToBank': 'withdrawal',
+			'bankToExchange': 'deposit'
         };
         return this.safeString (types, type, type);
     }
