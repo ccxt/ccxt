@@ -189,6 +189,7 @@ class huobipro extends Exchange {
                     'invalid symbol' => '\\ccxt\\BadSymbol', // array("ts":1568813334794,"status":"error","err-code":"invalid-parameter","err-msg":"invalid symbol")
                     'invalid-parameter' => '\\ccxt\\BadRequest', // array("ts":1576210479343,"status":"error","err-code":"invalid-parameter","err-msg":"symbol trade not open now")
                     'base-symbol-trade-disabled' => '\\ccxt\\BadSymbol', // array("status":"error","err-code":"base-symbol-trade-disabled","err-msg":"Trading is disabled for this symbol","data":null)
+                    'system-maintenance' => '\\ccxt\\OnMaintenance', // array("status" => "error", "err-code" => "system-maintenance", "err-msg" => "System is in maintenance!", "data" => null)
                 ),
             ),
             'options' => array(
