@@ -8,7 +8,7 @@ import ccxt.async_support as ccxt
 
 # -----------------------------------------------------------------------------
 
-__version__ = '0.2.76'
+__version__ = '0.2.77'
 
 # -----------------------------------------------------------------------------
 
@@ -58,7 +58,6 @@ from ccxt import OrderNotFillable                   # noqa: F401
 
 # CCXT exchanges
 
-from ccxt.async_support._1btcxe import _1btcxe                            # noqa: F401
 from ccxt.async_support.acx import acx                                    # noqa: F401
 from ccxt.async_support.anxpro import anxpro                              # noqa: F401
 from ccxt.async_support.aofex import aofex                                # noqa: F401
