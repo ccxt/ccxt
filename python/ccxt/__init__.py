@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.30.51'
+__version__ = '1.30.52'
 
 # ----------------------------------------------------------------------------
 
@@ -68,7 +68,6 @@ from ccxt.base.errors import InvalidNonce                   # noqa: F401
 from ccxt.base.errors import RequestTimeout                 # noqa: F401
 from ccxt.base.errors import error_hierarchy                # noqa: F401
 
-from ccxt._1btcxe import _1btcxe                            # noqa: F401
 from ccxt.acx import acx                                    # noqa: F401
 from ccxt.anxpro import anxpro                              # noqa: F401
 from ccxt.aofex import aofex                                # noqa: F401
@@ -194,7 +193,6 @@ from ccxt.zaif import zaif                                  # noqa: F401
 from ccxt.zb import zb                                      # noqa: F401
 
 exchanges = [
-    '_1btcxe',
     'acx',
     'anxpro',
     'aofex',

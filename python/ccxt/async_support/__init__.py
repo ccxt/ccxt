@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.30.51'
+__version__ = '1.30.52'
 
 # -----------------------------------------------------------------------------
 
@@ -50,7 +50,6 @@ from ccxt.base.errors import RequestTimeout                 # noqa: F401
 from ccxt.base.errors import error_hierarchy                # noqa: F401
 
 
-from ccxt.async_support._1btcxe import _1btcxe                            # noqa: F401
 from ccxt.async_support.acx import acx                                    # noqa: F401
 from ccxt.async_support.anxpro import anxpro                              # noqa: F401
 from ccxt.async_support.aofex import aofex                                # noqa: F401
@@ -176,7 +175,6 @@ from ccxt.async_support.zaif import zaif                                  # noqa
 from ccxt.async_support.zb import zb                                      # noqa: F401
 
 exchanges = [
-    '_1btcxe',
     'acx',
     'anxpro',
     'aofex',
