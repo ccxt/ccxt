@@ -378,10 +378,17 @@ class coineal(Exchange):
             if amount is not None:
                 if symbol is not None:
                     cost = float(self.cost_to_precision(symbol, price * amount))
-        transactionId = self.safe_string(trade, 'id')
         side = self.safe_string(trade, 'side')
         if side is None:
             side = self.safe_string(trade, 'type')
+        transactionId = None
+        if side is not None:
+            if side.upper() == 'BUY':
+                transactionId = self.safe_string(trade, 'bid_id')
+            if side.upper() == 'SELL':
+                transactionId = self.safe_string(trade, 'ask_id')
+        if transactionId is None:
+            transactionId = self.safe_string(trade, 'id')
         feecost = self.safe_float(trade, 'fee')
         fee = None
         if feecost is not None:
@@ -534,7 +541,7 @@ class coineal(Exchange):
 
     def parse_order_status(self, status):
         statuses = {
-            '0': 'Historical Order Unsuccessful',
+            '0': 'Open',  # Historical Order Unsuccessful
             '1': 'Open',
             '2': 'Closed',
             '3': 'Open',  # Partially Opened
@@ -555,19 +562,18 @@ class coineal(Exchange):
             if quote is not None:
                 symbol = base + '/' + quote
         timestamp = self.safe_string(order, 'created_at')
-        price = self.safe_float(order, 'price')
         filled = self.safe_float(order, 'deal_volume')
         remaining = self.safe_float(order, 'remain_volume')
         amount = self.safe_float(order, 'volume')
+        if filled is not None:
+            if remaining is not None:
+                amount = self.amount_to_precision(symbol, filled + remaining)
         id = self.safe_string(order, 'order_id')
         if id is None:
             id = self.safe_string(order, 'id')
         side = self.safe_string(order, 'side')
         cost = None
         type = None
-        if filled is not None:
-            if price is not None:
-                cost = filled * price
         typeId = self.safe_integer(order, 'type')
         if typeId is not None:
             if typeId == 1:
@@ -575,6 +581,15 @@ class coineal(Exchange):
             else:
                 type = 'market'
         trades = self.safe_value(order, 'tradeList')
+        price = self.safe_float(order, 'total_price')
+        if type == 'limit':
+            price = self.safe_float(order, 'price')
+        if trades is not None:
+            if len(trades) > 0:
+                price = self.safe_float(order, 'avg_price')
+        if filled is not None:
+            if price is not None:
+                cost = filled * price
         fee = None
         average = self.safe_float(order, 'avg_price')
         if trades is not None:
@@ -701,7 +716,7 @@ class coineal(Exchange):
         #         ]
         #     }
         # }
-        allOpenOrders = self.filter_by_array(orderData, 'status', [1, 3], False)
+        allOpenOrders = self.filter_by_array(orderData, 'status', [0, 1, 3], False)
         return self.parse_orders(allOpenOrders, market, since, limit)
 
     def fetch_orders(self, symbol=None, since=None, limit=100, params={}):
@@ -712,7 +727,7 @@ class coineal(Exchange):
             for i in range(0, len(totalMarkets)):
                 market = self.market(totalMarkets[i])
                 orderData = self.fetch_common_orders(market['id'], limit, params)
-                parseOpenCloseOrderResult = self.filter_by_array(orderData, 'status', [1, 2, 3], False)
+                parseOpenCloseOrderResult = self.filter_by_array(orderData, 'status', [0, 1, 2, 3], False)
                 openCloseOrders = self.array_concat(openCloseOrders, parseOpenCloseOrderResult)
             return self.parse_orders(openCloseOrders, None, since, limit)
         market = self.market(symbol)
