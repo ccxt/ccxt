@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9d6b2e2e705b8eb9f511ad2aea4f22ac",
+    "content-hash": "23c036932ef87911aa8c186cda479b9e",
     "packages": [
         {
             "name": "ccxt/ccxt",
-            "version": "1.30.52",
+            "version": "1.30.53",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ccxt/ccxt.git",
-                "reference": "03e72670d6c4fac10cd5a8419c6d7614ad515a88"
+                "reference": "ead70e83cad1707ed9a8b1552520ff87d43e2b50"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/03e72670d6c4fac10cd5a8419c6d7614ad515a88",
-                "reference": "03e72670d6c4fac10cd5a8419c6d7614ad515a88",
+                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/ead70e83cad1707ed9a8b1552520ff87d43e2b50",
+                "reference": "ead70e83cad1707ed9a8b1552520ff87d43e2b50",
                 "shasum": ""
             },
             "require": {
@@ -269,7 +269,7 @@
                 "zec",
                 "zerocoin"
             ],
-            "time": "2020-07-01T00:07:19+00:00"
+            "time": "2020-07-01T19:23:24+00:00"
         },
         {
             "name": "evenement/evenement",
@@ -854,16 +854,16 @@
         },
         {
             "name": "react/socket",
-            "version": "v1.4.0",
+            "version": "v1.5.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/reactphp/socket.git",
-                "reference": "97522e24987365e1ed873f0f4884900747a668e0"
+                "reference": "842dcd71df86671ee9491734035b3d2cf4a80ece"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/reactphp/socket/zipball/97522e24987365e1ed873f0f4884900747a668e0",
-                "reference": "97522e24987365e1ed873f0f4884900747a668e0",
+                "url": "https://api.github.com/repos/reactphp/socket/zipball/842dcd71df86671ee9491734035b3d2cf4a80ece",
+                "reference": "842dcd71df86671ee9491734035b3d2cf4a80ece",
                 "shasum": ""
             },
             "require": {
@@ -877,7 +877,7 @@
             },
             "require-dev": {
                 "clue/block-react": "^1.2",
-                "phpunit/phpunit": "^7.5 || ^6.4 || ^5.7 || ^4.8.35",
+                "phpunit/phpunit": "^9.0 || ^5.7 || ^4.8.35",
                 "react/promise-stream": "^1.2"
             },
             "type": "library",
@@ -898,7 +898,7 @@
                 "reactphp",
                 "stream"
             ],
-            "time": "2020-03-12T12:15:14+00:00"
+            "time": "2020-07-01T12:50:00+00:00"
         },
         {
             "name": "react/stream",
