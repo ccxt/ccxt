@@ -17,6 +17,7 @@ module.exports = class luno extends Exchange {
             'version': '1',
             'has': {
                 'CORS': false,
+                'fetchAccounts': true,
                 'fetchTickers': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
@@ -25,6 +26,7 @@ module.exports = class luno extends Exchange {
                 'fetchMyTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
+                'fetchTransactions': true,
             },
             'urls': {
                 'referral': 'https://www.luno.com/invite/44893A',
@@ -108,6 +110,25 @@ module.exports = class luno extends Exchange {
                 'active': undefined,
                 'precision': this.precision,
                 'limits': this.limits,
+            });
+        }
+        return result;
+    }
+
+    async fetchAccounts (params = {}) {
+        const response = await this.privateGetBalance (params);
+        const wallets = this.safeValue (response, 'balance', []);
+        const result = [];
+        for (let i = 0; i < wallets.length; i++) {
+            const account = wallets[i];
+            const accountId = this.safeString (account, 'account_id');
+            const currencyId = this.safeString (account, 'asset');
+            const code = this.safeCurrencyCode (currencyId);
+            result.push ({
+                'id': accountId,
+                'type': undefined,
+                'currency': code,
+                'info': account,
             });
         }
         return result;
@@ -452,6 +473,97 @@ module.exports = class luno extends Exchange {
             'order_id': id,
         };
         return await this.privatePostStoporder (this.extend (request, params));
+    }
+
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        await this.loadAccounts ();
+        let currency = undefined;
+        let id = this.safeString (params, 'id'); // account id
+        let min_row = this.safeValue (params, 'min_row');
+        let max_row = this.safeValue (params, 'max_row');
+        if (id === undefined) {
+            if (code === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchTransactions() requires a currency code argument if no account id specified in params');
+            }
+            currency = this.currency (code);
+            const accountsByCurrencyCode = this.indexBy (this.accounts, 'currency');
+            const account = this.safeValue (accountsByCurrencyCode, code);
+            if (account === undefined) {
+                throw new ExchangeError (this.id + ' fetchTransactions() could not find account id for ' + code);
+            }
+            id = account['id'];
+        }
+        if (min_row === undefined && max_row === undefined) {
+            max_row = 0; // Default to most recent transactions
+            min_row = -1000; // Maximum number of records supported
+        } else if (min_row === undefined || max_row === undefined) {
+            throw new ExchangeError (this.id + " fetchTransactions() require both params 'max_row' and 'min_row' or neither to be defined");
+        }
+        if (limit !== undefined && max_row - min_row > limit) {
+            if (max_row <= 0) {
+                min_row = max_row - limit;
+            } else if (min_row > 0) {
+                max_row = min_row + limit;
+            }
+        }
+        if (max_row - min_row > 1000) {
+            throw new ExchangeError (this.id + " fetchTransactions() requires the params 'max_row' - 'min_row' <= 1000");
+        }
+        const request = {
+            'id': id,
+            'min_row': min_row,
+            'max_row': max_row,
+        };
+        const response = await this.privateGetAccountsIdTransactions (this.extend (params, request));
+        const transactions = this.safeValue (response, 'transactions', []);
+        return this.parseTransactions (transactions, currency, since, limit);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        const details = this.safeValue (transaction, 'details', {});
+        const id = this.safeString (transaction, 'row_index');
+        const txid = this.safeString (details, 'Transaction');
+        const address = this.safeString (details, 'Address');
+        const timestamp = this.safeValue (transaction, 'timestamp');
+        const currencyId = this.safeString (transaction, 'currency');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const available_delta = this.safeFloat (transaction, 'available_delta');
+        const balance_delta = this.safeFloat (transaction, 'balance_delta');
+        let amount = undefined; // amount can be negative
+        let status = undefined;
+        if (balance_delta !== 0.0) {
+            amount = balance_delta;
+            status = 'ok';
+        } else if (available_delta !== 0.0) {
+            amount = available_delta;
+            status = 'pending';
+        }
+        let type = undefined;
+        if (address && amount) {
+            if (amount > 0) {
+                type = 'deposit';
+            } else if (amount < 0) {
+                type = 'withdrawal';
+            }
+        }
+        const comment = this.safeString (transaction, 'description');
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'address': address,
+            'tag': undefined,
+            'type': type,
+            'amount': amount,
+            'currency': code,
+            'status': status,
+            'updated': undefined,
+            'comment': comment,
+            'fee': undefined,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
