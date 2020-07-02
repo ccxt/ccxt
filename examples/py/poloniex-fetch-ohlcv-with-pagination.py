@@ -11,8 +11,6 @@ import ccxt  # noqa: E402
 exchange = ccxt.poloniex({'enableRateLimit': True})
 exchange.load_markets()
 
-# Poloniex will only serve one year of data into the past
-
 symbol = 'BTC/USDT'
 timeframe = '5m'
 since = exchange.parse8601('2019-01-01T00:00:00Z')
