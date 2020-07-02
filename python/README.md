@@ -32,7 +32,7 @@ Current feature list:
 
 - <sub>[![Quadency](https://user-images.githubusercontent.com/1294454/69334382-a0618100-0c6b-11ea-9ba9-40aa97440cfa.png)](https://quadency.com?utm_source=ccxt)</sub>&nbsp; **[Quadency](https://quadency.com?utm_source=ccxt)**&nbsp;&mdash;&nbsp;professional crypto terminal, algo trading, and unified streaming APIs.
 - <sub>[![TabTrader](https://user-images.githubusercontent.com/1294454/66755907-9c3e8880-eea1-11e9-846e-0bff349ceb87.png)](https://tab-trader.com/?utm_source=ccxt)</sub>&nbsp; **[TabTrader](https://tab-trader.com/?utm_source=ccxt)**&nbsp;&mdash;&nbsp;trading on all exchanges in one app. Avaliable on [Android](https://play.google.com/store/apps/details?id=com.tabtrader.android&referrer=utm_source%3Dccxt) and [iOS](https://itunes.apple.com/app/apple-store/id1095716562?mt=8).
-- <sub>[![Currency.com](https://user-images.githubusercontent.com/1294454/83817823-6ff4a800-a6ce-11ea-9a27-f51420888914.jpg)]( https://currency.com/?utm_source=ccxt)</sub>&nbsp; **[Currency.com]( https://currency.com/?utm_source=ccxt)**&nbsp;&mdash;&nbsp;Award-winning regulated tokenized assets platform with 1500+ available tokens and cryptos.
+- <sub>[![Currency.com](https://user-images.githubusercontent.com/1294454/83817823-6ff4a800-a6ce-11ea-9a27-f51420888914.jpg)]( https://currency.com/?utm_source=ccxt)</sub>&nbsp; **[Currency.com]( https://currency.com/?utm_source=ccxt)**&nbsp;&mdash;&nbsp;award-winning tokenized assets platform with 1500+ available tokens and cryptos.
 
 
 ## Certified Cryptocurrency Exchanges
@@ -228,13 +228,13 @@ console.log (ccxt.exchanges) // print all available exchanges
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.30.53/dist/ccxt.browser.js
-* unpkg: https://unpkg.com/ccxt@1.30.53/dist/ccxt.browser.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.30.54/dist/ccxt.browser.js
+* unpkg: https://unpkg.com/ccxt@1.30.54/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.30.53/dist/ccxt.browser.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.30.54/dist/ccxt.browser.js"></script>
 ```
 
 Creates a global `ccxt` object:
