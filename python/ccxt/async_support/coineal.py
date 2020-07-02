@@ -498,6 +498,7 @@ class coineal(Exchange):
             'time': self.milliseconds(),
             'page': 1,
             'pageSize': limit,
+            'sort': 1,
         }
         response = await self.privateGetOpenApiAllTrade(self.extend(request, params))
         result = self.safe_value(response, 'data')

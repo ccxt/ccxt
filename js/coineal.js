@@ -522,6 +522,7 @@ module.exports = class coineal extends Exchange {
             'time': this.milliseconds (),
             'page': 1,
             'pageSize': limit,
+            'sort': 1,
         };
         const response = await this.privateGetOpenApiAllTrade (this.extend (request, params));
         const result = this.safeValue (response, 'data');
