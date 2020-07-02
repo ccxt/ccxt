@@ -530,6 +530,7 @@ class coineal extends Exchange {
             'time' => $this->milliseconds (),
             'page' => 1,
             'pageSize' => $limit,
+            'sort' => 1,
         );
         $response = $this->privateGetOpenApiAllTrade (array_merge($request, $params));
         $result = $this->safe_value($response, 'data');
