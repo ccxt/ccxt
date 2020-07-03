@@ -197,9 +197,9 @@ module.exports = class coineal extends Exchange {
         return [
             ohlcv[0] * 1000,
             parseFloat (ohlcv[1]),
+            parseFloat (ohlcv[2]),
             parseFloat (ohlcv[3]),
             parseFloat (ohlcv[4]),
-            parseFloat (ohlcv[2]),
             parseFloat (ohlcv[5]),
         ];
     }
@@ -789,7 +789,7 @@ module.exports = class coineal extends Exchange {
         }
         const market = this.market (symbol);
         const orderData = await this.fetchCommonOrders (market['id'], limit, params);
-        openCloseOrders = this.filterByArray (orderData, 'status', [1, 2, 3], false);
+        openCloseOrders = this.filterByArray (orderData, 'status', [0, 1, 2, 3], false);
         return this.parseOrders (openCloseOrders, market, since, limit);
     }
 

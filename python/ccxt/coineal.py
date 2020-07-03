@@ -202,9 +202,9 @@ class coineal(Exchange):
         return [
             ohlcv[0] * 1000,
             float(ohlcv[1]),
+            float(ohlcv[2]),
             float(ohlcv[3]),
             float(ohlcv[4]),
-            float(ohlcv[2]),
             float(ohlcv[5]),
         ]
 
@@ -733,7 +733,7 @@ class coineal(Exchange):
             return self.parse_orders(openCloseOrders, None, since, limit)
         market = self.market(symbol)
         orderData = self.fetch_common_orders(market['id'], limit, params)
-        openCloseOrders = self.filter_by_array(orderData, 'status', [1, 2, 3], False)
+        openCloseOrders = self.filter_by_array(orderData, 'status', [0, 1, 2, 3], False)
         return self.parse_orders(openCloseOrders, market, since, limit)
 
     def fetch_order(self, id, symbol=None, params={}):

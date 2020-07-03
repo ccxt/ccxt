@@ -205,9 +205,9 @@ class coineal extends Exchange {
         return [
             $ohlcv[0] * 1000,
             floatval ($ohlcv[1]),
+            floatval ($ohlcv[2]),
             floatval ($ohlcv[3]),
             floatval ($ohlcv[4]),
-            floatval ($ohlcv[2]),
             floatval ($ohlcv[5]),
         ];
     }
@@ -797,7 +797,7 @@ class coineal extends Exchange {
         }
         $market = $this->market ($symbol);
         $orderData = $this->fetch_common_orders ($market['id'], $limit, $params);
-        $openCloseOrders = $this->filter_by_array($orderData, 'status', [1, 2, 3], false);
+        $openCloseOrders = $this->filter_by_array($orderData, 'status', [0, 1, 2, 3], false);
         return $this->parse_orders($openCloseOrders, $market, $since, $limit);
     }
 
