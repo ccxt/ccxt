@@ -475,6 +475,13 @@ module.exports = class luno extends Exchange {
         return await this.privatePostStoporder (this.extend (request, params));
     }
 
+    async fetchLedgerByEntries (code = undefined, entry = -1, limit = 1, params = {}) {
+        // By default without entry number or limit number, return most recent entry
+        const since = undefined;
+        const request = this.extend ({ 'min_row': entry, 'max_row': entry + limit }, params);
+        return await this.fetchLedger (code, since, limit, request);
+    }
+
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         await this.loadAccounts ();
@@ -536,7 +543,10 @@ module.exports = class luno extends Exchange {
             'Failure': 'failed',
         };
         let referenceId = undefined;
-        const type = this.safeString (types, words[0], undefined);
+        let type = this.safeString (types, words[0], undefined);
+        if (type === 'undefined' && words.length >= 3 && words[2] === 'fee') {
+            type = 'fee';
+        }
         if (type === 'reserved' && words.length >= 5 && words[3] === 'order') {
             referenceId = words[4];
         }
