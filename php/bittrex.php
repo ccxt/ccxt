@@ -1120,8 +1120,12 @@ class bittrex extends Exchange {
         //     }
         //
         $side = $this->safe_string_2($order, 'OrderType', 'Type');
-        $isBuyOrder = ($side === 'LIMIT_BUY') || ($side === 'BUY');
-        $isSellOrder = ($side === 'LIMIT_SELL') || ($side === 'SELL');
+        $isBuyOrder = ($side === 'LIMIT_BUY') || ($side === 'BUY') || ($side === 'MARKET_BUY');
+        $isSellOrder = ($side === 'LIMIT_SELL') || ($side === 'SELL') || ($side === 'MARKET_SELL');
+        $type = 'limit';
+        if (($side === 'MARKET_BUY') || ($side === 'MARKET_SELL')) {
+            $type = 'market';
+        }
         if ($isBuyOrder) {
             $side = 'buy';
         }
@@ -1225,7 +1229,7 @@ class bittrex extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $symbol,
-            'type' => 'limit',
+            'type' => $type,
             'side' => $side,
             'price' => $price,
             'cost' => $cost,

@@ -1114,8 +1114,12 @@ module.exports = class bittrex extends Exchange {
         //     }
         //
         let side = this.safeString2 (order, 'OrderType', 'Type');
-        const isBuyOrder = (side === 'LIMIT_BUY') || (side === 'BUY');
-        const isSellOrder = (side === 'LIMIT_SELL') || (side === 'SELL');
+        const isBuyOrder = (side === 'LIMIT_BUY') || (side === 'BUY') || (side === 'MARKET_BUY');
+        const isSellOrder = (side === 'LIMIT_SELL') || (side === 'SELL') || (side === 'MARKET_SELL');
+        let type = 'limit';
+        if ((side === 'MARKET_BUY') || (side === 'MARKET_SELL')) {
+            type = 'market';
+        }
         if (isBuyOrder) {
             side = 'buy';
         }
@@ -1219,7 +1223,7 @@ module.exports = class bittrex extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
-            'type': 'limit',
+            'type': type,
             'side': side,
             'price': price,
             'cost': cost,
