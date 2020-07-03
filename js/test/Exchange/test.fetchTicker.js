@@ -28,6 +28,7 @@ module.exports = async (exchange, symbol) => {
 
     const skippedExchanges = [
         'digifinex',
+        'currencycom'
     ]
 
     if (skippedExchanges.includes (exchange.id)) {
@@ -39,7 +40,7 @@ module.exports = async (exchange, symbol) => {
 
         // log (symbol.green, 'fetching ticker...')
 
-        let ticker = await exchange.fetchTicker (symbol)
+        const ticker = await exchange.fetchTicker (symbol)
 
         testTicker (exchange, ticker, method, symbol)
 
