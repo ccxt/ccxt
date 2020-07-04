@@ -61,7 +61,6 @@ module.exports = class krakenfu extends Exchange {
                         'accounts',
                         'openorders',
                         'recentorders',
-                        'historicorders',
                         'fills',
                         'transfers',
                     ],
@@ -167,14 +166,16 @@ module.exports = class krakenfu extends Exchange {
             const active = true;
             const id = market['symbol'];
             let type = undefined;
-            const prediction = (market['type'].indexOf (' index') >= 0);
+            const index = (market['type'].indexOf (' index') >= 0);
             let linear = undefined;
-            if (!prediction) {
+            let inverse = undefined;
+            if (!index) {
                 linear = (market['type'].indexOf ('_vanilla') >= 0);
+                inverse = !linear;
                 const settleTime = this.safeString (market, 'lastTradingTime');
                 type = (settleTime === undefined) ? 'swap' : 'future';
             } else {
-                type = 'prediction';
+                type = 'index';
             }
             const swap = (type === 'swap');
             const future = (type === 'future');
@@ -189,17 +190,13 @@ module.exports = class krakenfu extends Exchange {
             if (swap) {
                 symbol = base + '/' + quote;
             }
+            const lotSize = this.safeFloat (market, 'contractSize');
             const precision = {
                 'amount': undefined,
-                'price': undefined,
+                'price': this.safeFloat (market, 'tickSize'),
             };
-            const lotSize = this.safeFloat (market, 'contractSize');
-            const tickSize = this.safeFloat (market, 'tickSize');
-            if (lotSize !== undefined) {
-                precision['amount'] = 1.0;
-            }
-            if (tickSize !== undefined) {
-                precision['price'] = tickSize;
+            if (!index) {
+                precision['amount'] = 1.0; // this seems to be the case for all markets
             }
             const limits = {
                 'amount': {
@@ -207,7 +204,7 @@ module.exports = class krakenfu extends Exchange {
                     'max': undefined,
                 },
                 'price': {
-                    'min': tickSize,
+                    'min': precision['price'],
                     'max': undefined,
                 },
                 'cost': {
@@ -229,8 +226,9 @@ module.exports = class krakenfu extends Exchange {
                 'spot': false,
                 'swap': swap,
                 'future': future,
-                'prediction': prediction,
+                'prediction': false,
                 'linear': linear,
+                'inverse': inverse,
                 'lotSize': lotSize,
                 'info': market,
             });
@@ -332,7 +330,7 @@ module.exports = class krakenfu extends Exchange {
         const volume = this.safeFloat (ticker, 'vol24h');
         let baseVolume = undefined;
         let quoteVolume = undefined;
-        if ((market !== undefined) && (!market['prediction'])) {
+        if ((market !== undefined) && (market['type'] !== 'index')) {
             if (market['linear']) {
                 baseVolume = volume; // pv_xrpxbt volume given in XRP
             } else {
@@ -452,19 +450,25 @@ module.exports = class krakenfu extends Exchange {
             type = this.parseOrderType (type);
         }
         let symbol = undefined;
-        if ((market === undefined) && (symbolId !== undefined)) {
-            market = this.safeValue (this.markets_by_id, symbolId);
+        if (symbolId !== undefined) {
+            if (symbolId in this.markets_by_id) {
+                market = this.markets_by_id[symbolId];
+            } else {
+                market = undefined;
+                symbol = symbolId;
+            }
         }
-        if ((symbol === undefined) && (market !== undefined)) {
+        if (market !== undefined) {
             symbol = market['symbol'];
         }
         let cost = undefined;
-        if ((amount !== undefined) && (market !== undefined)) {
-            if (!market['linear']) {
-                cost = amount; // assuming cost is in quote currency
-            } else if (price !== undefined) {
-                cost = price * amount;
+        if ((amount !== undefined) && (price !== undefined) && (market !== undefined)) {
+            if (market['linear']) {
+                cost = amount * price; // in quote
+            } else {
+                cost = amount / price; // in base
             }
+            cost *= market['lotSize'];
         }
         const fee = undefined;
         let takerOrMaker = undefined;
@@ -582,8 +586,8 @@ module.exports = class krakenfu extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        // The returned orderEvents are yet again in entirely different format, what a mess
         throw new NotSupported (this.id + ' fetchOrders not supprted yet');
-        // This only works on mainnet
         // await this.loadMarkets ();
         // let market = undefined;
         // const request = {};
@@ -591,22 +595,17 @@ module.exports = class krakenfu extends Exchange {
         //     market = this.market (symbol);
         //     request['symbol'] = market['id'];
         // }
-        // if (since !== undefined) {
-        //     request['after'] = since;
-        // }
-        // const response = await this.privateGetHistoricorders (request);
-        // return this.parseOrders (response, market, since, limit);
+        // const response = await this.privateGetRecentorders (this.extend (request, params));
+        // return this.parseOrders ([ response ], market, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
-        let request = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        request = this.deepExtend (request, params);
-        const response = await this.privateGetOpenorders (request);
+        const response = await this.privateGetOpenorders (params);
         return this.parseOrders (response['openOrders'], market, since, limit);
     }
 
@@ -869,27 +868,6 @@ module.exports = class krakenfu extends Exchange {
         //     "lastUpdateTime":"2019-09-05T17:01:17.410Z"
         // }
         //
-        // "FETCH ORDERS"
-        // timestamp               Unix timestamp     The timestamp of the order event
-        // uid                     UUID               A structure containing information on the send order request, see below
-        // event_type              string             One of ORDER_PLACED ORDER_CANCELLED ORDER_REJECTED EXECUTION
-        // order_uid               UUID               The unique identifier of the order
-        // order_tradeable         string             The tradeable (symbol) of the futures contract
-        // order_direction         string             BUY for buy order and SELL for a sell
-        // order_quantity          positive float     The order quantity (size)
-        // order_filled            positive float     The order filled amount
-        // order_timestamp         Unix timestamp     The order timestamp
-        // order_type              string             One of: LIMIT IMMEDIATE_OR_CANCEL POST_ONLY LIQUIDATION ASSIGNMENT STOP
-        // order_client_id         string             The provided client order id
-        // order_stop_price        positive float     The stop price of the order.
-        // info                    string             One of: MAKER_ORDER TAKER_ORDER
-        // algo_id                 string             The id of the algorithm that placed the order
-        // execution_timestamp     Unix timestamp     The execution timestamp
-        // execution_quantity      positive integer   The executed quantity
-        // execution_price         positive float     The price that the orders got executed
-        // execution_mark_price    positive float     The market price at the time of the execution
-        // execution_limit_filled  boolean            true if the maker order of the execution was filled in its entirety otherwise false
-        //
         const orderEvents = this.safeValue (order, 'orderEvents', []);
         let details = undefined;
         let isPrior = false;
@@ -987,12 +965,14 @@ module.exports = class krakenfu extends Exchange {
         }
         let cost = undefined;
         if ((filled !== undefined) && (market !== undefined)) {
-            if (!market['linear']) {
-                cost = filled; // assuming cost is in quote currency
-            } else if (average !== undefined) {
-                cost = average * filled;
-            } else if (price !== undefined) {
-                cost = price * filled;
+            const whichPrice = (average !== undefined) ? average : price;
+            if (whichPrice !== undefined) {
+                if (market['linear']) {
+                    cost = filled * whichPrice; // in quote
+                } else {
+                    cost = filled / whichPrice; // in base
+                }
+                cost *= market['lotSize'];
             }
         }
         let id = this.safeString2 (order, 'order_id', 'orderId');
@@ -1025,16 +1005,10 @@ module.exports = class krakenfu extends Exchange {
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
-        let request = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['symbol'] = market['id'];
         }
-        if (since !== undefined) {
-            request['lastFillTime'] = this.iso8601 (since);
-        }
-        request = this.deepExtend (request, params);
-        const response = await this.privateGetFills (request);
+        const response = await this.privateGetFills (params);
         // {
         //    "result":"success",
         //    "serverTime":"2016-02-25T09:45:53.818Z",
