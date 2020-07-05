@@ -19,12 +19,13 @@ class ftx extends Exchange {
             'rateLimit' => 100,
             'certified' => true,
             'pro' => true,
+            'hostname' => 'ftx.com', // or ftx.us
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/67149189-df896480-f2b0-11e9-8816-41593e17f9ec.jpg',
                 'www' => 'https://ftx.com',
                 'api' => array(
-                    'public' => 'https://ftx.com',
-                    'private' => 'https://ftx.com',
+                    'public' => 'https://{hostname}',
+                    'private' => 'https://{hostname}',
                 ),
                 'doc' => 'https://github.com/ftexchange/ftx',
                 'fees' => 'https://ftexchange.zendesk.com/hc/en-us/articles/360024479432-Fees',
@@ -1440,7 +1441,8 @@ class ftx extends Exchange {
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = '/api/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
-        $url = $this->urls['api'][$api] . $request;
+        $baseUrl = $this->implode_params($this->urls['api'][$api], array( 'hostname' => $this->hostname ));
+        $url = $baseUrl . $request;
         if ($method !== 'POST') {
             if ($query) {
                 $suffix = '?' . $this->urlencode($query);
