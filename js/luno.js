@@ -543,12 +543,15 @@ module.exports = class luno extends Exchange {
             'Failure': 'failed',
         };
         let referenceId = undefined;
-        let type = this.safeString (types, words[0], undefined);
-        if (type === 'undefined' && words.length >= 3 && words[2] === 'fee') {
+        const firstWord = this.safeString (words, 0);
+        const thirdWord = this.safeString (words, 2);
+        const fourthWord = this.safeString (words, 3);
+        let type = this.safeString (types, firstWord, undefined);
+        if ((type === undefined) && (thirdWord === 'fee')) {
             type = 'fee';
         }
-        if (type === 'reserved' && words.length >= 5 && words[3] === 'order') {
-            referenceId = words[4];
+        if ((type === 'reserved') && (fourthWord === 'order')) {
+            referenceId = this.safeString (words, 4);
         }
         return {
             'type': type,
