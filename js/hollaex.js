@@ -1196,7 +1196,7 @@ module.exports = class hollaex extends Exchange {
             const expiresString = expires.toString ();
             let auth = method + path + expiresString;
             headers = {
-                'api-key': this.encode (this.apiKey),
+                'api-key': this.apiKey,
                 'api-expires': expiresString,
             };
             if (method === 'POST') {
@@ -1206,8 +1206,7 @@ module.exports = class hollaex extends Exchange {
                     auth += body;
                 }
             }
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret));
-            headers['api-signature'] = signature;
+            headers['api-signature'] = this.hmac (this.encode (auth), this.encode (this.secret));
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
