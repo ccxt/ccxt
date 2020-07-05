@@ -1125,8 +1125,7 @@ module.exports = class eterbase extends Exchange {
                 headersCSV += ' ' + 'digest';
             }
             const signature64 = this.hmac (this.encode (message), this.encode (this.secret), 'sha256', 'base64');
-            const signature = this.decode (signature64);
-            const authorizationHeader = 'hmac username="' + this.apiKey + '",algorithm="hmac-sha256",headers="' + headersCSV + '",signature="' + signature + '"';
+            const authorizationHeader = 'hmac username="' + this.apiKey + '",algorithm="hmac-sha256",headers="' + headersCSV + '",signature="' + signature64 + '"';
             httpHeaders = {
                 'Date': date,
                 'Authorization': authorizationHeader,

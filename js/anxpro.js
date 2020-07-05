@@ -1195,7 +1195,7 @@ module.exports = class anxpro extends Exchange {
             headers = {
                 'Content-Type': contentType,
                 'Rest-Key': this.apiKey,
-                'Rest-Sign': this.decode (signature),
+                'Rest-Sign': signature,
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

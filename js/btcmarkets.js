@@ -733,7 +733,7 @@ module.exports = class btcmarkets extends Exchange {
             }
             const secret = this.base64ToBinary (this.secret);
             const signature = this.hmac (this.encode (auth), secret, 'sha512', 'base64');
-            headers['signature'] = this.decode (signature);
+            headers['signature'] = signature;
         } else {
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);

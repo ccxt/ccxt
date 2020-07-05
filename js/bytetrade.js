@@ -698,7 +698,7 @@ module.exports = class bytetrade extends Exchange {
         const bytestring = this.binaryConcatArray (allByteStringArray);
         const hash = this.hash (bytestring, 'sha256', 'hex');
         const signature = this.ecdsa (hash, this.secret, 'secp256k1', undefined, true);
-        const recoveryParam = this.decode (this.binaryToBase16 (this.numberToLE (this.sum (signature['v'], 31), 1)));
+        const recoveryParam = this.binaryToBase16 (this.numberToLE (this.sum (signature['v'], 31), 1));
         const mySignature = recoveryParam + signature['r'] + signature['s'];
         const operation = {
             'now': datetime,
@@ -882,7 +882,7 @@ module.exports = class bytetrade extends Exchange {
         const bytestring = this.binaryConcatArray (byteStringArray);
         const hash = this.hash (bytestring, 'sha256', 'hex');
         const signature = this.ecdsa (hash, this.secret, 'secp256k1', undefined, true);
-        const recoveryParam = this.decode (this.binaryToBase16 (this.numberToLE (this.sum (signature['v'], 31), 1)));
+        const recoveryParam = this.binaryToBase16 (this.numberToLE (this.sum (signature['v'], 31), 1));
         const mySignature = recoveryParam + signature['r'] + signature['s'];
         const operation = {
             'fee': feeAmount,
@@ -984,7 +984,7 @@ module.exports = class bytetrade extends Exchange {
         const bytestring = this.binaryConcatArray (byteStringArray);
         const hash = this.hash (bytestring, 'sha256', 'hex');
         const signature = this.ecdsa (hash, this.secret, 'secp256k1', undefined, true);
-        const recoveryParam = this.decode (this.binaryToBase16 (this.numberToLE (this.sum (signature['v'], 31), 1)));
+        const recoveryParam = this.binaryToBase16 (this.numberToLE (this.sum (signature['v'], 31), 1));
         const mySignature = recoveryParam + signature['r'] + signature['s'];
         const operation = {
             'fee': '300000000000000',
@@ -1290,7 +1290,7 @@ module.exports = class bytetrade extends Exchange {
         const bytestring = this.binaryConcatArray (byteStringArray);
         const hash = this.hash (bytestring, 'sha256', 'hex');
         const signature = this.ecdsa (hash, this.secret, 'secp256k1', undefined, true);
-        const recoveryParam = this.decode (this.binaryToBase16 (this.numberToLE (this.sum (signature['v'], 31), 1)));
+        const recoveryParam = this.binaryToBase16 (this.numberToLE (this.sum (signature['v'], 31), 1));
         const mySignature = recoveryParam + signature['r'] + signature['s'];
         let fatty = undefined;
         let request = undefined;
