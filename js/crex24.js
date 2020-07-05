@@ -1278,8 +1278,7 @@ module.exports = class crex24 extends Exchange {
                 body = this.json (params);
                 auth += body;
             }
-            const signature = this.stringToBase64 (this.hmac (this.encode (auth), secret, 'sha512', 'binary'));
-            headers['X-CREX24-API-SIGN'] = this.decode (signature);
+            headers['X-CREX24-API-SIGN'] = this.binaryToBase64 (this.hmac (this.encode (auth), secret, 'sha512', 'binary'));
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

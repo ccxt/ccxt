@@ -29,11 +29,12 @@ const hash = (request, hash = 'md5', digest = 'hex') => {
 
 const hmac = (request, secret, hash = 'sha256', digest = 'hex') => {
     const result = CryptoJS['Hmac' + hash.toUpperCase ()] (request, secret)
-    if (digest) {
-        const encoding = (digest === 'binary') ? 'Latin1' : capitalize (digest)
-        return result.toString (CryptoJS.enc[capitalize (encoding)])
+    if (digest === 'binary') {
+        return result
     }
-    return result
+    else {
+        return result.toString (CryptoJS.enc[capitalize (digest)])
+    }
 }
 
 /*  .............................................   */

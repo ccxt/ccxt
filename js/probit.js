@@ -1226,9 +1226,9 @@ module.exports = class probit extends Exchange {
             this.checkRequiredCredentials ();
             url += this.implodeParams (path, params);
             const auth = this.apiKey + ':' + this.secret;
-            const auth64 = this.stringToBase64 (this.encode (auth));
+            const auth64 = this.stringToBase64 (auth);
             headers = {
-                'Authorization': 'Basic ' + this.decode (auth64),
+                'Authorization': 'Basic ' + auth64,
                 'Content-Type': 'application/json',
             };
             if (Object.keys (query).length) {

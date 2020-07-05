@@ -1125,10 +1125,9 @@ module.exports = class hitbtc extends Exchange {
             } else if (Object.keys (query).length) {
                 body = this.json (query);
             }
-            const payload = this.encode (this.apiKey + ':' + this.secret);
-            const auth = this.stringToBase64 (payload);
+            const payload = this.apiKey + ':' + this.secret;
             headers = {
-                'Authorization': 'Basic ' + this.decode (auth),
+                'Authorization': 'Basic ' + this.stringToBase64 (payload),
                 'Content-Type': 'application/json',
             };
         }

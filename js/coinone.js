@@ -641,13 +641,12 @@ module.exports = class coinone extends Exchange {
                 'access_token': this.apiKey,
                 'nonce': nonce,
             }, params));
-            const payload = this.stringToBase64 (this.encode (json));
-            body = this.decode (payload);
+            body = this.stringToBase64 (json);
             const secret = this.secret.toUpperCase ();
-            const signature = this.hmac (payload, this.encode (secret), 'sha512');
+            const signature = this.hmac (this.encode (body), this.encode (secret), 'sha512');
             headers = {
                 'Content-Type': 'application/json',
-                'X-COINONE-PAYLOAD': payload,
+                'X-COINONE-PAYLOAD': body,
                 'X-COINONE-SIGNATURE': signature,
             };
         }

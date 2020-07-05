@@ -28,19 +28,19 @@ module.exports =
     )
 
     , stringToBase64: string => CryptoJS.enc.Utf8.parse (string).toString (CryptoJS.enc.Base64)
-    , base64ToBinary: CryptoJS.enc.Base64.parse
+    , base64ToBinary: string => CryptoJS.enc.Base64.parse (string)
     , base64ToString: string => CryptoJS.enc.Base64.parse (string).toString (CryptoJS.enc.Utf8)
-    , binaryToBase64: CryptoJS.enc.Base64.stringify
-    , base16ToBinary: CryptoJS.enc.Hex.parse
-    , binaryToBase16: CryptoJS.enc.Hex.stringify
+    , binaryToBase64: binary => CryptoJS.enc.Base64.stringify (binary)
+    , base16ToBinary: hex => CryptoJS.enc.Hex.parse (hex)
+    , binaryToBase16: binary => CryptoJS.enc.Hex.stringify (binary)
     , binaryConcat: (...args) => args.reduce ((a, b) => a.concat (b))
     , binaryConcatArray: (arr) => arr.reduce ((a, b) => a.concat (b))
 
     , urlencode: object => qs.stringify (object)
     , urlencodeWithArrayRepeat: object => qs.stringify (object, { arrayFormat: 'repeat' })
     , rawencode: object => qs.stringify (object, { encode: false })
-    , encode: CryptoJS.enc.Utf8.parse
-    , decode: CryptoJS.enc.Utf8.stringify
+    , encode: string => CryptoJS.enc.Utf8.parse (string)
+    , decode: binary => CryptoJS.enc.Utf8.stringify (binary)
 
     // Url-safe-base64 without equals signs, with + replaced by - and slashes replaced by underscores
 
@@ -113,5 +113,4 @@ function byteArrayToWordArray (ba) {
 }
 
 module.exports['byteArrayToWordArray'] = byteArrayToWordArray
-
 /*  ------------------------------------------------------------------------ */

@@ -1222,8 +1222,8 @@ module.exports = class timex extends Exchange {
         }
         if (api !== 'public') {
             this.checkRequiredCredentials ();
-            const auth = this.stringToBase64 (this.encode (this.apiKey + ':' + this.secret));
-            const secret = 'Basic ' + this.decode (auth);
+            const auth = this.stringToBase64 (this.apiKey + ':' + this.secret);
+            const secret = 'Basic ' + auth;
             headers = { 'authorization': secret };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
