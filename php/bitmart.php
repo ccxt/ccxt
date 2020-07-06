@@ -142,6 +142,7 @@ class bitmart extends Exchange {
                     'Not found' => '\\ccxt\\OrderNotFound', // array("message":"Not found")
                     'Visit too often, please try again later' => '\\ccxt\\DDoSProtection', // array("code":-30,"msg":"Visit too often, please try again later","subMsg":"","data":array())
                     'Unknown symbol' => '\\ccxt\\BadSymbol', // array("message":"Unknown symbol")
+                    'Unauthorized' => '\\ccxt\\AuthenticationError',
                 ),
                 'broad' => array(
                     'Invalid limit. limit must be in the range' => '\\ccxt\\InvalidOrder',
