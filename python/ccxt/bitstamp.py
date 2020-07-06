@@ -553,7 +553,7 @@ class bitstamp(Exchange):
         market = self.market(symbol)
         request = {
             'pair': market['id'],
-            'interval': self.timeframes[timeframe],
+            'step': self.timeframes[timeframe],
         }
         duration = self.parse_timeframe(timeframe)
         if limit is None:
