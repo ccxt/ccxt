@@ -20,12 +20,14 @@ class luno(Exchange):
             'version': '1',
             'has': {
                 'CORS': False,
+                'fetchAccounts': True,
                 'fetchTickers': True,
                 'fetchOrder': True,
                 'fetchOrders': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'fetchMyTrades': True,
+                'fetchLedger': True,
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
             },
@@ -110,6 +112,23 @@ class luno(Exchange):
                 'active': None,
                 'precision': self.precision,
                 'limits': self.limits,
+            })
+        return result
+
+    async def fetch_accounts(self, params={}):
+        response = await self.privateGetBalance(params)
+        wallets = self.safe_value(response, 'balance', [])
+        result = []
+        for i in range(0, len(wallets)):
+            account = wallets[i]
+            accountId = self.safe_string(account, 'account_id')
+            currencyId = self.safe_string(account, 'asset')
+            code = self.safe_currency_code(currencyId)
+            result.append({
+                'id': accountId,
+                'type': None,
+                'currency': code,
+                'info': account,
             })
         return result
 
@@ -411,6 +430,131 @@ class luno(Exchange):
             'order_id': id,
         }
         return await self.privatePostStoporder(self.extend(request, params))
+
+    async def fetch_ledger_by_entries(self, code=None, entry=-1, limit=1, params={}):
+        # by default without entry number or limit number, return most recent entry
+        since = None
+        request = {
+            'min_row': entry,
+            'max_row': self.sum(entry, limit),
+        }
+        return await self.fetch_ledger(code, since, limit, self.extend(request, params))
+
+    async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        await self.load_accounts()
+        currency = None
+        id = self.safe_string(params, 'id')  # account id
+        min_row = self.safe_value(params, 'min_row')
+        max_row = self.safe_value(params, 'max_row')
+        if id is None:
+            if code is None:
+                raise ArgumentsRequired(self.id + ' fetchLedger() requires a currency code argument if no account id specified in params')
+            currency = self.currency(code)
+            accountsByCurrencyCode = self.index_by(self.accounts, 'currency')
+            account = self.safe_value(accountsByCurrencyCode, code)
+            if account is None:
+                raise ExchangeError(self.id + ' fetchLedger() could not find account id for ' + code)
+            id = account['id']
+        if min_row is None and max_row is None:
+            max_row = 0  # Default to most recent transactions
+            min_row = -1000  # Maximum number of records supported
+        elif min_row is None or max_row is None:
+            raise ExchangeError(self.id + " fetchLedger() require both params 'max_row' and 'min_row' or neither to be defined")
+        if limit is not None and max_row - min_row > limit:
+            if max_row <= 0:
+                min_row = max_row - limit
+            elif min_row > 0:
+                max_row = min_row + limit
+        if max_row - min_row > 1000:
+            raise ExchangeError(self.id + " fetchLedger() requires the params 'max_row' - 'min_row' <= 1000")
+        request = {
+            'id': id,
+            'min_row': min_row,
+            'max_row': max_row,
+        }
+        response = await self.privateGetAccountsIdTransactions(self.extend(params, request))
+        entries = self.safe_value(response, 'transactions', [])
+        return self.parse_ledger(entries, currency, since, limit)
+
+    def parse_ledger_comment(self, comment):
+        words = comment.split(' ')
+        types = {
+            'Withdrawal': 'fee',
+            'Trading': 'fee',
+            'Payment': 'transaction',
+            'Sent': 'transaction',
+            'Deposit': 'transaction',
+            'Received': 'transaction',
+            'Released': 'released',
+            'Reserved': 'reserved',
+            'Sold': 'trade',
+            'Bought': 'trade',
+            'Failure': 'failed',
+        }
+        referenceId = None
+        firstWord = self.safe_string(words, 0)
+        thirdWord = self.safe_string(words, 2)
+        fourthWord = self.safe_string(words, 3)
+        type = self.safe_string(types, firstWord, None)
+        if (type is None) and (thirdWord == 'fee'):
+            type = 'fee'
+        if (type == 'reserved') and (fourthWord == 'order'):
+            referenceId = self.safe_string(words, 4)
+        return {
+            'type': type,
+            'referenceId': referenceId,
+        }
+
+    def parse_ledger_entry(self, entry, currency=None):
+        # details = self.safe_value(entry, 'details', {})
+        id = self.safe_string(entry, 'row_index')
+        account_id = self.safe_string(entry, 'account_id')
+        timestamp = self.safe_value(entry, 'timestamp')
+        currencyId = self.safe_string(entry, 'currency')
+        code = self.safe_currency_code(currencyId, currency)
+        available_delta = self.safe_float(entry, 'available_delta')
+        balance_delta = self.safe_float(entry, 'balance_delta')
+        after = self.safe_float(entry, 'balance')
+        comment = self.safe_string(entry, 'description')
+        before = after
+        amount = 0.0
+        result = self.parse_ledger_comment(comment)
+        type = result['type']
+        referenceId = result['referenceId']
+        direction = None
+        status = None
+        if balance_delta != 0.0:
+            before = after - balance_delta  # TODO: float precision
+            status = 'ok'
+            amount = abs(balance_delta)
+        elif available_delta < 0.0:
+            status = 'pending'
+            amount = abs(available_delta)
+        elif available_delta > 0.0:
+            status = 'canceled'
+            amount = abs(available_delta)
+        if balance_delta > 0 or available_delta > 0:
+            direction = 'in'
+        elif balance_delta < 0 or available_delta < 0:
+            direction = 'out'
+        return {
+            'id': id,
+            'direction': direction,
+            'account': account_id,
+            'referenceId': referenceId,
+            'referenceAccount': None,
+            'type': type,
+            'currency': code,
+            'amount': amount,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'before': before,
+            'after': after,
+            'status': status,
+            'fee': None,
+            'info': entry,
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
