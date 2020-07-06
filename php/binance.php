@@ -1313,6 +1313,8 @@ class binance extends Exchange {
                 $quantityIsRequired = true;
             }
             $stopPriceIsRequired = true;
+        } else if ($uppercaseType === 'TRAILING_STOP_MARKET') {
+            $quantityIsRequired = true;
         }
         if ($quantityIsRequired) {
             $request['quantity'] = $this->amount_to_precision($symbol, $amount);

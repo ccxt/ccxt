@@ -1240,6 +1240,8 @@ class binance(Exchange):
             if closePosition is None:
                 quantityIsRequired = True
             stopPriceIsRequired = True
+        elif uppercaseType == 'TRAILING_STOP_MARKET':
+            quantityIsRequired = True
         if quantityIsRequired:
             request['quantity'] = self.amount_to_precision(symbol, amount)
         if priceIsRequired:
