@@ -572,7 +572,7 @@ module.exports = class bitstamp extends Exchange {
         const market = this.market (symbol);
         const request = {
             'pair': market['id'],
-            'interval': this.timeframes[timeframe],
+            'step': this.timeframes[timeframe],
         };
         const duration = this.parseTimeframe (timeframe);
         if (limit === undefined) {
