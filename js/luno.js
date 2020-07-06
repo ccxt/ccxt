@@ -17,12 +17,14 @@ module.exports = class luno extends Exchange {
             'version': '1',
             'has': {
                 'CORS': false,
+                'fetchAccounts': true,
                 'fetchTickers': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchMyTrades': true,
+                'fetchLedger': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
             },
@@ -108,6 +110,25 @@ module.exports = class luno extends Exchange {
                 'active': undefined,
                 'precision': this.precision,
                 'limits': this.limits,
+            });
+        }
+        return result;
+    }
+
+    async fetchAccounts (params = {}) {
+        const response = await this.privateGetBalance (params);
+        const wallets = this.safeValue (response, 'balance', []);
+        const result = [];
+        for (let i = 0; i < wallets.length; i++) {
+            const account = wallets[i];
+            const accountId = this.safeString (account, 'account_id');
+            const currencyId = this.safeString (account, 'asset');
+            const code = this.safeCurrencyCode (currencyId);
+            result.push ({
+                'id': accountId,
+                'type': undefined,
+                'currency': code,
+                'info': account,
             });
         }
         return result;
@@ -452,6 +473,146 @@ module.exports = class luno extends Exchange {
             'order_id': id,
         };
         return await this.privatePostStoporder (this.extend (request, params));
+    }
+
+    async fetchLedgerByEntries (code = undefined, entry = -1, limit = 1, params = {}) {
+        // by default without entry number or limit number, return most recent entry
+        const since = undefined;
+        const request = {
+            'min_row': entry,
+            'max_row': this.sum (entry, limit),
+        };
+        return await this.fetchLedger (code, since, limit, this.extend (request, params));
+    }
+
+    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        await this.loadAccounts ();
+        let currency = undefined;
+        let id = this.safeString (params, 'id'); // account id
+        let min_row = this.safeValue (params, 'min_row');
+        let max_row = this.safeValue (params, 'max_row');
+        if (id === undefined) {
+            if (code === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchLedger() requires a currency code argument if no account id specified in params');
+            }
+            currency = this.currency (code);
+            const accountsByCurrencyCode = this.indexBy (this.accounts, 'currency');
+            const account = this.safeValue (accountsByCurrencyCode, code);
+            if (account === undefined) {
+                throw new ExchangeError (this.id + ' fetchLedger() could not find account id for ' + code);
+            }
+            id = account['id'];
+        }
+        if (min_row === undefined && max_row === undefined) {
+            max_row = 0; // Default to most recent transactions
+            min_row = -1000; // Maximum number of records supported
+        } else if (min_row === undefined || max_row === undefined) {
+            throw new ExchangeError (this.id + " fetchLedger() require both params 'max_row' and 'min_row' or neither to be defined");
+        }
+        if (limit !== undefined && max_row - min_row > limit) {
+            if (max_row <= 0) {
+                min_row = max_row - limit;
+            } else if (min_row > 0) {
+                max_row = min_row + limit;
+            }
+        }
+        if (max_row - min_row > 1000) {
+            throw new ExchangeError (this.id + " fetchLedger() requires the params 'max_row' - 'min_row' <= 1000");
+        }
+        const request = {
+            'id': id,
+            'min_row': min_row,
+            'max_row': max_row,
+        };
+        const response = await this.privateGetAccountsIdTransactions (this.extend (params, request));
+        const entries = this.safeValue (response, 'transactions', []);
+        return this.parseLedger (entries, currency, since, limit);
+    }
+
+    parseLedgerComment (comment) {
+        const words = comment.split (' ');
+        const types = {
+            'Withdrawal': 'fee',
+            'Trading': 'fee',
+            'Payment': 'transaction',
+            'Sent': 'transaction',
+            'Deposit': 'transaction',
+            'Received': 'transaction',
+            'Released': 'released',
+            'Reserved': 'reserved',
+            'Sold': 'trade',
+            'Bought': 'trade',
+            'Failure': 'failed',
+        };
+        let referenceId = undefined;
+        const firstWord = this.safeString (words, 0);
+        const thirdWord = this.safeString (words, 2);
+        const fourthWord = this.safeString (words, 3);
+        let type = this.safeString (types, firstWord, undefined);
+        if ((type === undefined) && (thirdWord === 'fee')) {
+            type = 'fee';
+        }
+        if ((type === 'reserved') && (fourthWord === 'order')) {
+            referenceId = this.safeString (words, 4);
+        }
+        return {
+            'type': type,
+            'referenceId': referenceId,
+        };
+    }
+
+    parseLedgerEntry (entry, currency = undefined) {
+        // const details = this.safeValue (entry, 'details', {});
+        const id = this.safeString (entry, 'row_index');
+        const account_id = this.safeString (entry, 'account_id');
+        const timestamp = this.safeValue (entry, 'timestamp');
+        const currencyId = this.safeString (entry, 'currency');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const available_delta = this.safeFloat (entry, 'available_delta');
+        const balance_delta = this.safeFloat (entry, 'balance_delta');
+        const after = this.safeFloat (entry, 'balance');
+        const comment = this.safeString (entry, 'description');
+        let before = after;
+        let amount = 0.0;
+        const result = this.parseLedgerComment (comment);
+        const type = result['type'];
+        const referenceId = result['referenceId'];
+        let direction = undefined;
+        let status = undefined;
+        if (balance_delta !== 0.0) {
+            before = after - balance_delta; // TODO: float precision
+            status = 'ok';
+            amount = Math.abs (balance_delta);
+        } else if (available_delta < 0.0) {
+            status = 'pending';
+            amount = Math.abs (available_delta);
+        } else if (available_delta > 0.0) {
+            status = 'canceled';
+            amount = Math.abs (available_delta);
+        }
+        if (balance_delta > 0 || available_delta > 0) {
+            direction = 'in';
+        } else if (balance_delta < 0 || available_delta < 0) {
+            direction = 'out';
+        }
+        return {
+            'id': id,
+            'direction': direction,
+            'account': account_id,
+            'referenceId': referenceId,
+            'referenceAccount': undefined,
+            'type': type,
+            'currency': code,
+            'amount': amount,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'before': before,
+            'after': after,
+            'status': status,
+            'fee': undefined,
+            'info': entry,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
