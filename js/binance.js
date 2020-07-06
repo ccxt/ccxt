@@ -1306,6 +1306,8 @@ module.exports = class binance extends Exchange {
                 quantityIsRequired = true;
             }
             stopPriceIsRequired = true;
+        } else if (uppercaseType === 'TRAILING_STOP_MARKET') {
+            quantityIsRequired = true;
         }
         if (quantityIsRequired) {
             request['quantity'] = this.amountToPrecision (symbol, amount);
