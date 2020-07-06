@@ -1242,6 +1242,9 @@ class binance(Exchange):
             stopPriceIsRequired = True
         elif uppercaseType == 'TRAILING_STOP_MARKET':
             quantityIsRequired = True
+            callbackRate = self.safe_float(params, 'callbackRate')
+            if callbackRate is None:
+                raise InvalidOrder(self.id + ' createOrder method requires a callbackRate extra param for a ' + type + ' order')
         if quantityIsRequired:
             request['quantity'] = self.amount_to_precision(symbol, amount)
         if priceIsRequired:
