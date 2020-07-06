@@ -1308,6 +1308,10 @@ module.exports = class binance extends Exchange {
             stopPriceIsRequired = true;
         } else if (uppercaseType === 'TRAILING_STOP_MARKET') {
             quantityIsRequired = true;
+            const callbackRate = this.safeFloat (params, 'callbackRate');
+            if (callbackRate === undefined) {
+                throw new InvalidOrder (this.id + ' createOrder method requires a callbackRate extra param for a ' + type + ' order');
+            }
         }
         if (quantityIsRequired) {
             request['quantity'] = this.amountToPrecision (symbol, amount);
