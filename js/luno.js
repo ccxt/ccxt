@@ -476,10 +476,13 @@ module.exports = class luno extends Exchange {
     }
 
     async fetchLedgerByEntries (code = undefined, entry = -1, limit = 1, params = {}) {
-        // By default without entry number or limit number, return most recent entry
+        // by default without entry number or limit number, return most recent entry
         const since = undefined;
-        const request = this.extend ({ 'min_row': entry, 'max_row': entry + limit }, params);
-        return await this.fetchLedger (code, since, limit, request);
+        const request = {
+            'min_row': entry,
+            'max_row': this.sum (entry, limit),
+        };
+        return await this.fetchLedger (code, since, limit, this.extend (request, params));
     }
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
