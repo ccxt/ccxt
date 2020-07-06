@@ -390,17 +390,18 @@ module.exports = class coineal extends Exchange {
         if (side === undefined) {
             side = this.safeString (trade, 'type');
         }
-        let transactionId = undefined;
+        const transactionId = this.safeString (trade, 'id');
+        let orderId = undefined;
         if (side !== undefined) {
             if (side.toUpperCase () === 'BUY') {
-                transactionId = this.safeString (trade, 'bid_id');
+                orderId = this.safeString (trade, 'bid_id');
             }
             if (side.toUpperCase () === 'SELL') {
-                transactionId = this.safeString (trade, 'ask_id');
+                orderId = this.safeString (trade, 'ask_id');
             }
         }
-        if (transactionId === undefined) {
-            transactionId = this.safeString (trade, 'id');
+        if (orderId === undefined) {
+            orderId = this.safeString (trade, 'id');
         }
         const feecost = this.safeFloat (trade, 'fee');
         let fee = undefined;
@@ -416,7 +417,7 @@ module.exports = class coineal extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'id': transactionId,
-            'order': transactionId,
+            'order': orderId,
             'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
@@ -451,7 +452,7 @@ module.exports = class coineal extends Exchange {
         return this.parseTrades (this.safeValue (response, 'data'), market, since, limit);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = undefined) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -471,7 +472,7 @@ module.exports = class coineal extends Exchange {
                 if (currentPrice === undefined) {
                     throw new InvalidOrder ('Provide correct Symbol');
                 }
-                request['volume'] = this.costToPrecision (symbol, amount * currentPrice);
+                request['volume'] = this.costToPrecision (symbol, parseFloat (amount) * currentPrice);
             }
         }
         const response = await this.privatePostOpenApiCreateOrder (this.extend (request, params));

@@ -398,17 +398,18 @@ class coineal extends Exchange {
         if ($side === null) {
             $side = $this->safe_string($trade, 'type');
         }
-        $transactionId = null;
+        $transactionId = $this->safe_string($trade, 'id');
+        $orderId = null;
         if ($side !== null) {
             if (strtoupper($side) === 'BUY') {
-                $transactionId = $this->safe_string($trade, 'bid_id');
+                $orderId = $this->safe_string($trade, 'bid_id');
             }
             if (strtoupper($side) === 'SELL') {
-                $transactionId = $this->safe_string($trade, 'ask_id');
+                $orderId = $this->safe_string($trade, 'ask_id');
             }
         }
-        if ($transactionId === null) {
-            $transactionId = $this->safe_string($trade, 'id');
+        if ($orderId === null) {
+            $orderId = $this->safe_string($trade, 'id');
         }
         $feecost = $this->safe_float($trade, 'fee');
         $fee = null;
@@ -424,7 +425,7 @@ class coineal extends Exchange {
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
             'id' => $transactionId,
-            'order' => $transactionId,
+            'order' => $orderId,
             'type' => null,
             'side' => $side,
             'takerOrMaker' => null,
@@ -459,7 +460,7 @@ class coineal extends Exchange {
         return $this->parse_trades($this->safe_value($response, 'data'), $market, $since, $limit);
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = null) {
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array(
@@ -479,7 +480,7 @@ class coineal extends Exchange {
                 if ($currentPrice === null) {
                     throw new InvalidOrder('Provide correct Symbol');
                 }
-                $request['volume'] = $this->cost_to_precision($symbol, $amount * $currentPrice);
+                $request['volume'] = $this->cost_to_precision($symbol, floatval ($amount) * $currentPrice);
             }
         }
         $response = $this->privatePostOpenApiCreateOrder (array_merge($request, $params));
