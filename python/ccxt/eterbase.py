@@ -1056,7 +1056,7 @@ class eterbase(Exchange):
                 headersCSV += ' ' + 'digest'
             signature64 = self.hmac(self.encode(message), self.encode(self.secret), hashlib.sha256, 'base64')
             signature = self.decode(signature64)
-            authorizationHeader = 'hmac username="' + self.apiKey + '",algorithm="hmac-sha256",headers="' + headersCSV + '",signature="' + signature + '"'
+            authorizationHeader = 'hmac username="' + self.apiKey + '",algorithm="hmac-sha256",headers="' + headersCSV + '",' + 'signature="' + signature + '"'
             httpHeaders = {
                 'Date': date,
                 'Authorization': authorizationHeader,

@@ -1129,7 +1129,7 @@ class eterbase extends Exchange {
             }
             $signature64 = $this->hmac($this->encode($message), $this->encode($this->secret), 'sha256', 'base64');
             $signature = $this->decode($signature64);
-            $authorizationHeader = 'hmac username="' . $this->apiKey . '",algorithm="hmac-sha256",headers="' . $headersCSV . '",$signature="' . $signature . '"';
+            $authorizationHeader = 'hmac username="' . $this->apiKey . '",algorithm="hmac-sha256",headers="' . $headersCSV . '",' . 'signature="' . $signature . '"';
             $httpHeaders = array(
                 'Date' => $date,
                 'Authorization' => $authorizationHeader,
