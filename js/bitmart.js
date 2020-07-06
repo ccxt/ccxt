@@ -137,6 +137,7 @@ module.exports = class bitmart extends Exchange {
                     'Not found': OrderNotFound, // {"message":"Not found"}
                     'Visit too often, please try again later': DDoSProtection, // {"code":-30,"msg":"Visit too often, please try again later","subMsg":"","data":{}}
                     'Unknown symbol': BadSymbol, // {"message":"Unknown symbol"}
+                    'Unauthorized': AuthenticationError,
                 },
                 'broad': {
                     'Invalid limit. limit must be in the range': InvalidOrder,
