@@ -25,7 +25,7 @@ async def main(loop):
     limit = 10  # how many candles to return max
     method = 'watchOHLCV'
     if (method in exchange.has) and exchange.has[method]:
-        max_iterations = 100  # how many times to repeat the loop before exiting
+        max_iterations = 100000  # how many times to repeat the loop before exiting
         for i in range(0, max_iterations):
             try:
                 ohlcvs = await exchange.watch_ohlcv(symbol, timeframe, None, limit)
