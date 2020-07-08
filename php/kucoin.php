@@ -8,6 +8,7 @@ namespace ccxt;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\InvalidOrder;
 
 class kucoin extends Exchange {
 
@@ -925,6 +926,12 @@ class kucoin extends Exchange {
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
+        // a special case for null ids
+        // otherwise a wrong endpoint for all orders will be triggered
+        // https://github.com/ccxt/ccxt/issues/7234
+        if ($id === null) {
+            throw new InvalidOrder($this->id . ' fetchOrder requires an order id');
+        }
         $request = array(
             'orderId' => $id,
         );
@@ -933,7 +940,7 @@ class kucoin extends Exchange {
             $market = $this->market($symbol);
         }
         $response = $this->privateGetOrdersOrderId (array_merge($request, $params));
-        $responseData = $response['data'];
+        $responseData = $this->safe_value($response, 'data');
         return $this->parse_order($responseData, $market);
     }
 
@@ -968,8 +975,8 @@ class kucoin extends Exchange {
         //         "clientOid" => "",       // user-entered $order unique mark
         //         "remark" => "",          // remark
         //         "tags" => "",            // tag $order source
-        //         "isActive" => false,     // $status before unfilled or uncancelled
-        //         "cancelExist" => false,   // $order cancellation transaction record
+        //         "$isActive" => false,     // $status before unfilled or uncancelled
+        //         "$cancelExist" => false,   // $order cancellation transaction record
         //         "createdAt" => 1547026471000  // time
         //     }
         //
@@ -1006,8 +1013,10 @@ class kucoin extends Exchange {
         $cost = $this->safe_float($order, 'dealFunds');
         $remaining = $amount - $filled;
         // bool
-        $status = $order['isActive'] ? 'open' : 'closed';
-        $status = $order['cancelExist'] ? 'canceled' : $status;
+        $isActive = $this->safe_value($order, 'isActive', false);
+        $cancelExist = $this->safe_value($order, 'cancelExist', false);
+        $status = $isActive ? 'open' : 'closed';
+        $status = $cancelExist ? 'canceled' : $status;
         $fee = array(
             'currency' => $feeCurrency,
             'cost' => $feeCost,

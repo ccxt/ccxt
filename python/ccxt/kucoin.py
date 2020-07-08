@@ -891,6 +891,11 @@ class kucoin(Exchange):
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
+        # a special case for None ids
+        # otherwise a wrong endpoint for all orders will be triggered
+        # https://github.com/ccxt/ccxt/issues/7234
+        if id is None:
+            raise InvalidOrder(self.id + ' fetchOrder requires an order id')
         request = {
             'orderId': id,
         }
@@ -898,7 +903,7 @@ class kucoin(Exchange):
         if symbol is not None:
             market = self.market(symbol)
         response = self.privateGetOrdersOrderId(self.extend(request, params))
-        responseData = response['data']
+        responseData = self.safe_value(response, 'data')
         return self.parse_order(responseData, market)
 
     def parse_order(self, order, market=None):
@@ -966,8 +971,10 @@ class kucoin(Exchange):
         cost = self.safe_float(order, 'dealFunds')
         remaining = amount - filled
         # bool
-        status = 'open' if order['isActive'] else 'closed'
-        status = 'canceled' if order['cancelExist'] else status
+        isActive = self.safe_value(order, 'isActive', False)
+        cancelExist = self.safe_value(order, 'cancelExist', False)
+        status = 'open' if isActive else 'closed'
+        status = 'canceled' if cancelExist else status
         fee = {
             'currency': feeCurrency,
             'cost': feeCost,
