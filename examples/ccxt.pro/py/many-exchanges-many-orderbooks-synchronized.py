@@ -8,7 +8,6 @@ orderbooks = {}
 
 
 def handle_all_orderbooks(orderbooks):
-    now = ccxtpro.Exchange.milliseconds()
     print('We have the following orderbooks:')
     for exchange_id, orderbooks_by_symbol in orderbooks.items():
         for symbol in orderbooks_by_symbol.keys():
