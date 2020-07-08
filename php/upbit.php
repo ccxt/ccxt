@@ -717,7 +717,7 @@ class upbit extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
-            'type' => 'limit',
+            'type' => null,
             'side' => $side,
             'takerOrMaker' => null,
             'price' => $price,
@@ -1180,7 +1180,10 @@ class upbit extends Exchange {
             $feeCurrency = $quote;
         }
         $trades = $this->safe_value($order, 'trades', array());
-        $trades = $this->parse_trades($trades, $market, null, null, array( 'order' => $id ));
+        $trades = $this->parse_trades($trades, $market, null, null, array(
+            'order' => $id,
+            'type' => $type,
+        ));
         $numTrades = is_array($trades) ? count($trades) : 0;
         if ($numTrades > 0) {
             // the $timestamp in fetchOrder $trades is missing
