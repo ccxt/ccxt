@@ -922,6 +922,12 @@ module.exports = class kucoin extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
+        // a special case for undefined ids
+        // otherwise a wrong endpoint for all orders will be triggered
+        // https://github.com/ccxt/ccxt/issues/7234
+        if (id === undefined) {
+            throw new InvalidOrder (this.id + ' fetchOrder requires an order id');
+        }
         const request = {
             'orderId': id,
         };
@@ -930,7 +936,7 @@ module.exports = class kucoin extends Exchange {
             market = this.market (symbol);
         }
         const response = await this.privateGetOrdersOrderId (this.extend (request, params));
-        const responseData = response['data'];
+        const responseData = this.safeValue (response, 'data');
         return this.parseOrder (responseData, market);
     }
 
@@ -1003,8 +1009,10 @@ module.exports = class kucoin extends Exchange {
         const cost = this.safeFloat (order, 'dealFunds');
         const remaining = amount - filled;
         // bool
-        let status = order['isActive'] ? 'open' : 'closed';
-        status = order['cancelExist'] ? 'canceled' : status;
+        const isActive = this.safeValue (order, 'isActive', false);
+        const cancelExist = this.safeValue (order, 'cancelExist', false);
+        let status = isActive ? 'open' : 'closed';
+        status = cancelExist ? 'canceled' : status;
         const fee = {
             'currency': feeCurrency,
             'cost': feeCost,
