@@ -85,6 +85,8 @@ class coineal(Exchange):
                 '22': OrderNotFound,
                 '23': ArgumentsRequired,
                 '24': ArgumentsRequired,
+                '25': InvalidOrder,
+                '501': InvalidOrder,
                 '100004': BadRequest,
                 '100005': BadRequest,
                 '100007': AuthenticationError,
@@ -104,6 +106,7 @@ class coineal(Exchange):
                 '23': 'Missing transaction quantity parameter',
                 '24': 'Missing transaction price parameter',
                 '25': 'Quantity Precision Error',
+                '501': 'Bid price cannot be lower than 10% of the latest price',
                 '100001': 'System error',
                 '100002': 'System upgrade',
                 '100004': 'Parameter request is invalid',
@@ -443,7 +446,7 @@ class coineal(Exchange):
             'time': str(self.milliseconds()),
             'symbol': market['id'],
             'side': side.upper(),
-            'volume': amount,
+            'volume': self.amount_to_precision(symbol, amount),
         }
         if type == 'limit':
             request['type'] = '1'

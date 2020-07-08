@@ -72,6 +72,8 @@ module.exports = class coineal extends Exchange {
                 '22': OrderNotFound,
                 '23': ArgumentsRequired,
                 '24': ArgumentsRequired,
+                '25': InvalidOrder,
+                '501': InvalidOrder,
                 '100004': BadRequest,
                 '100005': BadRequest,
                 '100007': AuthenticationError,
@@ -91,6 +93,7 @@ module.exports = class coineal extends Exchange {
                 '23': 'Missing transaction quantity parameter',
                 '24': 'Missing transaction price parameter',
                 '25': 'Quantity Precision Error',
+                '501': 'Bid price cannot be lower than 10% of the latest price',
                 '100001': 'System error',
                 '100002': 'System upgrade',
                 '100004': 'Parameter request is invalid',
@@ -459,7 +462,7 @@ module.exports = class coineal extends Exchange {
             'time': this.milliseconds ().toString (),
             'symbol': market['id'],
             'side': side.toUpperCase (),
-            'volume': amount,
+            'volume': this.amountToPrecision (symbol, amount),
         };
         if (type === 'limit') {
             request['type'] = '1';
