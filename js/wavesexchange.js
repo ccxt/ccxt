@@ -29,6 +29,7 @@ module.exports = class wavesexchange extends Exchange {
                 'cancelOrder': true,
                 'fetchDepositAddress': true,
                 'fetchOHLCV': true,
+                'createMarketOrder': false,
             },
             'timeframes': {
                 '1m': '1m',
@@ -240,7 +241,6 @@ module.exports = class wavesexchange extends Exchange {
                 'quotes': undefined,
                 'createOrderDefaultExpiry': 2419200000, // 60 * 60 * 24 * 28 * 1000
                 'wavesAddress': undefined,
-                'matcherFee': 300000,
                 'withdrawFeeUSDN': 7420,
                 'withdrawFeeWAVES': 100000,
             },
@@ -835,8 +835,12 @@ module.exports = class wavesexchange extends Exchange {
         const timestamp = this.milliseconds ();
         const expiration = this.sum (timestamp, this.getDefaultExpiry ());
         // calculate the fee
-        const baseMatcherFee = this.safeInteger (this.options, 'matcherFee', 300000);
-        const rates = await this.matcherGetMatcherSettingsRates ();
+        const settings = await this.matcherGetMatcherSettings ();
+        const orderFee = this.safeValue (settings, 'orderFee');
+        const dynamic = this.safeValue (orderFee, 'dynamic');
+        const baseMatcherFee = this.safeInteger (dynamic, 'baseFee');
+        const rates = this.safeValue (dynamic, 'rates');
+        const priceAssets = Object.keys (rates);
         // { '34N9YcEETLWn93qYQ64EsP1x89tSruJU44RrEMSXXEPJ': 1.23762376,
         //   '62LyMjcr2DtiyF5yVXFhoQ2q414VPPJXjsNYp72SuDCH': 0.01101575,
         //   HZk1mbfuJpmxU1Fs4AX5MWLVYtctsNcg6e2C6VKqK8zk: 0.04266412,
@@ -850,12 +854,21 @@ module.exports = class wavesexchange extends Exchange {
         //   WAVES: 1,
         //   BrjUWjndUanm5VsJkbUip8VRYy6LWJePtxya3FNv4TQa: 0.03614366 }
         let matcherFeeAssetId = undefined;
-        if ((side === 'buy') && (market['quoteId'] in rates)) {
-            matcherFeeAssetId = market['quoteId'];
-        } else if ((side === 'sell') && (market['baseId'] in rates)) {
-            matcherFeeAssetId = market['baseId'];
-        } else {
+        const balances = await this.fetchBalance ();
+        const wavesMatcherFee = this.currencyFromPrecision ('WAVES', baseMatcherFee);
+        if (balances['WAVES']['free'] > wavesMatcherFee) {
             matcherFeeAssetId = 'WAVES';
+        }
+        for (let i = 0; i < priceAssets.length; i++) {
+            const assetId = priceAssets[i];
+            const code = this.safeCurrencyCode (assetId);
+            const balance = this.safeValue (this.safeValue (balances, code, {}), 'free');
+            if (balance > rates[assetId] * wavesMatcherFee) {
+                matcherFeeAssetId = assetId;
+            }
+        }
+        if (matcherFeeAssetId === undefined) {
+            throw InsufficientFunds (this.id + ' not enough funds to cover the fee, please buy some WAVES');
         }
         const rate = this.safeFloat (rates, matcherFeeAssetId);
         const matcherFee = parseInt (Math.ceil (baseMatcherFee * rate));
@@ -1070,6 +1083,7 @@ module.exports = class wavesexchange extends Exchange {
             'Cancelled': 'canceled',
             'Accepted': 'open',
             'Filled': 'closed',
+            'PartiallyFilled': 'open',
         };
         return this.safeString (statuses, status, status);
     }
@@ -1082,9 +1096,13 @@ module.exports = class wavesexchange extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        const isCreateOrder = this.safeInteger (order, 'version');
         const timestamp = this.safeInteger (order, 'timestamp');
-        const side = this.safeString (order, 'type');
-        const type = this.safeString (order, 'orderType');
+        const side = this.safeString2 (order, 'type', 'orderType');
+        let type = 'limit';
+        if (!isCreateOrder) {
+            type = this.safeString (order, 'orderType');
+        }
         const id = this.safeString (order, 'id');
         let filled = this.safeString (order, 'filled');
         let price = this.safeString (order, 'price');
@@ -1111,10 +1129,19 @@ module.exports = class wavesexchange extends Exchange {
         }
         const average = this.currencyFromPrecision (priceCurrency, this.safeString (order, 'avgWeighedPrice'));
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const fee = {
-            'currency': this.safeCurrencyCode (this.safeString2 (order, 'feeAsset', 'matcherFeeAssetId')),
-            'fee': this.safeString (order, 'filledFee'),
-        };
+        let fee = undefined;
+        if (isCreateOrder) {
+            const currency = this.safeCurrencyCode (this.safeString (order, 'matcherFeeAssetId', 'WAVES'));
+            fee = {
+                'currency': currency,
+                'fee': this.currencyFromPrecision (currency, this.safeInteger (order, 'matcherFee')),
+            };
+        } else {
+            fee = {
+                'currency': this.safeCurrencyCode (this.safeString (order, 'feeAsset')),
+                'fee': this.safeFloat (order, 'filledFee'),
+            };
+        }
         return {
             'info': order,
             'id': id,
