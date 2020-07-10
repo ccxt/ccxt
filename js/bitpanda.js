@@ -350,8 +350,8 @@ module.exports = class bitpanda extends Exchange {
             open = last - change;
             average = this.sum (last, open) / 2;
         }
-        const baseVolume = this.safeFloat (ticker, 'quote_volume');
-        const quoteVolume = this.safeFloat (ticker, 'base_volume');
+        const baseVolume = this.safeFloat (ticker, 'base_volume');
+        const quoteVolume = this.safeFloat (ticker, 'quote_volume');
         let vwap = undefined;
         if (quoteVolume !== undefined && baseVolume !== undefined) {
             vwap = quoteVolume / baseVolume;
@@ -406,6 +406,38 @@ module.exports = class bitpanda extends Exchange {
         //     }
         //
         return this.parseTicker (response, market);
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const tickers = await this.publicGetMarketTicker (params);
+        //
+        //     [
+        //         {
+        //             "instrument_code":"BTC_EUR",
+        //             "sequence":602562,
+        //             "time":"2020-07-10T06:27:34.951Z",
+        //             "state":"ACTIVE",
+        //             "is_frozen":0,
+        //             "quote_volume":"1695555.1783768",
+        //             "base_volume":"205.67436",
+        //             "last_price":"8143.91",
+        //             "best_bid":"8143.71",
+        //             "best_ask":"8156.9",
+        //             "price_change":"-147.47",
+        //             "price_change_percentage":"-1.78",
+        //             "high":"8337.45",
+        //             "low":"8110.0"
+        //         }
+        //     ]
+        //
+        const result = {};
+        for (let i = 0; i < tickers.length; i++) {
+            const ticker = this.parseTicker (tickers[i]);
+            const symbol = ticker['symbol'];
+            result[symbol] = ticker;
+        }
+        return result;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
