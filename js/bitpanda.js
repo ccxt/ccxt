@@ -141,8 +141,65 @@ module.exports = class bitpanda extends Exchange {
         return this.safeInteger (response, 'epoch_millis');
     }
 
-    async fetchMarkets () {
-        return [];
+    async fetchMarkets (params = {}) {
+        const response = await this.publicGetInstruments (params);
+        //
+        //     [
+        //         {
+        //             state: 'ACTIVE',
+        //             base: { code: 'ETH', precision: 8 },
+        //             quote: { code: 'CHF', precision: 2 },
+        //             amount_precision: 4,
+        //             market_precision: 2,
+        //             min_size: '10.0'
+        //         }
+        //     ]
+        //
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            const market = response[i];
+            const baseAsset = this.safeValue (market, 'base', {});
+            const quoteAsset = this.safeValue (market, 'quote', {});
+            const baseId = this.safeString (baseAsset, 'code');
+            const quoteId = this.safeString (quoteAsset, 'code');
+            const id = baseId + '_' + quoteId;
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
+            const precision = {
+                'amount': this.safeInteger (market, 'amount_precision'),
+                'price': this.safeInteger (market, 'market_precision'),
+            };
+            const limits = {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': this.safeFloat (market, 'min_size'),
+                    'max': undefined,
+                },
+            };
+            const state = this.safeString (market, 'state');
+            const active = (state === 'ACTIVE');
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'precision': precision,
+                'limits': limits,
+                'info': market,
+                'active': active,
+            });
+        }
+        return result;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
