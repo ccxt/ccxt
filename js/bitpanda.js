@@ -16,6 +16,8 @@ module.exports = class bitpanda extends Exchange {
             'version': 'v1',
             // new metainfo interface
             'has': {
+                'fetchMarkets': true,
+                'fetchTime': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -139,6 +141,40 @@ module.exports = class bitpanda extends Exchange {
         //     }
         //
         return this.safeInteger (response, 'epoch_millis');
+    }
+
+    async fetchCurrencies (params = {}) {
+        const response = await this.publicGetCurrencies (params);
+        //
+        //     [
+        //         {
+        //             "code":"BEST",
+        //             "precision":8
+        //         }
+        //     ]
+        //
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const currency = response[i];
+            const id = this.safeString (currency, 'code');
+            const code = this.safeCurrencyCode (id);
+            result[code] = {
+                'id': id,
+                'code': code,
+                'name': undefined,
+                'info': currency, // the original payload
+                'active': undefined,
+                'fee': undefined,
+                'precision': this.safeInteger (currency, 'precision'),
+                'limits': {
+                    'amount': { 'min': undefined, 'max': undefined },
+                    'price': { 'min': undefined, 'max': undefined },
+                    'cost': { 'min': undefined, 'max': undefined },
+                    'withdraw': { 'min': undefined, 'max': undefined },
+                },
+            };
+        }
+        return result;
     }
 
     async fetchMarkets (params = {}) {
