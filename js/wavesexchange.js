@@ -863,7 +863,7 @@ module.exports = class wavesexchange extends Exchange {
             const assetId = priceAssets[i];
             const code = this.safeCurrencyCode (assetId);
             const balance = this.safeValue (this.safeValue (balances, code, {}), 'free');
-            if (balance > rates[assetId] * wavesMatcherFee) {
+            if ((balance !== undefined) && (balance > rates[assetId] * wavesMatcherFee)) {
                 matcherFeeAssetId = assetId;
             }
         }
