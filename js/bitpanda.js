@@ -20,6 +20,7 @@ module.exports = class bitpanda extends Exchange {
                 'fetchMarkets': true,
                 'fetchTime': true,
                 'fetchTradingFees': true,
+                'fetchTicker': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -301,6 +302,34 @@ module.exports = class bitpanda extends Exchange {
             result[symbol] = fee;
         }
         return result;
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'instrument_code': market['id'],
+        };
+        const response = await this.publicGetMarketTickerInstrumentCode (this.extend (request, params));
+        //
+        //     {
+        //         "instrument_code":"BTC_EUR",
+        //         "sequence":602562,
+        //         "time":"2020-07-10T06:27:34.951Z",
+        //         "state":"ACTIVE",
+        //         "is_frozen":0,
+        //         "quote_volume":"1695555.1783768",
+        //         "base_volume":"205.67436",
+        //         "last_price":"8143.91",
+        //         "best_bid":"8143.71",
+        //         "best_ask":"8156.9",
+        //         "price_change":"-147.47",
+        //         "price_change_percentage":"-1.78",
+        //         "high":"8337.45",
+        //         "low":"8110.0"
+        //     }
+        //
+        return this.parseTicker (response, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
