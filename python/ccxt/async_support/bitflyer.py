@@ -18,6 +18,7 @@ class bitflyer(Exchange):
             'countries': ['JP'],
             'version': 'v1',
             'rateLimit': 1000,  # their nonce-timestamp is in seconds...
+            'hostname': 'bitflyer.com',  # or bitflyer.com
             'has': {
                 'CORS': False,
                 'withdraw': True,
@@ -29,8 +30,8 @@ class bitflyer(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg',
-                'api': 'https://api.bitflyer.jp',
-                'www': 'https://bitflyer.jp',
+                'api': 'https://api.{hostname}',
+                'www': 'https://bitflyer.com',
                 'doc': 'https://lightning.bitflyer.com/docs?lang=en',
             },
             'api': {
@@ -426,7 +427,8 @@ class bitflyer(Exchange):
         if method == 'GET':
             if params:
                 request += '?' + self.urlencode(params)
-        url = self.urls['api'] + request
+        baseUrl = self.implode_params(self.urls['api'], {'hostname': self.hostname})
+        url = baseUrl + request
         if api == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())
