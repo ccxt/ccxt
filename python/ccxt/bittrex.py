@@ -65,7 +65,7 @@ class bittrex(Exchange):
             },
             'hostname': 'bittrex.com',
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87153921-edf53180-c2c0-11ea-96b9-f2a9a95a455b.jpg',
                 'api': {
                     'public': 'https://{hostname}/api',
                     'account': 'https://{hostname}/api',
