@@ -459,7 +459,7 @@ module.exports = class wavesexchange extends Exchange {
                 headers['content-type'] = 'application/x-www-form-urlencoded';
             }
             if ('0' in query) {
-                body = this.json ([query[0]]);
+                body = this.json ([query['0']]);
                 queryString = '';
             }
             if (queryString.length > 0) {
@@ -964,7 +964,8 @@ module.exports = class wavesexchange extends Exchange {
         //    "status":"BatchCancelCompleted"
         //  }
         const message = this.safeValue (response, 'message');
-        const firstOrder = this.safeValue (message, 0);
+        const firstMessage = this.safeValue (message, 0);
+        const firstOrder = this.safeValue (firstMessage, 0);
         const returnedId = this.safeString (firstOrder, 'orderId');
         return {
             'info': response,
