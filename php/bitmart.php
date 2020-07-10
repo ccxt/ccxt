@@ -387,29 +387,30 @@ class bitmart extends Exchange {
         $this->load_markets();
         $tickers = $this->publicGetTicker ($params);
         //
+        //
+        //     array(
         //         array(
-        //             array(
-        //                 "priceChange":"0%",
-        //                 "symbolId":1066,
-        //                 "website":"https://www.bitmart.com/trade?$symbol=1SG_BTC",
-        //                 "depthEndPrecision":6,
-        //                 "ask_1":"0.000095",
-        //                 "anchorId":2,
-        //                 "anchorName":"BTC",
-        //                 "pair":"1SG_BTC",
-        //                 "volume":"0.0",
-        //                 "coinId":2029,
-        //                 "depthStartPrecision":4,
-        //                 "high_24h":"0.000035",
-        //                 "low_24h":"0.000035",
-        //                 "new_24h":"0.000035",
-        //                 "closeTime":1589389249342,
-        //                 "bid_1":"0.000035",
-        //                 "coinName":"1SG",
-        //                 "baseVolume":"0.0",
-        //                 "openTime":1589302849342
-        //             ),
-        //         )
+        //             "priceChange":"0%",
+        //             "symbolId":1066,
+        //             "website":"https://www.bitmart.com/trade?$symbol=1SG_BTC",
+        //             "depthEndPrecision":6,
+        //             "ask_1":"0.000095",
+        //             "anchorId":2,
+        //             "anchorName":"BTC",
+        //             "pair":"1SG_BTC",
+        //             "volume":"0.0",
+        //             "coinId":2029,
+        //             "depthStartPrecision":4,
+        //             "high_24h":"0.000035",
+        //             "low_24h":"0.000035",
+        //             "new_24h":"0.000035",
+        //             "closeTime":1589389249342,
+        //             "bid_1":"0.000035",
+        //             "coinName":"1SG",
+        //             "baseVolume":"0.0",
+        //             "openTime":1589302849342
+        //         ),
+        //     )
         //
         $result = array();
         for ($i = 0; $i < count($tickers); $i++) {
