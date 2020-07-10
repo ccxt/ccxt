@@ -187,7 +187,7 @@ module.exports = class bitmart extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const markets = await this.publicGetSymbolsDetails (params);
+        const response = await this.publicGetSymbolsDetails (params);
         //
         //     [
         //         {
@@ -204,8 +204,8 @@ module.exports = class bitmart extends Exchange {
         //     ]
         //
         const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            const market = markets[i];
+        for (let i = 0; i < response.length; i++) {
+            const market = response[i];
             const id = this.safeString (market, 'id');
             const baseId = this.safeString (market, 'base_currency');
             const quoteId = this.safeString (market, 'quote_currency');
