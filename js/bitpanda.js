@@ -25,21 +25,15 @@ module.exports = class bitpanda extends Exchange {
                 'fetchTickers': true,
             },
             'timeframes': {
-                '1m': '1m',
-                '3m': '3m',
-                '5m': '5m',
-                '15m': '15m',
-                '30m': '30m',
-                '1h': '1h',
-                '2h': '2h',
-                '4h': '4h',
-                '6h': '6h',
-                '8h': '8h',
-                '12h': '12h',
-                '1d': '1d',
-                '3d': '3d',
-                '1w': '1w',
-                '1M': '1M',
+                '1m': '1/MINUTES',
+                '5m': '5/MINUTES',
+                '15m': '15/MINUTES',
+                '30m': '30/MINUTES',
+                '1h': '1/HOURS',
+                '4h': '4/HOURS',
+                '1d': '1/DAYS',
+                '1w': '1/WEEKS',
+                '1M': '1/MONTHS',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg',
@@ -514,6 +508,48 @@ module.exports = class bitpanda extends Exchange {
         //
         const timestamp = this.parse8601 (this.safeString (response, 'time'));
         return this.parseOrderBook (response, timestamp, 'bids', 'asks', 'price', 'amount');
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        if (since === undefined && limit === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOHLCV requires either a `since` argument or a `limit` argument (or both)');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const periodInSeconds = this.parseTimeframe (timeframe);
+        const duration = periodInSeconds * limit * 1000;
+        let to = this.milliseconds ();
+        if (since === undefined) {
+            since = to - duration;
+        } else {
+            to = this.sum (since, duration);
+        }
+        const request = {
+            // unit query string true Defines the unit of candlestick TimeGranularity
+            // period query number true Defines the period of candlestick Granularity
+            // from query MarketTime true Defines start of a query search
+            // to query MarketTime true Defines end of a query search
+            // instrument_code path Instrument true Defines market by using unique instrument
+
+            'instrument_code': market['id'],
+            'from': since, // start time of k-line data (in milliseconds, required)
+            'to': to, // end time of k-line data (in milliseconds, required)
+            'step': this.timeframes[timeframe], // steps of sampling (in minutes, default 1 minute, optional)
+        };
+        const response = await this.publicGetSymbolsSymbolKline (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "timestamp":1525761000000,
+        //             "open_price":"0.010130",
+        //             "highest_price":"0.010130",
+        //             "lowest_price":"0.010130",
+        //             "current_price":"0.010130",
+        //             "volume":"0.000000"
+        //         }
+        //     ]
+        //
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
