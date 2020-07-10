@@ -291,9 +291,9 @@ module.exports = class coineal extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'high': this.safeFloat (ticker, 'high'),
             'low': this.safeFloat (ticker, 'low'),
-            'bid': undefined,
+            'bid': this.safeString (ticker, 'buy'),
             'bidVolume': undefined,
-            'ask': undefined,
+            'ask': this.safeString (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -431,7 +431,7 @@ module.exports = class coineal extends Exchange {
         };
     }
 
-    async fetchTrades (symbol = 'BTC/USDT', params = {}, since = undefined, limit = undefined) {
+    async fetchTrades (symbol = 'BTC/USDT', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {

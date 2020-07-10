@@ -299,9 +299,9 @@ class coineal extends Exchange {
             'datetime' => $this->iso8601 ($timestamp),
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
-            'bid' => null,
+            'bid' => $this->safe_string($ticker, 'buy'),
             'bidVolume' => null,
-            'ask' => null,
+            'ask' => $this->safe_string($ticker, 'sell'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -439,7 +439,7 @@ class coineal extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol = 'BTC/USDT', $params = array (), $since = null, $limit = null) {
+    public function fetch_trades ($symbol = 'BTC/USDT', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array(

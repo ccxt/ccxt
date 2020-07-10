@@ -292,9 +292,9 @@ class coineal(Exchange):
             'datetime': self.iso8601(timestamp),
             'high': self.safe_float(ticker, 'high'),
             'low': self.safe_float(ticker, 'low'),
-            'bid': None,
+            'bid': self.safe_string(ticker, 'buy'),
             'bidVolume': None,
-            'ask': None,
+            'ask': self.safe_string(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -416,7 +416,7 @@ class coineal(Exchange):
             'fee': fee,
         }
 
-    def fetch_trades(self, symbol='BTC/USDT', params={}, since=None, limit=None):
+    def fetch_trades(self, symbol='BTC/USDT', since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         request = {
