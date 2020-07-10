@@ -193,7 +193,7 @@ class bitmart(Exchange):
         return response
 
     def fetch_markets(self, params={}):
-        markets = self.publicGetSymbolsDetails(params)
+        response = self.publicGetSymbolsDetails(params)
         #
         #     [
         #         {
@@ -210,8 +210,8 @@ class bitmart(Exchange):
         #     ]
         #
         result = []
-        for i in range(0, len(markets)):
-            market = markets[i]
+        for i in range(0, len(response)):
+            market = response[i]
             id = self.safe_string(market, 'id')
             baseId = self.safe_string(market, 'base_currency')
             quoteId = self.safe_string(market, 'quote_currency')

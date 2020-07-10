@@ -192,7 +192,7 @@ class bitmart extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
-        $markets = $this->publicGetSymbolsDetails ($params);
+        $response = $this->publicGetSymbolsDetails ($params);
         //
         //     array(
         //         {
@@ -209,8 +209,8 @@ class bitmart extends Exchange {
         //     )
         //
         $result = array();
-        for ($i = 0; $i < count($markets); $i++) {
-            $market = $markets[$i];
+        for ($i = 0; $i < count($response); $i++) {
+            $market = $response[$i];
             $id = $this->safe_string($market, 'id');
             $baseId = $this->safe_string($market, 'base_currency');
             $quoteId = $this->safe_string($market, 'quote_currency');
@@ -218,7 +218,7 @@ class bitmart extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             //
-            // https://github.com/bitmartexchange/bitmart-official-api-docs/blob/master/rest/public/symbols_details.md#response-details
+            // https://github.com/bitmartexchange/bitmart-official-api-docs/blob/master/rest/public/symbols_details.md#$response-details
             // from the above API doc:
             // quote_increment Minimum order price as well as the price increment
             // price_min_precision Minimum price $precision (digit) used to query price and kline
