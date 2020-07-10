@@ -442,6 +442,7 @@ module.exports = class wavesexchange extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
+        const isCancelOrder = path === 'matcher/orders/{wavesAddress}/cancel';
         path = this.implodeParams (path, params);
         let url = this.urls['api'][api] + '/' + path;
         let queryString = this.urlencode (query);
@@ -458,8 +459,8 @@ module.exports = class wavesexchange extends Exchange {
             } else {
                 headers['content-type'] = 'application/x-www-form-urlencoded';
             }
-            if ('0' in query) {
-                body = this.json ([query['0']]);
+            if (isCancelOrder) {
+                body = this.json ([query['orderId']]);
                 queryString = '';
             }
             if (queryString.length > 0) {
@@ -956,7 +957,7 @@ module.exports = class wavesexchange extends Exchange {
         const wavesAddress = await this.getWavesAddress ();
         const response = await this.forwardPostMatcherOrdersWavesAddressCancel ({
             'wavesAddress': wavesAddress,
-            '0': id,
+            'orderId': id,
         });
         //  {
         //    "success":true,
