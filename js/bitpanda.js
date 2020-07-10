@@ -18,9 +18,11 @@ module.exports = class bitpanda extends Exchange {
             'has': {
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
+                'fetchOrderBook': true,
                 'fetchTime': true,
                 'fetchTradingFees': true,
                 'fetchTicker': true,
+                'fetchTickers': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -438,6 +440,80 @@ module.exports = class bitpanda extends Exchange {
             result[symbol] = ticker;
         }
         return result;
+    }
+
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'instrument_code': this.marketId (symbol),
+            // level 1 means only the best bid and ask
+            // level 2 is a compiled order book up to market precision
+            // level 3 is a full orderbook
+            // if you wish to get regular updates about orderbooks please use the Websocket channel
+            // heavy usage of this endpoint may result in limited access according to rate limits rules
+            // 'level': 3, // default
+        };
+        if (limit !== undefined) {
+            request['depth'] = limit;
+        }
+        const response = await this.publicGetOrderBookInstrumentCode (this.extend (request, params));
+        //
+        // level 1
+        //
+        //     {
+        //         "instrument_code":"BTC_EUR",
+        //         "time":"2020-07-10T07:39:06.343Z",
+        //         "asks":{
+        //             "value":{
+        //                 "price":"8145.29",
+        //                 "amount":"0.96538",
+        //                 "number_of_orders":1
+        //             }
+        //         },
+        //         "bids":{
+        //             "value":{
+        //                 "price":"8134.0",
+        //                 "amount":"1.5978",
+        //                 "number_of_orders":5
+        //             }
+        //         }
+        //     }
+        //
+        // level 2
+        //
+        //     {
+        //         "instrument_code":"BTC_EUR","time":"2020-07-10T07:36:43.538Z",
+        //         "asks":[
+        //             {"price":"8146.59","amount":"0.89691","number_of_orders":1},
+        //             {"price":"8146.89","amount":"1.92062","number_of_orders":1},
+        //             {"price":"8169.5","amount":"0.0663","number_of_orders":1},
+        //         ],
+        //         "bids":[
+        //             {"price":"8143.49","amount":"0.01329","number_of_orders":1},
+        //             {"price":"8137.01","amount":"5.34748","number_of_orders":1},
+        //             {"price":"8137.0","amount":"2.0","number_of_orders":1},
+        //         ]
+        //     }
+        //
+        // level 3
+        //
+        //     {
+        //         "instrument_code":"BTC_EUR",
+        //         "time":"2020-07-10T07:32:31.525Z",
+        //         "bids":[
+        //             {"price":"8146.79","amount":"0.01537","order_id":"5d717da1-a8f4-422d-afcc-03cb6ab66825"},
+        //             {"price":"8139.32","amount":"3.66009","order_id":"d0715c68-f28d-4cf1-a450-d56cf650e11c"},
+        //             {"price":"8137.51","amount":"2.61049","order_id":"085fd6f4-e835-4ca5-9449-a8f165772e60"},
+        //         ],
+        //         "asks":[
+        //             {"price":"8153.49","amount":"0.93384","order_id":"755d3aa3-42b5-46fa-903d-98f42e9ae6c4"},
+        //             {"price":"8153.79","amount":"1.80456","order_id":"62034cf3-b70d-45ff-b285-ba6307941e7c"},
+        //             {"price":"8167.9","amount":"0.0018","order_id":"036354e0-71cd-492f-94f2-01f7d4b66422"},
+        //         ]
+        //     }
+        //
+        const timestamp = this.parse8601 (this.safeString (response, 'time'));
+        return this.parseOrderBook (response, timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
