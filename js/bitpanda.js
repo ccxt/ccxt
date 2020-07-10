@@ -129,4 +129,29 @@ module.exports = class bitpanda extends Exchange {
             },
         });
     }
+
+    async fetchTime (params = {}) {
+        const response = await this.publicGetTime (params);
+        //
+        //     {
+        //         iso: '2020-07-10T05:17:26.716Z',
+        //         epoch_millis: 1594358246716,
+        //     }
+        //
+        return this.safeInteger (response, 'epoch_millis');
+    }
+
+    async fetchMarkets () {
+        return [];
+    }
+
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams (path, params);
+        if (api === 'public') {
+            if (Object.keys (params).length) {
+                url += '?' + this.urlencode (params);
+            }
+        }
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
 };
