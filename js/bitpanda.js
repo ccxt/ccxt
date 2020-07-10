@@ -49,10 +49,16 @@ module.exports = class bitpanda extends Exchange {
             'api': {
                 'public': {
                     'get': [
+                        'currencies',
+                        'candlesticks/{instrument_code}',
+                        'fees',
+                        'instruments',
+                        'order-book/{instrument_code}',
+                        'market-ticker',
+                        'market-ticker/{instrument_code}',
+                        'price-ticks/{instrument_code}',
+                        'time',
                     ],
-                    'put': [],
-                    'post': [],
-                    'delete': [],
                 },
                 'private': {
                     'get': [
