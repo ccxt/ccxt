@@ -430,14 +430,14 @@ module.exports = class bitmart extends Exchange {
         const result = {};
         for (let i = 0; i < response.length; i++) {
             const currency = response[i];
-            const currencyId = this.safeString (currency, 'id');
-            const code = this.safeCurrencyCode (currencyId);
+            const id = this.safeString (currency, 'id');
+            const code = this.safeCurrencyCode (id);
             const name = this.safeString (currency, 'name');
             const withdrawEnabled = this.safeValue (currency, 'withdraw_enabled');
             const depositEnabled = this.safeValue (currency, 'deposit_enabled');
             const active = withdrawEnabled && depositEnabled;
             result[code] = {
-                'id': currencyId,
+                'id': id,
                 'code': code,
                 'name': name,
                 'info': currency, // the original payload
