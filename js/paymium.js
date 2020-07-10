@@ -25,7 +25,7 @@ module.exports = class paymium extends Exchange {
                 'cancelOrder': true,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27790564-a945a9d4-5ff9-11e7-9d2d-b635763f2f24.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87153930-f0f02200-c2c0-11ea-9c0a-40337375ae89.jpg',
                 'api': 'https://paymium.com/api',
                 'www': 'https://www.paymium.com',
                 'fees': 'https://www.paymium.com/page/help/fees',
