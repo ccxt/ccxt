@@ -42,6 +42,7 @@ class wavesexchange(Exchange):
                 'cancelOrder': True,
                 'fetchDepositAddress': True,
                 'fetchOHLCV': True,
+                'createMarketOrder': False,
             },
             'timeframes': {
                 '1m': '1m',
@@ -253,7 +254,6 @@ class wavesexchange(Exchange):
                 'quotes': None,
                 'createOrderDefaultExpiry': 2419200000,  # 60 * 60 * 24 * 28 * 1000
                 'wavesAddress': None,
-                'matcherFee': 300000,
                 'withdrawFeeUSDN': 7420,
                 'withdrawFeeWAVES': 100000,
             },
@@ -794,8 +794,12 @@ class wavesexchange(Exchange):
         timestamp = self.milliseconds()
         expiration = self.sum(timestamp, self.get_default_expiry())
         # calculate the fee
-        baseMatcherFee = self.safe_integer(self.options, 'matcherFee', 300000)
-        rates = await self.matcherGetMatcherSettingsRates()
+        settings = await self.matcherGetMatcherSettings()
+        orderFee = self.safe_value(settings, 'orderFee')
+        dynamic = self.safe_value(orderFee, 'dynamic')
+        baseMatcherFee = self.safe_integer(dynamic, 'baseFee')
+        rates = self.safe_value(dynamic, 'rates')
+        priceAssets = list(rates.keys())
         # {'34N9YcEETLWn93qYQ64EsP1x89tSruJU44RrEMSXXEPJ': 1.23762376,
         #   '62LyMjcr2DtiyF5yVXFhoQ2q414VPPJXjsNYp72SuDCH': 0.01101575,
         #   HZk1mbfuJpmxU1Fs4AX5MWLVYtctsNcg6e2C6VKqK8zk: 0.04266412,
@@ -809,12 +813,18 @@ class wavesexchange(Exchange):
         #   WAVES: 1,
         #   BrjUWjndUanm5VsJkbUip8VRYy6LWJePtxya3FNv4TQa: 0.03614366}
         matcherFeeAssetId = None
-        if (side == 'buy') and (market['quoteId'] in rates):
-            matcherFeeAssetId = market['quoteId']
-        elif (side == 'sell') and (market['baseId'] in rates):
-            matcherFeeAssetId = market['baseId']
-        else:
+        balances = await self.fetch_balance()
+        wavesMatcherFee = self.currency_from_precision('WAVES', baseMatcherFee)
+        if balances['WAVES']['free'] > wavesMatcherFee:
             matcherFeeAssetId = 'WAVES'
+        for i in range(0, len(priceAssets)):
+            assetId = priceAssets[i]
+            code = self.safe_currency_code(assetId)
+            balance = self.safe_value(self.safe_value(balances, code, {}), 'free')
+            if balance > rates[assetId] * wavesMatcherFee:
+                matcherFeeAssetId = assetId
+        if matcherFeeAssetId is None:
+            raise InsufficientFunds(self.id + ' not enough funds to cover the fee, please buy some WAVES')
         rate = self.safe_float(rates, matcherFeeAssetId)
         matcherFee = int(int(math.ceil(baseMatcherFee * rate)))
         byteArray = [
@@ -1018,6 +1028,7 @@ class wavesexchange(Exchange):
             'Cancelled': 'canceled',
             'Accepted': 'open',
             'Filled': 'closed',
+            'PartiallyFilled': 'open',
         }
         return self.safe_string(statuses, status, status)
 
@@ -1028,9 +1039,12 @@ class wavesexchange(Exchange):
         return self.safe_currency_code(baseId) + '/' + self.safe_currency_code(quoteId)
 
     def parse_order(self, order, market=None):
+        isCreateOrder = self.safe_integer(order, 'version')
         timestamp = self.safe_integer(order, 'timestamp')
-        side = self.safe_string(order, 'type')
-        type = self.safe_string(order, 'orderType')
+        side = self.safe_string_2(order, 'type', 'orderType')
+        type = 'limit'
+        if not isCreateOrder:
+            type = self.safe_string(order, 'orderType')
         id = self.safe_string(order, 'id')
         filled = self.safe_string(order, 'filled')
         price = self.safe_string(order, 'price')
@@ -1054,10 +1068,18 @@ class wavesexchange(Exchange):
             remaining = amount - filled
         average = self.currency_from_precision(priceCurrency, self.safe_string(order, 'avgWeighedPrice'))
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        fee = {
-            'currency': self.safe_currency_code(self.safe_string_2(order, 'feeAsset', 'matcherFeeAssetId')),
-            'fee': self.safe_string(order, 'filledFee'),
-        }
+        fee = None
+        if isCreateOrder:
+            currency = self.safe_currency_code(self.safe_string(order, 'matcherFeeAssetId', 'WAVES'))
+            fee = {
+                'currency': currency,
+                'fee': self.currency_from_precision(currency, self.safe_integer(order, 'matcherFee')),
+            }
+        else:
+            fee = {
+                'currency': self.safe_currency_code(self.safe_string(order, 'feeAsset')),
+                'fee': self.safe_float(order, 'filledFee'),
+            }
         return {
             'info': order,
             'id': id,
