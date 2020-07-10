@@ -3,7 +3,6 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -22,6 +21,7 @@ module.exports = class bitpanda extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOrderBook': true,
                 'fetchTime': true,
+                'fetchTrades': true,
                 'fetchTradingFees': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -528,13 +528,15 @@ module.exports = class bitpanda extends Exchange {
         //     }
         //
         const timestamp = this.parse8601 (this.safeString (ohlcv, 'time'));
+        const options = this.safeValue (this.options, 'fetchOHLCV', {});
+        const volumeField = this.safeString (options, 'volume', 'total_amount');
         return [
             this.sum (timestamp, 1),
             this.safeFloat (ohlcv, 'open'),
             this.safeFloat (ohlcv, 'high'),
             this.safeFloat (ohlcv, 'low'),
             this.safeFloat (ohlcv, 'close'),
-            this.safeFloat (ohlcv, 'total_amount'),
+            this.safeFloat (ohlcv, volumeField),
         ];
     }
 
@@ -573,6 +575,92 @@ module.exports = class bitpanda extends Exchange {
         //
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
+
+    parseTrade (trade, market = undefined) {
+        //
+        // fetchTrades (public)
+        //
+        //     {
+        //         "instrument_code":"BTC_EUR",
+        //         "price":"8137.28",
+        //         "amount":"0.22269",
+        //         "taker_side":"BUY",
+        //         "volume":"1812.0908832",
+        //         "time":"2020-07-10T14:44:32.299Z",
+        //         "trade_timestamp":1594392272299,
+        //         "sequence":603047
+        //     }
+        //
+        const timestamp = this.parse8601 (this.safeString (trade, 'time'));
+        const side = this.safeStringLower (trade, 'taker_side');
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'amount');
+        const cost = this.safeFloat (trade, 'volume');
+        const marketId = this.safeString (trade, 'instrument_code');
+        let symbol = undefined;
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+                symbol = market['symbol'];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('_');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        if ((market !== undefined) && (symbol === undefined)) {
+            symbol = market['symbol'];
+        }
+        return {
+            'id': this.safeString (trade, 'sequence'),
+            'order': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': undefined,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'takerOrMaker': undefined,
+            'fee': undefined,
+            'info': trade,
+        };
+    }
+
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'instrument_code': market['id'],
+            // 'from': this.iso8601 (since),
+            // 'to': this.iso8601 (this.milliseconds ()),
+        };
+        if (since !== undefined) {
+            // returns price ticks for a specific market with an interval of maximum of 4 hours
+            // sorted by latest first
+            request['from'] = this.iso8601 (since);
+            request['to'] = this.iso8601 (this.sum (since, 14400000));
+        }
+        const response = await this.publicGetPriceTicksInstrumentCode (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "instrument_code":"BTC_EUR",
+        //             "price":"8137.28",
+        //             "amount":"0.22269",
+        //             "taker_side":"BUY",
+        //             "volume":"1812.0908832",
+        //             "time":"2020-07-10T14:44:32.299Z",
+        //             "trade_timestamp":1594392272299,
+        //             "sequence":603047
+        //         }
+        //     ]
+        //
+        return this.parseTrades (response, market, since, limit);
+    }
+
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams (path, params);
