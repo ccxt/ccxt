@@ -240,6 +240,9 @@ class wavesexchange(Exchange):
                         'matcher/orders/{address}',  # can't get the orders endpoint to work with the matcher api
                         'matcher/orders/{address}/{orderId}',
                     ],
+                    'post': [
+                        'matcher/orders/{wavesAddress}/cancel',
+                    ],
                 },
                 'market': {
                     'get': [
@@ -435,6 +438,7 @@ class wavesexchange(Exchange):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         query = self.omit(params, self.extract_params(path))
+        isCancelOrder = path == 'matcher/orders/{wavesAddress}/cancel'
         path = self.implode_params(path, params)
         url = self.urls['api'][api] + '/' + path
         queryString = self.urlencode(query)
@@ -445,8 +449,13 @@ class wavesexchange(Exchange):
             accessToken = self.safe_string(self.options, 'accessToken')
             if accessToken:
                 headers['Authorization'] = 'Bearer ' + accessToken
-            if method != 'POST':
+            if method == 'POST':
+                headers['content-type'] = 'application/json'
+            else:
                 headers['content-type'] = 'application/x-www-form-urlencoded'
+            if isCancelOrder:
+                body = self.json([query['orderId']])
+                queryString = ''
             if len(queryString) > 0:
                 url += '?' + queryString
         elif api == 'matcher':
@@ -799,7 +808,6 @@ class wavesexchange(Exchange):
         dynamic = self.safe_value(orderFee, 'dynamic')
         baseMatcherFee = self.safe_integer(dynamic, 'baseFee')
         rates = self.safe_value(dynamic, 'rates')
-        priceAssets = list(rates.keys())
         # {'34N9YcEETLWn93qYQ64EsP1x89tSruJU44RrEMSXXEPJ': 1.23762376,
         #   '62LyMjcr2DtiyF5yVXFhoQ2q414VPPJXjsNYp72SuDCH': 0.01101575,
         #   HZk1mbfuJpmxU1Fs4AX5MWLVYtctsNcg6e2C6VKqK8zk: 0.04266412,
@@ -812,17 +820,23 @@ class wavesexchange(Exchange):
         #   '5WvPKSJXzVE2orvbkJ8wsQmmQKqTv9sGBPksV4adViw3': 0.02873582,
         #   WAVES: 1,
         #   BrjUWjndUanm5VsJkbUip8VRYy6LWJePtxya3FNv4TQa: 0.03614366}
+        priceAssets = list(rates.keys())
         matcherFeeAssetId = None
-        balances = self.fetch_balance()
-        wavesMatcherFee = self.currency_from_precision('WAVES', baseMatcherFee)
-        if balances['WAVES']['free'] > wavesMatcherFee:
-            matcherFeeAssetId = 'WAVES'
-        for i in range(0, len(priceAssets)):
-            assetId = priceAssets[i]
-            code = self.safe_currency_code(assetId)
-            balance = self.safe_value(self.safe_value(balances, code, {}), 'free')
-            if (balance is not None) and (balance > rates[assetId] * wavesMatcherFee):
-                matcherFeeAssetId = assetId
+        if 'feeAssetId' in params:
+            matcherFeeAssetId = params['feeAssetId']
+        elif 'feeAssetId' in self.options:
+            matcherFeeAssetId = self.options['feeAssetId']
+        else:
+            balances = self.fetch_balance()
+            wavesMatcherFee = self.currency_from_precision('WAVES', baseMatcherFee)
+            if balances['WAVES']['free'] > wavesMatcherFee:
+                matcherFeeAssetId = 'WAVES'
+            for i in range(0, len(priceAssets)):
+                assetId = priceAssets[i]
+                code = self.safe_currency_code(assetId)
+                balance = self.safe_value(self.safe_value(balances, code, {}), 'free')
+                if (balance is not None) and (balance > rates[assetId] * wavesMatcherFee):
+                    matcherFeeAssetId = assetId
         if matcherFeeAssetId is None:
             raise InsufficientFunds(self.id + ' not enough funds to cover the fee, please buy some WAVES')
         rate = self.safe_float(rates, matcherFeeAssetId)
@@ -890,29 +904,21 @@ class wavesexchange(Exchange):
     def cancel_order(self, id, symbol=None, params={}):
         self.check_required_dependencies()
         self.check_required_keys()
-        self.load_markets()
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' symbol is required for cancelOrder')
-        market = self.market(symbol)
-        byteArray = [
-            self.base58_to_binary(self.apiKey),
-            self.base58_to_binary(id),
-        ]
-        binary = self.binary_concat_array(byteArray)
-        hexSecret = base64.b16encode(self.base58_to_binary(self.secret))
-        signature = self.eddsa(base64.b16encode(binary), hexSecret, 'ed25519')
-        request = {
-            'sender': self.apiKey,
+        self.get_access_token()
+        wavesAddress = self.get_waves_address()
+        response = self.forwardPostMatcherOrdersWavesAddressCancel({
+            'wavesAddress': wavesAddress,
             'orderId': id,
-            'signature': signature,
-            'baseId': market['baseId'],
-            'quoteId': market['quoteId'],
-        }
-        response = self.matcherPostMatcherOrderbookBaseIdQuoteIdCancel(self.extend(request, params))
-        # {orderId: 'Do7cDJMf2MJuFyorvxNNuzS42MXSGGEq1r1hGDn1PHiS',
-        #   success: True,
-        #   status: 'OrderCanceled'}
-        returnedId = self.safe_string(response, 'orderId')
+        })
+        #  {
+        #    "success":true,
+        #    "message":[[{"orderId":"EBpJeGM36KKFz5gTJAUKDBm89V8wqxKipSFBdU35AN3c","success":true,"status":"OrderCanceled"}]],
+        #    "status":"BatchCancelCompleted"
+        #  }
+        message = self.safe_value(response, 'message')
+        firstMessage = self.safe_value(message, 0)
+        firstOrder = self.safe_value(firstMessage, 0)
+        returnedId = self.safe_string(firstOrder, 'orderId')
         return {
             'info': response,
             'id': returnedId,

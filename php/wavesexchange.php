@@ -232,6 +232,9 @@ class wavesexchange extends Exchange {
                         'matcher/orders/{address}',  // can't get the orders endpoint to work with the matcher api
                         'matcher/orders/{address}/{orderId}',
                     ),
+                    'post' => array(
+                        'matcher/orders/{wavesAddress}/cancel',
+                    ),
                 ),
                 'market' => array(
                     'get' => array(
@@ -444,6 +447,7 @@ class wavesexchange extends Exchange {
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $query = $this->omit($params, $this->extract_params($path));
+        $isCancelOrder = $path === 'matcher/orders/{wavesAddress}/cancel';
         $path = $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . '/' . $path;
         $queryString = $this->urlencode($query);
@@ -455,8 +459,14 @@ class wavesexchange extends Exchange {
             if ($accessToken) {
                 $headers['Authorization'] = 'Bearer ' . $accessToken;
             }
-            if ($method !== 'POST') {
+            if ($method === 'POST') {
+                $headers['content-type'] = 'application/json';
+            } else {
                 $headers['content-type'] = 'application/x-www-form-urlencoded';
+            }
+            if ($isCancelOrder) {
+                $body = $this->json([$query['orderId']]);
+                $queryString = '';
             }
             if (strlen($queryString) > 0) {
                 $url .= '?' . $queryString;
@@ -845,7 +855,6 @@ class wavesexchange extends Exchange {
         $dynamic = $this->safe_value($orderFee, 'dynamic');
         $baseMatcherFee = $this->safe_integer($dynamic, 'baseFee');
         $rates = $this->safe_value($dynamic, 'rates');
-        $priceAssets = is_array($rates) ? array_keys($rates) : array();
         // { '34N9YcEETLWn93qYQ64EsP1x89tSruJU44RrEMSXXEPJ' => 1.23762376,
         //   '62LyMjcr2DtiyF5yVXFhoQ2q414VPPJXjsNYp72SuDCH' => 0.01101575,
         //   HZk1mbfuJpmxU1Fs4AX5MWLVYtctsNcg6e2C6VKqK8zk => 0.04266412,
@@ -858,18 +867,25 @@ class wavesexchange extends Exchange {
         //   '5WvPKSJXzVE2orvbkJ8wsQmmQKqTv9sGBPksV4adViw3' => 0.02873582,
         //   WAVES => 1,
         //   BrjUWjndUanm5VsJkbUip8VRYy6LWJePtxya3FNv4TQa => 0.03614366 }
+        $priceAssets = is_array($rates) ? array_keys($rates) : array();
         $matcherFeeAssetId = null;
-        $balances = $this->fetch_balance();
-        $wavesMatcherFee = $this->currency_from_precision('WAVES', $baseMatcherFee);
-        if ($balances['WAVES']['free'] > $wavesMatcherFee) {
-            $matcherFeeAssetId = 'WAVES';
-        }
-        for ($i = 0; $i < count($priceAssets); $i++) {
-            $assetId = $priceAssets[$i];
-            $code = $this->safe_currency_code($assetId);
-            $balance = $this->safe_value($this->safe_value($balances, $code, array()), 'free');
-            if (($balance !== null) && ($balance > $rates[$assetId] * $wavesMatcherFee)) {
-                $matcherFeeAssetId = $assetId;
+        if (is_array($params) && array_key_exists('feeAssetId', $params)) {
+            $matcherFeeAssetId = $params['feeAssetId'];
+        } else if (is_array($this->options) && array_key_exists('feeAssetId', $this->options)) {
+            $matcherFeeAssetId = $this->options['feeAssetId'];
+        } else {
+            $balances = $this->fetch_balance();
+            $wavesMatcherFee = $this->currency_from_precision('WAVES', $baseMatcherFee);
+            if ($balances['WAVES']['free'] > $wavesMatcherFee) {
+                $matcherFeeAssetId = 'WAVES';
+            }
+            for ($i = 0; $i < count($priceAssets); $i++) {
+                $assetId = $priceAssets[$i];
+                $code = $this->safe_currency_code($assetId);
+                $balance = $this->safe_value($this->safe_value($balances, $code, array()), 'free');
+                if (($balance !== null) && ($balance > $rates[$assetId] * $wavesMatcherFee)) {
+                    $matcherFeeAssetId = $assetId;
+                }
             }
         }
         if ($matcherFeeAssetId === null) {
@@ -942,30 +958,21 @@ class wavesexchange extends Exchange {
     public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->check_required_dependencies();
         $this->check_required_keys();
-        $this->load_markets();
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' $symbol is required for cancelOrder');
-        }
-        $market = $this->market($symbol);
-        $byteArray = array(
-            $this->base58_to_binary($this->apiKey),
-            $this->base58_to_binary($id),
-        );
-        $binary = $this->binary_concat_array($byteArray);
-        $hexSecret = bin2hex($this->base58_to_binary($this->secret));
-        $signature = $this->eddsa(bin2hex($binary), $hexSecret, 'ed25519');
-        $request = array(
-            'sender' => $this->apiKey,
+        $this->get_access_token();
+        $wavesAddress = $this->get_waves_address();
+        $response = $this->forwardPostMatcherOrdersWavesAddressCancel (array(
+            'wavesAddress' => $wavesAddress,
             'orderId' => $id,
-            'signature' => $signature,
-            'baseId' => $market['baseId'],
-            'quoteId' => $market['quoteId'],
-        );
-        $response = $this->matcherPostMatcherOrderbookBaseIdQuoteIdCancel (array_merge($request, $params));
-        // { orderId => 'Do7cDJMf2MJuFyorvxNNuzS42MXSGGEq1r1hGDn1PHiS',
-        //   success => true,
-        //   status => 'OrderCanceled' }
-        $returnedId = $this->safe_string($response, 'orderId');
+        ));
+        //  {
+        //    "success":true,
+        //    "$message":[[array("orderId":"EBpJeGM36KKFz5gTJAUKDBm89V8wqxKipSFBdU35AN3c","success":true,"status":"OrderCanceled")]],
+        //    "status":"BatchCancelCompleted"
+        //  }
+        $message = $this->safe_value($response, 'message');
+        $firstMessage = $this->safe_value($message, 0);
+        $firstOrder = $this->safe_value($firstMessage, 0);
+        $returnedId = $this->safe_string($firstOrder, 'orderId');
         return array(
             'info' => $response,
             'id' => $returnedId,
