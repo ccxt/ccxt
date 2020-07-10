@@ -16,8 +16,10 @@ module.exports = class bitpanda extends Exchange {
             'version': 'v1',
             // new metainfo interface
             'has': {
+                'fetchCurrencies': true,
                 'fetchMarkets': true,
                 'fetchTime': true,
+                'fetchTradingFees': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -97,8 +99,8 @@ module.exports = class bitpanda extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'taker': 0.001,
-                    'maker': 0.001,
+                    'taker': 0.15 / 100,
+                    'maker': 0.10 / 100,
                     'tiers': [
                         // volume in BTC
                         {
@@ -234,6 +236,69 @@ module.exports = class bitpanda extends Exchange {
                 'info': market,
                 'active': active,
             });
+        }
+        return result;
+    }
+
+    async fetchTradingFees (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetFees (params);
+        //
+        //     [
+        //         {
+        //             "fee_group_id":"default",
+        //             "display_text":"The standard fee plan.",
+        //             "fee_tiers":[
+        //                 {"volume":"0.0","fee_group_id":"default","maker_fee":"0.1","taker_fee":"0.15"},
+        //                 {"volume":"100.0","fee_group_id":"default","maker_fee":"0.1","taker_fee":"0.13"},
+        //                 {"volume":"250.0","fee_group_id":"default","maker_fee":"0.09","taker_fee":"0.13"},
+        //                 {"volume":"1000.0","fee_group_id":"default","maker_fee":"0.075","taker_fee":"0.1"},
+        //                 {"volume":"5000.0","fee_group_id":"default","maker_fee":"0.06","taker_fee":"0.09"},
+        //                 {"volume":"10000.0","fee_group_id":"default","maker_fee":"0.05","taker_fee":"0.075"},
+        //                 {"volume":"20000.0","fee_group_id":"default","maker_fee":"0.05","taker_fee":"0.065"}
+        //             ],
+        //             "fee_discount_rate":"25.0",
+        //             "minimum_price_value":"0.12"
+        //         }
+        //     ]
+        //
+        const feeGroupsById = this.indexBy (response, 'fee_group_id');
+        const feeGroupId = this.safeValue (this.options, 'fee_group_id', 'default');
+        const feeGroup = this.safeValue (feeGroupsById, feeGroupId, {});
+        const feeTiers = this.safeValue (feeGroup, 'fee_tiers');
+        const result = {};
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            const fee = {
+                'info': feeGroup,
+                'symbol': symbol,
+                'maker': undefined,
+                'taker': undefined,
+                'percentage': true,
+                'tierBased': true,
+            };
+            const takerFees = [];
+            const makerFees = [];
+            for (let i = 0; i < feeTiers.length; i++) {
+                const tier = feeTiers[i];
+                const volume = this.safeFloat (tier, 'volume');
+                let taker = this.safeFloat (tier, 'taker_fee');
+                let maker = this.safeFloat (tier, 'maker_fee');
+                taker /= 100;
+                maker /= 100;
+                takerFees.push ([ volume, taker ]);
+                makerFees.push ([ volume, maker ]);
+                if (i === 0) {
+                    fee['taker'] = taker;
+                    fee['maker'] = maker;
+                }
+            }
+            const tiers = {
+                'taker': takerFees,
+                'maker': makerFees,
+            };
+            fee['tiers'] = tiers;
+            result[symbol] = fee;
         }
         return result;
     }
