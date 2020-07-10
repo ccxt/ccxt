@@ -868,7 +868,7 @@ class wavesexchange extends Exchange {
             $assetId = $priceAssets[$i];
             $code = $this->safe_currency_code($assetId);
             $balance = $this->safe_value($this->safe_value($balances, $code, array()), 'free');
-            if ($balance > $rates[$assetId] * $wavesMatcherFee) {
+            if (($balance !== null) && ($balance > $rates[$assetId] * $wavesMatcherFee)) {
                 $matcherFeeAssetId = $assetId;
             }
         }

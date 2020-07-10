@@ -821,7 +821,7 @@ class wavesexchange(Exchange):
             assetId = priceAssets[i]
             code = self.safe_currency_code(assetId)
             balance = self.safe_value(self.safe_value(balances, code, {}), 'free')
-            if balance > rates[assetId] * wavesMatcherFee:
+            if (balance is not None) and (balance > rates[assetId] * wavesMatcherFee):
                 matcherFeeAssetId = assetId
         if matcherFeeAssetId is None:
             raise InsufficientFunds(self.id + ' not enough funds to cover the fee, please buy some WAVES')
