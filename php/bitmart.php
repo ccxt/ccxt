@@ -421,28 +421,28 @@ class bitmart extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
-        $currencies = $this->publicGetCurrencies ($params);
+        $response = $this->publicGetCurrencies ($params);
         //
         //     array(
         //         {
         //             "$name":"CNY1",
         //             "withdraw_enabled":false,
-        //             "id":"CNY1",
+        //             "$id":"CNY1",
         //             "deposit_enabled":false
         //         }
         //     )
         //
         $result = array();
-        for ($i = 0; $i < count($currencies); $i++) {
-            $currency = $currencies[$i];
-            $currencyId = $this->safe_string($currency, 'id');
-            $code = $this->safe_currency_code($currencyId);
+        for ($i = 0; $i < count($response); $i++) {
+            $currency = $response[$i];
+            $id = $this->safe_string($currency, 'id');
+            $code = $this->safe_currency_code($id);
             $name = $this->safe_string($currency, 'name');
             $withdrawEnabled = $this->safe_value($currency, 'withdraw_enabled');
             $depositEnabled = $this->safe_value($currency, 'deposit_enabled');
             $active = $withdrawEnabled && $depositEnabled;
             $result[$code] = array(
-                'id' => $currencyId,
+                'id' => $id,
                 'code' => $code,
                 'name' => $name,
                 'info' => $currency, // the original payload

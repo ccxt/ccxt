@@ -411,7 +411,7 @@ class bitmart(Exchange):
         return result
 
     def fetch_currencies(self, params={}):
-        currencies = self.publicGetCurrencies(params)
+        response = self.publicGetCurrencies(params)
         #
         #     [
         #         {
@@ -423,16 +423,16 @@ class bitmart(Exchange):
         #     ]
         #
         result = {}
-        for i in range(0, len(currencies)):
-            currency = currencies[i]
-            currencyId = self.safe_string(currency, 'id')
-            code = self.safe_currency_code(currencyId)
+        for i in range(0, len(response)):
+            currency = response[i]
+            id = self.safe_string(currency, 'id')
+            code = self.safe_currency_code(id)
             name = self.safe_string(currency, 'name')
             withdrawEnabled = self.safe_value(currency, 'withdraw_enabled')
             depositEnabled = self.safe_value(currency, 'deposit_enabled')
             active = withdrawEnabled and depositEnabled
             result[code] = {
-                'id': currencyId,
+                'id': id,
                 'code': code,
                 'name': name,
                 'info': currency,  # the original payload
