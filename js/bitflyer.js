@@ -15,6 +15,7 @@ module.exports = class bitflyer extends Exchange {
             'countries': [ 'JP' ],
             'version': 'v1',
             'rateLimit': 1000, // their nonce-timestamp is in seconds...
+            'hostname': 'bitflyer.jp', // or bitflyer.com
             'has': {
                 'CORS': false,
                 'withdraw': true,
@@ -26,7 +27,7 @@ module.exports = class bitflyer extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg',
-                'api': 'https://api.bitflyer.jp',
+                'api': 'https://api.{hostname}',
                 'www': 'https://bitflyer.jp',
                 'doc': 'https://lightning.bitflyer.com/docs?lang=en',
             },
@@ -467,7 +468,8 @@ module.exports = class bitflyer extends Exchange {
                 request += '?' + this.urlencode (params);
             }
         }
-        const url = this.urls['api'] + request;
+        const baseUrl = this.implodeParams (this.urls['api'], { 'hostname': this.hostname });
+        const url = baseUrl + request;
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
