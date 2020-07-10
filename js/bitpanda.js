@@ -304,6 +304,82 @@ module.exports = class bitpanda extends Exchange {
         return result;
     }
 
+    parseTicker (ticker, market = undefined) {
+        //
+        // fetchTicker, fetchTickers
+        //
+        //     {
+        //         "instrument_code":"BTC_EUR",
+        //         "sequence":602562,
+        //         "time":"2020-07-10T06:27:34.951Z",
+        //         "state":"ACTIVE",
+        //         "is_frozen":0,
+        //         "quote_volume":"1695555.1783768",
+        //         "base_volume":"205.67436",
+        //         "last_price":"8143.91",
+        //         "best_bid":"8143.71",
+        //         "best_ask":"8156.9",
+        //         "price_change":"-147.47",
+        //         "price_change_percentage":"-1.78",
+        //         "high":"8337.45",
+        //         "low":"8110.0"
+        //     }
+        //
+        const timestamp = this.parse8601 (this.safeString (ticker, 'time'));
+        const marketId = this.safeString (ticker, 'instrument_code');
+        let symbol = undefined;
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            } else if (marketId !== undefined) {
+                const [ baseId, quoteId ] = marketId.split ('_');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
+        const last = this.safeFloat (ticker, 'last_price');
+        const percentage = this.safeFloat (ticker, 'price_change_percentage');
+        const change = this.safeFloat (ticker, 'price_change');
+        let open = undefined;
+        let average = undefined;
+        if ((last !== undefined) && (change !== undefined)) {
+            open = last - change;
+            average = this.sum (last, open) / 2;
+        }
+        const baseVolume = this.safeFloat (ticker, 'quote_volume');
+        const quoteVolume = this.safeFloat (ticker, 'base_volume');
+        let vwap = undefined;
+        if (quoteVolume !== undefined && baseVolume !== undefined) {
+            vwap = quoteVolume / baseVolume;
+        }
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'best_bid'),
+            'bidVolume': undefined,
+            'ask': this.safeFloat (ticker, 'best_ask'),
+            'askVolume': undefined,
+            'vwap': vwap,
+            'open': open,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': change,
+            'percentage': percentage,
+            'average': average,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
+            'info': ticker,
+        };
+    }
+
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
