@@ -3,6 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
+const { ArgumentsRequired } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -18,6 +19,7 @@ module.exports = class bitpanda extends Exchange {
             'has': {
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
+                'fetchOHLCV': true,
                 'fetchOrderBook': true,
                 'fetchTime': true,
                 'fetchTradingFees': true,
@@ -510,43 +512,63 @@ module.exports = class bitpanda extends Exchange {
         return this.parseOrderBook (response, timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //     {
+        //         "instrument_code":"BTC_EUR",
+        //         "granularity":{"unit":"HOURS","period":1},
+        //         "high":"9252.65",
+        //         "low":"9115.27",
+        //         "open":"9250.0",
+        //         "close":"9132.35",
+        //         "total_amount":"33.85924",
+        //         "volume":"311958.9635744",
+        //         "time":"2020-05-08T22:59:59.999Z",
+        //         "last_sequence":461123
+        //     }
+        //
+        const timestamp = this.parse8601 (this.safeString (ohlcv, 'time'));
+        return [
+            this.sum (timestamp, 1),
+            this.safeFloat (ohlcv, 'open'),
+            this.safeFloat (ohlcv, 'high'),
+            this.safeFloat (ohlcv, 'low'),
+            this.safeFloat (ohlcv, 'close'),
+            this.safeFloat (ohlcv, 'total_amount'),
+        ];
+    }
+
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        if (since === undefined && limit === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOHLCV requires either a `since` argument or a `limit` argument (or both)');
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const periodInSeconds = this.parseTimeframe (timeframe);
-        const duration = periodInSeconds * limit * 1000;
-        let to = this.milliseconds ();
-        if (since === undefined) {
-            since = to - duration;
-        } else {
-            to = this.sum (since, duration);
+        const periodUnit = this.safeString (this.timeframes, timeframe);
+        const [ period, unit ] = periodUnit.split ('/');
+        const durationInSeconds = this.parseTimeframe (timeframe);
+        const duration = durationInSeconds * 1000;
+        if (limit === undefined) {
+            limit = 400;
         }
         const request = {
-            // unit query string true Defines the unit of candlestick TimeGranularity
-            // period query number true Defines the period of candlestick Granularity
-            // from query MarketTime true Defines start of a query search
-            // to query MarketTime true Defines end of a query search
-            // instrument_code path Instrument true Defines market by using unique instrument
-
             'instrument_code': market['id'],
-            'from': since, // start time of k-line data (in milliseconds, required)
-            'to': to, // end time of k-line data (in milliseconds, required)
-            'step': this.timeframes[timeframe], // steps of sampling (in minutes, default 1 minute, optional)
+            // 'from': this.iso8601 (since),
+            // 'to': this.iso8601 (this.milliseconds ()),
+            'period': period,
+            'unit': unit,
         };
-        const response = await this.publicGetSymbolsSymbolKline (this.extend (request, params));
+        if (since === undefined) {
+            const now = this.milliseconds ();
+            request['to'] = this.iso8601 (now);
+            request['from'] = this.iso8601 (now - limit * duration);
+        } else {
+            request['from'] = this.iso8601 (since);
+            request['to'] = this.iso8601 (this.sum (since, limit * duration));
+        }
+        const response = await this.publicGetCandlesticksInstrumentCode (this.extend (request, params));
         //
         //     [
-        //         {
-        //             "timestamp":1525761000000,
-        //             "open_price":"0.010130",
-        //             "highest_price":"0.010130",
-        //             "lowest_price":"0.010130",
-        //             "current_price":"0.010130",
-        //             "volume":"0.000000"
-        //         }
+        //         {"instrument_code":"BTC_EUR","granularity":{"unit":"HOURS","period":1},"high":"9252.65","low":"9115.27","open":"9250.0","close":"9132.35","total_amount":"33.85924","volume":"311958.9635744","time":"2020-05-08T22:59:59.999Z","last_sequence":461123},
+        //         {"instrument_code":"BTC_EUR","granularity":{"unit":"HOURS","period":1},"high":"9162.49","low":"9040.0","open":"9132.53","close":"9083.69","total_amount":"26.19685","volume":"238553.7812365","time":"2020-05-08T23:59:59.999Z","last_sequence":461376},
+        //         {"instrument_code":"BTC_EUR","granularity":{"unit":"HOURS","period":1},"high":"9135.7","low":"9002.59","open":"9055.45","close":"9133.98","total_amount":"26.21919","volume":"238278.8724959","time":"2020-05-09T00:59:59.999Z","last_sequence":461521},
         //     ]
         //
         return this.parseOHLCVs (response, market, timeframe, since, limit);
@@ -554,11 +576,18 @@ module.exports = class bitpanda extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams (path, params);
+        const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
-            if (Object.keys (params).length) {
-                url += '?' + this.urlencode (params);
+            if (Object.keys (query).length) {
+                url += '?' + this.urlencode (query);
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors () {
+        // {"error":"MISSING_FROM_PARAM"}
+        // {"error":"MISSING_TO_PARAM"}
+        // {"error":"CANDLESTICKS_TIME_RANGE_TOO_BIG"}
     }
 };
