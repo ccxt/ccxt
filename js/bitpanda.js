@@ -669,6 +669,8 @@ module.exports = class bitpanda extends Exchange {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
+        } else if (api === 'private') {
+
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
