@@ -134,7 +134,7 @@ function createMarkdownTable (array) {
     columns[4] = ':' + columns[4].slice (1, columns[4].length - 1) + ':'
     lines.splice (1, 1, columns.join ('|'))
     //
-    // prepend and append | to each line
+    // prepend and append a vertical bar to each line
     //
     //     | logo | id | name | ver | doc | certified | pro |
     //     |------|----|------|:---:|:---:|-----------|-----|
@@ -160,33 +160,6 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
     // list all supported exchanges
 
     const exchangesNotListedInDocs = [ 'hitbtc2' ]
-
-    function makeTableData (exchanges) {
-        return (
-            values (exchanges)
-                .filter (exchange => !exchangesNotListedInDocs.includes (exchange.id))
-                .map (exchange => {
-                    let logo = exchange.urls['logo']
-                    let website = Array.isArray (exchange.urls.www) ? exchange.urls.www[0] : exchange.urls.www
-                    let url = exchange.urls.referral || website
-                    let doc = Array.isArray (exchange.urls.doc) ? exchange.urls.doc[0] : exchange.urls.doc
-                    let version = exchange.version ? exchange.version : '\*'
-                    let matches = version.match (/[^0-9]*([0-9].*)/)
-                    if (matches) {
-                        version = matches[1];
-                    }
-                    return [
-                        '[![' + exchange.id + '](' + logo + ')](' + url + ')',
-                        exchange.id,
-                        '[' + exchange.name + '](' + url + ')',
-                        version,
-                        '[API](' + doc + ')',
-                        exchange.certified ? ccxtCertifiedBadge : '',
-                        exchange.pro ? ccxtProBadge : '',
-                    ]
-                })
-        )
-    }
 
     function makeTable (jsonArray) {
         let table = asTable (jsonArray)
@@ -215,10 +188,6 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
         for (const path of allExchangesPaths) {
             logExportExchanges (path, allExchangesRegex, allExchangesReplacement)
         }
-
-        // logExportExchanges ('README.md', allExchangesRegex, allExchanges)
-        // logExportExchanges (wikiPath + '/Manual.md', allExchangesRegex, allExchanges)
-        // logExportExchanges (wikiPath + '/Exchange-Markets.md', allExchangesRegex, allExchanges)
     }
 
     if (proExchangesPaths) {
@@ -239,16 +208,14 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
     }
 
     if (certifiedExchangesPaths) {
-        const certified = values (exchanges).filter (exchange => exchange.certified)
-        const tableData = makeTableData (certified)
-        // prepend the table header
-        tableData.splice (0, 0, tableHeadings)
-        const certifiedExchangesRegex = new RegExp ("^(## Certified Cryptocurrency Exchanges\n{3})(?:\\|.+\\|$\n)+", 'm')
-        const certifiedExchangesTable = makeTable (tableData)
-        const certifiedExchanges = '$1' + certifiedExchangesTable + "\n"
+            const certifiedExchanges = arrayOfExchanges.filter (exchange => exchange.certified)
+                , markdownListOfCertifiedExchanges = createMarkdownListOfExchanges (certifiedExchanges)
+                , certifiedExchangesMarkdownTable = createMarkdownTable (markdownListOfCertifiedExchanges)
+                , certifiedExchangesReplacement = '$1' + certifiedExchangesMarkdownTable + "\n"
+                , certifiedExchangesRegex = new RegExp ("^(## Certified Cryptocurrency Exchanges\n{3})(?:\\|.+\\|$\n)+", 'm')
 
         for (const path of certifiedExchangesPaths) {
-            logExportExchanges (path, certifiedExchangesRegex, certifiedExchanges)
+            logExportExchanges (path, certifiedExchangesRegex, certifiedExchangesReplacement)
         }
 
         // logExportExchanges ('README.md', certifiedExchangesRegex, certifiedExchanges)
@@ -390,6 +357,7 @@ function flatten (nested, result = []) {
     return result
 }
 
+// ----------------------------------------------------------------------------
 
 function exportEverything () {
     const ids = getIncludedExchangeIds ()
