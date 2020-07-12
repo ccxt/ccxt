@@ -30,6 +30,7 @@ module.exports = class bittrex extends Exchange {
                 'fetchOrder': true,
                 'fetchOpenOrders': true,
                 'fetchTickers': true,
+                'fetchTime': true,
                 'withdraw': true,
                 'fetchDeposits': true,
                 'fetchWithdrawals': true,
@@ -597,6 +598,16 @@ module.exports = class bittrex extends Exchange {
             'cost': cost,
             'fee': undefined,
         };
+    }
+
+    async fetchTime (params = {}) {
+        const response = await this.v3GetPing (params);
+        //
+        //     {
+        //         "serverTime": 1594596023162
+        //     }
+        //
+        return this.safeInteger (response, 'serverTime');
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
