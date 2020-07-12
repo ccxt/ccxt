@@ -52,6 +52,7 @@ class bittrex(Exchange):
                 'fetchOrder': True,
                 'fetchOpenOrders': True,
                 'fetchTickers': True,
+                'fetchTime': True,
                 'withdraw': True,
                 'fetchDeposits': True,
                 'fetchWithdrawals': True,
@@ -593,6 +594,15 @@ class bittrex(Exchange):
             'cost': cost,
             'fee': None,
         }
+
+    def fetch_time(self, params={}):
+        response = self.v3GetPing(params)
+        #
+        #     {
+        #         "serverTime": 1594596023162
+        #     }
+        #
+        return self.safe_integer(response, 'serverTime')
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()

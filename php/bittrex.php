@@ -36,6 +36,7 @@ class bittrex extends Exchange {
                 'fetchOrder' => true,
                 'fetchOpenOrders' => true,
                 'fetchTickers' => true,
+                'fetchTime' => true,
                 'withdraw' => true,
                 'fetchDeposits' => true,
                 'fetchWithdrawals' => true,
@@ -603,6 +604,16 @@ class bittrex extends Exchange {
             'cost' => $cost,
             'fee' => null,
         );
+    }
+
+    public function fetch_time($params = array ()) {
+        $response = $this->v3GetPing ($params);
+        //
+        //     {
+        //         "serverTime" => 1594596023162
+        //     }
+        //
+        return $this->safe_integer($response, 'serverTime');
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
