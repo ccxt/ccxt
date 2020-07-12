@@ -8,7 +8,10 @@
 
 const fs        = require ('fs')
     , countries = require ('./countries')
-    , asTable   = require ('as-table')
+    , asTable   = require ('as-table').configure ({
+        delimiter: '|',
+        print: x => ' ' + x + ' '
+    })
     , execSync  = require ('child_process').execSync
     , log       = require ('ololog').unlimited
     , ansi      = require ('ansicolor').nice
@@ -79,16 +82,65 @@ function createExchanges (ids) {
     return ccxt.indexBy (ids.map (createExchange), 'id')
 }
 
-// // ----------------------------------------------------------------------------
-// // strategically placed exactly here (we can require it AFTER the export)
-// const ccxt = require ('../ccxt.js')
-// // ----------------------------------------------------------------------------
-// // create exchanges
-// const createExchange = (id) => {
-//     ccxt[id].prototype.checkRequiredDependencies = () => {} // suppress it
-//     return new (ccxt)[id] ()
-// }
-// const exchanges = ccxt.indexBy (ids.map (createExchange), 'id')
+// ----------------------------------------------------------------------------
+
+const ccxtCertifiedBadge = '[![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification)'
+    , ccxtProBadge = '[![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro)'
+
+function createMarkdownListOfExchanges (exchanges, paths) {
+
+    return exchanges.map ((exchange) => {
+        const logo = exchange.urls['logo']
+        const www = exchange.urls.www
+        const url = exchange.urls.referral || www
+        const doc = Array.isArray (exchange.urls.doc) ? exchange.urls.doc[0] : exchange.urls.doc
+        const version = exchange.version ? exchange.version.replace (/[^0-9\.]+/, '') : '\*'
+        return {
+            'logo': '[![' + exchange.id + '](' + logo + ')](' + url + ')',
+            'id': exchange.id,
+            'name': '[' + exchange.name + '](' + url + ')',
+            'ver': version,
+            'doc': '[API](' + doc + ')',
+            'certified': exchange.certified ? ccxtCertifiedBadge : '',
+            'pro': exchange.pro ? ccxtProBadge : '',
+        }
+    })
+}
+
+function createMarkdownTable (array) {
+    const table = asTable (array)
+    const lines = table.split ("\n")
+    //
+    // asTable creates a header underline like
+    //
+    //      logo | id | name | ver | doc | certified | pro
+    //     ------------------------------------------------
+    //
+    // we fix it to match markdown underline like
+    //
+    //      logo | id | name | ver | doc | certified | pro
+    //     ------|----|------|-----|-----|-----------|-----
+    //
+    const underline = lines[0].replace (/[^\|]/g, '-')
+    lines.splice (1, 1, underline)
+    //
+    // ver and doc columns should be centered so we convert it to
+    //
+    //      logo | id | name | ver | doc | certified | pro
+    //     ------|----|------|:---:|:---:|-----------|-----
+    //
+    const columns = underline.split ('|')
+    columns[3] = ':' + columns[3].slice (1, columns[3].length - 1) + ':'
+    columns[4] = ':' + columns[4].slice (1, columns[4].length - 1) + ':'
+    lines.splice (1, 1, columns.join ('|'))
+    //
+    // prepend and append | to each line
+    //
+    //     | logo | id | name | ver | doc | certified | pro |
+    //     |------|----|------|:---:|:---:|-----------|-----|
+    //
+    return lines.map (line => '|' + line + '|').join ("\n")
+}
 
 // ----------------------------------------------------------------------------
 // TODO: REWRITE THIS ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
@@ -100,8 +152,6 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
 
     const countryName = (code) => countries[code] || code
 
-    const ccxtCertifiedBadge = '[![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification)'
-    const ccxtProBadge = '[![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro)'
     const logoHeading = '&nbsp;'.repeat (7) + 'logo' + '&nbsp;'.repeat (7)
     const tableHeadings = [ logoHeading, 'id', 'name', 'ver', 'doc', 'certified', 'pro' ]
     const exchangesByCountryHeading = [ 'country / region', ... tableHeadings.slice (0, 5) ]
@@ -138,9 +188,8 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
         )
     }
 
-
     function makeTable (jsonArray) {
-        let table = asTable.configure ({ 'delimiter': ' | ' }) (jsonArray)
+        let table = asTable (jsonArray)
         let lines = table.split ("\n")
         lines.splice (1,0, lines[0].replace (/[^\|]/g, '-'))
         let headerLine = lines[1].split ('|')
@@ -150,21 +199,21 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
         return lines.map (line => '|' + line + '|').join ("\n")
     }
 
+    const arrayOfExchanges = values (exchanges)
+
     if (allExchangesPaths) {
 
-        const tableData = makeTableData (exchanges)
-        const numExchanges = tableData.length
-        // prepend the table header
-        tableData.splice (0, 0, tableHeadings)
-        const exchangesTable = makeTable (tableData)
-        const beginning = "The CCXT library currently supports the following "
-        const ending = " cryptocurrency exchange markets and trading APIs:\n\n"
-        const totalString = beginning + numExchanges + ending
-        const allExchanges = totalString + exchangesTable + "$1"
-        const allExchangesRegex = new RegExp ("[^\n]+[\n]{2}\\|[^`]+\\|([\n][\n]|[\n]$|$)", 'm')
+        const markdownListOfSupportedExchanges = createMarkdownListOfExchanges (arrayOfExchanges)
+            , supportedExchangesMarkdownTable = createMarkdownTable (markdownListOfSupportedExchanges)
+            , numExchanges = arrayOfExchanges.length
+            , beginning = "The CCXT library currently supports the following "
+            , ending = " cryptocurrency exchange markets and trading APIs:\n\n"
+            , totalString = beginning + numExchanges + ending
+            , allExchangesReplacement = totalString + supportedExchangesMarkdownTable + "$1"
+            , allExchangesRegex = new RegExp ("[^\n]+[\n]{2}\\|[^`]+\\|([\n][\n]|[\n]$|$)", 'm')
 
         for (const path of allExchangesPaths) {
-            logExportExchanges (path, allExchangesRegex, allExchanges)
+            logExportExchanges (path, allExchangesRegex, allExchangesReplacement)
         }
 
         // logExportExchanges ('README.md', allExchangesRegex, allExchanges)
@@ -173,20 +222,19 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
     }
 
     if (proExchangesPaths) {
-        const pro = values (exchanges).filter (exchange => exchange.pro)
-        const tableData = makeTableData (pro)
-        const numExchanges = tableData.length
-        // prepend the table header
-        tableData.splice (0, 0, tableHeadings)
-        const exchangesTable = makeTable (tableData)
-        const beginning = "The CCXT Pro library currently supports the following "
-        const ending = " cryptocurrency exchange markets and WebSocket trading APIs:\n\n"
-        const totalString = beginning + numExchanges + ending
-        const proExchanges = totalString + exchangesTable + "$1"
-        const proExchangesRegex = new RegExp ("[^\n]+[\n]{2}\\|[^`]+\\|([\n][\n]|[\n]$|$)", 'm')
+
+        const proExchanges = arrayOfExchanges.filter (exchange => exchange.pro)
+            , markdownListOfProExchanges = createMarkdownListOfExchanges (proExchanges)
+            , proExchangesMarkdownTable = createMarkdownTable (markdownListOfProExchanges)
+            , numExchanges = proExchanges.length
+            , beginning = "The CCXT Pro library currently supports the following "
+            , ending = " cryptocurrency exchange markets and WebSocket trading APIs:\n\n"
+            , totalString = beginning + numExchanges + ending
+            , proExchangesReplacement = totalString + proExchangesMarkdownTable + "$1"
+            , proExchangesRegex = new RegExp ("[^\n]+[\n]{2}\\|[^`]+\\|([\n][\n]|[\n]$|$)", 'm')
 
         for (const path of proExchangesPaths) {
-            logExportExchanges (path, proExchangesRegex, proExchanges)
+            logExportExchanges (path, proExchangesRegex, proExchangesReplacement)
         }
     }
 
