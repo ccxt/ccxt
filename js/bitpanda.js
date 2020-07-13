@@ -3,6 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
+const { AuthenticationError, ExchangeError, PermissionDenied, BadRequest, ArgumentsRequired, OrderNotFound, InsufficientFunds, ExchangeNotAvailable, DDoSProtection } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -125,10 +126,91 @@ module.exports = class bitpanda extends Exchange {
                     ],
                 },
             },
+            'requiredCredentials': {
+                'apiKey': true,
+                'secret': false,
+            },
             // exchange-specific options
             'options': {
             },
             'exceptions': {
+                'exact': {
+                    'INVALID_CREDENTIALS': AuthenticationError,
+                    'MISSING_CREDENTIALS': AuthenticationError,
+                    'INVALID_APIKEY': AuthenticationError,
+                    'INVALID_SCOPES': AuthenticationError,
+                    'INVALID_SUBJECT': AuthenticationError,
+                    'INVALID_ISSUER': AuthenticationError,
+                    'INVALID_AUDIENCE': AuthenticationError,
+                    'INVALID_DEVICE_ID': AuthenticationError,
+                    'INVALID_IP_RESTRICTION': AuthenticationError,
+                    'APIKEY_REVOKED': AuthenticationError,
+                    'APIKEY_EXPIRED': AuthenticationError,
+                    'SYNCHRONIZER_TOKEN_MISMATCH': AuthenticationError,
+                    'SESSION_EXPIRED': AuthenticationError,
+                    'INTERNAL_ERROR': AuthenticationError,
+                    'CLIENT_IP_BLOCKED': PermissionDenied,
+                    'MISSING_PERMISSION': PermissionDenied,
+                    'ILLEGAL_CHARS': BadRequest,
+                    'UNSUPPORTED_MEDIA_TYPE': BadRequest,
+                    'ACCOUNT_HISTORY_TIME_RANGE_TOO_BIG': BadRequest,
+                    'CANDLESTICKS_TIME_RANGE_TOO_BIG': BadRequest,
+                    'INVALID_INSTRUMENT_CODE': BadRequest,
+                    'INVALID_ORDER_TYPE': BadRequest,
+                    'INVALID_UNIT': BadRequest,
+                    'INVALID_PERIOD': BadRequest,
+                    'INVALID_TIME': BadRequest,
+                    'INVALID_DATE': BadRequest,
+                    'INVALID_CURRENCY': BadRequest,
+                    'INVALID_AMOUNT': BadRequest,
+                    'INVALID_PRICE': BadRequest,
+                    'INVALID_LIMIT': BadRequest,
+                    'INVALID_QUERY': BadRequest,
+                    'INVALID_CURSOR': BadRequest,
+                    'INVALID_ACCOUNT_ID': BadRequest,
+                    'INVALID_SIDE': BadRequest,
+                    'INVALID_ACCOUNT_HISTORY_FROM_TIME': BadRequest,
+                    'INVALID_ACCOUNT_HISTORY_MAX_PAGE_SIZE': BadRequest,
+                    'INVALID_ACCOUNT_HISTORY_TIME_PERIOD': BadRequest,
+                    'INVALID_ACCOUNT_HISTORY_TO_TIME': BadRequest,
+                    'INVALID_CANDLESTICKS_GRANULARITY': BadRequest,
+                    'INVALID_CANDLESTICKS_UNIT': BadRequest,
+                    'INVALID_ORDER_BOOK_DEPTH': BadRequest,
+                    'INVALID_ORDER_BOOK_LEVEL': BadRequest,
+                    'INVALID_PAGE_CURSOR': BadRequest,
+                    'INVALID_TIME_RANGE': BadRequest,
+                    'INVALID_TRADE_ID': BadRequest,
+                    'INVALID_UI_ACCOUNT_SETTINGS': BadRequest,
+                    'NEGATIVE_AMOUNT': BadRequest,
+                    'NEGATIVE_PRICE': BadRequest,
+                    'MIN_SIZE_NOT_SATISFIED': BadRequest,
+                    'BAD_AMOUNT_PRECISION': BadRequest,
+                    'BAD_PRICE_PRECISION': BadRequest,
+                    'BAD_TRIGGER_PRICE_PRECISION': BadRequest,
+                    'MAX_OPEN_ORDERS_EXCEEDED': BadRequest,
+                    'MISSING_PRICE': ArgumentsRequired,
+                    'MISSING_ORDER_TYPE': ArgumentsRequired,
+                    'MISSING_SIDE': ArgumentsRequired,
+                    'MISSING_CANDLESTICKS_PERIOD_PARAM': ArgumentsRequired,
+                    'MISSING_CANDLESTICKS_UNIT_PARAM': ArgumentsRequired,
+                    'MISSING_FROM_PARAM': ArgumentsRequired,
+                    'MISSING_INSTRUMENT_CODE': ArgumentsRequired,
+                    'MISSING_ORDER_ID': ArgumentsRequired,
+                    'MISSING_TO_PARAM': ArgumentsRequired,
+                    'MISSING_TRADE_ID': ArgumentsRequired,
+                    'INVALID_ORDER_ID': OrderNotFound,
+                    'NOT_FOUND': OrderNotFound,
+                    'INSUFFICIENT_LIQUIDITY': InsufficientFunds,
+                    'INSUFFICIENT_FUNDS': InsufficientFunds,
+                    'NO_TRADING': ExchangeNotAvailable,
+                    'SERVICE_UNAVAILABLE': ExchangeNotAvailable,
+                    'GATEWAY_TIMEOUT': ExchangeNotAvailable,
+                    'RATELIMIT': DDoSProtection,
+                    'CF_RATELIMIT': DDoSProtection,
+                    'INTERNAL_SERVER_ERROR': ExchangeError,
+                },
+                'broad': {
+                },
             },
         });
     }
@@ -548,7 +630,7 @@ module.exports = class bitpanda extends Exchange {
         const durationInSeconds = this.parseTimeframe (timeframe);
         const duration = durationInSeconds * 1000;
         if (limit === undefined) {
-            limit = 400;
+            limit = 1500;
         }
         const request = {
             'instrument_code': market['id'],
@@ -661,7 +743,6 @@ module.exports = class bitpanda extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
@@ -670,14 +751,34 @@ module.exports = class bitpanda extends Exchange {
                 url += '?' + this.urlencode (query);
             }
         } else if (api === 'private') {
-
+            this.checkRequiredCredentials ();
+            headers = {
+                'Accept': 'application/json',
+                'Authorization': 'Bearer ' + this.apiKey,
+            };
+            if (method === 'POST') {
+                body = this.json (query);
+                headers['Content-Type'] = 'application/json';
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors () {
-        // {"error":"MISSING_FROM_PARAM"}
-        // {"error":"MISSING_TO_PARAM"}
-        // {"error":"CANDLESTICKS_TIME_RANGE_TOO_BIG"}
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return;
+        }
+        //
+        //     {"error":"MISSING_FROM_PARAM"}
+        //     {"error":"MISSING_TO_PARAM"}
+        //     {"error":"CANDLESTICKS_TIME_RANGE_TOO_BIG"}
+        //
+        const feedback = this.id + ' ' + body;
+        const message = this.safeString (response, 'error');
+        if (message !== undefined) {
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            throw new ExchangeError (feedback); // unknown message
+        }
     }
 };
