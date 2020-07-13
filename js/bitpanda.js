@@ -1205,7 +1205,7 @@ module.exports = class bitpanda extends Exchange {
             // "trigger_price": "1234.5678" // required for stop orders
         };
         if (uppercaseType === 'LIMIT' || type === 'STOP') {
-            request['price']
+            request['price'] = this.priceToPrecision (symbol, price);
         }
         const response = await this.privatePostAccountOrders (this.extend (request, params));
         //
