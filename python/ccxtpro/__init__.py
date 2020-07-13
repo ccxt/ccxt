@@ -8,7 +8,7 @@ import ccxt.async_support as ccxt
 
 # -----------------------------------------------------------------------------
 
-__version__ = '0.2.90'
+__version__ = '0.2.91'
 
 # -----------------------------------------------------------------------------
 
@@ -74,6 +74,7 @@ from ccxt.async_support.bithumb import bithumb                            # noqa
 from ccxt.async_support.bitkk import bitkk                                # noqa: F401
 from ccxt.async_support.bitmart import bitmart                            # noqa: F401
 from ccxt.async_support.bitmax import bitmax                              # noqa: F401
+from ccxt.async_support.bitpanda import bitpanda                          # noqa: F401
 from ccxt.async_support.bitso import bitso                                # noqa: F401
 from ccxt.async_support.bitstamp1 import bitstamp1                        # noqa: F401
 from ccxt.async_support.bitz import bitz                                  # noqa: F401
