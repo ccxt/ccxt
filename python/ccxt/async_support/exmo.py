@@ -12,17 +12,21 @@ try:
 except NameError:
     basestring = str  # Python 2
 import hashlib
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
-from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import NotSupported
+from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 
 
-class exmo (Exchange):
+class exmo(Exchange):
 
     def describe(self):
         return self.deep_extend(super(exmo, self).describe(), {
@@ -30,7 +34,7 @@ class exmo (Exchange):
             'name': 'EXMO',
             'countries': ['ES', 'RU'],  # Spain, Russia
             'rateLimit': 350,  # once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
-            'version': 'v1',
+            'version': 'v1.1',
             'has': {
                 'CORS': False,
                 'fetchClosedOrders': 'emulated',
@@ -43,10 +47,26 @@ class exmo (Exchange):
                 'fetchMyTrades': True,
                 'fetchTickers': True,
                 'withdraw': True,
+                'fetchTradingFee': True,
                 'fetchTradingFees': True,
                 'fetchFundingFees': True,
                 'fetchCurrencies': True,
                 'fetchTransactions': True,
+                'fetchOHLCV': True,
+            },
+            'timeframes': {
+                '1m': '1',
+                '5m': '5',
+                '15m': '15',
+                '30m': '30',
+                '45m': '45',
+                '1h': '60',
+                '2h': '120',
+                '3h': '180',
+                '4h': '240',
+                '1d': 'D',
+                '1w': 'W',
+                '1M': 'M',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg',
@@ -77,6 +97,7 @@ class exmo (Exchange):
                         'pair_settings',
                         'ticker',
                         'trades',
+                        'candles_history',
                     ],
                 },
                 'private': {
@@ -84,6 +105,8 @@ class exmo (Exchange):
                         'user_info',
                         'order_create',
                         'order_cancel',
+                        'stop_market_order_create',
+                        'stop_market_order_cancel',
                         'user_open_orders',
                         'user_trades',
                         'user_cancelled_orders',
@@ -110,53 +133,387 @@ class exmo (Exchange):
                     'percentage': False,  # fixed funding fees for crypto, see fetchFundingFees below
                 },
             },
+            'options': {
+                'useWebapiForFetchingFees': False,  # TODO: figure why Exmo bans us when we try to fetch() their web urls
+                'feesAndLimits': {
+                    'success': 1,
+                    'ctlr': 'feesAndLimits',
+                    'error': '',
+                    'data': {
+                        'limits': [
+                            {'pair': 'BTC/USD', 'min_q': '0.0001', 'max_q': '1000', 'min_p': '1', 'max_p': '30000', 'min_a': '1', 'max_a': '500000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'BTC/RUB', 'min_q': '0.0001', 'max_q': '1000', 'min_p': '1', 'max_p': '2000000', 'min_a': '10', 'max_a': '50000000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'BTC/EUR', 'min_q': '0.0001', 'max_q': '1000', 'min_p': '1', 'max_p': '30000', 'min_a': '1', 'max_a': '500000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'BTC/GBP', 'min_q': '0.0001', 'max_q': '1000', 'min_p': '1', 'max_p': '30000', 'min_a': '1', 'max_a': '500000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'BTC/UAH', 'min_q': '0.0001', 'max_q': '1000', 'min_p': '1', 'max_p': '15000000', 'min_a': '10', 'max_a': '15000000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'BTC/PLN', 'min_q': '0.0001', 'max_q': '1000', 'min_p': '1', 'max_p': '20000000', 'min_a': '50', 'max_a': '2000000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'BTC/TRY', 'min_q': '0.0001', 'max_q': '1000', 'min_p': '1', 'max_p': '800000', 'min_a': '40', 'max_a': '6000000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'BTC/KZT', 'min_q': '0.0001', 'max_q': '1000', 'min_p': '1000', 'max_p': '12000000', 'min_a': '1000', 'max_a': '100000000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'BTC/USDT', 'min_q': '0.0001', 'max_q': '1000', 'min_p': '0.01', 'max_p': '30000', 'min_a': '3', 'max_a': '500000', 'taker': '0', 'maker': '0'},
+                            {'pair': 'ETH/BTC', 'min_q': '0.001', 'max_q': '5000', 'min_p': '0.00000001', 'max_p': '10', 'min_a': '0.001', 'max_a': '100', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'ETH/USD', 'min_q': '0.001', 'max_q': '5000', 'min_p': '0.01', 'max_p': '100000', 'min_a': '3', 'max_a': '500000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'ETH/RUB', 'min_q': '0.001', 'max_q': '5000', 'min_p': '0.01', 'max_p': '100000', 'min_a': '150', 'max_a': '50000000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'XRP/BTC', 'min_q': '1', 'max_q': '5000000', 'min_p': '0.0000001', 'max_p': '1', 'min_a': '0.00001', 'max_a': '100', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'XRP/USD', 'min_q': '1', 'max_q': '5000000', 'min_p': '0.001', 'max_p': '1000', 'min_a': '0.001', 'max_a': '500000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'XRP/RUB', 'min_q': '1', 'max_q': '5000000', 'min_p': '0.000001', 'max_p': '1000', 'min_a': '0.01', 'max_a': '50000000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'ADA/BTC', 'min_q': '1', 'max_q': '10000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.001', 'max_a': '100', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'ADA/ETH', 'min_q': '0.01', 'max_q': '10000000', 'min_p': '0.00000001', 'max_p': '10', 'min_a': '0.001', 'max_a': '5000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'ADA/USD', 'min_q': '0.01', 'max_q': '10000000', 'min_p': '0.0001', 'max_p': '1000', 'min_a': '0.01', 'max_a': '500000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'ALGO/EXM', 'min_q': '1', 'max_q': '1000000', 'min_p': '0.001', 'max_p': '10000', 'min_a': '1', 'max_a': '50000000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'ALGO/BTC', 'min_q': '1', 'max_q': '1000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.000001', 'max_a': '50', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'ALGO/USDT', 'min_q': '1', 'max_q': '1000000', 'min_p': '0.001', 'max_p': '1000', 'min_a': '1', 'max_a': '500000', 'taker': '0', 'maker': '0'},
+                            {'pair': 'ALGO/RUB', 'min_q': '1', 'max_q': '1000000', 'min_p': '0.000001', 'max_p': '10000', 'min_a': '1', 'max_a': '50000000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'ALGO/EUR', 'min_q': '1', 'max_q': '1000000', 'min_p': '0.001', 'max_p': '1000', 'min_a': '1', 'max_a': '500000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'ATOM/EXM', 'min_q': '1', 'max_q': '500000', 'min_p': '0.01', 'max_p': '100000', 'min_a': '200', 'max_a': '50000000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'ATOM/BTC', 'min_q': '1', 'max_q': '500000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.001', 'max_a': '100', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'ATOM/USD', 'min_q': '1', 'max_q': '500000', 'min_p': '0.001', 'max_p': '1000', 'min_a': '0.5', 'max_a': '500000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'ATOM/EUR', 'min_q': '1', 'max_q': '500000', 'min_p': '0.001', 'max_p': '1000', 'min_a': '0.5', 'max_a': '500000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'BCH/USD', 'min_q': '0.003', 'max_q': '5000', 'min_p': '0.00000001', 'max_p': '30000', 'min_a': '0.0001', 'max_a': '500000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'BCH/RUB', 'min_q': '0.003', 'max_q': '5000', 'min_p': '0.00000001', 'max_p': '2000000', 'min_a': '0.0001', 'max_a': '50000000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'BCH/EUR', 'min_q': '0.003', 'max_q': '5000', 'min_p': '0.01', 'max_p': '300000', 'min_a': '3', 'max_a': '500000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'BCH/UAH', 'min_q': '0.003', 'max_q': '5000', 'min_p': '0.1', 'max_p': '30000', 'min_a': '10', 'max_a': '15000000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'BCH/BTC', 'min_q': '0.003', 'max_q': '5000', 'min_p': '0.00000001', 'max_p': '5', 'min_a': '0.0001', 'max_a': '100', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'BCH/ETH', 'min_q': '0.003', 'max_q': '5000', 'min_p': '0.0000001', 'max_p': '200', 'min_a': '0.0001', 'max_a': '5000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'BCH/USDT', 'min_q': '0.003', 'max_q': '5000', 'min_p': '0.01', 'max_p': '5000', 'min_a': '3', 'max_a': '500000', 'taker': '0', 'maker': '0'},
+                            {'pair': 'BTG/USD', 'min_q': '0.01', 'max_q': '100000', 'min_p': '0.001', 'max_p': '1000', 'min_a': '3', 'max_a': '500000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'BTG/BTC', 'min_q': '0.01', 'max_q': '100000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.001', 'max_a': '100', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'BTG/ETH', 'min_q': '0.01', 'max_q': '100000', 'min_p': '0.0001', 'max_p': '100', 'min_a': '0.01', 'max_a': '5000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'BTT/RUB', 'min_q': '1', 'max_q': '500000000', 'min_p': '0.000001', 'max_p': '1000', 'min_a': '0.000001', 'max_a': '100', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'BTT/UAH', 'min_q': '1', 'max_q': '500000000', 'min_p': '0.000001', 'max_p': '1000', 'min_a': '0.000001', 'max_a': '100', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'BTT/BTC', 'min_q': '1', 'max_q': '500000000', 'min_p': '0.00000001', 'max_p': '0.1', 'min_a': '0.00001', 'max_a': '100', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'CRON/BTC', 'min_q': '1', 'max_q': '100000', 'min_p': '0.0000001', 'max_p': '1', 'min_a': '0.00001', 'max_a': '100', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'CRON/ETH', 'min_q': '1', 'max_q': '100000', 'min_p': '0.0000001', 'max_p': '10', 'min_a': '0.00001', 'max_a': '5000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'CRON/USDT', 'min_q': '1', 'max_q': '100000', 'min_p': '0.001', 'max_p': '1000', 'min_a': '0.001', 'max_a': '500000', 'taker': '0', 'maker': '0'},
+                            {'pair': 'CRON/EXM', 'min_q': '1', 'max_q': '100000000', 'min_p': '0.00000001', 'max_p': '1000', 'min_a': '0.01', 'max_a': '100000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'DAI/USD', 'min_q': '1', 'max_q': '500000', 'min_p': '0.001', 'max_p': '1000', 'min_a': '0.1', 'max_a': '500000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'DAI/RUB', 'min_q': '1', 'max_q': '500000', 'min_p': '0.01', 'max_p': '100000', 'min_a': '0.5', 'max_a': '30000000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'DAI/BTC', 'min_q': '1', 'max_q': '500000', 'min_p': '0.0000001', 'max_p': '0.1', 'min_a': '0.00001', 'max_a': '100', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'DAI/ETH', 'min_q': '1', 'max_q': '500000', 'min_p': '0.000001', 'max_p': '10', 'min_a': '0.0001', 'max_a': '5000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'DASH/USD', 'min_q': '0.01', 'max_q': '10000', 'min_p': '0.01', 'max_p': '10000', 'min_a': '3', 'max_a': '500000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'DASH/RUB', 'min_q': '0.01', 'max_q': '10000', 'min_p': '0.01', 'max_p': '100000', 'min_a': '150', 'max_a': '50000000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'DASH/UAH', 'min_q': '0.01', 'max_q': '10000', 'min_p': '0.01', 'max_p': '200000', 'min_a': '10', 'max_a': '15000000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'DASH/BTC', 'min_q': '0.01', 'max_q': '10000', 'min_p': '0.0001', 'max_p': '1', 'min_a': '0.001', 'max_a': '100', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'DASH/USDT', 'min_q': '0.01', 'max_q': '10000', 'min_p': '0.01', 'max_p': '5000', 'min_a': '3', 'max_a': '500000', 'taker': '0', 'maker': '0'},
+                            {'pair': 'DCR/RUB', 'min_q': '0.01', 'max_q': '50000', 'min_p': '0.00001', 'max_p': '100000', 'min_a': '0.5', 'max_a': '3000000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'DCR/UAH', 'min_q': '0.01', 'max_q': '50000', 'min_p': '0.00001', 'max_p': '100000', 'min_a': '0.25', 'max_a': '1000000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'DCR/BTC', 'min_q': '0.01', 'max_q': '50000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.001', 'max_a': '100', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'DOGE/USD', 'min_q': '100', 'max_q': '500000000', 'min_p': '0.0000001', 'max_p': '1000', 'min_a': '0.01', 'max_a': '500000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'DOGE/BTC', 'min_q': '100', 'max_q': '500000000', 'min_p': '0.0000001', 'max_p': '1', 'min_a': '0.0001', 'max_a': '100', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'EOS/USD', 'min_q': '0.01', 'max_q': '500000', 'min_p': '0.01', 'max_p': '1000', 'min_a': '0.5', 'max_a': '500000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'EOS/EUR', 'min_q': '0.01', 'max_q': '500000', 'min_p': '0.001', 'max_p': '1000', 'min_a': '0.5', 'max_a': '500000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'EOS/BTC', 'min_q': '0.01', 'max_q': '500000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.001', 'max_a': '100', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'ETC/USD', 'min_q': '0.2', 'max_q': '100000', 'min_p': '0.01', 'max_p': '10000', 'min_a': '0.01', 'max_a': '500000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'ETC/RUB', 'min_q': '0.2', 'max_q': '100000', 'min_p': '0.01', 'max_p': '10000', 'min_a': '0.01', 'max_a': '50000000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'ETC/BTC', 'min_q': '0.2', 'max_q': '100000', 'min_p': '0.0001', 'max_p': '0.5', 'min_a': '0.001', 'max_a': '100', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'ETH/EUR', 'min_q': '0.001', 'max_q': '5000', 'min_p': '0.01', 'max_p': '100000', 'min_a': '3', 'max_a': '500000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'ETH/GBP', 'min_q': '0.001', 'max_q': '5000', 'min_p': '0.01', 'max_p': '100000', 'min_a': '3', 'max_a': '500000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'ETH/UAH', 'min_q': '0.001', 'max_q': '5000', 'min_p': '0.01', 'max_p': '1000000', 'min_a': '90', 'max_a': '15000000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'ETH/PLN', 'min_q': '0.001', 'max_q': '5000', 'min_p': '0.01', 'max_p': '100000', 'min_a': '50', 'max_a': '2000000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'ETH/TRY', 'min_q': '0.001', 'max_q': '5000', 'min_p': '0.1', 'max_p': '80000', 'min_a': '10', 'max_a': '6000000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'ETH/KZT', 'min_q': '0.001', 'max_q': '5000', 'min_p': '4', 'max_p': '40000000', 'min_a': '3', 'max_a': '500000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'ETH/USDT', 'min_q': '0.001', 'max_q': '5000', 'min_p': '0.01', 'max_p': '100000', 'min_a': '3', 'max_a': '500000', 'taker': '0', 'maker': '0'},
+                            {'pair': 'ETH/LTC', 'min_q': '0.001', 'max_q': '5000', 'min_p': '0.00000001', 'max_p': '100000', 'min_a': '0.05', 'max_a': '100000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'ETZ/BTC', 'min_q': '1', 'max_q': '50000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.0001', 'max_a': '10', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'ETZ/ETH', 'min_q': '1', 'max_q': '50000000', 'min_p': '0.00000001', 'max_p': '100', 'min_a': '0.001', 'max_a': '100', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'ETZ/USDT', 'min_q': '1', 'max_q': '50000000', 'min_p': '0.000001', 'max_p': '1000', 'min_a': '0.01', 'max_a': '1000', 'taker': '0', 'maker': '0'},
+                            {'pair': 'EXM/USDT', 'min_q': '1', 'max_q': '100000000', 'min_p': '0.00000001', 'max_p': '1000', 'min_a': '0.01', 'max_a': '100000', 'taker': '0', 'maker': '0'},
+                            {'pair': 'EXM/ETH', 'min_q': '1', 'max_q': '100000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.0001', 'max_a': '5000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'GAS/USD', 'min_q': '0.01', 'max_q': '500000', 'min_p': '0.01', 'max_p': '50000', 'min_a': '0.1', 'max_a': '500000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'GAS/BTC', 'min_q': '0.01', 'max_q': '500000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.001', 'max_a': '100', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'GNT/BTC', 'min_q': '1', 'max_q': '10000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.001', 'max_a': '100', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'GNT/ETH', 'min_q': '0.01', 'max_q': '10000000', 'min_p': '0.00000001', 'max_p': '10', 'min_a': '0.01', 'max_a': '5000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'GUSD/USD', 'min_q': '1', 'max_q': '500000', 'min_p': '0.1', 'max_p': '10', 'min_a': '0.1', 'max_a': '500000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'GUSD/RUB', 'min_q': '1', 'max_q': '500000', 'min_p': '0.01', 'max_p': '1000', 'min_a': '10', 'max_a': '50000000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'GUSD/BTC', 'min_q': '1', 'max_q': '500000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.0015', 'max_a': '100', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'HP/BTC', 'min_q': '1', 'max_q': '100000000', 'min_p': '0.00000001', 'max_p': '0.1', 'min_a': '0.00001', 'max_a': '100', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'HB/BTC', 'min_q': '10', 'max_q': '100000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.000001', 'max_a': '100', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'LSK/USD', 'min_q': '0.1', 'max_q': '500000', 'min_p': '0.1', 'max_p': '1000', 'min_a': '1', 'max_a': '500000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'LSK/RUB', 'min_q': '0.1', 'max_q': '500000', 'min_p': '0.001', 'max_p': '100000', 'min_a': '0.5', 'max_a': '50000000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'LSK/BTC', 'min_q': '1', 'max_q': '500000', 'min_p': '0.0000001', 'max_p': '1', 'min_a': '0.0015', 'max_a': '100', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'LTC/USD', 'min_q': '0.05', 'max_q': '10000', 'min_p': '0.01', 'max_p': '10000', 'min_a': '3', 'max_a': '500000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'LTC/RUB', 'min_q': '0.05', 'max_q': '10000', 'min_p': '0.01', 'max_p': '100000', 'min_a': '150', 'max_a': '50000000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'LTC/EUR', 'min_q': '0.05', 'max_q': '10000', 'min_p': '0.01', 'max_p': '10000', 'min_a': '3', 'max_a': '500000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'LTC/UAH', 'min_q': '0.05', 'max_q': '10000', 'min_p': '0.01', 'max_p': '300000', 'min_a': '5', 'max_a': '18000000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'LTC/BTC', 'min_q': '0.05', 'max_q': '10000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.001', 'max_a': '100', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'MKR/BTC', 'min_q': '0.0001', 'max_q': '1000', 'min_p': '0.0001', 'max_p': '100', 'min_a': '0.000001', 'max_a': '100', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'MKR/DAI', 'min_q': '0.0001', 'max_q': '1000', 'min_p': '0.5', 'max_p': '500000', 'min_a': '0.005', 'max_a': '500000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'MNC/USD', 'min_q': '10', 'max_q': '500000000', 'min_p': '0.000001', 'max_p': '10000', 'min_a': '0.01', 'max_a': '100000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'MNC/BTC', 'min_q': '10', 'max_q': '500000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.000001', 'max_a': '100', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'MNC/ETH', 'min_q': '10', 'max_q': '500000000', 'min_p': '0.0000001', 'max_p': '10', 'min_a': '0.00001', 'max_a': '1000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'NEO/USD', 'min_q': '0.01', 'max_q': '100000', 'min_p': '0.01', 'max_p': '50000', 'min_a': '0.1', 'max_a': '500000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'NEO/RUB', 'min_q': '0.01', 'max_q': '100000', 'min_p': '0.001', 'max_p': '1500000', 'min_a': '50', 'max_a': '50000000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'NEO/BTC', 'min_q': '0.1', 'max_q': '100000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.001', 'max_a': '100', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'OMG/USD', 'min_q': '0.01', 'max_q': '500000', 'min_p': '0.01', 'max_p': '1000', 'min_a': '0.5', 'max_a': '500000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'OMG/BTC', 'min_q': '1', 'max_q': '500000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.001', 'max_a': '100', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'OMG/ETH', 'min_q': '0.01', 'max_q': '500000', 'min_p': '0.00000001', 'max_p': '10', 'min_a': '0.01', 'max_a': '5000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'ONG/EXM', 'min_q': '1', 'max_q': '1000000', 'min_p': '0.01', 'max_p': '100000', 'min_a': '100', 'max_a': '15000000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'ONG/BTC', 'min_q': '1', 'max_q': '1000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.00001', 'max_a': '10', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'ONG/RUB', 'min_q': '1', 'max_q': '1000000', 'min_p': '0.01', 'max_p': '100000', 'min_a': '100', 'max_a': '250000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'ONG/UAH', 'min_q': '1', 'max_q': '1000000', 'min_p': '0.01', 'max_p': '100000', 'min_a': '50', 'max_a': '6000000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'ONT/EXM', 'min_q': '1', 'max_q': '500000', 'min_p': '0.01', 'max_p': '100000', 'min_a': '200', 'max_a': '15000000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'ONT/BTC', 'min_q': '1', 'max_q': '500000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.00001', 'max_a': '10', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'ONT/RUB', 'min_q': '1', 'max_q': '500000', 'min_p': '0.01', 'max_p': '100000', 'min_a': '100', 'max_a': '6000000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'ONT/UAH', 'min_q': '1', 'max_q': '500000', 'min_p': '0.01', 'max_p': '100000', 'min_a': '200', 'max_a': '250000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'PTI/RUB', 'min_q': '1', 'max_q': '50000000', 'min_p': '0.00000001', 'max_p': '600000', 'min_a': '10', 'max_a': '600000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'PTI/BTC', 'min_q': '1', 'max_q': '50000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.000001', 'max_a': '10', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'PTI/EOS', 'min_q': '1', 'max_q': '50000000', 'min_p': '0.0000001', 'max_p': '5000', 'min_a': '0.01', 'max_a': '20000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'PTI/USDT', 'min_q': '1', 'max_q': '50000000', 'min_p': '0.000001', 'max_p': '10000', 'min_a': '0.01', 'max_a': '100000', 'taker': '0', 'maker': '0'},
+                            {'pair': 'QTUM/USD', 'min_q': '0.1', 'max_q': '500000', 'min_p': '0.00000001', 'max_p': '10000', 'min_a': '0.1', 'max_a': '500000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'QTUM/BTC', 'min_q': '0.1', 'max_q': '500000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.0001', 'max_a': '100', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'QTUM/ETH', 'min_q': '0.1', 'max_q': '500000', 'min_p': '0.00000001', 'max_p': '100', 'min_a': '0.001', 'max_a': '5000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'ROOBEE/BTC', 'min_q': '1', 'max_q': '10000000', 'min_p': '0.00000001', 'max_p': '0.1', 'min_a': '0.00001', 'max_a': '100', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'SMART/USD', 'min_q': '10', 'max_q': '100000000', 'min_p': '0.000001', 'max_p': '1000', 'min_a': '1', 'max_a': '500000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'SMART/RUB', 'min_q': '10', 'max_q': '100000000', 'min_p': '0.0001', 'max_p': '100000', 'min_a': '10', 'max_a': '50000000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'SMART/EUR', 'min_q': '10', 'max_q': '100000000', 'min_p': '0.000001', 'max_p': '1000', 'min_a': '1', 'max_a': '500000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'SMART/BTC', 'min_q': '10', 'max_q': '100000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.00001', 'max_a': '100', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'TRX/USD', 'min_q': '1', 'max_q': '50000000', 'min_p': '0.0001', 'max_p': '1000', 'min_a': '0.01', 'max_a': '500000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'TRX/EUR', 'min_q': '0.01', 'max_q': '50000000', 'min_p': '0.0001', 'max_p': '1000', 'min_a': '0.01', 'max_a': '500000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'TRX/RUB', 'min_q': '1', 'max_q': '50000000', 'min_p': '0.000001', 'max_p': '100000', 'min_a': '0.1', 'max_a': '50000000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'TRX/UAH', 'min_q': '1', 'max_q': '50000000', 'min_p': '0.000001', 'max_p': '100000', 'min_a': '0.1', 'max_a': '50000000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'TRX/BTC', 'min_q': '1', 'max_q': '50000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.001', 'max_a': '100', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'USDC/USD', 'min_q': '1', 'max_q': '500000', 'min_p': '0.0001', 'max_p': '1000', 'min_a': '3', 'max_a': '500000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'USDC/BTC', 'min_q': '1', 'max_q': '500000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.0001', 'max_a': '100', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'USDC/ETH', 'min_q': '1', 'max_q': '500000', 'min_p': '0.0000001', 'max_p': '100', 'min_a': '0.001', 'max_a': '1000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'USDC/USDT', 'min_q': '1', 'max_q': '500000', 'min_p': '0.0001', 'max_p': '1000', 'min_a': '3', 'max_a': '500000', 'taker': '0', 'maker': '0'},
+                            {'pair': 'USDT/USD', 'min_q': '1', 'max_q': '500000', 'min_p': '0.5', 'max_p': '10', 'min_a': '0.1', 'max_a': '500000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'USDT/RUB', 'min_q': '1', 'max_q': '500000', 'min_p': '0.01', 'max_p': '1000', 'min_a': '10', 'max_a': '50000000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'USDT/EUR', 'min_q': '0.01', 'max_q': '500000', 'min_p': '0.1', 'max_p': '10', 'min_a': '0.1', 'max_a': '500000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'USDT/GBP', 'min_q': '1', 'max_q': '500000', 'min_p': '0.5', 'max_p': '10', 'min_a': '0.1', 'max_a': '500000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'USDT/UAH', 'min_q': '0.01', 'max_q': '500000', 'min_p': '1', 'max_p': '3000', 'min_a': '2', 'max_a': '15000000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'USDT/KZT', 'min_q': '1', 'max_q': '500000', 'min_p': '200', 'max_p': '4000', 'min_a': '0.1', 'max_a': '500000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'VLX/BTC', 'min_q': '1', 'max_q': '10000000', 'min_p': '0.00000001', 'max_p': '0.1', 'min_a': '0.00001', 'max_a': '100', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'WAVES/USD', 'min_q': '0.5', 'max_q': '500000', 'min_p': '0.001', 'max_p': '3500', 'min_a': '0.5', 'max_a': '500000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'WAVES/RUB', 'min_q': '0.5', 'max_q': '500000', 'min_p': '0.01', 'max_p': '10000', 'min_a': '1', 'max_a': '50000000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'WAVES/BTC', 'min_q': '0.5', 'max_q': '500000', 'min_p': '0.000001', 'max_p': '1', 'min_a': '0.0001', 'max_a': '100', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'WAVES/ETH', 'min_q': '0.5', 'max_q': '500000', 'min_p': '0.00001', 'max_p': '30', 'min_a': '0.0035', 'max_a': '3500', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'XEM/USD', 'min_q': '10', 'max_q': '10000000', 'min_p': '0.00001', 'max_p': '1000', 'min_a': '0.1', 'max_a': '500000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'XEM/EUR', 'min_q': '10', 'max_q': '10000000', 'min_p': '0.00001', 'max_p': '1000', 'min_a': '0.1', 'max_a': '500000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'XEM/UAH', 'min_q': '1', 'max_q': '10000000', 'min_p': '0.0001', 'max_p': '30000', 'min_a': '10', 'max_a': '15000000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'XEM/BTC', 'min_q': '10', 'max_q': '10000000', 'min_p': '0.0000001', 'max_p': '1', 'min_a': '0.00015', 'max_a': '100', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'XLM/USD', 'min_q': '0.01', 'max_q': '5000000', 'min_p': '0.0001', 'max_p': '1000', 'min_a': '0.01', 'max_a': '500000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'XLM/RUB', 'min_q': '0.01', 'max_q': '5000000', 'min_p': '0.00001', 'max_p': '100000', 'min_a': '0.1', 'max_a': '50000000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'XLM/TRY', 'min_q': '0.01', 'max_q': '5000000', 'min_p': '0.00001', 'max_p': '100000', 'min_a': '0.1', 'max_a': '6000000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'XLM/BTC', 'min_q': '1', 'max_q': '5000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.001', 'max_a': '100', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'XMR/USD', 'min_q': '0.01', 'max_q': '10000', 'min_p': '0.001', 'max_p': '1000', 'min_a': '0.1', 'max_a': '500000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'XMR/RUB', 'min_q': '0.01', 'max_q': '10000', 'min_p': '0.001', 'max_p': '600000', 'min_a': '10', 'max_a': '16000000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'XMR/EUR', 'min_q': '0.01', 'max_q': '10000', 'min_p': '0.001', 'max_p': '1000', 'min_a': '0.1', 'max_a': '500000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'XMR/UAH', 'min_q': '0.01', 'max_q': '10000', 'min_p': '0.001', 'max_p': '300000', 'min_a': '5', 'max_a': '16000000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'XMR/BTC', 'min_q': '0.01', 'max_q': '10000', 'min_p': '0.0001', 'max_p': '1', 'min_a': '0.001', 'max_a': '100', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'XMR/ETH', 'min_q': '0.01', 'max_q': '10000', 'min_p': '0.00000001', 'max_p': '100', 'min_a': '0.001', 'max_a': '5000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'XRP/EUR', 'min_q': '1', 'max_q': '5000000', 'min_p': '0.001', 'max_p': '1000', 'min_a': '0.001', 'max_a': '500000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'XRP/GBP', 'min_q': '1', 'max_q': '5000000', 'min_p': '0.001', 'max_p': '1000', 'min_a': '0.001', 'max_a': '500000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'XRP/TRY', 'min_q': '1', 'max_q': '5000000', 'min_p': '0.0001', 'max_p': '1000', 'min_a': '0.01', 'max_a': '6000000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'XRP/UAH', 'min_q': '1', 'max_q': '5000000', 'min_p': '0.0001', 'max_p': '1000', 'min_a': '0.01', 'max_a': '15000000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'XRP/USDT', 'min_q': '1', 'max_q': '5000000', 'min_p': '0.001', 'max_p': '1000', 'min_a': '0.001', 'max_a': '500000', 'taker': '0', 'maker': '0'},
+                            {'pair': 'XRP/ETH', 'min_q': '1', 'max_q': '5000000', 'min_p': '0.00000001', 'max_p': '10', 'min_a': '0.00001', 'max_a': '5000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'XTZ/USD', 'min_q': '0.1', 'max_q': '100000', 'min_p': '0.0001', 'max_p': '1000', 'min_a': '0.1', 'max_a': '100000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'XTZ/RUB', 'min_q': '0.1', 'max_q': '100000', 'min_p': '0.00001', 'max_p': '100000', 'min_a': '0.5', 'max_a': '500000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'XTZ/BTC', 'min_q': '0.1', 'max_q': '100000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.00001', 'max_a': '10', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'XTZ/ETH', 'min_q': '0.1', 'max_q': '100000', 'min_p': '0.0000001', 'max_p': '10', 'min_a': '0.0001', 'max_a': '1000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'ZEC/USD', 'min_q': '0.01', 'max_q': '10000', 'min_p': '0.001', 'max_p': '5000', 'min_a': '0.1', 'max_a': '500000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'ZEC/RUB', 'min_q': '0.01', 'max_q': '10000', 'min_p': '0.001', 'max_p': '100000', 'min_a': '0.1', 'max_a': '50000000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'ZEC/EUR', 'min_q': '0.01', 'max_q': '10000', 'min_p': '0.001', 'max_p': '5000', 'min_a': '0.1', 'max_a': '500000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'ZEC/BTC', 'min_q': '0.01', 'max_q': '10000', 'min_p': '0.00001', 'max_p': '10', 'min_a': '0.001', 'max_a': '100', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'ZRX/USD', 'min_q': '0.01', 'max_q': '10000000', 'min_p': '0.00001', 'max_p': '1000', 'min_a': '0.1', 'max_a': '500000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'ZRX/BTC', 'min_q': '1', 'max_q': '10000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.001', 'max_a': '100', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'ZRX/ETH', 'min_q': '0.01', 'max_q': '10000000', 'min_p': '0.00000001', 'max_p': '10', 'min_a': '0.01', 'max_a': '5000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'ZAG/BTC', 'min_q': '1', 'max_q': '10000000', 'min_p': '0.00000001', 'max_p': '0.1', 'min_a': '0.00001', 'max_a': '100', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'USD/RUB', 'min_q': '1', 'max_q': '500000', 'min_p': '0.01', 'max_p': '1000', 'min_a': '10', 'max_a': '50000000', 'taker': '0.4', 'maker': '0.4'},
+                            {'pair': 'EXM/BTC', 'min_q': '1', 'max_q': '100000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.0000001', 'max_a': '1', 'taker': '0.4', 'maker': '0.4'},
+                        ],
+                        'fees': [
+                            {
+                                'group': 'crypto',
+                                'title': 'Cryptocurrency',
+                                'items': [
+                                    {'prov': 'EXM', 'dep': '0%', 'wd': '1 EXM'},
+                                    {'prov': 'BTC', 'dep': '0%', 'wd': '0.0004 BTC'},
+                                    {'prov': 'LTC', 'dep': '0%', 'wd': '0.01 LTC'},
+                                    {'prov': 'DOGE', 'dep': '0%', 'wd': '1 Doge'},
+                                    {'prov': 'DASH', 'dep': '0%', 'wd': '0.002 DASH'},
+                                    {'prov': 'ETH', 'dep': '0%', 'wd': '0.003 ETH'},
+                                    {'prov': 'WAVES', 'dep': '0%', 'wd': '0.001 WAVES'},
+                                    {'prov': 'ZEC', 'dep': '0%', 'wd': '0.001 ZEC'},
+                                    {'prov': 'USDT', 'dep': '0%', 'wd': ''},
+                                    {'prov': 'XMR', 'dep': '0%', 'wd': '0.001 XMR'},
+                                    {'prov': 'XRP', 'dep': '0%', 'wd': '0.02 XRP'},
+                                    {'prov': 'ETC', 'dep': '0%', 'wd': '0.01 ETC'},
+                                    {'prov': 'BCH', 'dep': '0%', 'wd': '0.001 BCH'},
+                                    {'prov': 'BTG', 'dep': '0%', 'wd': '0.001 BTG'},
+                                    {'prov': 'EOS', 'dep': '0%', 'wd': '0.05 EOS'},
+                                    {'prov': 'XLM', 'dep': '0%', 'wd': '0.01 XLM'},
+                                    {'prov': 'OMG', 'dep': '0.1 OMG', 'wd': '0.5 OMG'},
+                                    {'prov': 'TRX', 'dep': '0%', 'wd': '1 TRX'},
+                                    {'prov': 'ADA', 'dep': '0%', 'wd': '1 ADA'},
+                                    {'prov': 'NEO', 'dep': '0%', 'wd': '0%'},
+                                    {'prov': 'GAS', 'dep': '0%', 'wd': '0%'},
+                                    {'prov': 'ZRX', 'dep': '0%', 'wd': '1 ZRX'},
+                                    {'prov': 'GNT', 'dep': '0%', 'wd': '1 GNT'},
+                                    {'prov': 'GUSD', 'dep': '0%', 'wd': '0.5 GUSD'},
+                                    {'prov': 'LSK', 'dep': '0%', 'wd': '0.1 LSK'},
+                                    {'prov': 'XEM', 'dep': '0%', 'wd': '5 XEM'},
+                                    {'prov': 'SMART', 'dep': '0%', 'wd': '0.5 SMART'},
+                                    {'prov': 'QTUM', 'dep': '0%', 'wd': '0.01 QTUM'},
+                                    {'prov': 'HB', 'dep': '0%', 'wd': '10 HB'},
+                                    {'prov': 'DAI', 'dep': '0%', 'wd': '1 DAI'},
+                                    {'prov': 'MKR', 'dep': '0%', 'wd': '0.005 MKR'},
+                                    {'prov': 'MNC', 'dep': '0%', 'wd': '15 MNC'},
+                                    {'prov': 'PTI', 'dep': '-', 'wd': '10 PTI'},
+                                    {'prov': 'ETZ', 'dep': '0%', 'wd': '1 ETZ'},
+                                    {'prov': 'USDC', 'dep': '0%', 'wd': '0.5 USDC'},
+                                    {'prov': 'ROOBEE', 'dep': '0%', 'wd': '200 ROOBEE'},
+                                    {'prov': 'DCR', 'dep': '0%', 'wd': '0.01 DCR'},
+                                    {'prov': 'ZAG', 'dep': '0%', 'wd': '0%'},
+                                    {'prov': 'BTT', 'dep': '0 BTT', 'wd': '100 BTT'},
+                                    {'prov': 'VLX', 'dep': '0%', 'wd': '1 VLX'},
+                                    {'prov': 'CRON', 'dep': '0%', 'wd': '5 CRON'},
+                                    {'prov': 'ONT', 'dep': '0%', 'wd': '1 ONT'},
+                                    {'prov': 'ONG', 'dep': '0%', 'wd': '5 ONG'},
+                                    {'prov': 'ALGO', 'dep': '0%', 'wd': '0.01 ALGO'},
+                                    {'prov': 'ATOM', 'dep': '0%', 'wd': '0.05 ATOM'},
+                                ],
+                            },
+                            {
+                                'group': 'usd',
+                                'title': 'USD',
+                                'items': [
+                                    {'prov': 'Payeer', 'dep': '3.95%', 'wd': '-'},
+                                    {'prov': 'EX-CODE', 'dep': '', 'wd': '0.2%'},
+                                    {'prov': 'AdvCash', 'dep': '0%', 'wd': '2.49%'},
+                                    {'prov': 'Visa/MasterCard(Simplex)', 'dep': '4.5% + 0.5 USD', 'wd': '-'},
+                                    {'prov': 'Visa', 'dep': '3.45%', 'wd': '-'},
+                                    {'prov': 'Frick Bank', 'dep': '0 USD', 'wd': '-'},
+                                ],
+                            },
+                            {
+                                'group': 'eur',
+                                'title': 'EUR',
+                                'items': [
+                                    {'prov': 'Visa/MasterCard', 'dep': '4.5% + 0.5  EUR', 'wd': '-'},
+                                    {'prov': 'EX-CODE', 'dep': '', 'wd': '0.2%'},
+                                    {'prov': 'Visa', 'dep': '2.95%', 'wd': '-'},
+                                    {'prov': 'Frick Internal Transfer', 'dep': '0 EUR', 'wd': '-'},
+                                    {'prov': 'SEPA Frick Bank', 'dep': '0 EUR', 'wd': '1 EUR'},
+                                    {'prov': 'WIRE Frick Bank', 'dep': '0%', 'wd': '20 EUR'},
+                                    {'prov': 'SEPA Weg Ag', 'dep': '-', 'wd': '1 EUR'},
+                                ],
+                            },
+                            {
+                                'group': 'gbp',
+                                'title': 'GBP',
+                                'items': [
+                                    {'prov': 'EX-CODE', 'dep': '', 'wd': '0.2%'},
+                                    {'prov': 'WIRE Frick Bank', 'dep': '10 GBP', 'wd': '-'},
+                                ],
+                            },
+                            {
+                                'group': 'rub',
+                                'title': 'RUB',
+                                'items': [
+                                    {'prov': 'Payeer', 'dep': '2.49%', 'wd': '3.49%'},
+                                    {'prov': 'EX-CODE', 'dep': '', 'wd': '0.2%'},
+                                    {'prov': 'Qiwi', 'dep': '1.49%', 'wd': '2.49%'},
+                                    {'prov': 'Yandex Money', 'dep': '1.49%', 'wd': '1.95 %'},
+                                    {'prov': 'AdvCash', 'dep': '0.99%', 'wd': '0.99%'},
+                                    {'prov': 'Visa/MasterCard', 'dep': '2.99%', 'wd': '3.99% + 60 RUB'},
+                                ],
+                            },
+                            {
+                                'group': 'pln',
+                                'title': 'PLN',
+                                'items': [
+                                    {'prov': 'EX-CODE', 'dep': '', 'wd': '0.2%'},
+                                ],
+                            },
+                            {
+                                'group': 'try',
+                                'title': 'TRY',
+                                'items': [
+                                    {'prov': 'EX-CODE', 'dep': '', 'wd': '0.2%'},
+                                    {'prov': 'Visa', 'dep': '3.05%', 'wd': '-'},
+                                    {'prov': 'Visa/MasterCard(Simplex)', 'dep': '4.5% + 2 TRY', 'wd': '-'},
+                                    {'prov': 'AdvCash', 'dep': '0%', 'wd': '-'},
+                                ],
+                            },
+                            {
+                                'group': 'uah',
+                                'title': 'UAH',
+                                'items': [
+                                    {'prov': 'EX-CODE', 'dep': '', 'wd': '0.2%'},
+                                    {'prov': 'Terminal', 'dep': '2.6%', 'wd': '-'},
+                                    {'prov': 'Visa/MasterCard EasyTransfer', 'dep': '-', 'wd': '2.99%'},
+                                    {'prov': 'Visa/MasterCard', 'dep': '1% + 5 UAH', 'wd': '-'},
+                                ],
+                            },
+                            {
+                                'group': 'kzt',
+                                'title': 'KZT',
+                                'items': [
+                                    {'prov': 'Visa/MasterCard', 'dep': '3.5%', 'wd': '2.99% + 450 KZT'},
+                                    {'prov': 'EX-CODE', 'dep': '', 'wd': '0.2%'},
+                                    {'prov': 'AdvCash', 'dep': '0%', 'wd': '-'},
+                                ],
+                            },
+                        ],
+                    },
+                },
+            },
             'exceptions': {
-                '40005': AuthenticationError,  # Authorization error, incorrect signature
-                '40009': InvalidNonce,  #
-                '40015': ExchangeError,  # API function do not exist
-                '40016': ExchangeNotAvailable,  # Maintenance work in progress
-                '40017': AuthenticationError,  # Wrong API Key
-                '50052': InsufficientFunds,
-                '50054': InsufficientFunds,
-                '50304': OrderNotFound,  # "Order was not found '123456789'"(fetching order trades for an order that does not have trades yet)
-                '50173': OrderNotFound,  # "Order with id X was not found."(cancelling non-existent, closed and cancelled order)
-                '50319': InvalidOrder,  # Price by order is less than permissible minimum for self pair
-                '50321': InvalidOrder,  # Price by order is more than permissible maximum for self pair
+                'exact': {
+                    '40005': AuthenticationError,  # Authorization error, incorrect signature
+                    '40009': InvalidNonce,  #
+                    '40015': ExchangeError,  # API function do not exist
+                    '40016': OnMaintenance,  # {"result":false,"error":"Error 40016: Maintenance work in progress"}
+                    '40017': AuthenticationError,  # Wrong API Key
+                    '40032': PermissionDenied,  # {"result":false,"error":"Error 40032: Access is denied for self API key"}
+                    '40034': RateLimitExceeded,  # {"result":false,"error":"Error 40034: Access is denied, rate limit is exceeded"}
+                    '50052': InsufficientFunds,
+                    '50054': InsufficientFunds,
+                    '50304': OrderNotFound,  # "Order was not found '123456789'"(fetching order trades for an order that does not have trades yet)
+                    '50173': OrderNotFound,  # "Order with id X was not found."(cancelling non-existent, closed and cancelled order)
+                    '50277': InvalidOrder,
+                    '50319': InvalidOrder,  # Price by order is less than permissible minimum for self pair
+                    '50321': InvalidOrder,  # Price by order is more than permissible maximum for self pair
+                },
+                'broad': {
+                    'range period is too long': BadRequest,
+                    'invalid syntax': BadRequest,
+                    'API rate limit exceeded': RateLimitExceeded,  # {"result":false,"error":"API rate limit exceeded for 99.33.55.224. Retry after 60 sec.","history":[],"begin":1579392000,"end":1579478400}
+                },
             },
         })
 
     async def fetch_trading_fees(self, params={}):
-        response = None
-        oldParseJsonResponse = self.parseJsonResponse
-        try:
-            self.parseJsonResponse = False
+        if self.options['useWebapiForFetchingFees']:
             response = await self.webGetEnDocsFees(params)
-            self.parseJsonResponse = oldParseJsonResponse
-        except Exception as e:
-            # ensure parseJsonResponse is restored no matter what
-            self.parseJsonResponse = oldParseJsonResponse
-            raise e
-        parts = response.split('<td class="th_fees_2" colspan="2">')
-        numParts = len(parts)
-        if numParts != 2:
-            raise ExchangeError(self.id + ' fetchTradingFees format has changed')
-        rest = parts[1]
-        parts = rest.split('</td>')
-        numParts = len(parts)
-        if numParts < 2:
-            raise ExchangeError(self.id + ' fetchTradingFees format has changed')
-        fee = float(parts[0].replace('%', '')) * 0.01
-        taker = fee
-        maker = fee
-        return {
-            'info': response,
-            'maker': maker,
-            'taker': taker,
-        }
+            parts = response.split('<td class="th_fees_2" colspan="2">')
+            numParts = len(parts)
+            if numParts != 2:
+                raise NotSupported(self.id + ' fetchTradingFees format has changed')
+            rest = parts[1]
+            parts = rest.split('</td>')
+            numParts = len(parts)
+            if numParts < 2:
+                raise NotSupported(self.id + ' fetchTradingFees format has changed')
+            fee = float(parts[0].replace('%', '')) * 0.01
+            taker = fee
+            maker = fee
+            return {
+                # 'info': response,
+                'maker': maker,
+                'taker': taker,
+            }
+        else:
+            return {
+                'maker': self.fees['trading']['maker'],
+                'taker': self.fees['trading']['taker'],
+            }
 
     def parse_fixed_float_value(self, input):
         if (input is None) or (input == '-'):
             return None
+        if input == '':
+            return 0
         isPercentage = (input.find('%') >= 0)
         parts = input.split(' ')
         value = parts[0].replace('%', '')
@@ -166,81 +523,11 @@ class exmo (Exchange):
         return result
 
     async def fetch_funding_fees(self, params={}):
-        response = await self.webGetCtrlFeesAndLimits(params)
-        #
-        #     {success:    1,
-        #          ctlr:   "feesAndLimits",
-        #         error:   "",
-        #          data: {limits: [{ pair: "BTC/USD",
-        #                              min_q: "0.001",
-        #                              max_q: "100",
-        #                              min_p: "1",
-        #                              max_p: "30000",
-        #                              min_a: "1",
-        #                              max_a: "200000"   },
-        #                            { pair: "KICK/ETH",
-        #                              min_q: "100",
-        #                              max_q: "200000",
-        #                              min_p: "0.000001",
-        #                              max_p: "1",
-        #                              min_a: "0.0001",
-        #                              max_a: "100"       }    ],
-        #                    fees: [{group:   "crypto",
-        #                              title:   "Криптовалюта",
-        #                              items: [{prov: "BTC", dep: "0%", wd: "0.0005 BTC"},
-        #                                       {prov: "LTC", dep: "0%", wd: "0.01 LTC"},
-        #                                       {prov: "DOGE", dep: "0%", wd: "1 Doge"},
-        #                                       {prov: "DASH", dep: "0%", wd: "0.01 DASH"},
-        #                                       {prov: "ETH", dep: "0%", wd: "0.01 ETH"},
-        #                                       {prov: "WAVES", dep: "0%", wd: "0.001 WAVES"},
-        #                                       {prov: "ZEC", dep: "0%", wd: "0.001 ZEC"},
-        #                                       {prov: "USDT", dep: "5 USDT", wd: "5 USDT"},
-        #                                       {prov: "NEO", dep: "0%", wd: "0%"},
-        #                                       {prov: "GAS", dep: "0%", wd: "0%"},
-        #                                       {prov: "ZRX", dep: "0%", wd: "1 ZRX"},
-        #                                       {prov: "GNT", dep: "0%", wd: "1 GNT"}]},
-        #                            {group:   "usd",
-        #                              title:   "USD",
-        #                              items: [{prov: "AdvCash", dep: "1%", wd: "3%"},
-        #                                       {prov: "Perfect Money", dep: "-", wd: "1%"},
-        #                                       {prov: "Neteller", dep: "3.5% + 0.29 USD, wd: "1.95%"},
-        #                                       {prov: "Wire Transfer", dep: "0%", wd: "1% + 20 USD"},
-        #                                       {prov: "CryptoCapital", dep: "0.5%", wd: "1.9%"},
-        #                                       {prov: "Skrill", dep: "3.5% + 0.36 USD", wd: "3%"},
-        #                                       {prov: "Payeer", dep: "1.95%", wd: "3.95%"},
-        #                                       {prov: "Visa/MasterCard(Simplex)", dep: "6%", wd: "-"}]},
-        #                            {group:   "eur",
-        #                              title:   "EUR",
-        #                              items: [{prov: "CryptoCapital", dep: "0%", wd: "-"},
-        #                                       {prov: "SEPA", dep: "25 EUR", wd: "1%"},
-        #                                       {prov: "Perfect Money", dep: "-", wd: "1.95%"},
-        #                                       {prov: "Neteller", dep: "3.5%+0.25 EUR", wd: "1.95%"},
-        #                                       {prov: "Payeer", dep: "2%", wd: "1%"},
-        #                                       {prov: "AdvCash", dep: "1%", wd: "3%"},
-        #                                       {prov: "Skrill", dep: "3.5% + 0.29 EUR", wd: "3%"},
-        #                                       {prov: "Rapid Transfer", dep: "1.5% + 0.29 EUR", wd: "-"},
-        #                                       {prov: "MisterTango SEPA", dep: "5 EUR", wd: "1%"},
-        #                                       {prov: "Visa/MasterCard(Simplex)", dep: "6%", wd: "-"}]},
-        #                            {group:   "rub",
-        #                              title:   "RUB",
-        #                              items: [{prov: "Payeer", dep: "2.45%", wd: "5.95%"},
-        #                                       {prov: "Yandex Money", dep: "4.5%", wd: "-"},
-        #                                       {prov: "AdvCash", dep: "1.45%", wd: "5.45%"},
-        #                                       {prov: "Qiwi", dep: "4.95%", wd: "-"},
-        #                                       {prov: "Visa/Mastercard", dep: "-", wd: "6.95% + 100 RUB"  }]},
-        #                            {group:   "pln",
-        #                              title:   "PLN",
-        #                              items: [{prov: "Neteller", dep: "3.5% + 4 PLN", wd: "-"},
-        #                                       {prov: "Rapid Transfer", dep: "1.5% + 1.21 PLN", wd: "-"},
-        #                                       {prov: "CryptoCapital", dep: "20 PLN", wd: "-"},
-        #                                       {prov: "Skrill", dep: "3.5% + 1.21 PLN", wd: "-"},
-        #                                       {prov: "Visa/MasterCard(Simplex)", dep: "6%", wd: "-"}]},
-        #                            {group:   "uah",
-        #                              title:   "UAH",
-        #                              items: [{prov: "AdvCash", dep: "1%", wd: "6%"},
-        #                                       {prov: "Visa/MasterCard", dep: "2.6%", wd: "8% + 30 UAH"}]}]} }
-        #
-        #
+        response = None
+        if self.options['useWebapiForFetchingFees']:
+            response = await self.webGetCtrlFeesAndLimits(params)
+        else:
+            response = self.options['feesAndLimits']
         # the code below assumes all non-zero crypto fees are fixed(for now)
         withdraw = {}
         deposit = {}
@@ -249,9 +536,19 @@ class exmo (Exchange):
         items = groupsByGroup['crypto']['items']
         for i in range(0, len(items)):
             item = items[i]
-            code = self.common_currency_code(self.safe_string(item, 'prov'))
-            withdraw[code] = self.parse_fixed_float_value(self.safe_string(item, 'wd'))
-            deposit[code] = self.parse_fixed_float_value(self.safe_string(item, 'dep'))
+            code = self.safe_currency_code(self.safe_string(item, 'prov'))
+            withdrawalFee = self.safe_string(item, 'wd')
+            depositFee = self.safe_string(item, 'dep')
+            if withdrawalFee is not None:
+                withdraw[code] = self.parse_fixed_float_value(withdrawalFee)
+            if depositFee is not None:
+                deposit[code] = self.parse_fixed_float_value(depositFee)
+        # sets fiat fees to None
+        fiatGroups = self.to_array(self.omit(groupsByGroup, 'crypto'))
+        for i in range(0, len(fiatGroups)):
+            code = self.safe_currency_code(self.safe_string(fiatGroups[i], 'title'))
+            withdraw[code] = None
+            deposit[code] = None
         result = {
             'info': response,
             'withdraw': withdraw,
@@ -277,8 +574,8 @@ class exmo (Exchange):
             marketId = marketIds[i]
             limit = limitsByMarketId[marketId]
             baseId, quoteId = marketId.split('/')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             maxAmount = self.safe_float(limit, 'max_q')
             maxPrice = self.safe_float(limit, 'max_p')
             maxCost = self.safe_float(limit, 'max_a')
@@ -294,7 +591,7 @@ class exmo (Exchange):
         result = {}
         for i in range(0, len(ids)):
             id = ids[i]
-            code = self.common_currency_code(id)
+            code = self.safe_currency_code(id)
             fee = self.safe_value(fees['withdraw'], code)
             active = True
             result[code] = {
@@ -318,28 +615,48 @@ class exmo (Exchange):
                         'max': self.safe_float(maxCosts, code),
                     },
                 },
-                'info': fee,
+                'info': id,
             }
         return result
 
-    async def fetch_markets(self):
-        fees = await self.fetch_trading_fees()
-        markets = await self.publicGetPairSettings()
-        keys = list(markets.keys())
+    async def fetch_markets(self, params={}):
+        response = await self.publicGetPairSettings(params)
+        #
+        #     {
+        #         "BTC_USD":{
+        #             "min_quantity":"0.0001",
+        #             "max_quantity":"1000",
+        #             "min_price":"1",
+        #             "max_price":"30000",
+        #             "max_amount":"500000",
+        #             "min_amount":"1",
+        #             "price_precision":8,
+        #             "commission_taker_percent":"0.4",
+        #             "commission_maker_percent":"0.4"
+        #         },
+        #     }
+        #
+        keys = list(response.keys())
         result = []
-        for p in range(0, len(keys)):
-            id = keys[p]
-            market = markets[id]
+        for i in range(0, len(keys)):
+            id = keys[i]
+            market = response[id]
             symbol = id.replace('_', '/')
-            base, quote = symbol.split('/')
+            baseId, quoteId = symbol.split('/')
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
+            taker = self.safe_float(market, 'commission_taker_percent')
+            maker = self.safe_float(market, 'commission_maker_percent')
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'active': True,
-                'taker': fees['taker'],
-                'maker': fees['maker'],
+                'taker': taker / 100,
+                'maker': maker / 100,
                 'limits': {
                     'amount': {
                         'min': self.safe_float(market, 'min_quantity'),
@@ -356,41 +673,102 @@ class exmo (Exchange):
                 },
                 'precision': {
                     'amount': 8,
-                    'price': 8,
+                    'price': self.safe_integer(market, 'price_precision'),
                 },
                 'info': market,
             })
         return result
 
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+            'resolution': self.timeframes[timeframe],
+        }
+        options = self.safe_value(self.options, 'fetchOHLCV')
+        maxLimit = self.safe_integer(options, 'maxLimit', 3000)
+        duration = self.parse_timeframe(timeframe)
+        now = self.milliseconds()
+        if since is None:
+            if limit is None:
+                raise ArgumentsRequired(self.id + ' fetchOHLCV requires a since argument or a limit argument')
+            else:
+                if limit > maxLimit:
+                    raise BadRequest(self.id + ' fetchOHLCV will serve ' + str(maxLimit) + ' candles at most')
+                request['from'] = int(now / 1000) - limit * duration - 1
+                request['to'] = int(now / 1000)
+        else:
+            request['from'] = int(since / 1000) - 1
+            if limit is None:
+                request['to'] = int(now / 1000)
+            else:
+                if limit > maxLimit:
+                    raise BadRequest(self.id + ' fetchOHLCV will serve ' + str(maxLimit) + ' candles at most')
+                to = self.sum(since, limit * duration * 1000)
+                request['to'] = int(to / 1000)
+        response = await self.publicGetCandlesHistory(self.extend(request, params))
+        #
+        #     {
+        #         "candles":[
+        #             {"t":1584057600000,"o":0.02235144,"c":0.02400233,"h":0.025171,"l":0.02221,"v":5988.34031761},
+        #             {"t":1584144000000,"o":0.0240373,"c":0.02367413,"h":0.024399,"l":0.0235,"v":2027.82522329},
+        #             {"t":1584230400000,"o":0.02363458,"c":0.02319242,"h":0.0237948,"l":0.02223196,"v":1707.96944997},
+        #         ]
+        #     }
+        #
+        candles = self.safe_value(response, 'candles', [])
+        return self.parse_ohlcvs(candles, market, timeframe, since, limit)
+
+    def parse_ohlcv(self, ohlcv, market=None):
+        #
+        #     {
+        #         "t":1584057600000,
+        #         "o":0.02235144,
+        #         "c":0.02400233,
+        #         "h":0.025171,
+        #         "l":0.02221,
+        #         "v":5988.34031761
+        #     }
+        #
+        return [
+            self.safe_integer(ohlcv, 't'),
+            self.safe_float(ohlcv, 'o'),
+            self.safe_float(ohlcv, 'h'),
+            self.safe_float(ohlcv, 'l'),
+            self.safe_float(ohlcv, 'c'),
+            self.safe_float(ohlcv, 'v'),
+        ]
+
     async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privatePostUserInfo(params)
         result = {'info': response}
-        currencies = list(self.currencies.keys())
-        for i in range(0, len(currencies)):
-            currency = currencies[i]
+        codes = list(self.currencies.keys())
+        for i in range(0, len(codes)):
+            code = codes[i]
+            currencyId = self.currency_id(code)
             account = self.account()
-            if currency in response['balances']:
-                account['free'] = float(response['balances'][currency])
-            if currency in response['reserved']:
-                account['used'] = float(response['reserved'][currency])
-            account['total'] = self.sum(account['free'], account['used'])
-            result[currency] = account
+            if currencyId in response['balances']:
+                account['free'] = self.safe_float(response['balances'], currencyId)
+            if currencyId in response['reserved']:
+                account['used'] = self.safe_float(response['reserved'], currencyId)
+            result[code] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        request = self.extend({
+        request = {
             'pair': market['id'],
-        }, params)
+        }
         if limit is not None:
             request['limit'] = limit
-        response = await self.publicGetOrderBook(request)
-        result = response[market['id']]
+        response = await self.publicGetOrderBook(self.extend(request, params))
+        result = self.safe_value(response, market['id'])
         return self.parse_order_book(result, None, 'bid', 'ask')
 
-    async def fetch_order_books(self, symbols=None, params={}):
+    async def fetch_order_books(self, symbols=None, limit=None, params={}):
         await self.load_markets()
         ids = None
         if symbols is None:
@@ -402,21 +780,27 @@ class exmo (Exchange):
         else:
             ids = self.market_ids(symbols)
             ids = ','.join(ids)
-        response = await self.publicGetOrderBook(self.extend({
+        request = {
             'pair': ids,
-        }, params))
+        }
+        if limit is not None:
+            request['limit'] = limit
+        response = await self.publicGetOrderBook(self.extend(request, params))
         result = {}
-        ids = list(response.keys())
-        for i in range(0, len(ids)):
-            id = ids[i]
-            symbol = self.find_symbol(id)
-            result[symbol] = self.parse_order_book(response[id], None, 'bid', 'ask')
+        marketIds = list(response.keys())
+        for i in range(0, len(marketIds)):
+            marketId = marketIds[i]
+            symbol = marketId
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+                symbol = market['symbol']
+            result[symbol] = self.parse_order_book(response[marketId], None, 'bid', 'ask')
         return result
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = ticker['updated'] * 1000
+        timestamp = self.safe_timestamp(ticker, 'updated')
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
         last = self.safe_float(ticker, 'last_trade')
         return {
@@ -462,8 +846,36 @@ class exmo (Exchange):
         return self.parse_ticker(response[market['id']], market)
 
     def parse_trade(self, trade, market=None):
-        timestamp = trade['date'] * 1000
-        fee = None
+        #
+        # fetchTrades(public)
+        #
+        #     {
+        #         "trade_id":165087520,
+        #         "date":1587470005,
+        #         "type":"buy",
+        #         "quantity":"1.004",
+        #         "price":"0.02491461",
+        #         "amount":"0.02501426"
+        #     },
+        #
+        # fetchMyTrades, fetchOrderTrades
+        #
+        #     {
+        #         "trade_id": 3,
+        #         "date": 1435488248,
+        #         "type": "buy",
+        #         "pair": "BTC_USD",
+        #         "order_id": 12345,
+        #         "quantity": 1,
+        #         "price": 100,
+        #         "amount": 100,
+        #         "exec_type": "taker",
+        #         "commission_amount": "0.02",
+        #         "commission_currency": "BTC",
+        #         "commission_percent": "0.2"
+        #     }
+        #
+        timestamp = self.safe_timestamp(trade, 'date')
         symbol = None
         id = self.safe_string(trade, 'trade_id')
         orderId = self.safe_string(trade, 'order_id')
@@ -472,22 +884,31 @@ class exmo (Exchange):
         cost = self.safe_float(trade, 'amount')
         side = self.safe_string(trade, 'type')
         type = None
-        if market is not None:
+        marketId = self.safe_string(trade, 'pair')
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+            else:
+                baseId, quoteId = marketId.split('_')
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
+                symbol = base + '/' + quote
+        if (symbol is None) and (market is not None):
             symbol = market['symbol']
-            if market['taker'] != market['maker']:
-                raise ExchangeError(self.id + ' parseTrade can not deduce proper fee costs, taker and maker fees now differ')
-            if (side == 'buy') and(amount is not None):
-                fee = {
-                    'currency': market['base'],
-                    'cost': amount * market['taker'],
-                    'rate': market['taker'],
-                }
-            elif (side == 'sell') and(cost is not None):
-                fee = {
-                    'currency': market['quote'],
-                    'cost': amount * market['taker'],
-                    'rate': market['taker'],
-                }
+        takerOrMaker = self.safe_string(trade, 'exec_type')
+        fee = None
+        feeCost = self.safe_float(trade, 'commission_amount')
+        if feeCost is not None:
+            feeCurrencyId = self.safe_string(trade, 'commission_currency')
+            feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
+            feeRate = self.safe_float(trade, 'commission_percent')
+            if feeRate is not None:
+                feeRate /= 1000
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+                'rate': feeRate,
+            }
         return {
             'id': id,
             'info': trade,
@@ -497,6 +918,7 @@ class exmo (Exchange):
             'order': orderId,
             'type': type,
             'side': side,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -506,28 +928,82 @@ class exmo (Exchange):
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.publicGetTrades(self.extend({
+        request = {
             'pair': market['id'],
-        }, params))
-        return self.parse_trades(response[market['id']], market, since, limit)
+        }
+        response = await self.publicGetTrades(self.extend(request, params))
+        #
+        #     {
+        #         "ETH_BTC":[
+        #             {
+        #                 "trade_id":165087520,
+        #                 "date":1587470005,
+        #                 "type":"buy",
+        #                 "quantity":"1.004",
+        #                 "price":"0.02491461",
+        #                 "amount":"0.02501426"
+        #             },
+        #             {
+        #                 "trade_id":165087369,
+        #                 "date":1587469938,
+        #                 "type":"buy",
+        #                 "quantity":"0.94",
+        #                 "price":"0.02492348",
+        #                 "amount":"0.02342807"
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, market['id'], [])
+        return self.parse_trades(data, market, since, limit)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        # a symbol is required but it can be a single string, or a non-empty array
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument(a single symbol or an array)')
         await self.load_markets()
-        request = {}
+        pair = None
         market = None
-        if symbol is not None:
+        if isinstance(symbol, list):
+            numSymbols = len(symbol)
+            if numSymbols < 1:
+                raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a non-empty symbol array')
+            marketIds = self.market_ids(symbol)
+            pair = ','.join(marketIds)
+        else:
             market = self.market(symbol)
-            request['pair'] = market['id']
+            pair = market['id']
+        request = {
+            'pair': pair,
+        }
+        if limit is not None:
+            request['limit'] = limit
         response = await self.privatePostUserTrades(self.extend(request, params))
-        if market is not None:
-            response = response[market['id']]
-        return self.parse_trades(response, market, since, limit)
+        result = []
+        marketIds = list(response.keys())
+        for i in range(0, len(marketIds)):
+            marketId = marketIds[i]
+            symbol = None
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+                symbol = market['symbol']
+            else:
+                baseId, quoteId = marketId.split('_')
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
+                symbol = base + '/' + quote
+            items = response[marketId]
+            trades = self.parse_trades(items, market, since, limit, {
+                'symbol': symbol,
+            })
+            result = self.array_concat(result, trades)
+        return self.filter_by_since_limit(result, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         prefix = (type + '_') if (type == 'market') else ''
         market = self.market(symbol)
-        if (type == 'market') and(price is None):
+        if (type == 'market') and (price is None):
             price = 0
         request = {
             'pair': market['id'],
@@ -543,6 +1019,7 @@ class exmo (Exchange):
         status = 'open'
         order = {
             'id': id,
+            'info': response,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -557,13 +1034,16 @@ class exmo (Exchange):
             'filled': 0.0,
             'fee': None,
             'trades': None,
+            'clientOrderId': None,
+            'average': None,
         }
         self.orders[id] = order
-        return self.extend({'info': response}, order)
+        return order
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        response = await self.privatePostOrderCancel({'order_id': id})
+        request = {'order_id': id}
+        response = await self.privatePostOrderCancel(self.extend(request, params))
         if id in self.orders:
             self.orders[id]['status'] = 'canceled'
         return response
@@ -571,10 +1051,35 @@ class exmo (Exchange):
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
         try:
-            response = await self.privatePostOrderTrades({
+            request = {
                 'order_id': str(id),
+            }
+            response = await self.privatePostOrderTrades(self.extend(request, params))
+            #
+            #     {
+            #         "type": "buy",
+            #         "in_currency": "BTC",
+            #         "in_amount": "1",
+            #         "out_currency": "USD",
+            #         "out_amount": "100",
+            #         "trades": [
+            #             {
+            #                 "trade_id": 3,
+            #                 "date": 1435488248,
+            #                 "type": "buy",
+            #                 "pair": "BTC_USD",
+            #                 "order_id": 12345,
+            #                 "quantity": 1,
+            #                 "price": 100,
+            #                 "amount": 100
+            #             }
+            #         ]
+            #     }
+            #
+            order = self.parse_order(response)
+            return self.extend(order, {
+                'id': str(id),
             })
-            return self.parse_order(response)
         except Exception as e:
             if isinstance(e, OrderNotFound):
                 if id in self.orders:
@@ -585,10 +1090,37 @@ class exmo (Exchange):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        response = await self.privatePostOrderTrades({
+        request = {
             'order_id': str(id),
-        })
-        return self.parse_trades(response, market, since, limit)
+        }
+        response = await self.privatePostOrderTrades(self.extend(request, params))
+        #
+        #     {
+        #         "type": "buy",
+        #         "in_currency": "BTC",
+        #         "in_amount": "1",
+        #         "out_currency": "USD",
+        #         "out_amount": "100",
+        #         "trades": [
+        #             {
+        #                 "trade_id": 3,
+        #                 "date": 1435488248,
+        #                 "type": "buy",
+        #                 "pair": "BTC_USD",
+        #                 "order_id": 12345,
+        #                 "quantity": 1,
+        #                 "price": 100,
+        #                 "amount": 100,
+        #                 "exec_type": "taker",
+        #                 "commission_amount": "0.02",
+        #                 "commission_currency": "BTC",
+        #                 "commission_percent": "0.2"
+        #             }
+        #         ]
+        #     }
+        #
+        trades = self.safe_value(response, 'trades')
+        return self.parse_trades(trades, market, since, limit)
 
     def update_cached_orders(self, openOrders, symbol):
         # update local cache with open orders
@@ -604,7 +1136,7 @@ class exmo (Exchange):
             # - symbol mismatch(e.g. cached BTC/USDT, fetched ETH/USDT) -> skip
             id = cachedOrderIds[k]
             order = self.orders[id]
-            if not(id in list(openOrdersIndexedById.keys())):
+            if not (id in openOrdersIndexedById):
                 # cached order is not in open orders array
                 # if we fetched orders by symbol and it doesn't match the cached order -> won't update the cached order
                 if symbol is not None and symbol != order['symbol']:
@@ -649,22 +1181,55 @@ class exmo (Exchange):
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
     def parse_order(self, order, market=None):
+        #
+        # fetchOrders, fetchOpenOrders, fetchClosedOrders
+        #
+        #     {
+        #         "order_id": "14",
+        #         "created": "1435517311",
+        #         "type": "buy",
+        #         "pair": "BTC_USD",
+        #         "price": "100",
+        #         "quantity": "1",
+        #         "amount": "100"
+        #     }
+        #
+        # fetchOrder
+        #
+        #     {
+        #         "type": "buy",
+        #         "in_currency": "BTC",
+        #         "in_amount": "1",
+        #         "out_currency": "USD",
+        #         "out_amount": "100",
+        #         "trades": [
+        #             {
+        #                 "trade_id": 3,
+        #                 "date": 1435488248,
+        #                 "type": "buy",
+        #                 "pair": "BTC_USD",
+        #                 "order_id": 12345,
+        #                 "quantity": 1,
+        #                 "price": 100,
+        #                 "amount": 100
+        #             }
+        #         ]
+        #     }
+        #
         id = self.safe_string(order, 'order_id')
-        timestamp = self.safe_integer(order, 'created')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(order, 'created')
         symbol = None
         side = self.safe_string(order, 'type')
         if market is None:
             marketId = None
             if 'pair' in order:
                 marketId = order['pair']
-            elif ('in_currency' in list(order.keys())) and('out_currency' in list(order.keys())):
+            elif ('in_currency' in order) and ('out_currency' in order):
                 if side == 'buy':
                     marketId = order['in_currency'] + '_' + order['out_currency']
                 else:
                     marketId = order['out_currency'] + '_' + order['in_currency']
-            if (marketId is not None) and(marketId in list(self.markets_by_id.keys())):
+            if (marketId is not None) and (marketId in self.markets_by_id):
                 market = self.markets_by_id[marketId]
         amount = self.safe_float(order, 'quantity')
         if amount is None:
@@ -674,34 +1239,33 @@ class exmo (Exchange):
         cost = self.safe_float(order, 'amount')
         filled = 0.0
         trades = []
-        transactions = self.safe_value(order, 'trades')
+        transactions = self.safe_value(order, 'trades', [])
         feeCost = None
-        if transactions is not None:
-            if isinstance(transactions, list):
-                for i in range(0, len(transactions)):
-                    trade = self.parse_trade(transactions[i], market)
-                    if id is None:
-                        id = trade['order']
-                    if timestamp is None:
-                        timestamp = trade['timestamp']
-                    if timestamp > trade['timestamp']:
-                        timestamp = trade['timestamp']
-                    filled += trade['amount']
-                    if feeCost is None:
-                        feeCost = 0.0
-                    feeCost += trade['fee']['cost']
-                    if cost is None:
-                        cost = 0.0
-                    cost += trade['cost']
-                    trades.append(trade)
+        lastTradeTimestamp = None
+        average = None
+        numTransactions = len(transactions)
+        if numTransactions > 0:
+            feeCost = 0
+            for i in range(0, numTransactions):
+                trade = self.parse_trade(transactions[i], market)
+                if id is None:
+                    id = trade['order']
+                if timestamp is None:
+                    timestamp = trade['timestamp']
+                if timestamp > trade['timestamp']:
+                    timestamp = trade['timestamp']
+                filled = self.sum(filled, trade['amount'])
+                feeCost = self.sum(feeCost, trade['fee']['cost'])
+                trades.append(trade)
+            lastTradeTimestamp = trades[numTransactions - 1]['timestamp']
+        status = self.safe_string(order, 'status')  # in case we need to redefine it for canceled orders
         remaining = None
         if amount is not None:
             remaining = amount - filled
-        status = self.safe_string(order, 'status')  # in case we need to redefine it for canceled orders
-        if filled >= amount:
-            status = 'closed'
-        else:
-            status = 'open'
+            if filled >= amount:
+                status = 'closed'
+            else:
+                status = 'open'
         if market is None:
             market = self.get_market_from_trades(trades)
         feeCurrency = None
@@ -711,18 +1275,22 @@ class exmo (Exchange):
         if cost is None:
             if price is not None:
                 cost = price * filled
-        elif price is None:
+        else:
             if filled > 0:
-                price = cost / filled
+                if average is None:
+                    average = cost / filled
+                if price is None:
+                    price = cost / filled
         fee = {
             'cost': feeCost,
             'currency': feeCurrency,
         }
         return {
             'id': id,
+            'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
-            'lastTradeTimestamp': None,
+            'lastTradeTimestamp': lastTradeTimestamp,
             'status': status,
             'symbol': symbol,
             'type': 'limit',
@@ -732,6 +1300,7 @@ class exmo (Exchange):
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
+            'average': average,
             'trades': trades,
             'fee': fee,
             'info': order,
@@ -791,10 +1360,10 @@ class exmo (Exchange):
         }
         if tag is not None:
             request['invoice'] = tag
-        result = await self.privatePostWithdrawCrypt(self.extend(request, params))
+        response = await self.privatePostWithdrawCrypt(self.extend(request, params))
         return {
-            'info': result,
-            'id': result['task_id'],
+            'info': response,
+            'id': response['task_id'],
         }
 
     def parse_transaction_status(self, status):
@@ -821,34 +1390,34 @@ class exmo (Exchange):
         #            "txid": "ec46f784ad976fd7f7539089d1a129fe46...",
         #          }
         #
-        timestamp = self.safe_float(transaction, 'dt')
-        if timestamp is not None:
-            timestamp = timestamp * 1000
+        timestamp = self.safe_timestamp(transaction, 'dt')
         amount = self.safe_float(transaction, 'amount')
         if amount is not None:
             amount = abs(amount)
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         txid = self.safe_string(transaction, 'txid')
         type = self.safe_string(transaction, 'type')
-        code = self.safe_string(transaction, 'curr')
-        if currency is None:
-            currency = self.safe_value(self.currencies_by_id, code)
-        if currency is not None:
-            code = currency['code']
-        else:
-            code = self.common_currency_code(code)
+        currencyId = self.safe_string(transaction, 'curr')
+        code = self.safe_currency_code(currencyId, currency)
         address = self.safe_string(transaction, 'account')
         if address is not None:
             parts = address.split(':')
             numParts = len(parts)
             if numParts == 2:
-                address = parts[1]
+                address = parts[1].replace(' ', '')
         fee = None
         # fixed funding fees only(for now)
         if not self.fees['funding']['percentage']:
             key = 'withdraw' if (type == 'withdrawal') else 'deposit'
             feeCost = self.safe_float(self.options['fundingFees'][key], code)
+            # users don't pay for cashbacks, no fees for that
+            provider = self.safe_string(transaction, 'provider')
+            if provider == 'cashback':
+                feeCost = 0
             if feeCost is not None:
+                # withdrawal amount includes the fee
+                if type == 'withdrawal':
+                    amount = amount - feeCost
                 fee = {
                     'cost': feeCost,
                     'currency': code,
@@ -909,7 +1478,7 @@ class exmo (Exchange):
         #       ],
         #     }
         #
-        return self.parseTransactions(response['history'], currency, since, limit)
+        return self.parse_transactions(response['history'], currency, since, limit)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api] + '/'
@@ -933,35 +1502,30 @@ class exmo (Exchange):
     def nonce(self):
         return self.milliseconds()
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body):
-        if not isinstance(body, basestring):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        if response is None:
             return  # fallback to default error handler
-        if len(body) < 2:
-            return  # fallback to default error handler
-        if (body[0] == '{') or (body[0] == '['):
-            response = json.loads(body)
-            if 'result' in response:
-                #
-                #     {"result":false,"error":"Error 50052: Insufficient funds"}
-                #
-                success = self.safe_value(response, 'result', False)
-                if isinstance(success, basestring):
-                    if (success == 'true') or (success == '1'):
-                        success = True
-                    else:
-                        success = False
-                if not success:
-                    code = None
-                    message = self.safe_string(response, 'error')
-                    errorParts = message.split(':')
-                    numParts = len(errorParts)
-                    if numParts > 1:
-                        errorSubParts = errorParts[0].split(' ')
-                        numSubParts = len(errorSubParts)
-                        code = errorSubParts[1] if (numSubParts > 1) else errorSubParts[0]
-                    feedback = self.id + ' ' + self.json(response)
-                    exceptions = self.exceptions
-                    if code in exceptions:
-                        raise exceptions[code](feedback)
-                    else:
-                        raise ExchangeError(feedback)
+        if ('result' in response) or ('errmsg' in response):
+            #
+            #     {"result":false,"error":"Error 50052: Insufficient funds"}
+            #     {"s":"error","errmsg":"strconv.ParseInt: parsing \"\": invalid syntax"}
+            #
+            success = self.safe_value(response, 'result', False)
+            if isinstance(success, basestring):
+                if (success == 'true') or (success == '1'):
+                    success = True
+                else:
+                    success = False
+            if not success:
+                code = None
+                message = self.safe_string_2(response, 'error', 'errmsg')
+                errorParts = message.split(':')
+                numParts = len(errorParts)
+                if numParts > 1:
+                    errorSubParts = errorParts[0].split(' ')
+                    numSubParts = len(errorSubParts)
+                    code = errorSubParts[1] if (numSubParts > 1) else errorSubParts[0]
+                feedback = self.id + ' ' + body
+                self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+                self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
+                raise ExchangeError(feedback)

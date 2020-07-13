@@ -18,7 +18,7 @@ module.exports = {
 
         const queue = []
 
-        return Object.assign ((cost) => {
+        return Object.assign ((rateLimit, cost) => {
 
             if (queue.length > cfg.maxCapacity)
                 throw new Error ('Backlog is over max capacity of ' + cfg.maxCapacity)
@@ -46,7 +46,7 @@ module.exports = {
                             const t = now ()
                                 , elapsed = t - lastTimestamp
                             lastTimestamp = t
-                            numTokens = Math.min (cfg.capacity, numTokens + elapsed * cfg.refillRate)
+                            numTokens = Math.min (cfg.capacity, numTokens + elapsed * (1 / rateLimit))
                             await sleep (cfg.delay)
                         }
                         running = false

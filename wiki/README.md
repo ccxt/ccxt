@@ -12,6 +12,7 @@ Welcome to the ccxt wiki!
   - [Python](https://github.com/ccxt/ccxt/wiki/Install#python)
   - [PHP](https://github.com/ccxt/ccxt/wiki/Install#php)
   - [Web Browsers](https://github.com/ccxt/ccxt/wiki/Install#web-browsers)
+  - [Docker](https://github.com/ccxt/ccxt/wiki/Install#docker)
   - [Proxy](https://github.com/ccxt/ccxt/wiki/Install#proxy)
   - [CORS (Access-Control-Allow-Origin)](https://github.com/ccxt/ccxt/wiki/Install#cors-access-control-allow-origin)
 
@@ -67,6 +68,10 @@ Welcome to the ccxt wiki!
       - [Trading Fees](https://github.com/ccxt/ccxt/wiki/Manual#trading-fees)
       - [Funding Fees](https://github.com/ccxt/ccxt/wiki/Manual#funding-fees)
 
+## WebSocket Support
+
+- [CCXT Pro](https://github.com/ccxt/ccxt/wiki/ccxt.pro)
+
 ## Troubleshooting
 
 - [Frequently Asked Questions](https://github.com/ccxt/ccxt/wiki/FAQ)
@@ -78,6 +83,11 @@ Welcome to the ccxt wiki!
 ## Examples
 
 - [Usage Examples](https://github.com/ccxt/ccxt/tree/master/examples) (work in progress)
+
+## New Exchanges
+
+- [Certification](https://github.com/ccxt/ccxt/wiki/Certification)
+- [Requirements](https://github.com/ccxt/ccxt/wiki/Requirements)
 
 ## API Reference
 

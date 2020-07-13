@@ -41,8 +41,9 @@ def throttle(config=None):
                 await sleep(cfg['delay'])
             cfg['running'] = False
 
-    def throttle(cost=None):
+    def throttle(rate_limit, cost=None):
         future = Future()
+        cfg['refillRate'] = 1 / rate_limit
         cfg['queue'].put_nowait((cost, future))
         ensure_future(run())
         return future

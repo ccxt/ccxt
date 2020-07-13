@@ -9,11 +9,12 @@ const { ExchangeError } = require ('./base/errors');
 
 module.exports = class btctradeim extends coinegg {
     describe () {
-        let result = this.deepExtend (super.describe (), {
+        const result = this.deepExtend (super.describe (), {
             'id': 'btctradeim',
             'name': 'BtcTrade.im',
             'countries': [ 'HK' ],
             'urls': {
+                'referral': 'https://m.baobi.com/invite?inv=1765b2',
                 'logo': 'https://user-images.githubusercontent.com/1294454/36770531-c2142444-1c5b-11e8-91e2-a4d90dc85fe8.jpg',
                 'api': {
                     'web': 'https://api.btctrade.im/coin',
@@ -22,6 +23,12 @@ module.exports = class btctradeim extends coinegg {
                 'www': 'https://www.btctrade.im',
                 'doc': 'https://www.btctrade.im/help.api.html',
                 'fees': 'https://www.btctrade.im/spend.price.html',
+            },
+            'status': {
+                'status': 'error',
+                'updated': undefined,
+                'eta': undefined,
+                'url': undefined,
             },
             'fees': {
                 'trading': {
@@ -46,15 +53,15 @@ module.exports = class btctradeim extends coinegg {
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
+        const response = await this.fetch2 (path, api, method, params, headers, body);
         if (api === 'web') {
             return response;
         }
-        let data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data');
         if (data) {
-            let code = this.safeString (response, 'code');
+            const code = this.safeString (response, 'code');
             if (code !== '0') {
-                let message = this.safeString (response, 'msg', 'Error');
+                const message = this.safeString (response, 'msg', 'Error');
                 throw new ExchangeError (message);
             }
             return data;

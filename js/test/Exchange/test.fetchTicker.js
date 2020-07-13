@@ -9,19 +9,42 @@ const log       = require ('ololog')
     , assert    = chai.assert
     , testTicker = require ('./test.ticker.js')
 
-/*  ------------------------------------------------------------------------ */
+// ----------------------------------------------------------------------------
+
+const printTickerOneLiner = (ticker, method, symbol) => {
+
+    log (symbol.toString ().green,
+        method,
+        ticker['datetime'],
+        'bid: '       + (ticker['bid']),
+        'ask: '       + (ticker['ask']))
+}
+
+// ----------------------------------------------------------------------------
 
 module.exports = async (exchange, symbol) => {
 
     const method = 'fetchTicker'
 
+    const skippedExchanges = [
+        'digifinex',
+        'currencycom'
+    ]
+
+    if (skippedExchanges.includes (exchange.id)) {
+        log (exchange.id, 'found in ignored exchanges, skipping ' + method + '...')
+        return
+    }
+
     if (exchange.has[method]) {
 
         // log (symbol.green, 'fetching ticker...')
 
-        let ticker = await exchange.fetchTicker (symbol)
+        const ticker = await exchange.fetchTicker (symbol)
 
         testTicker (exchange, ticker, method, symbol)
+
+        printTickerOneLiner (ticker, method, symbol)
 
         return ticker
 

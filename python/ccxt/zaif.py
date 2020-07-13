@@ -6,12 +6,11 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
 
 
-class zaif (Exchange):
+class zaif(Exchange):
 
     def describe(self):
         return self.deep_extend(super(zaif, self).describe(), {
@@ -32,7 +31,7 @@ class zaif (Exchange):
                 'api': 'https://api.zaif.jp',
                 'www': 'https://zaif.jp',
                 'doc': [
-                    'http://techbureau-api-document.readthedocs.io/ja/latest/index.html',
+                    'https://techbureau-api-document.readthedocs.io/ja/latest/index.html',
                     'https://corp.zaif.jp/api-docs',
                     'https://corp.zaif.jp/api-docs/api_links',
                     'https://www.npmjs.com/package/zaif.jp',
@@ -43,8 +42,8 @@ class zaif (Exchange):
             'fees': {
                 'trading': {
                     'percentage': True,
-                    'taker': -0.0001,
-                    'maker': -0.0005,
+                    'taker': 0.1 / 100,
+                    'maker': 0,
                 },
             },
             'api': {
@@ -103,6 +102,16 @@ class zaif (Exchange):
                     ],
                 },
             },
+            'options': {
+                # zaif schedule defines several market-specific fees
+                'fees': {
+                    'BTC/JPY': {'maker': 0, 'taker': 0},
+                    'BCH/JPY': {'maker': 0, 'taker': 0.3 / 100},
+                    'BCH/BTC': {'maker': 0, 'taker': 0.3 / 100},
+                    'PEPECASH/JPY': {'maker': 0, 'taker': 0.01 / 100},
+                    'PEPECASH/BT': {'maker': 0, 'taker': 0.01 / 100},
+                },
+            },
             'exceptions': {
                 'exact': {
                     'unsupported currency_pair': BadRequest,  # {"error": "unsupported currency_pair"}
@@ -112,25 +121,35 @@ class zaif (Exchange):
             },
         })
 
-    def fetch_markets(self):
-        markets = self.publicGetCurrencyPairsAll()
+    def fetch_markets(self, params={}):
+        markets = self.publicGetCurrencyPairsAll(params)
         result = []
-        for p in range(0, len(markets)):
-            market = markets[p]
-            id = market['currency_pair']
-            symbol = market['name']
-            base, quote = symbol.split('/')
+        for i in range(0, len(markets)):
+            market = markets[i]
+            id = self.safe_string(market, 'currency_pair')
+            name = self.safe_string(market, 'name')
+            baseId, quoteId = name.split('/')
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
+            symbol = base + '/' + quote
             precision = {
                 'amount': -math.log10(market['item_unit_step']),
                 'price': market['aux_unit_point'],
             }
+            fees = self.safe_value(self.options['fees'], symbol, self.fees['trading'])
+            taker = fees['taker']
+            maker = fees['maker']
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'active': True,  # can trade or not
                 'precision': precision,
+                'taker': taker,
+                'maker': maker,
                 'limits': {
                     'amount': {
                         'min': self.safe_float(market, 'item_unit_min'),
@@ -151,52 +170,57 @@ class zaif (Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        response = self.privatePostGetInfo()
-        balances = response['return']
-        result = {'info': balances}
-        currencies = list(balances['funds'].keys())
-        for c in range(0, len(currencies)):
-            currency = currencies[c]
-            balance = balances['funds'][currency]
-            uppercase = currency.upper()
+        response = self.privatePostGetInfo(params)
+        balances = self.safe_value(response, 'return', {})
+        result = {'info': response}
+        funds = self.safe_value(balances, 'funds', {})
+        currencyIds = list(funds.keys())
+        for i in range(0, len(currencyIds)):
+            currencyId = currencyIds[i]
+            code = self.safe_currency_code(currencyId)
+            balance = self.safe_value(funds, currencyId)
             account = {
                 'free': balance,
                 'used': 0.0,
                 'total': balance,
             }
             if 'deposit' in balances:
-                if currency in balances['deposit']:
-                    account['total'] = balances['deposit'][currency]
+                if currencyId in balances['deposit']:
+                    account['total'] = self.safe_float(balances['deposit'], currencyId)
                     account['used'] = account['total'] - account['free']
-            result[uppercase] = account
+            result[code] = account
         return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
-        orderbook = self.publicGetDepthPair(self.extend({
+        request = {
             'pair': self.market_id(symbol),
-        }, params))
-        return self.parse_order_book(orderbook)
+        }
+        response = self.publicGetDepthPair(self.extend(request, params))
+        return self.parse_order_book(response)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
-        ticker = self.publicGetTickerPair(self.extend({
+        request = {
             'pair': self.market_id(symbol),
-        }, params))
+        }
+        ticker = self.publicGetTickerPair(self.extend(request, params))
         timestamp = self.milliseconds()
-        vwap = ticker['vwap']
-        baseVolume = ticker['volume']
-        quoteVolume = baseVolume * vwap
-        last = ticker['last']
+        vwap = self.safe_float(ticker, 'vwap')
+        baseVolume = self.safe_float(ticker, 'volume')
+        quoteVolume = None
+        if baseVolume is not None and vwap is not None:
+            quoteVolume = baseVolume * vwap
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': ticker['high'],
-            'low': ticker['low'],
-            'bid': ticker['bid'],
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'bid'),
             'bidVolume': None,
-            'ask': ticker['ask'],
+            'ask': self.safe_float(ticker, 'ask'),
             'askVolume': None,
             'vwap': vwap,
             'open': None,
@@ -212,30 +236,46 @@ class zaif (Exchange):
         }
 
     def parse_trade(self, trade, market=None):
-        side = 'buy' if (trade['trade_type'] == 'bid') else 'sell'
-        timestamp = trade['date'] * 1000
-        id = self.safe_string(trade, 'id')
-        id = self.safe_string(trade, 'tid', id)
-        if not market:
-            market = self.markets_by_id[trade['currency_pair']]
+        side = self.safe_string(trade, 'trade_type')
+        side = 'buy' if (side == 'bid') else 'sell'
+        timestamp = self.safe_timestamp(trade, 'date')
+        id = self.safe_string_2(trade, 'id', 'tid')
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'amount')
+        cost = None
+        if price is not None:
+            if amount is not None:
+                cost = amount * price
+        if market is None:
+            marketId = self.safe_string(trade, 'currency_pair')
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         return {
-            'id': str(id),
+            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': None,
             'side': side,
-            'price': trade['price'],
-            'amount': trade['amount'],
+            'order': None,
+            'takerOrMaker': None,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': None,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetTradesPair(self.extend({
+        request = {
             'pair': market['id'],
-        }, params))
+        }
+        response = self.publicGetTradesPair(self.extend(request, params))
         numTrades = len(response)
         if numTrades == 1:
             firstTrade = response[0]
@@ -245,58 +285,86 @@ class zaif (Exchange):
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
-        if type == 'market':
+        if type != 'limit':
             raise ExchangeError(self.id + ' allows limit orders only')
-        response = self.privatePostTrade(self.extend({
+        request = {
             'currency_pair': self.market_id(symbol),
             'action': 'bid' if (side == 'buy') else 'ask',
             'amount': amount,
             'price': price,
-        }, params))
+        }
+        response = self.privatePostTrade(self.extend(request, params))
         return {
             'info': response,
             'id': str(response['return']['order_id']),
         }
 
     def cancel_order(self, id, symbol=None, params={}):
-        return self.privatePostCancelOrder(self.extend({
+        request = {
             'order_id': id,
-        }, params))
+        }
+        return self.privatePostCancelOrder(self.extend(request, params))
 
     def parse_order(self, order, market=None):
-        side = 'buy' if (order['action'] == 'bid') else 'sell'
-        timestamp = int(order['timestamp']) * 1000
+        #
+        #     {
+        #         "currency_pair": "btc_jpy",
+        #         "action": "ask",
+        #         "amount": 0.03,
+        #         "price": 56000,
+        #         "timestamp": 1402021125,
+        #         "comment" : "demo"
+        #     }
+        #
+        side = self.safe_string(order, 'action')
+        side = 'buy' if (side == 'bid') else 'sell'
+        timestamp = self.safe_timestamp(order, 'timestamp')
         if not market:
-            market = self.markets_by_id[order['currency_pair']]
-        price = order['price']
-        amount = order['amount']
+            marketId = self.safe_string(order, 'currency_pair')
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+        price = self.safe_float(order, 'price')
+        amount = self.safe_float(order, 'amount')
+        cost = None
+        if price is not None:
+            if amount is not None:
+                cost = price * amount
+        id = self.safe_string(order, 'id')
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         return {
-            'id': str(order['id']),
+            'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
             'status': 'open',
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': 'limit',
             'side': side,
             'price': price,
-            'cost': price * amount,
+            'cost': cost,
             'amount': amount,
             'filled': None,
             'remaining': None,
             'trades': None,
             'fee': None,
+            'info': order,
+            'average': None,
         }
 
-    def parse_orders(self, orders, market=None, since=None, limit=None):
-        ids = list(orders.keys())
+    def parse_orders(self, orders, market=None, since=None, limit=None, params={}):
         result = []
+        ids = list(orders.keys())
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         for i in range(0, len(ids)):
             id = ids[i]
-            order = orders[id]
-            extended = self.extend(order, {'id': id})
-            result.append(self.parse_order(extended, market))
-        return self.filter_by_since_limit(result, since, limit)
+            order = self.extend({'id': id}, orders[id])
+            result.append(self.extend(self.parse_order(order, market), params))
+        return self.filter_by_symbol_since_limit(result, symbol, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -340,7 +408,7 @@ class zaif (Exchange):
             'currency': currency['id'],
             'amount': amount,
             'address': address,
-            # 'message': 'Hinot ',  # XEM and others
+            # 'message': 'Hi!',  # XEM and others
             # 'opt_fee': 0.003,  # BTC and MONA only
         }
         if tag is not None:
@@ -382,23 +450,17 @@ class zaif (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body):
-        if not self.is_json_encoded_object(body):
-            return  # fallback to default error handler
-        response = json.loads(body)
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        if response is None:
+            return
         #
         #     {"error": "unsupported currency_pair"}
         #
         feedback = self.id + ' ' + body
         error = self.safe_string(response, 'error')
         if error is not None:
-            exact = self.exceptions['exact']
-            if error in exact:
-                raise exact[error](feedback)
-            broad = self.exceptions['broad']
-            broadKey = self.findBroadlyMatchedKey(broad, error)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], error, feedback)
             raise ExchangeError(feedback)  # unknown message
         success = self.safe_value(response, 'success', True)
         if not success:

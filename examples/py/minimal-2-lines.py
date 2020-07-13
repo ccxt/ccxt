@@ -1,2 +1,2 @@
 import ccxt
-print(ccxt.bitfinex().fetch_ticker('BTC/USD'))
+print(ccxt.bitfinex().fetch_ticker('BTC/USDT'))

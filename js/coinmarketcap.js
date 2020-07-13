@@ -32,7 +32,7 @@ module.exports = class coinmarketcap extends Exchange {
                 'fetchCurrencies': true,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/28244244-9be6312a-69ed-11e7-99c1-7c1797275265.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87182086-1cd4cd00-c2ec-11ea-9ec4-d0cf2a2abf62.jpg',
                 'api': {
                     'public': 'https://api.coinmarketcap.com',
                     'files': 'https://files.coinmarketcap.com',
@@ -99,22 +99,27 @@ module.exports = class coinmarketcap extends Exchange {
             'Bitgem': 'Bitgem',
             'BlazeCoin': 'BlazeCoin',
             'BlockCAT': 'BlockCAT',
+            'Blocktrade Token': 'Blocktrade Token',
             'Catcoin': 'Catcoin',
             'CanYaCoin': 'CanYaCoin', // conflict with CAN (Content and AD Network)
+            'CryptoBossCoin': 'CryptoBossCoin', // conflict with CBC (CashBet Coin)
             'Comet': 'Comet', // conflict with CMT (CyberMiles)
             'CPChain': 'CPChain',
             'CrowdCoin': 'CrowdCoin', // conflict with CRC CryCash
+            'Cryptaur': 'Cryptaur', // conflict with CPT = Contents Protocol https://github.com/ccxt/ccxt/issues/4920 and https://github.com/ccxt/ccxt/issues/6081
             'Cubits': 'Cubits', // conflict with QBT (Qbao)
             'DAO.Casino': 'DAO.Casino', // conflict with BET (BetaCoin)
             'E-Dinar Coin': 'E-Dinar Coin', // conflict with EDR Endor Protocol and EDRCoin
             'EDRcoin': 'EDRcoin', // conflict with EDR Endor Protocol and E-Dinar Coin
             'ENTCash': 'ENTCash', // conflict with ENT (Eternity)
-            'FairGame': 'FairGame',
+            'FairCoin': 'FairCoin', // conflict with FAIR (FairGame) https://github.com/ccxt/ccxt/pull/5865
             'Fabric Token': 'Fabric Token',
-            'GET Protocol': 'GET Protocol',
+            // 'GET Protocol': 'GET Protocol',
             'Global Tour Coin': 'Global Tour Coin', // conflict with GTC (Game.com)
             'GuccioneCoin': 'GuccioneCoin', // conflict with GCC (Global Cryptocurrency)
             'HarmonyCoin': 'HarmonyCoin', // conflict with HMC (Hi Mutual Society)
+            'Harvest Masternode Coin': 'Harvest Masternode Coin', // conflict with HC (HyperCash)
+            'HOT Token': 'HOT Token',
             'Hydro Protocol': 'Hydro Protocol', // conflict with HOT (Holo)
             'Huncoin': 'Huncoin', // conflict with HNC (Helleniccoin)
             'iCoin': 'iCoin',
@@ -122,33 +127,42 @@ module.exports = class coinmarketcap extends Exchange {
             'KingN Coin': 'KingN Coin', // conflict with KNC (Kyber Network)
             'LiteBitcoin': 'LiteBitcoin', // conflict with LBTC (LightningBitcoin)
             'Maggie': 'Maggie',
+            'Monarch': 'Monarch', // conflict with MyToken (MT)
+            'MTC Mesh Network': 'MTC Mesh Network', // conflict with MTC Docademic doc.com Token https://github.com/ccxt/ccxt/issues/6081 https://github.com/ccxt/ccxt/issues/3025
             'IOTA': 'IOTA', // a special case, most exchanges list it as IOTA, therefore we change just the Coinmarketcap instead of changing them all
             'NetCoin': 'NetCoin',
             'PCHAIN': 'PCHAIN', // conflict with PAI (Project Pai)
+            'Plair': 'Plair', // conflict with PLA (PLANET)
+            'PlayChip': 'PlayChip', // conflict with PLA (PLANET)
             'Polcoin': 'Polcoin',
             'PutinCoin': 'PutinCoin', // conflict with PUT (Profile Utility Token)
             'Rcoin': 'Rcoin', // conflict with RCN (Ripio Credit Network)
+            // https://github.com/ccxt/ccxt/issues/6081
+            // https://github.com/ccxt/ccxt/issues/3365
+            // https://github.com/ccxt/ccxt/issues/2873
+            'Themis': 'Themis', // conflict with GET (Guaranteed Entrance Token, GET Protocol)
+            'Menlo One': 'Menlo One', // conflict with Harmony (ONE)
+            'BigONE Token': 'BigONE Token', // conflict with Harmony (ONE)
         };
-        if (name in currencies)
-            return currencies[name];
-        return base;
+        return this.safeValue (currencies, name, base);
     }
 
-    async fetchMarkets () {
-        let markets = await this.publicGetTicker ({
+    async fetchMarkets (params = {}) {
+        const request = {
             'limit': 0,
-        });
-        let result = [];
-        for (let p = 0; p < markets.length; p++) {
-            let market = markets[p];
-            let currencies = this.currencyCodes;
-            for (let i = 0; i < currencies.length; i++) {
-                let quote = currencies[i];
-                let quoteId = quote.toLowerCase ();
-                let baseId = market['id'];
-                let base = this.currencyCode (market['symbol'], market['name']);
-                let symbol = base + '/' + quote;
-                let id = baseId + '/' + quoteId;
+        };
+        const response = await this.publicGetTicker (this.extend (request, params));
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            const market = response[i];
+            const currencies = this.currencyCodes;
+            for (let j = 0; j < currencies.length; j++) {
+                const quote = currencies[j];
+                const quoteId = quote.toLowerCase ();
+                const baseId = market['id'];
+                const base = this.currencyCode (market['symbol'], market['name']);
+                const symbol = base + '/' + quote;
+                const id = baseId + '/' + quoteId;
                 result.push ({
                     'id': id,
                     'symbol': symbol,
@@ -157,6 +171,9 @@ module.exports = class coinmarketcap extends Exchange {
                     'baseId': baseId,
                     'quoteId': quoteId,
                     'info': market,
+                    'active': undefined,
+                    'precision': this.precision,
+                    'limits': this.limits,
                 });
             }
         }
@@ -165,34 +182,28 @@ module.exports = class coinmarketcap extends Exchange {
 
     async fetchGlobal (currency = 'USD') {
         await this.loadMarkets ();
-        let request = {};
-        if (currency)
+        const request = {};
+        if (currency) {
             request['convert'] = currency;
+        }
         return await this.publicGetGlobal (request);
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = this.milliseconds ();
-        if ('last_updated' in ticker)
-            if (ticker['last_updated'])
-                timestamp = parseInt (ticker['last_updated']) * 1000;
-        let change = undefined;
-        if ('percent_change_24h' in ticker)
-            if (ticker['percent_change_24h'])
-                change = this.safeFloat (ticker, 'percent_change_24h');
+        let timestamp = this.safeTimestamp (ticker, 'last_updated');
+        if (timestamp === undefined) {
+            timestamp = this.milliseconds ();
+        }
+        const change = this.safeFloat (ticker, 'percent_change_24h');
         let last = undefined;
         let symbol = undefined;
         let volume = undefined;
         if (market !== undefined) {
-            let priceKey = 'price_' + market['quoteId'];
-            if (priceKey in ticker)
-                if (ticker[priceKey])
-                    last = this.safeFloat (ticker, priceKey);
             symbol = market['symbol'];
-            let volumeKey = '24h_volume_' + market['quoteId'];
-            if (volumeKey in ticker)
-                if (ticker[volumeKey])
-                    volume = this.safeFloat (ticker, volumeKey);
+            const priceKey = 'price_' + market['quoteId'];
+            last = this.safeFloat (ticker, priceKey);
+            const volumeKey = '24h_volume_' + market['quoteId'];
+            volume = this.safeFloat (ticker, volumeKey);
         }
         return {
             'symbol': symbol,
@@ -209,8 +220,8 @@ module.exports = class coinmarketcap extends Exchange {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': change,
-            'percentage': undefined,
+            'change': undefined,
+            'percentage': change,
             'average': undefined,
             'baseVolume': undefined,
             'quoteVolume': volume,
@@ -220,54 +231,56 @@ module.exports = class coinmarketcap extends Exchange {
 
     async fetchTickers (currency = 'USD', params = {}) {
         await this.loadMarkets ();
-        let request = {
+        const request = {
             'limit': 10000,
         };
-        if (currency)
+        if (currency) {
             request['convert'] = currency;
-        let response = await this.publicGetTicker (this.extend (request, params));
-        let tickers = {};
+        }
+        const response = await this.publicGetTicker (this.extend (request, params));
+        const result = {};
         for (let t = 0; t < response.length; t++) {
-            let ticker = response[t];
-            let currencyId = currency.toLowerCase ();
-            let id = ticker['id'] + '/' + currencyId;
+            const ticker = response[t];
+            const currencyId = currency.toLowerCase ();
+            const id = ticker['id'] + '/' + currencyId;
             let symbol = id;
             let market = undefined;
             if (id in this.markets_by_id) {
                 market = this.markets_by_id[id];
                 symbol = market['symbol'];
             }
-            tickers[symbol] = this.parseTicker (ticker, market);
+            result[symbol] = this.parseTicker (ticker, market);
         }
-        return tickers;
+        return result;
     }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'convert': market['quote'],
             'id': market['baseId'],
-        }, params);
-        let response = await this.publicGetTickerId (request);
-        let ticker = response[0];
+        };
+        const response = await this.publicGetTickerId (this.extend (request, params));
+        const ticker = response[0];
         return this.parseTicker (ticker, market);
     }
 
     async fetchCurrencies (params = {}) {
-        let currencies = await this.publicGetTicker (this.extend ({
+        const request = {
             'limit': 0,
-        }, params));
-        let result = {};
-        for (let i = 0; i < currencies.length; i++) {
-            let currency = currencies[i];
-            let id = currency['symbol'];
-            let name = currency['name'];
+        };
+        const response = await this.publicGetTicker (this.extend (request, params));
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const currency = response[i];
+            const id = this.safeString (currency, 'symbol');
+            const name = this.safeString (currency, 'name');
             // todo: will need to rethink the fees
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
-            let precision = 8; // default precision, todo: fix "magic constants"
-            let code = this.currencyCode (id, name);
+            const precision = 8; // default precision, todo: fix "magic constants"
+            const code = this.currencyCode (id, name);
             result[code] = {
                 'id': id,
                 'code': code,
@@ -301,14 +314,15 @@ module.exports = class coinmarketcap extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams (path, params);
-        let query = this.omit (params, this.extractParams (path));
-        if (Object.keys (query).length)
+        const query = this.omit (params, this.extractParams (path));
+        if (Object.keys (query).length) {
             url += '?' + this.urlencode (query);
+        }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
+        const response = await this.fetch2 (path, api, method, params, headers, body);
         if ('error' in response) {
             if (response['error']) {
                 throw new ExchangeError (this.id + ' ' + this.json (response));

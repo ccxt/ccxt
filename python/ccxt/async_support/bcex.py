@@ -4,14 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -20,7 +12,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 
 
-class bcex (Exchange):
+class bcex(Exchange):
 
     def describe(self):
         return self.deep_extend(super(bcex, self).describe(), {
@@ -43,12 +35,18 @@ class bcex (Exchange):
                 'fetchTradingLimits': True,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/43362240-21c26622-92ee-11e8-9464-5801ec526d77.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/77231516-851c6900-6bac-11ea-8fd6-ee5c23eddbd4.jpg',
                 'api': 'https://www.bcex.top',
                 'www': 'https://www.bcex.top',
-                'doc': 'https://www.bcex.top/api_market/market/',
-                'fees': 'http://bcex.udesk.cn/hc/articles/57085',
-                'referral': 'https://www.bcex.top/user/reg/type/2/pid/758978',
+                'doc': 'https://github.com/BCEX-TECHNOLOGY-LIMITED/API_Docs/wiki/Interface',
+                'fees': 'https://bcex.udesk.cn/hc/articles/57085',
+                'referral': 'https://www.bcex.top/register?invite_code=758978&lang=en',
+            },
+            'status': {
+                'status': 'error',
+                'updated': None,
+                'eta': None,
+                'url': None,
             },
             'api': {
                 'public': {
@@ -83,8 +81,8 @@ class bcex (Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'buy': 0.0,
-                    'sell': 0.2 / 100,
+                    'maker': 0.1 / 100,
+                    'taker': 0.2 / 100,
                 },
                 'funding': {
                     'tierBased': False,
@@ -262,7 +260,7 @@ class bcex (Exchange):
         #                   min_trade: "0.01500000",
         #                   max_trade: "100.00000000",
         #                number_float: "4",
-        #                 price_float: "8"             }} }
+        #                 price_float: "8"             }}}
         #
         return self.parse_trading_limits(self.safe_value(response, 'data', {}))
 
@@ -293,8 +291,8 @@ class bcex (Exchange):
             },
         }
 
-    async def fetch_markets(self):
-        response = await self.publicGetApiMarketGetPriceList()
+    async def fetch_markets(self, params={}):
+        response = await self.publicGetApiMarketGetPriceList(params)
         result = []
         keys = list(response.keys())
         for i in range(0, len(keys)):
@@ -302,12 +300,12 @@ class bcex (Exchange):
             currentMarkets = response[currentMarketId]
             for j in range(0, len(currentMarkets)):
                 market = currentMarkets[j]
-                baseId = market['coin_from']
-                quoteId = market['coin_to']
+                baseId = self.safe_string(market, 'coin_from')
+                quoteId = self.safe_string(market, 'coin_to')
                 base = baseId.upper()
                 quote = quoteId.upper()
-                base = self.common_currency_code(base)
-                quote = self.common_currency_code(quote)
+                base = self.safe_currency_code(base)
+                quote = self.safe_currency_code(quote)
                 id = baseId + '2' + quoteId
                 symbol = base + '/' + quote
                 active = True
@@ -327,18 +325,9 @@ class bcex (Exchange):
                     },
                     # overrided by defaults from self.options['limits']
                     'limits': {
-                        'amount': {
-                            'min': None,
-                            'max': None,
-                        },
-                        'price': {
-                            'min': None,
-                            'max': None,
-                        },
-                        'cost': {
-                            'min': None,
-                            'max': None,
-                        },
+                        'amount': {'min': None, 'max': None},
+                        'price': {'min': None, 'max': None},
+                        'cost': {'min': None, 'max': None},
                     },
                     'info': market,
                 }, defaults))
@@ -348,9 +337,7 @@ class bcex (Exchange):
         symbol = None
         if market is not None:
             symbol = market['symbol']
-        timestamp = self.safe_integer_2(trade, 'date', 'created')
-        if timestamp is not None:
-            timestamp = timestamp * 1000
+        timestamp = self.safe_timestamp_2(trade, 'date', 'created')
         id = self.safe_string(trade, 'tid')
         orderId = self.safe_string(trade, 'order_id')
         amount = self.safe_float_2(trade, 'number', 'amount')
@@ -375,6 +362,7 @@ class bcex (Exchange):
             'cost': cost,
             'order': orderId,
             'fee': None,
+            'takerOrMaker': None,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -391,7 +379,7 @@ class bcex (Exchange):
     async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privatePostApiUserUserBalance(params)
-        data = response['data']
+        data = self.safe_value(response, 'data')
         keys = list(data.keys())
         result = {}
         for i in range(0, len(keys)):
@@ -400,14 +388,9 @@ class bcex (Exchange):
             parts = key.split('_')
             currencyId = parts[0]
             lockOrOver = parts[1]
-            code = currencyId.upper()
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(code)
-            if not(code in list(result.keys())):
-                account = self.account()
-                result[code] = account
+            code = self.safe_currency_code(currencyId)
+            if not (code in result):
+                result[code] = self.account()
             if lockOrOver == 'lock':
                 result[code]['used'] = float(amount)
             else:
@@ -459,9 +442,9 @@ class bcex (Exchange):
             'symbol': marketId,
         }
         response = await self.publicPostApiOrderDepth(self.extend(request, params))
-        data = response['data']
-        orderbook = self.parse_order_book(data, data['date'] * 1000)
-        return orderbook
+        data = self.safe_value(response, 'data')
+        timestamp = self.safe_timestamp(data, 'date')
+        return self.parse_order_book(data, timestamp)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -479,27 +462,25 @@ class bcex (Exchange):
             '2': 'closed',
             '3': 'canceled',
         }
-        if status in statuses:
-            return statuses[status]
-        return status
+        return self.safe_string(statuses, status, status)
 
     async def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrder requires a `symbol` argument')
         await self.load_markets()
         request = {
             'symbol': self.market_id(symbol),
             'trust_id': id,
         }
         response = await self.privatePostApiOrderOrderInfo(self.extend(request, params))
-        order = response['data']
-        timestamp = self.safe_integer(order, 'created') * 1000
+        order = self.safe_value(response, 'data')
+        timestamp = self.safe_timestamp(order, 'created')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         side = self.safe_string(order, 'flag')
         if side == 'sale':
             side = 'sell'
         # Can't use parseOrder because the data format is different btw endpoint for fetchOrder and fetchOrders
-        result = {
+        return {
             'info': order,
             'id': id,
             'timestamp': timestamp,
@@ -516,13 +497,16 @@ class bcex (Exchange):
             'remaining': self.safe_float(order, 'numberover'),
             'status': status,
             'fee': None,
+            'clientOrderId': None,
+            'trades': None,
         }
-        return result
 
     def parse_order(self, order, market=None):
         id = self.safe_string(order, 'id')
-        timestamp = self.safe_integer(order, 'datetime') * 1000
-        symbol = market['symbol']
+        timestamp = self.safe_timestamp(order, 'datetime')
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         type = None
         side = self.safe_string(order, 'type')
         if side == 'sale':
@@ -538,6 +522,7 @@ class bcex (Exchange):
         result = {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -552,6 +537,7 @@ class bcex (Exchange):
             'remaining': remaining,
             'status': status,
             'fee': fee,
+            'trades': None,
         }
         return result
 
@@ -581,30 +567,30 @@ class bcex (Exchange):
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
-        order = {
+        request = {
             'symbol': self.market_id(symbol),
             'type': side,
             'price': self.price_to_precision(symbol, price),
             'number': self.amount_to_precision(symbol, amount),
         }
-        response = await self.privatePostApiOrderCoinTrust(self.extend(order, params))
-        data = response['data']
+        response = await self.privatePostApiOrderCoinTrust(self.extend(request, params))
+        data = self.safe_value(response, 'data', {})
+        id = self.safe_string(data, 'order_id')
         return {
             'info': response,
-            'id': self.safe_string(data, 'order_id'),
+            'id': id,
         }
 
     async def cancel_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelOrder requires a `symbol` argument')
         await self.load_markets()
         request = {}
         if symbol is not None:
             request['symbol'] = self.market_id(symbol)
         if id is not None:
             request['order_id'] = id
-        response = await self.privatePostApiOrderCancel(self.extend(request, params))
-        return response
+        return await self.privatePostApiOrderCancel(self.extend(request, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.implode_params(path, params)
@@ -625,40 +611,23 @@ class bcex (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body):
-        if not isinstance(body, basestring):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        if response is None:
             return  # fallback to default error handler
-        if len(body) < 2:
-            return  # fallback to default error handler
-        if (body[0] == '{') or (body[0] == '['):
-            response = json.loads(body)
-            code = self.safe_value(response, 'code')
-            if code is not None:
-                if code != 0:
-                    #
-                    # {code: 1, msg: "该币不存在,非法操作"} - returned when a required symbol parameter is missing in the request(also, maybe on other types of errors as well)
-                    # {code: 1, msg: '公钥不合法'} - wrong public key
-                    # {code: 1, msg: '价格输入有误，请检查你的数值精度'} - 'The price input is incorrect, please check your numerical accuracy'
-                    # {code: 1, msg: '单笔最小交易数量不能小于0.00100000,请您重新挂单'} -
-                    #                  'The minimum number of single transactions cannot be less than 0.00100000. Please re-post the order'
-                    #
-                    message = self.safe_string(response, 'msg')
-                    feedback = self.id + ' msg: ' + message + ' ' + body
-                    exceptions = self.exceptions
-                    if message in exceptions:
-                        raise exceptions[message](feedback)
-                    elif message.find('请您重新挂单') >= 0:  # minimum limit
-                        raise InvalidOrder(feedback)
-                    else:
-                        raise ExchangeError(feedback)
-
-    def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
-        market = self.markets[symbol]
-        rate = market[side]
-        cost = float(self.cost_to_precision(symbol, amount * price))
-        return {
-            'type': takerOrMaker,
-            'currency': market['quote'],
-            'rate': rate,
-            'cost': float(self.fee_to_precision(symbol, rate * cost)),
-        }
+        errorCode = self.safe_value(response, 'code')
+        if errorCode is not None:
+            if errorCode != 0:
+                #
+                # {code: 1, msg: "该币不存在,非法操作"} - returned when a required symbol parameter is missing in the request(also, maybe on other types of errors as well)
+                # {code: 1, msg: '公钥不合法'} - wrong public key
+                # {code: 1, msg: '价格输入有误，请检查你的数值精度'} - 'The price input is incorrect, please check your numerical accuracy'
+                # {code: 1, msg: '单笔最小交易数量不能小于0.00100000,请您重新挂单'} -
+                #                  'The minimum number of single transactions cannot be less than 0.00100000. Please re-post the order'
+                #
+                message = self.safe_string(response, 'msg')
+                feedback = self.id + ' ' + message
+                self.throw_exactly_matched_exception(self.exceptions, message, feedback)
+                if message.find('请您重新挂单') >= 0:  # minimum limit
+                    raise InvalidOrder(feedback)
+                else:
+                    raise ExchangeError(feedback)

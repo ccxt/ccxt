@@ -9,7 +9,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 
 
-class luno (Exchange):
+class luno(Exchange):
 
     def describe(self):
         return self.deep_extend(super(luno, self).describe(), {
@@ -20,17 +20,21 @@ class luno (Exchange):
             'version': '1',
             'has': {
                 'CORS': False,
+                'fetchAccounts': True,
                 'fetchTickers': True,
                 'fetchOrder': True,
                 'fetchOrders': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'fetchMyTrades': True,
+                'fetchLedger': True,
+                'fetchTradingFee': True,
                 'fetchTradingFees': True,
             },
             'urls': {
+                'referral': 'https://www.luno.com/invite/44893A',
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg',
-                'api': 'https://api.mybitx.com/api',
+                'api': 'https://api.luno.com/api',
                 'www': 'https://www.luno.com',
                 'doc': [
                     'https://www.luno.com/en/api',
@@ -53,6 +57,7 @@ class luno (Exchange):
                         'accounts/{id}/pending',
                         'accounts/{id}/transactions',
                         'balance',
+                        'beneficiaries',
                         'fee_info',
                         'funding_address',
                         'listorders',
@@ -64,6 +69,7 @@ class luno (Exchange):
                     ],
                     'post': [
                         'accounts',
+                        'accounts/{id}/name',
                         'postorder',
                         'marketorder',
                         'stoporder',
@@ -74,6 +80,7 @@ class luno (Exchange):
                         'oauth2/grant',
                     ],
                     'put': [
+                        'accounts/{id}/name',
                         'quotes/{id}',
                     ],
                     'delete': [
@@ -84,44 +91,64 @@ class luno (Exchange):
             },
         })
 
-    async def fetch_markets(self):
-        markets = await self.publicGetTickers()
+    async def fetch_markets(self, params={}):
+        response = await self.publicGetTickers(params)
         result = []
-        for p in range(0, len(markets['tickers'])):
-            market = markets['tickers'][p]
+        for i in range(0, len(response['tickers'])):
+            market = response['tickers'][i]
             id = market['pair']
-            base = id[0:3]
-            quote = id[3:6]
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            baseId = id[0:3]
+            quoteId = id[3:6]
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'info': market,
+                'active': None,
+                'precision': self.precision,
+                'limits': self.limits,
+            })
+        return result
+
+    async def fetch_accounts(self, params={}):
+        response = await self.privateGetBalance(params)
+        wallets = self.safe_value(response, 'balance', [])
+        result = []
+        for i in range(0, len(wallets)):
+            account = wallets[i]
+            accountId = self.safe_string(account, 'account_id')
+            currencyId = self.safe_string(account, 'asset')
+            code = self.safe_currency_code(currencyId)
+            result.append({
+                'id': accountId,
+                'type': None,
+                'currency': code,
+                'info': account,
             })
         return result
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        response = await self.privateGetBalance()
-        wallets = response['balance']
+        response = await self.privateGetBalance(params)
+        wallets = self.safe_value(response, 'balance', [])
         result = {'info': response}
-        for b in range(0, len(wallets)):
-            wallet = wallets[b]
-            currency = self.common_currency_code(wallet['asset'])
-            reserved = float(wallet['reserved'])
-            unconfirmed = float(wallet['unconfirmed'])
-            balance = float(wallet['balance'])
-            account = {
-                'free': 0.0,
-                'used': self.sum(reserved, unconfirmed),
-                'total': self.sum(balance, unconfirmed),
-            }
-            account['free'] = account['total'] - account['used']
-            result[currency] = account
+        for i in range(0, len(wallets)):
+            wallet = wallets[i]
+            currencyId = self.safe_string(wallet, 'asset')
+            code = self.safe_currency_code(currencyId)
+            reserved = self.safe_float(wallet, 'reserved')
+            unconfirmed = self.safe_float(wallet, 'unconfirmed')
+            balance = self.safe_float(wallet, 'balance')
+            account = self.account()
+            account['used'] = self.sum(reserved, unconfirmed)
+            account['total'] = self.sum(balance, unconfirmed)
+            result[code] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
@@ -130,19 +157,40 @@ class luno (Exchange):
         if limit is not None:
             if limit <= 100:
                 method += 'Top'  # get just the top of the orderbook when limit is low
-        orderbook = await getattr(self, method)(self.extend({
+        request = {
             'pair': self.market_id(symbol),
-        }, params))
-        timestamp = orderbook['timestamp']
-        return self.parse_order_book(orderbook, timestamp, 'bids', 'asks', 'price', 'volume')
+        }
+        response = await getattr(self, method)(self.extend(request, params))
+        timestamp = self.safe_integer(response, 'timestamp')
+        return self.parse_order_book(response, timestamp, 'bids', 'asks', 'price', 'volume')
 
     def parse_order(self, order, market=None):
-        timestamp = order['creation_timestamp']
+        #
+        #     {
+        #         "base": "string",
+        #         "completed_timestamp": "string",
+        #         "counter": "string",
+        #         "creation_timestamp": "string",
+        #         "expiration_timestamp": "string",
+        #         "fee_base": "string",
+        #         "fee_counter": "string",
+        #         "limit_price": "string",
+        #         "limit_volume": "string",
+        #         "order_id": "string",
+        #         "pair": "string",
+        #         "state": "PENDING",
+        #         "type": "BID"
+        #     }
+        #
+        timestamp = self.safe_integer(order, 'creation_timestamp')
         status = 'open' if (order['state'] == 'PENDING') else 'closed'
         side = 'sell' if (order['type'] == 'ASK') else 'buy'
-        if market is None:
-            market = self.find_market(order['pair'])
-        symbol = market['symbol']
+        marketId = self.safe_string(order, 'pair')
+        symbol = None
+        if marketId in self.markets_by_id:
+            market = self.markets_by_id[marketId]
+        if market is not None:
+            symbol = market['symbol']
         price = self.safe_float(order, 'limit_price')
         amount = self.safe_float(order, 'limit_volume')
         quoteFee = self.safe_float(order, 'fee_counter')
@@ -155,13 +203,17 @@ class luno (Exchange):
                 remaining = max(0, amount - filled)
         fee = {'currency': None}
         if quoteFee:
-            fee['side'] = 'quote'
             fee['cost'] = quoteFee
+            if market is not None:
+                fee['currency'] = market['quote']
         else:
-            fee['side'] = 'base'
             fee['cost'] = baseFee
+            if market is not None:
+                fee['currency'] = market['base']
+        id = self.safe_string(order, 'order_id')
         return {
-            'id': order['order_id'],
+            'id': id,
+            'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
@@ -177,13 +229,15 @@ class luno (Exchange):
             'trades': None,
             'fee': fee,
             'info': order,
+            'average': None,
         }
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        response = await self.privateGetOrdersId(self.extend({
+        request = {
             'id': id,
-        }, params))
+        }
+        response = await self.privateGetOrdersId(self.extend(request, params))
         return self.parse_order(response)
 
     async def fetch_orders_by_state(self, state=None, symbol=None, since=None, limit=None, params={}):
@@ -209,7 +263,7 @@ class luno (Exchange):
         return await self.fetch_orders_by_state('COMPLETE', symbol, since, limit, params)
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = ticker['timestamp']
+        timestamp = self.safe_integer(ticker, 'timestamp')
         symbol = None
         if market:
             symbol = market['symbol']
@@ -254,19 +308,20 @@ class luno (Exchange):
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        ticker = await self.publicGetTicker(self.extend({
+        request = {
             'pair': market['id'],
-        }, params))
-        return self.parse_ticker(ticker, market)
+        }
+        response = await self.publicGetTicker(self.extend(request, params))
+        return self.parse_ticker(response, market)
 
     def parse_trade(self, trade, market):
         # For public trade data(is_buy is True) indicates 'buy' side but for private trade data
         # is_buy indicates maker or taker. The value of "type"(ASK/BID) indicate sell/buy side.
         # Private trade data includes ID field which public trade data does not.
-        order = self.safe_string(trade, 'order_id')
+        orderId = self.safe_string(trade, 'order_id')
         takerOrMaker = None
         side = None
-        if order is not None:
+        if orderId is not None:
             side = 'sell' if (trade['type'] == 'ASK') else 'buy'
             if side == 'sell' and trade['is_buy']:
                 takerOrMaker = 'maker'
@@ -275,7 +330,7 @@ class luno (Exchange):
             else:
                 takerOrMaker = 'taker'
         else:
-            side = 'buy' if (trade['is_buy']) else 'sell'
+            side = 'buy' if trade['is_buy'] else 'sell'
         feeBase = self.safe_float(trade, 'fee_base')
         feeCounter = self.safe_float(trade, 'fee_counter')
         feeCurrency = None
@@ -288,13 +343,14 @@ class luno (Exchange):
             if feeCounter != 0.0:
                 feeCurrency = market['quote']
                 feeCost = feeCounter
+        timestamp = self.safe_integer(trade, 'timestamp')
         return {
             'info': trade,
             'id': None,
-            'timestamp': trade['timestamp'],
-            'datetime': self.iso8601(trade['timestamp']),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'symbol': market['symbol'],
-            'order': order,
+            'order': orderId,
             'type': None,
             'side': side,
             'takerOrMaker': takerOrMaker,
@@ -348,23 +404,22 @@ class luno (Exchange):
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         method = 'privatePost'
-        order = {'pair': self.market_id(symbol)}
+        request = {
+            'pair': self.market_id(symbol),
+        }
         if type == 'market':
             method += 'Marketorder'
-            order['type'] = side.upper()
+            request['type'] = side.upper()
             if side == 'buy':
-                order['counter_volume'] = amount
+                request['counter_volume'] = amount
             else:
-                order['base_volume'] = amount
+                request['base_volume'] = amount
         else:
             method += 'Postorder'
-            order['volume'] = amount
-            order['price'] = price
-            if side == 'buy':
-                order['type'] = 'BID'
-            else:
-                order['type'] = 'ASK'
-        response = await getattr(self, method)(self.extend(order, params))
+            request['volume'] = amount
+            request['price'] = price
+            request['type'] = 'BID' if (side == 'buy') else 'ASK'
+        response = await getattr(self, method)(self.extend(request, params))
         return {
             'info': response,
             'id': response['order_id'],
@@ -372,7 +427,135 @@ class luno (Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        return await self.privatePostStoporder({'order_id': id})
+        request = {
+            'order_id': id,
+        }
+        return await self.privatePostStoporder(self.extend(request, params))
+
+    async def fetch_ledger_by_entries(self, code=None, entry=-1, limit=1, params={}):
+        # by default without entry number or limit number, return most recent entry
+        since = None
+        request = {
+            'min_row': entry,
+            'max_row': self.sum(entry, limit),
+        }
+        return await self.fetch_ledger(code, since, limit, self.extend(request, params))
+
+    async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        await self.load_accounts()
+        currency = None
+        id = self.safe_string(params, 'id')  # account id
+        min_row = self.safe_value(params, 'min_row')
+        max_row = self.safe_value(params, 'max_row')
+        if id is None:
+            if code is None:
+                raise ArgumentsRequired(self.id + ' fetchLedger() requires a currency code argument if no account id specified in params')
+            currency = self.currency(code)
+            accountsByCurrencyCode = self.index_by(self.accounts, 'currency')
+            account = self.safe_value(accountsByCurrencyCode, code)
+            if account is None:
+                raise ExchangeError(self.id + ' fetchLedger() could not find account id for ' + code)
+            id = account['id']
+        if min_row is None and max_row is None:
+            max_row = 0  # Default to most recent transactions
+            min_row = -1000  # Maximum number of records supported
+        elif min_row is None or max_row is None:
+            raise ExchangeError(self.id + " fetchLedger() require both params 'max_row' and 'min_row' or neither to be defined")
+        if limit is not None and max_row - min_row > limit:
+            if max_row <= 0:
+                min_row = max_row - limit
+            elif min_row > 0:
+                max_row = min_row + limit
+        if max_row - min_row > 1000:
+            raise ExchangeError(self.id + " fetchLedger() requires the params 'max_row' - 'min_row' <= 1000")
+        request = {
+            'id': id,
+            'min_row': min_row,
+            'max_row': max_row,
+        }
+        response = await self.privateGetAccountsIdTransactions(self.extend(params, request))
+        entries = self.safe_value(response, 'transactions', [])
+        return self.parse_ledger(entries, currency, since, limit)
+
+    def parse_ledger_comment(self, comment):
+        words = comment.split(' ')
+        types = {
+            'Withdrawal': 'fee',
+            'Trading': 'fee',
+            'Payment': 'transaction',
+            'Sent': 'transaction',
+            'Deposit': 'transaction',
+            'Received': 'transaction',
+            'Released': 'released',
+            'Reserved': 'reserved',
+            'Sold': 'trade',
+            'Bought': 'trade',
+            'Failure': 'failed',
+        }
+        referenceId = None
+        firstWord = self.safe_string(words, 0)
+        thirdWord = self.safe_string(words, 2)
+        fourthWord = self.safe_string(words, 3)
+        type = self.safe_string(types, firstWord, None)
+        if (type is None) and (thirdWord == 'fee'):
+            type = 'fee'
+        if (type == 'reserved') and (fourthWord == 'order'):
+            referenceId = self.safe_string(words, 4)
+        return {
+            'type': type,
+            'referenceId': referenceId,
+        }
+
+    def parse_ledger_entry(self, entry, currency=None):
+        # details = self.safe_value(entry, 'details', {})
+        id = self.safe_string(entry, 'row_index')
+        account_id = self.safe_string(entry, 'account_id')
+        timestamp = self.safe_value(entry, 'timestamp')
+        currencyId = self.safe_string(entry, 'currency')
+        code = self.safe_currency_code(currencyId, currency)
+        available_delta = self.safe_float(entry, 'available_delta')
+        balance_delta = self.safe_float(entry, 'balance_delta')
+        after = self.safe_float(entry, 'balance')
+        comment = self.safe_string(entry, 'description')
+        before = after
+        amount = 0.0
+        result = self.parse_ledger_comment(comment)
+        type = result['type']
+        referenceId = result['referenceId']
+        direction = None
+        status = None
+        if balance_delta != 0.0:
+            before = after - balance_delta  # TODO: float precision
+            status = 'ok'
+            amount = abs(balance_delta)
+        elif available_delta < 0.0:
+            status = 'pending'
+            amount = abs(available_delta)
+        elif available_delta > 0.0:
+            status = 'canceled'
+            amount = abs(available_delta)
+        if balance_delta > 0 or available_delta > 0:
+            direction = 'in'
+        elif balance_delta < 0 or available_delta < 0:
+            direction = 'out'
+        return {
+            'id': id,
+            'direction': direction,
+            'account': account_id,
+            'referenceId': referenceId,
+            'referenceAccount': None,
+            'type': type,
+            'currency': code,
+            'amount': amount,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'before': before,
+            'after': after,
+            'status': status,
+            'fee': None,
+            'info': entry,
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)

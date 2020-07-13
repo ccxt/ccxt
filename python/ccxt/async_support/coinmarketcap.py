@@ -8,7 +8,7 @@ import math
 from ccxt.base.errors import ExchangeError
 
 
-class coinmarketcap (Exchange):
+class coinmarketcap(Exchange):
 
     def describe(self):
         return self.deep_extend(super(coinmarketcap, self).describe(), {
@@ -34,7 +34,7 @@ class coinmarketcap (Exchange):
                 'fetchCurrencies': True,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/28244244-9be6312a-69ed-11e7-99c1-7c1797275265.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87182086-1cd4cd00-c2ec-11ea-9ec4-d0cf2a2abf62.jpg',
                 'api': {
                     'public': 'https://api.coinmarketcap.com',
                     'files': 'https://files.coinmarketcap.com',
@@ -99,22 +99,27 @@ class coinmarketcap (Exchange):
             'Bitgem': 'Bitgem',
             'BlazeCoin': 'BlazeCoin',
             'BlockCAT': 'BlockCAT',
+            'Blocktrade Token': 'Blocktrade Token',
             'Catcoin': 'Catcoin',
             'CanYaCoin': 'CanYaCoin',  # conflict with CAN(Content and AD Network)
+            'CryptoBossCoin': 'CryptoBossCoin',  # conflict with CBC(CashBet Coin)
             'Comet': 'Comet',  # conflict with CMT(CyberMiles)
             'CPChain': 'CPChain',
             'CrowdCoin': 'CrowdCoin',  # conflict with CRC CryCash
+            'Cryptaur': 'Cryptaur',  # conflict with CPT = Contents Protocol https://github.com/ccxt/ccxt/issues/4920 and https://github.com/ccxt/ccxt/issues/6081
             'Cubits': 'Cubits',  # conflict with QBT(Qbao)
             'DAO.Casino': 'DAO.Casino',  # conflict with BET(BetaCoin)
             'E-Dinar Coin': 'E-Dinar Coin',  # conflict with EDR Endor Protocol and EDRCoin
             'EDRcoin': 'EDRcoin',  # conflict with EDR Endor Protocol and E-Dinar Coin
             'ENTCash': 'ENTCash',  # conflict with ENT(Eternity)
-            'FairGame': 'FairGame',
+            'FairCoin': 'FairCoin',  # conflict with FAIR(FairGame) https://github.com/ccxt/ccxt/pull/5865
             'Fabric Token': 'Fabric Token',
-            'GET Protocol': 'GET Protocol',
+            # 'GET Protocol': 'GET Protocol',
             'Global Tour Coin': 'Global Tour Coin',  # conflict with GTC(Game.com)
             'GuccioneCoin': 'GuccioneCoin',  # conflict with GCC(Global Cryptocurrency)
             'HarmonyCoin': 'HarmonyCoin',  # conflict with HMC(Hi Mutual Society)
+            'Harvest Masternode Coin': 'Harvest Masternode Coin',  # conflict with HC(HyperCash)
+            'HOT Token': 'HOT Token',
             'Hydro Protocol': 'Hydro Protocol',  # conflict with HOT(Holo)
             'Huncoin': 'Huncoin',  # conflict with HNC(Helleniccoin)
             'iCoin': 'iCoin',
@@ -122,27 +127,36 @@ class coinmarketcap (Exchange):
             'KingN Coin': 'KingN Coin',  # conflict with KNC(Kyber Network)
             'LiteBitcoin': 'LiteBitcoin',  # conflict with LBTC(LightningBitcoin)
             'Maggie': 'Maggie',
+            'Monarch': 'Monarch',  # conflict with MyToken(MT)
+            'MTC Mesh Network': 'MTC Mesh Network',  # conflict with MTC Docademic doc.com Token https://github.com/ccxt/ccxt/issues/6081 https://github.com/ccxt/ccxt/issues/3025
             'IOTA': 'IOTA',  # a special case, most exchanges list it as IOTA, therefore we change just the Coinmarketcap instead of changing them all
             'NetCoin': 'NetCoin',
             'PCHAIN': 'PCHAIN',  # conflict with PAI(Project Pai)
+            'Plair': 'Plair',  # conflict with PLA(PLANET)
+            'PlayChip': 'PlayChip',  # conflict with PLA(PLANET)
             'Polcoin': 'Polcoin',
             'PutinCoin': 'PutinCoin',  # conflict with PUT(Profile Utility Token)
             'Rcoin': 'Rcoin',  # conflict with RCN(Ripio Credit Network)
+            # https://github.com/ccxt/ccxt/issues/6081
+            # https://github.com/ccxt/ccxt/issues/3365
+            # https://github.com/ccxt/ccxt/issues/2873
+            'Themis': 'Themis',  # conflict with GET(Guaranteed Entrance Token, GET Protocol)
+            'Menlo One': 'Menlo One',  # conflict with Harmony(ONE)
+            'BigONE Token': 'BigONE Token',  # conflict with Harmony(ONE)
         }
-        if name in currencies:
-            return currencies[name]
-        return base
+        return self.safe_value(currencies, name, base)
 
-    async def fetch_markets(self):
-        markets = await self.publicGetTicker({
+    async def fetch_markets(self, params={}):
+        request = {
             'limit': 0,
-        })
+        }
+        response = await self.publicGetTicker(self.extend(request, params))
         result = []
-        for p in range(0, len(markets)):
-            market = markets[p]
+        for i in range(0, len(response)):
+            market = response[i]
             currencies = self.currencyCodes
-            for i in range(0, len(currencies)):
-                quote = currencies[i]
+            for j in range(0, len(currencies)):
+                quote = currencies[j]
                 quoteId = quote.lower()
                 baseId = market['id']
                 base = self.currency_code(market['symbol'], market['name'])
@@ -156,6 +170,9 @@ class coinmarketcap (Exchange):
                     'baseId': baseId,
                     'quoteId': quoteId,
                     'info': market,
+                    'active': None,
+                    'precision': self.precision,
+                    'limits': self.limits,
                 })
         return result
 
@@ -167,27 +184,19 @@ class coinmarketcap (Exchange):
         return await self.publicGetGlobal(request)
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = self.milliseconds()
-        if 'last_updated' in ticker:
-            if ticker['last_updated']:
-                timestamp = int(ticker['last_updated']) * 1000
-        change = None
-        if 'percent_change_24h' in ticker:
-            if ticker['percent_change_24h']:
-                change = self.safe_float(ticker, 'percent_change_24h')
+        timestamp = self.safe_timestamp(ticker, 'last_updated')
+        if timestamp is None:
+            timestamp = self.milliseconds()
+        change = self.safe_float(ticker, 'percent_change_24h')
         last = None
         symbol = None
         volume = None
         if market is not None:
-            priceKey = 'price_' + market['quoteId']
-            if priceKey in ticker:
-                if ticker[priceKey]:
-                    last = self.safe_float(ticker, priceKey)
             symbol = market['symbol']
+            priceKey = 'price_' + market['quoteId']
+            last = self.safe_float(ticker, priceKey)
             volumeKey = '24h_volume_' + market['quoteId']
-            if volumeKey in ticker:
-                if ticker[volumeKey]:
-                    volume = self.safe_float(ticker, volumeKey)
+            volume = self.safe_float(ticker, volumeKey)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -203,8 +212,8 @@ class coinmarketcap (Exchange):
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': change,
-            'percentage': None,
+            'change': None,
+            'percentage': change,
             'average': None,
             'baseVolume': None,
             'quoteVolume': volume,
@@ -219,7 +228,7 @@ class coinmarketcap (Exchange):
         if currency:
             request['convert'] = currency
         response = await self.publicGetTicker(self.extend(request, params))
-        tickers = {}
+        result = {}
         for t in range(0, len(response)):
             ticker = response[t]
             currencyId = currency.lower()
@@ -229,29 +238,30 @@ class coinmarketcap (Exchange):
             if id in self.markets_by_id:
                 market = self.markets_by_id[id]
                 symbol = market['symbol']
-            tickers[symbol] = self.parse_ticker(ticker, market)
-        return tickers
+            result[symbol] = self.parse_ticker(ticker, market)
+        return result
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        request = self.extend({
+        request = {
             'convert': market['quote'],
             'id': market['baseId'],
-        }, params)
-        response = await self.publicGetTickerId(request)
+        }
+        response = await self.publicGetTickerId(self.extend(request, params))
         ticker = response[0]
         return self.parse_ticker(ticker, market)
 
     async def fetch_currencies(self, params={}):
-        currencies = await self.publicGetTicker(self.extend({
+        request = {
             'limit': 0,
-        }, params))
+        }
+        response = await self.publicGetTicker(self.extend(request, params))
         result = {}
-        for i in range(0, len(currencies)):
-            currency = currencies[i]
-            id = currency['symbol']
-            name = currency['name']
+        for i in range(0, len(response)):
+            currency = response[i]
+            id = self.safe_string(currency, 'symbol')
+            name = self.safe_string(currency, 'name')
             # todo: will need to rethink the fees
             # to add support for multiple withdrawal/deposit methods and
             # differentiated fees for each particular method

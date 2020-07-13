@@ -19,6 +19,7 @@ module.exports = class coingi extends Exchange {
                 'fetchTickers': true,
             },
             'urls': {
+                'referral': 'https://www.coingi.com/?r=XTPPMC',
                 'logo': 'https://user-images.githubusercontent.com/1294454/28619707-5c9232a8-7212-11e7-86d6-98fe5d15cc6e.jpg',
                 'api': {
                     'www': 'https://coingi.com',
@@ -26,7 +27,7 @@ module.exports = class coingi extends Exchange {
                     'user': 'https://api.coingi.com',
                 },
                 'www': 'https://coingi.com',
-                'doc': 'http://docs.coingi.apiary.io/',
+                'doc': 'https://coingi.docs.apiary.io',
             },
             'api': {
                 'www': {
@@ -89,28 +90,24 @@ module.exports = class coingi extends Exchange {
         });
     }
 
-    async fetchMarkets () {
-        let response = undefined;
-        try {
-            this.parseJsonResponse = false;
-            response = await this.wwwGet ();
-            this.parseJsonResponse = true;
-        } catch (e) {
-            this.parseJsonResponse = true;
-            throw e;
-        }
-        let parts = response.split ('do=currencyPairSelector-selectCurrencyPair" class="active">');
-        let currencyParts = parts[1].split ('<div class="currency-pair-label">');
-        let result = [];
+    async fetchMarkets (params = {}) {
+        const response = await this.wwwGet (params);
+        const parts = response.split ('do=currencyPairSelector-selectCurrencyPair" class="active">');
+        const currencyParts = parts[1].split ('<div class="currency-pair-label">');
+        const result = [];
         for (let i = 1; i < currencyParts.length; i++) {
-            let currencyPart = currencyParts[i];
-            let idParts = currencyPart.split ('</div>');
+            const currencyPart = currencyParts[i];
+            const idParts = currencyPart.split ('</div>');
             let id = idParts[0];
-            let symbol = id;
             id = id.replace ('/', '-');
             id = id.toLowerCase ();
-            let [ base, quote ] = symbol.split ('/');
-            let precision = {
+            const [ baseId, quoteId ] = id.split ('-');
+            let base = baseId.toUpperCase ();
+            let quote = quoteId.toUpperCase ();
+            base = this.safeCurrencyCode (base);
+            quote = this.safeCurrencyCode (quote);
+            const symbol = base + '/' + quote;
+            const precision = {
                 'amount': 8,
                 'price': 8,
             };
@@ -119,6 +116,8 @@ module.exports = class coingi extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'info': id,
                 'active': true,
                 'precision': precision,
@@ -143,57 +142,60 @@ module.exports = class coingi extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let lowercaseCurrencies = [];
-        let currencies = Object.keys (this.currencies);
+        const lowercaseCurrencies = [];
+        const currencies = Object.keys (this.currencies);
         for (let i = 0; i < currencies.length; i++) {
-            let currency = currencies[i];
+            const currency = currencies[i];
             lowercaseCurrencies.push (currency.toLowerCase ());
         }
-        let balances = await this.userPostBalance ({
+        const request = {
             'currencies': lowercaseCurrencies.join (','),
-        });
-        let result = { 'info': balances };
-        for (let b = 0; b < balances.length; b++) {
-            let balance = balances[b];
-            let currency = balance['currency']['name'];
-            currency = currency.toUpperCase ();
-            let account = {
-                'free': balance['available'],
-                'used': balance['blocked'] + balance['inOrders'] + balance['withdrawing'],
-                'total': 0.0,
-            };
-            account['total'] = this.sum (account['free'], account['used']);
-            result[currency] = account;
+        };
+        const response = await this.userPostBalance (this.extend (request, params));
+        const result = { 'info': response };
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
+            const currencyId = this.safeString (balance['currency'], 'name');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeFloat (balance, 'available');
+            const blocked = this.safeFloat (balance, 'blocked');
+            const inOrders = this.safeFloat (balance, 'inOrders');
+            const withdrawing = this.safeFloat (balance, 'withdrawing');
+            account['used'] = this.sum (blocked, inOrders, withdrawing);
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = 512, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let orderbook = await this.currentGetOrderBookPairAskCountBidCountDepth (this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'pair': market['id'],
             'depth': 32, // maximum number of depth range steps 1-32
             'askCount': limit, // maximum returned number of asks 1-512
             'bidCount': limit, // maximum returned number of bids 1-512
-        }, params));
+        };
+        const orderbook = await this.currentGetOrderBookPairAskCountBidCountDepth (this.extend (request, params));
         return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'baseAmount');
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = this.milliseconds ();
+        const timestamp = this.milliseconds ();
         let symbol = undefined;
-        if (market)
+        if (market !== undefined) {
             symbol = market['symbol'];
+        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': ticker['high'],
-            'low': ticker['low'],
-            'bid': ticker['highestBid'],
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'highestBid'),
             'bidVolume': undefined,
-            'ask': ticker['lowestAsk'],
+            'ask': this.safeFloat (ticker, 'lowestAsk'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -203,21 +205,21 @@ module.exports = class coingi extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': ticker['baseVolume'],
-            'quoteVolume': ticker['counterVolume'],
+            'baseVolume': this.safeFloat (ticker, 'baseVolume'),
+            'quoteVolume': this.safeFloat (ticker, 'counterVolume'),
             'info': ticker,
         };
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.currentGet24hourRollingAggregation (params);
-        let result = {};
+        const response = await this.currentGet24hourRollingAggregation (params);
+        const result = {};
         for (let t = 0; t < response.length; t++) {
-            let ticker = response[t];
-            let base = ticker['currencyPair']['base'].toUpperCase ();
-            let quote = ticker['currencyPair']['counter'].toUpperCase ();
-            let symbol = base + '/' + quote;
+            const ticker = response[t];
+            const base = ticker['currencyPair']['base'].toUpperCase ();
+            const quote = ticker['currencyPair']['counter'].toUpperCase ();
+            const symbol = base + '/' + quote;
             let market = undefined;
             if (symbol in this.markets) {
                 market = this.markets[symbol];
@@ -229,47 +231,69 @@ module.exports = class coingi extends Exchange {
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let tickers = await this.fetchTickers (undefined, params);
-        if (symbol in tickers)
+        const tickers = await this.fetchTickers (undefined, params);
+        if (symbol in tickers) {
             return tickers[symbol];
+        }
         throw new ExchangeError (this.id + ' return did not contain ' + symbol);
     }
 
     parseTrade (trade, market = undefined) {
-        if (!market)
-            market = this.markets_by_id[trade['currencyPair']];
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'amount');
+        let cost = undefined;
+        if (price !== undefined) {
+            if (amount !== undefined) {
+                cost = price * amount;
+            }
+        }
+        const timestamp = this.safeInteger (trade, 'timestamp');
+        const id = this.safeString (trade, 'id');
+        const marketId = this.safeString (trade, 'currencyPair');
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+        }
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
         return {
-            'id': trade['id'],
+            'id': id,
             'info': trade,
-            'timestamp': trade['timestamp'],
-            'datetime': this.iso8601 (trade['timestamp']),
-            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
             'type': undefined,
             'side': undefined, // type
-            'price': trade['price'],
-            'amount': trade['amount'],
+            'order': undefined,
+            'takerOrMaker': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
         };
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.currentGetTransactionsPairMaxCount (this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'pair': market['id'],
             'maxCount': 128,
-        }, params));
+        };
+        const response = await this.currentGetTransactionsPairMaxCount (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let order = {
+        const request = {
             'currencyPair': this.marketId (symbol),
             'volume': amount,
             'price': price,
             'orderType': (side === 'buy') ? 0 : 1,
         };
-        let response = await this.userPostAddOrder (this.extend (order, params));
+        const response = await this.userPostAddOrder (this.extend (request, params));
         return {
             'info': response,
             'id': response['result'],
@@ -278,7 +302,10 @@ module.exports = class coingi extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        return await this.userPostCancelOrder ({ 'orderId': id });
+        const request = {
+            'orderId': id,
+        };
+        return await this.userPostCancelOrder (this.extend (request, params));
     }
 
     sign (path, api = 'current', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -286,18 +313,19 @@ module.exports = class coingi extends Exchange {
         if (api !== 'www') {
             url += '/' + api + '/' + this.implodeParams (path, params);
         }
-        let query = this.omit (params, this.extractParams (path));
+        const query = this.omit (params, this.extractParams (path));
         if (api === 'current') {
-            if (Object.keys (query).length)
+            if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
+            }
         } else if (api === 'user') {
             this.checkRequiredCredentials ();
-            let nonce = this.nonce ();
-            let request = this.extend ({
+            const nonce = this.nonce ();
+            const request = this.extend ({
                 'token': this.apiKey,
                 'nonce': nonce,
             }, query);
-            let auth = nonce.toString () + '$' + this.apiKey;
+            const auth = nonce.toString () + '$' + this.apiKey;
             request['signature'] = this.hmac (this.encode (auth), this.encode (this.secret));
             body = this.json (request);
             headers = {
@@ -308,10 +336,11 @@ module.exports = class coingi extends Exchange {
     }
 
     async request (path, api = 'current', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
+        const response = await this.fetch2 (path, api, method, params, headers, body);
         if (typeof response !== 'string') {
-            if ('errors' in response)
+            if ('errors' in response) {
                 throw new ExchangeError (this.id + ' ' + this.json (response));
+            }
         }
         return response;
     }
