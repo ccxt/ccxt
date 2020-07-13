@@ -735,7 +735,7 @@ module.exports = class bitmart extends Exchange {
         //     }
         //
         const id = this.safeString (order, 'entrust_id');
-        const timestamp = this.milliseconds ();
+        const timestamp = this.safeInteger (order, 'timestamp', this.milliseconds ());
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         let symbol = undefined;
         const marketId = this.safeString (order, 'symbol');
