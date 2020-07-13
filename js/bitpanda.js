@@ -30,6 +30,7 @@ module.exports = class bitpanda extends Exchange {
                 'fetchTradingFees': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchWithdrawals': true,
             },
             'timeframes': {
                 '1m': '1/MINUTES',
@@ -867,7 +868,7 @@ module.exports = class bitpanda extends Exchange {
         if (since !== undefined) {
             const to = this.safeString (params, 'to');
             if (to === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchDeposits required a "to" iso8601 string param with the since argument is specified');
+                throw new ArgumentsRequired (this.id + ' fetchDeposits requires a "to" iso8601 string param with the since argument is specified');
             }
             request['from'] = this.iso8601 (since);
         }
@@ -903,7 +904,63 @@ module.exports = class bitpanda extends Exchange {
         //     }
         //
         const depositHistory = this.safeValue (response, 'deposit_history', []);
-        return this.parseTransactions (depositHistory, currency, since, limit);
+        return this.parseTransactions (depositHistory, currency, since, limit, { 'type': 'deposit' });
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            // 'cursor': 'string', // pointer specifying the position from which the next pages should be returned
+        };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency_code'] = currency['id'];
+        }
+        if (limit !== undefined) {
+            request['max_page_size'] = limit;
+        }
+        if (since !== undefined) {
+            const to = this.safeString (params, 'to');
+            if (to === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchWithdrawals requires a "to" iso8601 string param with the since argument is specified');
+            }
+            request['from'] = this.iso8601 (since);
+        }
+        const response = await this.privateGetAccountWithdrawals (this.extend (request, params));
+        //
+        //     {
+        //         "withdrawal_history": [
+        //             {
+        //                 "account_id": "e369ac80-4577-11e9-ae08-9bedc4790b84",
+        //                 "amount": "0.1",
+        //                 "currency": "BTC",
+        //                 "fee_amount": "0.00002",
+        //                 "fee_currency": "BTC",
+        //                 "funds_source": "EXTERNAL",
+        //                 "related_transaction_id": "e298341a-3855-405e-bce3-92db368a3157",
+        //                 "time": "2020-05-05T11:11:32.110Z",
+        //                 "transaction_id": "6693ff40-bb10-4dcf-ada7-3b287727c882",
+        //                 "type": "CRYPTO"
+        //             },
+        //             {
+        //                 "account_id": "e369ac80-4577-11e9-ae08-9bedc4790b84",
+        //                 "amount": "0.1",
+        //                 "currency": "BTC",
+        //                 "fee_amount": "0.0",
+        //                 "fee_currency": "BTC",
+        //                 "funds_source": "INTERNAL",
+        //                 "time": "2020-05-05T10:29:53.464Z",
+        //                 "transaction_id": "ec9703b1-954b-4f76-adea-faac66eabc0b",
+        //                 "type": "CRYPTO"
+        //             }
+        //         ],
+        //         "cursor": "eyJhY2NvdW50X2lkIjp7InMiOiJlMzY5YWM4MC00NTc3LTExZTktYWUwOC05YmVkYzQ3OTBiODQiLCJzcyI6W10sIm5zIjpbXSwiYnMiOltdLCJtIjp7fSwibCI6W119LCJpdGVtX2tleSI6eyJzIjoiV0lUSERSQVdBTDo6ZWM5NzAzYjEtOTU0Yi00Zjc2LWFkZWEtZmFhYzY2ZWFiYzBiIiwic3MiOltdLCJucyI6W10sImJzIjpbXSwibSI6e30sImwiOltdfSwiZ2xvYmFsX3dpdGhkcmF3YWxfaW5kZXhfaGFzaF9rZXkiOnsicyI6ImUzNjlhYzgwLTQ1NzctMTFlOS1hZTA4LTliZWRjNDc5MGI4NCIsInNzIjpbXSwibnMiOltdLCJicyI6W10sIm0iOnt9LCJsIjpbXX0sInRpbWVzdGFtcCI6eyJuIjoiMTU4ODY3NDU5MzQ2NCIsInNzIjpbXSwibnMiOltdLCJicyI6W10sIm0iOnt9LCJsIjpbXX19",
+        //         "max_page_size": 2
+        //     }
+        //
+        const withdrawalHistory = this.safeValue (response, 'withdrawal_history', []);
+        return this.parseTransactions (withdrawalHistory, currency, since, limit, { 'type': 'withdrawal' });
     }
 
     parseTransaction (transaction, currency = undefined) {
