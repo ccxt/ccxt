@@ -11,6 +11,7 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
+from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
@@ -28,6 +29,7 @@ class bitpanda(Exchange):
             # new metainfo interface
             'has': {
                 'createDepositAddress': True,
+                'createOrder': True,
                 'fetchBalance': True,
                 'fetchCurrencies': True,
                 'fetchDeposits': True,
@@ -188,7 +190,7 @@ class bitpanda(Exchange):
                     'INVALID_QUERY': BadRequest,
                     'INVALID_CURSOR': BadRequest,
                     'INVALID_ACCOUNT_ID': BadRequest,
-                    'INVALID_SIDE': BadRequest,
+                    'INVALID_SIDE': InvalidOrder,
                     'INVALID_ACCOUNT_HISTORY_FROM_TIME': BadRequest,
                     'INVALID_ACCOUNT_HISTORY_MAX_PAGE_SIZE': BadRequest,
                     'INVALID_ACCOUNT_HISTORY_TIME_PERIOD': BadRequest,
@@ -201,21 +203,21 @@ class bitpanda(Exchange):
                     'INVALID_TIME_RANGE': BadRequest,
                     'INVALID_TRADE_ID': BadRequest,
                     'INVALID_UI_ACCOUNT_SETTINGS': BadRequest,
-                    'NEGATIVE_AMOUNT': BadRequest,
-                    'NEGATIVE_PRICE': BadRequest,
-                    'MIN_SIZE_NOT_SATISFIED': BadRequest,
-                    'BAD_AMOUNT_PRECISION': BadRequest,
-                    'BAD_PRICE_PRECISION': BadRequest,
-                    'BAD_TRIGGER_PRICE_PRECISION': BadRequest,
+                    'NEGATIVE_AMOUNT': InvalidOrder,
+                    'NEGATIVE_PRICE': InvalidOrder,
+                    'MIN_SIZE_NOT_SATISFIED': InvalidOrder,
+                    'BAD_AMOUNT_PRECISION': InvalidOrder,
+                    'BAD_PRICE_PRECISION': InvalidOrder,
+                    'BAD_TRIGGER_PRICE_PRECISION': InvalidOrder,
                     'MAX_OPEN_ORDERS_EXCEEDED': BadRequest,
-                    'MISSING_PRICE': ArgumentsRequired,
-                    'MISSING_ORDER_TYPE': ArgumentsRequired,
-                    'MISSING_SIDE': ArgumentsRequired,
+                    'MISSING_PRICE': InvalidOrder,
+                    'MISSING_ORDER_TYPE': InvalidOrder,
+                    'MISSING_SIDE': InvalidOrder,
                     'MISSING_CANDLESTICKS_PERIOD_PARAM': ArgumentsRequired,
                     'MISSING_CANDLESTICKS_UNIT_PARAM': ArgumentsRequired,
                     'MISSING_FROM_PARAM': ArgumentsRequired,
                     'MISSING_INSTRUMENT_CODE': ArgumentsRequired,
-                    'MISSING_ORDER_ID': ArgumentsRequired,
+                    'MISSING_ORDER_ID': InvalidOrder,
                     'MISSING_TO_PARAM': ArgumentsRequired,
                     'MISSING_TRADE_ID': ArgumentsRequired,
                     'INVALID_ORDER_ID': OrderNotFound,
@@ -1054,6 +1056,122 @@ class bitpanda(Exchange):
             'datetime': self.iso8601(timestamp),
             'fee': fee,
         }
+
+    def parse_order(self, order, market=None):
+        #
+        # createOrder
+        #
+        #     {
+        #         "order_id": "d5492c24-2995-4c18-993a-5b8bf8fffc0d",
+        #         "client_id": "d75fb03b-b599-49e9-b926-3f0b6d103206",
+        #         "account_id": "a4c699f6-338d-4a26-941f-8f9853bfc4b9",
+        #         "instrument_code": "BTC_EUR",
+        #         "time": "2019-08-01T08:00:44.026Z",
+        #         "side": "BUY",
+        #         "price": "5000",
+        #         "amount": "1",
+        #         "filled_amount": "0.5",
+        #         "type": "LIMIT",
+        #         "time_in_force": "GOOD_TILL_CANCELLED"
+        #     }
+        #
+        # cancelOrder
+        #
+        #     ...
+        #
+        # fetchOrders
+        #
+        #     ...
+        #
+        id = self.safe_string(order, 'order_id')
+        clientOrderId = self.safe_string(order, 'client_id')
+        timestamp = self.parse8601(self.safe_string(order, 'time'))
+        status = None
+        symbol = None
+        marketId = self.safe_string(order, 'instrument_code')
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+            else:
+                baseId, quoteId = marketId.split('_')
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
+                symbol = base + '/' + quote
+        if (symbol is None) and (market is not None):
+            symbol = market['symbol']
+        price = self.safe_float(order, 'price')
+        amount = self.safe_float(order, 'amount')
+        cost = None
+        filled = self.safe_float(order, 'filled_amount')
+        remaining = None
+        if filled is not None:
+            if amount is not None:
+                remaining = max(0, amount - filled)
+                if remaining > 0:
+                    status = 'open'
+                else:
+                    status = 'closed'
+            if cost is None:
+                if price is not None:
+                    cost = price * filled
+        side = self.safe_string_lower(order, 'side')
+        type = self.safe_string_lower(order, 'type')
+        return {
+            'id': id,
+            'clientOrderId': clientOrderId,
+            'info': order,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'average': None,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': None,
+            'trades': None,
+        }
+
+    async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        uppercaseType = type.upper()
+        request = {
+            'instrument_code': market['id'],
+            'type': type.upper(),  # LIMIT, MARKET, STOP
+            'side': side.upper(),  # or SELL
+            'amount': self.amount_to_precision(symbol, amount),
+            # "price": "1234.5678",  # required for LIMIT and STOP orders
+            # "client_id": "d75fb03b-b599-49e9-b926-3f0b6d103206",  # optional
+            # "time_in_force": "GOOD_TILL_CANCELLED",  # limit orders only, GOOD_TILL_CANCELLED, GOOD_TILL_TIME, IMMEDIATE_OR_CANCELLED and FILL_OR_KILL
+            # "expire_after": "2020-07-02T19:40:13Z",  # required for GOOD_TILL_TIME
+            # "is_post_only": False,  # limit orders only, optional
+            # "trigger_price": "1234.5678"  # required for stop orders
+        }
+        if uppercaseType == 'LIMIT' or type == 'STOP':
+            request['price'] = self.price_to_precision(symbol, price)
+        response = await self.privatePostAccountOrders(self.extend(request, params))
+        #
+        #     {
+        #         "order_id": "d5492c24-2995-4c18-993a-5b8bf8fffc0d",
+        #         "client_id": "d75fb03b-b599-49e9-b926-3f0b6d103206",
+        #         "account_id": "a4c699f6-338d-4a26-941f-8f9853bfc4b9",
+        #         "instrument_code": "BTC_EUR",
+        #         "time": "2019-08-01T08:00:44.026Z",
+        #         "side": "BUY",
+        #         "price": "5000",
+        #         "amount": "1",
+        #         "filled_amount": "0.5",
+        #         "type": "LIMIT",
+        #         "time_in_force": "GOOD_TILL_CANCELLED"
+        #     }
+        #
+        return self.parse_order(response, market)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api] + '/' + self.version + '/' + self.implode_params(path, params)

@@ -21,6 +21,7 @@ class bitpanda extends Exchange {
             // new metainfo interface
             'has' => array(
                 'createDepositAddress' => true,
+                'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchCurrencies' => true,
                 'fetchDeposits' => true,
@@ -181,7 +182,7 @@ class bitpanda extends Exchange {
                     'INVALID_QUERY' => '\\ccxt\\BadRequest',
                     'INVALID_CURSOR' => '\\ccxt\\BadRequest',
                     'INVALID_ACCOUNT_ID' => '\\ccxt\\BadRequest',
-                    'INVALID_SIDE' => '\\ccxt\\BadRequest',
+                    'INVALID_SIDE' => '\\ccxt\\InvalidOrder',
                     'INVALID_ACCOUNT_HISTORY_FROM_TIME' => '\\ccxt\\BadRequest',
                     'INVALID_ACCOUNT_HISTORY_MAX_PAGE_SIZE' => '\\ccxt\\BadRequest',
                     'INVALID_ACCOUNT_HISTORY_TIME_PERIOD' => '\\ccxt\\BadRequest',
@@ -194,21 +195,21 @@ class bitpanda extends Exchange {
                     'INVALID_TIME_RANGE' => '\\ccxt\\BadRequest',
                     'INVALID_TRADE_ID' => '\\ccxt\\BadRequest',
                     'INVALID_UI_ACCOUNT_SETTINGS' => '\\ccxt\\BadRequest',
-                    'NEGATIVE_AMOUNT' => '\\ccxt\\BadRequest',
-                    'NEGATIVE_PRICE' => '\\ccxt\\BadRequest',
-                    'MIN_SIZE_NOT_SATISFIED' => '\\ccxt\\BadRequest',
-                    'BAD_AMOUNT_PRECISION' => '\\ccxt\\BadRequest',
-                    'BAD_PRICE_PRECISION' => '\\ccxt\\BadRequest',
-                    'BAD_TRIGGER_PRICE_PRECISION' => '\\ccxt\\BadRequest',
+                    'NEGATIVE_AMOUNT' => '\\ccxt\\InvalidOrder',
+                    'NEGATIVE_PRICE' => '\\ccxt\\InvalidOrder',
+                    'MIN_SIZE_NOT_SATISFIED' => '\\ccxt\\InvalidOrder',
+                    'BAD_AMOUNT_PRECISION' => '\\ccxt\\InvalidOrder',
+                    'BAD_PRICE_PRECISION' => '\\ccxt\\InvalidOrder',
+                    'BAD_TRIGGER_PRICE_PRECISION' => '\\ccxt\\InvalidOrder',
                     'MAX_OPEN_ORDERS_EXCEEDED' => '\\ccxt\\BadRequest',
-                    'MISSING_PRICE' => '\\ccxt\\ArgumentsRequired',
-                    'MISSING_ORDER_TYPE' => '\\ccxt\\ArgumentsRequired',
-                    'MISSING_SIDE' => '\\ccxt\\ArgumentsRequired',
+                    'MISSING_PRICE' => '\\ccxt\\InvalidOrder',
+                    'MISSING_ORDER_TYPE' => '\\ccxt\\InvalidOrder',
+                    'MISSING_SIDE' => '\\ccxt\\InvalidOrder',
                     'MISSING_CANDLESTICKS_PERIOD_PARAM' => '\\ccxt\\ArgumentsRequired',
                     'MISSING_CANDLESTICKS_UNIT_PARAM' => '\\ccxt\\ArgumentsRequired',
                     'MISSING_FROM_PARAM' => '\\ccxt\\ArgumentsRequired',
                     'MISSING_INSTRUMENT_CODE' => '\\ccxt\\ArgumentsRequired',
-                    'MISSING_ORDER_ID' => '\\ccxt\\ArgumentsRequired',
+                    'MISSING_ORDER_ID' => '\\ccxt\\InvalidOrder',
                     'MISSING_TO_PARAM' => '\\ccxt\\ArgumentsRequired',
                     'MISSING_TRADE_ID' => '\\ccxt\\ArgumentsRequired',
                     'INVALID_ORDER_ID' => '\\ccxt\\OrderNotFound',
@@ -1099,6 +1100,133 @@ class bitpanda extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'fee' => $fee,
         );
+    }
+
+    public function parse_order($order, $market = null) {
+        //
+        // createOrder
+        //
+        //     {
+        //         "order_id" => "d5492c24-2995-4c18-993a-5b8bf8fffc0d",
+        //         "client_id" => "d75fb03b-b599-49e9-b926-3f0b6d103206",
+        //         "account_id" => "a4c699f6-338d-4a26-941f-8f9853bfc4b9",
+        //         "instrument_code" => "BTC_EUR",
+        //         "time" => "2019-08-01T08:00:44.026Z",
+        //         "$side" => "BUY",
+        //         "$price" => "5000",
+        //         "$amount" => "1",
+        //         "filled_amount" => "0.5",
+        //         "$type" => "LIMIT",
+        //         "time_in_force" => "GOOD_TILL_CANCELLED"
+        //     }
+        //
+        // cancelOrder
+        //
+        //     ...
+        //
+        // fetchOrders
+        //
+        //     ...
+        //
+        $id = $this->safe_string($order, 'order_id');
+        $clientOrderId = $this->safe_string($order, 'client_id');
+        $timestamp = $this->parse8601($this->safe_string($order, 'time'));
+        $status = null;
+        $symbol = null;
+        $marketId = $this->safe_string($order, 'instrument_code');
+        if ($marketId !== null) {
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+            } else {
+                list($baseId, $quoteId) = explode('_', $marketId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
+                $symbol = $base . '/' . $quote;
+            }
+        }
+        if (($symbol === null) && ($market !== null)) {
+            $symbol = $market['symbol'];
+        }
+        $price = $this->safe_float($order, 'price');
+        $amount = $this->safe_float($order, 'amount');
+        $cost = null;
+        $filled = $this->safe_float($order, 'filled_amount');
+        $remaining = null;
+        if ($filled !== null) {
+            if ($amount !== null) {
+                $remaining = max (0, $amount - $filled);
+                if ($remaining > 0) {
+                    $status = 'open';
+                } else {
+                    $status = 'closed';
+                }
+            }
+            if ($cost === null) {
+                if ($price !== null) {
+                    $cost = $price * $filled;
+                }
+            }
+        }
+        $side = $this->safe_string_lower($order, 'side');
+        $type = $this->safe_string_lower($order, 'type');
+        return array(
+            'id' => $id,
+            'clientOrderId' => $clientOrderId,
+            'info' => $order,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'lastTradeTimestamp' => null,
+            'symbol' => $symbol,
+            'type' => $type,
+            'side' => $side,
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $cost,
+            'average' => null,
+            'filled' => $filled,
+            'remaining' => $remaining,
+            'status' => $status,
+            'fee' => null,
+            'trades' => null,
+        );
+    }
+
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $uppercaseType = strtoupper($type);
+        $request = array(
+            'instrument_code' => $market['id'],
+            'type' => strtoupper($type), // LIMIT, MARKET, STOP
+            'side' => strtoupper($side), // or SELL
+            'amount' => $this->amount_to_precision($symbol, $amount),
+            // "$price" => "1234.5678", // required for LIMIT and STOP orders
+            // "client_id" => "d75fb03b-b599-49e9-b926-3f0b6d103206", // optional
+            // "time_in_force" => "GOOD_TILL_CANCELLED", // limit orders only, GOOD_TILL_CANCELLED, GOOD_TILL_TIME, IMMEDIATE_OR_CANCELLED and FILL_OR_KILL
+            // "expire_after" => "2020-07-02T19:40:13Z", // required for GOOD_TILL_TIME
+            // "is_post_only" => false, // limit orders only, optional
+            // "trigger_price" => "1234.5678" // required for stop orders
+        );
+        if ($uppercaseType === 'LIMIT' || $type === 'STOP') {
+            $request['price'] = $this->price_to_precision($symbol, $price);
+        }
+        $response = $this->privatePostAccountOrders (array_merge($request, $params));
+        //
+        //     {
+        //         "order_id" => "d5492c24-2995-4c18-993a-5b8bf8fffc0d",
+        //         "client_id" => "d75fb03b-b599-49e9-b926-3f0b6d103206",
+        //         "account_id" => "a4c699f6-338d-4a26-941f-8f9853bfc4b9",
+        //         "instrument_code" => "BTC_EUR",
+        //         "time" => "2019-08-01T08:00:44.026Z",
+        //         "$side" => "BUY",
+        //         "$price" => "5000",
+        //         "$amount" => "1",
+        //         "filled_amount" => "0.5",
+        //         "$type" => "LIMIT",
+        //         "time_in_force" => "GOOD_TILL_CANCELLED"
+        //     }
+        //
+        return $this->parse_order($response, $market);
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

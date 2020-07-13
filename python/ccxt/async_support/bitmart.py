@@ -37,6 +37,7 @@ class bitmart(Exchange):
                 'fetchOHLCV': True,
                 'fetchBalance': True,
                 'createOrder': True,
+                'createMarketOrder': False,
                 'cancelOrder': True,
                 'cancelAllOrders': True,
                 'fetchOrders': False,
@@ -705,7 +706,7 @@ class bitmart(Exchange):
         #     }
         #
         id = self.safe_string(order, 'entrust_id')
-        timestamp = self.milliseconds()
+        timestamp = self.safe_integer(order, 'timestamp', self.milliseconds())
         status = self.parse_order_status(self.safe_string(order, 'status'))
         symbol = None
         marketId = self.safe_string(order, 'symbol')
@@ -727,10 +728,10 @@ class bitmart(Exchange):
         if amount is not None:
             if remaining is not None:
                 if filled is None:
-                    filled = amount - remaining
+                    filled = max(0, amount - remaining)
             if filled is not None:
                 if remaining is None:
-                    remaining = amount - filled
+                    remaining = max(0, amount - filled)
                 if cost is None:
                     if price is not None:
                         cost = price * filled
@@ -748,7 +749,7 @@ class bitmart(Exchange):
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': None,
+            'cost': cost,
             'average': None,
             'filled': filled,
             'remaining': remaining,

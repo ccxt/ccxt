@@ -32,6 +32,7 @@ class bitmart extends Exchange {
                 'fetchOHLCV' => true,
                 'fetchBalance' => true,
                 'createOrder' => true,
+                'createMarketOrder' => false,
                 'cancelOrder' => true,
                 'cancelAllOrders' => true,
                 'fetchOrders' => false,
@@ -738,7 +739,7 @@ class bitmart extends Exchange {
         //     }
         //
         $id = $this->safe_string($order, 'entrust_id');
-        $timestamp = $this->milliseconds();
+        $timestamp = $this->safe_integer($order, 'timestamp', $this->milliseconds());
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $symbol = null;
         $marketId = $this->safe_string($order, 'symbol');
@@ -763,12 +764,12 @@ class bitmart extends Exchange {
         if ($amount !== null) {
             if ($remaining !== null) {
                 if ($filled === null) {
-                    $filled = $amount - $remaining;
+                    $filled = max (0, $amount - $remaining);
                 }
             }
             if ($filled !== null) {
                 if ($remaining === null) {
-                    $remaining = $amount - $filled;
+                    $remaining = max (0, $amount - $filled);
                 }
                 if ($cost === null) {
                     if ($price !== null) {
@@ -791,7 +792,7 @@ class bitmart extends Exchange {
             'side' => $side,
             'price' => $price,
             'amount' => $amount,
-            'cost' => null,
+            'cost' => $cost,
             'average' => null,
             'filled' => $filled,
             'remaining' => $remaining,
