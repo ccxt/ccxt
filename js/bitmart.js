@@ -28,6 +28,7 @@ module.exports = class bitmart extends Exchange {
                 'fetchOHLCV': true,
                 'fetchBalance': true,
                 'createOrder': true,
+                'createMarketOrder': false,
                 'cancelOrder': true,
                 'cancelAllOrders': true,
                 'fetchOrders': false,
