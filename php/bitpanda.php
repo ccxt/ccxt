@@ -7,6 +7,7 @@ namespace ccxt;
 
 use Exception; // a common import
 use \ccxt\ExchangeError;
+use \ccxt\ArgumentsRequired;
 
 class bitpanda extends Exchange {
 
@@ -22,6 +23,7 @@ class bitpanda extends Exchange {
                 'createDepositAddress' => true,
                 'fetchBalance' => true,
                 'fetchCurrencies' => true,
+                'fetchDeposits' => true,
                 'fetchDepositAddress' => true,
                 'fetchMarkets' => true,
                 'fetchOHLCV' => true,
@@ -766,27 +768,6 @@ class bitpanda extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'][$api] . '/' . $this->version . '/' . $this->implode_params($path, $params);
-        $query = $this->omit($params, $this->extract_params($path));
-        if ($api === 'public') {
-            if ($query) {
-                $url .= '?' . $this->urlencode($query);
-            }
-        } else if ($api === 'private') {
-            $this->check_required_credentials();
-            $headers = array(
-                'Accept' => 'application/json',
-                'Authorization' => 'Bearer ' . $this->apiKey,
-            );
-            if ($method === 'POST') {
-                $body = $this->json($query);
-                $headers['Content-Type'] = 'application/json';
-            }
-        }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
-    }
-
     public function fetch_balance($params = array ()) {
         $this->load_markets();
         $response = $this->privateGetAccountBalances ($params);
@@ -871,6 +852,155 @@ class bitpanda extends Exchange {
         //     }
         //
         return $this->parse_deposit_address($response, $currency);
+    }
+
+    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $request = array(
+            // 'cursor' => 'string', // pointer specifying the position from which the next pages should be returned
+        );
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['currency_code'] = $currency['id'];
+        }
+        if ($limit !== null) {
+            $request['max_page_size'] = $limit;
+        }
+        if ($since !== null) {
+            $to = $this->safe_string($params, 'to');
+            if ($to === null) {
+                throw new ArgumentsRequired($this->id . ' fetchDeposits required a "$to" iso8601 string param with the $since argument is specified');
+            }
+            $request['from'] = $this->iso8601($since);
+        }
+        $response = $this->privateGetAccountDeposits (array_merge($request, $params));
+        //
+        //     {
+        //         "deposit_history" => array(
+        //             array(
+        //                 "transaction_id" => "e5342efcd-d5b7-4a56-8e12-b69ffd68c5ef",
+        //                 "account_id" => "c2d0076a-c20d-41f8-9e9a-1a1d028b2b58",
+        //                 "amount" => "100",
+        //                 "type" => "CRYPTO",
+        //                 "funds_source" => "INTERNAL",
+        //                 "time" => "2020-04-22T09:57:47Z",
+        //                 "$currency" => "BTC",
+        //                 "fee_amount" => "0.0",
+        //                 "fee_currency" => "BTC"
+        //             ),
+        //             {
+        //                 "transaction_id" => "79793d00-2899-4a4d-95b7-73ae6b31384f",
+        //                 "account_id" => "c2d0076a-c20d-41f8-9e9a-1a1d028b2b58",
+        //                 "time" => "2020-05-05T11:22:07.925Z",
+        //                 "$currency" => "EUR",
+        //                 "funds_source" => "EXTERNAL",
+        //                 "type" => "FIAT",
+        //                 "amount" => "50.0",
+        //                 "fee_amount" => "0.01",
+        //                 "fee_currency" => "EUR"
+        //             }
+        //         ),
+        //         "max_page_size" => 2,
+        //         "cursor" => "eyJhY2NvdW50X2lkIjp7InMiOiJlMzY5YWM4MC00NTc3LTExZTktYWUwOC05YmVkYzQ3OTBiODQiLCJzcyI6W10sIm5zIjpbXSwiYnMiOltdLCJtIjp7fSwibCI6W119LCJpdGVtX2tleSI6eyJzIjoiV0lUSERSQVdBTDo6MmFlMjYwY2ItOTk3MC00YmNiLTgxNmEtZGY4MDVmY2VhZTY1Iiwic3MiOltdLCJucyI6W10sImJzIjpbXSwibSI6e30sImwiOltdfSwiZ2xvYmFsX3dpdGhkcmF3YWxfaW5kZXhfaGFzaF9rZXkiOnsicyI6ImUzNjlhYzgwLTQ1NzctMTFlOS1hZTA4LTliZWRjNDc5MGI4NCIsInNzIjpbXSwibnMiOltdLCJicyI6W10sIm0iOnt9LCJsIjpbXX0sInRpbWVzdGFtcCI6eyJuIjoiMTU4ODA1ODc2Nzk0OCIsInNzIjpbXSwibnMiOltdLCJicyI6W10sIm0iOnt9LCJsIjpbXX19"
+        //     }
+        //
+        $depositHistory = $this->safe_value($response, 'deposit_history', array());
+        return $this->parse_transactions($depositHistory, $currency, $since, $limit);
+    }
+
+    public function parse_transaction($transaction, $currency = null) {
+        //
+        // fetchDeposits
+        //
+        //     {
+        //         "transaction_id" => "e5342efcd-d5b7-4a56-8e12-b69ffd68c5ef",
+        //         "account_id" => "c2d0076a-c20d-41f8-9e9a-1a1d028b2b58",
+        //         "$amount" => "100",
+        //         "type" => "CRYPTO",
+        //         "funds_source" => "INTERNAL",
+        //         "time" => "2020-04-22T09:57:47Z",
+        //         "$currency" => "BTC",
+        //         "fee_amount" => "0.0",
+        //         "fee_currency" => "BTC"
+        //     }
+        //
+        // fetchWithdrawals
+        //
+        //     {
+        //         "PaymentUuid" : "e293da98-788c-4188-a8f9-8ec2c33fdfcf",
+        //         "Currency" : "XC",
+        //         "Amount" : 7513.75121715,
+        //         "Address" : "EVnSMgAd7EonF2Dgc4c9K14L12RBaW5S5J",
+        //         "Opened" : "2014-07-08T23:13:31.83",
+        //         "Authorized" : true,
+        //         "PendingPayment" : false,
+        //         "TxCost" : 0.00002000,
+        //         "TxId" : "b4a575c2a71c7e56d02ab8e26bb1ef0a2f6cf2094f6ca2116476a569c1e84f6e",
+        //         "Canceled" : false,
+        //         "InvalidAddress" : false
+        //     }
+        //
+        $id = $this->safe_string($transaction, 'transaction_id');
+        $amount = $this->safe_float($transaction, 'amount');
+        $timestamp = $this->parse8601($this->safe_string($transaction, 'time'));
+        $currencyId = $this->safe_string($transaction, 'currency');
+        $code = $this->safe_currency_code($currencyId, $currency);
+        $status = null;
+        $feeCost = $this->safe_float($transaction, 'fee_amount');
+        $fee = null;
+        if ($feeCost !== null) {
+            $feeCurrencyId = $this->safe_string($transaction, 'fee_currency');
+            $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
+            $fee = array(
+                'cost' => $feeCost,
+                'currency' => $feeCurrencyCode,
+            );
+        }
+        return array(
+            'info' => $transaction,
+            'id' => $id,
+            'currency' => $code,
+            'amount' => $amount,
+            'address' => null,
+            'addressFrom' => null,
+            'addressTo' => null,
+            'tag' => null,
+            'tagFrom' => null,
+            'tagTo' => null,
+            'status' => $status,
+            'type' => null,
+            'updated' => null,
+            'txid' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'fee' => $fee,
+        );
+    }
+
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = $this->urls['api'][$api] . '/' . $this->version . '/' . $this->implode_params($path, $params);
+        $query = $this->omit($params, $this->extract_params($path));
+        if ($api === 'public') {
+            if ($query) {
+                $url .= '?' . $this->urlencode($query);
+            }
+        } else if ($api === 'private') {
+            $this->check_required_credentials();
+            $headers = array(
+                'Accept' => 'application/json',
+                'Authorization' => 'Bearer ' . $this->apiKey,
+            );
+            if ($method === 'POST') {
+                $body = $this->json($query);
+                $headers['Content-Type'] = 'application/json';
+            } else {
+                if ($query) {
+                    $url .= '?' . $this->urlencode($query);
+                }
+            }
+        }
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

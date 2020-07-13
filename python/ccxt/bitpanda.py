@@ -30,6 +30,7 @@ class bitpanda(Exchange):
                 'createDepositAddress': True,
                 'fetchBalance': True,
                 'fetchCurrencies': True,
+                'fetchDeposits': True,
                 'fetchDepositAddress': True,
                 'fetchMarkets': True,
                 'fetchOHLCV': True,
@@ -743,23 +744,6 @@ class bitpanda(Exchange):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'][api] + '/' + self.version + '/' + self.implode_params(path, params)
-        query = self.omit(params, self.extract_params(path))
-        if api == 'public':
-            if query:
-                url += '?' + self.urlencode(query)
-        elif api == 'private':
-            self.check_required_credentials()
-            headers = {
-                'Accept': 'application/json',
-                'Authorization': 'Bearer ' + self.apiKey,
-            }
-            if method == 'POST':
-                body = self.json(query)
-                headers['Content-Type'] = 'application/json'
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
-
     def fetch_balance(self, params={}):
         self.load_markets()
         response = self.privateGetAccountBalances(params)
@@ -839,6 +823,143 @@ class bitpanda(Exchange):
         #     }
         #
         return self.parse_deposit_address(response, currency)
+
+    def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        self.load_markets()
+        request = {
+            # 'cursor': 'string',  # pointer specifying the position from which the next pages should be returned
+        }
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+            request['currency_code'] = currency['id']
+        if limit is not None:
+            request['max_page_size'] = limit
+        if since is not None:
+            to = self.safe_string(params, 'to')
+            if to is None:
+                raise ArgumentsRequired(self.id + ' fetchDeposits required a "to" iso8601 string param with the since argument is specified')
+            request['from'] = self.iso8601(since)
+        response = self.privateGetAccountDeposits(self.extend(request, params))
+        #
+        #     {
+        #         "deposit_history": [
+        #             {
+        #                 "transaction_id": "e5342efcd-d5b7-4a56-8e12-b69ffd68c5ef",
+        #                 "account_id": "c2d0076a-c20d-41f8-9e9a-1a1d028b2b58",
+        #                 "amount": "100",
+        #                 "type": "CRYPTO",
+        #                 "funds_source": "INTERNAL",
+        #                 "time": "2020-04-22T09:57:47Z",
+        #                 "currency": "BTC",
+        #                 "fee_amount": "0.0",
+        #                 "fee_currency": "BTC"
+        #             },
+        #             {
+        #                 "transaction_id": "79793d00-2899-4a4d-95b7-73ae6b31384f",
+        #                 "account_id": "c2d0076a-c20d-41f8-9e9a-1a1d028b2b58",
+        #                 "time": "2020-05-05T11:22:07.925Z",
+        #                 "currency": "EUR",
+        #                 "funds_source": "EXTERNAL",
+        #                 "type": "FIAT",
+        #                 "amount": "50.0",
+        #                 "fee_amount": "0.01",
+        #                 "fee_currency": "EUR"
+        #             }
+        #         ],
+        #         "max_page_size": 2,
+        #         "cursor": "eyJhY2NvdW50X2lkIjp7InMiOiJlMzY5YWM4MC00NTc3LTExZTktYWUwOC05YmVkYzQ3OTBiODQiLCJzcyI6W10sIm5zIjpbXSwiYnMiOltdLCJtIjp7fSwibCI6W119LCJpdGVtX2tleSI6eyJzIjoiV0lUSERSQVdBTDo6MmFlMjYwY2ItOTk3MC00YmNiLTgxNmEtZGY4MDVmY2VhZTY1Iiwic3MiOltdLCJucyI6W10sImJzIjpbXSwibSI6e30sImwiOltdfSwiZ2xvYmFsX3dpdGhkcmF3YWxfaW5kZXhfaGFzaF9rZXkiOnsicyI6ImUzNjlhYzgwLTQ1NzctMTFlOS1hZTA4LTliZWRjNDc5MGI4NCIsInNzIjpbXSwibnMiOltdLCJicyI6W10sIm0iOnt9LCJsIjpbXX0sInRpbWVzdGFtcCI6eyJuIjoiMTU4ODA1ODc2Nzk0OCIsInNzIjpbXSwibnMiOltdLCJicyI6W10sIm0iOnt9LCJsIjpbXX19"
+        #     }
+        #
+        depositHistory = self.safe_value(response, 'deposit_history', [])
+        return self.parse_transactions(depositHistory, currency, since, limit)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        # fetchDeposits
+        #
+        #     {
+        #         "transaction_id": "e5342efcd-d5b7-4a56-8e12-b69ffd68c5ef",
+        #         "account_id": "c2d0076a-c20d-41f8-9e9a-1a1d028b2b58",
+        #         "amount": "100",
+        #         "type": "CRYPTO",
+        #         "funds_source": "INTERNAL",
+        #         "time": "2020-04-22T09:57:47Z",
+        #         "currency": "BTC",
+        #         "fee_amount": "0.0",
+        #         "fee_currency": "BTC"
+        #     }
+        #
+        # fetchWithdrawals
+        #
+        #     {
+        #         "PaymentUuid" : "e293da98-788c-4188-a8f9-8ec2c33fdfcf",
+        #         "Currency" : "XC",
+        #         "Amount" : 7513.75121715,
+        #         "Address" : "EVnSMgAd7EonF2Dgc4c9K14L12RBaW5S5J",
+        #         "Opened" : "2014-07-08T23:13:31.83",
+        #         "Authorized" : True,
+        #         "PendingPayment" : False,
+        #         "TxCost" : 0.00002000,
+        #         "TxId" : "b4a575c2a71c7e56d02ab8e26bb1ef0a2f6cf2094f6ca2116476a569c1e84f6e",
+        #         "Canceled" : False,
+        #         "InvalidAddress" : False
+        #     }
+        #
+        id = self.safe_string(transaction, 'transaction_id')
+        amount = self.safe_float(transaction, 'amount')
+        timestamp = self.parse8601(self.safe_string(transaction, 'time'))
+        currencyId = self.safe_string(transaction, 'currency')
+        code = self.safe_currency_code(currencyId, currency)
+        status = None
+        feeCost = self.safe_float(transaction, 'fee_amount')
+        fee = None
+        if feeCost is not None:
+            feeCurrencyId = self.safe_string(transaction, 'fee_currency')
+            feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            }
+        return {
+            'info': transaction,
+            'id': id,
+            'currency': code,
+            'amount': amount,
+            'address': None,
+            'addressFrom': None,
+            'addressTo': None,
+            'tag': None,
+            'tagFrom': None,
+            'tagTo': None,
+            'status': status,
+            'type': None,
+            'updated': None,
+            'txid': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'fee': fee,
+        }
+
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        url = self.urls['api'][api] + '/' + self.version + '/' + self.implode_params(path, params)
+        query = self.omit(params, self.extract_params(path))
+        if api == 'public':
+            if query:
+                url += '?' + self.urlencode(query)
+        elif api == 'private':
+            self.check_required_credentials()
+            headers = {
+                'Accept': 'application/json',
+                'Authorization': 'Bearer ' + self.apiKey,
+            }
+            if method == 'POST':
+                body = self.json(query)
+                headers['Content-Type'] = 'application/json'
+            else:
+                if query:
+                    url += '?' + self.urlencode(query)
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:

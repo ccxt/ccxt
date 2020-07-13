@@ -837,7 +837,7 @@ class bittrex extends Exchange {
         //
         //     { success =>    true,
         //       message =>   "",
-        //        result => array( {            Id =>  22578097,
+        //        $result => array( {            Id =>  22578097,
         //                           Amount =>  0.3,
         //                         Currency => "ETH",
         //                    Confirmations =>  15,
@@ -847,8 +847,9 @@ class bittrex extends Exchange {
         //
         // we cannot filter by `$since` timestamp, as it isn't set by Bittrex
         // see https://github.com/ccxt/ccxt/issues/4067
-        // return $this->parse_transactions($response['result'], $currency, $since, $limit);
-        return $this->parse_transactions($response['result'], $currency, null, $limit);
+        $result = $this->safe_value($response, 'result', array());
+        // return $this->parse_transactions($result, $currency, $since, $limit);
+        return $this->parse_transactions($result, $currency, null, $limit);
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {

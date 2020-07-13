@@ -817,8 +817,9 @@ class bittrex(Exchange):
         #
         # we cannot filter by `since` timestamp, as it isn't set by Bittrex
         # see https://github.com/ccxt/ccxt/issues/4067
-        # return self.parse_transactions(response['result'], currency, since, limit)
-        return self.parse_transactions(response['result'], currency, None, limit)
+        result = self.safe_value(response, 'result', [])
+        # return self.parse_transactions(result, currency, since, limit)
+        return self.parse_transactions(result, currency, None, limit)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
