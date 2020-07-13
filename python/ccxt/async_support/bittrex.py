@@ -52,6 +52,7 @@ class bittrex(Exchange):
                 'fetchOrder': True,
                 'fetchOpenOrders': True,
                 'fetchTickers': True,
+                'fetchTime': True,
                 'withdraw': True,
                 'fetchDeposits': True,
                 'fetchWithdrawals': True,
@@ -65,7 +66,7 @@ class bittrex(Exchange):
             },
             'hostname': 'bittrex.com',
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87153921-edf53180-c2c0-11ea-96b9-f2a9a95a455b.jpg',
                 'api': {
                     'public': 'https://{hostname}/api',
                     'account': 'https://{hostname}/api',
@@ -593,6 +594,15 @@ class bittrex(Exchange):
             'cost': cost,
             'fee': None,
         }
+
+    async def fetch_time(self, params={}):
+        response = await self.v3GetPing(params)
+        #
+        #     {
+        #         "serverTime": 1594596023162
+        #     }
+        #
+        return self.safe_integer(response, 'serverTime')
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()

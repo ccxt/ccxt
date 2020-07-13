@@ -192,7 +192,7 @@ class bitmart extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
-        $markets = $this->publicGetSymbolsDetails ($params);
+        $response = $this->publicGetSymbolsDetails ($params);
         //
         //     array(
         //         {
@@ -209,8 +209,8 @@ class bitmart extends Exchange {
         //     )
         //
         $result = array();
-        for ($i = 0; $i < count($markets); $i++) {
-            $market = $markets[$i];
+        for ($i = 0; $i < count($response); $i++) {
+            $market = $response[$i];
             $id = $this->safe_string($market, 'id');
             $baseId = $this->safe_string($market, 'base_currency');
             $quoteId = $this->safe_string($market, 'quote_currency');
@@ -218,7 +218,7 @@ class bitmart extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             //
-            // https://github.com/bitmartexchange/bitmart-official-api-docs/blob/master/rest/public/symbols_details.md#response-details
+            // https://github.com/bitmartexchange/bitmart-official-api-docs/blob/master/rest/public/symbols_details.md#$response-details
             // from the above API doc:
             // quote_increment Minimum order price as well as the price increment
             // price_min_precision Minimum price $precision (digit) used to query price and kline
@@ -387,29 +387,30 @@ class bitmart extends Exchange {
         $this->load_markets();
         $tickers = $this->publicGetTicker ($params);
         //
+        //
+        //     array(
         //         array(
-        //             array(
-        //                 "priceChange":"0%",
-        //                 "symbolId":1066,
-        //                 "website":"https://www.bitmart.com/trade?$symbol=1SG_BTC",
-        //                 "depthEndPrecision":6,
-        //                 "ask_1":"0.000095",
-        //                 "anchorId":2,
-        //                 "anchorName":"BTC",
-        //                 "pair":"1SG_BTC",
-        //                 "volume":"0.0",
-        //                 "coinId":2029,
-        //                 "depthStartPrecision":4,
-        //                 "high_24h":"0.000035",
-        //                 "low_24h":"0.000035",
-        //                 "new_24h":"0.000035",
-        //                 "closeTime":1589389249342,
-        //                 "bid_1":"0.000035",
-        //                 "coinName":"1SG",
-        //                 "baseVolume":"0.0",
-        //                 "openTime":1589302849342
-        //             ),
-        //         )
+        //             "priceChange":"0%",
+        //             "symbolId":1066,
+        //             "website":"https://www.bitmart.com/trade?$symbol=1SG_BTC",
+        //             "depthEndPrecision":6,
+        //             "ask_1":"0.000095",
+        //             "anchorId":2,
+        //             "anchorName":"BTC",
+        //             "pair":"1SG_BTC",
+        //             "volume":"0.0",
+        //             "coinId":2029,
+        //             "depthStartPrecision":4,
+        //             "high_24h":"0.000035",
+        //             "low_24h":"0.000035",
+        //             "new_24h":"0.000035",
+        //             "closeTime":1589389249342,
+        //             "bid_1":"0.000035",
+        //             "coinName":"1SG",
+        //             "baseVolume":"0.0",
+        //             "openTime":1589302849342
+        //         ),
+        //     )
         //
         $result = array();
         for ($i = 0; $i < count($tickers); $i++) {
@@ -421,28 +422,28 @@ class bitmart extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
-        $currencies = $this->publicGetCurrencies ($params);
+        $response = $this->publicGetCurrencies ($params);
         //
         //     array(
         //         {
         //             "$name":"CNY1",
         //             "withdraw_enabled":false,
-        //             "id":"CNY1",
+        //             "$id":"CNY1",
         //             "deposit_enabled":false
         //         }
         //     )
         //
         $result = array();
-        for ($i = 0; $i < count($currencies); $i++) {
-            $currency = $currencies[$i];
-            $currencyId = $this->safe_string($currency, 'id');
-            $code = $this->safe_currency_code($currencyId);
+        for ($i = 0; $i < count($response); $i++) {
+            $currency = $response[$i];
+            $id = $this->safe_string($currency, 'id');
+            $code = $this->safe_currency_code($id);
             $name = $this->safe_string($currency, 'name');
             $withdrawEnabled = $this->safe_value($currency, 'withdraw_enabled');
             $depositEnabled = $this->safe_value($currency, 'deposit_enabled');
             $active = $withdrawEnabled && $depositEnabled;
             $result[$code] = array(
-                'id' => $currencyId,
+                'id' => $id,
                 'code' => $code,
                 'name' => $name,
                 'info' => $currency, // the original payload

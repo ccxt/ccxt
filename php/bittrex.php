@@ -36,6 +36,7 @@ class bittrex extends Exchange {
                 'fetchOrder' => true,
                 'fetchOpenOrders' => true,
                 'fetchTickers' => true,
+                'fetchTime' => true,
                 'withdraw' => true,
                 'fetchDeposits' => true,
                 'fetchWithdrawals' => true,
@@ -49,7 +50,7 @@ class bittrex extends Exchange {
             ),
             'hostname' => 'bittrex.com',
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg',
+                'logo' => 'https://user-images.githubusercontent.com/51840849/87153921-edf53180-c2c0-11ea-96b9-f2a9a95a455b.jpg',
                 'api' => array(
                     'public' => 'https://{hostname}/api',
                     'account' => 'https://{hostname}/api',
@@ -603,6 +604,16 @@ class bittrex extends Exchange {
             'cost' => $cost,
             'fee' => null,
         );
+    }
+
+    public function fetch_time($params = array ()) {
+        $response = $this->v3GetPing ($params);
+        //
+        //     {
+        //         "serverTime" => 1594596023162
+        //     }
+        //
+        return $this->safe_integer($response, 'serverTime');
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {

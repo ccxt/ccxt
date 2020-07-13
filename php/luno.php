@@ -34,7 +34,7 @@ class luno extends Exchange {
             'urls' => array(
                 'referral' => 'https://www.luno.com/invite/44893A',
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg',
-                'api' => 'https://api.mybitx.com/api',
+                'api' => 'https://api.luno.com/api',
                 'www' => 'https://www.luno.com',
                 'doc' => array(
                     'https://www.luno.com/en/api',
@@ -69,6 +69,7 @@ class luno extends Exchange {
                     ),
                     'post' => array(
                         'accounts',
+                        'accounts/{id}/name',
                         'postorder',
                         'marketorder',
                         'stoporder',

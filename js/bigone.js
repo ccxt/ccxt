@@ -27,6 +27,7 @@ module.exports = class bigone extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchTickers': true,
+                'fetchTime': true,
                 'fetchWithdrawals': true,
                 'withdraw': true,
             },
@@ -364,6 +365,20 @@ module.exports = class bigone extends Exchange {
             result[symbol] = ticker;
         }
         return result;
+    }
+
+    async fetchTime (params = {}) {
+        const response = await this.publicGetPing (params);
+        //
+        //     {
+        //         "data": {
+        //             "timestamp": 1527665262168391000
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const timestamp = this.safeInteger (data, 'timestamp');
+        return parseInt (timestamp / 1000000);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
