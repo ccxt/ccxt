@@ -26,6 +26,7 @@ class bitpanda(Exchange):
             'version': 'v1',
             # new metainfo interface
             'has': {
+                'createDepositAddress': True,
                 'fetchBalance': True,
                 'fetchCurrencies': True,
                 'fetchMarkets': True,
@@ -785,6 +786,31 @@ class bitpanda(Exchange):
             account['used'] = self.safe_float(balance, 'locked')
             result[code] = account
         return self.parse_balance(result)
+
+    def create_deposit_address(self, code, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        response = self.privatePostAccountDepositCrypto(self.extend(request, params))
+        #
+        #     {
+        #         "address":"rBnNhk95FrdNisZtXcStzriFS8vEzz53DM",
+        #         "destination_tag":"865690307",
+        #         "enabled":true,
+        #         "is_smart_contract":false
+        #     }
+        #
+        address = self.safe_string(response, 'address')
+        tag = self.safe_string(response, 'destination_tag')
+        self.check_address(address)
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'info': response,
+        }
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
