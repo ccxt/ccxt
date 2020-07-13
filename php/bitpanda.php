@@ -1207,8 +1207,25 @@ class bitpanda extends Exchange {
             // "is_post_only" => false, // limit orders only, optional
             // "trigger_price" => "1234.5678" // required for stop orders
         );
-        if ($uppercaseType === 'LIMIT' || $type === 'STOP') {
+        $priceIsRequired = false;
+        if ($uppercaseType === 'LIMIT' || $uppercaseType === 'STOP') {
+            $priceIsRequired = true;
+        }
+        if ($uppercaseType === 'STOP') {
+            $triggerPrice = $this->safe_float($params, 'trigger_price');
+            if ($triggerPrice === null) {
+                throw new ArgumentsRequired($this->id . ' createOrder requires a trigger_price param for ' . $type . ' orders');
+            }
+            $request['trigger_price'] = $this->price_to_precision($symbol, $triggerPrice);
+            $params = $this->omit($params, 'trigger_price');
+        }
+        if ($priceIsRequired) {
             $request['price'] = $this->price_to_precision($symbol, $price);
+        }
+        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_id');
+        if ($clientOrderId !== null) {
+            $request['client_id'] = $clientOrderId;
+            $params = $this->omit($params, array( 'clientOrderId', 'client_id' ));
         }
         $response = $this->privatePostAccountOrders (array_merge($request, $params));
         //

@@ -1153,8 +1153,21 @@ class bitpanda(Exchange):
             # "is_post_only": False,  # limit orders only, optional
             # "trigger_price": "1234.5678"  # required for stop orders
         }
-        if uppercaseType == 'LIMIT' or type == 'STOP':
+        priceIsRequired = False
+        if uppercaseType == 'LIMIT' or uppercaseType == 'STOP':
+            priceIsRequired = True
+        if uppercaseType == 'STOP':
+            triggerPrice = self.safe_float(params, 'trigger_price')
+            if triggerPrice is None:
+                raise ArgumentsRequired(self.id + ' createOrder requires a trigger_price param for ' + type + ' orders')
+            request['trigger_price'] = self.price_to_precision(symbol, triggerPrice)
+            params = self.omit(params, 'trigger_price')
+        if priceIsRequired:
             request['price'] = self.price_to_precision(symbol, price)
+        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_id')
+        if clientOrderId is not None:
+            request['client_id'] = clientOrderId
+            params = self.omit(params, ['clientOrderId', 'client_id'])
         response = self.privatePostAccountOrders(self.extend(request, params))
         #
         #     {
