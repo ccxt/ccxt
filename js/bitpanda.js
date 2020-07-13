@@ -20,6 +20,7 @@ module.exports = class bitpanda extends Exchange {
                 'createDepositAddress': true,
                 'fetchBalance': true,
                 'fetchCurrencies': true,
+                'fetchDeposits': true,
                 'fetchDepositAddress': true,
                 'fetchMarkets': true,
                 'fetchOHLCV': true,
