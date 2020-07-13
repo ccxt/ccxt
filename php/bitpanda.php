@@ -19,6 +19,7 @@ class bitpanda extends Exchange {
             'version' => 'v1',
             // new metainfo interface
             'has' => array(
+                'createDepositAddress' => true,
                 'fetchBalance' => true,
                 'fetchCurrencies' => true,
                 'fetchMarkets' => true,
@@ -814,6 +815,32 @@ class bitpanda extends Exchange {
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
+    }
+
+    public function create_deposit_address($code, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'currency' => $currency['id'],
+        );
+        $response = $this->privatePostAccountDepositCrypto (array_merge($request, $params));
+        //
+        //     {
+        //         "$address":"rBnNhk95FrdNisZtXcStzriFS8vEzz53DM",
+        //         "destination_tag":"865690307",
+        //         "enabled":true,
+        //         "is_smart_contract":false
+        //     }
+        //
+        $address = $this->safe_string($response, 'address');
+        $tag = $this->safe_string($response, 'destination_tag');
+        $this->check_address($address);
+        return array(
+            'currency' => $code,
+            'address' => $address,
+            'tag' => $tag,
+            'info' => $response,
+        );
     }
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
