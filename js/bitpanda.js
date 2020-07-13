@@ -871,6 +871,53 @@ module.exports = class bitpanda extends Exchange {
         return this.parseDepositAddress (response, currency);
     }
 
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        // from query MarketTime false Defines start of a query search
+        // to query MarketTime false Defines end of a query search
+        // currency_code query CurrencyCode false Filter withdrawal history by currency code
+        // max_page_size query string false Set max desired page size. If no value is provided, by default a maximum of 100 results per page are returned. The maximum upper limit is 100 results per page.
+        // cursor query string false Pointer specifying the position from which the next pages should be returned.
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency_code'] = currency['id'];
+        }
+        const response = await this.privateGetAccountDeposits (this.extend (request, params));
+        //
+        //     {
+        //         "deposit_history": [
+        //             {
+        //                 "transaction_id": "e5342efcd-d5b7-4a56-8e12-b69ffd68c5ef",
+        //                 "account_id": "c2d0076a-c20d-41f8-9e9a-1a1d028b2b58",
+        //                 "amount": "100",
+        //                 "type": "CRYPTO",
+        //                 "funds_source": "INTERNAL",
+        //                 "time": "2020-04-22T09:57:47Z",
+        //                 "currency": "BTC",
+        //                 "fee_amount": "0.0",
+        //                 "fee_currency": "BTC"
+        //             },
+        //             {
+        //                 "transaction_id": "79793d00-2899-4a4d-95b7-73ae6b31384f",
+        //                 "account_id": "c2d0076a-c20d-41f8-9e9a-1a1d028b2b58",
+        //                 "time": "2020-05-05T11:22:07.925Z",
+        //                 "currency": "EUR",
+        //                 "funds_source": "EXTERNAL",
+        //                 "type": "FIAT",
+        //                 "amount": "50.0",
+        //                 "fee_amount": "0.01",
+        //                 "fee_currency": "EUR"
+        //             }
+        //         ],
+        //         "max_page_size": 2,
+        //         "cursor": "eyJhY2NvdW50X2lkIjp7InMiOiJlMzY5YWM4MC00NTc3LTExZTktYWUwOC05YmVkYzQ3OTBiODQiLCJzcyI6W10sIm5zIjpbXSwiYnMiOltdLCJtIjp7fSwibCI6W119LCJpdGVtX2tleSI6eyJzIjoiV0lUSERSQVdBTDo6MmFlMjYwY2ItOTk3MC00YmNiLTgxNmEtZGY4MDVmY2VhZTY1Iiwic3MiOltdLCJucyI6W10sImJzIjpbXSwibSI6e30sImwiOltdfSwiZ2xvYmFsX3dpdGhkcmF3YWxfaW5kZXhfaGFzaF9rZXkiOnsicyI6ImUzNjlhYzgwLTQ1NzctMTFlOS1hZTA4LTliZWRjNDc5MGI4NCIsInNzIjpbXSwibnMiOltdLCJicyI6W10sIm0iOnt9LCJsIjpbXX0sInRpbWVzdGFtcCI6eyJuIjoiMTU4ODA1ODc2Nzk0OCIsInNzIjpbXSwibnMiOltdLCJicyI6W10sIm0iOnt9LCJsIjpbXX19"
+        //     }
+        //
+        return this.parseTransactions (response['result'], currency, since, limit);
+    }
+
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return;
