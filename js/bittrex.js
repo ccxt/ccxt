@@ -841,8 +841,9 @@ module.exports = class bittrex extends Exchange {
         //
         // we cannot filter by `since` timestamp, as it isn't set by Bittrex
         // see https://github.com/ccxt/ccxt/issues/4067
-        // return this.parseTransactions (response['result'], currency, since, limit);
-        return this.parseTransactions (response['result'], currency, undefined, limit);
+        const result = this.safeValue (response, 'result', []);
+        // return this.parseTransactions (result, currency, since, limit);
+        return this.parseTransactions (result, currency, undefined, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
