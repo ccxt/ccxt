@@ -46,7 +46,7 @@ module.exports = class kucoin extends Exchange {
                 'fetchLedger': true,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/57369448-3cc3aa80-7196-11e9-883e-5ebeb35e4f57.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87295558-132aaf80-c50e-11ea-9801-a2fb0c57c799.jpg',
                 'referral': 'https://www.kucoin.com/?rcode=E5wkqe',
                 'api': {
                     'public': 'https://openapi-v2.kucoin.com',
