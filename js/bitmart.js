@@ -682,7 +682,7 @@ module.exports = class bitmart extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const balances = await this.privateGetWallet (params);
+        const response = await this.privateGetWallet (params);
         //
         //     [
         //         {
@@ -693,9 +693,9 @@ module.exports = class bitmart extends Exchange {
         //         }
         //     ]
         //
-        const result = { 'info': balances };
-        for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
+        const result = { 'info': response };
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
             const currencyId = this.safeString (balance, 'id');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
