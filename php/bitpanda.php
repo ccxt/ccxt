@@ -140,6 +140,9 @@ class bitpanda extends Exchange {
             ),
             // exchange-specific options
             'options' => array(
+                'fetchTradingFees' => array(
+                    'method' => 'fetchPrivateTradingFees', // or 'fetchPublicTradingFees'
+                ),
             ),
             'exceptions' => array(
                 'exact' => array(
@@ -332,6 +335,16 @@ class bitpanda extends Exchange {
     }
 
     public function fetch_trading_fees($params = array ()) {
+        $method = $this->safe_string($params, 'method');
+        $params = $this->omit($params, 'method');
+        if ($method === null) {
+            $options = $this->safe_value($this->options, 'fetchTradingFees', array());
+            $method = $this->safe_string($options, 'method', 'fetchPrivateTradingFees');
+        }
+        return $this->$method ($params);
+    }
+
+    public function fetch_public_trading_fees($params = array ()) {
         $this->load_markets();
         $response = $this->publicGetFees ($params);
         //
@@ -391,6 +404,59 @@ class bitpanda extends Exchange {
             $fee['tiers'] = $tiers;
             $result[$symbol] = $fee;
         }
+        return $result;
+    }
+
+    public function fetch_private_trading_fees($params = array ()) {
+        $this->load_markets();
+        $response = $this->privateGetAccountFees ($params);
+        //
+        //     {
+        //         "account_id" => "ed524d00-820a-11e9-8f1e-69602df16d85",
+        //         "running_trading_volume" => "0.0",
+        //         "fee_group_id" => "default",
+        //         "collect_fees_in_best" => false,
+        //         "fee_discount_rate" => "25.0",
+        //         "minimum_price_value" => "0.12",
+        //         "fee_tiers" => array(
+        //             array( "$volume" => "0.0", "fee_group_id" => "default", "maker_fee" => "0.1", "taker_fee" => "0.1" ),
+        //             array( "$volume" => "100.0", "fee_group_id" => "default", "maker_fee" => "0.09", "taker_fee" => "0.1" ),
+        //             array( "$volume" => "250.0", "fee_group_id" => "default", "maker_fee" => "0.08", "taker_fee" => "0.1" ),
+        //             array( "$volume" => "1000.0", "fee_group_id" => "default", "maker_fee" => "0.07", "taker_fee" => "0.09" ),
+        //             array( "$volume" => "5000.0", "fee_group_id" => "default", "maker_fee" => "0.06", "taker_fee" => "0.08" ),
+        //             array( "$volume" => "10000.0", "fee_group_id" => "default", "maker_fee" => "0.05", "taker_fee" => "0.07" ),
+        //             array( "$volume" => "20000.0", "fee_group_id" => "default", "maker_fee" => "0.05", "taker_fee" => "0.06" ),
+        //             array( "$volume" => "50000.0", "fee_group_id" => "default", "maker_fee" => "0.05", "taker_fee" => "0.05" )
+        //         ),
+        //         "active_fee_tier" => array( "$volume" => "0.0", "fee_group_id" => "default", "maker_fee" => "0.1", "taker_fee" => "0.1" )
+        //     }
+        //
+        $activeFeeTier = $this->safe_value($response, 'active_fee_tier', array());
+        $result = array(
+            'info' => $response,
+            'maker' => $this->safe_float($activeFeeTier, 'maker_fee'),
+            'taker' => $this->safe_float($activeFeeTier, 'taker_fee'),
+            'percentage' => true,
+            'tierBased' => true,
+        );
+        $feeTiers = $this->safe_value($response, 'fee_tiers');
+        $takerFees = array();
+        $makerFees = array();
+        for ($i = 0; $i < count($feeTiers); $i++) {
+            $tier = $feeTiers[$i];
+            $volume = $this->safe_float($tier, 'volume');
+            $taker = $this->safe_float($tier, 'taker_fee');
+            $maker = $this->safe_float($tier, 'maker_fee');
+            $taker /= 100;
+            $maker /= 100;
+            $takerFees[] = array( $volume, $taker );
+            $makerFees[] = array( $volume, $maker );
+        }
+        $tiers = array(
+            'taker' => $takerFees,
+            'maker' => $makerFees,
+        );
+        $result['tiers'] = $tiers;
         return $result;
     }
 
