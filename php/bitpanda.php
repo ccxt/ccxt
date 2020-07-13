@@ -22,6 +22,7 @@ class bitpanda extends Exchange {
                 'createDepositAddress' => true,
                 'fetchBalance' => true,
                 'fetchCurrencies' => true,
+                'fetchDepositAddress' => true,
                 'fetchMarkets' => true,
                 'fetchOHLCV' => true,
                 'fetchOrderBook' => true,
@@ -139,6 +140,8 @@ class bitpanda extends Exchange {
             ),
             'exceptions' => array(
                 'exact' => array(
+                    'ONLY_ONE_ERC20_ADDRESS_ALLOWED' => '\\ccxt\\InvalidAddress',
+                    'DEPOSIT_ADDRESS_NOT_USED' => '\\ccxt\\InvalidAddress',
                     'INVALID_CREDENTIALS' => '\\ccxt\\AuthenticationError',
                     'MISSING_CREDENTIALS' => '\\ccxt\\AuthenticationError',
                     'INVALID_APIKEY' => '\\ccxt\\AuthenticationError',
@@ -817,6 +820,22 @@ class bitpanda extends Exchange {
         return $this->parse_balance($result);
     }
 
+    public function parse_deposit_address($depositAddress, $currency = null) {
+        $code = null;
+        if ($currency !== null) {
+            $code = $currency['code'];
+        }
+        $address = $this->safe_string($depositAddress, 'address');
+        $tag = $this->safe_string($depositAddress, 'destination_tag');
+        $this->check_address($address);
+        return array(
+            'currency' => $code,
+            'address' => $address,
+            'tag' => $tag,
+            'info' => $depositAddress,
+        );
+    }
+
     public function create_deposit_address($code, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency($code);
@@ -826,21 +845,32 @@ class bitpanda extends Exchange {
         $response = $this->privatePostAccountDepositCrypto (array_merge($request, $params));
         //
         //     {
-        //         "$address":"rBnNhk95FrdNisZtXcStzriFS8vEzz53DM",
+        //         "address":"rBnNhk95FrdNisZtXcStzriFS8vEzz53DM",
         //         "destination_tag":"865690307",
         //         "enabled":true,
         //         "is_smart_contract":false
         //     }
         //
-        $address = $this->safe_string($response, 'address');
-        $tag = $this->safe_string($response, 'destination_tag');
-        $this->check_address($address);
-        return array(
-            'currency' => $code,
-            'address' => $address,
-            'tag' => $tag,
-            'info' => $response,
+        return $this->parse_deposit_address($response, $currency);
+    }
+
+    public function fetch_deposit_address($code, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'currency_code' => $currency['id'],
         );
+        $response = $this->privateGetAccountDepositCryptoCurrencyCode (array_merge($request, $params));
+        //
+        //     {
+        //         "address":"rBnNhk95FrdNisZtXcStzriFS8vEzz53DM",
+        //         "destination_tag":"865690307",
+        //         "enabled":true,
+        //         "is_smart_contract":false,
+        //         "can_create_more":false
+        //     }
+        //
+        return $this->parse_deposit_address($response, $currency);
     }
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

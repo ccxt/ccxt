@@ -10,6 +10,7 @@ from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
@@ -29,6 +30,7 @@ class bitpanda(Exchange):
                 'createDepositAddress': True,
                 'fetchBalance': True,
                 'fetchCurrencies': True,
+                'fetchDepositAddress': True,
                 'fetchMarkets': True,
                 'fetchOHLCV': True,
                 'fetchOrderBook': True,
@@ -146,6 +148,8 @@ class bitpanda(Exchange):
             },
             'exceptions': {
                 'exact': {
+                    'ONLY_ONE_ERC20_ADDRESS_ALLOWED': InvalidAddress,
+                    'DEPOSIT_ADDRESS_NOT_USED': InvalidAddress,
                     'INVALID_CREDENTIALS': AuthenticationError,
                     'MISSING_CREDENTIALS': AuthenticationError,
                     'INVALID_APIKEY': AuthenticationError,
@@ -787,6 +791,20 @@ class bitpanda(Exchange):
             result[code] = account
         return self.parse_balance(result)
 
+    def parse_deposit_address(self, depositAddress, currency=None):
+        code = None
+        if currency is not None:
+            code = currency['code']
+        address = self.safe_string(depositAddress, 'address')
+        tag = self.safe_string(depositAddress, 'destination_tag')
+        self.check_address(address)
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'info': depositAddress,
+        }
+
     def create_deposit_address(self, code, params={}):
         self.load_markets()
         currency = self.currency(code)
@@ -802,15 +820,25 @@ class bitpanda(Exchange):
         #         "is_smart_contract":false
         #     }
         #
-        address = self.safe_string(response, 'address')
-        tag = self.safe_string(response, 'destination_tag')
-        self.check_address(address)
-        return {
-            'currency': code,
-            'address': address,
-            'tag': tag,
-            'info': response,
+        return self.parse_deposit_address(response, currency)
+
+    def fetch_deposit_address(self, code, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency_code': currency['id'],
         }
+        response = self.privateGetAccountDepositCryptoCurrencyCode(self.extend(request, params))
+        #
+        #     {
+        #         "address":"rBnNhk95FrdNisZtXcStzriFS8vEzz53DM",
+        #         "destination_tag":"865690307",
+        #         "enabled":true,
+        #         "is_smart_contract":false,
+        #         "can_create_more":false
+        #     }
+        #
+        return self.parse_deposit_address(response, currency)
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
