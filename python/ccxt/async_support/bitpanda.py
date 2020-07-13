@@ -147,6 +147,9 @@ class bitpanda(Exchange):
             },
             # exchange-specific options
             'options': {
+                'fetchTradingFees': {
+                    'method': 'fetchPrivateTradingFees',  # or 'fetchPublicTradingFees'
+                },
             },
             'exceptions': {
                 'exact': {
@@ -333,6 +336,14 @@ class bitpanda(Exchange):
         return result
 
     async def fetch_trading_fees(self, params={}):
+        method = self.safe_string(params, 'method')
+        params = self.omit(params, 'method')
+        if method is None:
+            options = self.safe_value(self.options, 'fetchTradingFees', {})
+            method = self.safe_string(options, 'method', 'fetchPrivateTradingFees')
+        return await getattr(self, method)(params)
+
+    async def fetch_public_trading_fees(self, params={}):
         await self.load_markets()
         response = await self.publicGetFees(params)
         #
@@ -389,6 +400,57 @@ class bitpanda(Exchange):
             }
             fee['tiers'] = tiers
             result[symbol] = fee
+        return result
+
+    async def fetch_private_trading_fees(self, params={}):
+        await self.load_markets()
+        response = await self.privateGetAccountFees(params)
+        #
+        #     {
+        #         "account_id": "ed524d00-820a-11e9-8f1e-69602df16d85",
+        #         "running_trading_volume": "0.0",
+        #         "fee_group_id": "default",
+        #         "collect_fees_in_best": False,
+        #         "fee_discount_rate": "25.0",
+        #         "minimum_price_value": "0.12",
+        #         "fee_tiers": [
+        #             {"volume": "0.0", "fee_group_id": "default", "maker_fee": "0.1", "taker_fee": "0.1"},
+        #             {"volume": "100.0", "fee_group_id": "default", "maker_fee": "0.09", "taker_fee": "0.1"},
+        #             {"volume": "250.0", "fee_group_id": "default", "maker_fee": "0.08", "taker_fee": "0.1"},
+        #             {"volume": "1000.0", "fee_group_id": "default", "maker_fee": "0.07", "taker_fee": "0.09"},
+        #             {"volume": "5000.0", "fee_group_id": "default", "maker_fee": "0.06", "taker_fee": "0.08"},
+        #             {"volume": "10000.0", "fee_group_id": "default", "maker_fee": "0.05", "taker_fee": "0.07"},
+        #             {"volume": "20000.0", "fee_group_id": "default", "maker_fee": "0.05", "taker_fee": "0.06"},
+        #             {"volume": "50000.0", "fee_group_id": "default", "maker_fee": "0.05", "taker_fee": "0.05"}
+        #         ],
+        #         "active_fee_tier": {"volume": "0.0", "fee_group_id": "default", "maker_fee": "0.1", "taker_fee": "0.1"}
+        #     }
+        #
+        activeFeeTier = self.safe_value(response, 'active_fee_tier', {})
+        result = {
+            'info': response,
+            'maker': self.safe_float(activeFeeTier, 'maker_fee'),
+            'taker': self.safe_float(activeFeeTier, 'taker_fee'),
+            'percentage': True,
+            'tierBased': True,
+        }
+        feeTiers = self.safe_value(response, 'fee_tiers')
+        takerFees = []
+        makerFees = []
+        for i in range(0, len(feeTiers)):
+            tier = feeTiers[i]
+            volume = self.safe_float(tier, 'volume')
+            taker = self.safe_float(tier, 'taker_fee')
+            maker = self.safe_float(tier, 'maker_fee')
+            taker /= 100
+            maker /= 100
+            takerFees.append([volume, taker])
+            makerFees.append([volume, maker])
+        tiers = {
+            'taker': takerFees,
+            'maker': makerFees,
+        }
+        result['tiers'] = tiers
         return result
 
     def parse_ticker(self, ticker, market=None):
