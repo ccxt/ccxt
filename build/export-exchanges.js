@@ -218,17 +218,6 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
 
     const exchangesNotListedInDocs = [ 'hitbtc2' ]
 
-    function makeTable (jsonArray) {
-        let table = asTable (jsonArray)
-        let lines = table.split ("\n")
-        lines.splice (1,0, lines[0].replace (/[^\|]/g, '-'))
-        let headerLine = lines[1].split ('|')
-        headerLine[3] = ':' + headerLine[3].slice (1, headerLine[3].length - 1) + ':'
-        headerLine[4] = ':' + headerLine[4].slice (1, headerLine[4].length - 1) + ':'
-        lines[1] = headerLine.join ('|')
-        return lines.map (line => '|' + line + '|').join ("\n")
-    }
-
     const arrayOfExchanges = values (exchanges)
 
     if (allExchangesPaths) {
