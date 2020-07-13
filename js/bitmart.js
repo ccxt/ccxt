@@ -760,12 +760,12 @@ module.exports = class bitmart extends Exchange {
         if (amount !== undefined) {
             if (remaining !== undefined) {
                 if (filled === undefined) {
-                    filled = amount - remaining;
+                    filled = Math.max (0, amount - remaining);
                 }
             }
             if (filled !== undefined) {
                 if (remaining === undefined) {
-                    remaining = amount - filled;
+                    remaining = Math.max (0, amount - filled);
                 }
                 if (cost === undefined) {
                     if (price !== undefined) {
@@ -788,7 +788,7 @@ module.exports = class bitmart extends Exchange {
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': undefined,
+            'cost': cost,
             'average': undefined,
             'filled': filled,
             'remaining': remaining,
