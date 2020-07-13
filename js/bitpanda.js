@@ -137,6 +137,7 @@ module.exports = class bitpanda extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    'ONLY_ONE_ERC20_ADDRESS_ALLOWED': InvalidAddress,
                     'DEPOSIT_ADDRESS_NOT_USED': InvalidAddress,
                     'INVALID_CREDENTIALS': AuthenticationError,
                     'MISSING_CREDENTIALS': AuthenticationError,
