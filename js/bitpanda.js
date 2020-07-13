@@ -17,7 +17,7 @@ module.exports = class bitpanda extends Exchange {
             'version': 'v1',
             // new metainfo interface
             'has': {
-                'privateAPI': false,
+                'fetchBalance': true,
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
                 'fetchOHLCV': true,
@@ -783,27 +783,32 @@ module.exports = class bitpanda extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const balances = await this.privateGetAccountBalances (params);
-        console.log (balance);
-        process.exit ();
+        const response = await this.privateGetAccountBalances (params);
         //
-        //     [
-        //         {
-        //             "name":"Bitcoin",
-        //             "available":"0.0000000000",
-        //             "frozen":"0.0000000000",
-        //             "id":"BTC"
-        //         }
-        //     ]
+        //     {
+        //         "account_id":"4b95934f-55f1-460c-a525-bd5afc0cf071",
+        //         "balances":[
+        //             {
+        //                 "account_id":"4b95934f-55f1-460c-a525-bd5afc0cf071",
+        //                 "currency_code":"BTC",
+        //                 "change":"10.0",
+        //                 "available":"10.0",
+        //                 "locked":"0.0",
+        //                 "sequence":142135994,
+        //                 "time":"2020-07-01T10:57:32.959Z"
+        //             }
+        //         ]
+        //     }
         //
-        const result = { 'info': balances };
+        const balances = this.safeValue (response, 'balances', []);
+        const result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
-            const currencyId = this.safeString (balance, 'id');
+            const currencyId = this.safeString (balance, 'currency_code');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             account['free'] = this.safeFloat (balance, 'available');
-            account['used'] = this.safeFloat (balance, 'frozen');
+            account['used'] = this.safeFloat (balance, 'locked');
             result[code] = account;
         }
         return this.parseBalance (result);
