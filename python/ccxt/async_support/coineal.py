@@ -539,7 +539,7 @@ class coineal(Exchange):
                 for i in range(0, len(result)):
                     result[i]['market'] = market
                 trades = self.array_concat(trades, result)
-            return self.parse_trades(trades, None, since, limit)
+            return self.parse_trades(trades, None, since, len(trades))
         market = self.market(symbol)
         result = await self.get_trades(market['id'], limit, params)
         return self.parse_trades(result, market, since, limit)
@@ -550,7 +550,7 @@ class coineal(Exchange):
             '1': 'Open',
             '2': 'Closed',
             '3': 'Open',  # Partially Opened
-            '4': 'Cancelled',
+            '4': 'Canceled',
             '5': 'Cancelling',
             '6': 'Abnormal Orders',
         }
@@ -656,9 +656,16 @@ class coineal(Exchange):
         return self.parse_orders(closedOrdered, market, since, limit)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=100, params={}):
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' FetchOpenOrder requires a symbol argument')
         await self.load_markets()
+        openOrders = []
+        if symbol is None:
+            totalMarkets = list(self.markets.keys())
+            for i in range(0, len(totalMarkets)):
+                market = self.market(totalMarkets[i])
+                orderData = await self.fetch_common_orders(market['id'], limit, params)
+                parseOpenOrderResult = self.filter_by_array(orderData, 'status', [0, 1, 3], False)
+                openOrders = self.array_concat(openOrders, parseOpenOrderResult)
+            return self.parse_orders(openOrders, None, since, len(openOrders))
         market = self.market(symbol)
         orderData = await self.fetch_common_orders(market['id'], limit, params)
         # Exchange response
@@ -734,7 +741,7 @@ class coineal(Exchange):
                 orderData = await self.fetch_common_orders(market['id'], limit, params)
                 parseOpenCloseOrderResult = self.filter_by_array(orderData, 'status', [0, 1, 2, 3], False)
                 openCloseOrders = self.array_concat(openCloseOrders, parseOpenCloseOrderResult)
-            return self.parse_orders(openCloseOrders, None, since, limit)
+            return self.parse_orders(openCloseOrders, None, since, len(openCloseOrders))
         market = self.market(symbol)
         orderData = await self.fetch_common_orders(market['id'], limit, params)
         openCloseOrders = self.filter_by_array(orderData, 'status', [0, 1, 2, 3], False)

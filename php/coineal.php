@@ -574,7 +574,7 @@ class coineal extends Exchange {
                 }
                 $trades = $this->array_concat($trades, $result);
             }
-            return $this->parse_trades($trades, null, $since, $limit);
+            return $this->parse_trades($trades, null, $since, strlen($trades));
         }
         $market = $this->market ($symbol);
         $result = $this->get_trades ($market['id'], $limit, $params);
@@ -587,7 +587,7 @@ class coineal extends Exchange {
             '1' => 'Open',
             '2' => 'Closed',
             '3' => 'Open', // Partially Opened
-            '4' => 'Cancelled',
+            '4' => 'Canceled',
             '5' => 'Cancelling',
             '6' => 'Abnormal Orders',
         );
@@ -716,10 +716,18 @@ class coineal extends Exchange {
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = 100, $params = array ()) {
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' FetchOpenOrder requires a $symbol argument');
-        }
         $this->load_markets();
+        $openOrders = array();
+        if ($symbol === null) {
+            $totalMarkets = is_array($this->markets) ? array_keys($this->markets) : array();
+            for ($i = 0; $i < count($totalMarkets); $i++) {
+                $market = $this->market ($totalMarkets[$i]);
+                $orderData = $this->fetch_common_orders ($market['id'], $limit, $params);
+                $parseOpenOrderResult = $this->filter_by_array($orderData, 'status', [0, 1, 3], false);
+                $openOrders = $this->array_concat($openOrders, $parseOpenOrderResult);
+            }
+            return $this->parse_orders($openOrders, null, $since, strlen($openOrders));
+        }
         $market = $this->market ($symbol);
         $orderData = $this->fetch_common_orders ($market['id'], $limit, $params);
         // Exchange response
@@ -797,7 +805,7 @@ class coineal extends Exchange {
                 $parseOpenCloseOrderResult = $this->filter_by_array($orderData, 'status', [0, 1, 2, 3], false);
                 $openCloseOrders = $this->array_concat($openCloseOrders, $parseOpenCloseOrderResult);
             }
-            return $this->parse_orders($openCloseOrders, null, $since, $limit);
+            return $this->parse_orders($openCloseOrders, null, $since, strlen($openCloseOrders));
         }
         $market = $this->market ($symbol);
         $orderData = $this->fetch_common_orders ($market['id'], $limit, $params);
