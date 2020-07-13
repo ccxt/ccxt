@@ -1098,6 +1098,40 @@ module.exports = class bitpanda extends Exchange {
         };
     }
 
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'instrument_code': market['id'],
+            'type': type.toUpperCase (), // LIMIT, MARKET, STOP
+            'side': side.toUpperCase (), // or SELL
+            'amount': this.amountToPrecision (symbol, amount),
+            // "price": "1234.5678", // required for LIMIT and STOP orders
+            // "client_id": "d75fb03b-b599-49e9-b926-3f0b6d103206", // optional
+            // "time_in_force": "GOOD_TILL_CANCELLED", // limit orders only, GOOD_TILL_CANCELLED, GOOD_TILL_TIME, IMMEDIATE_OR_CANCELLED and FILL_OR_KILL
+            // "expire_after": "2020-07-02T19:40:13Z", // required for GOOD_TILL_TIME
+            // "is_post_only": false, // limit orders only, optional
+            // "trigger_price": "1234.5678" // required for stop orders
+        };
+        const response = await this.privatePostAccountOrders (this.extend (request, params));
+        //
+        //     {
+        //         "order_id": "d5492c24-2995-4c18-993a-5b8bf8fffc0d",
+        //         "client_id": "d75fb03b-b599-49e9-b926-3f0b6d103206",
+        //         "account_id": "a4c699f6-338d-4a26-941f-8f9853bfc4b9",
+        //         "instrument_code": "BTC_EUR",
+        //         "time": "2019-08-01T08:00:44.026Z",
+        //         "side": "BUY",
+        //         "price": "5000",
+        //         "amount": "1",
+        //         "filled_amount": "0.5",
+        //         "type": "LIMIT",
+        //         "time_in_force": "GOOD_TILL_CANCELLED"
+        //     }
+        //
+        return this.parseOrder (response, market);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
