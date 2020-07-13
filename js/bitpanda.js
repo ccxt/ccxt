@@ -781,6 +781,34 @@ module.exports = class bitpanda extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const balances = await this.privateGetAccountBalances (params);
+        console.log (balance);
+        process.exit ();
+        //
+        //     [
+        //         {
+        //             "name":"Bitcoin",
+        //             "available":"0.0000000000",
+        //             "frozen":"0.0000000000",
+        //             "id":"BTC"
+        //         }
+        //     ]
+        //
+        const result = { 'info': balances };
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const currencyId = this.safeString (balance, 'id');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeFloat (balance, 'available');
+            account['used'] = this.safeFloat (balance, 'frozen');
+            result[code] = account;
+        }
+        return this.parseBalance (result);
+    }
+
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return;
