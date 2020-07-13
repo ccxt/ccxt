@@ -28,6 +28,7 @@ class bitz extends Exchange {
                 'fetchOrder' => true,
                 'createMarketOrder' => false,
                 'fetchDeposits' => true,
+                'fetchTime' => true,
                 'fetchWithdrawals' => true,
                 'fetchTransactions' => false,
             ),
@@ -65,6 +66,7 @@ class bitz extends Exchange {
                         'tickerall',
                         'kline',
                         'symbolList',
+                        'getServerTime',
                         'currencyRate',
                         'currencyCoinRate',
                         'coinRate',
@@ -516,6 +518,21 @@ class bitz extends Exchange {
             }
         }
         return $result;
+    }
+
+    public function fetch_time($params = array ()) {
+        $response = $this->marketGetGetServerTime ($params);
+        //
+        //     {
+        //         "status":200,
+        //         "msg":"",
+        //         "data":array(),
+        //         "time":1555490875,
+        //         "microtime":"0.35994200 1555490875",
+        //         "source":"api"
+        //     }
+        //
+        return $this->safe_timestamp($response, 'time');
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
