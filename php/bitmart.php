@@ -686,7 +686,7 @@ class bitmart extends Exchange {
 
     public function fetch_balance($params = array ()) {
         $this->load_markets();
-        $balances = $this->privateGetWallet ($params);
+        $response = $this->privateGetWallet ($params);
         //
         //     array(
         //         {
@@ -697,9 +697,9 @@ class bitmart extends Exchange {
         //         }
         //     )
         //
-        $result = array( 'info' => $balances );
-        for ($i = 0; $i < count($balances); $i++) {
-            $balance = $balances[$i];
+        $result = array( 'info' => $response );
+        for ($i = 0; $i < count($response); $i++) {
+            $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'id');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();

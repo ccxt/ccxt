@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.30.99'
+__version__ = '1.31.1'
 
 # ----------------------------------------------------------------------------
 
@@ -90,6 +90,7 @@ from ccxt.bitkk import bitkk                                # noqa: F401
 from ccxt.bitmart import bitmart                            # noqa: F401
 from ccxt.bitmax import bitmax                              # noqa: F401
 from ccxt.bitmex import bitmex                              # noqa: F401
+from ccxt.bitpanda import bitpanda                          # noqa: F401
 from ccxt.bitso import bitso                                # noqa: F401
 from ccxt.bitstamp import bitstamp                          # noqa: F401
 from ccxt.bitstamp1 import bitstamp1                        # noqa: F401
@@ -215,6 +216,7 @@ exchanges = [
     'bitmart',
     'bitmax',
     'bitmex',
+    'bitpanda',
     'bitso',
     'bitstamp',
     'bitstamp1',
