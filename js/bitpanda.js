@@ -851,6 +851,25 @@ module.exports = class bitpanda extends Exchange {
         return this.parseDepositAddress (response, currency);
     }
 
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency_code': currency['id'],
+        };
+        const response = await this.privateGetAccountDepositCryptoCurrencyCode (this.extend (request, params));
+        //
+        //     {
+        //         "address":"rBnNhk95FrdNisZtXcStzriFS8vEzz53DM",
+        //         "destination_tag":"865690307",
+        //         "enabled":true,
+        //         "is_smart_contract":false,
+        //         "can_create_more":false
+        //     }
+        //
+        return this.parseDepositAddress (response, currency);
+    }
+
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return;
