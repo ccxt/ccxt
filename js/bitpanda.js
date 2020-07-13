@@ -17,6 +17,7 @@ module.exports = class bitpanda extends Exchange {
             'version': 'v1',
             // new metainfo interface
             'has': {
+                'privateAPI': false,
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
                 'fetchOHLCV': true,
@@ -609,11 +610,27 @@ module.exports = class bitpanda extends Exchange {
         //         "last_sequence":461123
         //     }
         //
+        const granularity = this.safeValue (ohlcv, 'granularity');
+        const unit = this.safeString (granularity, 'unit');
+        const period = this.safeString (granularity, 'period');
+        const units = {
+            'MINUTES': 'm',
+            'HOURS': 'h',
+            'DAYS': 'd',
+            'WEEKS': 'w',
+            'MONTHS': 'M',
+        };
+        const lowercaseUnit = this.safeString (units, unit);
+        const timeframe = period + lowercaseUnit;
+        const durationInSeconds = this.parseTimeframe (timeframe);
+        const duration = durationInSeconds * 1000;
         const timestamp = this.parse8601 (this.safeString (ohlcv, 'time'));
+        const modulo = this.integerModulo (timestamp, duration);
+        const alignedTimestamp = timestamp - modulo;
         const options = this.safeValue (this.options, 'fetchOHLCV', {});
         const volumeField = this.safeString (options, 'volume', 'total_amount');
         return [
-            this.sum (timestamp, 1),
+            alignedTimestamp,
             this.safeFloat (ohlcv, 'open'),
             this.safeFloat (ohlcv, 'high'),
             this.safeFloat (ohlcv, 'low'),
