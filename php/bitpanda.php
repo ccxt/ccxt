@@ -42,7 +42,7 @@ class bitpanda extends Exchange {
                 '1M' => '1/MONTHS',
             ),
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg',
+                'logo' => 'https://user-images.githubusercontent.com/51840849/87309947-ec787300-c525-11ea-92c1-ae23715762b1.jpg',
                 'api' => array(
                     'public' => 'https://api.exchange.bitpanda.com/public',
                     'private' => 'https://api.exchange.bitpanda.com/public',
