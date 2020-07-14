@@ -31,6 +31,7 @@ class bitpanda extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchMarkets' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
@@ -1614,6 +1615,13 @@ class bitpanda extends Exchange {
         //
         $orderHistory = $this->safe_value($response, 'order_history', array());
         return $this->parse_orders($orderHistory, $market, $since, $limit);
+    }
+
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'with_cancelled_and_rejected' => false, // default is false, orders which have been cancelled by the user before being filled or rejected by the system as invalid, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
+        );
+        return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
