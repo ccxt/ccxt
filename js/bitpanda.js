@@ -23,6 +23,7 @@ module.exports = class bitpanda extends Exchange {
                 'createDepositAddress': true,
                 'createOrder': true,
                 'fetchBalance': true,
+                'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDeposits': true,
                 'fetchDepositAddress': true,
@@ -31,7 +32,6 @@ module.exports = class bitpanda extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrders': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFees': true,
@@ -1503,13 +1503,13 @@ module.exports = class bitpanda extends Exchange {
         return this.parseOrder (response);
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             // 'from': this.iso8601 (since),
             // 'to': this.iso8601 (this.milliseconds ()), // max range is 100 days
             // 'instrument_code': market['id'],
-            'with_cancelled_and_rejected': true, // default is false, orders which have been cancelled by the user before being filled or rejected by the system as invalid, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
+            // 'with_cancelled_and_rejected': false, // default is false, orders which have been cancelled by the user before being filled or rejected by the system as invalid, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
             // 'with_just_filled_inactive': false, // orders which have been filled and are no longer open, use of "with_cancelled_and_rejected" extends "with_just_filled_inactive" and in case both are specified the latter is ignored
             // 'with_just_orders': false, // do not return any trades corresponsing to the orders, it may be significanly faster and should be used if user is not interesting in trade information
             // 'max_page_size': 100,
@@ -1614,11 +1614,11 @@ module.exports = class bitpanda extends Exchange {
         return this.parseOrders (orderHistory, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const request = {
-            'with_cancelled_and_rejected': false, // default is false, orders which have been cancelled by the user before being filled or rejected by the system as invalid, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
+            'with_cancelled_and_rejected': true, // default is false, orders which have been cancelled by the user before being filled or rejected by the system as invalid, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
         };
-        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
+        return await this.fetchOpenOrders (symbol, since, limit, this.extend (request, params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
