@@ -35,6 +35,7 @@ class bitpanda extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
+                'fetchOrderTrades' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTradingFees' => true,
@@ -1622,6 +1623,25 @@ class bitpanda extends Exchange {
             'with_cancelled_and_rejected' => true, // default is false, orders which have been cancelled by the user before being filled or rejected by the system as invalid, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
         );
         return $this->fetch_open_orders($symbol, $since, $limit, array_merge($request, $params));
+    }
+
+    public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $request = array(
+            'order_id' => $id,
+            // 'max_page_size' => 100,
+            // 'cursor' => 'string', // pointer specifying the position from which the next pages should be returned
+        );
+        if ($limit !== null) {
+            $request['max_page_size'] = $limit;
+        }
+        $response = $this->privateGetAccountOrdersOrderIdTrades (array_merge($request, $params));
+        $tradeHistory = $this->safe_value($response, 'trade_history', array());
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        return $this->parse_trades($tradeHistory, $market, $since, $limit);
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

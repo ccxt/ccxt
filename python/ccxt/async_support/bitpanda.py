@@ -43,6 +43,7 @@ class bitpanda(Exchange):
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
+                'fetchOrderTrades': True,
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTradingFees': True,
@@ -1539,6 +1540,22 @@ class bitpanda(Exchange):
             'with_cancelled_and_rejected': True,  # default is False, orders which have been cancelled by the user before being filled or rejected by the system as invalid, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
         }
         return await self.fetch_open_orders(symbol, since, limit, self.extend(request, params))
+
+    async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        request = {
+            'order_id': id,
+            # 'max_page_size': 100,
+            # 'cursor': 'string',  # pointer specifying the position from which the next pages should be returned
+        }
+        if limit is not None:
+            request['max_page_size'] = limit
+        response = await self.privateGetAccountOrdersOrderIdTrades(self.extend(request, params))
+        tradeHistory = self.safe_value(response, 'trade_history', [])
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        return self.parse_trades(tradeHistory, market, since, limit)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api] + '/' + self.version + '/' + self.implode_params(path, params)
