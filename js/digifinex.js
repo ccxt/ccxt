@@ -37,7 +37,7 @@ module.exports = class digifinex extends Exchange {
                 '1w': '1W',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/62184319-304e8880-b366-11e9-99fe-8011d6929195.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87443315-01283a00-c5fe-11ea-8628-c2a0feaf07ac.jpg',
                 'api': 'https://openapi.digifinex.com',
                 'www': 'https://www.digifinex.com',
                 'doc': [
