@@ -30,6 +30,7 @@ class bitpanda(Exchange):
             'has': {
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'cancelOrders': True,
                 'createDepositAddress': True,
                 'createOrder': True,
                 'fetchBalance': True,
@@ -1213,6 +1214,19 @@ class bitpanda(Exchange):
         if symbol is not None:
             market = self.market(symbol)
             request['instrument_code'] = market['id']
+        response = await self.privateDeleteAccountOrders(self.extend(request, params))
+        #
+        #     [
+        #         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
+        #     ]
+        #
+        return response
+
+    async def cancel_orders(self, ids, symbol=None, params={}):
+        await self.load_markets()
+        request = {
+            'ids': ','.join(ids),
+        }
         response = await self.privateDeleteAccountOrders(self.extend(request, params))
         #
         #     [
