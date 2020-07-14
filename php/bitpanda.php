@@ -26,6 +26,7 @@ class bitpanda extends Exchange {
                 'createDepositAddress' => true,
                 'createOrder' => true,
                 'fetchBalance' => true,
+                'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDeposits' => true,
                 'fetchDepositAddress' => true,
@@ -34,7 +35,6 @@ class bitpanda extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
-                'fetchOrders' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTradingFees' => true,
@@ -1506,13 +1506,13 @@ class bitpanda extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             // 'from' => $this->iso8601($since),
             // 'to' => $this->iso8601($this->milliseconds()), // max range is 100 days
             // 'instrument_code' => $market['id'],
-            'with_cancelled_and_rejected' => true, // default is false, orders which have been cancelled by the user before being filled or rejected by the system as invalid, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
+            // 'with_cancelled_and_rejected' => false, // default is false, orders which have been cancelled by the user before being filled or rejected by the system as invalid, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
             // 'with_just_filled_inactive' => false, // orders which have been filled and are no longer open, use of "with_cancelled_and_rejected" extends "with_just_filled_inactive" and in case both are specified the latter is ignored
             // 'with_just_orders' => false, // do not return any trades corresponsing $to the orders, it may be significanly faster and should be used if user is not interesting in trade information
             // 'max_page_size' => 100,
@@ -1617,11 +1617,11 @@ class bitpanda extends Exchange {
         return $this->parse_orders($orderHistory, $market, $since, $limit);
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $request = array(
-            'with_cancelled_and_rejected' => false, // default is false, orders which have been cancelled by the user before being filled or rejected by the system as invalid, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
+            'with_cancelled_and_rejected' => true, // default is false, orders which have been cancelled by the user before being filled or rejected by the system as invalid, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
         );
-        return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
+        return $this->fetch_open_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
