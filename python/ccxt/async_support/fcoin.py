@@ -41,6 +41,7 @@ class fcoin(Exchange):
                 'fetchOrder': True,
                 'fetchOrders': True,
                 'fetchOrderBook': True,
+                'fetchTime': True,
                 'fetchOrderBooks': False,
                 'fetchTradingLimits': False,
                 'withdraw': False,
@@ -431,6 +432,16 @@ class fcoin(Exchange):
             'cost': cost,
             'fee': fee,
         }
+
+    async def fetch_time(self, params={}):
+        response = await self.publicGetServerTime(params)
+        #
+        #     {
+        #         "status": 0,
+        #         "data": 1523430502977
+        #     }
+        #
+        return self.safe_integer(response, 'data')
 
     async def fetch_trades(self, symbol, since=None, limit=50, params={}):
         await self.load_markets()
