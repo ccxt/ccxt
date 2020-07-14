@@ -1259,12 +1259,10 @@ module.exports = class bitpanda extends Exchange {
             request['order_id'] = id;
         }
         const response = await this[method] (this.extend (request, params));
-        console.log (response);
-        process.exit ();
         //
-        // responds with an empty object {}
+        // responds with an empty body
         //
-        return this.parseOrder (response);
+        return response;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
