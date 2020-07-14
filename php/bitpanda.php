@@ -20,6 +20,7 @@ class bitpanda extends Exchange {
             'version' => 'v1',
             // new metainfo interface
             'has' => array(
+                'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createDepositAddress' => true,
                 'createOrder' => true,
@@ -1264,6 +1265,22 @@ class bitpanda extends Exchange {
         $response = $this->$method (array_merge($request, $params));
         //
         // responds with an empty body
+        //
+        return $response;
+    }
+
+    public function cancel_all_orders($symbol = null, $params = array ()) {
+        $this->load_markets();
+        $request = array();
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['instrument_code'] = $market['id'];
+        }
+        $response = $this->privateDeleteAccountOrders (array_merge($request, $params));
+        //
+        //     array(
+        //         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
+        //     )
         //
         return $response;
     }
