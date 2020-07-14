@@ -1105,6 +1105,21 @@ module.exports = class bitpanda extends Exchange {
         };
     }
 
+    parseOrderStatus (status) {
+        const statuses = {
+            'FILLED': 'open',
+            'FILLED_FULLY': 'closed',
+            'FILLED_CLOSED': 'canceled',
+            'FILLED_REJECTED': 'rejected',
+            'OPEN': 'open',
+            'REJECTED': 'rejected',
+            'CLOSED': 'canceled',
+            'FAILED': 'failed',
+            'STOP_TRIGGERED': 'triggered',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     parseOrder (order, market = undefined) {
         //
         // createOrder
@@ -1123,18 +1138,58 @@ module.exports = class bitpanda extends Exchange {
         //         "time_in_force": "GOOD_TILL_CANCELLED"
         //     }
         //
-        // cancelOrder
+        // fetchOrder
         //
-        //     ...
+        //     {
+        //         "order": {
+        //             "order_id": "36bb2437-7402-4794-bf26-4bdf03526439",
+        //             "account_id": "a4c699f6-338d-4a26-941f-8f9853bfc4b9",
+        //             "time_last_updated": "2019-09-27T15:05:35.096Z",
+        //             "sequence": 48782,
+        //             "price": "7349.2",
+        //             "filled_amount": "100.0",
+        //             "status": "FILLED_FULLY",
+        //             "amount": "100.0",
+        //             "instrument_code": "BTC_EUR",
+        //             "side": "BUY",
+        //             "time": "2019-09-27T15:05:32.063Z",
+        //             "type": "MARKET"
+        //         },
+        //         "trades": [
+        //             {
+        //                 "fee": {
+        //                     "fee_amount": "0.0014",
+        //                     "fee_currency": "BTC",
+        //                     "fee_percentage": "0.1",
+        //                     "fee_group_id": "default",
+        //                     "fee_type": "TAKER",
+        //                     "running_trading_volume": "0.0"
+        //                 },
+        //                 "trade": {
+        //                     "trade_id": "fdff2bcc-37d6-4a2d-92a5-46e09c868664",
+        //                     "order_id": "36bb2437-7402-4794-bf26-4bdf03526439",
+        //                     "account_id": "a4c699f6-338d-4a26-941f-8f9853bfc4b9",
+        //                     "amount": "1.4",
+        //                     "side": "BUY",
+        //                     "instrument_code": "BTC_EUR",
+        //                     "price": "7341.4",
+        //                     "time": "2019-09-27T15:05:32.564Z",
+        //                     "sequence": 48670
+        //                 }
+        //             }
+        //         ]
+        //     }
         //
         // fetchOrders
         //
         //     ...
         //
+        const trades = this.safeValue (order, 'trades', []);
+        order = this.safeValue (order, 'order', order);
         const id = this.safeString (order, 'order_id');
         const clientOrderId = this.safeString (order, 'client_id');
         const timestamp = this.parse8601 (this.safeString (order, 'time'));
-        let status = undefined;
+        let status = this.parseOrderStatus (this.safeString (order, 'status');
         let symbol = undefined;
         const marketId = this.safeString (order, 'instrument_code');
         if (marketId !== undefined) {
