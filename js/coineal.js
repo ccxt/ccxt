@@ -566,7 +566,7 @@ module.exports = class coineal extends Exchange {
                 }
                 trades = this.arrayConcat (trades, result);
             }
-            return this.parseTrades (trades, undefined, since, limit);
+            return this.parseTrades (trades, undefined, since, trades.length);
         }
         const market = this.market (symbol);
         const result = await this.getTrades (market['id'], limit, params);
@@ -579,7 +579,7 @@ module.exports = class coineal extends Exchange {
             '1': 'Open',
             '2': 'Closed',
             '3': 'Open', // Partially Opened
-            '4': 'Cancelled',
+            '4': 'Canceled',
             '5': 'Cancelling',
             '6': 'Abnormal Orders',
         };
@@ -708,10 +708,18 @@ module.exports = class coineal extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = 100, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' FetchOpenOrder requires a symbol argument');
-        }
         await this.loadMarkets ();
+        let openOrders = [];
+        if (symbol === undefined) {
+            const totalMarkets = Object.keys (this.markets);
+            for (let i = 0; i < totalMarkets.length; i++) {
+                const market = this.market (totalMarkets[i]);
+                const orderData = await this.fetchCommonOrders (market['id'], limit, params);
+                const parseOpenOrderResult = this.filterByArray (orderData, 'status', [0, 1, 3], false);
+                openOrders = this.arrayConcat (openOrders, parseOpenOrderResult);
+            }
+            return this.parseOrders (openOrders, undefined, since, openOrders.length);
+        }
         const market = this.market (symbol);
         const orderData = await this.fetchCommonOrders (market['id'], limit, params);
         // Exchange response
@@ -789,7 +797,7 @@ module.exports = class coineal extends Exchange {
                 const parseOpenCloseOrderResult = this.filterByArray (orderData, 'status', [0, 1, 2, 3], false);
                 openCloseOrders = this.arrayConcat (openCloseOrders, parseOpenCloseOrderResult);
             }
-            return this.parseOrders (openCloseOrders, undefined, since, limit);
+            return this.parseOrders (openCloseOrders, undefined, since, openCloseOrders.length);
         }
         const market = this.market (symbol);
         const orderData = await this.fetchCommonOrders (market['id'], limit, params);
