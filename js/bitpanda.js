@@ -772,7 +772,7 @@ module.exports = class bitpanda extends Exchange {
         //         "sequence":603047
         //     }
         //
-        // fetchOrder, fetchOrders trades (private)
+        // fetchOrder, fetchOpenOrders, fetchClosedOrders trades (private)
         //
         //     {
         //         "fee": {
@@ -1184,7 +1184,7 @@ module.exports = class bitpanda extends Exchange {
         //         "time_in_force": "GOOD_TILL_CANCELLED"
         //     }
         //
-        // fetchOrder, fetchOrders
+        // fetchOrder, fetchOpenOrders, fetchClosedOrders
         //
         //     {
         //         "order": {
@@ -1225,10 +1225,6 @@ module.exports = class bitpanda extends Exchange {
         //             }
         //         ]
         //     }
-        //
-        // fetchOrders
-        //
-        //     ...
         //
         const rawTrades = this.safeValue (order, 'trades', []);
         order = this.safeValue (order, 'order', order);
