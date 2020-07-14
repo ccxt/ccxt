@@ -14,7 +14,7 @@ module.exports = class xena extends Exchange {
                 'CORS': false,
                 'fetchOrderBook': false,
                 'fetchTicker': false,
-                'fetchTickers': false,
+                'fetchTickers': true,
                 'fetchTrades': false,
                 'createOrder': false,
                 'createMarketOrder': false,
@@ -51,6 +51,7 @@ module.exports = class xena extends Exchange {
                 'public': {
                     'get': [
                         'market-data/candles/{marketId}/{timeframe}',
+                        'market-data/market-watch',
                         'common/currencies',
                         'common/instruments',
                         'common/features',
@@ -218,7 +219,7 @@ module.exports = class xena extends Exchange {
             const swap = (type === 'swap');
             const symbol = id;
             const pricePrecision = this.safeInteger2 (market, 'tickSize', 'pricePrecision');
-            const tickValue = this.safeString (market, 'orderQtyStep');
+            // const tickValue = this.safeString (market, 'orderQtyStep');
             // const amountPrecision = (tickValue === undefined) ? undefined : this.precisionFromString (tickValue);
             const precision = {
                 'price': pricePrecision,
@@ -298,43 +299,36 @@ module.exports = class xena extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const currency = response[id];
-            // todo: will need to rethink the fees
-            // see: https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
-            // to add support for multiple withdrawal/deposit methods and
-            // differentiated fees for each particular method
             const code = this.safeCurrencyCode (id);
             const name = this.safeString (currency, 'title');
             const precision = this.safeInteger (currency, 'precision');
-            // assumes all currencies are active except those listed above
             const enabled = this.safeValue (currency, 'enabled');
-            const active = enabled === true;
+            const active = (enabled === true);
             const withdraw = this.safeValue (currency, 'withdraw', {});
-            const minWithdrawAmount = this.safeFloat (withdraw, 'minAmount');
-            const fee = this.safeFloat (withdraw, 'commission');
             result[code] = {
                 'id': id,
                 'code': code,
                 'info': currency,
                 'name': name,
                 'active': active,
-                'fee': fee,
+                'fee': this.safeFloat (withdraw, 'commission'),
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
+                        'min': undefined,
+                        'max': undefined,
                     },
                     'price': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
+                        'min': undefined,
+                        'max': undefined,
                     },
                     'cost': {
                         'min': undefined,
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': minWithdrawAmount,
-                        'max': Math.pow (10, precision),
+                        'min': this.safeFloat (withdraw, 'minAmount'),
+                        'max': undefined,
                     },
                 },
             };
@@ -1013,7 +1007,7 @@ module.exports = class xena extends Exchange {
             nonce = nonce + '000000'; // see the comment a few lines above
             const payload = 'AUTH' + nonce;
             const secret = this.secret.slice (14, 78);
-            const ecdsa = this.ecdsa (payload, this.encode (secret), 'p256', 'sha256');
+            const ecdsa = this.ecdsa (payload, secret, 'p256', 'sha256');
             const signature = ecdsa['r'] + ecdsa['s'];
             headers = {
                 'X-AUTH-API-KEY': this.apiKey,
