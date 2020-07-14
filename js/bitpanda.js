@@ -28,6 +28,7 @@ module.exports = class bitpanda extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchMarkets': true,
                 'fetchOHLCV': true,
+                'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
@@ -1611,6 +1612,13 @@ module.exports = class bitpanda extends Exchange {
         //
         const orderHistory = this.safeValue (response, 'order_history', []);
         return this.parseOrders (orderHistory, market, since, limit);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'with_cancelled_and_rejected': false, // default is false, orders which have been cancelled by the user before being filled or rejected by the system as invalid, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
+        };
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
