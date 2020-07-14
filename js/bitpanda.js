@@ -1213,10 +1213,12 @@ module.exports = class bitpanda extends Exchange {
         if (filled !== undefined) {
             if (amount !== undefined) {
                 remaining = Math.max (0, amount - filled);
-                if (remaining > 0) {
-                    status = 'open';
-                } else {
-                    status = 'closed';
+                if (status === undefined) {
+                    if (remaining > 0) {
+                        status = 'open';
+                    } else {
+                        status = 'closed';
+                    }
                 }
             }
             if (cost === undefined) {
