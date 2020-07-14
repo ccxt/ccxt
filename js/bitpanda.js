@@ -19,6 +19,7 @@ module.exports = class bitpanda extends Exchange {
             'has': {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'cancelOrders': true,
                 'createDepositAddress': true,
                 'createOrder': true,
                 'fetchBalance': true,
@@ -1273,6 +1274,20 @@ module.exports = class bitpanda extends Exchange {
             const market = this.market (symbol);
             request['instrument_code'] = market['id'];
         }
+        const response = await this.privateDeleteAccountOrders (this.extend (request, params));
+        //
+        //     [
+        //         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
+        //     ]
+        //
+        return response;
+    }
+
+    async cancelOrders (ids, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'ids': ids.join (','),
+        };
         const response = await this.privateDeleteAccountOrders (this.extend (request, params));
         //
         //     [
