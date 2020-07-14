@@ -20,6 +20,7 @@ class bitpanda extends Exchange {
             'version' => 'v1',
             // new metainfo interface
             'has' => array(
+                'cancelOrder' => true,
                 'createDepositAddress' => true,
                 'createOrder' => true,
                 'fetchBalance' => true,
@@ -147,6 +148,8 @@ class bitpanda extends Exchange {
             ),
             'exceptions' => array(
                 'exact' => array(
+                    'INVALID_CLIENT_UUID' => '\\ccxt\\InvalidOrder',
+                    'ORDER_NOT_FOUND' => '\\ccxt\\OrderNotFound',
                     'ONLY_ONE_ERC20_ADDRESS_ALLOWED' => '\\ccxt\\InvalidAddress',
                     'DEPOSIT_ADDRESS_NOT_USED' => '\\ccxt\\InvalidAddress',
                     'INVALID_CREDENTIALS' => '\\ccxt\\AuthenticationError',
@@ -1244,6 +1247,25 @@ class bitpanda extends Exchange {
         //     }
         //
         return $this->parse_order($response, $market);
+    }
+
+    public function cancel_order($id, $symbol = null, $params = array ()) {
+        $this->load_markets();
+        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_id');
+        $params = $this->omit($params, array( 'clientOrderId', 'client_id' ));
+        $method = 'privateDeleteAccountOrdersOrderId';
+        $request = array();
+        if ($clientOrderId !== null) {
+            $method = 'privateDeleteAccountOrdersClientClientId';
+            $request['client_id'] = $clientOrderId;
+        } else {
+            $request['order_id'] = $id;
+        }
+        $response = $this->$method (array_merge($request, $params));
+        //
+        // responds with an empty body
+        //
+        return $response;
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

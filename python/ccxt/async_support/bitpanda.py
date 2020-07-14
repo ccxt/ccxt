@@ -28,6 +28,7 @@ class bitpanda(Exchange):
             'version': 'v1',
             # new metainfo interface
             'has': {
+                'cancelOrder': True,
                 'createDepositAddress': True,
                 'createOrder': True,
                 'fetchBalance': True,
@@ -155,6 +156,8 @@ class bitpanda(Exchange):
             },
             'exceptions': {
                 'exact': {
+                    'INVALID_CLIENT_UUID': InvalidOrder,
+                    'ORDER_NOT_FOUND': OrderNotFound,
                     'ONLY_ONE_ERC20_ADDRESS_ALLOWED': InvalidAddress,
                     'DEPOSIT_ADDRESS_NOT_USED': InvalidAddress,
                     'INVALID_CREDENTIALS': AuthenticationError,
@@ -1185,6 +1188,23 @@ class bitpanda(Exchange):
         #     }
         #
         return self.parse_order(response, market)
+
+    async def cancel_order(self, id, symbol=None, params={}):
+        await self.load_markets()
+        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_id')
+        params = self.omit(params, ['clientOrderId', 'client_id'])
+        method = 'privateDeleteAccountOrdersOrderId'
+        request = {}
+        if clientOrderId is not None:
+            method = 'privateDeleteAccountOrdersClientClientId'
+            request['client_id'] = clientOrderId
+        else:
+            request['order_id'] = id
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        # responds with an empty body
+        #
+        return response
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api] + '/' + self.version + '/' + self.implode_params(path, params)
