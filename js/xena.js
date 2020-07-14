@@ -334,6 +334,72 @@ module.exports = class xena extends Exchange {
         return result;
     }
 
+    parseTicker (ticker, market = undefined) {
+        //
+        // fetchTicker, fetchTickers
+        //
+        //     {
+        //         "symbol":".XBTUSD_3M_250920_MID",
+        //         "firstPx":"9337.49",
+        //         "lastPx":"9355.81",
+        //         "highPx":"9579.42",
+        //         "lowPx":"9157.63",
+        //         "buyVolume":"0",
+        //         "sellVolume":"0",
+        //         "bid":"0",
+        //         "ask":"0"
+        //     }
+        //
+        const timestamp = this.milliseconds ();
+        const marketId = this.safeString (ticker, 'symbol');
+        let symbol = undefined;
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            }
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
+        const last = this.safeFloat (ticker, 'lastPx');
+        const open = this.safeFloat (ticker, 'firstPx');
+        let percentage = undefined;
+        let change = undefined;
+        let average = undefined;
+        if ((last !== undefined) && (open !== undefined)) {
+            change = last - open;
+            average = this.sum (last, open) / 2;
+            if (open > 0) {
+                percentage = change / open * 100;
+            }
+        }
+        const buyVolume = this.safeFloat (ticker, 'buyVolume');
+        const sellVolume = this.safeFloat (ticker, 'sellVolume');
+        const baseVolume = this.sum (buyVolume, sellVolume);
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeFloat (ticker, 'highPx'),
+            'low': this.safeFloat (ticker, 'lowPx'),
+            'bid': this.safeFloat (ticker, 'bid'),
+            'bidVolume': undefined,
+            'ask': this.safeFloat (ticker, 'ask'),
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': open,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': change,
+            'percentage': percentage,
+            'average': average,
+            'baseVolume': baseVolume,
+            'quoteVolume': undefined,
+            'info': ticker,
+        };
+    }
+
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const tickers = this.fetchTickers (params);
