@@ -28,6 +28,7 @@ module.exports = class fcoin extends Exchange {
                 'fetchOrder': true,
                 'fetchOrders': true,
                 'fetchOrderBook': true,
+                'fetchTime': true,
                 'fetchOrderBooks': false,
                 'fetchTradingLimits': false,
                 'withdraw': false,
@@ -441,6 +442,17 @@ module.exports = class fcoin extends Exchange {
             'cost': cost,
             'fee': fee,
         };
+    }
+
+    async fetchTime (params = {}) {
+        const response = await this.publicGetServerTime (params);
+        //
+        //     {
+        //         "status": 0,
+        //         "data": 1523430502977
+        //     }
+        //
+        return this.safeInteger (response, 'data');
     }
 
     async fetchTrades (symbol, since = undefined, limit = 50, params = {}) {
