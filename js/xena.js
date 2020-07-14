@@ -1,7 +1,7 @@
 'use strict';
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, BadRequest, InsufficientFunds, InvalidAddress } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, BadRequest, InsufficientFunds, InvalidAddress, BadSymbol } = require ('./base/errors');
 
 module.exports = class xena extends Exchange {
     describe () {
@@ -106,7 +106,7 @@ module.exports = class xena extends Exchange {
                 },
             },
             'options': {
-                'defaultType': 'spot', // 'margin',
+                'defaultType': 'margin', // 'margin',
                 'accountId': undefined, // '1012838157',
             },
         });
@@ -219,8 +219,6 @@ module.exports = class xena extends Exchange {
             const swap = (type === 'swap');
             const symbol = id;
             const pricePrecision = this.safeInteger2 (market, 'tickSize', 'pricePrecision');
-            // const tickValue = this.safeString (market, 'orderQtyStep');
-            // const amountPrecision = (tickValue === undefined) ? undefined : this.precisionFromString (tickValue);
             const precision = {
                 'price': pricePrecision,
                 'amount': 0,
@@ -336,6 +334,15 @@ module.exports = class xena extends Exchange {
         return result;
     }
 
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const tickers = this.fetchTickers (params);
+        if (symbol in tickers) {
+            return tickers[symbol];
+        }
+        throw new BadSymbol (this.id + ' fetchTicker could not find a ticker with symbol ' + symbol);
+    }
+
     async fetchAccounts (params = {}) {
         const response = await this.privateGetTradingAccounts (params);
         //
@@ -370,11 +377,11 @@ module.exports = class xena extends Exchange {
         const accountsByType = this.groupBy (this.accounts, 'type');
         const accounts = this.safeValue (accountsByType, type);
         if (accounts === undefined) {
-            throw new ExchangeError (this.id + " findAccountByType() could not find an accountId with type " + type + ", specify the 'accountId' parameter instead"); // eslint-disable-line quotes
+            throw new ExchangeError (this.id + " findAccountByType() could not find an accountId with type '" + type + "', specify the 'accountId' parameter instead"); // eslint-disable-line quotes
         }
         const numAccounts = accounts.length;
         if (numAccounts > 1) {
-            throw new ExchangeError (this.id + " findAccountByType() found more than one accountId with type " + type + ", specify the 'accountId' parameter instead"); // eslint-disable-line quotes
+            throw new ExchangeError (this.id + " findAccountByType() found more than one accountId with type '" + type + "', specify the 'accountId' parameter instead"); // eslint-disable-line quotes
         }
         return accounts[0];
     }
