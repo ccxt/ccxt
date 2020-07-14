@@ -1630,6 +1630,36 @@ module.exports = class bitpanda extends Exchange {
             request['max_page_size'] = limit;
         }
         const response = await this.privateGetAccountOrdersOrderIdTrades (this.extend (request, params));
+        //
+        //     {
+        //         "trade_history": [
+        //             {
+        //                 "trade": {
+        //                     "trade_id": "2b42efcd-d5b7-4a56-8e12-b69ffd68c5ef",
+        //                     "order_id": "66756a10-3e86-48f4-9678-b634c4b135b2",
+        //                     "account_id": "c2d0076a-c20d-41f8-9e9a-1a1d028b2b58",
+        //                     "amount": "1234.5678",
+        //                     "side": "BUY",
+        //                     "instrument_code": "BTC_EUR",
+        //                     "price": "1234.5678",
+        //                     "time": "2019-08-24T14:15:22Z",
+        //                     "price_tick_sequence": 0,
+        //                     "sequence": 123456789
+        //                 },
+        //                 "fee": {
+        //                     "fee_amount": "1234.5678",
+        //                     "fee_percentage": "1234.5678",
+        //                     "fee_group_id": "default",
+        //                     "running_trading_volume": "1234.5678",
+        //                     "fee_currency": "BTC",
+        //                     "fee_type": "TAKER"
+        //                 }
+        //             }
+        //         ],
+        //         "max_page_size": 0,
+        //         "cursor": "string"
+        //     }
+        //
         const tradeHistory = this.safeValue (response, 'trade_history', []);
         let market = undefined;
         if (symbol !== undefined) {
