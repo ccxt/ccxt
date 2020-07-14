@@ -1253,7 +1253,7 @@ module.exports = class bitpanda extends Exchange {
         let method = 'privateDeleteAccountOrdersOrderId';
         const request = {};
         if (clientOrderId !== undefined) {
-            method = 'privateDeleteAccountOrdersClientClientId'
+            method = 'privateDeleteAccountOrdersClientClientId';
             request['client_id'] = clientOrderId;
         } else {
             request['order_id'] = id;
