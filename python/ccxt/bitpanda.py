@@ -28,6 +28,7 @@ class bitpanda(Exchange):
             'version': 'v1',
             # new metainfo interface
             'has': {
+                'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createDepositAddress': True,
                 'createOrder': True,
@@ -1203,6 +1204,20 @@ class bitpanda(Exchange):
         response = getattr(self, method)(self.extend(request, params))
         #
         # responds with an empty body
+        #
+        return response
+
+    def cancel_all_orders(self, symbol=None, params={}):
+        self.load_markets()
+        request = {}
+        if symbol is not None:
+            market = self.market(symbol)
+            request['instrument_code'] = market['id']
+        response = self.privateDeleteAccountOrders(self.extend(request, params))
+        #
+        #     [
+        #         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
+        #     ]
         #
         return response
 
