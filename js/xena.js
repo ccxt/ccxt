@@ -13,7 +13,7 @@ module.exports = class xena extends Exchange {
             'has': {
                 'CORS': false,
                 'fetchOrderBook': false,
-                'fetchTicker': false,
+                'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': false,
                 'createOrder': false,
@@ -341,6 +341,34 @@ module.exports = class xena extends Exchange {
             return tickers[symbol];
         }
         throw new BadSymbol (this.id + ' fetchTicker could not find a ticker with symbol ' + symbol);
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const tickers = await this.publicGetMarketDataMarketWatch (params);
+        // https://user-images.githubusercontent.com/51840849/87485592-d233b780-c641-11ea-899e-49771e1f4ea9.jpg
+        //
+        //     [
+        //         {
+        //             "symbol":".XBTUSD_3M_250920_MID",
+        //             "firstPx":"9337.49",
+        //             "lastPx":"9355.81",
+        //             "highPx":"9579.42",
+        //             "lowPx":"9157.63",
+        //             "buyVolume":"0",
+        //             "sellVolume":"0",
+        //             "bid":"0",
+        //             "ask":"0"
+        //         }
+        //     ]
+        //
+        const result = {};
+        for (let i = 0; i < tickers.length; i++) {
+            const ticker = this.parseTicker (tickers[i]);
+            const symbol = ticker['symbol'];
+            result[symbol] = ticker;
+        }
+        return result;
     }
 
     async fetchAccounts (params = {}) {
