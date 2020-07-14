@@ -1292,9 +1292,11 @@ module.exports = class bitpanda extends Exchange {
                 tradeAmount = this.sum (tradeAmount, trade['amount']);
             }
         }
-        let average = undefined;
-        if ((tradeCost !== undefined) && (tradeAmount !== undefined) && (tradeAmount !== 0)) {
-            average = tradeCost / tradeAmount;
+        let average = this.safeFloat (order, 'average_price');
+        if (average === undefined) {
+            if ((tradeCost !== undefined) && (tradeAmount !== undefined) && (tradeAmount !== 0)) {
+                average = tradeCost / tradeAmount;
+            }
         }
         const result = {
             'id': id,
