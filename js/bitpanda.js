@@ -1189,7 +1189,7 @@ module.exports = class bitpanda extends Exchange {
         const id = this.safeString (order, 'order_id');
         const clientOrderId = this.safeString (order, 'client_id');
         const timestamp = this.parse8601 (this.safeString (order, 'time'));
-        let status = this.parseOrderStatus (this.safeString (order, 'status');
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
         let symbol = undefined;
         const marketId = this.safeString (order, 'instrument_code');
         if (marketId !== undefined) {
