@@ -32,6 +32,7 @@ module.exports = class bitpanda extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchOrderTrades': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFees': true,
@@ -1619,6 +1620,25 @@ module.exports = class bitpanda extends Exchange {
             'with_cancelled_and_rejected': true, // default is false, orders which have been cancelled by the user before being filled or rejected by the system as invalid, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
         };
         return await this.fetchOpenOrders (symbol, since, limit, this.extend (request, params));
+    }
+
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'order_id': id,
+            // 'max_page_size': 100,
+            // 'cursor': 'string', // pointer specifying the position from which the next pages should be returned
+        };
+        if (limit !== undefined) {
+            request['max_page_size'] = limit;
+        }
+        const response = await this.privateGetAccountOrdersOrderIdTrades (this.extend (request, params));
+        const tradeHistory = this.safeValue (response, 'trade_history', []);
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        return this.parseTrades (tradeHistory, market, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
