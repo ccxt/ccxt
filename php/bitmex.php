@@ -276,8 +276,8 @@ class bitmex extends Exchange {
             $account['free'] = $this->safe_float($balance, 'availableMargin');
             $account['total'] = $this->safe_float($balance, 'marginBalance');
             if ($code === 'BTC') {
-                $account['free'] = $account['free'] * 0.00000001;
-                $account['total'] = $account['total'] * 0.00000001;
+                $account['free'] = $account['free'] / 100000000;
+                $account['total'] = $account['total'] / 100000000;
             }
             $result[$code] = $account;
         }
@@ -513,7 +513,7 @@ class bitmex extends Exchange {
         $code = $this->safe_currency_code($currencyId, $currency);
         $amount = $this->safe_float($item, 'amount');
         if ($amount !== null) {
-            $amount = $amount * 1e-8;
+            $amount = $amount / 100000000;
         }
         $timestamp = $this->parse8601($this->safe_string($item, 'transactTime'));
         if ($timestamp === null) {
@@ -524,7 +524,7 @@ class bitmex extends Exchange {
         }
         $feeCost = $this->safe_float($item, 'fee', 0);
         if ($feeCost !== null) {
-            $feeCost = $feeCost * 1e-8;
+            $feeCost = $feeCost / 100000000;
         }
         $fee = array(
             'cost' => $feeCost,
@@ -532,7 +532,7 @@ class bitmex extends Exchange {
         );
         $after = $this->safe_float($item, 'walletBalance');
         if ($after !== null) {
-            $after = $after * 1e-8;
+            $after = $after / 100000000;
         }
         $before = $this->sum($after, -$amount);
         $direction = null;

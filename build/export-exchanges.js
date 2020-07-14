@@ -8,7 +8,10 @@
 
 const fs        = require ('fs')
     , countries = require ('./countries')
-    , asTable   = require ('as-table')
+    , asTable   = require ('as-table').configure ({
+        delimiter: '|',
+        print: (x) => ' ' + x + ' '
+    })
     , execSync  = require ('child_process').execSync
     , log       = require ('ololog').unlimited
     , ansi      = require ('ansicolor').nice
@@ -79,194 +82,190 @@ function createExchanges (ids) {
     return ccxt.indexBy (ids.map (createExchange), 'id')
 }
 
-// // ----------------------------------------------------------------------------
-// // strategically placed exactly here (we can require it AFTER the export)
-// const ccxt = require ('../ccxt.js')
-// // ----------------------------------------------------------------------------
-// // create exchanges
-// const createExchange = (id) => {
-//     ccxt[id].prototype.checkRequiredDependencies = () => {} // suppress it
-//     return new (ccxt)[id] ()
-// }
-// const exchanges = ccxt.indexBy (ids.map (createExchange), 'id')
+// ----------------------------------------------------------------------------
+
+const ccxtCertifiedBadge = '[![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification)'
+    , ccxtProBadge = '[![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro)'
 
 // ----------------------------------------------------------------------------
-// TODO: REWRITE THIS ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
+
+function createMarkdownListOfExchanges (exchanges) {
+
+    return exchanges.map ((exchange) => {
+
+        const www = exchange.urls.www
+            , url = exchange.urls.referral || www
+            , doc = Array.isArray (exchange.urls.doc) ? exchange.urls.doc[0] : exchange.urls.doc
+            , version = exchange.version ? exchange.version.replace (/[^0-9\.]+/, '') : '\*'
+
+        return {
+            'logo': '[![' + exchange.id + '](' + exchange.urls.logo + ')](' + url + ')',
+            'id': exchange.id,
+            'name': '[' + exchange.name + '](' + url + ')',
+            'ver': version,
+            'doc': '[API](' + doc + ')',
+            'certified': exchange.certified ? ccxtCertifiedBadge : '',
+            'pro': exchange.pro ? ccxtProBadge : '',
+        }
+    })
+}
+
+// ----------------------------------------------------------------------------
+
+const sortByCountry = (a, b) => {
+    if (a['country / region'] > b['country / region']) {
+        return 1
+    } else if (a['country / region'] < b['country / region']) {
+        return -1;
+    } else {
+        if (a['id'] > b['id']) {
+            return 1;
+        } else if (a['id'] < b['id']) {
+            return -1;
+        } else {
+            return 0;
+        }
+    }
+}
+
+// ----------------------------------------------------------------------------
+
+function createMarkdownListOfExchangesByCountries (exchanges) {
+
+    const exchangesByCountries = []
+
+    keys (countries).forEach (code => {
+
+        exchanges.forEach (exchange => {
+
+            const website = Array.isArray (exchange.urls.www) ? exchange.urls.www[0] : exchange.urls.www
+                , url = exchange.urls.referral || website
+                , doc = Array.isArray (exchange.urls.doc) ? exchange.urls.doc[0] : exchange.urls.doc
+                , version = exchange.version ? exchange.version.replace (/[^0-9\.]+/, '') : '\*'
+
+            const exchangeInCountry =
+                (Array.isArray (exchange.countries) && exchange.countries.includes (code)) ||
+                (code === exchange.countries)
+
+            if (exchangeInCountry) {
+
+                exchangesByCountries.push ({
+                    'country / region': countries[code],
+                    'logo': '[![' + exchange.id + '](' + exchange.urls.logo + ')](' + url + ')',
+                    'id': exchange.id,
+                    'name': '[' + exchange.name + '](' + url + ')',
+                    'ver': version,
+                    'doc': '[API](' + doc + ')',
+                })
+            }
+        })
+    });
+
+    return exchangesByCountries.sort (sortByCountry)
+}
+
+// ----------------------------------------------------------------------------
+
+function createMarkdownTable (array, markdownMethod, centeredColumns) {
+
+    array = markdownMethod (array)
+
+    const table = asTable (array)
+    const lines = table.split ("\n")
+
+    //
+    // asTable creates a header underline like
+    //
+    //      logo | id | name | ver | doc | certified | pro
+    //     ------------------------------------------------
+    //
+    // we fix it to match markdown underline like
+    //
+    //      logo | id | name | ver | doc | certified | pro
+    //     ------|----|------|-----|-----|-----------|-----
+    //
+
+    const underline = lines[0].replace (/[^\|]/g, '-')
+
+    //
+    // ver and doc columns should be centered so we convert it to
+    //
+    //      logo | id | name | ver | doc | certified | pro
+    //     ------|----|------|:---:|:---:|-----------|-----
+    //
+
+    const columns = underline.split ('|')
+
+    for (const i of centeredColumns) {
+        columns[i] = ':' + columns[i].slice (1, columns[i].length - 1) + ':'
+    }
+
+    lines.splice (1, 1, columns.join ('|'))
+
+    //
+    // prepend and append a vertical bar to each line
+    //
+    //     | logo | id | name | ver | doc | certified | pro |
+    //     |------|----|------|:---:|:---:|-----------|-----|
+    //
+
+    return lines.map (line => '|' + line + '|').join ("\n")
+}
+
+// ----------------------------------------------------------------------------
 
 function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, certifiedExchangesPaths, exchangesByCountriesPaths, proExchangesPaths }) {
 
-    // ............................................................................
-    // markup constants and helper functions
-
-    const countryName = (code) => countries[code] || code
-
-    const ccxtCertifiedBadge = '[![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification)'
-    const ccxtProBadge = '[![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro)'
-    const logoHeading = '&nbsp;'.repeat (7) + 'logo' + '&nbsp;'.repeat (7)
-    const tableHeadings = [ logoHeading, 'id', 'name', 'ver', 'doc', 'certified', 'pro' ]
-    const exchangesByCountryHeading = [ 'country / region', ... tableHeadings.slice (0, 5) ]
-
-    // ----------------------------------------------------------------------------
-    // list all supported exchanges
-
     const exchangesNotListedInDocs = [ 'hitbtc2' ]
 
-    function makeTableData (exchanges) {
-        return (
-            values (exchanges)
-                .filter (exchange => !exchangesNotListedInDocs.includes (exchange.id))
-                .map (exchange => {
-                    let logo = exchange.urls['logo']
-                    let website = Array.isArray (exchange.urls.www) ? exchange.urls.www[0] : exchange.urls.www
-                    let url = exchange.urls.referral || website
-                    let doc = Array.isArray (exchange.urls.doc) ? exchange.urls.doc[0] : exchange.urls.doc
-                    let version = exchange.version ? exchange.version : '\*'
-                    let matches = version.match (/[^0-9]*([0-9].*)/)
-                    if (matches) {
-                        version = matches[1];
-                    }
-                    return [
-                        '[![' + exchange.id + '](' + logo + ')](' + url + ')',
-                        exchange.id,
-                        '[' + exchange.name + '](' + url + ')',
-                        version,
-                        '[API](' + doc + ')',
-                        exchange.certified ? ccxtCertifiedBadge : '',
-                        exchange.pro ? ccxtProBadge : '',
-                    ]
-                })
-        )
-    }
-
-
-    function makeTable (jsonArray) {
-        let table = asTable.configure ({ 'delimiter': ' | ' }) (jsonArray)
-        let lines = table.split ("\n")
-        lines.splice (1,0, lines[0].replace (/[^\|]/g, '-'))
-        let headerLine = lines[1].split ('|')
-        headerLine[3] = ':' + headerLine[3].slice (1, headerLine[3].length - 1) + ':'
-        headerLine[4] = ':' + headerLine[4].slice (1, headerLine[4].length - 1) + ':'
-        lines[1] = headerLine.join ('|')
-        return lines.map (line => '|' + line + '|').join ("\n")
-    }
+    const arrayOfExchanges = values (exchanges)
 
     if (allExchangesPaths) {
 
-        const tableData = makeTableData (exchanges)
-        const numExchanges = tableData.length
-        // prepend the table header
-        tableData.splice (0, 0, tableHeadings)
-        const exchangesTable = makeTable (tableData)
-        const beginning = "The CCXT library currently supports the following "
-        const ending = " cryptocurrency exchange markets and trading APIs:\n\n"
-        const totalString = beginning + numExchanges + ending
-        const allExchanges = totalString + exchangesTable + "$1"
-        const allExchangesRegex = new RegExp ("[^\n]+[\n]{2}\\|[^`]+\\|([\n][\n]|[\n]$|$)", 'm')
+        const supportedExchangesMarkdownTable = createMarkdownTable (arrayOfExchanges, createMarkdownListOfExchanges, [ 3, 4 ])
+            , numExchanges = arrayOfExchanges.length
+            , beginning = "The CCXT library currently supports the following "
+            , ending = " cryptocurrency exchange markets and trading APIs:\n\n"
+            , totalString = beginning + numExchanges + ending
+            , allExchangesReplacement = totalString + supportedExchangesMarkdownTable + "$1"
+            , allExchangesRegex = new RegExp ("[^\n]+[\n]{2}\\|[^`]+\\|([\n][\n]|[\n]$|$)", 'm')
 
         for (const path of allExchangesPaths) {
-            logExportExchanges (path, allExchangesRegex, allExchanges)
+            logExportExchanges (path, allExchangesRegex, allExchangesReplacement)
         }
-
-        // logExportExchanges ('README.md', allExchangesRegex, allExchanges)
-        // logExportExchanges (wikiPath + '/Manual.md', allExchangesRegex, allExchanges)
-        // logExportExchanges (wikiPath + '/Exchange-Markets.md', allExchangesRegex, allExchanges)
     }
 
     if (proExchangesPaths) {
-        const pro = values (exchanges).filter (exchange => exchange.pro)
-        const tableData = makeTableData (pro)
-        const numExchanges = tableData.length
-        // prepend the table header
-        tableData.splice (0, 0, tableHeadings)
-        const exchangesTable = makeTable (tableData)
-        const beginning = "The CCXT Pro library currently supports the following "
-        const ending = " cryptocurrency exchange markets and WebSocket trading APIs:\n\n"
-        const totalString = beginning + numExchanges + ending
-        const proExchanges = totalString + exchangesTable + "$1"
-        const proExchangesRegex = new RegExp ("[^\n]+[\n]{2}\\|[^`]+\\|([\n][\n]|[\n]$|$)", 'm')
+
+        const proExchanges = arrayOfExchanges.filter (exchange => exchange.pro)
+            , proExchangesMarkdownTable = createMarkdownTable (proExchanges, createMarkdownListOfExchanges, [ 3, 4 ])
+            , numExchanges = proExchanges.length
+            , beginning = "The CCXT Pro library currently supports the following "
+            , ending = " cryptocurrency exchange markets and WebSocket trading APIs:\n\n"
+            , totalString = beginning + numExchanges + ending
+            , proExchangesReplacement = totalString + proExchangesMarkdownTable + "$1"
+            , proExchangesRegex = new RegExp ("[^\n]+[\n]{2}\\|[^`]+\\|([\n][\n]|[\n]$|$)", 'm')
 
         for (const path of proExchangesPaths) {
-            logExportExchanges (path, proExchangesRegex, proExchanges)
+            logExportExchanges (path, proExchangesRegex, proExchangesReplacement)
         }
     }
 
     if (certifiedExchangesPaths) {
-        const certified = values (exchanges).filter (exchange => exchange.certified)
-        const tableData = makeTableData (certified)
-        // prepend the table header
-        tableData.splice (0, 0, tableHeadings)
-        const certifiedExchangesRegex = new RegExp ("^(## Certified Cryptocurrency Exchanges\n{3})(?:\\|.+\\|$\n)+", 'm')
-        const certifiedExchangesTable = makeTable (tableData)
-        const certifiedExchanges = '$1' + certifiedExchangesTable + "\n"
+            const certifiedExchanges = arrayOfExchanges.filter (exchange => exchange.certified)
+                , certifiedExchangesMarkdownTable = createMarkdownTable (certifiedExchanges, createMarkdownListOfExchanges, [ 3, 4 ])
+                , certifiedExchangesReplacement = '$1' + certifiedExchangesMarkdownTable + "\n"
+                , certifiedExchangesRegex = new RegExp ("^(## Certified Cryptocurrency Exchanges\n{3})(?:\\|.+\\|$\n)+", 'm')
 
         for (const path of certifiedExchangesPaths) {
-            logExportExchanges (path, certifiedExchangesRegex, certifiedExchanges)
+            logExportExchanges (path, certifiedExchangesRegex, certifiedExchangesReplacement)
         }
-
-        // logExportExchanges ('README.md', certifiedExchangesRegex, certifiedExchanges)
     }
 
     if (exchangesByCountriesPaths) {
-        let exchangesByCountries = []
-        keys (countries).forEach (code => {
-            let country = countries[code]
-            let result = []
-            keys (exchanges).forEach (id => {
-                let exchange = exchanges[id]
-                let logo = exchange.urls['logo']
-                let website = Array.isArray (exchange.urls.www) ? exchange.urls.www[0] : exchange.urls.www
-                let url = exchange.urls.referral || website
-                let doc = Array.isArray (exchange.urls.doc) ? exchange.urls.doc[0] : exchange.urls.doc
-                let version = exchange.version ? exchange.version : '\*'
-                let matches = version.match (/[^0-9]*([0-9].*)/)
-                if (matches)
-                    version = matches[1];
-                let shouldInclude = false
-                if (Array.isArray (exchange.countries)) {
-                    if (exchange.countries.indexOf (code) > -1)
-                        shouldInclude = true
-                } else {
-                    if (code == exchange.countries)
-                        shouldInclude = true
-                }
-                if (shouldInclude) {
-                    let entry = [
-                        country,
-                        '[![' + exchange.id + '](' + logo + ')](' + url + ')',
-                        exchange.id,
-                        '[' + exchange.name + '](' + url + ')',
-                        version,
-                        '[API](' + doc + ')',
-                        // doesn't fit in width
-                        // exchange.certified ? ccxtCertifiedBadge : '',
-                    ]
-                    result.push (entry)
-                }
-            })
-            exchangesByCountries = exchangesByCountries.concat (result)
-        });
 
-        const countryKeyIndex = exchangesByCountryHeading.indexOf ('country / region')
-        exchangesByCountries = exchangesByCountries.sort ((a, b) => {
-            const countryA = a[countryKeyIndex].toLowerCase ()
-            const countryB = b[countryKeyIndex].toLowerCase ()
-            if (countryA > countryB) {
-                return 1
-            } else if (countryA < countryB) {
-                return -1;
-            } else {
-                if (a['id'] > b['id'])
-                    return 1;
-                else if (a['id'] < b['id'])
-                    return -1;
-                else
-                    return 0;
-            }
-        })
-
-        exchangesByCountries.splice (0, 0, exchangesByCountryHeading)
-        const lines = makeTable (exchangesByCountries)
-        const result = "# Exchanges By Country\n\nThe ccxt library currently supports the following cryptocurrency exchange markets and trading APIs:\n\n" + lines + "\n\n"
+        const exchangesByCountriesMarkdownTable = createMarkdownTable (arrayOfExchanges, createMarkdownListOfExchangesByCountries, [ 4, 5 ])
+        const result = "# Exchanges By Country\n\nThe ccxt library currently supports the following cryptocurrency exchange markets and trading APIs:\n\n" + exchangesByCountriesMarkdownTable + "\n\n"
         for (const path of exchangesByCountriesPaths) {
             fs.truncateSync (path)
             fs.writeFileSync (path, result)
@@ -274,7 +273,6 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
     }
 }
 
-// TODO: REWRITE THIS ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
 // ----------------------------------------------------------------------------
 
 function exportExchangeIdsToExchangesJson (exchanges) {
@@ -342,6 +340,7 @@ function flatten (nested, result = []) {
     return result
 }
 
+// ----------------------------------------------------------------------------
 
 function exportEverything () {
     const ids = getIncludedExchangeIds ()

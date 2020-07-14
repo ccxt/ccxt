@@ -30,6 +30,7 @@ class bigone extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
                 'fetchTickers' => true,
+                'fetchTime' => true,
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
             ),
@@ -367,6 +368,20 @@ class bigone extends Exchange {
             $result[$symbol] = $ticker;
         }
         return $result;
+    }
+
+    public function fetch_time($params = array ()) {
+        $response = $this->publicGetPing ($params);
+        //
+        //     {
+        //         "$data" => {
+        //             "$timestamp" => 1527665262168391000
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $timestamp = $this->safe_integer($data, 'timestamp');
+        return intval ($timestamp / 1000000);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

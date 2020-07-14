@@ -275,8 +275,8 @@ class bitmex(Exchange):
             account['free'] = self.safe_float(balance, 'availableMargin')
             account['total'] = self.safe_float(balance, 'marginBalance')
             if code == 'BTC':
-                account['free'] = account['free'] * 0.00000001
-                account['total'] = account['total'] * 0.00000001
+                account['free'] = account['free'] / 100000000
+                account['total'] = account['total'] / 100000000
             result[code] = account
         return self.parse_balance(result)
 
@@ -490,7 +490,7 @@ class bitmex(Exchange):
         code = self.safe_currency_code(currencyId, currency)
         amount = self.safe_float(item, 'amount')
         if amount is not None:
-            amount = amount * 1e-8
+            amount = amount / 100000000
         timestamp = self.parse8601(self.safe_string(item, 'transactTime'))
         if timestamp is None:
             # https://github.com/ccxt/ccxt/issues/6047
@@ -499,14 +499,14 @@ class bitmex(Exchange):
             timestamp = 0  # see comments above
         feeCost = self.safe_float(item, 'fee', 0)
         if feeCost is not None:
-            feeCost = feeCost * 1e-8
+            feeCost = feeCost / 100000000
         fee = {
             'cost': feeCost,
             'currency': code,
         }
         after = self.safe_float(item, 'walletBalance')
         if after is not None:
-            after = after * 1e-8
+            after = after / 100000000
         before = self.sum(after, -amount)
         direction = None
         if amount < 0:
