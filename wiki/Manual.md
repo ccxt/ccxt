@@ -3722,6 +3722,12 @@ Raised when your nonce is less than the previous nonce used with your keypair, a
 In case you experience any difficulty connecting to a particular exchange, do the following in order of precedence:
 
 - Make sure that you have the most recent version of ccxt.
+  Never trust your package installer (whether it is `npm`, `pip` or `composer`), instead always check your **actual (real) runtime version number** by running this code in your environment:
+  ```
+  console.log (ccxt.version) // JavaScript
+  print('CCXT version:', ccxt.__version__)  # Python
+  echo "CCXT v." . \ccxt\Exchange::VERSION . "\n"; // PHP
+  ```
 - Check the [Issues](https://github.com/ccxt/ccxt/issues) for recent updates.
 - Make sure you have [rate-limiter enabled with `enableRateLimit: true`](#rate-limit) (either the built-in rate-limiter or your own custom rate-limiter).
 - Turn `verbose = true` to get more detail about it!
