@@ -39,6 +39,7 @@ class bitpanda(Exchange):
                 'fetchDepositAddress': True,
                 'fetchMarkets': True,
                 'fetchOHLCV': True,
+                'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchTime': True,
                 'fetchTrades': True,
@@ -750,11 +751,39 @@ class bitpanda(Exchange):
         #         "sequence":603047
         #     }
         #
+        # fetchOrder, fetchOrders trades(private)
+        #
+        #     {
+        #         "fee": {
+        #             "fee_amount": "0.0014",
+        #             "fee_currency": "BTC",
+        #             "fee_percentage": "0.1",
+        #             "fee_group_id": "default",
+        #             "fee_type": "TAKER",
+        #             "running_trading_volume": "0.0"
+        #         },
+        #         "trade": {
+        #             "trade_id": "fdff2bcc-37d6-4a2d-92a5-46e09c868664",
+        #             "order_id": "36bb2437-7402-4794-bf26-4bdf03526439",
+        #             "account_id": "a4c699f6-338d-4a26-941f-8f9853bfc4b9",
+        #             "amount": "1.4",
+        #             "side": "BUY",
+        #             "instrument_code": "BTC_EUR",
+        #             "price": "7341.4",
+        #             "time": "2019-09-27T15:05:32.564Z",
+        #             "sequence": 48670
+        #         }
+        #     }
+        #
+        feeInfo = self.safe_value(trade, 'fee', {})
+        trade = self.safe_value(trade, 'trade', trade)
         timestamp = self.parse8601(self.safe_string(trade, 'time'))
-        side = self.safe_string_lower(trade, 'taker_side')
+        side = self.safe_string_lower_2(trade, 'side', 'taker_side')
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
         cost = self.safe_float(trade, 'volume')
+        if (cost is None) and (amount is not None) and (price is not None):
+            cost = amount * price
         marketId = self.safe_string(trade, 'instrument_code')
         symbol = None
         if marketId is not None:
@@ -768,9 +797,22 @@ class bitpanda(Exchange):
                 symbol = base + '/' + quote
         if (market is not None) and (symbol is None):
             symbol = market['symbol']
+        feeCost = self.safe_float(feeInfo, 'fee_amount')
+        takerOrMaker = None
+        fee = None
+        if feeCost is not None:
+            feeCurrencyId = self.safe_string(feeInfo, 'fee_currency')
+            feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
+            feeRate = self.safe_float(feeInfo, 'fee_percentage')
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+                'rate': feeRate,
+            }
+            takerOrMaker = self.safe_string_lower(feeInfo, 'fee_type')
         return {
             'id': self.safe_string(trade, 'sequence'),
-            'order': None,
+            'order': self.safe_string(trade, 'order_id'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
@@ -779,8 +821,8 @@ class bitpanda(Exchange):
             'price': price,
             'amount': amount,
             'cost': cost,
-            'takerOrMaker': None,
-            'fee': None,
+            'takerOrMaker': takerOrMaker,
+            'fee': fee,
             'info': trade,
         }
 
@@ -1062,6 +1104,20 @@ class bitpanda(Exchange):
             'fee': fee,
         }
 
+    def parse_order_status(self, status):
+        statuses = {
+            'FILLED': 'open',
+            'FILLED_FULLY': 'closed',
+            'FILLED_CLOSED': 'canceled',
+            'FILLED_REJECTED': 'rejected',
+            'OPEN': 'open',
+            'REJECTED': 'rejected',
+            'CLOSED': 'canceled',
+            'FAILED': 'failed',
+            'STOP_TRIGGERED': 'triggered',
+        }
+        return self.safe_string(statuses, status, status)
+
     def parse_order(self, order, market=None):
         #
         # createOrder
@@ -1080,18 +1136,58 @@ class bitpanda(Exchange):
         #         "time_in_force": "GOOD_TILL_CANCELLED"
         #     }
         #
-        # cancelOrder
+        # fetchOrder, fetchOrders
         #
-        #     ...
+        #     {
+        #         "order": {
+        #             "order_id": "36bb2437-7402-4794-bf26-4bdf03526439",
+        #             "account_id": "a4c699f6-338d-4a26-941f-8f9853bfc4b9",
+        #             "time_last_updated": "2019-09-27T15:05:35.096Z",
+        #             "sequence": 48782,
+        #             "price": "7349.2",
+        #             "filled_amount": "100.0",
+        #             "status": "FILLED_FULLY",
+        #             "amount": "100.0",
+        #             "instrument_code": "BTC_EUR",
+        #             "side": "BUY",
+        #             "time": "2019-09-27T15:05:32.063Z",
+        #             "type": "MARKET"
+        #         },
+        #         "trades": [
+        #             {
+        #                 "fee": {
+        #                     "fee_amount": "0.0014",
+        #                     "fee_currency": "BTC",
+        #                     "fee_percentage": "0.1",
+        #                     "fee_group_id": "default",
+        #                     "fee_type": "TAKER",
+        #                     "running_trading_volume": "0.0"
+        #                 },
+        #                 "trade": {
+        #                     "trade_id": "fdff2bcc-37d6-4a2d-92a5-46e09c868664",
+        #                     "order_id": "36bb2437-7402-4794-bf26-4bdf03526439",
+        #                     "account_id": "a4c699f6-338d-4a26-941f-8f9853bfc4b9",
+        #                     "amount": "1.4",
+        #                     "side": "BUY",
+        #                     "instrument_code": "BTC_EUR",
+        #                     "price": "7341.4",
+        #                     "time": "2019-09-27T15:05:32.564Z",
+        #                     "sequence": 48670
+        #                 }
+        #             }
+        #         ]
+        #     }
         #
         # fetchOrders
         #
         #     ...
         #
+        rawTrades = self.safe_value(order, 'trades', [])
+        order = self.safe_value(order, 'order', order)
         id = self.safe_string(order, 'order_id')
         clientOrderId = self.safe_string(order, 'client_id')
         timestamp = self.parse8601(self.safe_string(order, 'time'))
-        status = None
+        status = self.parse_order_status(self.safe_string(order, 'status'))
         symbol = None
         marketId = self.safe_string(order, 'instrument_code')
         if marketId is not None:
@@ -1112,35 +1208,63 @@ class bitpanda(Exchange):
         if filled is not None:
             if amount is not None:
                 remaining = max(0, amount - filled)
-                if remaining > 0:
-                    status = 'open'
-                else:
-                    status = 'closed'
+                if status is None:
+                    if remaining > 0:
+                        status = 'open'
+                    else:
+                        status = 'closed'
             if cost is None:
                 if price is not None:
                     cost = price * filled
         side = self.safe_string_lower(order, 'side')
         type = self.safe_string_lower(order, 'type')
-        return {
+        trades = self.parse_trades(rawTrades, market, None, None, {
+            'type': type,
+        })
+        fees = []
+        numTrades = len(trades)
+        lastTradeTimestamp = None
+        tradeCost = None
+        tradeAmount = None
+        if numTrades > 0:
+            lastTradeTimestamp = trades[0]['timestamp']
+            tradeCost = 0
+            tradeAmount = 0
+            for i in range(0, len(trades)):
+                trade = trades[i]
+                fees.append(trade['fee'])
+                lastTradeTimestamp = max(lastTradeTimestamp, trade['timestamp'])
+                tradeCost = self.sum(tradeCost, trade['cost'])
+                tradeAmount = self.sum(tradeAmount, trade['amount'])
+        average = None
+        if (tradeCost is not None) and (tradeAmount is not None) and (tradeAmount != 0):
+            average = tradeCost / tradeAmount
+        result = {
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': None,
+            'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
             'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'average': None,
+            'average': average,
             'filled': filled,
             'remaining': remaining,
             'status': status,
-            'fee': None,
-            'trades': None,
+            # 'fee': None,
+            'trades': trades,
         }
+        numFees = len(fees)
+        if numFees == 1:
+            result['fee'] = fees[0]
+        else:
+            result['fees'] = fees
+        return result
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -1234,6 +1358,55 @@ class bitpanda(Exchange):
         #     ]
         #
         return response
+
+    def fetch_order(self, id, symbol=None, params={}):
+        self.load_markets()
+        request = {
+            'order_id': id,
+        }
+        response = self.privateGetAccountOrdersOrderId(self.extend(request, params))
+        #
+        #     {
+        #         "order": {
+        #             "order_id": "36bb2437-7402-4794-bf26-4bdf03526439",
+        #             "account_id": "a4c699f6-338d-4a26-941f-8f9853bfc4b9",
+        #             "time_last_updated": "2019-09-27T15:05:35.096Z",
+        #             "sequence": 48782,
+        #             "price": "7349.2",
+        #             "filled_amount": "100.0",
+        #             "status": "FILLED_FULLY",
+        #             "amount": "100.0",
+        #             "instrument_code": "BTC_EUR",
+        #             "side": "BUY",
+        #             "time": "2019-09-27T15:05:32.063Z",
+        #             "type": "MARKET"
+        #         },
+        #         "trades": [
+        #             {
+        #                 "fee": {
+        #                     "fee_amount": "0.0014",
+        #                     "fee_currency": "BTC",
+        #                     "fee_percentage": "0.1",
+        #                     "fee_group_id": "default",
+        #                     "fee_type": "TAKER",
+        #                     "running_trading_volume": "0.0"
+        #                 },
+        #                 "trade": {
+        #                     "trade_id": "fdff2bcc-37d6-4a2d-92a5-46e09c868664",
+        #                     "order_id": "36bb2437-7402-4794-bf26-4bdf03526439",
+        #                     "account_id": "a4c699f6-338d-4a26-941f-8f9853bfc4b9",
+        #                     "amount": "1.4",
+        #                     "side": "BUY",
+        #                     "instrument_code": "BTC_EUR",
+        #                     "price": "7341.4",
+        #                     "time": "2019-09-27T15:05:32.564Z",
+        #                     "sequence": 48670
+        #                 }
+        #             }
+        #         ]
+        #     }
+        #
+        return self.parse_order(response)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api] + '/' + self.version + '/' + self.implode_params(path, params)

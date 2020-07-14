@@ -31,6 +31,7 @@ class bitpanda extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchMarkets' => true,
                 'fetchOHLCV' => true,
+                'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
@@ -771,11 +772,40 @@ class bitpanda extends Exchange {
         //         "sequence":603047
         //     }
         //
+        // fetchOrder, fetchOrders trades (private)
+        //
+        //     {
+        //         "$fee" => array(
+        //             "fee_amount" => "0.0014",
+        //             "fee_currency" => "BTC",
+        //             "fee_percentage" => "0.1",
+        //             "fee_group_id" => "default",
+        //             "fee_type" => "TAKER",
+        //             "running_trading_volume" => "0.0"
+        //         ),
+        //         "$trade" => {
+        //             "trade_id" => "fdff2bcc-37d6-4a2d-92a5-46e09c868664",
+        //             "order_id" => "36bb2437-7402-4794-bf26-4bdf03526439",
+        //             "account_id" => "a4c699f6-338d-4a26-941f-8f9853bfc4b9",
+        //             "$amount" => "1.4",
+        //             "$side" => "BUY",
+        //             "instrument_code" => "BTC_EUR",
+        //             "$price" => "7341.4",
+        //             "time" => "2019-09-27T15:05:32.564Z",
+        //             "sequence" => 48670
+        //         }
+        //     }
+        //
+        $feeInfo = $this->safe_value($trade, 'fee', array());
+        $trade = $this->safe_value($trade, 'trade', $trade);
         $timestamp = $this->parse8601($this->safe_string($trade, 'time'));
-        $side = $this->safe_string_lower($trade, 'taker_side');
+        $side = $this->safe_string_lower_2($trade, 'side', 'taker_side');
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
         $cost = $this->safe_float($trade, 'volume');
+        if (($cost === null) && ($amount !== null) && ($price !== null)) {
+            $cost = $amount * $price;
+        }
         $marketId = $this->safe_string($trade, 'instrument_code');
         $symbol = null;
         if ($marketId !== null) {
@@ -792,9 +822,23 @@ class bitpanda extends Exchange {
         if (($market !== null) && ($symbol === null)) {
             $symbol = $market['symbol'];
         }
+        $feeCost = $this->safe_float($feeInfo, 'fee_amount');
+        $takerOrMaker = null;
+        $fee = null;
+        if ($feeCost !== null) {
+            $feeCurrencyId = $this->safe_string($feeInfo, 'fee_currency');
+            $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
+            $feeRate = $this->safe_float($feeInfo, 'fee_percentage');
+            $fee = array(
+                'cost' => $feeCost,
+                'currency' => $feeCurrencyCode,
+                'rate' => $feeRate,
+            );
+            $takerOrMaker = $this->safe_string_lower($feeInfo, 'fee_type');
+        }
         return array(
             'id' => $this->safe_string($trade, 'sequence'),
-            'order' => null,
+            'order' => $this->safe_string($trade, 'order_id'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
@@ -803,8 +847,8 @@ class bitpanda extends Exchange {
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
-            'takerOrMaker' => null,
-            'fee' => null,
+            'takerOrMaker' => $takerOrMaker,
+            'fee' => $fee,
             'info' => $trade,
         );
     }
@@ -1107,6 +1151,21 @@ class bitpanda extends Exchange {
         );
     }
 
+    public function parse_order_status($status) {
+        $statuses = array(
+            'FILLED' => 'open',
+            'FILLED_FULLY' => 'closed',
+            'FILLED_CLOSED' => 'canceled',
+            'FILLED_REJECTED' => 'rejected',
+            'OPEN' => 'open',
+            'REJECTED' => 'rejected',
+            'CLOSED' => 'canceled',
+            'FAILED' => 'failed',
+            'STOP_TRIGGERED' => 'triggered',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
     public function parse_order($order, $market = null) {
         //
         // createOrder
@@ -1125,18 +1184,58 @@ class bitpanda extends Exchange {
         //         "time_in_force" => "GOOD_TILL_CANCELLED"
         //     }
         //
-        // cancelOrder
+        // fetchOrder, fetchOrders
         //
-        //     ...
+        //     {
+        //         "$order" => array(
+        //             "order_id" => "36bb2437-7402-4794-bf26-4bdf03526439",
+        //             "account_id" => "a4c699f6-338d-4a26-941f-8f9853bfc4b9",
+        //             "time_last_updated" => "2019-09-27T15:05:35.096Z",
+        //             "sequence" => 48782,
+        //             "$price" => "7349.2",
+        //             "filled_amount" => "100.0",
+        //             "$status" => "FILLED_FULLY",
+        //             "$amount" => "100.0",
+        //             "instrument_code" => "BTC_EUR",
+        //             "$side" => "BUY",
+        //             "time" => "2019-09-27T15:05:32.063Z",
+        //             "$type" => "MARKET"
+        //         ),
+        //         "$trades" => array(
+        //             {
+        //                 "fee" => array(
+        //                     "fee_amount" => "0.0014",
+        //                     "fee_currency" => "BTC",
+        //                     "fee_percentage" => "0.1",
+        //                     "fee_group_id" => "default",
+        //                     "fee_type" => "TAKER",
+        //                     "running_trading_volume" => "0.0"
+        //                 ),
+        //                 "$trade" => {
+        //                     "trade_id" => "fdff2bcc-37d6-4a2d-92a5-46e09c868664",
+        //                     "order_id" => "36bb2437-7402-4794-bf26-4bdf03526439",
+        //                     "account_id" => "a4c699f6-338d-4a26-941f-8f9853bfc4b9",
+        //                     "$amount" => "1.4",
+        //                     "$side" => "BUY",
+        //                     "instrument_code" => "BTC_EUR",
+        //                     "$price" => "7341.4",
+        //                     "time" => "2019-09-27T15:05:32.564Z",
+        //                     "sequence" => 48670
+        //                 }
+        //             }
+        //         )
+        //     }
         //
         // fetchOrders
         //
         //     ...
         //
+        $rawTrades = $this->safe_value($order, 'trades', array());
+        $order = $this->safe_value($order, 'order', $order);
         $id = $this->safe_string($order, 'order_id');
         $clientOrderId = $this->safe_string($order, 'client_id');
         $timestamp = $this->parse8601($this->safe_string($order, 'time'));
-        $status = null;
+        $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $symbol = null;
         $marketId = $this->safe_string($order, 'instrument_code');
         if ($marketId !== null) {
@@ -1160,10 +1259,12 @@ class bitpanda extends Exchange {
         if ($filled !== null) {
             if ($amount !== null) {
                 $remaining = max (0, $amount - $filled);
-                if ($remaining > 0) {
-                    $status = 'open';
-                } else {
-                    $status = 'closed';
+                if ($status === null) {
+                    if ($remaining > 0) {
+                        $status = 'open';
+                    } else {
+                        $status = 'closed';
+                    }
                 }
             }
             if ($cost === null) {
@@ -1174,26 +1275,57 @@ class bitpanda extends Exchange {
         }
         $side = $this->safe_string_lower($order, 'side');
         $type = $this->safe_string_lower($order, 'type');
-        return array(
+        $trades = $this->parse_trades($rawTrades, $market, null, null, array(
+            'type' => $type,
+        ));
+        $fees = array();
+        $numTrades = is_array($trades) ? count($trades) : 0;
+        $lastTradeTimestamp = null;
+        $tradeCost = null;
+        $tradeAmount = null;
+        if ($numTrades > 0) {
+            $lastTradeTimestamp = $trades[0]['timestamp'];
+            $tradeCost = 0;
+            $tradeAmount = 0;
+            for ($i = 0; $i < count($trades); $i++) {
+                $trade = $trades[$i];
+                $fees[] = $trade['fee'];
+                $lastTradeTimestamp = max ($lastTradeTimestamp, $trade['timestamp']);
+                $tradeCost = $this->sum($tradeCost, $trade['cost']);
+                $tradeAmount = $this->sum($tradeAmount, $trade['amount']);
+            }
+        }
+        $average = null;
+        if (($tradeCost !== null) && ($tradeAmount !== null) && ($tradeAmount !== 0)) {
+            $average = $tradeCost / $tradeAmount;
+        }
+        $result = array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
             'info' => $order,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'lastTradeTimestamp' => null,
+            'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
-            'average' => null,
+            'average' => $average,
             'filled' => $filled,
             'remaining' => $remaining,
             'status' => $status,
-            'fee' => null,
-            'trades' => null,
+            // 'fee' => null,
+            'trades' => $trades,
         );
+        $numFees = is_array($fees) ? count($fees) : 0;
+        if ($numFees === 1) {
+            $result['fee'] = $fees[0];
+        } else {
+            $result['fees'] = $fees;
+        }
+        return $result;
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -1298,6 +1430,56 @@ class bitpanda extends Exchange {
         //     )
         //
         return $response;
+    }
+
+    public function fetch_order($id, $symbol = null, $params = array ()) {
+        $this->load_markets();
+        $request = array(
+            'order_id' => $id,
+        );
+        $response = $this->privateGetAccountOrdersOrderId (array_merge($request, $params));
+        //
+        //     {
+        //         "order" => array(
+        //             "order_id" => "36bb2437-7402-4794-bf26-4bdf03526439",
+        //             "account_id" => "a4c699f6-338d-4a26-941f-8f9853bfc4b9",
+        //             "time_last_updated" => "2019-09-27T15:05:35.096Z",
+        //             "sequence" => 48782,
+        //             "price" => "7349.2",
+        //             "filled_amount" => "100.0",
+        //             "status" => "FILLED_FULLY",
+        //             "amount" => "100.0",
+        //             "instrument_code" => "BTC_EUR",
+        //             "side" => "BUY",
+        //             "time" => "2019-09-27T15:05:32.063Z",
+        //             "type" => "MARKET"
+        //         ),
+        //         "trades" => array(
+        //             {
+        //                 "fee" => array(
+        //                     "fee_amount" => "0.0014",
+        //                     "fee_currency" => "BTC",
+        //                     "fee_percentage" => "0.1",
+        //                     "fee_group_id" => "default",
+        //                     "fee_type" => "TAKER",
+        //                     "running_trading_volume" => "0.0"
+        //                 ),
+        //                 "trade" => {
+        //                     "trade_id" => "fdff2bcc-37d6-4a2d-92a5-46e09c868664",
+        //                     "order_id" => "36bb2437-7402-4794-bf26-4bdf03526439",
+        //                     "account_id" => "a4c699f6-338d-4a26-941f-8f9853bfc4b9",
+        //                     "amount" => "1.4",
+        //                     "side" => "BUY",
+        //                     "instrument_code" => "BTC_EUR",
+        //                     "price" => "7341.4",
+        //                     "time" => "2019-09-27T15:05:32.564Z",
+        //                     "sequence" => 48670
+        //                 }
+        //             }
+        //         )
+        //     }
+        //
+        return $this->parse_order($response);
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
