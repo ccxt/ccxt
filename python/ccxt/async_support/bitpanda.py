@@ -34,6 +34,7 @@ class bitpanda(Exchange):
                 'createDepositAddress': True,
                 'createOrder': True,
                 'fetchBalance': True,
+                'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDeposits': True,
                 'fetchDepositAddress': True,
@@ -42,7 +43,6 @@ class bitpanda(Exchange):
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
-                'fetchOrders': True,
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTradingFees': True,
@@ -1428,13 +1428,13 @@ class bitpanda(Exchange):
         #
         return self.parse_order(response)
 
-    async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         request = {
             # 'from': self.iso8601(since),
             # 'to': self.iso8601(self.milliseconds()),  # max range is 100 days
             # 'instrument_code': market['id'],
-            'with_cancelled_and_rejected': True,  # default is False, orders which have been cancelled by the user before being filled or rejected by the system as invalid, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
+            # 'with_cancelled_and_rejected': False,  # default is False, orders which have been cancelled by the user before being filled or rejected by the system as invalid, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
             # 'with_just_filled_inactive': False,  # orders which have been filled and are no longer open, use of "with_cancelled_and_rejected" extends "with_just_filled_inactive" and in case both are specified the latter is ignored
             # 'with_just_orders': False,  # do not return any trades corresponsing to the orders, it may be significanly faster and should be used if user is not interesting in trade information
             # 'max_page_size': 100,
@@ -1534,11 +1534,11 @@ class bitpanda(Exchange):
         orderHistory = self.safe_value(response, 'order_history', [])
         return self.parse_orders(orderHistory, market, since, limit)
 
-    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         request = {
-            'with_cancelled_and_rejected': False,  # default is False, orders which have been cancelled by the user before being filled or rejected by the system as invalid, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
+            'with_cancelled_and_rejected': True,  # default is False, orders which have been cancelled by the user before being filled or rejected by the system as invalid, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
         }
-        return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
+        return await self.fetch_open_orders(symbol, since, limit, self.extend(request, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api] + '/' + self.version + '/' + self.implode_params(path, params)
