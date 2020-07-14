@@ -3723,9 +3723,13 @@ In case you experience any difficulty connecting to a particular exchange, do th
 
 - Make sure that you have the most recent version of ccxt.
   Never trust your package installer (whether it is `npm`, `pip` or `composer`), instead always check your **actual (real) runtime version number** by running this code in your environment:
-  ```
+  ```JavaScript
   console.log (ccxt.version) // JavaScript
+  ```
+  ```Python
   print('CCXT version:', ccxt.__version__)  # Python
+  ```
+  ```PHP
   echo "CCXT v." . \ccxt\Exchange::VERSION . "\n"; // PHP
   ```
 - Check the [Issues](https://github.com/ccxt/ccxt/issues) for recent updates.
