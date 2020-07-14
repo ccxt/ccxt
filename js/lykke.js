@@ -110,6 +110,10 @@ module.exports = class lykke extends Exchange {
                         'Orders/stoplimit',
                         'Orders/bulk',
                     ],
+                    'delete': [
+                        'Orders',
+                        'Orders/{id}',
+                    ],
                 },
             },
             'fees': {
@@ -259,7 +263,19 @@ module.exports = class lykke extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        return await this.privatePostOrdersIdCancel ({ 'id': id });
+        const request = { 'id': id };
+        return await this.privateDeleteOrdersId (this.extend (request, params));
+    }
+
+    async cancelOrders (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['assetPairId'] = market['id'];
+        }
+        return await this.privateDeleteOrders (this.extend (request, params));
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -275,7 +291,7 @@ module.exports = class lykke extends Exchange {
         } else if (type === 'limit') {
             query['Price'] = price;
         }
-        const method = 'privatePostOrders' + this.capitalize (type);
+        const method = 'privatePostOrdersV2' + this.capitalize (type);
         const result = await this[method] (this.extend (query, params));
         return {
             'id': undefined,
@@ -549,6 +565,11 @@ module.exports = class lykke extends Exchange {
             }
         } else if (api === 'private') {
             if (method === 'GET') {
+                if (Object.keys (query).length) {
+                    url += '?' + this.urlencode (query);
+                }
+            }
+            if (method === 'DELETE') {
                 if (Object.keys (query).length) {
                     url += '?' + this.urlencode (query);
                 }
