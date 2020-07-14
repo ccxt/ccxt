@@ -28,6 +28,7 @@ module.exports = class bitpanda extends Exchange {
                 'fetchDeposits': true,
                 'fetchDepositAddress': true,
                 'fetchMarkets': true,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -1634,6 +1635,35 @@ module.exports = class bitpanda extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
+        return this.parseTrades (tradeHistory, market, since, limit);
+    }
+
+    async fetchMyTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            // 'from': this.iso8601 (since),
+            // 'to': this.iso8601 (this.milliseconds ()), // max range is 100 days
+            // 'instrument_code': market['id'],
+            // 'max_page_size': 100,
+            // 'cursor': 'string', // pointer specifying the position from which the next pages should be returned
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['instrument_code'] = market['id'];
+        }
+        if (since !== undefined) {
+            const to = this.safeString (params, 'to');
+            if (to === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a "to" iso8601 string param with the since argument is specified, max range is 100 days');
+            }
+            request['from'] = this.iso8601 (since);
+        }
+        if (limit !== undefined) {
+            request['max_page_size'] = limit;
+        }
+        const response = await this.privateGetAccountTrades (this.extend (request, params));
+        const tradeHistory = this.safeValue (response, 'trade_history', []);
         return this.parseTrades (tradeHistory, market, since, limit);
     }
 
