@@ -41,6 +41,7 @@ class bitpanda(Exchange):
                 'fetchOHLCV': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
+                'fetchOrders': True,
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTradingFees': True,
@@ -1236,9 +1237,10 @@ class bitpanda(Exchange):
                 lastTradeTimestamp = max(lastTradeTimestamp, trade['timestamp'])
                 tradeCost = self.sum(tradeCost, trade['cost'])
                 tradeAmount = self.sum(tradeAmount, trade['amount'])
-        average = None
-        if (tradeCost is not None) and (tradeAmount is not None) and (tradeAmount != 0):
-            average = tradeCost / tradeAmount
+        average = self.safe_float(order, 'average_price')
+        if average is None:
+            if (tradeCost is not None) and (tradeAmount is not None) and (tradeAmount != 0):
+                average = tradeCost / tradeAmount
         result = {
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1260,10 +1262,27 @@ class bitpanda(Exchange):
             'trades': trades,
         }
         numFees = len(fees)
-        if numFees == 1:
-            result['fee'] = fees[0]
+        if numFees > 0:
+            if numFees == 1:
+                result['fee'] = fees[0]
+            else:
+                feesByCurrency = self.group_by(fees, 'currency')
+                feeCurrencies = list(feesByCurrency.keys())
+                numFeesByCurrency = len(feeCurrencies)
+                if numFeesByCurrency == 1:
+                    feeCurrency = feeCurrencies[0]
+                    feeArray = self.safe_value(feesByCurrency, feeCurrency)
+                    feeCost = 0
+                    for i in range(0, feeArray.lengh):
+                        feeCost = self.sum(feeCost, feeArray[i]['cost'])
+                    result['fee'] = {
+                        'cost': feeCost,
+                        'currency': feeCurrency,
+                    }
+                else:
+                    result['fees'] = fees
         else:
-            result['fees'] = fees
+            result['fee'] = None
         return result
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -1407,6 +1426,112 @@ class bitpanda(Exchange):
         #     }
         #
         return self.parse_order(response)
+
+    async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        request = {
+            # 'from': self.iso8601(since),
+            # 'to': self.iso8601(self.milliseconds()),  # max range is 100 days
+            # 'instrument_code': market['id'],
+            'with_cancelled_and_rejected': True,  # default is False, orders which have been cancelled by the user before being filled or rejected by the system as invalid, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
+            # 'with_just_filled_inactive': False,  # orders which have been filled and are no longer open, use of "with_cancelled_and_rejected" extends "with_just_filled_inactive" and in case both are specified the latter is ignored
+            # 'with_just_orders': False,  # do not return any trades corresponsing to the orders, it may be significanly faster and should be used if user is not interesting in trade information
+            # 'max_page_size': 100,
+            # 'cursor': 'string',  # pointer specifying the position from which the next pages should be returned
+        }
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['instrument_code'] = market['id']
+        if since is not None:
+            to = self.safe_string(params, 'to')
+            if to is None:
+                raise ArgumentsRequired(self.id + ' fetchOrders requires a "to" iso8601 string param with the since argument is specified, max range is 100 days')
+            request['from'] = self.iso8601(since)
+        if limit is not None:
+            request['max_page_size'] = limit
+        response = await self.privateGetAccountOrders(self.extend(request, params))
+        #
+        #     {
+        #         "order_history": [
+        #             {
+        #                 "order": {
+        #                     "trigger_price": "12089.88",
+        #                     "order_id": "d453ca12-c650-46dd-9dee-66910d96bfc0",
+        #                     "account_id": "ef3a5f4c-cfcd-415e-ba89-5a9abf47b28a",
+        #                     "instrument_code": "BTC_USDT",
+        #                     "time": "2019-08-23T10:02:31.663Z",
+        #                     "side": "SELL",
+        #                     "price": "10159.76",
+        #                     "average_price": "10159.76",
+        #                     "amount": "0.2",
+        #                     "filled_amount": "0.2",
+        #                     "type": "STOP",
+        #                     "sequence": 8,
+        #                     "status": "FILLED_FULLY"
+        #                 },
+        #                 "trades": [
+        #                     {
+        #                         "fee": {
+        #                             "fee_amount": "0.4188869",
+        #                             "fee_currency": "USDT",
+        #                             "fee_percentage": "0.1",
+        #                             "fee_group_id": "default",
+        #                             "fee_type": "TAKER",
+        #                             "running_trading_volume": "0.0"
+        #                         },
+        #                         "trade": {
+        #                             "trade_id": "ec82896f-fd1b-4cbb-89df-a9da85ccbb4b",
+        #                             "order_id": "d453ca12-c650-46dd-9dee-66910d96bfc0",
+        #                             "account_id": "ef3a5f4c-cfcd-415e-ba89-5a9abf47b28a",
+        #                             "amount": "0.2",
+        #                             "side": "SELL",
+        #                             "instrument_code": "BTC_USDT",
+        #                             "price": "10159.76",
+        #                             "time": "2019-08-23T10:02:32.663Z",
+        #                             "sequence": 9
+        #                         }
+        #                     }
+        #                 ]
+        #             },
+        #             {
+        #                 "order": {
+        #                     "order_id": "5151a99e-f414-418f-8cf1-2568d0a63ea5",
+        #                     "account_id": "ef3a5f4c-cfcd-415e-ba89-5a9abf47b28a",
+        #                     "instrument_code": "BTC_USDT",
+        #                     "time": "2019-08-23T10:01:36.773Z",
+        #                     "side": "SELL",
+        #                     "price": "12289.88",
+        #                     "amount": "0.5",
+        #                     "filled_amount": "0.0",
+        #                     "type": "LIMIT",
+        #                     "sequence": 7,
+        #                     "status": "OPEN"
+        #                 },
+        #                 "trades": []
+        #             },
+        #             {
+        #                 "order": {
+        #                     "order_id": "ac80d857-75e1-4733-9070-fd4288395fdc",
+        #                     "account_id": "ef3a5f4c-cfcd-415e-ba89-5a9abf47b28a",
+        #                     "instrument_code": "BTC_USDT",
+        #                     "time": "2019-08-23T10:01:25.031Z",
+        #                     "side": "SELL",
+        #                     "price": "11089.88",
+        #                     "amount": "0.1",
+        #                     "filled_amount": "0.0",
+        #                     "type": "LIMIT",
+        #                     "sequence": 6,
+        #                     "status": "OPEN"
+        #                 },
+        #                 "trades": []
+        #             }
+        #         ],
+        #         "max_page_size": 100
+        #     }
+        #
+        orderHistory = self.safe_value(response, 'order_history', [])
+        return self.parse_orders(orderHistory, market, since, limit)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api] + '/' + self.version + '/' + self.implode_params(path, params)
