@@ -880,15 +880,15 @@ class Exchange(object):
         return string
 
     @staticmethod
-    def urlencode(params={}):
+    def urlencode(params={}, doseq=False):
         for key, value in params.items():
             if isinstance(value, bool):
                 params[key] = 'true' if value else 'false'
-        return _urlencode.urlencode(params)
+        return _urlencode.urlencode(params, doseq)
 
     @staticmethod
     def urlencode_with_array_repeat(params={}):
-        return re.sub(r'%5B\d*%5D', '', Exchange.urlencode(params))
+        return re.sub(r'%5B\d*%5D', '', Exchange.urlencode(params, True))
 
     @staticmethod
     def rawencode(params={}):
