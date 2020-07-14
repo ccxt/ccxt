@@ -43,7 +43,7 @@ module.exports = class bitz extends Exchange {
             },
             'hostname': 'apiv2.bitz.com',
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/35862606-4f554f14-0b5d-11e8-957d-35058c504b6f.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87443304-fec5e000-c5fd-11ea-98f8-ba8e67f7eaff.jpg',
                 'api': {
                     'market': 'https://{hostname}',
                     'trade': 'https://{hostname}',
