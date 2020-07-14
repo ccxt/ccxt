@@ -29,7 +29,7 @@ class coinmate extends Exchange {
                 'cancelOrder' => true,
             ),
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/27811229-c1efb510-606c-11e7-9a36-84ba2ce412d8.jpg',
+                'logo' => 'https://user-images.githubusercontent.com/51840849/87460806-1c9f3f00-c616-11ea-8c46-a77018a8f3f4.jpg',
                 'api' => 'https://coinmate.io/api',
                 'www' => 'https://coinmate.io',
                 'fees' => 'https://coinmate.io/fees',
