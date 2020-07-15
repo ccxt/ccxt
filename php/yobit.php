@@ -182,6 +182,7 @@ class yobit extends Exchange {
                     'Insufficient funds' => '\\ccxt\\InsufficientFunds',
                     'invalid key' => '\\ccxt\\AuthenticationError',
                     'invalid nonce' => '\\ccxt\\InvalidNonce', // array("success":0,"error":"invalid nonce (has already been used)")'
+                    'Total order amount is less than minimal amount' => '\\ccxt\\InvalidOrder',
                 ),
             ),
         ));

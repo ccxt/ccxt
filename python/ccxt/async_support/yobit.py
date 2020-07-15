@@ -196,6 +196,7 @@ class yobit(Exchange):
                     'Insufficient funds': InsufficientFunds,
                     'invalid key': AuthenticationError,
                     'invalid nonce': InvalidNonce,  # {"success":0,"error":"invalid nonce(has already been used)"}'
+                    'Total order amount is less than minimal amount': InvalidOrder,
                 },
             },
         })
