@@ -598,6 +598,16 @@ module.exports = class xena extends Exchange {
 
     parseTrade (trade, market = undefined) {
         //
+        //     {
+        //         "mdUpdateAction":"0",
+        //         "mdEntryType":"2",
+        //         "mdEntryPx":"9225.16",
+        //         "mdEntrySize":"10000",
+        //         "transactTime":1594728504524977655,
+        //         "tradeId":"6ac51bb7-7505-4f35-85ef-61eb738cb4d9",
+        //         "aggressorSide":"1"
+        //     }
+        //
         // fetchMyTrades
         //
         //     {
@@ -630,7 +640,15 @@ module.exports = class xena extends Exchange {
             timestamp = parseInt (timestamp / 1e6);
         }
         const type = this.safeStringLower (trade, 'ordType');
-        const side = this.safeStringLower (trade, 'side');
+        let side = this.safeStringLower (trade, 'side');
+        if (side === undefined) {
+            side = this.safeInteger (trade, 'aggressorSide');
+            if (side === 1) {
+                side = 'buy';
+            } else if (side === 2) {
+                side = 'sell';
+            }
+        }
         const orderId = this.safeString (trade, 'orderId');
         let symbol = undefined;
         const marketId = this.safeString (trade, 'symbol');
@@ -645,8 +663,11 @@ module.exports = class xena extends Exchange {
                 symbol = base + '/' + quote;
             }
         }
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'cumQty');
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
+        const price = this.safeFloat2 (trade, 'price', 'mdEntryPx');
+        const amount = this.safeFloat2 (trade, 'cumQty', 'mdEntrySize');
         let cost = this.safeFloat (trade, 'netMoney');
         if (cost === undefined) {
             if (price !== undefined) {
@@ -827,32 +848,39 @@ module.exports = class xena extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'instrument_code': market['id'],
+            'symbol': market['id'],
             // 'from': this.iso8601 (since),
             // 'to': this.iso8601 (this.milliseconds ()),
+            // 'page': 1,
+            // 'limit': limit,
         };
         if (since !== undefined) {
-            // returns price ticks for a specific market with an interval of maximum of 4 hours
-            // sorted by latest first
             request['from'] = this.iso8601 (since);
-            request['to'] = this.iso8601 (this.sum (since, 14400000));
         }
-        const response = await this.publicGetPriceTicksInstrumentCode (this.extend (request, params));
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetMarketDataV2TradesSymbol (this.extend (request, params));
         //
-        //     [
-        //         {
-        //             "instrument_code":"BTC_EUR",
-        //             "price":"8137.28",
-        //             "amount":"0.22269",
-        //             "taker_side":"BUY",
-        //             "volume":"1812.0908832",
-        //             "time":"2020-07-10T14:44:32.299Z",
-        //             "trade_timestamp":1594392272299,
-        //             "sequence":603047
-        //         }
-        //     ]
+        //     {
+        //         "msgType":"W",
+        //         "lastUpdateTime":1594737830902223803,
+        //         "symbol":"XBTUSD",
+        //         "mdEntry":[
+        //             {
+        //                 "mdUpdateAction":"0",
+        //                 "mdEntryType":"2",
+        //                 "mdEntryPx":"9225.16",
+        //                 "mdEntrySize":"10000",
+        //                 "transactTime":1594728504524977655,
+        //                 "tradeId":"6ac51bb7-7505-4f35-85ef-61eb738cb4d9",
+        //                 "aggressorSide":"1"
+        //             },
+        //         ]
+        //     }
         //
-        return this.parseTrades (response, market, since, limit);
+        const mdEntry = this.safeValue (response, 'mdEntry', []);
+        return this.parseTrades (mdEntry, market, since, limit);
     }
 
     async createDepositAddress (code, params = {}) {
