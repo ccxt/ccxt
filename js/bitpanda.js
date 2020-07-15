@@ -11,7 +11,7 @@ module.exports = class bitpanda extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitpanda',
-            'name': 'Bitpanda',
+            'name': 'Bitpanda Pro',
             'countries': [ 'AT' ], // Austria
             'rateLimit': 300,
             'version': 'v1',
@@ -56,12 +56,12 @@ module.exports = class bitpanda extends Exchange {
                 '1M': '1/MONTHS',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/51840849/87309947-ec787300-c525-11ea-92c1-ae23715762b1.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87591171-9a377d80-c6f0-11ea-94ac-97a126eac3bc.jpg',
                 'api': {
                     'public': 'https://api.exchange.bitpanda.com/public',
                     'private': 'https://api.exchange.bitpanda.com/public',
                 },
-                'www': 'https://www.bitpanda.com',
+                'www': 'https://www.bitpanda.com/en/pro',
                 'doc': [
                     'https://developers.bitpanda.com',
                 ],
