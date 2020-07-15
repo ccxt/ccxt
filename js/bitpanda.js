@@ -1261,9 +1261,7 @@ module.exports = class bitpanda extends Exchange {
         }
         const side = this.safeStringLower (order, 'side');
         const type = this.safeStringLower (order, 'type');
-        const trades = this.parseTrades (rawTrades, market, undefined, undefined, {
-            'type': type,
-        });
+        const trades = this.parseTrades (rawTrades, market, undefined, undefined);
         const fees = [];
         const numTrades = trades.length;
         let lastTradeTimestamp = undefined;
