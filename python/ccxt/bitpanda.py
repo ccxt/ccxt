@@ -818,7 +818,7 @@ class bitpanda(Exchange):
             }
             takerOrMaker = self.safe_string_lower(feeInfo, 'fee_type')
         return {
-            'id': self.safe_string(trade, 'sequence'),
+            'id': self.safe_string_2(trade, 'trade_id', 'sequence'),
             'order': self.safe_string(trade, 'order_id'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -1046,34 +1046,20 @@ class bitpanda(Exchange):
 
     def parse_transaction(self, transaction, currency=None):
         #
-        # fetchDeposits
+        # fetchDeposits, fetchWithdrawals
         #
         #     {
-        #         "transaction_id": "e5342efcd-d5b7-4a56-8e12-b69ffd68c5ef",
+        #         "transaction_id": "C2b42efcd-d5b7-4a56-8e12-b69ffd68c5ef",
+        #         "type": "FIAT",
         #         "account_id": "c2d0076a-c20d-41f8-9e9a-1a1d028b2b58",
-        #         "amount": "100",
-        #         "type": "CRYPTO",
+        #         "amount": "1234.5678",
+        #         "time": "2019-08-24T14:15:22Z",
         #         "funds_source": "INTERNAL",
-        #         "time": "2020-04-22T09:57:47Z",
         #         "currency": "BTC",
-        #         "fee_amount": "0.0",
-        #         "fee_currency": "BTC"
-        #     }
-        #
-        # fetchWithdrawals
-        #
-        #     {
-        #         "PaymentUuid" : "e293da98-788c-4188-a8f9-8ec2c33fdfcf",
-        #         "Currency" : "XC",
-        #         "Amount" : 7513.75121715,
-        #         "Address" : "EVnSMgAd7EonF2Dgc4c9K14L12RBaW5S5J",
-        #         "Opened" : "2014-07-08T23:13:31.83",
-        #         "Authorized" : True,
-        #         "PendingPayment" : False,
-        #         "TxCost" : 0.00002000,
-        #         "TxId" : "b4a575c2a71c7e56d02ab8e26bb1ef0a2f6cf2094f6ca2116476a569c1e84f6e",
-        #         "Canceled" : False,
-        #         "InvalidAddress" : False
+        #         "fee_amount": "1234.5678",
+        #         "fee_currency": "BTC",
+        #         "blockchain_transaction_id": "f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16",
+        #         "related_transaction_id": "e298341a-3855-405e-bce3-92db368a3157"
         #     }
         #
         id = self.safe_string(transaction, 'transaction_id')
@@ -1105,7 +1091,7 @@ class bitpanda(Exchange):
             'status': status,
             'type': None,
             'updated': None,
-            'txid': None,
+            'txid': self.safe_string(transaction, 'blockchain_transaction_id'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'fee': fee,
@@ -1147,18 +1133,25 @@ class bitpanda(Exchange):
         #
         #     {
         #         "order": {
-        #             "order_id": "36bb2437-7402-4794-bf26-4bdf03526439",
-        #             "account_id": "a4c699f6-338d-4a26-941f-8f9853bfc4b9",
-        #             "time_last_updated": "2019-09-27T15:05:35.096Z",
-        #             "sequence": 48782,
-        #             "price": "7349.2",
-        #             "filled_amount": "100.0",
-        #             "status": "FILLED_FULLY",
-        #             "amount": "100.0",
+        #             "order_id": "66756a10-3e86-48f4-9678-b634c4b135b2",
+        #             "account_id": "1eb2ad5d-55f1-40b5-bc92-7dc05869e905",
         #             "instrument_code": "BTC_EUR",
+        #             "amount": "1234.5678",
+        #             "filled_amount": "1234.5678",
         #             "side": "BUY",
-        #             "time": "2019-09-27T15:05:32.063Z",
-        #             "type": "MARKET"
+        #             "type": "LIMIT",
+        #             "status": "OPEN",
+        #             "sequence": 123456789,
+        #             "price": "1234.5678",
+        #             "average_price": "1234.5678",
+        #             "reason": "INSUFFICIENT_FUNDS",
+        #             "time": "2019-08-24T14:15:22Z",
+        #             "time_in_force": "GOOD_TILL_CANCELLED",
+        #             "time_last_updated": "2019-08-24T14:15:22Z",
+        #             "expire_after": "2019-08-24T14:15:22Z",
+        #             "is_post_only": False,
+        #             "time_triggered": "2019-08-24T14:15:22Z",
+        #             "trigger_price": "1234.5678"
         #         },
         #         "trades": [
         #             {
@@ -1216,14 +1209,9 @@ class bitpanda(Exchange):
                         status = 'open'
                     else:
                         status = 'closed'
-            if cost is None:
-                if price is not None:
-                    cost = price * filled
         side = self.safe_string_lower(order, 'side')
         type = self.safe_string_lower(order, 'type')
-        trades = self.parse_trades(rawTrades, market, None, None, {
-            'type': type,
-        })
+        trades = self.parse_trades(rawTrades, market, None, None)
         fees = []
         numTrades = len(trades)
         lastTradeTimestamp = None
@@ -1243,6 +1231,9 @@ class bitpanda(Exchange):
         if average is None:
             if (tradeCost is not None) and (tradeAmount is not None) and (tradeAmount != 0):
                 average = tradeCost / tradeAmount
+        if cost is None:
+            if (average is not None) and (filled is not None):
+                cost = average * filled
         result = {
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1275,7 +1266,7 @@ class bitpanda(Exchange):
                     feeCurrency = feeCurrencies[0]
                     feeArray = self.safe_value(feesByCurrency, feeCurrency)
                     feeCost = 0
-                    for i in range(0, feeArray.lengh):
+                    for i in range(0, len(feeArray)):
                         feeCost = self.sum(feeCost, feeArray[i]['cost'])
                     result['fee'] = {
                         'cost': feeCost,
