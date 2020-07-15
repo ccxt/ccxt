@@ -12,7 +12,7 @@ module.exports = class xena extends Exchange {
             'rateLimit': 500,
             'has': {
                 'CORS': false,
-                'fetchOrderBook': false,
+                'fetchOrderBook': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': false,
@@ -29,6 +29,7 @@ module.exports = class xena extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27982022-75aea828-63a0-11e7-9511-ca584a8edd74.jpg',
                 'api': {
+                    'common': 'https://trading.xena.exchange/api/common',
                     'public': 'https://trading.xena.exchange/api',
                     'private': 'https://api.xena.exchange',
                 },
@@ -48,15 +49,27 @@ module.exports = class xena extends Exchange {
                 '1w': '1w',
             },
             'api': {
+                'common': {
+                    'get': [
+                        'currencies',
+                        'instruments',
+                        'features',
+                        'commissions',
+                        'news',
+                    ],
+                },
                 'public': {
                     'get': [
                         'market-data/candles/{marketId}/{timeframe}',
                         'market-data/market-watch',
-                        'common/currencies',
-                        'common/instruments',
-                        'common/features',
-                        'common/commissions',
-                        'common/news',
+                        'market-data/dom/{symbol}',
+                        'market-data/candles/{symbol}/{timeframe}',
+                        'market-data/trades/{symbol}',
+                        'market-data/server-time',
+                        'market-data/v2/candles/{symbol}/{timeframe}',
+                        'market-data/v2/trades/{symbol}',
+                        'market-data/v2/dom/{symbol}',
+                        'market-data/v2/server-time',
                     ],
                 },
                 'private': {
@@ -113,7 +126,7 @@ module.exports = class xena extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.publicGetCommonInstruments (params);
+        const response = await this.commonGetInstruments (params);
         //
         //     [
         //         {
@@ -264,7 +277,7 @@ module.exports = class xena extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        const response = await this.publicGetCommonCurrencies (params);
+        const response = await this.commonGetCurrencies (params);
         //
         //     {
         //         "BAB": {
@@ -435,6 +448,46 @@ module.exports = class xena extends Exchange {
             result[symbol] = ticker;
         }
         return result;
+    }
+
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'symbol': this.marketId (symbol),
+        };
+        if (limit !== undefined) {
+            request['depth'] = limit;
+        }
+        const response = await this.publicGetMarketDataV2DomSymbol (this.extend (request, params));
+        //
+        //     {
+        //         "msgType":"W",
+        //         "mdStreamId":"DOM:XBTUSD:aggregated",
+        //         "lastUpdateTime":1594772683037691997,
+        //         "mdBookType":"2",
+        //         "symbol":"XBTUSD",
+        //         "lowRangePx":"9132.24",
+        //         "highRangePx":"9410.36",
+        //         "lowLimitPx":"9132.24",
+        //         "highLimitPx":"9410.36",
+        //         "clearingPx":"9253.4",
+        //         "bestBid":"9269.8",
+        //         "bestAsk":"9275.9",
+        //         "mdEntry":[
+        //             {"mdEntryType":"1","mdEntryPx":"9275.9","mdEntrySize":"3000","numberOfOrders":1},
+        //             {"mdEntryType":"1","mdEntryPx":"9277.7","mdEntrySize":"50000","numberOfOrders":1},
+        //             {"mdEntryType":"1","mdEntryPx":"9277.8","mdEntrySize":"2000","numberOfOrders":1},
+        //             {"mdEntryType":"0","mdEntryPx":"9269.8","mdEntrySize":"2000","numberOfOrders":1},
+        //             {"mdEntryType":"0","mdEntryPx":"9267.9","mdEntrySize":"3000","numberOfOrders":1},
+        //             {"mdEntryType":"0","mdEntryPx":"9267.8","mdEntrySize":"50000","numberOfOrders":1},
+        //         ]
+        //     }
+        //
+        const mdEntry = this.safeValue (response, 'mdEntry', []);
+        const mdEntriesByType = this.groupBy (mdEntry, 'mdEntryType');
+        const lastUpdateTime = this.safeInteger (response, 'lastUpdateTime');
+        const timestamp = parseInt (lastUpdateTime / 1000000);
+        return this.parseOrderBook (mdEntriesByType, timestamp, '0', '1', 'mdEntryPx', 'mdEntrySize');
     }
 
     async fetchAccounts (params = {}) {
@@ -1094,7 +1147,7 @@ module.exports = class xena extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        if (api === 'public') {
+        if ((api === 'public') || (api === 'common')) {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
