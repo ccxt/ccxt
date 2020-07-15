@@ -1317,7 +1317,7 @@ module.exports = class bitpanda extends Exchange {
                     const feeCurrency = feeCurrencies[0];
                     const feeArray = this.safeValue (feesByCurrency, feeCurrency);
                     let feeCost = 0;
-                    for (let i = 0; i < feeArray.lengh; i++) {
+                    for (let i = 0; i < feeArray.length; i++) {
                         feeCost = this.sum (feeCost, feeArray[i]['cost']);
                     }
                     result['fee'] = {
