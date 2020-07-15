@@ -1862,7 +1862,11 @@ module.exports = class okex extends Exchange {
         //         "result":true
         //     }
         //
-        return this.parseOrder (response, market);
+        const order = this.parseOrder (response, market);
+        return this.extend (order, {
+            'type': type,
+            'side': side,
+        });
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -2018,13 +2022,6 @@ module.exports = class okex extends Exchange {
         let type = this.safeString (order, 'type');
         if ((side !== 'buy') && (side !== 'sell')) {
             side = this.parseOrderSide (type);
-        }
-        if ((type !== 'limit') && (type !== 'market')) {
-            if ('pnl' in order) {
-                type = 'futures';
-            } else {
-                type = 'swap';
-            }
         }
         let symbol = undefined;
         const marketId = this.safeString (order, 'instrument_id');
