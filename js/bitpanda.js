@@ -1091,15 +1091,17 @@ module.exports = class bitpanda extends Exchange {
         // fetchDeposits, fetchWithdrawals
         //
         //     {
-        //         "transaction_id": "e5342efcd-d5b7-4a56-8e12-b69ffd68c5ef",
+        //         "transaction_id": "C2b42efcd-d5b7-4a56-8e12-b69ffd68c5ef",
+        //         "type": "FIAT",
         //         "account_id": "c2d0076a-c20d-41f8-9e9a-1a1d028b2b58",
-        //         "amount": "100",
-        //         "type": "CRYPTO",
+        //         "amount": "1234.5678",
+        //         "time": "2019-08-24T14:15:22Z",
         //         "funds_source": "INTERNAL",
-        //         "time": "2020-04-22T09:57:47Z",
         //         "currency": "BTC",
-        //         "fee_amount": "0.0",
-        //         "fee_currency": "BTC"
+        //         "fee_amount": "1234.5678",
+        //         "fee_currency": "BTC",
+        //         "blockchain_transaction_id": "f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16",
+        //         "related_transaction_id": "e298341a-3855-405e-bce3-92db368a3157"
         //     }
         //
         const id = this.safeString (transaction, 'transaction_id');
@@ -1132,7 +1134,7 @@ module.exports = class bitpanda extends Exchange {
             'status': status,
             'type': undefined,
             'updated': undefined,
-            'txid': undefined,
+            'txid': this.safeString (transaction, 'blockchain_transaction_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'fee': fee,
