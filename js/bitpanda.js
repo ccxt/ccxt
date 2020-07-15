@@ -1178,18 +1178,25 @@ module.exports = class bitpanda extends Exchange {
         //
         //     {
         //         "order": {
-        //             "order_id": "36bb2437-7402-4794-bf26-4bdf03526439",
-        //             "account_id": "a4c699f6-338d-4a26-941f-8f9853bfc4b9",
-        //             "time_last_updated": "2019-09-27T15:05:35.096Z",
-        //             "sequence": 48782,
-        //             "price": "7349.2",
-        //             "filled_amount": "100.0",
-        //             "status": "FILLED_FULLY",
-        //             "amount": "100.0",
+        //             "order_id": "66756a10-3e86-48f4-9678-b634c4b135b2",
+        //             "account_id": "1eb2ad5d-55f1-40b5-bc92-7dc05869e905",
         //             "instrument_code": "BTC_EUR",
+        //             "amount": "1234.5678",
+        //             "filled_amount": "1234.5678",
         //             "side": "BUY",
-        //             "time": "2019-09-27T15:05:32.063Z",
-        //             "type": "MARKET"
+        //             "type": "LIMIT",
+        //             "status": "OPEN",
+        //             "sequence": 123456789,
+        //             "price": "1234.5678",
+        //             "average_price": "1234.5678",
+        //             "reason": "INSUFFICIENT_FUNDS",
+        //             "time": "2019-08-24T14:15:22Z",
+        //             "time_in_force": "GOOD_TILL_CANCELLED",
+        //             "time_last_updated": "2019-08-24T14:15:22Z",
+        //             "expire_after": "2019-08-24T14:15:22Z",
+        //             "is_post_only": false,
+        //             "time_triggered": "2019-08-24T14:15:22Z",
+        //             "trigger_price": "1234.5678"
         //         },
         //         "trades": [
         //             {
@@ -1253,11 +1260,6 @@ module.exports = class bitpanda extends Exchange {
                     }
                 }
             }
-            if (cost === undefined) {
-                if (price !== undefined) {
-                    cost = price * filled;
-                }
-            }
         }
         const side = this.safeStringLower (order, 'side');
         const type = this.safeStringLower (order, 'type');
@@ -1283,6 +1285,11 @@ module.exports = class bitpanda extends Exchange {
         if (average === undefined) {
             if ((tradeCost !== undefined) && (tradeAmount !== undefined) && (tradeAmount !== 0)) {
                 average = tradeCost / tradeAmount;
+            }
+        }
+        if (cost === undefined) {
+            if ((average !== undefined) && (filled !== undefined)) {
+                cost = average * filled;
             }
         }
         const result = {
