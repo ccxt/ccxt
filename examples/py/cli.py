@@ -5,6 +5,7 @@ import os
 import re
 import sys
 import json
+import platform
 from pprint import pprint
 
 # ------------------------------------------------------------------------------
@@ -15,6 +16,11 @@ sys.path.append(root + '/python')
 # ------------------------------------------------------------------------------
 
 import ccxt  # noqa: E402
+
+# ------------------------------------------------------------------------------
+
+print('Python Version:', platform.python_version())
+print('CCXT Version:', ccxt.__version__)
 
 # ------------------------------------------------------------------------------
 
