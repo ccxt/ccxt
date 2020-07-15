@@ -12,19 +12,20 @@ module.exports = class xena extends Exchange {
             'rateLimit': 500,
             'has': {
                 'CORS': false,
+                'createDepositAddress': true,
+                'createMarketOrder': false,
+                'createOrder': false,
+                'fetchCurrencies': true,
+                'fetchDepositAddress': true,
+                'fetchDeposits': true,
+                'fetchMyTrades': true,
                 'fetchOrderBook': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTime': true,
                 'fetchTrades': false,
-                'createOrder': false,
-                'createMarketOrder': false,
-                'createDepositAddress': true,
-                'fetchDepositAddress': true,
-                'fetchMyTrades': true,
-                'fetchCurrencies': true,
-                'withdraw': true,
                 'fetchWithdrawals': true,
-                'fetchDeposits': true,
+                'withdraw': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87489843-bb469280-c64c-11ea-91aa-69c6326506af.jpg',
@@ -68,7 +69,7 @@ module.exports = class xena extends Exchange {
                         'market-data/server-time',
                         'market-data/v2/candles/{symbol}/{timeframe}',
                         'market-data/v2/trades/{symbol}',
-                        'market-data/v2/dom/{symbol}',
+                        'market-data/v2/dom/{symbol}/',
                         'market-data/v2/server-time',
                     ],
                 },
@@ -124,6 +125,18 @@ module.exports = class xena extends Exchange {
                 'accountId': undefined, // '1012838157',
             },
         });
+    }
+
+    async fetchTime (params = {}) {
+        const response = await this.publicGetMarketDataV2ServerTime (params);
+        //
+        //     {
+        //         "msgType":"0",
+        //         "transactTime":1594774454112817637
+        //     }
+        //
+        const transactTime = this.safeInteger (response, 'transactTime');
+        return parseInt (transactTime / 1000000);
     }
 
     async fetchMarkets (params = {}) {
@@ -416,7 +429,7 @@ module.exports = class xena extends Exchange {
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        const tickers = this.fetchTickers (params);
+        const tickers = await this.fetchTickers (undefined, params);
         if (symbol in tickers) {
             return tickers[symbol];
         }
