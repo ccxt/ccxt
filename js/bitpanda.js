@@ -1088,7 +1088,7 @@ module.exports = class bitpanda extends Exchange {
 
     parseTransaction (transaction, currency = undefined) {
         //
-        // fetchDeposits
+        // fetchDeposits, fetchWithdrawals
         //
         //     {
         //         "transaction_id": "e5342efcd-d5b7-4a56-8e12-b69ffd68c5ef",
@@ -1100,22 +1100,6 @@ module.exports = class bitpanda extends Exchange {
         //         "currency": "BTC",
         //         "fee_amount": "0.0",
         //         "fee_currency": "BTC"
-        //     }
-        //
-        // fetchWithdrawals
-        //
-        //     {
-        //         "PaymentUuid" : "e293da98-788c-4188-a8f9-8ec2c33fdfcf",
-        //         "Currency" : "XC",
-        //         "Amount" : 7513.75121715,
-        //         "Address" : "EVnSMgAd7EonF2Dgc4c9K14L12RBaW5S5J",
-        //         "Opened" : "2014-07-08T23:13:31.83",
-        //         "Authorized" : true,
-        //         "PendingPayment" : false,
-        //         "TxCost" : 0.00002000,
-        //         "TxId" : "b4a575c2a71c7e56d02ab8e26bb1ef0a2f6cf2094f6ca2116476a569c1e84f6e",
-        //         "Canceled" : false,
-        //         "InvalidAddress" : false
         //     }
         //
         const id = this.safeString (transaction, 'transaction_id');
