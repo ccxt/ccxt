@@ -19,8 +19,8 @@ import ccxt  # noqa: E402
 
 # ------------------------------------------------------------------------------
 
-print('Python Version:', platform.python_version())
-print('CCXT Version:', ccxt.__version__)
+print('Python v' + platform.python_version())
+print('CCXT v' + ccxt.__version__)
 
 # ------------------------------------------------------------------------------
 
