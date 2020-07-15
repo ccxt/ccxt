@@ -6,6 +6,9 @@ include $root . '/ccxt.php';
 
 date_default_timezone_set ('UTC');
 
+echo 'PHP Version: ' . PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION . '.' . PHP_RELEASE_VERSION . "\n";
+echo 'CCXT Version: ' . \ccxt\Exchange::VERSION . "\n";
+
 if (count ($argv) > 2) {
 
     $id = $argv[1];
