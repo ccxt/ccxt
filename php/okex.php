@@ -2077,6 +2077,9 @@ class okex extends Exchange {
             );
         }
         $clientOrderId = $this->safe_string($order, 'client_oid');
+        if (strlen($clientOrderId) < 1) {
+            $clientOrderId = null; // fix empty $clientOrderId string
+        }
         return array(
             'info' => $order,
             'id' => $id,

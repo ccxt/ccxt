@@ -2013,6 +2013,8 @@ class okex(Exchange):
                 'currency': feeCurrency,
             }
         clientOrderId = self.safe_string(order, 'client_oid')
+        if len(clientOrderId) < 1:
+            clientOrderId = None  # fix empty clientOrderId string
         return {
             'info': order,
             'id': id,
