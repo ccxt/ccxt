@@ -841,7 +841,7 @@ module.exports = class bitpanda extends Exchange {
             takerOrMaker = this.safeStringLower (feeInfo, 'fee_type');
         }
         return {
-            'id': this.safeString (trade, 'sequence'),
+            'id': this.safeString2 (trade, 'trade_id', 'sequence'),
             'order': this.safeString (trade, 'order_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
