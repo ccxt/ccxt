@@ -114,6 +114,7 @@ module.exports = class xena extends Exchange {
                     'Validation failed': BadRequest,
                 },
                 'broad': {
+                    'Invalid aggregation ratio or depth': BadRequest,
                     'address': InvalidAddress,
                     'Money not enough': InsufficientFunds,
                 },
@@ -1196,7 +1197,7 @@ module.exports = class xena extends Exchange {
                 throw new exact[message] (feedback);
             }
             const broad = this.exceptions['broad'];
-            const broadKey = this.findBroadlyMatchedKey (broad, message);
+            const broadKey = this.findBroadlyMatchedKey (broad, body);
             if (broadKey !== undefined) {
                 throw new broad[broadKey] (feedback);
             }
