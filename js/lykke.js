@@ -17,12 +17,19 @@ module.exports = class lykke extends Exchange {
             'has': {
                 'CORS': false,
                 'fetchOHLCV': false,
-                'fetchTrades': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
+                'fetchTrades': true,
                 'fetchMyTrades': true,
+                'createOrder': true,
+                'cancelOrder': true,
+                'cancelAllOrders': true,
+                'fetchBalance': true,
+                'fetchMarkets': true,
+                'fetchOrderBook': true,
+                'fetchTicker': true,
             },
             'timeframes': {
                 '1m': 'Minute',
@@ -267,7 +274,7 @@ module.exports = class lykke extends Exchange {
         return await this.privateDeleteOrdersId (this.extend (request, params));
     }
 
-    async cancelOrders (symbol = undefined, params = {}) {
+    async cancelAllOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
