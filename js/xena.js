@@ -18,6 +18,7 @@ module.exports = class xena extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchOrderBook': true,
                 'fetchTicker': true,
@@ -760,18 +761,30 @@ module.exports = class xena extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
-        let timestamp = this.safeInteger (ohlcv, '60');
-        if (timestamp !== undefined) {
-            timestamp = parseInt (timestamp / 1e6);
-        }
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //     {
+        //         "transactTime":1594784700000000000,
+        //         "firstPx":"9246.3",
+        //         "lastPx":"9232.8",
+        //         "highPx":"9246.3",
+        //         "lowPx":"9232.8",
+        //         "buyVolume":"0",
+        //         "sellVolume":"0"
+        //     }
+        //
+        const transactTime = this.safeInteger (ohlcv, 'transactTime');
+        const timestamp = parseInt (transactTime / 1000000);
+        const buyVolume = this.safeFloat (ohlcv, 'buyVolume');
+        const sellVolume = this.safeFloat (ohlcv, 'sellVolume');
+        const volume = this.sum (buyVolume, sellVolume);
         return [
             timestamp,
-            this.safeFloat (ohlcv, '31'),
-            this.safeFloat (ohlcv, '332'),
-            this.safeFloat (ohlcv, '333'),
-            this.safeFloat (ohlcv, '1025'),
-            this.safeFloat (ohlcv, '330'),
+            this.safeFloat (ohlcv, 'firstPx'),
+            this.safeFloat (ohlcv, 'highPx'),
+            this.safeFloat (ohlcv, 'lowPx'),
+            this.safeFloat (ohlcv, 'lastPx'),
+            volume,
         ];
     }
 
@@ -779,15 +792,67 @@ module.exports = class xena extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'marketId': market['id'],
+            'symbol': market['id'],
             'timeframe': this.timeframes[timeframe],
         };
+        const durationInSeconds = this.parseTimeframe (timeframe);
+        const duration = durationInSeconds * 1000;
         if (since !== undefined) {
-            request['from'] = since * 1e6;
+            request['from'] = since * 1000000;
+            if (limit !== undefined) {
+                request['to'] = this.sum (since, limit * duration) * 1000000;
+            }
+        } else {
+            const now = this.milliseconds ();
+            // max limit is 1000
+            if (limit !== undefined) {
+                request['from'] = (now - limit * duration) * 1000000;
+            }
         }
-        const response = await this.publicGetMarketDataCandlesMarketIdTimeframe (this.extend (request, params));
-        const candles = this.safeValue (response, '268', []);
-        return this.parseOHLCVs (candles, market, timeframe, since, limit);
+        const response = await this.publicGetMarketDataV2CandlesSymbolTimeframe (this.extend (request, params));
+        //
+        //     {
+        //         "mdEntry":[
+        //             {"transactTime":1594784700000000000,"firstPx":"9246.3","lastPx":"9232.8","highPx":"9246.3","lowPx":"9232.8","buyVolume":"0","sellVolume":"0"},
+        //             {"transactTime":1594785600000000000,"firstPx":"9231.8","lastPx":"9227.3","highPx":"9232.8","lowPx":"9227.3","buyVolume":"0","sellVolume":"0"},
+        //             {"transactTime":1594786500000000000,"firstPx":"9226.3","lastPx":"9230.3","highPx":"9230.3","lowPx":"9220.6","buyVolume":"0","sellVolume":"0"}
+        //         ]
+        //     }
+        //
+        const mdEntry = this.safeValue (response, 'mdEntry', []);
+        return this.parseOHLCVs (mdEntry, market, timeframe, since, limit);
+    }
+
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'instrument_code': market['id'],
+            // 'from': this.iso8601 (since),
+            // 'to': this.iso8601 (this.milliseconds ()),
+        };
+        if (since !== undefined) {
+            // returns price ticks for a specific market with an interval of maximum of 4 hours
+            // sorted by latest first
+            request['from'] = this.iso8601 (since);
+            request['to'] = this.iso8601 (this.sum (since, 14400000));
+        }
+        const response = await this.publicGetPriceTicksInstrumentCode (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "instrument_code":"BTC_EUR",
+        //             "price":"8137.28",
+        //             "amount":"0.22269",
+        //             "taker_side":"BUY",
+        //             "volume":"1812.0908832",
+        //             "time":"2020-07-10T14:44:32.299Z",
+        //             "trade_timestamp":1594392272299,
+        //             "sequence":603047
+        //         }
+        //     ]
+        //
+        return this.parseTrades (response, market, since, limit);
     }
 
     async createDepositAddress (code, params = {}) {
