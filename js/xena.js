@@ -27,7 +27,7 @@ module.exports = class xena extends Exchange {
                 'fetchDeposits': true,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27982022-75aea828-63a0-11e7-9511-ca584a8edd74.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87489843-bb469280-c64c-11ea-91aa-69c6326506af.jpg',
                 'api': {
                     'common': 'https://trading.xena.exchange/api/common',
                     'public': 'https://trading.xena.exchange/api',
@@ -425,7 +425,6 @@ module.exports = class xena extends Exchange {
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const tickers = await this.publicGetMarketDataMarketWatch (params);
-        // https://user-images.githubusercontent.com/51840849/87485592-d233b780-c641-11ea-899e-49771e1f4ea9.jpg
         //
         //     [
         //         {
