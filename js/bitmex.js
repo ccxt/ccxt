@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { ExchangeError, NotSupported, RateLimitExceeded } = require ('ccxt/js/base/errors');
+const { AuthenticationError, ExchangeError, NotSupported, RateLimitExceeded } = require ('ccxt/js/base/errors');
 const { ArrayCache } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -18,6 +18,7 @@ module.exports = class bitmex extends ccxt.bitmex {
                 'watchTrades': true,
                 'watchOrderBook': true,
                 'watchOHLCV': true,
+                'watchMyTrades': true,
             },
             'urls': {
                 'api': {
@@ -411,6 +412,111 @@ module.exports = class bitmex extends ccxt.bitmex {
         return await this.after (future, this.filterBySinceLimit, since, limit, 'timestamp', true);
     }
 
+    async authenticate () {
+        const url = this.urls['api']['ws'];
+        const client = this.client (url);
+        const future = client.future ('authenticated');
+        const action = 'authKeyExpires';
+        const authenticated = this.safeValue (client.subscriptions, action);
+        if (authenticated === undefined) {
+            try {
+                this.checkRequiredCredentials ();
+                const timestamp = this.milliseconds ();
+                const message = 'GET' + '/realtime' + timestamp.toString ();
+                const signature = this.hmac (this.encode (message), this.encode (this.secret));
+                const request = {
+                    'op': action,
+                    'args': [
+                        this.apiKey,
+                        timestamp,
+                        signature,
+                    ],
+                };
+                this.spawn (this.watch, url, action, request, action);
+            } catch (e) {
+                client.reject (e, 'authenticated');
+                if (action in client.subscriptions) {
+                    delete client.subscriptions[action];
+                }
+            }
+        }
+        return await future;
+    }
+
+    handleAuthenticationMessage (client, message) {
+        const authenticated = this.safeValue (message, 'success', false);
+        if (authenticated) {
+            // we resolve the future here permanently so authentication only happens once
+            const future = this.safeValue (client.futures, 'authenticated');
+            future.resolve (true);
+        } else {
+            const error = new AuthenticationError (this.json (message));
+            client.reject (error, 'authenticated');
+            // allows further authentication attempts
+            const event = 'authKeyExpires';
+            if (event in client.subscriptions) {
+                delete client.subscriptions[event];
+            }
+        }
+    }
+
+    async watchMyTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const authenticate = this.authenticate ();
+        const table = 'execution';
+        const messageHash = table + ':' + market['id'];
+        const url = this.urls['api']['ws'];
+        const request = {
+            'op': 'subscribe',
+            'args': [
+                messageHash,
+            ],
+        };
+        const future = this.afterDropped (authenticate, this.watch, url, messageHash, request, messageHash);
+        return await this.after (future, this.filterBySymbolSinceLimit, symbol, since, limit);
+    }
+
+    handleMyTrades (client, message) {
+        const table = 'execution';
+        const rawData = this.safeValue (message, 'data', []);
+        const data = this.filterTrades (rawData);
+        const dataByMarketIds = this.groupBy (data, 'symbol');
+        const marketIds = Object.keys (dataByMarketIds);
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            if (marketId in this.markets_by_id) {
+                const market = this.markets_by_id[marketId];
+                const messageHash = table + ':' + marketId;
+                const symbol = market['symbol'];
+                const myTrades = this.parseTrades (data, market);
+                if (this.myTrades === undefined) {
+                    this.myTrades = {};
+                }
+                let stored = this.safeValue (this.myTrades, symbol);
+                if (stored === undefined) {
+                    const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+                    stored = new ArrayCache (limit);
+                    this.myTrades[symbol] = stored;
+                }
+                for (let j = 0; j < myTrades.length; j++) {
+                    stored.append (myTrades[j]);
+                }
+                client.resolve (stored, messageHash);
+            }
+        }
+    }
+
+    filterTrades (data) {
+        const trades = [];
+        for (let i = 0; i < data.length; i++) {
+            if (data[i]['ordStatus'] === 'Filled' || data[i]['ordStatus'] === 'PartiallyFilled') {
+                trades.push (data[i]);
+            }
+        }
+        return trades;
+    }
+
     async watchOrderBook (symbol, limit = undefined, params = {}) {
         let table = undefined;
         if (limit === undefined) {
@@ -802,10 +908,17 @@ module.exports = class bitmex extends ccxt.bitmex {
                 'tradeBin5m': this.handleOHLCV,
                 'tradeBin1h': this.handleOHLCV,
                 'tradeBin1d': this.handleOHLCV,
+                'execution': this.handleMyTrades,
             };
             const method = this.safeValue (methods, table);
             if (method === undefined) {
-                return message;
+                const request = this.safeValue (message, 'request', {});
+                const op = this.safeValue (request, 'op');
+                if (op === 'authKeyExpires') {
+                    return this.handleAuthenticationMessage.call (this, client, message);
+                } else {
+                    return message;
+                }
             } else {
                 return method.call (this, client, message);
             }
