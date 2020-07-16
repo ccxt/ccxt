@@ -69,7 +69,7 @@ module.exports = class coinbasepro extends Exchange {
                     'get': [
                         'currencies',
                         'products',
-                        'products/{id},
+                        'products/{id}',
                         'products/{id}/book',
                         'products/{id}/candles',
                         'products/{id}/stats',
