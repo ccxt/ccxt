@@ -66,7 +66,7 @@ class bitpanda extends Exchange {
                 ),
                 'www' => 'https://www.bitpanda.com/en/pro',
                 'doc' => array(
-                    'https://developers.bitpanda.com',
+                    'https://developers.bitpanda.com/exchange/',
                 ),
                 'fees' => 'https://www.bitpanda.com/en/pro/fees',
             ),
