@@ -31,7 +31,6 @@ module.exports = class xena extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87489843-bb469280-c64c-11ea-91aa-69c6326506af.jpg',
                 'api': {
-                    'common': 'https://trading.xena.exchange/api/common',
                     'public': 'https://trading.xena.exchange/api',
                     'private': 'https://api.xena.exchange',
                 },
@@ -51,17 +50,13 @@ module.exports = class xena extends Exchange {
                 '1w': '1w',
             },
             'api': {
-                'common': {
-                    'get': [
-                        'currencies',
-                        'instruments',
-                        'features',
-                        'commissions',
-                        'news',
-                    ],
-                },
                 'public': {
                     'get': [
+                        'common/currencies',
+                        'common/instruments',
+                        'common/features',
+                        'common/commissions',
+                        'common/news',
                         'market-data/candles/{marketId}/{timeframe}',
                         'market-data/market-watch',
                         'market-data/dom/{symbol}',
@@ -76,6 +71,15 @@ module.exports = class xena extends Exchange {
                 },
                 'private': {
                     'get': [
+                        'trading/accounts/{accountId}/order',
+                        'trading/accounts/{accountId}/active-orders',
+                        'trading/accounts/{accountId}/last-order-statuses',
+                        'trading/accounts/{accountId}/positions',
+                        'trading/accounts/{accountId}/positions-history',
+                        'trading/accounts/{accountId}/trade-history',
+                        'trading/accounts/{accountId}/balance',
+                        'trading/accounts/{accountId}/margin-requirements',
+                        // ----------------------------------------------------
                         'trading/accounts',
                         'trading/accounts/{accountId}/balance',
                         'trading/accounts/{accountId}/trade-history',
@@ -94,6 +98,13 @@ module.exports = class xena extends Exchange {
                     'post': [
                         'transfers/accounts/{accountId}/withdrawals',
                         'transfers/accounts/{accountId}/deposit-address/{currency}',
+                        // ----------------------------------------------------
+                        'trading/order/new',
+                        'trading/order/heartbeat',
+                        'trading/order/cancel',
+                        'trading/order/mass-cancel',
+                        'trading/order/replace',
+                        'trading/position/maintenance',
                     ],
                 },
             },
@@ -141,7 +152,7 @@ module.exports = class xena extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.commonGetInstruments (params);
+        const response = await this.publicGetCommonInstruments (params);
         //
         //     [
         //         {
@@ -292,7 +303,7 @@ module.exports = class xena extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        const response = await this.commonGetCurrencies (params);
+        const response = await this.publicGetCommonCurrencies (params);
         //
         //     {
         //         "BAB": {
@@ -1255,7 +1266,7 @@ module.exports = class xena extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        if ((api === 'public') || (api === 'common')) {
+        if (api === 'public') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
@@ -1264,7 +1275,7 @@ module.exports = class xena extends Exchange {
             let nonce = this.nonce ();
             // php does not format it properly
             // therefore we use string concatenation here
-            // nonce *= 1e6;
+            // nonce *= 1000000;
             nonce = nonce.toString ();
             nonce = nonce + '000000'; // see the comment a few lines above
             const payload = 'AUTH' + nonce;
