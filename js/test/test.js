@@ -232,6 +232,7 @@ const testExchange = async (exchange) => {
         'BTC/EUR',
         'BTC/ETH',
         'ETH/BTC',
+        'ETH/USD',
         'BTC/JPY',
         'LTC/BTC',
         'ZRX/WETH',
