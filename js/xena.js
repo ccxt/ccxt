@@ -384,6 +384,8 @@ module.exports = class xena extends Exchange {
         if (marketId !== undefined) {
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
+            } else {
+                symbol = marketId;
             }
         }
         if ((symbol === undefined) && (market !== undefined)) {
