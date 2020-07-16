@@ -76,10 +76,7 @@ module.exports = class xena extends Exchange {
                         'trading/accounts/{accountId}/last-order-statuses',
                         'trading/accounts/{accountId}/positions',
                         'trading/accounts/{accountId}/positions-history',
-                        'trading/accounts/{accountId}/trade-history',
-                        'trading/accounts/{accountId}/balance',
                         'trading/accounts/{accountId}/margin-requirements',
-                        // ----------------------------------------------------
                         'trading/accounts',
                         'trading/accounts/{accountId}/balance',
                         'trading/accounts/{accountId}/trade-history',
@@ -96,15 +93,14 @@ module.exports = class xena extends Exchange {
                         // 'transfers/accounts/{accountId}/balance-history?txid=3e1db982c4eed2d6355e276c5bae01a52a27c9cef61574b0e8c67ee05fc26ccf',
                     ],
                     'post': [
-                        'transfers/accounts/{accountId}/withdrawals',
-                        'transfers/accounts/{accountId}/deposit-address/{currency}',
-                        // ----------------------------------------------------
                         'trading/order/new',
                         'trading/order/heartbeat',
                         'trading/order/cancel',
                         'trading/order/mass-cancel',
                         'trading/order/replace',
                         'trading/position/maintenance',
+                        'transfers/accounts/{accountId}/withdrawals',
+                        'transfers/accounts/{accountId}/deposit-address/{currency}',
                     ],
                 },
             },
@@ -894,6 +890,27 @@ module.exports = class xena extends Exchange {
         //
         const mdEntry = this.safeValue (response, 'mdEntry', []);
         return this.parseTrades (mdEntry, market, since, limit);
+    }
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        if (type !== 'limit') {
+            throw new ExchangeError (this.id + ' allows limit orders only');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'side': side.toLowerCase (),
+            'amount': this.amountToPrecision (symbol, amount),
+            'price': this.priceToPrecision (symbol, price),
+        };
+        const response = await this.privatePostOrders (this.extend (request, params));
+        //
+        //     {
+        //         "entrust_id":1223181
+        //     }
+        //
+        return this.parseOrder (response, market);
     }
 
     async createDepositAddress (code, params = {}) {
