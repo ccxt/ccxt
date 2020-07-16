@@ -26,6 +26,7 @@ class digifinex extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchTickers' => true,
+                'fetchTime' => true,
                 'fetchMyTrades' => true,
                 'fetchLedger' => true,
             ),
@@ -583,6 +584,17 @@ class digifinex extends Exchange {
             'takerOrMaker' => $takerOrMaker,
             'fee' => $fee,
         );
+    }
+
+    public function fetch_time($params = array ()) {
+        $response = $this->publicGetTime ($params);
+        //
+        //     {
+        //         "server_time" => 1589873762,
+        //         "code" => 0
+        //     }
+        //
+        return $this->safe_timestamp($response, 'server_time');
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {

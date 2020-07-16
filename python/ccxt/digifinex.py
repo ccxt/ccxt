@@ -35,6 +35,7 @@ class digifinex(Exchange):
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchTickers': True,
+                'fetchTime': True,
                 'fetchMyTrades': True,
                 'fetchLedger': True,
             },
@@ -568,6 +569,16 @@ class digifinex(Exchange):
             'takerOrMaker': takerOrMaker,
             'fee': fee,
         }
+
+    def fetch_time(self, params={}):
+        response = self.publicGetTime(params)
+        #
+        #     {
+        #         "server_time": 1589873762,
+        #         "code": 0
+        #     }
+        #
+        return self.safe_timestamp(response, 'server_time')
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
