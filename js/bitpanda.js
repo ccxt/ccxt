@@ -11,7 +11,7 @@ module.exports = class bitpanda extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitpanda',
-            'name': 'Bitpanda',
+            'name': 'Bitpanda Pro',
             'countries': [ 'AT' ], // Austria
             'rateLimit': 300,
             'version': 'v1',
@@ -56,12 +56,12 @@ module.exports = class bitpanda extends Exchange {
                 '1M': '1/MONTHS',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/51840849/87309947-ec787300-c525-11ea-92c1-ae23715762b1.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87591171-9a377d80-c6f0-11ea-94ac-97a126eac3bc.jpg',
                 'api': {
                     'public': 'https://api.exchange.bitpanda.com/public',
                     'private': 'https://api.exchange.bitpanda.com/public',
                 },
-                'www': 'https://www.bitpanda.com',
+                'www': 'https://www.bitpanda.com/en/pro',
                 'doc': [
                     'https://developers.bitpanda.com',
                 ],
@@ -841,7 +841,7 @@ module.exports = class bitpanda extends Exchange {
             takerOrMaker = this.safeStringLower (feeInfo, 'fee_type');
         }
         return {
-            'id': this.safeString (trade, 'sequence'),
+            'id': this.safeString2 (trade, 'trade_id', 'sequence'),
             'order': this.safeString (trade, 'order_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1088,34 +1088,20 @@ module.exports = class bitpanda extends Exchange {
 
     parseTransaction (transaction, currency = undefined) {
         //
-        // fetchDeposits
+        // fetchDeposits, fetchWithdrawals
         //
         //     {
-        //         "transaction_id": "e5342efcd-d5b7-4a56-8e12-b69ffd68c5ef",
+        //         "transaction_id": "C2b42efcd-d5b7-4a56-8e12-b69ffd68c5ef",
+        //         "type": "FIAT",
         //         "account_id": "c2d0076a-c20d-41f8-9e9a-1a1d028b2b58",
-        //         "amount": "100",
-        //         "type": "CRYPTO",
+        //         "amount": "1234.5678",
+        //         "time": "2019-08-24T14:15:22Z",
         //         "funds_source": "INTERNAL",
-        //         "time": "2020-04-22T09:57:47Z",
         //         "currency": "BTC",
-        //         "fee_amount": "0.0",
-        //         "fee_currency": "BTC"
-        //     }
-        //
-        // fetchWithdrawals
-        //
-        //     {
-        //         "PaymentUuid" : "e293da98-788c-4188-a8f9-8ec2c33fdfcf",
-        //         "Currency" : "XC",
-        //         "Amount" : 7513.75121715,
-        //         "Address" : "EVnSMgAd7EonF2Dgc4c9K14L12RBaW5S5J",
-        //         "Opened" : "2014-07-08T23:13:31.83",
-        //         "Authorized" : true,
-        //         "PendingPayment" : false,
-        //         "TxCost" : 0.00002000,
-        //         "TxId" : "b4a575c2a71c7e56d02ab8e26bb1ef0a2f6cf2094f6ca2116476a569c1e84f6e",
-        //         "Canceled" : false,
-        //         "InvalidAddress" : false
+        //         "fee_amount": "1234.5678",
+        //         "fee_currency": "BTC",
+        //         "blockchain_transaction_id": "f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16",
+        //         "related_transaction_id": "e298341a-3855-405e-bce3-92db368a3157"
         //     }
         //
         const id = this.safeString (transaction, 'transaction_id');
@@ -1148,7 +1134,7 @@ module.exports = class bitpanda extends Exchange {
             'status': status,
             'type': undefined,
             'updated': undefined,
-            'txid': undefined,
+            'txid': this.safeString (transaction, 'blockchain_transaction_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'fee': fee,
@@ -1192,18 +1178,25 @@ module.exports = class bitpanda extends Exchange {
         //
         //     {
         //         "order": {
-        //             "order_id": "36bb2437-7402-4794-bf26-4bdf03526439",
-        //             "account_id": "a4c699f6-338d-4a26-941f-8f9853bfc4b9",
-        //             "time_last_updated": "2019-09-27T15:05:35.096Z",
-        //             "sequence": 48782,
-        //             "price": "7349.2",
-        //             "filled_amount": "100.0",
-        //             "status": "FILLED_FULLY",
-        //             "amount": "100.0",
+        //             "order_id": "66756a10-3e86-48f4-9678-b634c4b135b2",
+        //             "account_id": "1eb2ad5d-55f1-40b5-bc92-7dc05869e905",
         //             "instrument_code": "BTC_EUR",
+        //             "amount": "1234.5678",
+        //             "filled_amount": "1234.5678",
         //             "side": "BUY",
-        //             "time": "2019-09-27T15:05:32.063Z",
-        //             "type": "MARKET"
+        //             "type": "LIMIT",
+        //             "status": "OPEN",
+        //             "sequence": 123456789,
+        //             "price": "1234.5678",
+        //             "average_price": "1234.5678",
+        //             "reason": "INSUFFICIENT_FUNDS",
+        //             "time": "2019-08-24T14:15:22Z",
+        //             "time_in_force": "GOOD_TILL_CANCELLED",
+        //             "time_last_updated": "2019-08-24T14:15:22Z",
+        //             "expire_after": "2019-08-24T14:15:22Z",
+        //             "is_post_only": false,
+        //             "time_triggered": "2019-08-24T14:15:22Z",
+        //             "trigger_price": "1234.5678"
         //         },
         //         "trades": [
         //             {
@@ -1267,17 +1260,10 @@ module.exports = class bitpanda extends Exchange {
                     }
                 }
             }
-            if (cost === undefined) {
-                if (price !== undefined) {
-                    cost = price * filled;
-                }
-            }
         }
         const side = this.safeStringLower (order, 'side');
         const type = this.safeStringLower (order, 'type');
-        const trades = this.parseTrades (rawTrades, market, undefined, undefined, {
-            'type': type,
-        });
+        const trades = this.parseTrades (rawTrades, market, undefined, undefined);
         const fees = [];
         const numTrades = trades.length;
         let lastTradeTimestamp = undefined;
@@ -1299,6 +1285,11 @@ module.exports = class bitpanda extends Exchange {
         if (average === undefined) {
             if ((tradeCost !== undefined) && (tradeAmount !== undefined) && (tradeAmount !== 0)) {
                 average = tradeCost / tradeAmount;
+            }
+        }
+        if (cost === undefined) {
+            if ((average !== undefined) && (filled !== undefined)) {
+                cost = average * filled;
             }
         }
         const result = {
@@ -1333,7 +1324,7 @@ module.exports = class bitpanda extends Exchange {
                     const feeCurrency = feeCurrencies[0];
                     const feeArray = this.safeValue (feesByCurrency, feeCurrency);
                     let feeCost = 0;
-                    for (let i = 0; i < feeArray.lengh; i++) {
+                    for (let i = 0; i < feeArray.length; i++) {
                         feeCost = this.sum (feeCost, feeArray[i]['cost']);
                     }
                     result['fee'] = {
