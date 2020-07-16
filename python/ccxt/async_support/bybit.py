@@ -1155,12 +1155,15 @@ class bybit(Exchange):
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        qty = self.amount_to_precision(symbol, amount)
+        if market['linear']:
+            qty = int(qty)
         request = {
             # orders ---------------------------------------------------------
             'side': self.capitalize(side),
             'symbol': market['id'],
             'order_type': self.capitalize(type),
-            'qty': self.amount_to_precision(symbol, amount),  # order quantity in USD, integer only
+            'qty': qty,  # order quantity in USD, integer only
             # 'price': self.price_to_precision(symbol, price),  # required for limit orders
             'time_in_force': 'GoodTillCancel',  # ImmediateOrCancel, FillOrKill, PostOnly
             # 'take_profit': 123.45,  # take profit price, only take effect upon opening the position
