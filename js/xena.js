@@ -891,6 +891,20 @@ module.exports = class xena extends Exchange {
         return this.parseTrades (mdEntry, market, since, limit);
     }
 
+    parseOrderStatus (status) {
+        const statuses = {
+            'A': 'open', // PendingNew
+            '0': 'open', // New
+            '1': 'open', // PartiallyFilled
+            '2': 'closed', // Filled
+            '6': 'canceled', // PendingCancel
+            '4': 'canceled', // Cancelled
+            'E': 'open', // PendingReplace
+            '8': 'rejected', // Rejected
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     parseOrder (order, market = undefined) {
         //
         // createOrder
