@@ -14,6 +14,7 @@ module.exports = class xena extends Exchange {
                 'CORS': false,
                 'createDepositAddress': true,
                 'createOrder': true,
+                'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
@@ -1084,6 +1085,53 @@ module.exports = class xena extends Exchange {
         //     }
         //
         return this.parseOrder (response, market);
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            // 'from': this.iso8601 (since) * 1000000,
+            // 'to': this.iso8601 (this.milliseconds ()) * 1000000, // max range is 7 days
+            // 'symbol': market['id'],
+            // 'limit': 100,
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['from'] = this.iso8601 (since) * 1000000;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetAccountOrders (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "msgType":"8",
+        //             "account":1012838720,
+        //             "clOrdId":"XAq0pRQ1g",
+        //             "orderId":"64d7a06a-27e5-422e-99d9-3cadc04f5a35",
+        //             "symbol":"XBTUSD",
+        //             "ordType":"2",
+        //             "price":"9000",
+        //             "transactTime":1593778763271127920,
+        //             "execId":"ff5fb8153652f0516bf07b6979255bed053c84b9",
+        //             "execType":"I",
+        //             "ordStatus":"0",
+        //             "side":"1",
+        //             "orderQty":"1",
+        //             "leavesQty":"1",
+        //             "cumQty":"0",
+        //             "positionEffect":"O",
+        //             "marginAmt":"0.00000556",
+        //             "marginAmtType":"11"
+        //         }
+        //     ]
+        //
+        return this.parseOrders (response, market, since, limit);
     }
 
     async createDepositAddress (code, params = {}) {
