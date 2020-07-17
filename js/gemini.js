@@ -474,50 +474,85 @@ module.exports = class gemini extends Exchange {
         //         "ask":"9115.87"
         //     }
         //
-        const timestamp = undefined;
+        const volume = this.safeValue (ticker, 'volume', {});
+        const timestamp = this.safeInteger (volume, 'timestamp');
         let symbol = undefined;
         const marketId = this.safeString (ticker, 'pair');
+        let baseId = undefined;
+        let quoteId = undefined;
+        let base = undefined;
+        let quote = undefined;
         if (marketId !== undefined) {
-            const idLength = marketId.length - 0;
-            let baseId = undefined;
-            let quoteId = undefined;
-            if (idLength === 7) {
-                baseId = marketId.slice (0, 4);
-                quoteId = marketId.slice (4, 7);
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
             } else {
-                baseId = marketId.slice (0, 3);
-                quoteId = marketId.slice (3, 6);
+                const idLength = marketId.length - 0;
+                if (idLength === 7) {
+                    baseId = marketId.slice (0, 4);
+                    quoteId = marketId.slice (4, 7);
+                } else {
+                    baseId = marketId.slice (0, 3);
+                    quoteId = marketId.slice (3, 6);
+                }
+                base = this.safeCurrencyCode (baseId);
+                quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
             }
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            symbol = base + '/' + quote;
         }
-        const last = this.safeFloat (ticker, 'price');
-        const percentage = this.safeFloat (ticker, 'percentChange24h');
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+            baseId = market['baseId'].toUpperCase ();
+            quoteId = market['quoteId'].toUpperCase ();
+            base = market['base'];
+            quote = market['quote'];
+        }
+        const price = this.safeFloat (ticker, 'price');
+        const last = this.safeFloat2 (ticker, 'last', 'close', price);
+        let percentage = this.safeFloat (ticker, 'percentChange24h');
         let change = undefined;
-        if (percentage !== undefined && last !== undefined) {
-            change = last * percentage;
+        let open = this.safeFloat (ticker, 'open');
+        let average = undefined;
+        if (last !== undefined) {
+            if (open !== undefined) {
+                change = last - open;
+                if (open !== 0) {
+                    percentage = change / open * 100;
+                }
+                average = this.sum (last, open) / 2;
+            } else if (percentage !== undefined) {
+                change = last * percentage;
+                if (open === undefined) {
+                    open = last - change;
+                }
+                average = this.sum (last, open) / 2;
+            }
+        }
+        const baseVolume = this.safeFloat (volume, baseId);
+        const quoteVolume = this.safeFloat (volume, quoteId);
+        let vwap = undefined;
+        if ((quoteVolume !== undefined) && (baseVolume !== undefined) && (baseVolume !== 0)) {
+            vwap = quoteVolume / baseVolume;
         }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': undefined,
-            'low': undefined,
-            'bid': undefined,
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': undefined,
+            'ask': this.safeFloat (ticker, 'ask'),
             'askVolume': undefined,
-            'vwap': undefined,
-            'open': undefined,
-            'close': undefined,
+            'vwap': vwap,
+            'open': open,
+            'close': last,
             'last': last,
             'previousClose': undefined, // previous day close
             'change': change,
             'percentage': percentage,
-            'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': undefined,
+            'average': average,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         };
     }
