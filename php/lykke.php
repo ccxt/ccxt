@@ -19,12 +19,19 @@ class lykke extends Exchange {
             'has' => array(
                 'CORS' => false,
                 'fetchOHLCV' => false,
-                'fetchTrades' => true,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrders' => true,
+                'fetchTrades' => true,
                 'fetchMyTrades' => true,
+                'createOrder' => true,
+                'cancelOrder' => true,
+                'cancelAllOrders' => true,
+                'fetchBalance' => true,
+                'fetchMarkets' => true,
+                'fetchOrderBook' => true,
+                'fetchTicker' => true,
             ),
             'timeframes' => array(
                 '1m' => 'Minute',
@@ -111,6 +118,10 @@ class lykke extends Exchange {
                         'Orders/v2/limit',
                         'Orders/stoplimit',
                         'Orders/bulk',
+                    ),
+                    'delete' => array(
+                        'Orders',
+                        'Orders/{id}',
                     ),
                 ),
             ),
@@ -261,7 +272,19 @@ class lykke extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
-        return $this->privatePostOrdersIdCancel (array( 'id' => $id ));
+        $request = array( 'id' => $id );
+        return $this->privateDeleteOrdersId (array_merge($request, $params));
+    }
+
+    public function cancel_all_orders($symbol = null, $params = array ()) {
+        $this->load_markets();
+        $request = array();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['assetPairId'] = $market['id'];
+        }
+        return $this->privateDeleteOrders (array_merge($request, $params));
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -277,11 +300,42 @@ class lykke extends Exchange {
         } else if ($type === 'limit') {
             $query['Price'] = $price;
         }
-        $method = 'privatePostOrders' . $this->capitalize($type);
+        $method = 'privatePostOrdersV2' . $this->capitalize($type);
         $result = $this->$method (array_merge($query, $params));
+        //
+        // $market
+        //
+        //     {
+        //         "Price" => 0
+        //     }
+        //
+        // limit
+        //
+        //     {
+        //         "Id":"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+        //     }
+        //
+        $id = $this->safe_string($result, 'Id');
+        $price = $this->safe_float($result, 'Price');
         return array(
-            'id' => null,
+            'id' => $id,
             'info' => $result,
+            'clientOrderId' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'lastTradeTimestamp' => null,
+            'symbol' => $symbol,
+            'type' => $type,
+            'side' => $side,
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => null,
+            'average' => null,
+            'filled' => null,
+            'remaining' => null,
+            'status' => null,
+            'fee' => null,
+            'trades' => null,
         );
     }
 
@@ -550,7 +604,7 @@ class lykke extends Exchange {
                 $url .= '?' . $this->urlencode($query);
             }
         } else if ($api === 'private') {
-            if ($method === 'GET') {
+            if (($method === 'GET') || ($method === 'DELETE')) {
                 if ($query) {
                     $url .= '?' . $this->urlencode($query);
                 }
