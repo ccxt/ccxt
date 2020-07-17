@@ -891,6 +891,121 @@ module.exports = class xena extends Exchange {
         return this.parseTrades (mdEntry, market, since, limit);
     }
 
+    parseOrder (order, market = undefined) {
+        //
+        // createOrder
+        //
+        //     {
+        //         "msgType":"8",
+        //         "account":1012838720,
+        //         "clOrdId":"XAq0pRQ1g",
+        //         "orderId":"64d7a06a-27e5-422e-99d9-3cadc04f5a35",
+        //         "symbol":"XBTUSD",
+        //         "ordType":"2",
+        //         "price":"9000",
+        //         "transactTime":1593778763271127920,
+        //         "execId":"ff5fb8153652f0516bf07b6979255bed053c84b9",
+        //         "execType":"I",
+        //         "ordStatus":"0",
+        //         "side":"1",
+        //         "orderQty":"1",
+        //         "leavesQty":"1",
+        //         "cumQty":"0",
+        //         "positionEffect":"O",
+        //         "marginAmt":"0.00000556",
+        //         "marginAmtType":"11"
+        //     }
+        //
+        const id = this.safeString (order, 'orderId');
+        const clientOrderId = this.safeString (order, 'clOrdId');
+        const transactTime = this.safeInteger (order, 'transactTime');
+        const timestamp = transactTime / 1000000;
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
+        let symbol = undefined;
+        const marketId = this.safeString (order, 'instrument_code');
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('_');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
+        const price = this.safeFloat (order, 'price');
+        const amount = this.safeFloat (order, 'amount');
+        let cost = undefined;
+        const filled = this.safeFloat (order, 'filled_amount');
+        let remaining = undefined;
+        if (filled !== undefined) {
+            if (amount !== undefined) {
+                remaining = Math.max (0, amount - filled);
+                if (status === undefined) {
+                    if (remaining > 0) {
+                        status = 'open';
+                    } else {
+                        status = 'closed';
+                    }
+                }
+            }
+        }
+        const side = this.safeStringLower (order, 'side');
+        const type = this.safeStringLower (order, 'type');
+        const trades = this.parseTrades (rawTrades, market, undefined, undefined);
+        const fees = [];
+        const numTrades = trades.length;
+        let lastTradeTimestamp = undefined;
+        let tradeCost = undefined;
+        let tradeAmount = undefined;
+        if (numTrades > 0) {
+            lastTradeTimestamp = trades[0]['timestamp'];
+            tradeCost = 0;
+            tradeAmount = 0;
+            for (let i = 0; i < trades.length; i++) {
+                const trade = trades[i];
+                fees.push (trade['fee']);
+                lastTradeTimestamp = Math.max (lastTradeTimestamp, trade['timestamp']);
+                tradeCost = this.sum (tradeCost, trade['cost']);
+                tradeAmount = this.sum (tradeAmount, trade['amount']);
+            }
+        }
+        let average = this.safeFloat (order, 'average_price');
+        if (average === undefined) {
+            if ((tradeCost !== undefined) && (tradeAmount !== undefined) && (tradeAmount !== 0)) {
+                average = tradeCost / tradeAmount;
+            }
+        }
+        if (cost === undefined) {
+            if ((average !== undefined) && (filled !== undefined)) {
+                cost = average * filled;
+            }
+        }
+        return {
+            'id': id,
+            'clientOrderId': clientOrderId,
+            'info': order,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'average': average,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': undefined,
+            'trades': trades,
+        };
+    }
+
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         await this.loadAccounts ();
@@ -973,7 +1088,24 @@ module.exports = class xena extends Exchange {
         const response = await this.privatePostTradingOrderNew (this.extend (request, params));
         //
         //     {
-        //         "entrust_id":1223181
+        //         "msgType":"8",
+        //         "account":1012838720,
+        //         "clOrdId":"XAq0pRQ1g",
+        //         "orderId":"64d7a06a-27e5-422e-99d9-3cadc04f5a35",
+        //         "symbol":"XBTUSD",
+        //         "ordType":"2",
+        //         "price":"9000",
+        //         "transactTime":1593778763271127920,
+        //         "execId":"ff5fb8153652f0516bf07b6979255bed053c84b9",
+        //         "execType":"I",
+        //         "ordStatus":"0",
+        //         "side":"1",
+        //         "orderQty":"1",
+        //         "leavesQty":"1",
+        //         "cumQty":"0",
+        //         "positionEffect":"O",
+        //         "marginAmt":"0.00000556",
+        //         "marginAmtType":"11"
         //     }
         //
         return this.parseOrder (response, market);
