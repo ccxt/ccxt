@@ -159,7 +159,7 @@ module.exports = class gemini extends Exchange {
             },
             'options': {
                 'fetchMarketsMethod': 'fetch_markets_from_web',
-                'fetchTickerMethod': 'fetchTickerV1', // Method for fetching ticker. Available values are: fetchTickerV1, fetchTickerV2, fetchTickerV1AndV2. Where fetchTickerV1AndV2 is doing both v1 and v2 calls
+                'fetchTickerMethod': 'fetchTickerV1', // fetchTickerV1, fetchTickerV2, fetchTickerV1AndV2
             },
         });
     }
@@ -379,62 +379,23 @@ module.exports = class gemini extends Exchange {
         return this.parseTicker (response, market);
     }
 
+    async fetchTickerV1AndV2 (symbol, params = {}) {
+        const tickerA = await this.fetchTickerV1 (symbol, params);
+        const tickerB = await this.fetchTickerV2 (symbol, params);
+        return this.deepExtend (tickerA, {
+            'open': tickerB['open'],
+            'high': tickerB['high'],
+            'low': tickerB['low'],
+            'change': tickerB['change'],
+            'percentage': tickerB['percentage'],
+            'average': tickerB['average'],
+            'info': tickerB['info'],
+        });
+    }
+
     async fetchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        const tickerType = this.safeValue (this.options, 'fetchTickerMethod');
-        if ((tickerType !== 'fetchTickerV1') && (tickerType !== 'fetchTickerV2') && (tickerType !== 'fetchTickerV1AndV2')) {
-            throw new ExchangeError (this.id + " does not support '" + tickerType + "' ticker type method. Set exchange.options['fetchTickerMethod'] to 'fetchTickerV1', 'fetchTickerV2' or 'fetchTickerV1AndV2'"); // eslint-disable-line quotes
-        }
-        let ticker = {};
-        let tickerB = {};
-        if ((tickerType === 'fetchTickerV1') || (tickerType === 'fetchTickerV1AndV2')) {
-            ticker = await this.publicGetV1PubtickerSymbol (this.extend (request, params));
-        }
-        if ((tickerType === 'fetchTickerV2') || (tickerType === 'fetchTickerV1AndV2')) {
-            tickerB = await this.publicGetV2TickerSymbol (this.extend (request, params));
-        }
-        const timestamp = this.safeInteger (ticker['volume'], 'timestamp');
-        const baseCurrency = market['base']; // unified structures are guaranteed to have unified fields
-        const quoteCurrency = market['quote']; // so we don't need safe-methods for unified structures
-        const last = this.safeFloat (ticker, 'last');
-        const open = this.safeFloat (tickerB, 'open');
-        const close = this.safeFloat (tickerB, 'close');
-        const high = this.safeFloat (tickerB, 'high');
-        const low = this.safeFloat (tickerB, 'low');
-        let change = undefined;
-        let percentage = undefined;
-        if (last !== undefined) {
-            if ((open !== undefined) && (open > 0)) {
-                change = last - open;
-                percentage = ((100 / open) * last) - 100;
-            }
-        }
-        return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': high,
-            'low': low,
-            'bid': this.safeFloat (ticker, 'bid'),
-            'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'ask'),
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': undefined,
-            'close': close,
-            'last': last,
-            'previousClose': undefined,
-            'change': change,
-            'percentage': percentage,
-            'average': undefined,
-            'baseVolume': this.safeFloat (ticker['volume'], baseCurrency),
-            'quoteVolume': this.safeFloat (ticker['volume'], quoteCurrency),
-            'info': ticker,
-        };
+        const method = this.safeValue (this.options, 'fetchTickerMethod', 'fetchTickerV1');
+        return await this[method] (symbol, params);
     }
 
     parseTicker (ticker, market = undefined) {
