@@ -602,12 +602,7 @@ module.exports = class lykke extends Exchange {
                 url += '?' + this.urlencode (query);
             }
         } else if (api === 'private') {
-            if (method === 'GET') {
-                if (Object.keys (query).length) {
-                    url += '?' + this.urlencode (query);
-                }
-            }
-            if (method === 'DELETE') {
+            if ((method === 'GET') || (method === 'DELETE')) {
                 if (Object.keys (query).length) {
                     url += '?' + this.urlencode (query);
                 }
