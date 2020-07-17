@@ -934,68 +934,29 @@ module.exports = class xena extends Exchange {
         const clientOrderId = this.safeString (order, 'clOrdId');
         const transactTime = this.safeInteger (order, 'transactTime');
         const timestamp = transactTime / 1000000;
-        let status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const status = this.parseOrderStatus (this.safeString (order, 'ordStatus'));
         let symbol = undefined;
-        const marketId = this.safeString (order, 'instrument_code');
+        const marketId = this.safeString (order, 'symbol');
         if (marketId !== undefined) {
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
             } else {
-                const [ baseId, quoteId ] = marketId.split ('_');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
+                symbol = marketId;
             }
         }
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
         const price = this.safeFloat (order, 'price');
-        const amount = this.safeFloat (order, 'amount');
+        const amount = this.safeFloat (order, 'orderQty');
+        const filled = this.safeFloat (order, 'cumQty');
+        const remaining = this.safeFloat (order, 'leavesQty');
         let cost = undefined;
-        const filled = this.safeFloat (order, 'filled_amount');
-        let remaining = undefined;
-        if (filled !== undefined) {
-            if (amount !== undefined) {
-                remaining = Math.max (0, amount - filled);
-                if (status === undefined) {
-                    if (remaining > 0) {
-                        status = 'open';
-                    } else {
-                        status = 'closed';
-                    }
-                }
-            }
-        }
         const side = this.safeStringLower (order, 'side');
         const type = this.safeStringLower (order, 'type');
-        const trades = this.parseTrades (rawTrades, market, undefined, undefined);
-        const fees = [];
-        const numTrades = trades.length;
-        let lastTradeTimestamp = undefined;
-        let tradeCost = undefined;
-        let tradeAmount = undefined;
-        if (numTrades > 0) {
-            lastTradeTimestamp = trades[0]['timestamp'];
-            tradeCost = 0;
-            tradeAmount = 0;
-            for (let i = 0; i < trades.length; i++) {
-                const trade = trades[i];
-                fees.push (trade['fee']);
-                lastTradeTimestamp = Math.max (lastTradeTimestamp, trade['timestamp']);
-                tradeCost = this.sum (tradeCost, trade['cost']);
-                tradeAmount = this.sum (tradeAmount, trade['amount']);
-            }
-        }
-        let average = this.safeFloat (order, 'average_price');
-        if (average === undefined) {
-            if ((tradeCost !== undefined) && (tradeAmount !== undefined) && (tradeAmount !== 0)) {
-                average = tradeCost / tradeAmount;
-            }
-        }
         if (cost === undefined) {
-            if ((average !== undefined) && (filled !== undefined)) {
-                cost = average * filled;
+            if ((price !== undefined) && (filled !== undefined)) {
+                cost = price * filled;
             }
         }
         return {
@@ -1004,19 +965,19 @@ module.exports = class xena extends Exchange {
             'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
             'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'average': average,
+            'average': undefined,
             'filled': filled,
             'remaining': remaining,
             'status': status,
             'fee': undefined,
-            'trades': trades,
+            'trades': undefined,
         };
     }
 
