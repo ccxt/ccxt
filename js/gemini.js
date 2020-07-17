@@ -356,6 +356,29 @@ module.exports = class gemini extends Exchange {
         return this.parseTicker (response, market);
     }
 
+    async fetchTickerV2 (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetV2TickerSymbol (this.extend (request, params));
+        //
+        //     {
+        //         "symbol":"BTCUSD",
+        //         "open":"9080.58",
+        //         "high":"9184.53",
+        //         "low":"9063.56",
+        //         "close":"9116.08",
+        //         // Hourly prices descending for past 24 hours
+        //         "changes":["9117.33","9105.69","9106.23","9120.35","9098.57","9114.53","9113.55","9128.01","9113.63","9133.49","9133.49","9137.75","9126.73","9103.91","9119.33","9123.04","9124.44","9117.57","9114.22","9102.33","9076.67","9074.72","9074.97","9092.05"],
+        //         "bid":"9115.86",
+        //         "ask":"9115.87"
+        //     }
+        //
+        return this.parseTicker (response, market);
+    }
+
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -422,6 +445,33 @@ module.exports = class gemini extends Exchange {
         //         "pair": "BATUSD",
         //         "price": "0.20687",
         //         "percentChange24h": "0.0146"
+        //     }
+        //
+        // fetchTickerV1
+        //
+        //     {
+        //         "bid":"9117.95",
+        //         "ask":"9117.96",
+        //         "volume":{
+        //             "BTC":"1615.46861748",
+        //             "USD":"14727307.57545006088",
+        //             "timestamp":1594982700000
+        //         },
+        //         "last":"9115.23"
+        //     }
+        //
+        // fetchTickerV2
+        //
+        //     {
+        //         "symbol":"BTCUSD",
+        //         "open":"9080.58",
+        //         "high":"9184.53",
+        //         "low":"9063.56",
+        //         "close":"9116.08",
+        //         // Hourly prices descending for past 24 hours
+        //         "changes":["9117.33","9105.69","9106.23","9120.35","9098.57","9114.53","9113.55","9128.01","9113.63","9133.49","9133.49","9137.75","9126.73","9103.91","9119.33","9123.04","9124.44","9117.57","9114.22","9102.33","9076.67","9074.72","9074.97","9092.05"],
+        //         "bid":"9115.86",
+        //         "ask":"9115.87"
         //     }
         //
         const timestamp = undefined;
