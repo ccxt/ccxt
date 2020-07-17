@@ -22,6 +22,7 @@ module.exports = class digifinex extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchTickers': true,
+                'fetchTime': true,
                 'fetchMyTrades': true,
                 'fetchLedger': true,
             },
@@ -579,6 +580,17 @@ module.exports = class digifinex extends Exchange {
             'takerOrMaker': takerOrMaker,
             'fee': fee,
         };
+    }
+
+    async fetchTime (params = {}) {
+        const response = await this.publicGetTime (params);
+        //
+        //     {
+        //         "server_time": 1589873762,
+        //         "code": 0
+        //     }
+        //
+        return this.safeTimestamp (response, 'server_time');
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {

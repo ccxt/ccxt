@@ -18,6 +18,7 @@ module.exports = class acx extends Exchange {
             'has': {
                 'CORS': true,
                 'fetchTickers': true,
+                'fetchTime': true,
                 'fetchOHLCV': true,
                 'withdraw': true,
                 'fetchOrder': true,
@@ -262,6 +263,14 @@ module.exports = class acx extends Exchange {
             'cost': this.safeFloat (trade, 'funds'),
             'fee': undefined,
         };
+    }
+
+    async fetchTime (params = {}) {
+        const response = await this.publicGetTimestamp (params);
+        //
+        //     1594911427
+        //
+        return response * 1000;
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {

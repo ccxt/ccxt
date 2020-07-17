@@ -20,6 +20,7 @@ class acx(Exchange):
             'has': {
                 'CORS': True,
                 'fetchTickers': True,
+                'fetchTime': True,
                 'fetchOHLCV': True,
                 'withdraw': True,
                 'fetchOrder': True,
@@ -249,6 +250,13 @@ class acx(Exchange):
             'cost': self.safe_float(trade, 'funds'),
             'fee': None,
         }
+
+    def fetch_time(self, params={}):
+        response = self.publicGetTimestamp(params)
+        #
+        #     1594911427
+        #
+        return response * 1000
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
