@@ -334,6 +334,14 @@ module.exports = class gemini extends Exchange {
         return this.parseOrderBook (response, undefined, 'bids', 'asks', 'price', 'amount');
     }
 
+    async fetchTickerV1 (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+    }
+
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -393,6 +401,15 @@ module.exports = class gemini extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        //
+        // fetchTickers
+        //
+        //     {
+        //         "pair": "BATUSD",
+        //         "price": "0.20687",
+        //         "percentChange24h": "0.0146"
+        //     }
+        //
         const timestamp = undefined;
         let symbol = undefined;
         const marketId = this.safeString (ticker, 'pair');
@@ -817,6 +834,13 @@ module.exports = class gemini extends Exchange {
             'symbol': market['id'],
         };
         const response = await this.publicGetV2CandlesSymbolTimeframe (this.extend (request, params));
+        //
+        //     [
+        //         [1591515000000,0.02509,0.02509,0.02509,0.02509,0],
+        //         [1591514700000,0.02503,0.02509,0.02503,0.02509,44.6405],
+        //         [1591514400000,0.02503,0.02503,0.02503,0.02503,0],
+        //     ]
+        //
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 };
