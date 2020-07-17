@@ -451,21 +451,22 @@ module.exports = class gemini extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const tickers = await this.publicGetV1Pricefeed (params);
-        // [
-        //     {
-        //       "pair": "BATUSD",
-        //       "price": "0.20687",
-        //       "percentChange24h": "0.0146"
-        //     },
-        //     {
-        //       "pair": "LINKETH",
-        //       "price": "0.018",
-        //       "percentChange24h": "0.0000"
-        //     },
-        //     ...
-        //   ]
-        return this.parseTickers (tickers, symbols);
+        const response = await this.publicGetV1Pricefeed (params);
+        //
+        //     [
+        //         {
+        //             "pair": "BATUSD",
+        //             "price": "0.20687",
+        //             "percentChange24h": "0.0146"
+        //         },
+        //         {
+        //             "pair": "LINKETH",
+        //             "price": "0.018",
+        //             "percentChange24h": "0.0000"
+        //         },
+        //     ]
+        //
+        return this.parseTickers (response, symbols);
     }
 
     parseTrade (trade, market = undefined) {
