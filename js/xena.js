@@ -1,7 +1,7 @@
 'use strict';
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, BadRequest, InsufficientFunds, InvalidAddress, BadSymbol } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, BadRequest, InsufficientFunds, InvalidAddress, BadSymbol, InvalidOrder } = require ('./base/errors');
 
 module.exports = class xena extends Exchange {
     describe () {
@@ -13,8 +13,7 @@ module.exports = class xena extends Exchange {
             'has': {
                 'CORS': false,
                 'createDepositAddress': true,
-                'createMarketOrder': false,
-                'createOrder': false,
+                'createOrder': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
@@ -893,18 +892,85 @@ module.exports = class xena extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (type !== 'limit') {
-            throw new ExchangeError (this.id + ' allows limit orders only');
-        }
         await this.loadMarkets ();
+        await this.loadAccounts ();
+        const accountId = await this.getAccountId (params);
+        //
+        //     MsgType 35 M D
+        //     Account 1 M // ulong Account ID
+        //     ClOrdId 11 M string (40)
+        //     Symbol 55 M string
+        //     OrdType 40 M OrdType // 1 Market 2 Limit 3 Stop 4 Stop-Limit
+        //     Side 54 M // 1 - Buy 2 - Sell
+        //     OrderQty 38 M decimal
+        //     Price 44 C decimal // Required for Limit and Stop-Limit orders
+        //     StopPx 99 C decimal // Stop (trigger) price, required for Stop and Stop-Limit orders
+        //     TimeInForce 59 O TimeInForce
+        //     ExecInst 18 O ExecInst
+        //     PositionID 2618 C ulong // Required when PositionEffect == Close and hedged accounting is used
+        //     PositionEffect 77 O // C — Close O — Open Send C along with the PositionID if the order must close a position (in the hedged accounting mode)
+        //     TransactTime 60 M timestamp // Current timestamp
+        //     Text 58 O string (40) // Optional comment for the order
+        //     GrpID TODO O string (40) // Group identifier for cancel on disconnect orders
+        //
+        //     {
+        //         "account":1013838923,
+        //         "clOrdId":str(int(time.time() * 100000000)),
+        //         "orderQty":"1",
+        //         "ordType":"2",
+        //         "side":"1",
+        //         "price":"9527",
+        //         "symbol": "XBTUSD",
+        //         "transactTime":11
+        //     }
+        //
+        const orderTypes = {
+            'market': '1',
+            'limit': '2',
+            'stop': '3',
+            'stop-limit': '4',
+        };
+        const orderType = this.safeString (orderTypes, type);
+        if (orderType === undefined) {
+            throw new InvalidOrder (this.id + ' createOrder does not support order type ' + type + ', supported order types are market, limit, stop, stop-limit');
+        }
+        const orderSides = {
+            'buy': '1',
+            'sell': '2',
+        };
+        const orderSide = this.safeString (orderSides, side);
+        if (orderSide === undefined) {
+            throw new InvalidOrder (this.id + ' createOrder does not support order side ' + side + ', supported order sides are buy, sell');
+        }
         const market = this.market (symbol);
         const request = {
+            'accountId': parseInt (accountId),
             'symbol': market['id'],
-            'side': side.toLowerCase (),
-            'amount': this.amountToPrecision (symbol, amount),
-            'price': this.priceToPrecision (symbol, price),
+            'ordType': orderType,
+            'side': orderSide,
+            'orderQty': this.amountToPrecision (symbol, amount),
+            'transactTime': this.milliseconds () * 1000000,
         };
-        const response = await this.privatePostOrders (this.extend (request, params));
+        if ((type === 'limit') || (type === 'stop-limit')) {
+            if (price === undefined) {
+                throw new InvalidOrder (this.id + ' createOrder requires a price argument for order type ' + type);
+            }
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        if ((type === 'stop') || (type === 'stop-limit')) {
+            const stopPx = this.safeFloat (params, 'stopPx');
+            if (stopPx === undefined) {
+                throw new InvalidOrder (this.id + ' createOrder requires a stopPx param for order type ' + type);
+            }
+            request['stopPx'] = this.priceToPrecision (symbol, stopPx);
+            params = this.omit (params, 'stopPx');
+        }
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clOrdId');
+        if (clientOrderId !== undefined) {
+            request['clOrdId'] = clientOrderId;
+            params = this.omit (params, [ 'clientOrderId', 'clOrdId' ]);
+        }
+        const response = await this.privatePostTradingOrderNew (this.extend (request, params));
         //
         //     {
         //         "entrust_id":1223181
