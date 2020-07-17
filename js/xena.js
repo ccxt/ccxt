@@ -1035,7 +1035,7 @@ module.exports = class xena extends Exchange {
         }
         const market = this.market (symbol);
         const request = {
-            'accountId': parseInt (accountId),
+            'accountId': accountId,
             'symbol': market['id'],
             'ordType': orderType,
             'side': orderSide,
@@ -1089,7 +1089,10 @@ module.exports = class xena extends Exchange {
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        await this.loadAccounts ();
+        const accountId = await this.getAccountId (params);
         const request = {
+            'account_id': accountId,
             // 'from': this.iso8601 (since) * 1000000,
             // 'to': this.iso8601 (this.milliseconds ()) * 1000000, // max range is 7 days
             // 'symbol': market['id'],
@@ -1106,7 +1109,7 @@ module.exports = class xena extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetAccountOrders (this.extend (request, params));
+        const response = await this.privateGetTradingAccountsAccountIdLastOrderStatuses (this.extend (request, params));
         //
         //     [
         //         {
