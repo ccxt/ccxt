@@ -300,9 +300,40 @@ module.exports = class lykke extends Exchange {
         }
         const method = 'privatePostOrdersV2' + this.capitalize (type);
         const result = await this[method] (this.extend (query, params));
+        //
+        // market
+        //
+        //     {
+        //         "Price": 0
+        //     }
+        //
+        // limit
+        //
+        //     {
+        //         "Id":"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+        //     }
+        //
+        const id = this.safeString (result, 'Id');
+        price = this.safeFloat (result, 'Price');
         return {
-            'id': undefined,
+            'id': id,
             'info': result,
+            'clientOrderId': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'lastTradeTimestamp': undefined,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': undefined,
+            'average': undefined,
+            'filled': undefined,
+            'remaining': undefined,
+            'status': undefined,
+            'fee': undefined,
+            'trades': undefined,
         };
     }
 
