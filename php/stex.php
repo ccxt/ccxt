@@ -27,6 +27,7 @@ class stex extends Exchange {
                 'fetchMarkets' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
+                'fetchTime' => true,
                 'fetchOrderBook' => true,
                 'fetchOHLCV' => true,
                 'fetchBalance' => true,
@@ -413,6 +414,26 @@ class stex extends Exchange {
         //
         $ticker = $this->safe_value($response, 'data', array());
         return $this->parse_ticker($ticker, $market);
+    }
+
+    public function fetch_time($params = array ()) {
+        $response = $this->publicGetPing ($params);
+        //
+        //     {
+        //         "success" => true,
+        //         "$data" => {
+        //             "server_datetime" => array(
+        //                 "date" => "2019-01-22 15:13:34.233796",
+        //                 "timezone_type" => 3,
+        //                 "timezone" => "UTC"
+        //             ),
+        //             "server_timestamp" => 1548170014
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $serverDatetime = $this->safe_value($data, 'server_datetime', array());
+        return $this->parse8601($this->safe_string($serverDatetime, 'date'));
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
