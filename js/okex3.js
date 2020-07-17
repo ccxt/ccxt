@@ -2690,6 +2690,7 @@ module.exports = class okex3 extends Exchange {
             }
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
             headers['OK-ACCESS-SIGN'] = this.decode (signature);
+            headers['client_oid'] = 'quad' + this.numberToString (this.milliseconds ()); // Quick and dirty way to pass custom header for order tracking
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

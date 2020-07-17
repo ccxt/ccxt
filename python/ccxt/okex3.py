@@ -2585,6 +2585,7 @@ class okex3(Exchange):
                 headers['Content-Type'] = 'application/json'
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
             headers['OK-ACCESS-SIGN'] = self.decode(signature)
+            headers['client_oid'] = 'quad' + self.number_to_string(self.milliseconds())  # Quick and dirty way to pass custom header for order tracking
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def get_path_authentication_type(self, path):
