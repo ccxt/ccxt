@@ -340,6 +340,20 @@ module.exports = class gemini extends Exchange {
         const request = {
             'symbol': market['id'],
         };
+        const response = await this.publicGetV1PubtickerSymbol (this.extend (request, params));
+        //
+        //     {
+        //         "bid":"9117.95",
+        //         "ask":"9117.96",
+        //         "volume":{
+        //             "BTC":"1615.46861748",
+        //             "USD":"14727307.57545006088",
+        //             "timestamp":1594982700000
+        //         },
+        //         "last":"9115.23"
+        //     }
+        //
+        return this.parseTicker (response, market);
     }
 
     async fetchTicker (symbol, params = {}) {
