@@ -19,6 +19,7 @@ module.exports = class xena extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchOHLCV': true,
+                'fetchOpenOrders': true,
                 'fetchMyTrades': true,
                 'fetchOrderBook': true,
                 'fetchTicker': true,
@@ -1085,6 +1086,47 @@ module.exports = class xena extends Exchange {
         //     }
         //
         return this.parseOrder (response, market);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        await this.loadAccounts ();
+        const accountId = await this.getAccountId (params);
+        const request = {
+            'account_id': accountId,
+            // 'symbol': market['id'],
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        const response = await this.privateGetTradingAccountsAccountIdActiveOrders (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "msgType":"8",
+        //             "account":1012838720,
+        //             "clOrdId":"XAq0pRQ1g",
+        //             "orderId":"64d7a06a-27e5-422e-99d9-3cadc04f5a35",
+        //             "symbol":"XBTUSD",
+        //             "ordType":"2",
+        //             "price":"9000",
+        //             "transactTime":1593778763271127920,
+        //             "execId":"ff5fb8153652f0516bf07b6979255bed053c84b9",
+        //             "execType":"I",
+        //             "ordStatus":"0",
+        //             "side":"1",
+        //             "orderQty":"1",
+        //             "leavesQty":"1",
+        //             "cumQty":"0",
+        //             "positionEffect":"O",
+        //             "marginAmt":"0.00000556",
+        //             "marginAmtType":"11"
+        //         }
+        //     ]
+        //
+        return this.parseOrders (response, market, since, limit);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
