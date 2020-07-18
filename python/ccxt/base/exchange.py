@@ -1063,7 +1063,7 @@ class Exchange(object):
         if digest == 'hex':
             return h.hexdigest()
         elif digest == 'base64':
-            return base64.b64encode(h.digest())
+            return Exchange.binary_to_base64(h.digest())
         return h.digest()
 
     @staticmethod
@@ -1072,7 +1072,7 @@ class Exchange(object):
         if digest == 'hex':
             return h.hexdigest()
         elif digest == 'base64':
-            return base64.b64encode(h.digest())
+            return Exchange.binary_to_base64(h.digest())
         return h.digest()
 
     @staticmethod
