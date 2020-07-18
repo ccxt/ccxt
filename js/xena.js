@@ -9,9 +9,10 @@ module.exports = class xena extends Exchange {
             'id': 'xena',
             'name': 'Xena Exchange',
             'countries': [ 'VC', 'UK' ],
-            'rateLimit': 500,
+            'rateLimit': 100,
             'has': {
                 'CORS': false,
+                'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createDepositAddress': true,
                 'createOrder': true,
@@ -1157,12 +1158,45 @@ module.exports = class xena extends Exchange {
         return this.parseOrder (response, market);
     }
 
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        await this.loadAccounts ();
+        const accountId = await this.getAccountId (params);
+        const request = {
+            'account': parseInt (accountId),
+            'clOrdId': this.uuid (),
+            // 'side': '1', // 1 = buy, 2 = sell, optional filter, cancel only orders with the given side
+            // 'positionEffect': 'C', // C = Close, O = Open, optional filter, cancel only orders with the given positionEffect, applicable only for accounts with hedged accounting
+        };
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            request['symbol'] = market['id'];
+            request['massCancelRequestType'] = '1'; // CancelOrdersForASecurity
+        } else {
+            request['massCancelRequestType'] = '7'; // CancelAllOrders
+        }
+        const response = await this.privatePostTradingOrderMassCancel (this.extend (request, params));
+        //
+        //     {
+        //         "msgType":"r",
+        //         "clOrdId":"b3e95759-e43e-4b3a-b664-a4d213e281a7",
+        //         "massActionReportID":"e915b6f4-a7ca-4c5c-b8d6-e39862530248",
+        //         "massCancelResponse":"1",
+        //         "symbol":"ETHUSD",
+        //         "transactTime":1595065630133756426,
+        //         "totalAffectedOrders":2,
+        //         "account":1012838158
+        //     }
+        //
+        return response;
+    }
+
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         await this.loadAccounts ();
         const accountId = await this.getAccountId (params);
         const request = {
-            'account_id': accountId,
+            'accountId': accountId,
             // 'symbol': market['id'],
         };
         let market = undefined;
@@ -1203,7 +1237,7 @@ module.exports = class xena extends Exchange {
         await this.loadAccounts ();
         const accountId = await this.getAccountId (params);
         const request = {
-            'account_id': accountId,
+            'accountId': accountId,
             // 'from': this.iso8601 (since) * 1000000,
             // 'to': this.iso8601 (this.milliseconds ()) * 1000000, // max range is 7 days
             // 'symbol': market['id'],
