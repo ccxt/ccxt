@@ -30,7 +30,7 @@ class indodax extends Exchange {
             ),
             'version' => '2.0', // as of 9 April 2018
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/37443283-2fddd0e4-281c-11e8-9741-b4f1419001b5.jpg',
+                'logo' => 'https://user-images.githubusercontent.com/51840849/87295556-12921900-c50e-11ea-84ae-fa4d8d8df551.jpg',
                 'api' => array(
                     'public' => 'https://indodax.com/api',
                     'private' => 'https://indodax.com/tapi',

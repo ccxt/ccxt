@@ -43,7 +43,7 @@ class bitmax(Exchange):
                 'cancelAllOrders': True,
                 'fetchDepositAddress': True,
                 'fetchTransactions': True,
-                'fetchDeposts': True,
+                'fetchDeposits': True,
                 'fetchWithdrawals': True,
                 'fetchOrder': True,
                 'fetchOrders': True,

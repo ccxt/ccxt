@@ -36,6 +36,7 @@ class bittrex extends Exchange {
                 'fetchOrder' => true,
                 'fetchOpenOrders' => true,
                 'fetchTickers' => true,
+                'fetchTime' => true,
                 'withdraw' => true,
                 'fetchDeposits' => true,
                 'fetchWithdrawals' => true,
@@ -49,7 +50,7 @@ class bittrex extends Exchange {
             ),
             'hostname' => 'bittrex.com',
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg',
+                'logo' => 'https://user-images.githubusercontent.com/51840849/87153921-edf53180-c2c0-11ea-96b9-f2a9a95a455b.jpg',
                 'api' => array(
                     'public' => 'https://{hostname}/api',
                     'account' => 'https://{hostname}/api',
@@ -605,6 +606,16 @@ class bittrex extends Exchange {
         );
     }
 
+    public function fetch_time($params = array ()) {
+        $response = $this->v3GetPing ($params);
+        //
+        //     {
+        //         "serverTime" => 1594596023162
+        //     }
+        //
+        return $this->safe_integer($response, 'serverTime');
+    }
+
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
@@ -826,7 +837,7 @@ class bittrex extends Exchange {
         //
         //     { success =>    true,
         //       message =>   "",
-        //        result => array( {            Id =>  22578097,
+        //        $result => array( {            Id =>  22578097,
         //                           Amount =>  0.3,
         //                         Currency => "ETH",
         //                    Confirmations =>  15,
@@ -836,8 +847,9 @@ class bittrex extends Exchange {
         //
         // we cannot filter by `$since` timestamp, as it isn't set by Bittrex
         // see https://github.com/ccxt/ccxt/issues/4067
-        // return $this->parse_transactions($response['result'], $currency, $since, $limit);
-        return $this->parse_transactions($response['result'], $currency, null, $limit);
+        $result = $this->safe_value($response, 'result', array());
+        // return $this->parse_transactions($result, $currency, $since, $limit);
+        return $this->parse_transactions($result, $currency, null, $limit);
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
@@ -1120,8 +1132,12 @@ class bittrex extends Exchange {
         //     }
         //
         $side = $this->safe_string_2($order, 'OrderType', 'Type');
-        $isBuyOrder = ($side === 'LIMIT_BUY') || ($side === 'BUY');
-        $isSellOrder = ($side === 'LIMIT_SELL') || ($side === 'SELL');
+        $isBuyOrder = ($side === 'LIMIT_BUY') || ($side === 'BUY') || ($side === 'MARKET_BUY');
+        $isSellOrder = ($side === 'LIMIT_SELL') || ($side === 'SELL') || ($side === 'MARKET_SELL');
+        $type = 'limit';
+        if (($side === 'MARKET_BUY') || ($side === 'MARKET_SELL')) {
+            $type = 'market';
+        }
         if ($isBuyOrder) {
             $side = 'buy';
         }
@@ -1225,7 +1241,7 @@ class bittrex extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $symbol,
-            'type' => 'limit',
+            'type' => $type,
             'side' => $side,
             'price' => $price,
             'cost' => $cost,

@@ -23,12 +23,13 @@ class ftx(Exchange):
             'rateLimit': 100,
             'certified': True,
             'pro': True,
+            'hostname': 'ftx.com',  # or ftx.us
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/67149189-df896480-f2b0-11e9-8816-41593e17f9ec.jpg',
                 'www': 'https://ftx.com',
                 'api': {
-                    'public': 'https://ftx.com',
-                    'private': 'https://ftx.com',
+                    'public': 'https://{hostname}',
+                    'private': 'https://{hostname}',
                 },
                 'doc': 'https://github.com/ftexchange/ftx',
                 'fees': 'https://ftexchange.zendesk.com/hc/en-us/articles/360024479432-Fees',
@@ -72,12 +73,24 @@ class ftx(Exchange):
                         'markets/{market_name}/orderbook',  # ?depth={depth}
                         'markets/{market_name}/trades',  # ?limit={limit}&start_time={start_time}&end_time={end_time}
                         'markets/{market_name}/candles',  # ?resolution={resolution}&limit={limit}&start_time={start_time}&end_time={end_time}
+                        # futures
                         'futures',
                         'futures/{future_name}',
                         'futures/{future_name}/stats',
                         'funding_rates',
+                        'indexes/{index_name}/weights',
+                        'expired_futures',
+                        'indexes/{market_name}/candles',  # ?resolution={resolution}&limit={limit}&start_time={start_time}&end_time={end_time}
+                        # leverage tokens
                         'lt/tokens',
                         'lt/{token_name}',
+                        # options
+                        'options/requests',
+                        'options/trades',
+                        'stats/24h_options_volume',
+                        'options/historical_volumes/BTC',
+                        'options/open_interest/BTC',
+                        'options/historical_open_interest/BTC',
                     ],
                 },
                 'private': {
@@ -86,6 +99,7 @@ class ftx(Exchange):
                         'positions',
                         'wallet/coins',
                         'wallet/balances',
+                        'wallet/all_balances',
                         'wallet/deposit_address/{coin}',
                         'wallet/deposits',
                         'wallet/withdrawals',
@@ -94,35 +108,60 @@ class ftx(Exchange):
                         'orders/{order_id}',
                         'orders/by_client_id/{client_order_id}',
                         'conditional_orders',  # ?market={market}
+                        'conditional_orders/{conditional_order_id}/triggers',
                         'conditional_orders/history',  # ?market={market}
                         'fills',  # ?market={market}
                         'funding_payments',
+                        # leverage tokens
                         'lt/balances',
                         'lt/creations',
                         'lt/redemptions',
+                        # subaccounts
                         'subaccounts',
                         'subaccounts/{nickname}/balances',
+                        # otc
                         'otc/quotes/{quoteId}',
+                        # options
+                        'options/my_requests',
+                        'options/requests/{request_id}/quotes',
+                        'options/my_quotes',
+                        'options/account_info',
+                        'options/positions',
+                        'options/fills',
                     ],
                     'post': [
                         'account/leverage',
                         'wallet/withdrawals',
                         'orders',
                         'conditional_orders',
+                        'orders/{order_id}/modify',
+                        'orders/by_client_id/{client_order_id}/modify',
+                        'conditional_orders/{order_id}/modify',
+                        # leverage tokens
                         'lt/{token_name}/create',
                         'lt/{token_name}/redeem',
+                        # subaccounts
                         'subaccounts',
                         'subaccounts/update_name',
                         'subaccounts/transfer',
+                        # otc
                         'otc/quotes/{quote_id}/accept',
                         'otc/quotes',
+                        # options
+                        'options/requests',
+                        'options/requests/{request_id}/quotes',
+                        'options/quotes/{quote_id}/accept',
                     ],
                     'delete': [
                         'orders/{order_id}',
                         'orders/by_client_id/{client_order_id}',
                         'orders',
                         'conditional_orders/{order_id}',
+                        # subaccounts
                         'subaccounts',
+                        # options
+                        'options/requests/{request_id}',
+                        'options/quotes/{quote_id}',
                     ],
                 },
             },
@@ -1372,7 +1411,8 @@ class ftx(Exchange):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = '/api/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        url = self.urls['api'][api] + request
+        baseUrl = self.implode_params(self.urls['api'][api], {'hostname': self.hostname})
+        url = baseUrl + request
         if method != 'POST':
             if query:
                 suffix = '?' + self.urlencode(query)

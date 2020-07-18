@@ -25,6 +25,7 @@ module.exports = class bitz extends Exchange {
                 'fetchOrder': true,
                 'createMarketOrder': false,
                 'fetchDeposits': true,
+                'fetchTime': true,
                 'fetchWithdrawals': true,
                 'fetchTransactions': false,
             },
@@ -42,7 +43,7 @@ module.exports = class bitz extends Exchange {
             },
             'hostname': 'apiv2.bitz.com',
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/35862606-4f554f14-0b5d-11e8-957d-35058c504b6f.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87443304-fec5e000-c5fd-11ea-98f8-ba8e67f7eaff.jpg',
                 'api': {
                     'market': 'https://{hostname}',
                     'trade': 'https://{hostname}',
@@ -62,6 +63,7 @@ module.exports = class bitz extends Exchange {
                         'tickerall',
                         'kline',
                         'symbolList',
+                        'getServerTime',
                         'currencyRate',
                         'currencyCoinRate',
                         'coinRate',
@@ -513,6 +515,21 @@ module.exports = class bitz extends Exchange {
             }
         }
         return result;
+    }
+
+    async fetchTime (params = {}) {
+        const response = await this.marketGetGetServerTime (params);
+        //
+        //     {
+        //         "status":200,
+        //         "msg":"",
+        //         "data":[],
+        //         "time":1555490875,
+        //         "microtime":"0.35994200 1555490875",
+        //         "source":"api"
+        //     }
+        //
+        return this.safeTimestamp (response, 'time');
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

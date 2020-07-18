@@ -34,7 +34,7 @@ class coinmarketcap extends Exchange {
                 'fetchCurrencies' => true,
             ),
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/28244244-9be6312a-69ed-11e7-99c1-7c1797275265.jpg',
+                'logo' => 'https://user-images.githubusercontent.com/51840849/87182086-1cd4cd00-c2ec-11ea-9ec4-d0cf2a2abf62.jpg',
                 'api' => array(
                     'public' => 'https://api.coinmarketcap.com',
                     'files' => 'https://files.coinmarketcap.com',

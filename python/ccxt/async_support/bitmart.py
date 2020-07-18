@@ -37,6 +37,7 @@ class bitmart(Exchange):
                 'fetchOHLCV': True,
                 'fetchBalance': True,
                 'createOrder': True,
+                'createMarketOrder': False,
                 'cancelOrder': True,
                 'cancelAllOrders': True,
                 'fetchOrders': False,
@@ -147,6 +148,7 @@ class bitmart(Exchange):
                     'Not found': OrderNotFound,  # {"message":"Not found"}
                     'Visit too often, please try again later': DDoSProtection,  # {"code":-30,"msg":"Visit too often, please try again later","subMsg":"","data":{}}
                     'Unknown symbol': BadSymbol,  # {"message":"Unknown symbol"}
+                    'Unauthorized': AuthenticationError,
                 },
                 'broad': {
                     'Invalid limit. limit must be in the range': InvalidOrder,
@@ -192,7 +194,7 @@ class bitmart(Exchange):
         return response
 
     async def fetch_markets(self, params={}):
-        markets = await self.publicGetSymbolsDetails(params)
+        response = await self.publicGetSymbolsDetails(params)
         #
         #     [
         #         {
@@ -209,8 +211,8 @@ class bitmart(Exchange):
         #     ]
         #
         result = []
-        for i in range(0, len(markets)):
-            market = markets[i]
+        for i in range(0, len(response)):
+            market = response[i]
             id = self.safe_string(market, 'id')
             baseId = self.safe_string(market, 'base_currency')
             quoteId = self.safe_string(market, 'quote_currency')
@@ -378,29 +380,30 @@ class bitmart(Exchange):
         await self.load_markets()
         tickers = await self.publicGetTicker(params)
         #
-        #         [
-        #             {
-        #                 "priceChange":"0%",
-        #                 "symbolId":1066,
-        #                 "website":"https://www.bitmart.com/trade?symbol=1SG_BTC",
-        #                 "depthEndPrecision":6,
-        #                 "ask_1":"0.000095",
-        #                 "anchorId":2,
-        #                 "anchorName":"BTC",
-        #                 "pair":"1SG_BTC",
-        #                 "volume":"0.0",
-        #                 "coinId":2029,
-        #                 "depthStartPrecision":4,
-        #                 "high_24h":"0.000035",
-        #                 "low_24h":"0.000035",
-        #                 "new_24h":"0.000035",
-        #                 "closeTime":1589389249342,
-        #                 "bid_1":"0.000035",
-        #                 "coinName":"1SG",
-        #                 "baseVolume":"0.0",
-        #                 "openTime":1589302849342
-        #             },
-        #         ]
+        #
+        #     [
+        #         {
+        #             "priceChange":"0%",
+        #             "symbolId":1066,
+        #             "website":"https://www.bitmart.com/trade?symbol=1SG_BTC",
+        #             "depthEndPrecision":6,
+        #             "ask_1":"0.000095",
+        #             "anchorId":2,
+        #             "anchorName":"BTC",
+        #             "pair":"1SG_BTC",
+        #             "volume":"0.0",
+        #             "coinId":2029,
+        #             "depthStartPrecision":4,
+        #             "high_24h":"0.000035",
+        #             "low_24h":"0.000035",
+        #             "new_24h":"0.000035",
+        #             "closeTime":1589389249342,
+        #             "bid_1":"0.000035",
+        #             "coinName":"1SG",
+        #             "baseVolume":"0.0",
+        #             "openTime":1589302849342
+        #         },
+        #     ]
         #
         result = {}
         for i in range(0, len(tickers)):
@@ -410,7 +413,7 @@ class bitmart(Exchange):
         return result
 
     async def fetch_currencies(self, params={}):
-        currencies = await self.publicGetCurrencies(params)
+        response = await self.publicGetCurrencies(params)
         #
         #     [
         #         {
@@ -422,16 +425,16 @@ class bitmart(Exchange):
         #     ]
         #
         result = {}
-        for i in range(0, len(currencies)):
-            currency = currencies[i]
-            currencyId = self.safe_string(currency, 'id')
-            code = self.safe_currency_code(currencyId)
+        for i in range(0, len(response)):
+            currency = response[i]
+            id = self.safe_string(currency, 'id')
+            code = self.safe_currency_code(id)
             name = self.safe_string(currency, 'name')
             withdrawEnabled = self.safe_value(currency, 'withdraw_enabled')
             depositEnabled = self.safe_value(currency, 'deposit_enabled')
             active = withdrawEnabled and depositEnabled
             result[code] = {
-                'id': currencyId,
+                'id': id,
                 'code': code,
                 'name': name,
                 'info': currency,  # the original payload
@@ -653,7 +656,7 @@ class bitmart(Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        balances = await self.privateGetWallet(params)
+        response = await self.privateGetWallet(params)
         #
         #     [
         #         {
@@ -664,9 +667,9 @@ class bitmart(Exchange):
         #         }
         #     ]
         #
-        result = {'info': balances}
-        for i in range(0, len(balances)):
-            balance = balances[i]
+        result = {'info': response}
+        for i in range(0, len(response)):
+            balance = response[i]
             currencyId = self.safe_string(balance, 'id')
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -703,7 +706,7 @@ class bitmart(Exchange):
         #     }
         #
         id = self.safe_string(order, 'entrust_id')
-        timestamp = self.milliseconds()
+        timestamp = self.safe_integer(order, 'timestamp', self.milliseconds())
         status = self.parse_order_status(self.safe_string(order, 'status'))
         symbol = None
         marketId = self.safe_string(order, 'symbol')
@@ -725,10 +728,10 @@ class bitmart(Exchange):
         if amount is not None:
             if remaining is not None:
                 if filled is None:
-                    filled = amount - remaining
+                    filled = max(0, amount - remaining)
             if filled is not None:
                 if remaining is None:
-                    remaining = amount - filled
+                    remaining = max(0, amount - filled)
                 if cost is None:
                     if price is not None:
                         cost = price * filled
@@ -746,7 +749,7 @@ class bitmart(Exchange):
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': None,
+            'cost': cost,
             'average': None,
             'filled': filled,
             'remaining': remaining,

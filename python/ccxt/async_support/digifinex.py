@@ -35,6 +35,7 @@ class digifinex(Exchange):
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchTickers': True,
+                'fetchTime': True,
                 'fetchMyTrades': True,
                 'fetchLedger': True,
             },
@@ -50,14 +51,14 @@ class digifinex(Exchange):
                 '1w': '1W',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/62184319-304e8880-b366-11e9-99fe-8011d6929195.jpg',
-                'api': 'https://openapi.digifinex.vip',
-                'www': 'https://www.digifinex.vip',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87443315-01283a00-c5fe-11ea-8628-c2a0feaf07ac.jpg',
+                'api': 'https://openapi.digifinex.com',
+                'www': 'https://www.digifinex.com',
                 'doc': [
-                    'https://docs.digifinex.vip',
+                    'https://docs.digifinex.com',
                 ],
                 'fees': 'https://digifinex.zendesk.com/hc/en-us/articles/360000328422-Fee-Structure-on-DigiFinex',
-                'referral': 'https://www.digifinex.vip/en-ww/from/DhOzBg/3798****5114',
+                'referral': 'https://www.digifinex.com/en-ww/from/DhOzBg/3798****5114',
             },
             'api': {
                 'v2': {
@@ -568,6 +569,16 @@ class digifinex(Exchange):
             'takerOrMaker': takerOrMaker,
             'fee': fee,
         }
+
+    async def fetch_time(self, params={}):
+        response = await self.publicGetTime(params)
+        #
+        #     {
+        #         "server_time": 1589873762,
+        #         "code": 0
+        #     }
+        #
+        return self.safe_timestamp(response, 'server_time')
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()

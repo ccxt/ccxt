@@ -272,8 +272,8 @@ module.exports = class bitmex extends Exchange {
             account['free'] = this.safeFloat (balance, 'availableMargin');
             account['total'] = this.safeFloat (balance, 'marginBalance');
             if (code === 'BTC') {
-                account['free'] = account['free'] * 0.00000001;
-                account['total'] = account['total'] * 0.00000001;
+                account['free'] = account['free'] / 100000000;
+                account['total'] = account['total'] / 100000000;
             }
             result[code] = account;
         }
@@ -509,7 +509,7 @@ module.exports = class bitmex extends Exchange {
         const code = this.safeCurrencyCode (currencyId, currency);
         let amount = this.safeFloat (item, 'amount');
         if (amount !== undefined) {
-            amount = amount * 1e-8;
+            amount = amount / 100000000;
         }
         let timestamp = this.parse8601 (this.safeString (item, 'transactTime'));
         if (timestamp === undefined) {
@@ -520,7 +520,7 @@ module.exports = class bitmex extends Exchange {
         }
         let feeCost = this.safeFloat (item, 'fee', 0);
         if (feeCost !== undefined) {
-            feeCost = feeCost * 1e-8;
+            feeCost = feeCost / 100000000;
         }
         const fee = {
             'cost': feeCost,
@@ -528,7 +528,7 @@ module.exports = class bitmex extends Exchange {
         };
         let after = this.safeFloat (item, 'walletBalance');
         if (after !== undefined) {
-            after = after * 1e-8;
+            after = after / 100000000;
         }
         const before = this.sum (after, -amount);
         let direction = undefined;

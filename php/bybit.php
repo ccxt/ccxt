@@ -1202,12 +1202,16 @@ class bybit extends Exchange {
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
+        $qty = $this->amount_to_precision($symbol, $amount);
+        if ($market['linear']) {
+            $qty = intval ($qty);
+        }
         $request = array(
             // orders ---------------------------------------------------------
             'side' => $this->capitalize($side),
             'symbol' => $market['id'],
             'order_type' => $this->capitalize($type),
-            'qty' => $this->amount_to_precision($symbol, $amount), // order quantity in USD, integer only
+            'qty' => $qty, // order quantity in USD, integer only
             // 'price' => $this->price_to_precision($symbol, $price), // required for limit orders
             'time_in_force' => 'GoodTillCancel', // ImmediateOrCancel, FillOrKill, PostOnly
             // 'take_profit' => 123.45, // take profit $price, only take effect upon opening the position
@@ -1268,7 +1272,7 @@ class bybit extends Exchange {
         //             "$side" => "Buy",
         //             "order_type" => "Limit",
         //             "$price" => 8800,
-        //             "qty" => 1,
+        //             "$qty" => 1,
         //             "time_in_force" => "GoodTillCancel",
         //             "order_status" => "Created",
         //             "last_exec_time" => 0,
@@ -1300,7 +1304,7 @@ class bybit extends Exchange {
         //             "$side" => "Buy",
         //             "order_type" => "Limit",
         //             "$price" => 8000,
-        //             "qty" => 1,
+        //             "$qty" => 1,
         //             "time_in_force" => "GoodTillCancel",
         //             "stop_order_type" => "Stop",
         //             "trigger_by" => "LastPrice",
@@ -1410,7 +1414,7 @@ class bybit extends Exchange {
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);

@@ -29,6 +29,7 @@ module.exports = class wavesexchange extends Exchange {
                 'cancelOrder': true,
                 'fetchDepositAddress': true,
                 'fetchOHLCV': true,
+                'createMarketOrder': false,
             },
             'timeframes': {
                 '1m': '1m',
@@ -226,6 +227,9 @@ module.exports = class wavesexchange extends Exchange {
                         'matcher/orders/{address}',  // can't get the orders endpoint to work with the matcher api
                         'matcher/orders/{address}/{orderId}',
                     ],
+                    'post': [
+                        'matcher/orders/{wavesAddress}/cancel',
+                    ],
                 },
                 'market': {
                     'get': [
@@ -240,7 +244,6 @@ module.exports = class wavesexchange extends Exchange {
                 'quotes': undefined,
                 'createOrderDefaultExpiry': 2419200000, // 60 * 60 * 24 * 28 * 1000
                 'wavesAddress': undefined,
-                'matcherFee': 300000,
                 'withdrawFeeUSDN': 7420,
                 'withdrawFeeWAVES': 100000,
             },
@@ -439,9 +442,10 @@ module.exports = class wavesexchange extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
+        const isCancelOrder = path === 'matcher/orders/{wavesAddress}/cancel';
         path = this.implodeParams (path, params);
         let url = this.urls['api'][api] + '/' + path;
-        const queryString = this.urlencode (query);
+        let queryString = this.urlencode (query);
         if ((api === 'private') || (api === 'forward')) {
             headers = {
                 'Accept': 'application/json',
@@ -450,8 +454,14 @@ module.exports = class wavesexchange extends Exchange {
             if (accessToken) {
                 headers['Authorization'] = 'Bearer ' + accessToken;
             }
-            if (method !== 'POST') {
+            if (method === 'POST') {
+                headers['content-type'] = 'application/json';
+            } else {
                 headers['content-type'] = 'application/x-www-form-urlencoded';
+            }
+            if (isCancelOrder) {
+                body = this.json ([query['orderId']]);
+                queryString = '';
             }
             if (queryString.length > 0) {
                 url += '?' + queryString;
@@ -835,8 +845,11 @@ module.exports = class wavesexchange extends Exchange {
         const timestamp = this.milliseconds ();
         const expiration = this.sum (timestamp, this.getDefaultExpiry ());
         // calculate the fee
-        const baseMatcherFee = this.safeInteger (this.options, 'matcherFee', 300000);
-        const rates = await this.matcherGetMatcherSettingsRates ();
+        const settings = await this.matcherGetMatcherSettings ();
+        const orderFee = this.safeValue (settings, 'orderFee');
+        const dynamic = this.safeValue (orderFee, 'dynamic');
+        const baseMatcherFee = this.safeInteger (dynamic, 'baseFee');
+        const rates = this.safeValue (dynamic, 'rates');
         // { '34N9YcEETLWn93qYQ64EsP1x89tSruJU44RrEMSXXEPJ': 1.23762376,
         //   '62LyMjcr2DtiyF5yVXFhoQ2q414VPPJXjsNYp72SuDCH': 0.01101575,
         //   HZk1mbfuJpmxU1Fs4AX5MWLVYtctsNcg6e2C6VKqK8zk: 0.04266412,
@@ -849,13 +862,29 @@ module.exports = class wavesexchange extends Exchange {
         //   '5WvPKSJXzVE2orvbkJ8wsQmmQKqTv9sGBPksV4adViw3': 0.02873582,
         //   WAVES: 1,
         //   BrjUWjndUanm5VsJkbUip8VRYy6LWJePtxya3FNv4TQa: 0.03614366 }
+        const priceAssets = Object.keys (rates);
         let matcherFeeAssetId = undefined;
-        if ((side === 'buy') && (market['quoteId'] in rates)) {
-            matcherFeeAssetId = market['quoteId'];
-        } else if ((side === 'sell') && (market['baseId'] in rates)) {
-            matcherFeeAssetId = market['baseId'];
+        if ('feeAssetId' in params) {
+            matcherFeeAssetId = params['feeAssetId'];
+        } else if ('feeAssetId' in this.options) {
+            matcherFeeAssetId = this.options['feeAssetId'];
         } else {
-            matcherFeeAssetId = 'WAVES';
+            const balances = await this.fetchBalance ();
+            const wavesMatcherFee = this.currencyFromPrecision ('WAVES', baseMatcherFee);
+            if (balances['WAVES']['free'] > wavesMatcherFee) {
+                matcherFeeAssetId = 'WAVES';
+            }
+            for (let i = 0; i < priceAssets.length; i++) {
+                const assetId = priceAssets[i];
+                const code = this.safeCurrencyCode (assetId);
+                const balance = this.safeValue (this.safeValue (balances, code, {}), 'free');
+                if ((balance !== undefined) && (balance > rates[assetId] * wavesMatcherFee)) {
+                    matcherFeeAssetId = assetId;
+                }
+            }
+        }
+        if (matcherFeeAssetId === undefined) {
+            throw InsufficientFunds (this.id + ' not enough funds to cover the fee, please buy some WAVES');
         }
         const rate = this.safeFloat (rates, matcherFeeAssetId);
         const matcherFee = parseInt (Math.ceil (baseMatcherFee * rate));
@@ -889,10 +918,12 @@ module.exports = class wavesexchange extends Exchange {
             'timestamp': timestamp,
             'expiration': expiration,
             'matcherFee': matcherFee,
-            'matcherFeeAssetId': market['baseId'],
             'signature': signature,
             'version': 3,
         };
+        if (matcherFeeAssetId !== 'WAVES') {
+            body['matcherFeeAssetId'] = matcherFeeAssetId;
+        }
         const response = await this.matcherPostMatcherOrderbook (body);
         // { success: true,
         //   message:
@@ -922,30 +953,21 @@ module.exports = class wavesexchange extends Exchange {
     async cancelOrder (id, symbol = undefined, params = {}) {
         this.checkRequiredDependencies ();
         this.checkRequiredKeys ();
-        await this.loadMarkets ();
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' symbol is required for cancelOrder');
-        }
-        const market = this.market (symbol);
-        const byteArray = [
-            this.base58ToBinary (this.apiKey),
-            this.base58ToBinary (id),
-        ];
-        const binary = this.binaryConcatArray (byteArray);
-        const hexSecret = this.binaryToBase16 (this.base58ToBinary (this.secret));
-        const signature = this.eddsa (this.binaryToBase16 (binary), hexSecret, 'ed25519');
-        const request = {
-            'sender': this.apiKey,
+        await this.getAccessToken ();
+        const wavesAddress = await this.getWavesAddress ();
+        const response = await this.forwardPostMatcherOrdersWavesAddressCancel ({
+            'wavesAddress': wavesAddress,
             'orderId': id,
-            'signature': signature,
-            'baseId': market['baseId'],
-            'quoteId': market['quoteId'],
-        };
-        const response = await this.matcherPostMatcherOrderbookBaseIdQuoteIdCancel (this.extend (request, params));
-        // { orderId: 'Do7cDJMf2MJuFyorvxNNuzS42MXSGGEq1r1hGDn1PHiS',
-        //   success: true,
-        //   status: 'OrderCanceled' }
-        const returnedId = this.safeString (response, 'orderId');
+        });
+        //  {
+        //    "success":true,
+        //    "message":[[{"orderId":"EBpJeGM36KKFz5gTJAUKDBm89V8wqxKipSFBdU35AN3c","success":true,"status":"OrderCanceled"}]],
+        //    "status":"BatchCancelCompleted"
+        //  }
+        const message = this.safeValue (response, 'message');
+        const firstMessage = this.safeValue (message, 0);
+        const firstOrder = this.safeValue (firstMessage, 0);
+        const returnedId = this.safeString (firstOrder, 'orderId');
         return {
             'info': response,
             'id': returnedId,
@@ -1068,6 +1090,7 @@ module.exports = class wavesexchange extends Exchange {
             'Cancelled': 'canceled',
             'Accepted': 'open',
             'Filled': 'closed',
+            'PartiallyFilled': 'open',
         };
         return this.safeString (statuses, status, status);
     }
@@ -1080,9 +1103,13 @@ module.exports = class wavesexchange extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        const isCreateOrder = this.safeInteger (order, 'version');
         const timestamp = this.safeInteger (order, 'timestamp');
-        const side = this.safeString (order, 'type');
-        const type = this.safeString (order, 'orderType');
+        const side = this.safeString2 (order, 'type', 'orderType');
+        let type = 'limit';
+        if (!isCreateOrder) {
+            type = this.safeString (order, 'orderType');
+        }
         const id = this.safeString (order, 'id');
         let filled = this.safeString (order, 'filled');
         let price = this.safeString (order, 'price');
@@ -1109,10 +1136,19 @@ module.exports = class wavesexchange extends Exchange {
         }
         const average = this.currencyFromPrecision (priceCurrency, this.safeString (order, 'avgWeighedPrice'));
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const fee = {
-            'currency': this.safeCurrencyCode (this.safeString2 (order, 'feeAsset', 'matcherFeeAssetId')),
-            'fee': this.safeString (order, 'filledFee'),
-        };
+        let fee = undefined;
+        if (isCreateOrder) {
+            const currency = this.safeCurrencyCode (this.safeString (order, 'matcherFeeAssetId', 'WAVES'));
+            fee = {
+                'currency': currency,
+                'fee': this.currencyFromPrecision (currency, this.safeInteger (order, 'matcherFee')),
+            };
+        } else {
+            fee = {
+                'currency': this.safeCurrencyCode (this.safeString (order, 'feeAsset')),
+                'fee': this.safeFloat (order, 'filledFee'),
+            };
+        }
         return {
             'info': order,
             'id': id,

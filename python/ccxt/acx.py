@@ -18,11 +18,19 @@ class acx(Exchange):
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
+                'cancelOrder': True,
                 'CORS': True,
-                'fetchTickers': True,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchMarkets': True,
                 'fetchOHLCV': True,
-                'withdraw': True,
                 'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTime': True,
+                'fetchTrades': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '1',
@@ -249,6 +257,13 @@ class acx(Exchange):
             'cost': self.safe_float(trade, 'funds'),
             'fee': None,
         }
+
+    def fetch_time(self, params={}):
+        response = self.publicGetTimestamp(params)
+        #
+        #     1594911427
+        #
+        return response * 1000
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()

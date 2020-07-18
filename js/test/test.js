@@ -2,7 +2,7 @@
 
 /*  ------------------------------------------------------------------------ */
 
-const [processPath, , exchangeId = null, exchangeSymbol = null] = process.argv.filter (x => !x.startsWith ('--'))
+const [processPath, , exchangeId = null, exchangeSymbol = null] = process.argv.filter ((x) => !x.startsWith ('--'))
 const verbose = process.argv.includes ('--verbose') || false
 const debug = process.argv.includes ('--debug') || false
 
@@ -43,7 +43,7 @@ const enableRateLimit = true
 const { Agent } = require ('https')
 
 const httpsAgent = new Agent ({
-    ecdhCurve: 'auto',
+    'ecdhCurve': 'auto',
 })
 
 const timeout = 20000
@@ -102,7 +102,7 @@ if (settings && settings.skip) {
 
 //-----------------------------------------------------------------------------
 
-let testSymbol = async (exchange, symbol) => {
+const testSymbol = async (exchange, symbol) => {
 
     if (exchange.id !== 'coinmarketcap') {
         await tests['loadMarkets'] (exchange)
@@ -133,9 +133,9 @@ let testSymbol = async (exchange, symbol) => {
 
 //-----------------------------------------------------------------------------
 
-let loadExchange = async exchange => {
+const loadExchange = async (exchange) => {
 
-    let markets = await exchange.loadMarkets ()
+    const markets = await exchange.loadMarkets ()
 
     assert (typeof exchange.markets === 'object', '.markets is not an object')
     assert (Array.isArray (exchange.symbols), '.symbols is not an array')
@@ -143,7 +143,7 @@ let loadExchange = async exchange => {
     assert (Object.keys (exchange.markets).length > 0, 'Object.keys (.markets).length <= 0 (less than or equal to zero)')
     assert (exchange.symbols.length === Object.keys (exchange.markets).length, 'number of .symbols is not equal to the number of .markets')
 
-    let symbols = [
+    const symbols = [
         'BTC/CNY',
         'BTC/USD',
         'BTC/USDT',
@@ -154,6 +154,7 @@ let loadExchange = async exchange => {
         'ETH/EUR',
         'ETH/JPY',
         'ETH/CNY',
+        'ETH/USD',
         'LTC/CNY',
         'DASH/BTC',
         'DOGE/BTC',
@@ -165,20 +166,22 @@ let loadExchange = async exchange => {
         'LTC/BTC',
     ]
 
-    let result = exchange.symbols.filter (symbol => symbols.indexOf (symbol) >= 0)
+    let result = exchange.symbols.filter ((symbol) => symbols.indexOf (symbol) >= 0)
 
-    if (result.length > 0)
-        if (exchange.symbols.length > result.length)
+    if (result.length > 0) {
+        if (exchange.symbols.length > result.length) {
             result = result.join (', ') + ' + more...'
-        else
+        } else {
             result = result.join (', ')
+        }
+    }
 
     log (exchange.symbols.length.toString ().bright.green, 'symbols', result)
 }
 
 //-----------------------------------------------------------------------------
 
-let testExchange = async exchange => {
+const testExchange = async (exchange) => {
 
     const codes = [
         'BTC',
@@ -229,6 +232,7 @@ let testExchange = async exchange => {
         'BTC/EUR',
         'BTC/ETH',
         'ETH/BTC',
+        'ETH/USD',
         'BTC/JPY',
         'LTC/BTC',
         'ZRX/WETH',
@@ -253,8 +257,9 @@ let testExchange = async exchange => {
         await testSymbol (exchange, symbol)
     }
 
-    if (!exchange.privateKey && (!exchange.apiKey || (exchange.apiKey.length < 1)))
+    if (!exchange.privateKey && (!exchange.apiKey || (exchange.apiKey.length < 1))) {
         return true
+    }
 
     exchange.checkRequiredCredentials ()
 
@@ -262,7 +267,7 @@ let testExchange = async exchange => {
     // if (exchange.urls['test'])
     //    exchange.urls['api'] = exchange.urls['test']
 
-    let balance = await tests['fetchBalance'] (exchange)
+    const balance = await tests['fetchBalance'] (exchange)
 
     await tests['fetchFundingFees']  (exchange)
     await tests['fetchTradingFees']  (exchange)
@@ -322,13 +327,14 @@ let testExchange = async exchange => {
 
 //-----------------------------------------------------------------------------
 
-let tryAllProxies = async function (exchange, proxies) {
+const tryAllProxies = async function (exchange, proxies) {
 
     let currentProxy = 0
-    let maxRetries   = proxies.length
+    const maxRetries   = proxies.length
 
-    if (settings && ('proxy' in settings))
+    if (settings && ('proxy' in settings)) {
         currentProxy = proxies.indexOf (settings.proxy)
+    }
 
     for (let numRetries = 0; numRetries < maxRetries; numRetries++) {
 

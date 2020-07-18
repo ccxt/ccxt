@@ -1267,7 +1267,7 @@ class binance extends Exchange {
         //     STOP/TAKE_PROFIT     quantity, $price, $stopPrice
         //     STOP_MARKET          $stopPrice
         //     TAKE_PROFIT_MARKET   $stopPrice
-        //     TRAILING_STOP_MARKET callbackRate
+        //     TRAILING_STOP_MARKET $callbackRate
         //
         if ($uppercaseType === 'MARKET') {
             $quoteOrderQty = $this->safe_value($this->options, 'quoteOrderQty', false);
@@ -1313,6 +1313,12 @@ class binance extends Exchange {
                 $quantityIsRequired = true;
             }
             $stopPriceIsRequired = true;
+        } else if ($uppercaseType === 'TRAILING_STOP_MARKET') {
+            $quantityIsRequired = true;
+            $callbackRate = $this->safe_float($params, 'callbackRate');
+            if ($callbackRate === null) {
+                throw new InvalidOrder($this->id . ' createOrder $method requires a $callbackRate extra param for a ' . $type . ' order');
+            }
         }
         if ($quantityIsRequired) {
             $request['quantity'] = $this->amount_to_precision($symbol, $amount);
