@@ -265,7 +265,7 @@ module.exports = class bitstamp1 extends Exchange {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
             const auth = nonce + this.uid + this.apiKey;
-            const signature = this.encode (this.hmac (this.encode (auth), this.encode (this.secret)));
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret));
             query = this.extend ({
                 'key': this.apiKey,
                 'signature': signature.toUpperCase (),
