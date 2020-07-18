@@ -655,7 +655,7 @@ module.exports = class xena extends Exchange {
         const id = this.safeString (trade, 'tradeId');
         let timestamp = this.safeInteger (trade, 'transactTime');
         if (timestamp !== undefined) {
-            timestamp = parseInt (timestamp / 1e6);
+            timestamp = parseInt (timestamp / 1000000);
         }
         const type = this.safeStringLower (trade, 'ordType');
         let side = this.safeStringLower (trade, 'side');
@@ -741,7 +741,7 @@ module.exports = class xena extends Exchange {
             request['symbol'] = market['id'];
         }
         if (since !== undefined) {
-            request['from'] = since * 1e6;
+            request['from'] = since * 1000000;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -1447,7 +1447,7 @@ module.exports = class xena extends Exchange {
         const type = (id === undefined) ? 'deposit' : 'withdrawal';
         let updated = this.safeInteger (transaction, 'lastUpdated');
         if (updated !== undefined) {
-            updated = parseInt (updated / 1e6);
+            updated = parseInt (updated / 1000000);
         }
         const timestamp = undefined;
         const txid = this.safeString (transaction, 'txId');
@@ -1562,7 +1562,7 @@ module.exports = class xena extends Exchange {
         }
         let timestamp = this.safeInteger (item, 'ts');
         if (timestamp !== undefined) {
-            timestamp = parseInt (timestamp / 1e6);
+            timestamp = parseInt (timestamp / 1000000);
         }
         const fee = {
             'cost': this.safeFloat (item, 'commission'),
@@ -1612,7 +1612,7 @@ module.exports = class xena extends Exchange {
             request['symbol'] = currency['id'];
         }
         if (since !== undefined) {
-            request['from'] = since * 1e6;
+            request['from'] = since * 1000000;
         }
         if (limit !== undefined) {
             request['limit'] = limit; // max 5000
