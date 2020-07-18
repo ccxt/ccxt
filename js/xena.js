@@ -961,8 +961,22 @@ module.exports = class xena extends Exchange {
         const filled = this.safeFloat (order, 'cumQty');
         const remaining = this.safeFloat (order, 'leavesQty');
         let cost = undefined;
-        const side = this.safeStringLower (order, 'side');
-        const type = this.safeStringLower (order, 'type');
+        let side = this.safeStringLower (order, 'side');
+        if (side === '1') {
+            side = 'buy';
+        } else if (side === '1') {
+            side = 'sell';
+        }
+        let type = this.safeStringLower (order, 'ordType');
+        if (type === '1') {
+            type = 'market';
+        } else if (type === '2') {
+            type = 'limit';
+        } else if (type === '3') {
+            type = 'stop';
+        } else if (type === '4') {
+            type = 'stop-limit';
+        }
         if (cost === undefined) {
             if ((price !== undefined) && (filled !== undefined)) {
                 cost = price * filled;
