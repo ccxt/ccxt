@@ -12,15 +12,16 @@ module.exports = class xena extends Exchange {
             'rateLimit': 500,
             'has': {
                 'CORS': false,
+                'cancelOrder': true,
                 'createDepositAddress': true,
                 'createOrder': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
-                'fetchMyTrades': true,
                 'fetchOrderBook': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -122,11 +123,17 @@ module.exports = class xena extends Exchange {
             'exceptions': {
                 'exact': {
                     'Validation failed': BadRequest,
+                    'Unknown derivative symbol': BadSymbol, // {"error":"Unknown derivative symbol"}
+                    'Unknown account': BadRequest, // {"error":"Unknown account"}
+                    'Wrong TransactTime': BadRequest, // {"error":"Wrong TransactTime"}
+                    'ClOrdId is empty': BadRequest, // {"error":"ClOrdId is empty"}
                 },
                 'broad': {
                     'Invalid aggregation ratio or depth': BadRequest,
                     'address': InvalidAddress,
                     'Money not enough': InsufficientFunds,
+                    'parse error': BadRequest,
+                    'Not enough': InsufficientFunds, // {"error":"Not enough free margin"}
                 },
             },
             'options': {
@@ -935,7 +942,7 @@ module.exports = class xena extends Exchange {
         const id = this.safeString (order, 'orderId');
         const clientOrderId = this.safeString (order, 'clOrdId');
         const transactTime = this.safeInteger (order, 'transactTime');
-        const timestamp = transactTime / 1000000;
+        const timestamp = parseInt (transactTime / 1000000);
         const status = this.parseOrderStatus (this.safeString (order, 'ordStatus'));
         let symbol = undefined;
         const marketId = this.safeString (order, 'symbol');
@@ -1036,7 +1043,7 @@ module.exports = class xena extends Exchange {
         }
         const market = this.market (symbol);
         const request = {
-            'accountId': accountId,
+            'account': parseInt (accountId),
             'symbol': market['id'],
             'ordType': orderType,
             'side': orderSide,
@@ -1057,7 +1064,7 @@ module.exports = class xena extends Exchange {
             request['stopPx'] = this.priceToPrecision (symbol, stopPx);
             params = this.omit (params, 'stopPx');
         }
-        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clOrdId');
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clOrdId', this.uuid ());
         if (clientOrderId !== undefined) {
             request['clOrdId'] = clientOrderId;
             params = this.omit (params, [ 'clientOrderId', 'clOrdId' ]);
@@ -1082,6 +1089,54 @@ module.exports = class xena extends Exchange {
         //         "cumQty":"0",
         //         "positionEffect":"O",
         //         "marginAmt":"0.00000556",
+        //         "marginAmtType":"11"
+        //     }
+        //
+        return this.parseOrder (response, market);
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        await this.loadAccounts ();
+        const accountId = await this.getAccountId (params);
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'origClOrdId');
+        params = this.omit (params, [ 'clientOrderId', 'origClOrdId' ]);
+        const market = this.market (symbol);
+        const request = {
+            'account': parseInt (accountId),
+            'symbol': market['id'],
+            'clOrdId': this.uuid (),
+            'transactTime': this.milliseconds () * 1000000,
+        };
+        if (clientOrderId !== undefined) {
+            request['origClOrdId'] = clientOrderId;
+        } else {
+            request['orderId'] = id;
+        }
+        const response = await this.privatePostTradingOrderCancel (this.extend (request, params));
+        //
+        //     {
+        //         "msgType":"8",
+        //         "account":1012838158,
+        //         "clOrdId":"0fa3fb55-9dc0-4cfc-a1db-6aa8b7dd2d98",
+        //         "origClOrdId":"3b2878bb-24d8-4922-9d2a-5b8009416677",
+        //         "orderId":"665b418e-9d09-4461-b733-d317f6bff43f",
+        //         "symbol":"ETHUSD",
+        //         "ordType":"2",
+        //         "price":"640",
+        //         "transactTime":1595060080941618739,
+        //         "execId":"c541c0ca437c0e6501c3a50a9d4dc8f575f49972",
+        //         "execType":"6",
+        //         "ordStatus":"6",
+        //         "side":"2",
+        //         "orderQty":"1",
+        //         "leavesQty":"0",
+        //         "cumQty":"0",
+        //         "positionEffect":"O",
+        //         "marginAmt":"0.000032",
         //         "marginAmtType":"11"
         //     }
         //
@@ -1240,9 +1295,12 @@ module.exports = class xena extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchTransactions() requires a currency `code` argument');
         }
         await this.loadMarkets ();
+        await this.loadAccounts ();
+        const accountId = await this.getAccountId (params);
         const currency = this.currency (code);
         const request = {
             'currency': currency['id'],
+            'accountId': accountId,
         };
         if (since !== undefined) {
             request['since'] = parseInt (since / 1000);
@@ -1285,7 +1343,7 @@ module.exports = class xena extends Exchange {
         //     }
         //
         //
-        const transactions = this.safeValue (response, 'withdrawals', []);
+        const transactions = this.safeValue (response, type, []);
         return this.parseTransactions (transactions, currency, since, limit);
     }
 
@@ -1348,13 +1406,8 @@ module.exports = class xena extends Exchange {
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
         const address = this.safeString (transaction, 'address');
-        let addressFrom = undefined;
-        let addressTo = undefined;
-        if (type === 'deposit') {
-            addressFrom = address;
-        } else {
-            addressTo = address;
-        }
+        const addressFrom = undefined;
+        const addressTo = address;
         const amount = this.safeFloat (transaction, 'amount');
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const fee = undefined;
