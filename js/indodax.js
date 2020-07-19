@@ -28,7 +28,7 @@ module.exports = class indodax extends Exchange {
             },
             'version': '2.0', // as of 9 April 2018
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/37443283-2fddd0e4-281c-11e8-9741-b4f1419001b5.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87070508-9358c880-c221-11ea-8dc5-5391afbbb422.jpg',
                 'api': {
                     'public': 'https://indodax.com/api',
                     'private': 'https://indodax.com/tapi',
@@ -111,6 +111,83 @@ module.exports = class indodax extends Exchange {
         const after = this.milliseconds ();
         this.options['timeDifference'] = after - serverTime;
         return this.options['timeDifference'];
+    }
+
+    async fetchMarkets (params = {}) {
+        const response = await this.publicGetPairs (params);
+        //
+        //     [
+        //         {
+        //             "id": "btcidr",
+        //             "symbol": "BTCIDR",
+        //             "base_currency": "idr",
+        //             "traded_currency": "btc",
+        //             "traded_currency_unit": "BTC",
+        //             "description": "BTC/IDR",
+        //             "ticker_id": "btc_idr",
+        //             "volume_precision": 0,
+        //             "price_precision": 1000,
+        //             "price_round": 8,
+        //             "pricescale": 1000,
+        //             "trade_min_base_currency": 10000,
+        //             "trade_min_traded_currency": 0.00007457,
+        //             "has_memo": false,
+        //             "memo_name": false,
+        //             "has_payment_id": false,
+        //             "trade_fee_percent": 0.3,
+        //             "url_logo": "https://indodax.com/v2/logo/svg/color/btc.svg",
+        //             "url_logo_png": "https://indodax.com/v2/logo/png/color/btc.png",
+        //             "is_maintenance": 0
+        //         }
+        //     ]
+        //
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            const market = response[i];
+            const id = this.safeString (market, 'id');
+            const baseId = this.safeString (market, 'traded_currency');
+            const quoteId = this.safeString (market, 'base_currency');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
+            const taker = this.safeFloat (market, 'trade_fee_percent');
+            const isMaintenance = this.safeInteger (market, 'is_maintenance');
+            const active = (isMaintenance) ? false : true;
+            const pricePrecision = this.safeInteger (market, 'price_round');
+            const precision = {
+                'amount': 8,
+                'price': pricePrecision,
+            };
+            const limits = {
+                'amount': {
+                    'min': this.safeFloat (market, 'trade_min_traded_currency'),
+                    'max': undefined,
+                },
+                'price': {
+                    'min': this.safeFloat (market, 'trade_min_base_currency'),
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            };
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'taker': taker,
+                'percentage': true,
+                'precision': precision,
+                'limits': limits,
+                'info': market,
+                'active': active,
+            });
+        }
+        return result;
     }
 
     async fetchBalance (params = {}) {
@@ -518,84 +595,5 @@ module.exports = class indodax extends Exchange {
         this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
         this.throwBroadlyMatchedException (this.exceptions['broad'], error, feedback);
         throw new ExchangeError (feedback); // unknown message
-    }
-
-    async fetchMarkets (params = {}) {
-        const markets = await this.publicGetPairs (params);
-        // [
-        //     {
-        //         "id": "btcidr",
-        //         "symbol": "BTCIDR",
-        //         "base_currency": "idr",
-        //         "traded_currency": "btc",
-        //         "traded_currency_unit": "BTC",
-        //         "description": "BTC/IDR",
-        //         "ticker_id": "btc_idr",
-        //         "volume_precision": 0,
-        //         "price_precision": 1000,
-        //         "price_round": 8,
-        //         "pricescale": 1000,
-        //         "trade_min_base_currency": 10000,
-        //         "trade_min_traded_currency": 0.00007457,
-        //         "has_memo": false,
-        //         "memo_name": false,
-        //         "has_payment_id": false,
-        //         "trade_fee_percent": 0.3,
-        //         "url_logo": "https://indodax.com/v2/logo/svg/color/btc.svg",
-        //         "url_logo_png": "https://indodax.com/v2/logo/png/color/btc.png",
-        //         "is_maintenance": 0
-        //     }
-        // ]
-        const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            const market = markets[i];
-            const id = this.safeString (market, 'id');
-            const baseId = this.safeString (market, 'traded_currency');
-            const quoteId = this.safeString (market, 'base_currency');
-            let base = baseId.toUpperCase ();
-            let quote = quoteId.toUpperCase ();
-            base = this.safeCurrencyCode (base);
-            quote = this.safeCurrencyCode (quote);
-            const symbol = base + '/' + quote;
-            const maker = 0;
-            const taker = this.safeFloat (market, 'trade_fee_percent');
-            const isMaintenance = this.safeInteger (market, 'is_maintenance');
-            const active = (isMaintenance) ? false : true;
-            const pricePrecision = this.safeInteger (market, 'price_round');
-            const precision = {
-                'amount': 8,
-                'price': pricePrecision,
-            };
-            const limits = {
-                'amount': {
-                    'min': this.safeFloat (market, 'trade_min_traded_currency'),
-                    'max': undefined,
-                },
-                'price': {
-                    'min': this.safeFloat (market, 'trade_min_base_currency'),
-                    'max': undefined,
-                },
-                'cost': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-            };
-            result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'taker': taker,
-                'maker': maker,
-                'percentage': true,
-                'precision': precision,
-                'limits': limits,
-                'info': market,
-                'active': active,
-            });
-        }
-        return result;
     }
 };
