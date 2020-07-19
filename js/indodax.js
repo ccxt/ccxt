@@ -17,6 +17,7 @@ module.exports = class indodax extends Exchange {
                 'CORS': false,
                 'createMarketOrder': false,
                 'fetchTickers': false,
+                'fetchTime': true,
                 'fetchOrder': true,
                 'fetchOrders': false,
                 'fetchClosedOrders': true,
