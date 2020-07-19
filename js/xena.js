@@ -631,27 +631,26 @@ module.exports = class xena extends Exchange {
         // fetchMyTrades
         //
         //     {
-        //         "account":8263118,
-        //         "clOrdId":"Kw9664m22",
-        //         "orderId":"7aa7f445-89be-47ec-b649-e0671e238609",
-        //         "symbol":"BTC/USDT",
-        //         "ordType":"Limit",
-        //         "price":"8000",
-        //         "transactTime":1557916859727908000,
-        //         "execId":"9aa20f1f-5c73-408d-909d-07f74f04edfd",
-        //         "tradeId":"220143240",
-        //         "side":"Sell",
-        //         "orderQty":"1",
-        //         "leavesQty":"0",
-        //         "cumQty":"1",
+        //         "msgType":"8",
+        //         "account":1012838158,
+        //         "clOrdId":"xXWKLQVl3",
+        //         "orderId":"89eee8bd-98ae-4d06-97dc-ee2d12997fe7",
+        //         "symbol":"ETHUSD",
+        //         "transactTime":1595143349089739000,
+        //         "execId":"c4bd0ee2330930924e0f6fdde4630e56751692a4",
+        //         "tradeId":"30a394b2-6d53-4bc4-b276-d8e19f470ba1",
+        //         "side":"2",
         //         "lastQty":"1",
-        //         "lastPx":"8000",
-        //         "avgPx":"0",
-        //         "calculatedCcyLastQty":"8000",
-        //         "netMoney":"8000",
-        //         "commission":"0",
-        //         "commCurrency":"USDT",
-        //         "positionEffect":"UnknownPositionEffect"
+        //         "lastPx":"234.58",
+        //         "avgPx":"234.58",
+        //         "calculatedCcyLastQty":"0",
+        //         "netMoney":"0",
+        //         "lastLiquidityInd":"2",
+        //         "commission":"0.00000011",
+        //         "commRate":"0.00045",
+        //         "commCurrency":"BTC",
+        //         "positionId":132162662,
+        //         "positionEffect":"C"
         //     }
         //
         const id = this.safeString (trade, 'tradeId');
@@ -659,22 +658,18 @@ module.exports = class xena extends Exchange {
         if (timestamp !== undefined) {
             timestamp = parseInt (timestamp / 1000000);
         }
-        const type = this.safeStringLower (trade, 'ordType');
-        let side = this.safeStringLower (trade, 'side');
-        if (side === undefined) {
-            side = this.safeInteger (trade, 'aggressorSide');
-            if (side === 1) {
-                side = 'buy';
-            } else if (side === 2) {
-                side = 'sell';
-            }
+        let side = this.safeStringLower2 (trade, 'side', 'aggressorSide');
+        if (side === '1') {
+            side = 'buy';
+        } else if (side === '2') {
+            side = 'sell';
         }
         const orderId = this.safeString (trade, 'orderId');
         let symbol = undefined;
         const marketId = this.safeString (trade, 'symbol');
         if (marketId !== undefined) {
             if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[symbol];
+                market = this.markets_by_id[marketId];
                 symbol = market['id'];
             } else {
                 const [ baseId, quoteId ] = marketId.split ('/');
@@ -686,23 +681,23 @@ module.exports = class xena extends Exchange {
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
-        const price = this.safeFloat2 (trade, 'price', 'mdEntryPx');
-        const amount = this.safeFloat2 (trade, 'cumQty', 'mdEntrySize');
-        let cost = this.safeFloat (trade, 'netMoney');
-        if (cost === undefined) {
-            if (price !== undefined) {
-                if (amount !== undefined) {
-                    cost = price * amount;
-                }
+        const price = this.safeFloat2 (trade, 'lastPx', 'mdEntryPx');
+        const amount = this.safeFloat2 (trade, 'lastQty', 'mdEntrySize');
+        let cost = undefined;
+        if (price !== undefined) {
+            if (amount !== undefined) {
+                cost = price * amount;
             }
         }
         let fee = undefined;
-        if ('fee_amount' in trade) {
-            const feeCost = this.safeFloat (trade, 'commission');
+        const feeCost = this.safeFloat (trade, 'commission');
+        if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'commCurrency');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+            const feeRate = this.safeFloat (trade, 'commRate');
             fee = {
                 'cost': feeCost,
+                'rate': feeRate,
                 'currency': feeCurrencyCode,
             };
         }
@@ -712,7 +707,7 @@ module.exports = class xena extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'type': type,
+            'type': undefined,
             'order': orderId,
             'side': side,
             'takerOrMaker': undefined,
@@ -752,50 +747,48 @@ module.exports = class xena extends Exchange {
         //
         //     [
         //         {
-        //             "account":8263118,
-        //             "clOrdId":"Kw9664m22",
-        //             "orderId":"7aa7f445-89be-47ec-b649-e0671e238609",
-        //             "symbol":"BTC/USDT",
-        //             "ordType":"Limit",
-        //             "price":"8000",
-        //             "transactTime":1557916859727908000,
-        //             "execId":"9aa20f1f-5c73-408d-909d-07f74f04edfd",
-        //             "tradeId":"220143240",
-        //             "side":"Sell",
-        //             "orderQty":"1",
-        //             "leavesQty":"0",
-        //             "cumQty":"1",
+        //             "msgType":"8",
+        //             "account":1012838158,
+        //             "clOrdId":"xXWKLQVl3",
+        //             "orderId":"89eee8bd-98ae-4d06-97dc-ee2d12997fe7",
+        //             "symbol":"ETHUSD",
+        //             "transactTime":1595143349089739000,
+        //             "execId":"c4bd0ee2330930924e0f6fdde4630e56751692a4",
+        //             "tradeId":"30a394b2-6d53-4bc4-b276-d8e19f470ba1",
+        //             "side":"2",
         //             "lastQty":"1",
-        //             "lastPx":"8000",
-        //             "avgPx":"0",
-        //             "calculatedCcyLastQty":"8000",
-        //             "netMoney":"8000",
-        //             "commission":"0",
-        //             "commCurrency":"USDT",
-        //             "positionEffect":"UnknownPositionEffect"
+        //             "lastPx":"234.58",
+        //             "avgPx":"234.58",
+        //             "calculatedCcyLastQty":"0",
+        //             "netMoney":"0",
+        //             "lastLiquidityInd":"2",
+        //             "commission":"0.00000011",
+        //             "commRate":"0.00045",
+        //             "commCurrency":"BTC",
+        //             "positionId":132162662,
+        //             "positionEffect":"C"
         //         },
         //         {
-        //             "account":8263118,
-        //             "clOrdId":"8yk33JO4b",
-        //             "orderId":"fcd4d7c2-31c9-4e4b-96bc-bb241ddb392d",
-        //             "symbol":"BTC/USDT",
-        //             "ordType":"Limit",
-        //             "price":"8000",
-        //             "transactTime":1557912994901110000,
-        //             "execId":"cef664d4-f438-4ad5-a7ad-279f725380d3",
-        //             "tradeId":"220143239",
-        //             "side":"Sell",
-        //             "orderQty":"1",
-        //             "leavesQty":"0",
-        //             "cumQty":"1",
+        //             "msgType":"8",
+        //             "account":1012838158,
+        //             "clOrdId":"3ce8c305-9936-4e97-9206-71ae3ff40305",
+        //             "orderId":"a93c686d-990e-44d9-9cbe-61107744b990",
+        //             "symbol":"ETHUSD",
+        //             "transactTime":1595143315369226000,
+        //             "execId":"1c745881722ad966a4ce71600cd058d59da0d1c3",
+        //             "tradeId":"77f75bd8-27c4-4b1a-a5e8-0d59239ce216",
+        //             "side":"1",
         //             "lastQty":"1",
-        //             "lastPx":"8000",
-        //             "avgPx":"0",
-        //             "calculatedCcyLastQty":"8000",
-        //             "netMoney":"8000",
-        //             "commission":"0",
-        //             "commCurrency":"USDT",
-        //             "positionEffect":"UnknownPositionEffect"
+        //             "lastPx":"234.72",
+        //             "avgPx":"234.72",
+        //             "calculatedCcyLastQty":"0",
+        //             "netMoney":"0",
+        //             "lastLiquidityInd":"2",
+        //             "commission":"0.00000011",
+        //             "commRate":"0.00045",
+        //             "commCurrency":"BTC",
+        //             "positionId":132162662,
+        //             "positionEffect":"O"
         //         }
         //     ]
         //
