@@ -40,7 +40,7 @@ module.exports = class xena extends Exchange {
                     'private': 'https://api.xena.exchange',
                 },
                 'www': 'https://xena.exchange',
-                'doc': 'https://support.xena.exchange/support/solutions/articles/44000222066-introduction-to-xena-api',
+                'doc': 'https://support.xena.exchange/support/solutions/44000808700',
                 'fees': 'https://trading.xena.exchange/en/platform-specification/fee-schedule',
             },
             'timeframes': {
