@@ -10,6 +10,7 @@ module.exports = class xena extends Exchange {
             'name': 'Xena Exchange',
             'countries': [ 'VC', 'UK' ],
             'rateLimit': 100,
+            'certified': true,
             'has': {
                 'CORS': false,
                 'cancelAllOrders': true,
