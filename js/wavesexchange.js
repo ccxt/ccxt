@@ -1144,9 +1144,10 @@ module.exports = class wavesexchange extends Exchange {
                 'fee': this.currencyFromPrecision (currency, this.safeInteger (order, 'matcherFee')),
             };
         } else {
+            const currency = this.safeCurrencyCode (this.safeString (order, 'feeAsset'));
             fee = {
-                'currency': this.safeCurrencyCode (this.safeString (order, 'feeAsset')),
-                'fee': this.safeFloat (order, 'filledFee'),
+                'currency': currency,
+                'fee': this.currencyFromPrecision (currency, this.safeInteger (order, 'filledFee')),
             };
         }
         return {
@@ -1318,6 +1319,12 @@ module.exports = class wavesexchange extends Exchange {
             'amountAsset': market['baseId'],
             'priceAsset': market['quoteId'],
         };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['timeStart'] = since;
+        }
         const response = await this.publicGetTransactionsExchange (request);
         const data = this.safeValue (response, 'data');
         return this.parseTrades (data, market, since, limit);
@@ -1424,6 +1431,10 @@ module.exports = class wavesexchange extends Exchange {
         if (Exception !== undefined) {
             const message = this.safeString (response, 'message');
             throw new Exception (this.id + ' ' + message);
+        }
+        const message = this.safeString (response, 'message');
+        if (message === 'Validation Error') {
+            throw new BadRequest (this.id + ' ' + body);
         }
         if (!success) {
             throw new ExchangeError (this.id + ' ' + body);
