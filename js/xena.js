@@ -252,16 +252,17 @@ module.exports = class xena extends Exchange {
             const quoteId = this.safeString (market, 'quoteCurrency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            let symbol = id;
             if (type === 'margin') {
                 if (marginType === 'XenaFuture') {
                     type = 'future';
                 } else if (marginType === 'XenaListedPerpetual') {
                     type = 'swap';
+                    symbol = base + '/' + quote;
                 }
             }
             const future = (type === 'future');
             const swap = (type === 'swap');
-            const symbol = id;
             const pricePrecision = this.safeInteger2 (market, 'tickSize', 'pricePrecision');
             const precision = {
                 'price': pricePrecision,
@@ -573,11 +574,11 @@ module.exports = class xena extends Exchange {
         if (accountId !== undefined) {
             return accountId;
         }
-        const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
+        const defaultType = this.safeString (this.options, 'defaultType', 'margin');
         const type = this.safeString (params, 'type', defaultType);
         params = this.omit (params, 'type');
         if (type === undefined) {
-            throw new ArgumentsRequired (this.id + " fetchBalance() requires an 'accountId' parameter or a 'type' parameter ('spot' or 'margin')");
+            throw new ArgumentsRequired (this.id + " requires an 'accountId' parameter or a 'type' parameter ('spot' or 'margin')");
         }
         const account = await this.findAccountByType (type);
         return account['id'];
@@ -1009,35 +1010,6 @@ module.exports = class xena extends Exchange {
         await this.loadMarkets ();
         await this.loadAccounts ();
         const accountId = await this.getAccountId (params);
-        //
-        //     MsgType 35 M D
-        //     Account 1 M // ulong Account ID
-        //     ClOrdId 11 M string (40)
-        //     Symbol 55 M string
-        //     OrdType 40 M OrdType // 1 Market 2 Limit 3 Stop 4 Stop-Limit
-        //     Side 54 M // 1 - Buy 2 - Sell
-        //     OrderQty 38 M decimal
-        //     Price 44 C decimal // Required for Limit and Stop-Limit orders
-        //     StopPx 99 C decimal // Stop (trigger) price, required for Stop and Stop-Limit orders
-        //     TimeInForce 59 O TimeInForce
-        //     ExecInst 18 O ExecInst
-        //     PositionID 2618 C ulong // Required when PositionEffect == Close and hedged accounting is used
-        //     PositionEffect 77 O // C — Close O — Open Send C along with the PositionID if the order must close a position (in the hedged accounting mode)
-        //     TransactTime 60 M timestamp // Current timestamp
-        //     Text 58 O string (40) // Optional comment for the order
-        //     GrpID TODO O string (40) // Group identifier for cancel on disconnect orders
-        //
-        //     {
-        //         "account":1013838923,
-        //         "clOrdId":str(int(time.time() * 100000000)),
-        //         "orderQty":"1",
-        //         "ordType":"2",
-        //         "side":"1",
-        //         "price":"9527",
-        //         "symbol": "XBTUSD",
-        //         "transactTime":11
-        //     }
-        //
         const orderTypes = {
             'market': '1',
             'limit': '2',
@@ -1064,6 +1036,18 @@ module.exports = class xena extends Exchange {
             'side': orderSide,
             'orderQty': this.amountToPrecision (symbol, amount),
             'transactTime': this.milliseconds () * 1000000,
+            // 'clOrdId': this.uuid (), // required
+            // 'price': this.priceToPrecision (symbol, price), // required for limit and stop-limit orders
+            // 'stopPx': this.priceToPrecision (symbol, stopPx), // required for stop and stop-limit orders
+            // 'timeInForce': '1', // default '1' = GoodTillCancelled, '3' = ImmediateOrCancel, '4' = FillOrKill
+            // 'execInst': '0',
+            //     '0' = StayOnOfferSide, maker only, reject instead of aggressive execution
+            //     '9' = PegToOfferSide, maker only, best available level instead of aggressive execution
+            //     'o' = CancelOnConnectionLoss
+            // 'positionID': 1013838923, // required when positionEffect == 'C' with hedged accounting
+            // 'positionEffect': 'O', // 'C' = Close, 'O' = Open, send C along with the positionID if the order must close a position with hedged accounting mode
+            // 'text': 'comment', // optional
+            // 'grpID': 'group-identifier', // group identifier for cancel on disconnect orders
         };
         if ((type === 'limit') || (type === 'stop-limit')) {
             if (price === undefined) {
@@ -1109,6 +1093,69 @@ module.exports = class xena extends Exchange {
         //
         return this.parseOrder (response, market);
     }
+
+    async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        await this.loadAccounts ();
+        const accountId = await this.getAccountId (params);
+        //
+        //     MsgType 35 M M
+        //     ClOrdId 11 M string (40) ClOrdId of the request
+        //     OrigClOrdId 41 C string (40) One of these IDs must be submitted
+        //     OrderId 37 C string (40)
+        //     Symbol 55 M string
+        //     Side 54 M Side
+        //     TransactTime 60 M timestamp
+        //     Account 1 M ulong
+        //     ExecInst 18 O  ExecInst
+        //     OrderQty 38 M decimal
+        //     Price 44 C decimal Required for Limit and Stop-Limit orders
+        //     StopPx 99 C decimal Required for Stop and Stop-Limit orders
+        //     CapPrice 1199 O decimal For trailing stop and attempt-zero-loss — the price beyond which the order won’t move
+        //     PegPriceType 1094 8 — TrailingStopPeg Identifies a trailing stop or an attempt-zero-loss order
+        //     PegOffsetType 836 2 — BasisPoints The unit of the distance to the stop price for a trailing stop or an attempt-zero-loss order
+        //     PegOffsetValue 211 ulong Distance to the trailing stop or attempt-zero-loss
+        //
+        const market = this.market (symbol);
+        const request = {
+            'account': parseInt (accountId),
+            'clOdId': this.uuid (),
+            'symbol': market['symbol'],
+        };
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'origClOrdId');
+        if (clientOrderId !== undefined) {
+            request['origClOrdId'] = clientOrderId;
+            params = this.omit (params, [ 'clientOrderId', 'origClOrdId' ]);
+        } else {
+            request['orderId'] = id;
+        }
+
+
+        const amountRemaining = this.safeFloat (params, 'amountRemaining');
+        params = this.omit (params, 'amountRemaining');
+        if (price !== undefined) {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        if (amount !== undefined) {
+            request['amount'] = this.amountToPrecision (symbol, amount);
+        }
+        if (amountRemaining !== undefined) {
+            request['amountRemaining'] = this.amountToPrecision (symbol, amountRemaining);
+        }
+        request = this.extend (request, params);
+        if (Object.keys (request).length) {
+            request['orderId'] = id;
+            request['market'] = market['id'];
+            const response = await this.privatePostTradingOrderReplace (this.extend (request, params));
+            return this.parseOrder (response, market);
+        } else {
+            throw new ArgumentsRequired (this.id + ' editOrder requires an amount argument, or a price argument, or non-empty params');
+        }
+    }
+
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
