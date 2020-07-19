@@ -899,7 +899,7 @@ module.exports = class wavesexchange extends Exchange {
         const wavesMatcherFee = this.currencyFromPrecision ('WAVES', baseMatcherFee);
         const rates = this.safeValue (dynamic, 'rates');
         // choose sponsored assets from the list of priceAssets above
-        const priceAssets = this.safeValue (settings, 'priceAssets');
+        const priceAssets = Object.keys (rates);
         let matcherFeeAssetId = undefined;
         let matcherFee = undefined;
         if ('feeAssetId' in params) {
@@ -925,15 +925,15 @@ module.exports = class wavesexchange extends Exchange {
             }
         }
         if (matcherFeeAssetId === undefined) {
-            throw InsufficientFunds (this.id + ' not enough funds to cover the fee, please buy some WAVES');
+            throw InsufficientFunds (this.id + ' not enough funds to cover the fee, specify feeAssetId in params or options, or buy some WAVES');
         }
         if (matcherFee === undefined) {
             const rate = this.safeFloat (rates, matcherFeeAssetId);
             const code = this.safeCurrencyCode (matcherFeeAssetId);
             const waves = this.currency ('WAVES');
             const currency = this.currency (code);
-            const newPrecison = waves['precision'] - currency['precision'];
-            matcherFee = Math.ceil (rate * baseMatcherFee / (10 ** newPrecison));
+            const newPrecison = Math.pow (10, waves['precision'] - currency['precision']);
+            matcherFee = Math.ceil (rate * baseMatcherFee / newPrecison);
         }
         const byteArray = [
             this.numberToBE (3, 1),
