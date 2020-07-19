@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.31.49'
+__version__ = '1.31.50'
 
 # -----------------------------------------------------------------------------
 
@@ -169,6 +169,7 @@ from ccxt.async_support.vbtc import vbtc                                  # noqa
 from ccxt.async_support.wavesexchange import wavesexchange                # noqa: F401
 from ccxt.async_support.whitebit import whitebit                          # noqa: F401
 from ccxt.async_support.xbtce import xbtce                                # noqa: F401
+from ccxt.async_support.xena import xena                                  # noqa: F401
 from ccxt.async_support.yobit import yobit                                # noqa: F401
 from ccxt.async_support.zaif import zaif                                  # noqa: F401
 from ccxt.async_support.zb import zb                                      # noqa: F401
@@ -293,6 +294,7 @@ exchanges = [
     'wavesexchange',
     'whitebit',
     'xbtce',
+    'xena',
     'yobit',
     'zaif',
     'zb',
