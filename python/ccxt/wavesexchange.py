@@ -1082,9 +1082,10 @@ class wavesexchange(Exchange):
                 'fee': self.currency_from_precision(currency, self.safe_integer(order, 'matcherFee')),
             }
         else:
+            currency = self.safe_currency_code(self.safe_string(order, 'feeAsset'))
             fee = {
-                'currency': self.safe_currency_code(self.safe_string(order, 'feeAsset')),
-                'fee': self.safe_float(order, 'filledFee'),
+                'currency': currency,
+                'fee': self.currency_from_precision(currency, self.safe_integer(order, 'filledFee')),
             }
         return {
             'info': order,
@@ -1244,6 +1245,10 @@ class wavesexchange(Exchange):
             'amountAsset': market['baseId'],
             'priceAsset': market['quoteId'],
         }
+        if limit is not None:
+            request['limit'] = limit
+        if since is not None:
+            request['timeStart'] = since
         response = self.publicGetTransactionsExchange(request)
         data = self.safe_value(response, 'data')
         return self.parse_trades(data, market, since, limit)
@@ -1345,6 +1350,9 @@ class wavesexchange(Exchange):
         if Exception is not None:
             message = self.safe_string(response, 'message')
             raise Exception(self.id + ' ' + message)
+        message = self.safe_string(response, 'message')
+        if message == 'Validation Error':
+            raise BadRequest(self.id + ' ' + body)
         if not success:
             raise ExchangeError(self.id + ' ' + body)
 

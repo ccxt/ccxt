@@ -9,6 +9,7 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\AuthenticationError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\BadRequest;
 use \ccxt\InsufficientFunds;
 
 class wavesexchange extends Exchange {
@@ -1149,9 +1150,10 @@ class wavesexchange extends Exchange {
                 'fee' => $this->currency_from_precision($currency, $this->safe_integer($order, 'matcherFee')),
             );
         } else {
+            $currency = $this->safe_currency_code($this->safe_string($order, 'feeAsset'));
             $fee = array(
-                'currency' => $this->safe_currency_code($this->safe_string($order, 'feeAsset')),
-                'fee' => $this->safe_float($order, 'filledFee'),
+                'currency' => $currency,
+                'fee' => $this->currency_from_precision($currency, $this->safe_integer($order, 'filledFee')),
             );
         }
         return array(
@@ -1323,6 +1325,12 @@ class wavesexchange extends Exchange {
             'amountAsset' => $market['baseId'],
             'priceAsset' => $market['quoteId'],
         );
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        if ($since !== null) {
+            $request['timeStart'] = $since;
+        }
         $response = $this->publicGetTransactionsExchange ($request);
         $data = $this->safe_value($response, 'data');
         return $this->parse_trades($data, $market, $since, $limit);
@@ -1429,6 +1437,10 @@ class wavesexchange extends Exchange {
         if ($Exception !== null) {
             $message = $this->safe_string($response, 'message');
             throw new $Exception($this->id . ' ' . $message);
+        }
+        $message = $this->safe_string($response, 'message');
+        if ($message === 'Validation Error') {
+            throw new BadRequest($this->id . ' ' . $body);
         }
         if (!$success) {
             throw new ExchangeError($this->id . ' ' . $body);
