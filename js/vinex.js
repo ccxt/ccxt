@@ -16,7 +16,6 @@ module.exports = class vinex extends Exchange {
             'countries': ['VG'],
             'version': 'v2',
             'rateLimit': 500,
-            // new metainfo interface
             'has': {
                 'CORS': false,
                 'createMarketOrder': true,
@@ -122,7 +121,6 @@ module.exports = class vinex extends Exchange {
         //     }
         // ]
         const result = [];
-        // const markets = this.safeValue (response, 'result');
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString (market, 'symbol');
