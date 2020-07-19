@@ -16,6 +16,7 @@ module.exports = class xena extends Exchange {
                 'cancelOrder': true,
                 'createDepositAddress': true,
                 'createOrder': true,
+                'editOrder': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
@@ -1101,29 +1102,26 @@ module.exports = class xena extends Exchange {
         await this.loadMarkets ();
         await this.loadAccounts ();
         const accountId = await this.getAccountId (params);
-        //
-        //     MsgType 35 M M
-        //     ClOrdId 11 M string (40) ClOrdId of the request
-        //     OrigClOrdId 41 C string (40) One of these IDs must be submitted
-        //     OrderId 37 C string (40)
-        //     Symbol 55 M string
-        //     Side 54 M Side
-        //     TransactTime 60 M timestamp
-        //     Account 1 M ulong
-        //     ExecInst 18 O  ExecInst
-        //     OrderQty 38 M decimal
-        //     Price 44 C decimal Required for Limit and Stop-Limit orders
-        //     StopPx 99 C decimal Required for Stop and Stop-Limit orders
-        //     CapPrice 1199 O decimal For trailing stop and attempt-zero-loss — the price beyond which the order won’t move
-        //     PegPriceType 1094 8 — TrailingStopPeg Identifies a trailing stop or an attempt-zero-loss order
-        //     PegOffsetType 836 2 — BasisPoints The unit of the distance to the stop price for a trailing stop or an attempt-zero-loss order
-        //     PegOffsetValue 211 ulong Distance to the trailing stop or attempt-zero-loss
-        //
         const market = this.market (symbol);
         const request = {
             'account': parseInt (accountId),
-            'clOdId': this.uuid (),
-            'symbol': market['symbol'],
+            'clOrdId': this.uuid (),
+            'symbol': market['id'],
+            'transactTime': this.milliseconds () * 1000000,
+            // 'origClOrdId': this.uuid (), // one of orderId or origClOrdId is required
+            // 'orderId': id,
+            // 'side': '1', // 1 = buy, 2 = sell
+            // 'execInst': '0',
+            //     '0' = StayOnOfferSide, maker only, reject instead of aggressive execution
+            //     '9' = PegToOfferSide, maker only, best available level instead of aggressive execution
+            //     'o' = CancelOnConnectionLoss
+            // 'orderQty': 38 M decimal
+            // 'price': this.priceToPrecision (symbol, price), // required for limit and stop-limit orders
+            // 'stopPx': this.priceToPrecision (symbol, stopPx), // required for stop and stop-limit orders
+            // 'capPrice': this.priceToPrecision (symbol, capPrice), // the price beyond which the order will not move for trailing stop and attempt-zero-loss
+            // 'pegPriceType': '8', // '8' = TrailingStopPeg, identifies a trailing stop or an attempt-zero-loss order
+            // 'pegOffsetType': '2', // '2' = BasisPoints, the unit of the distance to the stop price for a trailing stop or an attempt-zero-loss order
+            // 'pegOffsetValue': 123, // distance to the trailing stop or attempt-zero-loss
         };
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'origClOrdId');
         if (clientOrderId !== undefined) {
@@ -1132,30 +1130,25 @@ module.exports = class xena extends Exchange {
         } else {
             request['orderId'] = id;
         }
-
-
-        const amountRemaining = this.safeFloat (params, 'amountRemaining');
-        params = this.omit (params, 'amountRemaining');
+        if (amount !== undefined) {
+            request['orderQty'] = this.amountToPrecision (symbol, amount);
+        }
         if (price !== undefined) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        if (amount !== undefined) {
-            request['amount'] = this.amountToPrecision (symbol, amount);
+        const stopPx = this.safeFloat (params, 'stopPx');
+        if (stopPx !== undefined) {
+            request['stopPx'] = this.priceToPrecision (symbol, stopPx);
+            params = this.omit (params, 'stopPx');
         }
-        if (amountRemaining !== undefined) {
-            request['amountRemaining'] = this.amountToPrecision (symbol, amountRemaining);
+        const capPrice = this.safeFloat (params, 'capPrice');
+        if (capPrice !== undefined) {
+            request['capPrice'] = this.priceToPrecision (symbol, capPrice);
+            params = this.omit (params, 'capPrice');
         }
-        request = this.extend (request, params);
-        if (Object.keys (request).length) {
-            request['orderId'] = id;
-            request['market'] = market['id'];
-            const response = await this.privatePostTradingOrderReplace (this.extend (request, params));
-            return this.parseOrder (response, market);
-        } else {
-            throw new ArgumentsRequired (this.id + ' editOrder requires an amount argument, or a price argument, or non-empty params');
-        }
+        const response = await this.privatePostTradingOrderReplace (this.extend (request, params));
+        return this.parseOrder (response, market);
     }
-
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
