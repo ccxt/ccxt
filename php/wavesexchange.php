@@ -9,6 +9,8 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\AuthenticationError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\BadRequest;
+use \ccxt\InsufficientFunds;
 
 class wavesexchange extends Exchange {
 
@@ -33,6 +35,7 @@ class wavesexchange extends Exchange {
                 'cancelOrder' => true,
                 'fetchDepositAddress' => true,
                 'fetchOHLCV' => true,
+                'createMarketOrder' => false,
             ),
             'timeframes' => array(
                 '1m' => '1m',
@@ -230,6 +233,9 @@ class wavesexchange extends Exchange {
                         'matcher/orders/{address}',  // can't get the orders endpoint to work with the matcher api
                         'matcher/orders/{address}/{orderId}',
                     ),
+                    'post' => array(
+                        'matcher/orders/{wavesAddress}/cancel',
+                    ),
                 ),
                 'market' => array(
                     'get' => array(
@@ -244,7 +250,6 @@ class wavesexchange extends Exchange {
                 'quotes' => null,
                 'createOrderDefaultExpiry' => 2419200000, // 60 * 60 * 24 * 28 * 1000
                 'wavesAddress' => null,
-                'matcherFee' => 300000,
                 'withdrawFeeUSDN' => 7420,
                 'withdrawFeeWAVES' => 100000,
             ),
@@ -443,6 +448,7 @@ class wavesexchange extends Exchange {
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $query = $this->omit($params, $this->extract_params($path));
+        $isCancelOrder = $path === 'matcher/orders/{wavesAddress}/cancel';
         $path = $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . '/' . $path;
         $queryString = $this->urlencode($query);
@@ -454,8 +460,14 @@ class wavesexchange extends Exchange {
             if ($accessToken) {
                 $headers['Authorization'] = 'Bearer ' . $accessToken;
             }
-            if ($method !== 'POST') {
+            if ($method === 'POST') {
+                $headers['content-type'] = 'application/json';
+            } else {
                 $headers['content-type'] = 'application/x-www-form-urlencoded';
+            }
+            if ($isCancelOrder) {
+                $body = $this->json([$query['orderId']]);
+                $queryString = '';
             }
             if (strlen($queryString) > 0) {
                 $url .= '?' . $queryString;
@@ -838,31 +850,97 @@ class wavesexchange extends Exchange {
         $orderType = ($side === 'buy') ? 0 : 1;
         $timestamp = $this->milliseconds();
         $expiration = $this->sum($timestamp, $this->get_default_expiry());
-        // calculate the fee
-        $baseMatcherFee = $this->safe_integer($this->options, 'matcherFee', 300000);
-        $rates = $this->matcherGetMatcherSettingsRates ();
-        // { '34N9YcEETLWn93qYQ64EsP1x89tSruJU44RrEMSXXEPJ' => 1.23762376,
-        //   '62LyMjcr2DtiyF5yVXFhoQ2q414VPPJXjsNYp72SuDCH' => 0.01101575,
-        //   HZk1mbfuJpmxU1Fs4AX5MWLVYtctsNcg6e2C6VKqK8zk => 0.04266412,
-        //   '8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS' => 0.00019575,
-        //   '4LHHvYGNKJUg5hj65aGD5vgScvCBmLpdRFtjokvCjSL8' => 28.79078695,
-        //   '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu' => 0.00798174,
-        //   DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p => 1.8201,
-        //   B3uGHFRpSUuGEDWjqB9LWWxafQj8VTvpMucEyoxzws5H => 0.02608696,
-        //   zMFqXuoyrn5w17PFurTqxB7GsS71fp9dfk6XFwxbPCy => 0.00788827,
-        //   '5WvPKSJXzVE2orvbkJ8wsQmmQKqTv9sGBPksV4adViw3' => 0.02873582,
-        //   WAVES => 1,
-        //   BrjUWjndUanm5VsJkbUip8VRYy6LWJePtxya3FNv4TQa => 0.03614366 }
+        $settings = $this->matcherGetMatcherSettings ();
+        // {
+        //   "orderVersions" => array(
+        //     1,
+        //     2,
+        //     3
+        //   ),
+        //   "success" => true,
+        //   "$matcherPublicKey" => "9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+        //   "$orderFee" => {
+        //     "$dynamic" => {
+        //       "baseFee" => 300000,
+        //       "$rates" => array(
+        //         "34N9YcEETLWn93qYQ64EsP1x89tSruJU44RrEMSXXEPJ" => 1.0257813,
+        //         "62LyMjcr2DtiyF5yVXFhoQ2q414VPPJXjsNYp72SuDCH" => 0.01268146,
+        //         "HZk1mbfuJpmxU1Fs4AX5MWLVYtctsNcg6e2C6VKqK8zk" => 0.05232404,
+        //         "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS" => 0.00023985,
+        //         "4LHHvYGNKJUg5hj65aGD5vgScvCBmLpdRFtjokvCjSL8" => 19.5967716,
+        //         "474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu" => 0.00937073,
+        //         "DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p" => 2.19825,
+        //         "B3uGHFRpSUuGEDWjqB9LWWxafQj8VTvpMucEyoxzws5H" => 0.03180264,
+        //         "zMFqXuoyrn5w17PFurTqxB7GsS71fp9dfk6XFwxbPCy" => 0.00996631,
+        //         "5WvPKSJXzVE2orvbkJ8wsQmmQKqTv9sGBPksV4adViw3" => 0.03254476,
+        //         "WAVES" => 1,
+        //         "BrjUWjndUanm5VsJkbUip8VRYy6LWJePtxya3FNv4TQa" => 0.03703704
+        //       }
+        //     }
+        //   ),
+        //   "networkByte" => 87,
+        //   "matcherVersion" => "2.1.4.8",
+        //   "status" => "SimpleResponse",
+        //   "$priceAssets" => array(
+        //     "Ft8X1v1LTa1ABafufpaCWyVj8KkaxUWE6xBhW6sNFJck",
+        //     "DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p",
+        //     "34N9YcEETLWn93qYQ64EsP1x89tSruJU44RrEMSXXEPJ",
+        //     "Gtb1WRznfchDnTh37ezoDTJ4wcoKaRsKqKjJjy7nm2zU",
+        //     "2mX5DzVKWrAJw8iwdJnV2qtoeVG9h5nTDpTqC1wb1WEN",
+        //     "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS",
+        //     "WAVES",
+        //     "474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu",
+        //     "zMFqXuoyrn5w17PFurTqxB7GsS71fp9dfk6XFwxbPCy",
+        //     "62LyMjcr2DtiyF5yVXFhoQ2q414VPPJXjsNYp72SuDCH",
+        //     "HZk1mbfuJpmxU1Fs4AX5MWLVYtctsNcg6e2C6VKqK8zk",
+        //     "B3uGHFRpSUuGEDWjqB9LWWxafQj8VTvpMucEyoxzws5H",
+        //     "5WvPKSJXzVE2orvbkJ8wsQmmQKqTv9sGBPksV4adViw3",
+        //     "BrjUWjndUanm5VsJkbUip8VRYy6LWJePtxya3FNv4TQa",
+        //     "4LHHvYGNKJUg5hj65aGD5vgScvCBmLpdRFtjokvCjSL8"
+        //   )
+        // }
+        $orderFee = $this->safe_value($settings, 'orderFee');
+        $dynamic = $this->safe_value($orderFee, 'dynamic');
+        $baseMatcherFee = $this->safe_integer($dynamic, 'baseFee');
+        $wavesMatcherFee = $this->currency_from_precision('WAVES', $baseMatcherFee);
+        $rates = $this->safe_value($dynamic, 'rates');
+        // choose sponsored assets from the list of $priceAssets above
+        $priceAssets = is_array($rates) ? array_keys($rates) : array();
         $matcherFeeAssetId = null;
-        if (($side === 'buy') && (is_array($rates) && array_key_exists($market['quoteId'], $rates))) {
-            $matcherFeeAssetId = $market['quoteId'];
-        } else if (($side === 'sell') && (is_array($rates) && array_key_exists($market['baseId'], $rates))) {
-            $matcherFeeAssetId = $market['baseId'];
+        $matcherFee = null;
+        if (is_array($params) && array_key_exists('feeAssetId', $params)) {
+            $matcherFeeAssetId = $params['feeAssetId'];
+        } else if (is_array($this->options) && array_key_exists('feeAssetId', $this->options)) {
+            $matcherFeeAssetId = $this->options['feeAssetId'];
         } else {
-            $matcherFeeAssetId = 'WAVES';
+            $balances = $this->fetch_balance();
+            if ($balances['WAVES']['free'] > $wavesMatcherFee) {
+                $matcherFeeAssetId = 'WAVES';
+                $matcherFee = $baseMatcherFee;
+            } else {
+                for ($i = 0; $i < count($priceAssets); $i++) {
+                    $assetId = $priceAssets[$i];
+                    $code = $this->safe_currency_code($assetId);
+                    $balance = $this->safe_value($this->safe_value($balances, $code, array()), 'free');
+                    $assetFee = $rates[$assetId] * $wavesMatcherFee;
+                    if (($balance !== null) && ($balance > $assetFee)) {
+                        $matcherFeeAssetId = $assetId;
+                        break;
+                    }
+                }
+            }
         }
-        $rate = $this->safe_float($rates, $matcherFeeAssetId);
-        $matcherFee = intval ((int) ceil($baseMatcherFee * $rate));
+        if ($matcherFeeAssetId === null) {
+            throw InsufficientFunds ($this->id . ' not enough funds to cover the fee, specify feeAssetId in $params or options, or buy some WAVES');
+        }
+        if ($matcherFee === null) {
+            $rate = $this->safe_float($rates, $matcherFeeAssetId);
+            $code = $this->safe_currency_code($matcherFeeAssetId);
+            $waves = $this->currency('WAVES');
+            $currency = $this->currency($code);
+            $newPrecison = pow(10, $waves['precision'] - $currency['precision']);
+            $matcherFee = (int) ceil($rate * $baseMatcherFee / $newPrecison);
+        }
         $byteArray = [
             $this->number_to_be(3, 1),
             $this->base58_to_binary($this->apiKey),
@@ -893,10 +971,12 @@ class wavesexchange extends Exchange {
             'timestamp' => $timestamp,
             'expiration' => $expiration,
             'matcherFee' => $matcherFee,
-            'matcherFeeAssetId' => $market['baseId'],
             'signature' => $signature,
             'version' => 3,
         );
+        if ($matcherFeeAssetId !== 'WAVES') {
+            $body['matcherFeeAssetId'] = $matcherFeeAssetId;
+        }
         $response = $this->matcherPostMatcherOrderbook ($body);
         // { success => true,
         //   message:
@@ -926,30 +1006,21 @@ class wavesexchange extends Exchange {
     public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->check_required_dependencies();
         $this->check_required_keys();
-        $this->load_markets();
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' $symbol is required for cancelOrder');
-        }
-        $market = $this->market($symbol);
-        $byteArray = array(
-            $this->base58_to_binary($this->apiKey),
-            $this->base58_to_binary($id),
-        );
-        $binary = $this->binary_concat_array($byteArray);
-        $hexSecret = bin2hex($this->base58_to_binary($this->secret));
-        $signature = $this->eddsa(bin2hex($binary), $hexSecret, 'ed25519');
-        $request = array(
-            'sender' => $this->apiKey,
+        $this->get_access_token();
+        $wavesAddress = $this->get_waves_address();
+        $response = $this->forwardPostMatcherOrdersWavesAddressCancel (array(
+            'wavesAddress' => $wavesAddress,
             'orderId' => $id,
-            'signature' => $signature,
-            'baseId' => $market['baseId'],
-            'quoteId' => $market['quoteId'],
-        );
-        $response = $this->matcherPostMatcherOrderbookBaseIdQuoteIdCancel (array_merge($request, $params));
-        // { orderId => 'Do7cDJMf2MJuFyorvxNNuzS42MXSGGEq1r1hGDn1PHiS',
-        //   success => true,
-        //   status => 'OrderCanceled' }
-        $returnedId = $this->safe_string($response, 'orderId');
+        ));
+        //  {
+        //    "success":true,
+        //    "$message":[[array("orderId":"EBpJeGM36KKFz5gTJAUKDBm89V8wqxKipSFBdU35AN3c","success":true,"status":"OrderCanceled")]],
+        //    "status":"BatchCancelCompleted"
+        //  }
+        $message = $this->safe_value($response, 'message');
+        $firstMessage = $this->safe_value($message, 0);
+        $firstOrder = $this->safe_value($firstMessage, 0);
+        $returnedId = $this->safe_string($firstOrder, 'orderId');
         return array(
             'info' => $response,
             'id' => $returnedId,
@@ -1072,6 +1143,7 @@ class wavesexchange extends Exchange {
             'Cancelled' => 'canceled',
             'Accepted' => 'open',
             'Filled' => 'closed',
+            'PartiallyFilled' => 'open',
         );
         return $this->safe_string($statuses, $status, $status);
     }
@@ -1084,9 +1156,13 @@ class wavesexchange extends Exchange {
     }
 
     public function parse_order($order, $market = null) {
+        $isCreateOrder = $this->safe_integer($order, 'version');
         $timestamp = $this->safe_integer($order, 'timestamp');
-        $side = $this->safe_string($order, 'type');
-        $type = $this->safe_string($order, 'orderType');
+        $side = $this->safe_string_2($order, 'type', 'orderType');
+        $type = 'limit';
+        if (!$isCreateOrder) {
+            $type = $this->safe_string($order, 'orderType');
+        }
         $id = $this->safe_string($order, 'id');
         $filled = $this->safe_string($order, 'filled');
         $price = $this->safe_string($order, 'price');
@@ -1113,10 +1189,20 @@ class wavesexchange extends Exchange {
         }
         $average = $this->currency_from_precision($priceCurrency, $this->safe_string($order, 'avgWeighedPrice'));
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $fee = array(
-            'currency' => $this->safe_currency_code($this->safe_string_2($order, 'feeAsset', 'matcherFeeAssetId')),
-            'fee' => $this->safe_string($order, 'filledFee'),
-        );
+        $fee = null;
+        if ($isCreateOrder) {
+            $currency = $this->safe_currency_code($this->safe_string($order, 'matcherFeeAssetId', 'WAVES'));
+            $fee = array(
+                'currency' => $currency,
+                'fee' => $this->currency_from_precision($currency, $this->safe_integer($order, 'matcherFee')),
+            );
+        } else {
+            $currency = $this->safe_currency_code($this->safe_string($order, 'feeAsset'));
+            $fee = array(
+                'currency' => $currency,
+                'fee' => $this->currency_from_precision($currency, $this->safe_integer($order, 'filledFee')),
+            );
+        }
         return array(
             'info' => $order,
             'id' => $id,
@@ -1286,6 +1372,12 @@ class wavesexchange extends Exchange {
             'amountAsset' => $market['baseId'],
             'priceAsset' => $market['quoteId'],
         );
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        if ($since !== null) {
+            $request['timeStart'] = $since;
+        }
         $response = $this->publicGetTransactionsExchange ($request);
         $data = $this->safe_value($response, 'data');
         return $this->parse_trades($data, $market, $since, $limit);
@@ -1392,6 +1484,10 @@ class wavesexchange extends Exchange {
         if ($Exception !== null) {
             $message = $this->safe_string($response, 'message');
             throw new $Exception($this->id . ' ' . $message);
+        }
+        $message = $this->safe_string($response, 'message');
+        if ($message === 'Validation Error') {
+            throw new BadRequest($this->id . ' ' . $body);
         }
         if (!$success) {
             throw new ExchangeError($this->id . ' ' . $body);

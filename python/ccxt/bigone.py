@@ -37,6 +37,7 @@ class bigone(Exchange):
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'fetchTickers': True,
+                'fetchTime': True,
                 'fetchWithdrawals': True,
                 'withdraw': True,
             },
@@ -360,6 +361,19 @@ class bigone(Exchange):
             symbol = ticker['symbol']
             result[symbol] = ticker
         return result
+
+    def fetch_time(self, params={}):
+        response = self.publicGetPing(params)
+        #
+        #     {
+        #         "data": {
+        #             "timestamp": 1527665262168391000
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        timestamp = self.safe_integer(data, 'timestamp')
+        return int(timestamp / 1000000)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()

@@ -16,6 +16,7 @@ import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
@@ -38,6 +39,7 @@ class bitstamp(Exchange):
             'has': {
                 'CORS': True,
                 'fetchDepositAddress': True,
+                'fetchOHLCV': True,
                 'fetchOrder': True,
                 'fetchOpenOrders': True,
                 'fetchMyTrades': True,
@@ -55,6 +57,20 @@ class bitstamp(Exchange):
                 'www': 'https://www.bitstamp.net',
                 'doc': 'https://www.bitstamp.net/api',
             },
+            'timeframes': {
+                '1m': '60',
+                '3m': '180',
+                '5m': '300',
+                '15m': '900',
+                '30m': '1800',
+                '1h': '3600',
+                '2h': '7200',
+                '4h': '14400',
+                '6h': '21600',
+                '12h': '43200',
+                '1d': '86400',
+                '1w': '259200',
+            },
             'requiredCredentials': {
                 'apiKey': True,
                 'secret': True,
@@ -63,6 +79,7 @@ class bitstamp(Exchange):
             'api': {
                 'public': {
                     'get': [
+                        'ohlc/{pair}/',
                         'order_book/{pair}/',
                         'ticker_hour/{pair}/',
                         'ticker/{pair}/',
@@ -510,6 +527,66 @@ class bitstamp(Exchange):
         #     ]
         #
         return self.parse_trades(response, market, since, limit)
+
+    def parse_ohlcv(self, ohlcv, market=None):
+        #
+        #     {
+        #         "high": "9064.77",
+        #         "timestamp": "1593961440",
+        #         "volume": "18.49436608",
+        #         "low": "9040.87",
+        #         "close": "9064.77",
+        #         "open": "9040.87"
+        #     }
+        #
+        return [
+            self.safe_timestamp(ohlcv, 'timestamp'),
+            self.safe_float(ohlcv, 'open'),
+            self.safe_float(ohlcv, 'high'),
+            self.safe_float(ohlcv, 'low'),
+            self.safe_float(ohlcv, 'close'),
+            self.safe_float(ohlcv, 'volume'),
+        ]
+
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'pair': market['id'],
+            'step': self.timeframes[timeframe],
+        }
+        duration = self.parse_timeframe(timeframe)
+        if limit is None:
+            if since is None:
+                raise ArgumentsRequired(self.id + ' fetchOHLCV requires a since argument or a limit argument')
+            else:
+                limit = 1000
+                start = int(since / 1000)
+                request['start'] = start
+                request['end'] = self.sum(start, limit * duration)
+                request['limit'] = limit
+        else:
+            if since is not None:
+                start = int(since / 1000)
+                request['start'] = start
+                request['end'] = self.sum(start, limit * duration)
+            request['limit'] = min(limit, 1000)  # min 1, max 1000
+        response = self.publicGetOhlcPair(self.extend(request, params))
+        #
+        #     {
+        #         "data": {
+        #             "pair": "BTC/USD",
+        #             "ohlc": [
+        #                 {"high": "9064.77", "timestamp": "1593961440", "volume": "18.49436608", "low": "9040.87", "close": "9064.77", "open": "9040.87"},
+        #                 {"high": "9071.59", "timestamp": "1593961500", "volume": "3.48631711", "low": "9058.76", "close": "9061.07", "open": "9064.66"},
+        #                 {"high": "9067.33", "timestamp": "1593961560", "volume": "0.04142833", "low": "9061.94", "close": "9061.94", "open": "9067.33"},
+        #             ],
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        ohlc = self.safe_value(data, 'ohlc', [])
+        return self.parse_ohlcvs(ohlc, market, timeframe, since, limit)
 
     def fetch_balance(self, params={}):
         self.load_markets()

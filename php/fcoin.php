@@ -32,6 +32,7 @@ class fcoin extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrders' => true,
                 'fetchOrderBook' => true,
+                'fetchTime' => true,
                 'fetchOrderBooks' => false,
                 'fetchTradingLimits' => false,
                 'withdraw' => false,
@@ -445,6 +446,17 @@ class fcoin extends Exchange {
             'cost' => $cost,
             'fee' => $fee,
         );
+    }
+
+    public function fetch_time($params = array ()) {
+        $response = $this->publicGetServerTime ($params);
+        //
+        //     {
+        //         "status" => 0,
+        //         "data" => 1523430502977
+        //     }
+        //
+        return $this->safe_integer($response, 'data');
     }
 
     public function fetch_trades($symbol, $since = null, $limit = 50, $params = array ()) {

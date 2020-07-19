@@ -32,6 +32,7 @@ class stex(Exchange):
                 'fetchMarkets': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
+                'fetchTime': True,
                 'fetchOrderBook': True,
                 'fetchOHLCV': True,
                 'fetchBalance': True,
@@ -413,6 +414,25 @@ class stex(Exchange):
         #
         ticker = self.safe_value(response, 'data', {})
         return self.parse_ticker(ticker, market)
+
+    def fetch_time(self, params={}):
+        response = self.publicGetPing(params)
+        #
+        #     {
+        #         "success": True,
+        #         "data": {
+        #             "server_datetime": {
+        #                 "date": "2019-01-22 15:13:34.233796",
+        #                 "timezone_type": 3,
+        #                 "timezone": "UTC"
+        #             },
+        #             "server_timestamp": 1548170014
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        serverDatetime = self.safe_value(data, 'server_datetime', {})
+        return self.parse8601(self.safe_string(serverDatetime, 'date'))
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()

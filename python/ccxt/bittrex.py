@@ -52,6 +52,7 @@ class bittrex(Exchange):
                 'fetchOrder': True,
                 'fetchOpenOrders': True,
                 'fetchTickers': True,
+                'fetchTime': True,
                 'withdraw': True,
                 'fetchDeposits': True,
                 'fetchWithdrawals': True,
@@ -65,7 +66,7 @@ class bittrex(Exchange):
             },
             'hostname': 'bittrex.com',
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87153921-edf53180-c2c0-11ea-96b9-f2a9a95a455b.jpg',
                 'api': {
                     'public': 'https://{hostname}/api',
                     'account': 'https://{hostname}/api',
@@ -594,6 +595,15 @@ class bittrex(Exchange):
             'fee': None,
         }
 
+    def fetch_time(self, params={}):
+        response = self.v3GetPing(params)
+        #
+        #     {
+        #         "serverTime": 1594596023162
+        #     }
+        #
+        return self.safe_integer(response, 'serverTime')
+
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
@@ -807,8 +817,9 @@ class bittrex(Exchange):
         #
         # we cannot filter by `since` timestamp, as it isn't set by Bittrex
         # see https://github.com/ccxt/ccxt/issues/4067
-        # return self.parse_transactions(response['result'], currency, since, limit)
-        return self.parse_transactions(response['result'], currency, None, limit)
+        result = self.safe_value(response, 'result', [])
+        # return self.parse_transactions(result, currency, since, limit)
+        return self.parse_transactions(result, currency, None, limit)
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -1070,8 +1081,11 @@ class bittrex(Exchange):
         #     }
         #
         side = self.safe_string_2(order, 'OrderType', 'Type')
-        isBuyOrder = (side == 'LIMIT_BUY') or (side == 'BUY')
-        isSellOrder = (side == 'LIMIT_SELL') or (side == 'SELL')
+        isBuyOrder = (side == 'LIMIT_BUY') or (side == 'BUY') or (side == 'MARKET_BUY')
+        isSellOrder = (side == 'LIMIT_SELL') or (side == 'SELL') or (side == 'MARKET_SELL')
+        type = 'limit'
+        if (side == 'MARKET_BUY') or (side == 'MARKET_SELL'):
+            type = 'market'
         if isBuyOrder:
             side = 'buy'
         if isSellOrder:
@@ -1152,7 +1166,7 @@ class bittrex(Exchange):
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
-            'type': 'limit',
+            'type': type,
             'side': side,
             'price': price,
             'cost': cost,

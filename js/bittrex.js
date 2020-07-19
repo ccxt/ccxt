@@ -30,6 +30,7 @@ module.exports = class bittrex extends Exchange {
                 'fetchOrder': true,
                 'fetchOpenOrders': true,
                 'fetchTickers': true,
+                'fetchTime': true,
                 'withdraw': true,
                 'fetchDeposits': true,
                 'fetchWithdrawals': true,
@@ -43,7 +44,7 @@ module.exports = class bittrex extends Exchange {
             },
             'hostname': 'bittrex.com',
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87153921-edf53180-c2c0-11ea-96b9-f2a9a95a455b.jpg',
                 'api': {
                     'public': 'https://{hostname}/api',
                     'account': 'https://{hostname}/api',
@@ -599,6 +600,16 @@ module.exports = class bittrex extends Exchange {
         };
     }
 
+    async fetchTime (params = {}) {
+        const response = await this.v3GetPing (params);
+        //
+        //     {
+        //         "serverTime": 1594596023162
+        //     }
+        //
+        return this.safeInteger (response, 'serverTime');
+    }
+
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -830,8 +841,9 @@ module.exports = class bittrex extends Exchange {
         //
         // we cannot filter by `since` timestamp, as it isn't set by Bittrex
         // see https://github.com/ccxt/ccxt/issues/4067
-        // return this.parseTransactions (response['result'], currency, since, limit);
-        return this.parseTransactions (response['result'], currency, undefined, limit);
+        const result = this.safeValue (response, 'result', []);
+        // return this.parseTransactions (result, currency, since, limit);
+        return this.parseTransactions (result, currency, undefined, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1114,8 +1126,12 @@ module.exports = class bittrex extends Exchange {
         //     }
         //
         let side = this.safeString2 (order, 'OrderType', 'Type');
-        const isBuyOrder = (side === 'LIMIT_BUY') || (side === 'BUY');
-        const isSellOrder = (side === 'LIMIT_SELL') || (side === 'SELL');
+        const isBuyOrder = (side === 'LIMIT_BUY') || (side === 'BUY') || (side === 'MARKET_BUY');
+        const isSellOrder = (side === 'LIMIT_SELL') || (side === 'SELL') || (side === 'MARKET_SELL');
+        let type = 'limit';
+        if ((side === 'MARKET_BUY') || (side === 'MARKET_SELL')) {
+            type = 'market';
+        }
         if (isBuyOrder) {
             side = 'buy';
         }
@@ -1219,7 +1235,7 @@ module.exports = class bittrex extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
-            'type': 'limit',
+            'type': type,
             'side': side,
             'price': price,
             'cost': cost,

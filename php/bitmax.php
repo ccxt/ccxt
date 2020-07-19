@@ -35,7 +35,7 @@ class bitmax extends Exchange {
                 'cancelAllOrders' => true,
                 'fetchDepositAddress' => true,
                 'fetchTransactions' => true,
-                'fetchDeposts' => true,
+                'fetchDeposits' => true,
                 'fetchWithdrawals' => true,
                 'fetchOrder' => true,
                 'fetchOrders' => true,

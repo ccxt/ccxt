@@ -110,6 +110,7 @@ class liquid extends Exchange {
                 'not_enough_free_balance' => '\\ccxt\\InsufficientFunds',
                 'must_be_positive' => '\\ccxt\\InvalidOrder',
                 'less_than_order_size' => '\\ccxt\\InvalidOrder',
+                'price_too_high' => '\\ccxt\\InvalidOrder',
             ),
             'commonCurrencies' => array(
                 'WIN' => 'WCOIN',

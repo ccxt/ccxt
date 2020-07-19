@@ -47,6 +47,11 @@ const ccxt         = require ('../../ccxt.js')
 
 //-----------------------------------------------------------------------------
 
+console.log ('Node.js:', process.version)
+console.log ('CCXT v' + ccxt.version)
+
+//-----------------------------------------------------------------------------
+
 process.on ('uncaughtException',  e => { log.bright.red.error (e); log.red.error (e.message); process.exit (1) })
 process.on ('unhandledRejection', e => { log.bright.red.error (e); log.red.error (e.message); process.exit (1) })
 

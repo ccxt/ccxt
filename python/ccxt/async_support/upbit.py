@@ -690,7 +690,7 @@ class upbit(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'type': 'limit',
+            'type': None,
             'side': side,
             'takerOrMaker': None,
             'price': price,
@@ -1123,7 +1123,10 @@ class upbit(Exchange):
             symbol = base + '/' + quote
             feeCurrency = quote
         trades = self.safe_value(order, 'trades', [])
-        trades = self.parse_trades(trades, market, None, None, {'order': id})
+        trades = self.parse_trades(trades, market, None, None, {
+            'order': id,
+            'type': type,
+        })
         numTrades = len(trades)
         if numTrades > 0:
             # the timestamp in fetchOrder trades is missing

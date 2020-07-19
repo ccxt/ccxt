@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.30.45'
+__version__ = '1.31.51'
 
 # -----------------------------------------------------------------------------
 
@@ -294,6 +294,7 @@ class Exchange(object):
         'fetchWithdrawals': False,
         'privateAPI': True,
         'publicAPI': True,
+        'signIn': False,
         'withdraw': False,
     }
     precisionMode = DECIMAL_PLACES
@@ -384,7 +385,7 @@ class Exchange(object):
                     setattr(self, camelcase, attr)
 
         self.tokenBucket = self.extend({
-            'refillRate': 1.0 / self.rateLimit,
+            'refillRate': 1.0 / self.rateLimit if self.rateLimit > 0 else float('inf'),
             'delay': 0.001,
             'capacity': 1.0,
             'defaultCost': 1.0,
@@ -879,15 +880,15 @@ class Exchange(object):
         return string
 
     @staticmethod
-    def urlencode(params={}):
+    def urlencode(params={}, doseq=False):
         for key, value in params.items():
             if isinstance(value, bool):
                 params[key] = 'true' if value else 'false'
-        return _urlencode.urlencode(params)
+        return _urlencode.urlencode(params, doseq)
 
     @staticmethod
     def urlencode_with_array_repeat(params={}):
-        return re.sub(r'%5B\d*%5D', '', Exchange.urlencode(params))
+        return re.sub(r'%5B\d*%5D', '', Exchange.urlencode(params, True))
 
     @staticmethod
     def rawencode(params={}):
@@ -1422,6 +1423,9 @@ class Exchange(object):
 
     def fetch_withdrawals(self, symbol=None, since=None, limit=None, params={}):
         raise NotSupported('fetch_withdrawals() is not supported yet')
+
+    def fetch_deposit_address(self, symbol=None, since=None, limit=None, params={}):
+        raise NotSupported('fetch_deposit_address() is not supported yet')
 
     def parse_ohlcv(self, ohlcv, market=None):
         return ohlcv[0:6] if isinstance(ohlcv, list) else ohlcv
