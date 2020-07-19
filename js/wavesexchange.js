@@ -844,50 +844,97 @@ module.exports = class wavesexchange extends Exchange {
         const orderType = (side === 'buy') ? 0 : 1;
         const timestamp = this.milliseconds ();
         const expiration = this.sum (timestamp, this.getDefaultExpiry ());
-        // calculate the fee
         const settings = await this.matcherGetMatcherSettings ();
+        // {
+        //   "orderVersions": [
+        //     1,
+        //     2,
+        //     3
+        //   ],
+        //   "success": true,
+        //   "matcherPublicKey": "9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+        //   "orderFee": {
+        //     "dynamic": {
+        //       "baseFee": 300000,
+        //       "rates": {
+        //         "34N9YcEETLWn93qYQ64EsP1x89tSruJU44RrEMSXXEPJ": 1.0257813,
+        //         "62LyMjcr2DtiyF5yVXFhoQ2q414VPPJXjsNYp72SuDCH": 0.01268146,
+        //         "HZk1mbfuJpmxU1Fs4AX5MWLVYtctsNcg6e2C6VKqK8zk": 0.05232404,
+        //         "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS": 0.00023985,
+        //         "4LHHvYGNKJUg5hj65aGD5vgScvCBmLpdRFtjokvCjSL8": 19.5967716,
+        //         "474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu": 0.00937073,
+        //         "DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p": 2.19825,
+        //         "B3uGHFRpSUuGEDWjqB9LWWxafQj8VTvpMucEyoxzws5H": 0.03180264,
+        //         "zMFqXuoyrn5w17PFurTqxB7GsS71fp9dfk6XFwxbPCy": 0.00996631,
+        //         "5WvPKSJXzVE2orvbkJ8wsQmmQKqTv9sGBPksV4adViw3": 0.03254476,
+        //         "WAVES": 1,
+        //         "BrjUWjndUanm5VsJkbUip8VRYy6LWJePtxya3FNv4TQa": 0.03703704
+        //       }
+        //     }
+        //   },
+        //   "networkByte": 87,
+        //   "matcherVersion": "2.1.4.8",
+        //   "status": "SimpleResponse",
+        //   "priceAssets": [
+        //     "Ft8X1v1LTa1ABafufpaCWyVj8KkaxUWE6xBhW6sNFJck",
+        //     "DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p",
+        //     "34N9YcEETLWn93qYQ64EsP1x89tSruJU44RrEMSXXEPJ",
+        //     "Gtb1WRznfchDnTh37ezoDTJ4wcoKaRsKqKjJjy7nm2zU",
+        //     "2mX5DzVKWrAJw8iwdJnV2qtoeVG9h5nTDpTqC1wb1WEN",
+        //     "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS",
+        //     "WAVES",
+        //     "474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu",
+        //     "zMFqXuoyrn5w17PFurTqxB7GsS71fp9dfk6XFwxbPCy",
+        //     "62LyMjcr2DtiyF5yVXFhoQ2q414VPPJXjsNYp72SuDCH",
+        //     "HZk1mbfuJpmxU1Fs4AX5MWLVYtctsNcg6e2C6VKqK8zk",
+        //     "B3uGHFRpSUuGEDWjqB9LWWxafQj8VTvpMucEyoxzws5H",
+        //     "5WvPKSJXzVE2orvbkJ8wsQmmQKqTv9sGBPksV4adViw3",
+        //     "BrjUWjndUanm5VsJkbUip8VRYy6LWJePtxya3FNv4TQa",
+        //     "4LHHvYGNKJUg5hj65aGD5vgScvCBmLpdRFtjokvCjSL8"
+        //   ]
+        // }
         const orderFee = this.safeValue (settings, 'orderFee');
         const dynamic = this.safeValue (orderFee, 'dynamic');
         const baseMatcherFee = this.safeInteger (dynamic, 'baseFee');
+        const wavesMatcherFee = this.currencyFromPrecision ('WAVES', baseMatcherFee);
         const rates = this.safeValue (dynamic, 'rates');
-        // { '34N9YcEETLWn93qYQ64EsP1x89tSruJU44RrEMSXXEPJ': 1.23762376,
-        //   '62LyMjcr2DtiyF5yVXFhoQ2q414VPPJXjsNYp72SuDCH': 0.01101575,
-        //   HZk1mbfuJpmxU1Fs4AX5MWLVYtctsNcg6e2C6VKqK8zk: 0.04266412,
-        //   '8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS': 0.00019575,
-        //   '4LHHvYGNKJUg5hj65aGD5vgScvCBmLpdRFtjokvCjSL8': 28.79078695,
-        //   '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu': 0.00798174,
-        //   DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p: 1.8201,
-        //   B3uGHFRpSUuGEDWjqB9LWWxafQj8VTvpMucEyoxzws5H: 0.02608696,
-        //   zMFqXuoyrn5w17PFurTqxB7GsS71fp9dfk6XFwxbPCy: 0.00788827,
-        //   '5WvPKSJXzVE2orvbkJ8wsQmmQKqTv9sGBPksV4adViw3': 0.02873582,
-        //   WAVES: 1,
-        //   BrjUWjndUanm5VsJkbUip8VRYy6LWJePtxya3FNv4TQa: 0.03614366 }
-        const priceAssets = Object.keys (rates);
+        // choose sponsored assets from the list of priceAssets above
+        const priceAssets = this.safeValue (settings, 'priceAssets');
         let matcherFeeAssetId = undefined;
+        let matcherFee = undefined;
         if ('feeAssetId' in params) {
             matcherFeeAssetId = params['feeAssetId'];
         } else if ('feeAssetId' in this.options) {
             matcherFeeAssetId = this.options['feeAssetId'];
         } else {
             const balances = await this.fetchBalance ();
-            const wavesMatcherFee = this.currencyFromPrecision ('WAVES', baseMatcherFee);
             if (balances['WAVES']['free'] > wavesMatcherFee) {
                 matcherFeeAssetId = 'WAVES';
-            }
-            for (let i = 0; i < priceAssets.length; i++) {
-                const assetId = priceAssets[i];
-                const code = this.safeCurrencyCode (assetId);
-                const balance = this.safeValue (this.safeValue (balances, code, {}), 'free');
-                if ((balance !== undefined) && (balance > rates[assetId] * wavesMatcherFee)) {
-                    matcherFeeAssetId = assetId;
+                matcherFee = baseMatcherFee;
+            } else {
+                for (let i = 0; i < priceAssets.length; i++) {
+                    const assetId = priceAssets[i];
+                    const code = this.safeCurrencyCode (assetId);
+                    const balance = this.safeValue (this.safeValue (balances, code, {}), 'free');
+                    const assetFee = rates[assetId] * wavesMatcherFee;
+                    if ((balance !== undefined) && (balance > assetFee)) {
+                        matcherFeeAssetId = assetId;
+                        break;
+                    }
                 }
             }
         }
         if (matcherFeeAssetId === undefined) {
             throw InsufficientFunds (this.id + ' not enough funds to cover the fee, please buy some WAVES');
         }
-        const rate = this.safeFloat (rates, matcherFeeAssetId);
-        const matcherFee = parseInt (Math.ceil (baseMatcherFee * rate));
+        if (matcherFee === undefined) {
+            const rate = this.safeFloat (rates, matcherFeeAssetId);
+            const code = this.safeCurrencyCode (matcherFeeAssetId);
+            const waves = this.currency ('WAVES');
+            const currency = this.currency (code);
+            const newPrecison = waves['precision'] - currency['precision'];
+            matcherFee = Math.ceil (rate * baseMatcherFee / (10 ** newPrecison));
+        }
         const byteArray = [
             this.numberToBE (3, 1),
             this.base58ToBinary (this.apiKey),
