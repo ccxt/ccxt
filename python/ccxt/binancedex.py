@@ -359,6 +359,7 @@ class binancedex(Exchange):
         return {
             'info': response,
             'id': self.parse_json(response[0]['data'])['order_id'],
+            'symbol': symbol,
         }
 
     def cancel_order(self, id, symbol=None, params={}):
