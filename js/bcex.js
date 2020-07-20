@@ -27,7 +27,7 @@ module.exports = class bcex extends Exchange {
                 'fetchOrderBook': true,
                 'fetchTicker': true,
                 'fetchTickers': false,
-                'fetchTrades': true,                
+                'fetchTrades': true,
                 'fetchTradingLimits': true,
             },
             'urls': {
