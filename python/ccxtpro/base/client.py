@@ -15,7 +15,9 @@ class Client(object):
     on_message_callback = None
     on_error_callback = None
     on_close_callback = None
-    connectionTimeout = 10000  # ms, false to disable
+    connectionStarted = None
+    connectionEstablished = None
+    connectionTimeout = 1000  # ms, false to disable
     connection = None
     error = None  # low-level networking exception, if any
     connected = None  # connection-related Future
@@ -38,17 +40,6 @@ class Client(object):
             'on_message_callback': on_message_callback,
             'on_error_callback': on_error_callback,
             'on_close_callback': on_close_callback,
-            'verbose': False,  # verbose output
-            'ping': None,  # ping-function if defined
-            'connectionStarted': None,  # initiation timestamp, ms
-            'connectionEstablished': None,  # success timestamp, ms
-            'connectionTimeout': 10000,  # milliseconds, false to disable
-            'keepAlive': 5000,  # ping-pong keep-alive frequency, ms
-            'gunzip': False,
-            'inflate': False,
-            'connecting': False
-            # timeout is not used atm
-            # timeout: 30000,  # ms, throw if a request is not satisfied, false to disable
         }
         settings = {}
         settings.update(defaults)
