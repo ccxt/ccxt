@@ -521,21 +521,17 @@ class poloniex(Exchange):
         orderId = self.safe_string(trade, 'orderNumber')
         timestamp = self.parse8601(self.safe_string(trade, 'date'))
         symbol = None
-        base = None
-        quote = None
         if (not market) and ('currencyPair' in trade):
-            currencyPair = trade['currencyPair']
-            if currencyPair in self.markets_by_id:
-                market = self.markets_by_id[currencyPair]
+            marketId = self.safe_string(trade, 'currencyPair')
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
             else:
-                parts = currencyPair.split('_')
-                quote = parts[0]
-                base = parts[1]
+                quoteId, baseId = marketId.split('_')
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
-        if market is not None:
+        if (symbol is None) and (market is not None):
             symbol = market['symbol']
-            base = market['base']
-            quote = market['quote']
         side = self.safe_string(trade, 'type')
         fee = None
         price = self.safe_float(trade, 'rate')
