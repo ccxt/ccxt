@@ -133,14 +133,12 @@ class Client(object):
         except TimeoutError as e:
             # connection timeout
             error = RequestTimeout('Connection timeout')
-            self.connected.reject(error)
             if self.verbose:
                 self.print(Exchange.iso8601(Exchange.milliseconds()), 'RequestTimeout', error)
             self.on_error(error)
         except Exception as e:
             # connection failed or rejected (ConnectionRefusedError, ClientConnectorError)
             error = NetworkError(e)
-            self.connected.reject(error)
             if self.verbose:
                 self.print(Exchange.iso8601(Exchange.milliseconds()), 'NetworkError', error)
             self.on_error(error)
