@@ -538,23 +538,19 @@ class poloniex extends Exchange {
         $orderId = $this->safe_string($trade, 'orderNumber');
         $timestamp = $this->parse8601($this->safe_string($trade, 'date'));
         $symbol = null;
-        $base = null;
-        $quote = null;
         if ((!$market) && (is_array($trade) && array_key_exists('currencyPair', $trade))) {
-            $currencyPair = $trade['currencyPair'];
-            if (is_array($this->markets_by_id) && array_key_exists($currencyPair, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$currencyPair];
+            $marketId = $this->safe_string($trade, 'currencyPair');
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
             } else {
-                $parts = explode('_', $currencyPair);
-                $quote = $parts[0];
-                $base = $parts[1];
+                list($quoteId, $baseId) = explode('_', $marketId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
             }
         }
-        if ($market !== null) {
+        if (($symbol === null) && ($market !== null)) {
             $symbol = $market['symbol'];
-            $base = $market['base'];
-            $quote = $market['quote'];
         }
         $side = $this->safe_string($trade, 'type');
         $fee = null;
