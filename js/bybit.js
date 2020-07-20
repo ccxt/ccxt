@@ -1200,7 +1200,7 @@ module.exports = class bybit extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let qty = this.amountToPrecision (symbol, amount);
-        if (market['linear']) {
+        if (market['inverse']) {
             qty = parseInt (qty);
         }
         const request = {
