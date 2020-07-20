@@ -15,7 +15,7 @@ class Client(object):
     on_message_callback = None
     on_error_callback = None
     on_close_callback = None
-    connectionTimeout = 1000  # ms, false to disable
+    connectionTimeout = 10000  # ms, false to disable
     connection = None
     error = None  # low-level networking exception, if any
     connected = None  # connection-related Future
@@ -127,7 +127,7 @@ class Client(object):
             self.connection = await wait_for(coroutine, timeout=int(self.connectionTimeout / 1000))
             if self.verbose:
                 self.print(Exchange.iso8601(Exchange.milliseconds()), 'connected')
-            self.connected.resolve(True)
+            self.connected.resolve(self.url)
             # run both loops forever
             await gather(self.ping_loop(), self.receive_loop())
         except TimeoutError as e:
@@ -169,7 +169,7 @@ class Client(object):
             ensure_future(self.close(code))
 
     def reset(self, error):
-        self.connected = Future()
+        self.connected.reject(error)
         self.reject(error)
 
     async def ping_loop(self):
