@@ -17,7 +17,7 @@ class Client(object):
     on_close_callback = None
     connectionStarted = None
     connectionEstablished = None
-    connectionTimeout = 1000  # ms, false to disable
+    connectionTimeout = 10000  # ms, false to disable
     connection = None
     error = None  # low-level networking exception, if any
     connected = None  # connection-related Future
