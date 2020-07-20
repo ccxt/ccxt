@@ -28,6 +28,7 @@ class Client(object):
     gunzip = False
     inflate = False
     throttle = None
+    connecting = False
 
     def __init__(self, url, on_message_callback, on_error_callback, on_close_callback, config={}):
         defaults = {
@@ -45,6 +46,7 @@ class Client(object):
             'keepAlive': 5000,  # ping-pong keep-alive frequency, ms
             'gunzip': False,
             'inflate': False,
+            'connecting': False
             # timeout is not used atm
             # timeout: 30000,  # ms, throw if a request is not satisfied, false to disable
         }
@@ -125,6 +127,7 @@ class Client(object):
         try:
             coroutine = self.create_connection(session)
             self.connection = await wait_for(coroutine, timeout=int(self.connectionTimeout / 1000))
+            self.connecting = False
             if self.verbose:
                 self.print(Exchange.iso8601(Exchange.milliseconds()), 'connected')
             self.connected.resolve(self.url)
@@ -144,7 +147,8 @@ class Client(object):
             self.on_error(error)
 
     def connect(self, session, backoff_delay=0):
-        if not self.connection or not self.connected.done():
+        if not self.connection and not self.connecting:
+            self.connecting = True
             ensure_future(self.open(session, backoff_delay))
         return self.connected
 
