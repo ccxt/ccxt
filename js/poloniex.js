@@ -533,23 +533,19 @@ module.exports = class poloniex extends Exchange {
         const orderId = this.safeString (trade, 'orderNumber');
         const timestamp = this.parse8601 (this.safeString (trade, 'date'));
         let symbol = undefined;
-        let base = undefined;
-        let quote = undefined;
         if ((!market) && ('currencyPair' in trade)) {
-            const currencyPair = trade['currencyPair'];
-            if (currencyPair in this.markets_by_id) {
-                market = this.markets_by_id[currencyPair];
+            const marketId = this.safeString (trade, 'currencyPair');
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
             } else {
-                const parts = currencyPair.split ('_');
-                quote = parts[0];
-                base = parts[1];
+                const [ quoteId, baseId ] = marketId.split ('_');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
                 symbol = base + '/' + quote;
             }
         }
-        if (market !== undefined) {
+        if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
-            base = market['base'];
-            quote = market['quote'];
         }
         const side = this.safeString (trade, 'type');
         let fee = undefined;
