@@ -807,8 +807,17 @@ class poloniex extends Exchange {
         }
         $symbol = null;
         $marketId = $this->safe_string($order, 'currencyPair');
-        $market = $this->safe_value($this->markets_by_id, $marketId, $market);
-        if ($market !== null) {
+        if ($marketId !== null) {
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+            } else {
+                list($quoteId, $baseId) = explode('_', $marketId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
+                $symbol = $base . '/' . $quote;
+            }
+        }
+        if (($symbol === null) && ($market !== null)) {
             $symbol = $market['symbol'];
         }
         $price = $this->safe_float_2($order, 'price', 'rate');
