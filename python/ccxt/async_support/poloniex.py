@@ -767,8 +767,15 @@ class poloniex(Exchange):
             trades = self.parse_trades(order['resultingTrades'], market)
         symbol = None
         marketId = self.safe_string(order, 'currencyPair')
-        market = self.safe_value(self.markets_by_id, marketId, market)
-        if market is not None:
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+            else:
+                quoteId, baseId = marketId.split('_')
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
+                symbol = base + '/' + quote
+        if (symbol is None) and (market is not None):
             symbol = market['symbol']
         price = self.safe_float_2(order, 'price', 'rate')
         remaining = self.safe_float(order, 'amount')
