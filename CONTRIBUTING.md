@@ -1,8 +1,9 @@
 # Contributing To The CCXT Library
 
-```diff
-- This file is a work in progress, guidelines for contributing are being developed right now!
-```
+- [How To Submit A Question Or Issue](#how-to-submit-an-issue)
+- [How To Contribute Code](#how-to-contribute-code)
+  - [What You Need To Have](#what-you-need-to-have)
+  - [What You Need To Know](#what-you-need-to-know)
 
 ## How To Submit An Issue
 
@@ -32,7 +33,7 @@ If you want to submit an issue and you want your issue to be resolved quickly, h
   - which exchange it is
   - which method you're trying to call
 
-## Reporting Vulnerabilities And Critical Issues
+### Reporting Vulnerabilities And Critical Issues
 
 If you found a security issue or a critical vulnerability and reporting it in public would impose risk – please feel free to send us a message to <a href="mailto:info@ccxt.trade">info@ccxt.trade</a>.
 
@@ -93,13 +94,36 @@ The following is a set of rules for contributing to the ccxt library codebase.
 
 ## What You Need To Have
 
+If you're not going to develop CCXT and contribute code to the CCXT library, then you don't need the Docker image nor the CCXT repository. If you just want to use CCXT inside your project simply install it as a regular package into the project folder as documented in the Manual (https://github.com/ccxt/ccxt/wiki/Install):
+
+- [JavaScript / Node.js / NPM](https://github.com/ccxt/ccxt/wiki/Install#javascript-npm)
+
+  ```shell
+  # JavaScript / Node.js / NPM
+  npm install ccxt
+  ```
+
+- [Python / PIP](https://github.com/ccxt/ccxt/wiki/Install#python)
+
+  ```shell
+  # Python
+  pip install ccxt  # or pip3 install ccxt
+  ```
+
+- [PHP / Composer](https://github.com/ccxt/ccxt/wiki/Install#php)
+
+  ```shell
+  # PHP / Composer
+  composer install ccxt
+  ```
+
+### With Docker
+
 The easiest way is to use Docker to run an isolated build & test enviroment with all the dependencies installed:
 
-```
+```shell
 docker-compose run --rm ccxt
 ```
-
-You don't need the Docker image if you're not going to develop CCXT. If you just want to use CCXT – just install it as a regular package.
 
 That builds a container and opens a shell, where the `npm run build` and `node run-tests` commands should simply work out of the box.
 
@@ -107,19 +131,43 @@ The CCXT folder is mapped inside of the container, except the `node_modules` fol
 
 This way you can keep the build tools and processes isolated, not having to work through the painful process of installing all those dependencies to your host machine manually.
 
-If you choose the hard way, here is the list of the dependencies you will need. It may be incomplete and outdated, so you may want to look into the [`Dockerfile`](https://github.com/ccxt/ccxt/blob/master/Dockerfile) and [`.travis.yml`](https://github.com/ccxt/ccxt/blob/master/.travis.yml) scripts for the list of commands we use to install the state-of-the-art dependencies needed to build and test CCXT.
+### Without Docker
 
+#### Dependencies
+
+- Git
 - [Node.js](https://nodejs.org/en/download/) 8+
 - [Python](https://www.python.org/downloads/) 3.5.3+
-  - tox (`brew install tox` or `pip install tox`)
   - requests (`pip install requests`)
-  - aiohttp (`pip install aiohttp`)
+  - [aiohttp](https://docs.aiohttp.org/) (`pip install aiohttp`)
+  - [tox](https://tox.readthedocs.io)
+    - via pip: `pip install tox`
+    - MacOS with [brew](https://brew.sh): `brew install tox`
+    - Ubuntu Linux: `apt-get install tox`
 - [PHP](https://secure.php.net/downloads.php) 5.3+ with the following extensions installed and enabled:
   - cURL
   - iconv
   - mbstring
   - PCRE
   - bcmath (php<7.1)
+
+#### Build Steps
+
+```shell
+git clone https://github.com/ccxt/ccxt.git
+```
+
+```shell
+cd ccxt
+```
+
+```shell
+npm install
+```
+
+```shell
+npm run build
+```
 
 ## What You Need To Know
 
