@@ -1202,6 +1202,8 @@ module.exports = class bybit extends Exchange {
         let qty = this.amountToPrecision (symbol, amount);
         if (market['inverse']) {
             qty = parseInt (qty);
+        } else {
+            qty = parseFloat (qty);
         }
         const request = {
             // orders ---------------------------------------------------------
@@ -1209,7 +1211,7 @@ module.exports = class bybit extends Exchange {
             'symbol': market['id'],
             'order_type': this.capitalize (type),
             'qty': qty, // order quantity in USD, integer only
-            // 'price': this.priceToPrecision (symbol, price), // required for limit orders
+            // 'price': parseFloat (this.priceToPrecision (symbol, price)), // required for limit orders
             'time_in_force': 'GoodTillCancel', // ImmediateOrCancel, FillOrKill, PostOnly
             // 'take_profit': 123.45, // take profit price, only take effect upon opening the position
             // 'stop_loss': 123.45, // stop loss price, only take effect upon opening the position
@@ -1233,7 +1235,7 @@ module.exports = class bybit extends Exchange {
         }
         if (priceIsRequired) {
             if (price !== undefined) {
-                request['price'] = this.priceToPrecision (symbol, price);
+                request['price'] = parseFloat (this.priceToPrecision (symbol, price));
             } else {
                 throw new ArgumentsRequired (this.id + ' createOrder requires a price argument for a ' + type + ' order');
             }
@@ -1248,8 +1250,8 @@ module.exports = class bybit extends Exchange {
                 throw new ArgumentsRequired (this.id + ' createOrder requires both the stop_px and base_price params for a conditional ' + type + ' order');
             } else {
                 method = (marketType === 'linear') ? 'privateLinearPostStopOrderCreate' : 'openapiPostStopOrderCreate';
-                request['stop_px'] = this.priceToPrecision (symbol, stopPx);
-                request['base_price'] = this.priceToPrecision (symbol, basePrice);
+                request['stop_px'] = parseFloat (this.priceToPrecision (symbol, stopPx));
+                request['base_price'] = parseFloat (this.priceToPrecision (symbol, basePrice));
                 params = this.omit (params, [ 'stop_px', 'base_price' ]);
             }
         } else if (basePrice !== undefined) {
@@ -1368,10 +1370,10 @@ module.exports = class bybit extends Exchange {
             request['order_id'] = id;
         }
         if (amount !== undefined) {
-            request['p_r_qty'] = this.amountToPrecision (symbol, amount);
+            request['p_r_qty'] = parseInt (this.amountToPrecision (symbol, amount));
         }
         if (price !== undefined) {
-            request['p_r_price'] = this.priceToPrecision (symbol, price);
+            request['p_r_price'] = parseFloat (this.priceToPrecision (symbol, price));
         }
         const response = await this[method] (this.extend (request, params));
         //
