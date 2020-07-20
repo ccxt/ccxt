@@ -2487,7 +2487,8 @@ Most of methods returning orders within ccxt unified API will usually yield an o
     'symbol':     'ETH/BTC',      // symbol
     'type':       'limit',        // 'market', 'limit'
     'side':       'buy',          // 'buy', 'sell'
-    'price':       0.06917684,    // float price in quote currency
+    'price':       0.06917684,    // float price in quote currency. May be empty for market orders
+    'average':     0.06917684,    // float average filling price.
     'amount':      1.5,           // ordered amount of base currency
     'filled':      1.1,           // filled amount of base currency
     'remaining':   0.4,           // remaining amount to fill
