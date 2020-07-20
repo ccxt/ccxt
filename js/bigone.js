@@ -36,7 +36,6 @@ module.exports = class bigone extends Exchange {
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchWithdrawals': true,
-                'loadMarkets': true,
                 'withdraw': true,
             },
             'timeframes': {
