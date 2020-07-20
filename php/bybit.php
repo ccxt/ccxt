@@ -1203,8 +1203,10 @@ class bybit extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $qty = $this->amount_to_precision($symbol, $amount);
-        if ($market['linear']) {
+        if ($market['inverse']) {
             $qty = intval ($qty);
+        } else {
+            $qty = floatval ($qty);
         }
         $request = array(
             // orders ---------------------------------------------------------
@@ -1212,7 +1214,7 @@ class bybit extends Exchange {
             'symbol' => $market['id'],
             'order_type' => $this->capitalize($type),
             'qty' => $qty, // order quantity in USD, integer only
-            // 'price' => $this->price_to_precision($symbol, $price), // required for limit orders
+            // 'price' => floatval ($this->price_to_precision($symbol, $price)), // required for limit orders
             'time_in_force' => 'GoodTillCancel', // ImmediateOrCancel, FillOrKill, PostOnly
             // 'take_profit' => 123.45, // take profit $price, only take effect upon opening the position
             // 'stop_loss' => 123.45, // stop loss $price, only take effect upon opening the position
@@ -1236,7 +1238,7 @@ class bybit extends Exchange {
         }
         if ($priceIsRequired) {
             if ($price !== null) {
-                $request['price'] = $this->price_to_precision($symbol, $price);
+                $request['price'] = floatval ($this->price_to_precision($symbol, $price));
             } else {
                 throw new ArgumentsRequired($this->id . ' createOrder requires a $price argument for a ' . $type . ' order');
             }
@@ -1251,8 +1253,8 @@ class bybit extends Exchange {
                 throw new ArgumentsRequired($this->id . ' createOrder requires both the stop_px and base_price $params for a conditional ' . $type . ' order');
             } else {
                 $method = ($marketType === 'linear') ? 'privateLinearPostStopOrderCreate' : 'openapiPostStopOrderCreate';
-                $request['stop_px'] = $this->price_to_precision($symbol, $stopPx);
-                $request['base_price'] = $this->price_to_precision($symbol, $basePrice);
+                $request['stop_px'] = floatval ($this->price_to_precision($symbol, $stopPx));
+                $request['base_price'] = floatval ($this->price_to_precision($symbol, $basePrice));
                 $params = $this->omit($params, array( 'stop_px', 'base_price' ));
             }
         } else if ($basePrice !== null) {
@@ -1371,10 +1373,10 @@ class bybit extends Exchange {
             $request['order_id'] = $id;
         }
         if ($amount !== null) {
-            $request['p_r_qty'] = $this->amount_to_precision($symbol, $amount);
+            $request['p_r_qty'] = intval ($this->amount_to_precision($symbol, $amount));
         }
         if ($price !== null) {
-            $request['p_r_price'] = $this->price_to_precision($symbol, $price);
+            $request['p_r_price'] = floatval ($this->price_to_precision($symbol, $price));
         }
         $response = $this->$method (array_merge($request, $params));
         //
