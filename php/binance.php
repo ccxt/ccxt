@@ -338,6 +338,7 @@ class binance extends Exchange {
                 ),
                 'quoteOrderQty' => true, // whether market orders support amounts in quote currency
             ),
+            // https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
             'exceptions' => array(
                 'API key does not exist' => '\\ccxt\\AuthenticationError',
                 'Order would trigger immediately.' => '\\ccxt\\InvalidOrder',
@@ -346,20 +347,46 @@ class binance extends Exchange {
                 "You don't have permission." => '\\ccxt\\PermissionDenied', // array("msg":"You don't have permission.","success":false)
                 'Market is closed.' => '\\ccxt\\ExchangeNotAvailable', // array("code":-1013,"msg":"Market is closed.")
                 '-1000' => '\\ccxt\\ExchangeNotAvailable', // array("code":-1000,"msg":"An unknown error occured while processing the request.")
+                '-1001' => '\\ccxt\\ExchangeNotAvailable', // 'Internal error; unable to process your request. Please try again.'
+                '-1002' => '\\ccxt\\AuthenticationError', // 'You are not authorized to execute this request.'
                 '-1003' => '\\ccxt\\RateLimitExceeded', // array("code":-1003,"msg":"Too much request weight used, current limit is 1200 request weight per 1 MINUTE. Please use the websocket for live updates to avoid polling the API.")
                 '-1013' => '\\ccxt\\InvalidOrder', // createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
+                '-1015' => '\\ccxt\\RateLimitExceeded', // 'Too many new orders; current limit is %s orders per %s.'
+                '-1016' => '\\ccxt\\ExchangeNotAvailable', // 'This service is no longer available.',
+                '-1020' => '\\ccxt\\BadRequest', // 'This operation is not supported.'
                 '-1021' => '\\ccxt\\InvalidNonce', // 'your time is ahead of server'
                 '-1022' => '\\ccxt\\AuthenticationError', // array("code":-1022,"msg":"Signature for this request is not valid.")
-                '-1100' => '\\ccxt\\InvalidOrder', // createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
-                '-1104' => '\\ccxt\\ExchangeError', // Not all sent parameters were read, read 8 parameters but was sent 9
-                '-1128' => '\\ccxt\\ExchangeError', // array("code":-1128,"msg":"Combination of optional parameters invalid.")
+                '-1100' => '\\ccxt\\BadRequest', // createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
+                '-1101' => '\\ccxt\\BadRequest', // Too many parameters; expected %s and received %s.
+                '-1102' => '\\ccxt\\BadRequest', // Param %s or %s must be sent, but both were empty
+                '-1103' => '\\ccxt\\BadRequest', // An unknown parameter was sent.
+                '-1104' => '\\ccxt\\BadRequest', // Not all sent parameters were read, read 8 parameters but was sent 9
+                '-1105' => '\\ccxt\\BadRequest', // Parameter %s was empty.
+                '-1106' => '\\ccxt\\BadRequest', // Parameter %s sent when not required.
+                '-1111' => '\\ccxt\\BadRequest', // Precision is over the maximum defined for this asset.
+                '-1112' => '\\ccxt\\InvalidOrder', // No orders on book for symbol.
+                '-1114' => '\\ccxt\\BadRequest', // TimeInForce parameter sent when not required.
+                '-1115' => '\\ccxt\\BadRequest', // Invalid timeInForce.
+                '-1116' => '\\ccxt\\BadRequest', // Invalid orderType.
+                '-1117' => '\\ccxt\\BadRequest', // Invalid side.
+                '-1118' => '\\ccxt\\BadRequest', // New client order ID was empty.
+                '-1119' => '\\ccxt\\BadRequest', // Original client order ID was empty.
+                '-1120' => '\\ccxt\\BadRequest', // Invalid interval.
+                '-1121' => '\\ccxt\\BadSymbol', // Invalid symbol.
+                '-1125' => '\\ccxt\\AuthenticationError', // This listenKey does not exist.
+                '-1127' => '\\ccxt\\BadRequest', // More than %s hours between startTime and endTime.
+                '-1128' => '\\ccxt\\BadRequest', // array("code":-1128,"msg":"Combination of optional parameters invalid.")
+                '-1130' => '\\ccxt\\BadRequest', // Data sent for paramter %s is not valid.
+                '-1131' => '\\ccxt\\BadRequest', // recvWindow must be less than 60000
                 '-2010' => '\\ccxt\\ExchangeError', // generic error code for createOrder -> 'Account has insufficient balance for requested action.', array("code":-2010,"msg":"Rest API trading is not enabled."), etc...
                 '-2011' => '\\ccxt\\OrderNotFound', // cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
                 '-2013' => '\\ccxt\\OrderNotFound', // fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'
                 '-2014' => '\\ccxt\\AuthenticationError', // array( "code":-2014, "msg" => "API-key format invalid." )
                 '-2015' => '\\ccxt\\AuthenticationError', // "Invalid API-key, IP, or permissions for action."
+                '-3005' => '\\ccxt\\InsufficientFunds', // array("code":-3005,"msg":"Transferring out not allowed. Transfer out amount exceeds max amount.")
                 '-3008' => '\\ccxt\\InsufficientFunds', // array("code":-3008,"msg":"Borrow not allowed. Your borrow amount has exceed maximum borrow amount.")
                 '-3010' => '\\ccxt\\ExchangeError', // array("code":-3010,"msg":"Repay not allowed. Repay amount exceeds borrow amount.")
+                '-3022' => '\\ccxt\\AccountSuspended', // You account's trading is banned.
             ),
         ));
     }

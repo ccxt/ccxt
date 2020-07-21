@@ -230,7 +230,7 @@ class timex extends Exchange {
         $response = $this->publicGetCurrencies ($params);
         //
         //     array(
-        //         {
+        //         array(
         //             "symbol" => "BTC",
         //             "name" => "Bitcoin",
         //             "address" => "0x8370fbc6ddec1e18b4e41e72ed943e238458487c",
@@ -250,7 +250,7 @@ class timex extends Exchange {
         //             "active" => true,
         //             "withdrawalFee" => "50000000000000000",
         //             "purchaseCommissions" => array()
-        //         },
+        //         ),
         //     )
         //
         $result = array();
