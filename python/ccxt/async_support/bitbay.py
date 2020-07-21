@@ -28,11 +28,19 @@ class bitbay(Exchange):
             'countries': ['MT', 'EU'],  # Malta
             'rateLimit': 1000,
             'has': {
+                'cancelOrder': True,
                 'CORS': True,
-                'withdraw': True,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchLedger': True,
+                'fetchMarkets': True,
                 'fetchMyTrades': True,
-                'fetchOpenOrders': True,
                 'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
+                'fetchTrades': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '60',
