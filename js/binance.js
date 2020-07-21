@@ -331,7 +331,8 @@ module.exports = class binance extends Exchange {
                 },
                 'quoteOrderQty': true, // whether market orders support amounts in quote currency
             },
-            'exceptions': { // https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
+            // https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
+            'exceptions': {
                 'API key does not exist': AuthenticationError,
                 'Order would trigger immediately.': InvalidOrder,
                 'Account has insufficient balance for requested action.': InsufficientFunds,
@@ -350,7 +351,7 @@ module.exports = class binance extends Exchange {
                 '-1022': AuthenticationError, // {"code":-1022,"msg":"Signature for this request is not valid."}
                 '-1100': BadRequest, // createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
                 '-1101': BadRequest, // Too many parameters; expected %s and received %s.
-                '-1102': BadRequest, // Param %s or %s must be sent, but both were empty/null!
+                '-1102': BadRequest, // Param %s or %s must be sent, but both were empty!
                 '-1103': BadRequest, // An unknown parameter was sent.
                 '-1104': BadRequest, // Not all sent parameters were read, read 8 parameters but was sent 9
                 '-1105': BadRequest, // Parameter %s was empty.
