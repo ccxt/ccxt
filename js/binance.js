@@ -347,6 +347,7 @@ module.exports = class binance extends Exchange {
                 '-1016': ExchangeNotAvailable, // 'This service is no longer available.',
                 '-1020': BadRequest, // 'This operation is not supported.'
                 '-1021': InvalidNonce, // 'your time is ahead of server'
+                '-1022': AuthenticationError, // {"code":-1022,"msg":"Signature for this request is not valid."}
                 '-1100': BadRequest, // createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
                 '-1101': BadRequest, // Too many parameters; expected %s and received %s.
                 '-1102': BadRequest, // Param %s or %s must be sent, but both were empty/null!
@@ -364,7 +365,6 @@ module.exports = class binance extends Exchange {
                 '-1119': BadRequest, // Original client order ID was empty.
                 '-1120': BadRequest, // Invalid interval.
                 '-1121': BadSymbol, // Invalid symbol.
-                '-1122': AuthenticationError, // {"code":-1022,"msg":"Signature for this request is not valid."}
                 '-1125': AuthenticationError, // This listenKey does not exist.
                 '-1127': BadRequest, // More than %s hours between startTime and endTime.
                 '-1128': BadRequest, // {"code":-1128,"msg":"Combination of optional parameters invalid."}
