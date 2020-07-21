@@ -15,6 +15,8 @@ class Client(object):
     on_message_callback = None
     on_error_callback = None
     on_close_callback = None
+    connectionStarted = None
+    connectionEstablished = None
     connectionTimeout = 10000  # ms, false to disable
     connection = None
     error = None  # low-level networking exception, if any
@@ -28,6 +30,7 @@ class Client(object):
     gunzip = False
     inflate = False
     throttle = None
+    connecting = False
 
     def __init__(self, url, on_message_callback, on_error_callback, on_close_callback, config={}):
         defaults = {
@@ -37,16 +40,6 @@ class Client(object):
             'on_message_callback': on_message_callback,
             'on_error_callback': on_error_callback,
             'on_close_callback': on_close_callback,
-            'verbose': False,  # verbose output
-            'ping': None,  # ping-function if defined
-            'connectionStarted': None,  # initiation timestamp, ms
-            'connectionEstablished': None,  # success timestamp, ms
-            'connectionTimeout': 10000,  # milliseconds, false to disable
-            'keepAlive': 5000,  # ping-pong keep-alive frequency, ms
-            'gunzip': False,
-            'inflate': False,
-            # timeout is not used atm
-            # timeout: 30000,  # ms, throw if a request is not satisfied, false to disable
         }
         settings = {}
         settings.update(defaults)
@@ -125,9 +118,10 @@ class Client(object):
         try:
             coroutine = self.create_connection(session)
             self.connection = await wait_for(coroutine, timeout=int(self.connectionTimeout / 1000))
+            self.connecting = False
             if self.verbose:
                 self.print(Exchange.iso8601(Exchange.milliseconds()), 'connected')
-            self.connected.resolve()
+            self.connected.resolve(self.url)
             # run both loops forever
             await gather(self.ping_loop(), self.receive_loop())
         except TimeoutError as e:
@@ -144,8 +138,8 @@ class Client(object):
             self.on_error(error)
 
     def connect(self, session, backoff_delay=0):
-        if not self.connection:
-            self.connection = True
+        if not self.connection and not self.connecting:
+            self.connecting = True
             ensure_future(self.open(session, backoff_delay))
         return self.connected
 
