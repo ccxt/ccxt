@@ -143,6 +143,10 @@ class probit extends Exchange {
                     'market' => 'ioc',
                 ),
             ),
+            'commonCurrencies' => array(
+                'BTCBEAR' => 'BEAR',
+                'BTCBULL' => 'BULL',
+            ),
         ));
     }
 

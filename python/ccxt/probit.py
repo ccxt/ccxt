@@ -151,6 +151,10 @@ class probit(Exchange):
                     'market': 'ioc',
                 },
             },
+            'commonCurrencies': {
+                'BTCBEAR': 'BEAR',
+                'BTCBULL': 'BULL',
+            },
         })
 
     def fetch_markets(self, params={}):
