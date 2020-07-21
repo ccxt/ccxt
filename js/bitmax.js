@@ -647,7 +647,7 @@ module.exports = class bitmax extends Exchange {
         //
         const timestamp = undefined;
         const marketId = this.safeString (ticker, 'symbol');
-        let symbol = marketId;
+        let symbol = undefined;
         if (marketId in this.markets_by_id) {
             market = this.markets_by_id[marketId];
         } else if (marketId !== undefined) {
