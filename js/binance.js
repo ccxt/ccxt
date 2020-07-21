@@ -342,7 +342,7 @@ module.exports = class binance extends Exchange {
                 '-1001': ExchangeNotAvailable, // 'Internal error; unable to process your request. Please try again.'
                 '-1002': AuthenticationError, // 'You are not authorized to execute this request.'
                 '-1003': RateLimitExceeded, // {"code":-1003,"msg":"Too much request weight used, current limit is 1200 request weight per 1 MINUTE. Please use the websocket for live updates to avoid polling the API."}
-                '-1013': BadRequest, // createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
+                '-1013': InvalidOrder, // createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
                 '-1015': RateLimitExceeded, // 'Too many new orders; current limit is %s orders per %s.'
                 '-1016': ExchangeNotAvailable, // 'This service is no longer available.',
                 '-1020': BadRequest, // 'This operation is not supported.'
