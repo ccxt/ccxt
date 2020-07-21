@@ -643,7 +643,7 @@ class bitmax(Exchange):
         #
         timestamp = None
         marketId = self.safe_string(ticker, 'symbol')
-        symbol = marketId
+        symbol = None
         if marketId in self.markets_by_id:
             market = self.markets_by_id[marketId]
         elif marketId is not None:
