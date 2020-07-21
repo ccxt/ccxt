@@ -1834,8 +1834,12 @@ class okex(Exchange):
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        defaultType = self.safe_string_2(self.options, 'cancelOrder', 'defaultType', market['type'])
-        type = self.safe_string(params, 'type', defaultType)
+        type = None
+        if market['futures'] or market['swap']:
+            type = market['type']
+        else:
+            defaultType = self.safe_string_2(self.options, 'cancelOrder', 'defaultType', market['type'])
+            type = self.safe_string(params, 'type', defaultType)
         if type is None:
             raise ArgumentsRequired(self.id + " cancelOrder requires a type parameter(one of 'spot', 'margin', 'futures', 'swap').")
         method = type + 'PostCancelOrder'
@@ -2112,8 +2116,12 @@ class okex(Exchange):
             raise ArgumentsRequired(self.id + ' fetchOrdersByState requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        defaultType = self.safe_string_2(self.options, 'fetchOrder', 'defaultType', market['type'])
-        type = self.safe_string(params, 'type', defaultType)
+        type = None
+        if market['futures'] or market['swap']:
+            type = market['type']
+        else:
+            defaultType = self.safe_string_2(self.options, 'fetchOrder', 'defaultType', market['type'])
+            type = self.safe_string(params, 'type', defaultType)
         if type is None:
             raise ArgumentsRequired(self.id + " fetchOrder requires a type parameter(one of 'spot', 'margin', 'futures', 'swap').")
         request = {
@@ -2195,7 +2203,7 @@ class okex(Exchange):
         #     }
         #
         orders = None
-        if market['type'] == 'swap' or market['type'] == 'futures':
+        if market['swap'] or market['futures']:
             orders = self.safe_value(response, 'order_info', [])
         else:
             orders = response
@@ -3082,13 +3090,17 @@ class okex(Exchange):
             raise ExchangeNotAvailable(feedback)
         if not response:
             return  # fallback to default error handler
+        #
+        #     {"error_message":"Order does not exist","result":"true","error_code":"35029","order_id":"-1"}
+        #
         message = self.safe_string(response, 'message')
         errorCode = self.safe_string_2(response, 'code', 'error_code')
+        nonEmptyMessage = ((message is not None) and (message != ''))
+        nonZeroErrorCode = (errorCode is not None) and (errorCode != '0')
         if message is not None:
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
+        if errorCode is not None:
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
-            nonEmptyMessage = (message != '')
-            nonZeroErrorCode = (errorCode is not None) and (errorCode != '0')
-            if nonZeroErrorCode or nonEmptyMessage:
-                raise ExchangeError(feedback)  # unknown message
+        if nonZeroErrorCode or nonEmptyMessage:
+            raise ExchangeError(feedback)  # unknown message

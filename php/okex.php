@@ -1881,8 +1881,13 @@ class okex extends Exchange {
         }
         $this->load_markets();
         $market = $this->market($symbol);
-        $defaultType = $this->safe_string_2($this->options, 'cancelOrder', 'defaultType', $market['type']);
-        $type = $this->safe_string($params, 'type', $defaultType);
+        $type = null;
+        if ($market['futures'] || $market['swap']) {
+            $type = $market['type'];
+        } else {
+            $defaultType = $this->safe_string_2($this->options, 'cancelOrder', 'defaultType', $market['type']);
+            $type = $this->safe_string($params, 'type', $defaultType);
+        }
         if ($type === null) {
             throw new ArgumentsRequired($this->id . " cancelOrder requires a $type parameter (one of 'spot', 'margin', 'futures', 'swap').");
         }
@@ -2183,8 +2188,13 @@ class okex extends Exchange {
         }
         $this->load_markets();
         $market = $this->market($symbol);
-        $defaultType = $this->safe_string_2($this->options, 'fetchOrder', 'defaultType', $market['type']);
-        $type = $this->safe_string($params, 'type', $defaultType);
+        $type = null;
+        if ($market['futures'] || $market['swap']) {
+            $type = $market['type'];
+        } else {
+            $defaultType = $this->safe_string_2($this->options, 'fetchOrder', 'defaultType', $market['type']);
+            $type = $this->safe_string($params, 'type', $defaultType);
+        }
         if ($type === null) {
             throw new ArgumentsRequired($this->id . " fetchOrder requires a $type parameter (one of 'spot', 'margin', 'futures', 'swap').");
         }
@@ -2268,7 +2278,7 @@ class okex extends Exchange {
         //     }
         //
         $orders = null;
-        if ($market['type'] === 'swap' || $market['type'] === 'futures') {
+        if ($market['swap'] || $market['futures']) {
             $orders = $this->safe_value($response, 'order_info', array());
         } else {
             $orders = $response;
@@ -3215,17 +3225,22 @@ class okex extends Exchange {
         if (!$response) {
             return; // fallback to default error handler
         }
+        //
+        //     array("error_message":"Order does not exist","result":"true","error_code":"35029","order_id":"-1")
+        //
         $message = $this->safe_string($response, 'message');
         $errorCode = $this->safe_string_2($response, 'code', 'error_code');
+        $nonEmptyMessage = (($message !== null) && ($message !== ''));
+        $nonZeroErrorCode = ($errorCode !== null) && ($errorCode !== '0');
         if ($message !== null) {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
+        }
+        if ($errorCode !== null) {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
-            $nonEmptyMessage = ($message !== '');
-            $nonZeroErrorCode = ($errorCode !== null) && ($errorCode !== '0');
-            if ($nonZeroErrorCode || $nonEmptyMessage) {
-                throw new ExchangeError($feedback); // unknown $message
-            }
+        }
+        if ($nonZeroErrorCode || $nonEmptyMessage) {
+            throw new ExchangeError($feedback); // unknown $message
         }
     }
 }
