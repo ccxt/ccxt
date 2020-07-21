@@ -28,7 +28,7 @@ async function main () {
     await Promise.all (globalIds.map (async (id) => loadExchange (id)))
     console.log ('Loaded global exchanges:', Object.keys (globalExchanges))
 
-    // load user exchanges and keys from a database or configure these via json
+    // load user exchanges and keys from a database or configure these via JSON
     const users = {
         'user1': {
             'binance': { 'apiKey': 'USER1_BINANCE_API_KEY', 'secret': 'USER1_BINANCE_SECRET' },
@@ -39,8 +39,8 @@ async function main () {
             'bittrex': { 'apiKey': 'USER2_BITTREX_API_KEY', 'secret': 'USER2_BITTREX_SECRET' }
         },
         'user3': {
-            'bittrex': { 'apiKey': 'USER2_BITTREX_API_KEY', 'secret': 'USER2_BITTREX_SECRET' },
-            'bitstamp': { 'apiKey': 'USER2_BITSTAMP_API_KEY', 'secret': 'USER2_BITSTAMP_SECRET' }
+            'bittrex': { 'apiKey': 'USER3_BITTREX_API_KEY', 'secret': 'USER3_BITTREX_SECRET' },
+            'bitstamp': { 'apiKey': 'USER3_BITSTAMP_API_KEY', 'secret': 'USER3_BITSTAMP_SECRET' }
         }
     }
 
