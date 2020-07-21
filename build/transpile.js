@@ -347,7 +347,7 @@ class Transpiler {
             [ /([\S])\: /g, '$1 => ' ],
 
         // add {}-array syntax conversions up to 20 levels deep
-        ]).concat ([ ... Array (20) ].map (x => [ /\{([^\;\{]+?)\}([^\s])/g, 'array($1)$2' ])).concat ([
+        ]).concat ([ ... Array (20) ].map (x => [ /\{([^\{]+?)\}([^\s])/g, 'array($1)$2' ])).concat ([
 
             [ /\[\s*([^\]]+?)\s*\]\.join\s*\(\s*([^\)]+?)\s*\)/g, "implode($2, array($1))" ],
 
