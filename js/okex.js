@@ -3219,7 +3219,6 @@ module.exports = class okex extends Exchange {
         if (!response) {
             return; // fallback to default error handler
         }
-        // {"error_message":"Order does not exist","result":"true","error_code":"35029","order_id":"-1"}
         const message = this.safeString (response, 'message');
         const errorCode = this.safeString2 (response, 'code', 'error_code');
         const nonEmptyMessage = ((message !== undefined) && (message !== ''));
