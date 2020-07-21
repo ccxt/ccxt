@@ -1539,15 +1539,8 @@ module.exports = class wavesexchange extends Exchange {
         } else {
             proxyAddress = address;
         }
-        let fee = undefined;
-        let feeAssetId = undefined;
-        if (code === 'WAVES') {
-            fee = this.safeInteger (this.options, 'withdrawFeeWAVES', 100000);
-            feeAssetId = 'WAVES';
-        } else {
-            fee = this.safeInteger (this.options, 'withdrawFeeUSDN', 7420);
-            feeAssetId = this.currency ('USDN')['id'];
-        }
+        const fee = this.safeInteger (this.options, 'withdrawFeeWAVES', 100000);  // 0.001 WAVES
+        const feeAssetId = 'WAVES';
         const type = 4;  // transfer
         const version = 2;
         const amountInteger = this.currencyToPrecision (code, amount);
