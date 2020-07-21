@@ -137,6 +137,10 @@ module.exports = class probit extends Exchange {
                     'market': 'ioc',
                 },
             },
+            'commonCurrencies': {
+                'BTCBEAR': 'BEAR',
+                'BTCBULL': 'BULL',
+            },
         });
     }
 
