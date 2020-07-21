@@ -1545,15 +1545,8 @@ class wavesexchange extends Exchange {
         } else {
             $proxyAddress = $address;
         }
-        $fee = null;
-        $feeAssetId = null;
-        if ($code === 'WAVES') {
-            $fee = $this->safe_integer($this->options, 'withdrawFeeWAVES', 100000);
-            $feeAssetId = 'WAVES';
-        } else {
-            $fee = $this->safe_integer($this->options, 'withdrawFeeUSDN', 7420);
-            $feeAssetId = $this->currency('USDN')['id'];
-        }
+        $fee = $this->safe_integer($this->options, 'withdrawFeeWAVES', 100000);  // 0.001 WAVES
+        $feeAssetId = 'WAVES';
         $type = 4;  // transfer
         $version = 2;
         $amountInteger = $this->currency_to_precision($code, $amount);

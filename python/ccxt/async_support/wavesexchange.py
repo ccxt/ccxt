@@ -1449,14 +1449,8 @@ class wavesexchange(Exchange):
             proxyAddress = self.safe_string(proxyAddresses, 0)
         else:
             proxyAddress = address
-        fee = None
-        feeAssetId = None
-        if code == 'WAVES':
-            fee = self.safe_integer(self.options, 'withdrawFeeWAVES', 100000)
-            feeAssetId = 'WAVES'
-        else:
-            fee = self.safe_integer(self.options, 'withdrawFeeUSDN', 7420)
-            feeAssetId = self.currency('USDN')['id']
+        fee = self.safe_integer(self.options, 'withdrawFeeWAVES', 100000)  # 0.001 WAVES
+        feeAssetId = 'WAVES'
         type = 4  # transfer
         version = 2
         amountInteger = self.currency_to_precision(code, amount)
