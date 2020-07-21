@@ -111,6 +111,8 @@ module.exports = class bittrex extends Exchange {
                         'markets/{marketSymbol}/ticker',
                         'markets/{marketSymbol}/candles',
                         'markets/{marketSymbol}/candles/{candleInterval}/historical/{year}/{month}/{day}',
+                        'markets/{marketSymbol}/candles/{candleInterval}/historical/{year}/{month}',
+                        'markets/{marketSymbol}/candles/{candleInterval}/historical/{year}',
                     ],
                 },
                 'public': {
@@ -659,13 +661,27 @@ module.exports = class bittrex extends Exchange {
         if (since !== undefined) {
             const now = this.milliseconds ();
             const difference = Math.abs (now - since);
-            if (difference > 86400000) {
+            const date = this.ymd (since);
+            const parts = date.split ('-');
+            const year = this.safeInteger (parts, 0);
+            const month = this.safeInteger (parts, 1);
+            const day = this.safeInteger (parts, 2);
+            const curr_date = this.ymd (now);
+            const curr_parts = curr_date.split ('-');
+            const curr_year = this.safeInteger (curr_parts, 0);
+            const curr_month = this.safeInteger (curr_parts, 1);
+            if (timeframe === '1d' && year !== curr_year) {
+                // Current year is provided by the "recent" endpoint
+                method = 'v3publicGetMarketsMarketSymbolCandlesCandleIntervalHistoricalYear';
+                request['year'] = year;
+            } else if (timeframe === '1h' && year !== curr_year && month !== curr_month) {
+                // for Hourly candles, historic endpoint needs to be used for everything up to the current month.
+                // "recent" endpoint must be used for the current month only.
+                method = 'v3publicGetMarketsMarketSymbolCandlesCandleIntervalHistoricalYearMonth';
+                request['year'] = year;
+                request['month'] = month;
+            } else if (timeframe !== '1h' && timeframe !== '1d' && difference > 86400000) {
                 method = 'v3publicGetMarketsMarketSymbolCandlesCandleIntervalHistoricalYearMonthDay';
-                const date = this.ymd (since);
-                const parts = date.split ('-');
-                const year = this.safeInteger (parts, 0);
-                const month = this.safeInteger (parts, 1);
-                const day = this.safeInteger (parts, 2);
                 request['year'] = year;
                 request['month'] = month;
                 request['day'] = day;
