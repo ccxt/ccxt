@@ -346,7 +346,7 @@ module.exports = class bitfinex2 extends bitfinex {
             quoteId = this.getCurrencyId (quoteId);
             const precision = {
                 'price': this.safeInteger (market, 'price_precision'),
-                'amount': this.safeInteger (market, 'price_precision'),
+                'amount': 8, // https://github.com/ccxt/ccxt/issues/7310
             };
             const limits = {
                 'amount': {
