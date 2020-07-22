@@ -354,7 +354,7 @@ class bitfinex2(bitfinex):
             quoteId = self.get_currency_id(quoteId)
             precision = {
                 'price': self.safe_integer(market, 'price_precision'),
-                'amount': self.safe_integer(market, 'price_precision'),
+                'amount': 8,  # https://github.com/ccxt/ccxt/issues/7310
             }
             limits = {
                 'amount': {
