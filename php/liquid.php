@@ -100,6 +100,76 @@ class liquid extends Exchange {
                     ),
                 ),
             ),
+            'fees' => array(
+                'trading' => array(
+                    'tierBased' => true,
+                    'percentage' => true,
+                    'taker' => 0.0015,
+                    'maker' => 0.0000,
+                    'tiers' => array(
+                        'perpetual' => array(
+                            'maker' => array(
+                                array( 0, 0.0000 ),
+                                array( 25000, 0.0000 ),
+                                array( 50000, -0.00025 ),
+                                array( 100000, -0.00025 ),
+                                array( 1000000, -0.00025 ),
+                                array( 10000000, -0.00025 ),
+                                array( 25000000, -0.00025 ),
+                                array( 50000000, -0.00025 ),
+                                array( 75000000, -0.00025 ),
+                                array( 100000000, -0.00025 ),
+                                array( 200000000, -0.00025 ),
+                                array( 300000000, -0.00025 ),
+                            ),
+                            'taker' => array(
+                                array( 0, 0.000600 ),
+                                array( 25000, 0.000575 ),
+                                array( 50000, 0.000550 ),
+                                array( 100000, 0.000525 ),
+                                array( 1000000, 0.000500 ),
+                                array( 10000000, 0.000475 ),
+                                array( 25000000, 0.000450 ),
+                                array( 50000000, 0.000425 ),
+                                array( 75000000, 0.000400 ),
+                                array( 100000000, 0.000375 ),
+                                array( 200000000, 0.000350 ),
+                                array( 300000000, 0.000325 ),
+                            ),
+                        ),
+                        'spot' => array(
+                            'taker' => array(
+                                array( 0, 0.0015 ),
+                                array( 10000, 0.0015 ),
+                                array( 20000, 0.0014 ),
+                                array( 50000, 0.0013 ),
+                                array( 100000, 0.0010 ),
+                                array( 1000000, 0.0008 ),
+                                array( 5000000, 0.0006 ),
+                                array( 10000000, 0.0005 ),
+                                array( 25000000, 0.0005 ),
+                                array( 50000000, 0.00045 ),
+                                array( 100000000, 0.0004 ),
+                                array( 200000000, 0.0003 ),
+                            ),
+                            'maker' => array(
+                                array( 0, 0.0000 ),
+                                array( 10000, 0.0015 ),
+                                array( 20000, 0.1400 ),
+                                array( 50000, 0.1300 ),
+                                array( 100000, 0.0800 ),
+                                array( 1000000, 0.0004 ),
+                                array( 5000000, 0.00035 ),
+                                array( 10000000, 0.00025 ),
+                                array( 25000000, 0.0000 ),
+                                array( 50000000, 0.0000 ),
+                                array( 100000000, 0.0000 ),
+                                array( 200000000, 0.0000 ),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
             'exceptions' => array(
                 'API rate limit exceeded. Please retry after 300s' => '\\ccxt\\DDoSProtection',
                 'API Authentication failed' => '\\ccxt\\AuthenticationError',
@@ -274,8 +344,12 @@ class liquid extends Exchange {
             } else {
                 $symbol = $base . '/' . $quote;
             }
-            $maker = $this->safe_float($market, 'maker_fee');
-            $taker = $this->safe_float($market, 'taker_fee');
+            $maker = $this->fees['trading']['maker'];
+            $taker = $this->fees['trading']['taker'];
+            if ($type === 'swap') {
+                $maker = $this->safe_float($market, 'maker_fee', $this->fees['trading']['maker']);
+                $taker = $this->safe_float($market, 'taker_fee', $this->fees['trading']['taker']);
+            }
             $disabled = $this->safe_value($market, 'disabled', false);
             $active = !$disabled;
             $baseCurrency = $this->safe_value($currenciesByCode, $base);

@@ -104,6 +104,76 @@ class liquid(Exchange):
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'tierBased': True,
+                    'percentage': True,
+                    'taker': 0.0015,
+                    'maker': 0.0000,
+                    'tiers': {
+                        'perpetual': {
+                            'maker': [
+                                [0, 0.0000],
+                                [25000, 0.0000],
+                                [50000, -0.00025],
+                                [100000, -0.00025],
+                                [1000000, -0.00025],
+                                [10000000, -0.00025],
+                                [25000000, -0.00025],
+                                [50000000, -0.00025],
+                                [75000000, -0.00025],
+                                [100000000, -0.00025],
+                                [200000000, -0.00025],
+                                [300000000, -0.00025],
+                            ],
+                            'taker': [
+                                [0, 0.000600],
+                                [25000, 0.000575],
+                                [50000, 0.000550],
+                                [100000, 0.000525],
+                                [1000000, 0.000500],
+                                [10000000, 0.000475],
+                                [25000000, 0.000450],
+                                [50000000, 0.000425],
+                                [75000000, 0.000400],
+                                [100000000, 0.000375],
+                                [200000000, 0.000350],
+                                [300000000, 0.000325],
+                            ],
+                        },
+                        'spot': {
+                            'taker': [
+                                [0, 0.0015],
+                                [10000, 0.0015],
+                                [20000, 0.0014],
+                                [50000, 0.0013],
+                                [100000, 0.0010],
+                                [1000000, 0.0008],
+                                [5000000, 0.0006],
+                                [10000000, 0.0005],
+                                [25000000, 0.0005],
+                                [50000000, 0.00045],
+                                [100000000, 0.0004],
+                                [200000000, 0.0003],
+                            ],
+                            'maker': [
+                                [0, 0.0000],
+                                [10000, 0.0015],
+                                [20000, 0.1400],
+                                [50000, 0.1300],
+                                [100000, 0.0800],
+                                [1000000, 0.0004],
+                                [5000000, 0.00035],
+                                [10000000, 0.00025],
+                                [25000000, 0.0000],
+                                [50000000, 0.0000],
+                                [100000000, 0.0000],
+                                [200000000, 0.0000],
+                            ],
+                        },
+                    },
+                },
+            },
             'exceptions': {
                 'API rate limit exceeded. Please retry after 300s': DDoSProtection,
                 'API Authentication failed': AuthenticationError,
@@ -273,8 +343,11 @@ class liquid(Exchange):
                 symbol = self.safe_string(market, 'currency_pair_code')
             else:
                 symbol = base + '/' + quote
-            maker = self.safe_float(market, 'maker_fee')
-            taker = self.safe_float(market, 'taker_fee')
+            maker = self.fees['trading']['maker']
+            taker = self.fees['trading']['taker']
+            if type == 'swap':
+                maker = self.safe_float(market, 'maker_fee', self.fees['trading']['maker'])
+                taker = self.safe_float(market, 'taker_fee', self.fees['trading']['taker'])
             disabled = self.safe_value(market, 'disabled', False)
             active = not disabled
             baseCurrency = self.safe_value(currenciesByCode, base)
