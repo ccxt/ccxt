@@ -25,7 +25,7 @@ module.exports = class bitget extends Exchange {
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
-                'fetchCurrencies': false, // see below
+                'fetchCurrencies': true,
                 'fetchDeposits': false,
                 'fetchWithdrawals': false,
                 'fetchTime': true,
@@ -684,45 +684,39 @@ module.exports = class bitget extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        const response = await this.accountGetCurrencies (params);
+        const response = await this.dataGetCommonCurrencys (params);
         //
-        //     [
-        //         {
-        //             name: '',
-        //             currency: 'BTC',
-        //             can_withdraw: '1',
-        //             can_deposit: '1',
-        //             min_withdrawal: '0.0100000000000000'
-        //         },
-        //     ]
+        //     {
+        //         "status":"ok",
+        //         "ts":1595537740466,
+        //         "data":[
+        //             "btc",
+        //             "bft",
+        //             "usdt",
+        //             "usdt-omni",
+        //             "usdt-erc20"
+        //         ]
+        //     }
         //
         const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const currency = response[i];
-            const id = this.safeString (currency, 'currency');
+        const data = this.safeValue (response, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            const id = data[i];
             const code = this.safeCurrencyCode (id);
-            const precision = 8; // default precision, todo: fix "magic constants"
-            const name = this.safeString (currency, 'name');
-            const canDeposit = this.safeInteger (currency, 'can_deposit');
-            const canWithdraw = this.safeInteger (currency, 'can_withdraw');
-            const active = canDeposit && canWithdraw;
             result[code] = {
                 'id': id,
                 'code': code,
-                'info': currency,
+                'info': id,
                 'type': undefined,
-                'name': name,
-                'active': active,
+                'name': undefined,
+                'active': undefined,
                 'fee': undefined, // todo: redesign
-                'precision': precision,
+                'precision': undefined,
                 'limits': {
                     'amount': { 'min': undefined, 'max': undefined },
                     'price': { 'min': undefined, 'max': undefined },
                     'cost': { 'min': undefined, 'max': undefined },
-                    'withdraw': {
-                        'min': this.safeFloat (currency, 'min_withdrawal'),
-                        'max': undefined,
-                    },
+                    'withdraw': { 'min': undefined, 'max': undefined },
                 },
             };
         }
