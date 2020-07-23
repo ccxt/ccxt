@@ -18,26 +18,27 @@ module.exports = class bitget extends Exchange {
             'rateLimit': 1000, // up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
             'pro': false,
             'has': {
+                'cancelOrder': true,
                 'CORS': false,
-                'fetchMarkets': true,
-                'fetchOHLCV': true,
-                'fetchOrder': true,
-                'fetchOrders': true,
-                'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
+                'fetchDepositAddress': false,
                 'fetchDeposits': false,
-                'fetchWithdrawals': false,
+                'fetchLedger': false,
+                'fetchMarkets': true,
+                'fetchMyTrades': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrders': true,
+                'fetchOrderTrades': false,
+                'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTransactions': false,
-                'fetchMyTrades': true,
-                'fetchDepositAddress': false,
-                'fetchOrderTrades': false,
-                'fetchTickers': true,
-                'fetchLedger': false,
-                'withdraw': false,
+                'fetchWithdrawals': false,
                 'futures': false,
-                'cancelOrder': true,
+                'withdraw': false,
             },
             'timeframes': {
                 '1m': '60',
@@ -821,30 +822,56 @@ module.exports = class bitget extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const method = market['type'] + 'GetInstrumentsInstrumentIdTicker';
-        const request = {
-            'instrument_id': market['id'],
-        };
-        let response = await this[method] (this.extend (request, params));
-        //
-        //     {         best_ask: "0.02665472",
-        //               best_bid: "0.02665221",
-        //          instrument_id: "ETH-BTC",
-        //             product_id: "ETH-BTC",
-        //                   last: "0.02665472",
-        //                    ask: "0.02665472",
-        //                    bid: "0.02665221",
-        //               open_24h: "0.02645482",
-        //               high_24h: "0.02714633",
-        //                low_24h: "0.02614109",
-        //        base_volume_24h: "572298.901923",
-        //              timestamp: "2018-12-17T21:20:07.856Z",
-        //       quote_volume_24h: "15094.86831261"            }
-        //
-        if (response['status'] === 'ok') {
-            response = response['data'];
+        let method = undefined;
+        if (market['spot']) {
+            method = 'dataGetMarketDetailMerged';
+        } else if (market['swap']) {
+            method = 'capiGetInstrumentsSymbolTicker';
         }
-        return this.parseTicker (response);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this[method] (this.extend (request, params));
+        //
+        // spot
+        //
+        //     {
+        //         "status":"ok",
+        //         "ch":"market.eth_btc.detail.merged",
+        //         "ts":1595538241474,
+        //         "data":{
+        //             "id":"1595538241113",
+        //             "bid":["0.028474000000","1.139400000000"],
+        //             "ask":["0.028482000000","0.353100000000"],
+        //             "amount":"2850.6649",
+        //             "count":"818",
+        //             "open":"0.02821",
+        //             "close":"0.028474",
+        //             "low":"0.02821",
+        //             "high":"0.029091",
+        //             "vol":"79.4548693404"
+        //         }
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "data":{
+        //             "instrument_id":"btcusd",
+        //             "last":"9574.5",
+        //             "best_ask":"9575.0",
+        //             "best_bid":"9574.0",
+        //             "high_24h":"9672",
+        //             "low_24h":"9512",
+        //             "volume_24h":"567697050",
+        //             "timestamp":"1595538450096"
+        //         },
+        //         "status":"ok",
+        //         "err_code":"00000"
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseTicker (data);
     }
 
     async fetchTickersByType (type, symbols = undefined, params = {}) {
