@@ -144,6 +144,10 @@ module.exports = class bitget extends Exchange {
                 },
             },
             'fees': {
+                'spot': {
+                    'taker': 0.002,
+                    'maker': 0.002,
+                },
                 'swap': {
                     'taker': 0.0006,
                     'maker': 0.0004,
@@ -577,7 +581,10 @@ module.exports = class bitget extends Exchange {
         }
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        const symbol = spot ? (base + '/' + quote) : id;
+        let symbol = id.toUpperCase ();
+        if (spot) {
+            symbol = base + '/' + quote;
+        }
         const lotSize = this.safeFloat2 (market, 'lot_size', 'trade_increment');
         const tick_size = this.safeFloat (market, 'tick_size');
         const newtick_size = parseFloat ('1e-' + this.numberToString (tick_size));
@@ -669,7 +676,7 @@ module.exports = class bitget extends Exchange {
             //     }
             //
             const data = this.safeValue (response, 'data');
-            const contractApis = this.safeValue (response, 'contractApis', []);
+            const contractApis = this.safeValue (data, 'contractApis', []);
             return this.parseMarkets (contractApis);
         } else {
             throw new NotSupported (this.id + ' fetchMarketsByType does not support market type ' + type);
