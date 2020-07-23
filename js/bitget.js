@@ -499,7 +499,7 @@ module.exports = class bitget extends Exchange {
                     'spot',
                     'swap',
                 ],
-                'defaultType': 'swap', // 'account', 'spot', 'margin', 'futures', 'swap', 'option'
+                'defaultType': 'spot', // 'account', 'spot', 'margin', 'futures', 'swap', 'option'
             },
         });
     }
