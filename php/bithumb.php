@@ -19,13 +19,18 @@ class bithumb extends Exchange {
             'countries' => array( 'KR' ), // South Korea
             'rateLimit' => 500,
             'has' => array(
-                'CORS' => true,
-                'createOrder' => true,
                 'cancelOrder' => true,
+                'CORS' => true,
                 'createMarketOrder' => true,
-                'fetchTickers' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
+                'fetchMarkets' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTrades' => true,
                 'withdraw' => true,
             ),
             'urls' => array(
