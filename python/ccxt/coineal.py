@@ -67,6 +67,7 @@ class coineal(Exchange):
                     'get': [
                         'open/api/all_trade',
                         'open/api/new_order',
+                        'open/api/all_order',
                         'open/api/user/account',
                         'open/api/order_info',
                     ],
@@ -642,9 +643,9 @@ class coineal(Exchange):
             'page': 1,
             'pageSize': limit,
         }
-        response = self.privateGetOpenApiNewOrder(self.extend(request, params))
+        response = self.privateGetOpenApiAllOrder(self.extend(request, params))
         result = self.safe_value(response, 'data')
-        return self.safe_value(result, 'resultList', [])
+        return self.safe_value(result, 'orderList', [])
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=100, params={}):
         if symbol is None:
@@ -657,95 +658,87 @@ class coineal(Exchange):
 
     def fetch_open_orders(self, symbol=None, since=None, limit=100, params={}):
         self.load_markets()
-        openOrders = []
-        if symbol is None:
-            totalMarkets = list(self.markets.keys())
-            for i in range(0, len(totalMarkets)):
-                market = self.market(totalMarkets[i])
-                orderData = self.fetch_common_orders(market['id'], limit, params)
-                parseOpenOrderResult = self.filter_by_array(orderData, 'status', [0, 1, 3], False)
-                openOrders = self.array_concat(openOrders, parseOpenOrderResult)
-            return self.parse_orders(openOrders, None, since, len(openOrders))
-        market = self.market(symbol)
-        orderData = self.fetch_common_orders(market['id'], limit, params)
+        symbolsToFetch = [symbol] if (symbol is not None) else self.symbols
+        ordersData = []
+        for i in range(0, len(symbolsToFetch)):
+            market = self.market(symbolsToFetch[i])
+            orders = self.fetch_common_orders(market['id'], limit, params)
+            openOrders = self.filter_by_array(orders, 'status', [0, 1, 3], False)
+            ordersData = self.array_concat(ordersData, openOrders)
         # Exchange response
         # {
         #     "code": "0",
         #     "msg": "suc",
         #     "data": {
-        #         "count": 10,
-        #         "resultList": [
-        #             {
-        #                 "side": "BUY",
-        #                 "total_price": "0.10000000",
-        #                 "created_at": 1510993841000,
-        #                 "avg_price": "0.10000000",
-        #                 "countCoin": "btc",
-        #                 "source": 1,
-        #                 "type": 1,
-        #                 "side_msg": "买入",
-        #                 "volume": "1.000",
-        #                 "price": "0.10000000",
-        #                 "source_msg": "WEB",
-        #                 "status_msg": "部分成交",
-        #                 "deal_volume": "0.50000000",
-        #                 "id": 424,
-        #                 "remain_volume": "0.00000000",
-        #                 "baseCoin": "eth",
-        #                 "tradeList": [
-        #                     {
-        #                         "volume": "0.500",
-        #                         "price": "0.10000000",
-        #                         "fee": "0.16431104",
-        #                         "ctime": 1510996571195,
-        #                         "deal_price": "0.10000000",
-        #                         "id": 306,
-        #                         "type": "买入"
-        #                     }
-        #                 ],
-        #                 "status": 3
-        #             },
-        #             {
-        #                 "side": "SELL",
-        #                 "total_price": "0.10000000",
-        #                 "created_at": 1510993841000,
-        #                 "avg_price": "0.10000000",
-        #                 "countCoin": "btc",
-        #                 "source": 1,
-        #                 "type": 1,
-        #                 "side_msg": "买入",
-        #                 "volume": "1.000",
-        #                 "price": "0.10000000",
-        #                 "source_msg": "WEB",
-        #                 "status_msg": "未成交",
-        #                 "deal_volume": "0.00000000",
-        #                 "id": 425,
-        #                 "remain_volume": "0.00000000",
-        #                 "baseCoin": "eth",
-        #                 "tradeList": [],
-        #                 "status": 1
-        #             }
-        #         ]
+        #       "count": 10,
+        #       "resultList": [
+        #           {
+        #               "side": "BUY",
+        #               "total_price": "0.10000000",
+        #               "created_at": 1510993841000,
+        #               "avg_price": "0.10000000",
+        #               "countCoin": "btc",
+        #               "source": 1,
+        #               "type": 1,
+        #               "side_msg": "买入",
+        #               "volume": "1.000",
+        #               "price": "0.10000000",
+        #               "source_msg": "WEB",
+        #               "status_msg": "部分成交",
+        #               "deal_volume": "0.50000000",
+        #               "id": 424,
+        #               "remain_volume": "0.00000000",
+        #               "baseCoin": "eth",
+        #               "tradeList": [
+        #                   {
+        #                       "volume": "0.500",
+        #                       "price": "0.10000000",
+        #                       "fee": "0.16431104",
+        #                       "ctime": 1510996571195,
+        #                       "deal_price": "0.10000000",
+        #                       "id": 306,
+        #                       "type": "买入"
+        #                   }
+        #               ],
+        #               "status": 3
+        #           },
+        #           {
+        #               "side": "SELL",
+        #               "total_price": "0.10000000",
+        #               "created_at": 1510993841000,
+        #               "avg_price": "0.10000000",
+        #               "countCoin": "btc",
+        #               "source": 1,
+        #               "type": 1,
+        #               "side_msg": "买入",
+        #               "volume": "1.000",
+        #               "price": "0.10000000",
+        #               "source_msg": "WEB",
+        #               "status_msg": "未成交",
+        #               "deal_volume": "0.00000000",
+        #               "id": 425,
+        #               "remain_volume": "0.00000000",
+        #               "baseCoin": "eth",
+        #               "tradeList": [],
+        #               "status": 1
+        #           }
+        #       ]
         #     }
         # }
-        allOpenOrders = self.filter_by_array(orderData, 'status', [0, 1, 3], False)
-        return self.parse_orders(allOpenOrders, market, since, limit)
+        market = self.market(symbol) if (symbol is not None) else None
+        return self.parse_orders(ordersData, market, since, limit)
 
     def fetch_orders(self, symbol=None, since=None, limit=100, params={}):
         self.load_markets()
-        openCloseOrders = []
-        if symbol is None:
-            totalMarkets = list(self.markets.keys())
-            for i in range(0, len(totalMarkets)):
-                market = self.market(totalMarkets[i])
-                orderData = self.fetch_common_orders(market['id'], limit, params)
-                parseOpenCloseOrderResult = self.filter_by_array(orderData, 'status', [0, 1, 2, 3], False)
-                openCloseOrders = self.array_concat(openCloseOrders, parseOpenCloseOrderResult)
-            return self.parse_orders(openCloseOrders, None, since, len(openCloseOrders))
-        market = self.market(symbol)
-        orderData = self.fetch_common_orders(market['id'], limit, params)
-        openCloseOrders = self.filter_by_array(orderData, 'status', [0, 1, 2, 3], False)
-        return self.parse_orders(openCloseOrders, market, since, limit)
+        marketsToFetch = [symbol] if (symbol is not None) else self.symbols
+        ordersData = []
+        for i in range(0, len(marketsToFetch)):
+            market = self.market(marketsToFetch[i])
+            orders = self.fetch_common_orders(market['id'], limit, params)
+            allOrders = self.filter_by_array(orders, 'status', [0, 1, 2, 3, 4], False)
+            ordersData = self.array_concat(ordersData, allOrders)
+        market = self.market(symbol) if (symbol is not None) else None
+        return self.parse_orders(ordersData, market, since, limit)
 
     def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:

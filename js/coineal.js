@@ -54,6 +54,7 @@ module.exports = class coineal extends Exchange {
                     'get': [
                         'open/api/all_trade',
                         'open/api/new_order',
+                        'open/api/all_order',
                         'open/api/user/account',
                         'open/api/order_info',
                     ],
@@ -691,9 +692,9 @@ module.exports = class coineal extends Exchange {
             'page': 1,
             'pageSize': limit,
         };
-        const response = await this.privateGetOpenApiNewOrder (this.extend (request, params));
+        const response = await this.privateGetOpenApiAllOrder (this.extend (request, params));
         const result = this.safeValue (response, 'data');
-        return this.safeValue (result, 'resultList', []);
+        return this.safeValue (result, 'orderList', []);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = 100, params = {}) {
@@ -709,100 +710,90 @@ module.exports = class coineal extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = 100, params = {}) {
         await this.loadMarkets ();
-        let openOrders = [];
-        if (symbol === undefined) {
-            const totalMarkets = Object.keys (this.markets);
-            for (let i = 0; i < totalMarkets.length; i++) {
-                const market = this.market (totalMarkets[i]);
-                const orderData = await this.fetchCommonOrders (market['id'], limit, params);
-                const parseOpenOrderResult = this.filterByArray (orderData, 'status', [0, 1, 3], false);
-                openOrders = this.arrayConcat (openOrders, parseOpenOrderResult);
-            }
-            return this.parseOrders (openOrders, undefined, since, openOrders.length);
+        const symbolsToFetch = (symbol !== undefined) ? [symbol] : this.symbols;
+        let ordersData = [];
+        for (let i = 0; i < symbolsToFetch.length; i++) {
+            const market = this.market (symbolsToFetch[i]);
+            const orders = await this.fetchCommonOrders (market['id'], limit, params);
+            const openOrders = this.filterByArray (orders, 'status', [0, 1, 3], false);
+            ordersData = this.arrayConcat (ordersData, openOrders);
         }
-        const market = this.market (symbol);
-        const orderData = await this.fetchCommonOrders (market['id'], limit, params);
         // Exchange response
         // {
         //     "code": "0",
         //     "msg": "suc",
         //     "data": {
-        //         "count": 10,
-        //         "resultList": [
-        //             {
-        //                 "side": "BUY",
-        //                 "total_price": "0.10000000",
-        //                 "created_at": 1510993841000,
-        //                 "avg_price": "0.10000000",
-        //                 "countCoin": "btc",
-        //                 "source": 1,
-        //                 "type": 1,
-        //                 "side_msg": "买入",
-        //                 "volume": "1.000",
-        //                 "price": "0.10000000",
-        //                 "source_msg": "WEB",
-        //                 "status_msg": "部分成交",
-        //                 "deal_volume": "0.50000000",
-        //                 "id": 424,
-        //                 "remain_volume": "0.00000000",
-        //                 "baseCoin": "eth",
-        //                 "tradeList": [
-        //                     {
-        //                         "volume": "0.500",
-        //                         "price": "0.10000000",
-        //                         "fee": "0.16431104",
-        //                         "ctime": 1510996571195,
-        //                         "deal_price": "0.10000000",
-        //                         "id": 306,
-        //                         "type": "买入"
-        //                     }
-        //                 ],
-        //                 "status": 3
-        //             },
-        //             {
-        //                 "side": "SELL",
-        //                 "total_price": "0.10000000",
-        //                 "created_at": 1510993841000,
-        //                 "avg_price": "0.10000000",
-        //                 "countCoin": "btc",
-        //                 "source": 1,
-        //                 "type": 1,
-        //                 "side_msg": "买入",
-        //                 "volume": "1.000",
-        //                 "price": "0.10000000",
-        //                 "source_msg": "WEB",
-        //                 "status_msg": "未成交",
-        //                 "deal_volume": "0.00000000",
-        //                 "id": 425,
-        //                 "remain_volume": "0.00000000",
-        //                 "baseCoin": "eth",
-        //                 "tradeList": [],
-        //                 "status": 1
-        //             }
-        //         ]
+        //       "count": 10,
+        //       "resultList": [
+        //           {
+        //               "side": "BUY",
+        //               "total_price": "0.10000000",
+        //               "created_at": 1510993841000,
+        //               "avg_price": "0.10000000",
+        //               "countCoin": "btc",
+        //               "source": 1,
+        //               "type": 1,
+        //               "side_msg": "买入",
+        //               "volume": "1.000",
+        //               "price": "0.10000000",
+        //               "source_msg": "WEB",
+        //               "status_msg": "部分成交",
+        //               "deal_volume": "0.50000000",
+        //               "id": 424,
+        //               "remain_volume": "0.00000000",
+        //               "baseCoin": "eth",
+        //               "tradeList": [
+        //                   {
+        //                       "volume": "0.500",
+        //                       "price": "0.10000000",
+        //                       "fee": "0.16431104",
+        //                       "ctime": 1510996571195,
+        //                       "deal_price": "0.10000000",
+        //                       "id": 306,
+        //                       "type": "买入"
+        //                   }
+        //               ],
+        //               "status": 3
+        //           },
+        //           {
+        //               "side": "SELL",
+        //               "total_price": "0.10000000",
+        //               "created_at": 1510993841000,
+        //               "avg_price": "0.10000000",
+        //               "countCoin": "btc",
+        //               "source": 1,
+        //               "type": 1,
+        //               "side_msg": "买入",
+        //               "volume": "1.000",
+        //               "price": "0.10000000",
+        //               "source_msg": "WEB",
+        //               "status_msg": "未成交",
+        //               "deal_volume": "0.00000000",
+        //               "id": 425,
+        //               "remain_volume": "0.00000000",
+        //               "baseCoin": "eth",
+        //               "tradeList": [],
+        //               "status": 1
+        //           }
+        //       ]
         //     }
         // }
-        const allOpenOrders = this.filterByArray (orderData, 'status', [0, 1, 3], false);
-        return this.parseOrders (allOpenOrders, market, since, limit);
+        const market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        return this.parseOrders (ordersData, market, since, limit);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = 100, params = {}) {
         await this.loadMarkets ();
-        let openCloseOrders = [];
-        if (symbol === undefined) {
-            const totalMarkets = Object.keys (this.markets);
-            for (let i = 0; i < totalMarkets.length; i++) {
-                const market = this.market (totalMarkets[i]);
-                const orderData = await this.fetchCommonOrders (market['id'], limit, params);
-                const parseOpenCloseOrderResult = this.filterByArray (orderData, 'status', [0, 1, 2, 3], false);
-                openCloseOrders = this.arrayConcat (openCloseOrders, parseOpenCloseOrderResult);
-            }
-            return this.parseOrders (openCloseOrders, undefined, since, openCloseOrders.length);
+        const marketsToFetch = (symbol !== undefined) ? [symbol] : this.symbols;
+        let ordersData = [];
+        for (let i = 0; i < marketsToFetch.length; i++) {
+            const market = this.market (marketsToFetch[i]);
+            const orders = await this.fetchCommonOrders (market['id'], limit, params);
+            const allOrders = this.filterByArray (orders, 'status', [0, 1, 2, 3, 4], false);
+            ordersData = this.arrayConcat (ordersData, allOrders);
         }
-        const market = this.market (symbol);
-        const orderData = await this.fetchCommonOrders (market['id'], limit, params);
-        openCloseOrders = this.filterByArray (orderData, 'status', [0, 1, 2, 3], false);
-        return this.parseOrders (openCloseOrders, market, since, limit);
+        const market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        return this.parseOrders (ordersData, market, since, limit);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
