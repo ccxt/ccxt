@@ -758,28 +758,42 @@ module.exports = class bitget extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         //
-        //     {         best_ask: "0.02665472",
-        //               best_bid: "0.02665221",
-        //          instrument_id: "ETH-BTC",
-        //             product_id: "ETH-BTC",
-        //                   last: "0.02665472",
-        //                    ask: "0.02665472", // missing in the docs
-        //                    bid: "0.02665221", // not mentioned in the docs
-        //               open_24h: "0.02645482",
-        //               high_24h: "0.02714633",
-        //                low_24h: "0.02614109",
-        //        base_volume_24h: "572298.901923",
-        //              timestamp: "2018-12-17T21:20:07.856Z",
-        //       quote_volume_24h: "15094.86831261"            }
+        // spot
         //
-        const timestamp = this.parse8601 (this.safeString (ticker, 'timestamp'));
+        //     {
+        //         "id":"1595538241113",
+        //         "bid":["0.028474000000","1.139400000000"],
+        //         "ask":["0.028482000000","0.353100000000"],
+        //         "amount":"2850.6649",
+        //         "count":"818",
+        //         "open":"0.02821",
+        //         "close":"0.028474",
+        //         "low":"0.02821",
+        //         "high":"0.029091",
+        //         "vol":"79.4548693404"
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "instrument_id":"btcusd",
+        //         "last":"9574.5",
+        //         "best_ask":"9575.0",
+        //         "best_bid":"9574.0",
+        //         "high_24h":"9672",
+        //         "low_24h":"9512",
+        //         "volume_24h":"567697050",
+        //         "timestamp":"1595538450096"
+        //     }
+        //
+        const timestamp = this.safeInteger2 (ticker, 'timestamp', 'id');
         let symbol = undefined;
         const marketId = this.safeString (ticker, 'instrument_id');
         if (marketId in this.markets_by_id) {
             market = this.markets_by_id[marketId];
             symbol = market['symbol'];
         } else if (marketId !== undefined) {
-            const parts = marketId.split ('-');
+            const parts = marketId.split ('_');
             const numParts = parts.length;
             if (numParts === 2) {
                 const [ baseId, quoteId ] = parts;
@@ -793,28 +807,58 @@ module.exports = class bitget extends Exchange {
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
-        const last = this.safeFloat (ticker, 'last');
-        const open = this.safeFloat (ticker, 'open_24h');
+        const last = this.safeFloat2 (ticker, 'last', 'close');
+        const open = this.safeFloat (ticker, 'open');
+        let bidVolume = undefined;
+        let askVolume = undefined;
+        let bid = this.safeValue (ticker, 'bid', []);
+        if (bid === undefined) {
+            bid = this.safeFloat (ticker, 'best_bid');
+        } else {
+            bidVolume = this.safeFloat (bid, 1);
+            bid = this.safeFloat (bid, 0);
+        }
+        let ask = this.safeValue (ticker, 'ask', []);
+        if (ask === undefined) {
+            ask = this.safeFloat (ticker, 'best_ask');
+        } else {
+            askVolume = this.safeFloat (ask, 1);
+            ask = this.safeFloat (ask, 0);
+        }
+        const baseVolume = this.safeFloat (ticker, 'amount');
+        const quoteVolume = this.safeFloat (ticker, 'vol');
+        let vwap = undefined;
+        if ((baseVolume !== undefined) && (quoteVolume !== undefined)) {
+            vwap = quoteVolume / baseVolume;
+        }
+        let change = undefined;
+        let percentage = undefined;
+        let average = undefined;
+        if ((last !== undefined) && (open !== undefined)) {
+            change = last - open;
+            percentage = change / open * 100;
+            average = this.sum (open, last) / 2;
+        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high_24h'),
-            'low': this.safeFloat (ticker, 'low_24h'),
-            'bid': this.safeFloat (ticker, 'best_bid'),
-            'bidVolume': this.safeFloat (ticker, 'best_bid_size'),
-            'ask': this.safeFloat (ticker, 'best_ask'),
-            'askVolume': this.safeFloat (ticker, 'best_ask_size'),
-            'vwap': undefined,
+            'high': this.safeFloat2 (ticker, 'high', 'high_24h'),
+            'low': this.safeFloat2 (ticker, 'low', 'low_24h'),
+            'bid': bid,
+            'bidVolume': bidVolume,
+            'ask': ask,
+            'askVolume': askVolume,
+            'vwap': vwap,
             'open': open,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'base_volume_24h'),
-            'quoteVolume': this.safeFloat (ticker, 'quote_volume_24h'),
+            'change': change,
+            'percentage': percentage,
+            'average': average,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         };
     }
@@ -871,7 +915,7 @@ module.exports = class bitget extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        return this.parseTicker (data);
+        return this.parseTicker (data, market);
     }
 
     async fetchTickersByType (type, symbols = undefined, params = {}) {
