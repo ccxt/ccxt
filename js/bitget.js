@@ -57,16 +57,53 @@ module.exports = class bitget extends Exchange {
             'urls': {
                 'logo': 'https://h5.appwebbg.com/statics/images/common/logo-ccxt1.png',
                 'api': {
-                    'rest': 'https://capi.{hostname}',
+                    'data': 'https://api.{hostname}/data/v1',
+                    'api': 'https://api.{hostname}/api/v1',
+                    'capi': 'https://capi.{hostname}/swap/v1',
+                    'swap': 'https://capi.{hostname}/swap/v1',
                 },
                 'www': 'https://www.bitget.com',
-                'doc': 'https://github.com/BitgetLimited/API_Docs_en/',
+                'doc': [
+                    'https://bitgetlimited.github.io/apidoc/en/swap',
+                    'https://bitgetlimited.github.io/apidoc/en/spot',
+                ],
                 'fees': 'https://www.bitget.cc/zh-CN/rate?tab=1',
                 'test': {
                     'rest': 'https://testnet.bitget.com',
                 },
             },
             'api': {
+                'data': {
+                    'get': [
+                        'market/history/kline', // Kline data
+                        'market/detail/merged', // Get aggregated ticker
+                        'market/tickers', // Get all trading tickers
+                        'market/allticker', // Get all trading market method 2
+                        'market/depth', // Get Market Depth Data
+                        'market/trade', // Get Trade Detail Data
+                        'market/history/trade', // Get record of trading
+                        'market/detail', // Get Market Detail 24h Volume
+                        'common/symbols', // Query all trading pairs and accuracy supported in the station
+                        'common/currencys', // Query all currencies supported in the station
+                        'common/timestamp', // Query system current time
+                    ],
+                },
+                'api': {
+                    'get': [
+                        'account/accounts', // Get all accounts of current user(即account_id)。
+                        'accounts/{account_id}/balance', // Get the balance of the specified account
+                        'order/orders', // Query current order, history order
+                        'dw/query/deposit_withdraw', // Query assets history
+                    ],
+                    'post': [
+                        'order/orders/place', // Place order
+                        'order/orders/{order_id}/submitcancel', // Request to cancel an order request
+                        'order/orders/batchcancel', // Bulk order cancellation
+                        'order/orders/{order_id}', // Query an order details
+                        'order/orders/{order_id}/matchresults', // Query the transaction details of an order
+                        'order/matchresults', // Query current order, order history
+                    ],
+                },
                 'general': {
                     'get': [
                         'time',
@@ -129,7 +166,6 @@ module.exports = class bitget extends Exchange {
             'requiredCredentials': {
                 'apiKey': true,
                 'secret': true,
-                'password': false,
             },
             'exceptions': {
                 // http error codes
@@ -469,7 +505,10 @@ module.exports = class bitget extends Exchange {
             'precisionMode': TICK_SIZE,
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
-                'fetchMarkets': [],
+                'fetchMarkets': [
+                    'spot',
+                    'swap',
+                ],
                 'defaultType': 'swap', // 'account', 'spot', 'margin', 'futures', 'swap', 'option'
                 'auth': {
                     'time': 'public',
