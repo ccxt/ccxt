@@ -231,6 +231,7 @@ class kraken extends Exchange {
                 'EGeneral:Internal error' => '\\ccxt\\ExchangeNotAvailable',
                 'EGeneral:Temporary lockout' => '\\ccxt\\DDoSProtection',
                 'EGeneral:Permission denied' => '\\ccxt\\PermissionDenied',
+                'EOrder:Unknown order' => '\\ccxt\\InvalidOrder',
             ),
         ));
     }
