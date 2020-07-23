@@ -57,10 +57,10 @@ module.exports = class bitget extends Exchange {
             'urls': {
                 'logo': 'https://h5.appwebbg.com/statics/images/common/logo-ccxt1.png',
                 'api': {
-                    'data': 'https://api.{hostname}/data/v1',
-                    'api': 'https://api.{hostname}/api/v1',
-                    'capi': 'https://capi.{hostname}/swap/v1',
-                    'swap': 'https://capi.{hostname}/swap/v1',
+                    'data': 'https://api.{hostname}',
+                    'api': 'https://api.{hostname}',
+                    'capi': 'https://capi.{hostname}',
+                    'swap': 'https://capi.{hostname}',
                 },
                 'www': 'https://www.bitget.com',
                 'doc': [
@@ -102,11 +102,6 @@ module.exports = class bitget extends Exchange {
                         'order/orders/{order_id}', // Query an order details
                         'order/orders/{order_id}/matchresults', // Query the transaction details of an order
                         'order/matchresults', // Query current order, order history
-                    ],
-                },
-                'general': {
-                    'get': [
-                        'time',
                     ],
                 },
                 'capi': {
@@ -501,22 +496,6 @@ module.exports = class bitget extends Exchange {
                     'swap',
                 ],
                 'defaultType': 'swap', // 'account', 'spot', 'margin', 'futures', 'swap', 'option'
-                'auth': {
-                    'time': 'public',
-                    'currencies': 'private',
-                    'instruments': 'public',
-                    'rate': 'public',
-                    '{instrument_id}/constituents': 'public',
-                },
-            },
-            'commonCurrencies': {
-                // OKEX refers to ERC20 version of Aeternity (AEToken)
-                'AE': 'AET', // https://github.com/ccxt/ccxt/issues/4981
-                'HOT': 'Hydro Protocol',
-                'HSR': 'HC',
-                'MAG': 'Maggie',
-                'YOYO': 'YOYOW',
-                'WIN': 'WinToken', // https://github.com/ccxt/ccxt/issues/5701
             },
         });
     }
@@ -554,24 +533,33 @@ module.exports = class bitget extends Exchange {
     }
 
     parseMarket (market) {
-        // swap markets
+        //
+        // spot
         //
         //     {
-        //         instrument_id: "cmt_btcusdt",
-        //         underlying_index: "BTC",
-        //         quote_currency: "USDT",
-        //         coin: "USDT",
-        //         contract_val: "0.0001",
-        //         delivery:["07:00:00","15:00:00","23:00:00"] ,
-        //         size_increment: "0",
-        //         tick_size: "1",
-        //         forwardContractFlag:true
-        //         priceEndStep:5
-        //         base_currency: "BSV",
-        //         underlying: "BSV-USD",
-        //         settlement_currency: "BSV",
-        //         forwardContractFlag: "true",
-        //         contract_val_currency: "USD"
+        //         "base_currency":"btc",
+        //         "quote_currency":"usdt",
+        //         "symbol":"btc_usdt",
+        //         "tick_size":"2",
+        //         "size_increment":"4",
+        //         "status":"1",
+        //         "base_asset_precision":"8"
+        //     }
+        //
+        //
+        // swap
+        //
+        //     {
+        //         "instrument_id":"btcusd",
+        //         "underlying_index":"BTC",
+        //         "quote_currency":"USD",
+        //         "coin":"BTC",
+        //         "contract_val":"1",
+        //         "delivery":["07:00:00","15:00:00","23:00:00"],
+        //         "size_increment":"0",
+        //         "tick_size":"1",
+        //         "forwardContractFlag":false,
+        //         "priceEndStep":"5"
         //     }
         //
         //
@@ -579,7 +567,7 @@ module.exports = class bitget extends Exchange {
         let marketType = 'spot';
         let spot = true;
         let swap = false;
-        const baseId = this.safeString (market, 'coin');
+        const baseId = this.safeString2 (market, 'base_currency', 'coin');
         const quoteId = this.safeString (market, 'quote_currency');
         const contractVal = this.safeFloat (market, 'contract_val');
         if (contractVal !== undefined) {
@@ -598,7 +586,11 @@ module.exports = class bitget extends Exchange {
             'price': newtick_size,
         };
         const minAmount = this.safeFloat2 (market, 'min_size', 'base_min_size');
-        const active = true;
+        const status = this.safeString (market, 'status');
+        let active = undefined;
+        if (status !== undefined) {
+            active = (status === '1');
+        }
         const fees = this.safeValue2 (this.fees, marketType, 'trading', {});
         return this.extend (fees, {
             'id': id,
@@ -631,46 +623,60 @@ module.exports = class bitget extends Exchange {
     }
 
     async fetchMarketsByType (type, params = {}) {
-        if (type === 'swap') {
-            const method = type + 'GetInstruments';
-            let response = await this[method] (params) || {};
-            if (response['status'] === 'ok') {
-                response = response['data']['contractApis'];
-            }
-            // swap markets
+        if (type === 'spot') {
+            const response = await this.dataGetCommonSymbols (params);
             //
-            //     [
-            //         {
-            //             instrument_id: "BSV-USD-SWAP",
-            //             underlying_index: "BSV",
-            //             quote_currency: "USD",
-            //             coin: "BSV",
-            //             contract_val: "10",
-            //             listing: "2018-12-21T07:53:47.000Z",
-            //             delivery: "2020-03-14T08:00:00.000Z",
-            //             size_increment: "1",
-            //             tick_size: "0.01",
-            //             base_currency: "BSV",
-            //             underlying: "BSV-USD",
-            //             settlement_currency: "BSV",
-            //             is_inverse: "true",
-            //             contract_val_currency: "USD"
-            //         }
-            //     ]
+            //     {
+            //         "status":"ok",
+            //         "ts":1595526622408,
+            //         "data":[
+            //             {
+            //                 "base_currency":"btc",
+            //                 "quote_currency":"usdt",
+            //                 "symbol":"btc_usdt",
+            //                 "tick_size":"2",
+            //                 "size_increment":"4",
+            //                 "status":"1",
+            //                 "base_asset_precision":"8"
+            //             },
+            //         ]
+            //     }
             //
-            return this.parseMarkets (response);
+            const data = this.safeValue (response, 'data', []);
+            return this.parseMarkets (data);
+        } else if (type === 'swap') {
+            const response = await this.capiGetInstruments (params);
+            //
+            //     {
+            //         "data":{
+            //             "contractApis":[
+            //                 {
+            //                     "instrument_id":"btcusd",
+            //                     "underlying_index":"BTC",
+            //                     "quote_currency":"USD",
+            //                     "coin":"BTC",
+            //                     "contract_val":"1",
+            //                     "delivery":["07:00:00","15:00:00","23:00:00"],
+            //                     "size_increment":"0",
+            //                     "tick_size":"1",
+            //                     "forwardContractFlag":false,
+            //                     "priceEndStep":"5"
+            //                 },
+            //             ]
+            //         },
+            //         "status":"ok",
+            //         "err_code":"00000"
+            //     }
+            //
+            const data = this.safeValue (response, 'data');
+            const contractApis = this.safeValue (response, 'contractApis', []);
+            return this.parseMarkets (contractApis);
         } else {
             throw new NotSupported (this.id + ' fetchMarketsByType does not support market type ' + type);
         }
     }
 
     async fetchCurrencies (params = {}) {
-        // has['fetchCurrencies'] is currently set to false
-        // despite that their docs say these endpoints are public:
-        //     https://www.okex.com/api/account/v3/withdrawal/fee
-        //     https://www.okex.com/api/account/v3/currencies
-        // it will still reply with { "code":30001, "message": "OK-ACCESS-KEY header is required" }
-        // if you attempt to access it without authentication
         const response = await this.accountGetCurrencies (params);
         //
         //     [
@@ -2417,18 +2423,19 @@ module.exports = class bitget extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const isArray = Array.isArray (params);
-        let request = '/api/' + api + '/' + this.version + '/';
-        request += isArray ? path : this.implodeParams (path, params);
-        const query = isArray ? params : this.omit (params, this.extractParams (path));
-        let url = this.implodeParams (this.urls['api']['rest'], { 'hostname': this.hostname }) + request;
-        // let url = 'http://192.168.33.10:20284' + request;
-        const type = this.getPathAuthenticationType (path);
-        if (type === 'public') {
+        let request = '/' + this.version + '/' + this.implodeParams (path, params);
+        if (api === 'capi') {
+            request = '/api/swap' + request;
+        } else {
+            request = '/' + api + request;
+        }
+        const query = this.omit (params, this.extractParams (path));
+        let url = this.implodeParams (this.urls['api'][api], { 'hostname': this.hostname }) + request;
+        if ((api === 'data') || (api === 'capi')) {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
-        } else if (type === 'private') {
+        } else if (api === 'private') {
             this.checkRequiredCredentials ();
             const timestamp = this.numberToString (this.milliseconds ());
             query['method'] = path;
@@ -2450,10 +2457,10 @@ module.exports = class bitget extends Exchange {
             } else {
                 url += '?' + querystr + '&accesskey=' + this.apiKey + '&req_time=' + timestamp + '&sign=ccxt';
                 auth += '?' + querystr + '&accesskey=' + this.apiKey + '&req_time=' + timestamp + '&sign=ccxt';
-                if (isArray || Object.keys (query).length) {
-                    body = this.json (query);
-                    auth += body;
-                }
+                // if (isArray || Object.keys (query).length) {
+                //     body = this.json (query);
+                //     auth += body;
+                // }
                 headers['Content-Type'] = 'application/json';
             }
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
@@ -2461,18 +2468,6 @@ module.exports = class bitget extends Exchange {
             headers['ACCESS-SIGN'] = sign;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    }
-
-    getPathAuthenticationType (path) {
-        // https://github.com/ccxt/ccxt/issues/6651
-        // a special case to handle the optionGetUnderlying interefering with
-        // other endpoints containing this keyword
-        if (path === 'underlying') {
-            return 'public';
-        }
-        const auth = this.safeValue (this.options, 'auth', {});
-        const key = this.findBroadlyMatchedKey (auth, path);
-        return this.safeString (auth, key, 'private');
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
