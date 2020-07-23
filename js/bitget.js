@@ -133,7 +133,6 @@ module.exports = class bitget extends Exchange {
                         '{instrument_id}/modifyAutoAppendMargin', // ?accesskey=ak185723cdcfc54471&append_type=1&method=modifyAutoAppendMargin&req_time=1576291417317&side=1&sign=44fa76a445fb8f67b982298d5ca6fd93
                         'currentPlan/{instrument_id}', // ?accesskey=ak185723cdcfc54471&dateType=1&endTime=1222222&instrument_id=ethusd&method=currentPlan&page_index=1&page_size=4&req_time=1576293950097&side=1&sign=7e49fe8bcedffd99f784f7511f35d04a&startTime=1576293950097
                         'historyPlan/{instrument_id}', // ?accesskey=ak185723cdcfc54471&dateType=1&endTime=1222222&instrument_id=ethusd&method=historyPlan&page_index=1&page_size=4&req_time=1576293950097&side=1&sign=7e49fe8bcedffd99f784f7511f35d04a&startTime=1576293950097
-
                     ],
                     'post': [
                         'order', // ?sign=bb9c72e8b3fe8a4f066e8d629e29d8a9&req_time=1558099275296&accesskey=ak3565fe42ed3d4d03
