@@ -94,6 +94,76 @@ module.exports = class liquid extends Exchange {
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'tierBased': true,
+                    'percentage': true,
+                    'taker': 0.0015,
+                    'maker': 0.0000,
+                    'tiers': {
+                        'perpetual': {
+                            'maker': [
+                                [ 0, 0.0000 ],
+                                [ 25000, 0.0000 ],
+                                [ 50000, -0.00025 ],
+                                [ 100000, -0.00025 ],
+                                [ 1000000, -0.00025 ],
+                                [ 10000000, -0.00025 ],
+                                [ 25000000, -0.00025 ],
+                                [ 50000000, -0.00025 ],
+                                [ 75000000, -0.00025 ],
+                                [ 100000000, -0.00025 ],
+                                [ 200000000, -0.00025 ],
+                                [ 300000000, -0.00025 ],
+                            ],
+                            'taker': [
+                                [ 0, 0.000600 ],
+                                [ 25000, 0.000575 ],
+                                [ 50000, 0.000550 ],
+                                [ 100000, 0.000525 ],
+                                [ 1000000, 0.000500 ],
+                                [ 10000000, 0.000475 ],
+                                [ 25000000, 0.000450 ],
+                                [ 50000000, 0.000425 ],
+                                [ 75000000, 0.000400 ],
+                                [ 100000000, 0.000375 ],
+                                [ 200000000, 0.000350 ],
+                                [ 300000000, 0.000325 ],
+                            ],
+                        },
+                        'spot': {
+                            'taker': [
+                                [ 0, 0.0015 ],
+                                [ 10000, 0.0015 ],
+                                [ 20000, 0.0014 ],
+                                [ 50000, 0.0013 ],
+                                [ 100000, 0.0010 ],
+                                [ 1000000, 0.0008 ],
+                                [ 5000000, 0.0006 ],
+                                [ 10000000, 0.0005 ],
+                                [ 25000000, 0.0005 ],
+                                [ 50000000, 0.00045 ],
+                                [ 100000000, 0.0004 ],
+                                [ 200000000, 0.0003 ],
+                            ],
+                            'maker': [
+                                [ 0, 0.0000 ],
+                                [ 10000, 0.0015 ],
+                                [ 20000, 0.1400 ],
+                                [ 50000, 0.1300 ],
+                                [ 100000, 0.0800 ],
+                                [ 1000000, 0.0004 ],
+                                [ 5000000, 0.00035 ],
+                                [ 10000000, 0.00025 ],
+                                [ 25000000, 0.0000 ],
+                                [ 50000000, 0.0000 ],
+                                [ 100000000, 0.0000 ],
+                                [ 200000000, 0.0000 ],
+                            ],
+                        },
+                    },
+                },
+            },
             'exceptions': {
                 'API rate limit exceeded. Please retry after 300s': DDoSProtection,
                 'API Authentication failed': AuthenticationError,
@@ -268,8 +338,12 @@ module.exports = class liquid extends Exchange {
             } else {
                 symbol = base + '/' + quote;
             }
-            const maker = this.safeFloat (market, 'maker_fee');
-            const taker = this.safeFloat (market, 'taker_fee');
+            let maker = this.fees['trading']['maker'];
+            let taker = this.fees['trading']['taker'];
+            if (type === 'swap') {
+                maker = this.safeFloat (market, 'maker_fee', this.fees['trading']['maker']);
+                taker = this.safeFloat (market, 'taker_fee', this.fees['trading']['taker']);
+            }
             const disabled = this.safeValue (market, 'disabled', false);
             const active = !disabled;
             const baseCurrency = this.safeValue (currenciesByCode, base);
