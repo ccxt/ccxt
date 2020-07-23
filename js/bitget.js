@@ -501,14 +501,14 @@ module.exports = class bitget extends Exchange {
     }
 
     async fetchTime (params = {}) {
-        const response = await this.generalGetTime (params);
+        const response = await this.dataGetCommonTimestamp (params);
         //
         //     {
-        //         "iso": "2015-01-07T23:47:25.201Z",
-        //         "epoch": 1420674445.201
+        //         "status":"ok",
+        //         "data":"1595525139400"
         //     }
         //
-        return this.parse8601 (this.safeString (response, 'iso'));
+        return this.safeInteger (response, 'data');
     }
 
     async fetchMarkets (params = {}) {
@@ -563,7 +563,7 @@ module.exports = class bitget extends Exchange {
         //     }
         //
         //
-        const id = this.safeString (market, 'instrument_id');
+        const id = this.safeString2 (market, 'symbol', 'instrument_id');
         let marketType = 'spot';
         let spot = true;
         let swap = false;
