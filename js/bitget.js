@@ -109,51 +109,42 @@ module.exports = class bitget extends Exchange {
                         'time',
                     ],
                 },
-                'swap': {
+                'capi': {
                     'get': [
-                        'position',
-                        '{instrument_id}/position',
-                        'accounts',
-                        '{instrument_id}/accounts',
-                        'accounts/{instrument_id}/settings',
-                        'accounts/{instrument_id}/ledger',
-                        'orders/{instrument_id}',
-                        'orders/{instrument_id}/{order_id}',
-                        'orders/{instrument_id}/{client_oid}',
-                        'fills',
-                        'accounts/{instrument_id}/holds',
-                        'trade_fee',
-                        'order_algo/{instrument_id}',
-                        // public
+                        'instruments/{symbol}/ticker',
+                        'instruments/{symbol}/depth', // ?size=20
+                        'instruments/{symbol}/trades', // ?limit=20
+                        'instruments/{symbol}/index',
+                        'instruments/{symbol}/candles', // ?start=2019-05-01T04:12:12.000Z&end=2019-05-01T05:12:12.000Z&granularity=60
+                        'instruments/{symbol}/open_interest',
+                        'instruments/{symbol}/price_limit',
+                        'instruments/{symbol}/mark_price',
                         'instruments',
-                        'instruments/{instrument_id}/depth',
-                        'instruments/ticker',
-                        'instruments/{instrument_id}/ticker',
-                        'instruments/{instrument_id}/trades',
-                        'instruments/{instrument_id}/candles',
-                        'instruments/{instrument_id}/index',
-                        'rate',
-                        'instruments/{instrument_id}/open_interest',
-                        'instruments/{instrument_id}/price_limit',
-                        'instruments/{instrument_id}/liquidation',
-                        'instruments/{instrument_id}/funding_time',
-                        'instruments/{instrument_id}/mark_price',
-                        'instruments/{instrument_id}/historical_funding_rate',
-                    ],
-                    'post': [
-                        'accounts/{instrument_id}/leverage',
-                        'order',
-                        'orders',
-                        'cancel_order/{instrument_id}/{order_id}',
-                        'cancel_order/{instrument_id}/{client_oid}',
-                        'cancel_batch_orders/{instrument_id}',
-                        'order_algo',
-                        'cancel_algos',
+                        'calOpenCount',
                     ],
                 },
-                'index': {
+                'swap': {
                     'get': [
-                        '{instrument_id}/constituents',
+                        'accounts', // ?accesskey=ak3565fe42ed3d4d03&method=accounts&req_time=1558098686700&sign=83cb5eb84a7b6e3890abf77c8fa8c519
+                        '{instrument_id}/accounts', // ?accesskey=ak170c05584dca4c85&method=singleAccount&req_time=1575356480842&sign=be76477fcbe1b7095df102ac3d513d53=83cb5eb84a7b6e3890abf77c8fa8c519
+                        '{symbol}/position', // ?accesskey=ak3565fe42ed3d4d03&method=position&req_time=1558099045557&sign=8b5d51f0f2d23f61709ed4be620a9789
+                        'orders/{symbol}/{orderId}', // ?accesskey=ak899e552618ef4500&method=getOrderDetail&req_time=1558148224422&sign=ee38a2fd36f6aca3e8886bbc31da038f
+                        'orders/{symbol}', // ?accesskey=ak899e552618ef4500&from=null&limit=5&method=orders&req_time=1558148543438&sign=55820582491bb5549ef717a0c1d8b9da&status=-1&to=5
+                        'symbol/adjustMargin', // ?accesskey=ak8623d66898904322&amount=0.001&method=adjustMargin&positionType=1&req_time=1561432607808&sign=53af39178d3d5676010b39a503abe046&type=2
+                        'fills', // ?accesskey=ak8623d66898904322&instrument_id=btcusd&method=fills&order_id=525946425993854915&req_time=1561463413324&sign=453797b90dbabdf75a7d0585411dc77f
+                        '{symbo}/settings', // ?accesskey=ak3565fe42ed3d4d03&method=settings&req_time=1558099045557&sign=8b5d51f0f2d23f61709ed4be620a9789
+                        '{symbo}/leverage', // ?leverage=10&side=1&accesskey=ak3565fe42ed3d4d03&method=leverage&req_time=1558099045557&sign=8b5d51f0f2d23f61709ed4be620a9789
+                        '{instrument_id}/modifyAutoAppendMargin', // ?accesskey=ak185723cdcfc54471&append_type=1&method=modifyAutoAppendMargin&req_time=1576291417317&side=1&sign=44fa76a445fb8f67b982298d5ca6fd93
+                        'currentPlan/{instrument_id}', // ?accesskey=ak185723cdcfc54471&dateType=1&endTime=1222222&instrument_id=ethusd&method=currentPlan&page_index=1&page_size=4&req_time=1576293950097&side=1&sign=7e49fe8bcedffd99f784f7511f35d04a&startTime=1576293950097
+                        'historyPlan/{instrument_id}', // ?accesskey=ak185723cdcfc54471&dateType=1&endTime=1222222&instrument_id=ethusd&method=historyPlan&page_index=1&page_size=4&req_time=1576293950097&side=1&sign=7e49fe8bcedffd99f784f7511f35d04a&startTime=1576293950097
+
+                    ],
+                    'post': [
+                        'order', // ?sign=bb9c72e8b3fe8a4f066e8d629e29d8a9&req_time=1558099275296&accesskey=ak3565fe42ed3d4d03
+                        'orders', // ?sign=7cd7ea462e1dbc3312639d855c201ef8&req_time=1558146239275&accesskey=ak899e552618ef4500
+                        'cancel_order/{symbol}/{orderId}', // ?sign=9c6b152f61da109bbc41e128180e46f8&method=cancel_order&req_time=1558146612156&accesskey=ak899e552618ef4500
+                        'plan_order', // ?sign=619d0e84e0b711aeaa21d6f436fccbeb&req_time=1576292699607&accesskey=ak185723cdcfc54471
+                        'cancel_plan/{instrument_id}/{orderId}', // ?sign=948d93640053053743f5d7ec84e94168&req_time=1576293315943&accesskey=ak185723cdcfc54471                                            ],
                     ],
                 },
             },
