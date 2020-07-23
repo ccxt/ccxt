@@ -400,7 +400,7 @@ while (true) {
     // you arrive here every 100 ms regardless of whether there was an update or not
     // in throttling mode offloading the orderbook with .limit () is required
     console.log (exchange.orderbooks[symbol].limit (limit))
-    await sleep (100) // every 100 ms
+    await exchange.sleep (100) // every 100 ms
 }
 ```
 
