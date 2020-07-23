@@ -139,7 +139,7 @@ module.exports = class bitget extends Exchange {
                         'orders', // ?sign=7cd7ea462e1dbc3312639d855c201ef8&req_time=1558146239275&accesskey=ak899e552618ef4500
                         'cancel_order/{symbol}/{orderId}', // ?sign=9c6b152f61da109bbc41e128180e46f8&method=cancel_order&req_time=1558146612156&accesskey=ak899e552618ef4500
                         'plan_order', // ?sign=619d0e84e0b711aeaa21d6f436fccbeb&req_time=1576292699607&accesskey=ak185723cdcfc54471
-                        'cancel_plan/{instrument_id}/{orderId}', // ?sign=948d93640053053743f5d7ec84e94168&req_time=1576293315943&accesskey=ak185723cdcfc54471                                            ],
+                        'cancel_plan/{instrument_id}/{orderId}', // ?sign=948d93640053053743f5d7ec84e94168&req_time=1576293315943&accesskey=ak185723cdcfc54471
                     ],
                 },
             },
@@ -518,7 +518,9 @@ module.exports = class bitget extends Exchange {
     async fetchMarkets (params = {}) {
         let types = this.safeValue (this.options, 'fetchMarkets');
         if (!types.length) {
-            types = [ this.options['defaultType'] ];
+            types = [
+                this.options['defaultType'],
+            ];
         }
         let result = [];
         for (let i = 0; i < types.length; i++) {
@@ -759,6 +761,8 @@ module.exports = class bitget extends Exchange {
         //
         // spot
         //
+        //     fetchTicker
+        //
         //     {
         //         "id":"1595538241113",
         //         "bid":["0.028474000000","1.139400000000"],
@@ -770,6 +774,19 @@ module.exports = class bitget extends Exchange {
         //         "low":"0.02821",
         //         "high":"0.029091",
         //         "vol":"79.4548693404"
+        //     }
+        //
+        //     fetchTickers
+        //
+        //     {
+        //         "amount":"30086.8095",
+        //         "count":"22450",
+        //         "open":"9525.11",
+        //         "close":"9591.81",
+        //         "low":"9510.68",
+        //         "high":"9659.7",
+        //         "vol":"286239092.250461",
+        //         "symbol":"btc_usdt"
         //     }
         //
         // swap
@@ -787,7 +804,7 @@ module.exports = class bitget extends Exchange {
         //
         const timestamp = this.safeInteger2 (ticker, 'timestamp', 'id');
         let symbol = undefined;
-        const marketId = this.safeString (ticker, 'instrument_id');
+        const marketId = this.safeString2 (ticker, 'instrument_id', 'symbol');
         if (marketId in this.markets_by_id) {
             market = this.markets_by_id[marketId];
             symbol = market['symbol'];
@@ -919,14 +936,34 @@ module.exports = class bitget extends Exchange {
 
     async fetchTickersByType (type, symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const method = type + 'GetInstrumentsTicker';
-        let response = await this[method] (params);
-        if (response['status'] === 'ok') {
-            response = response['data']['info'];
+        if (type !== 'spot') {
+            throw new NotSupported (this.id + ' fetchTickers for ' + type + ' markets is not supported on the exchange side yet');
         }
+        const response = await this.dataGetMarketTickers (params);
+        //
+        //     {
+        //         "status":"ok",
+        //         "ts":1595542893250,
+        //         "data":[
+        //             {
+        //                 "amount":"30086.8095",
+        //                 "count":"22450",
+        //                 "open":"9525.11",
+        //                 "close":"9591.81",
+        //                 "low":"9510.68",
+        //                 "high":"9659.7",
+        //                 "vol":"286239092.250461",
+        //                 "symbol":"btc_usdt"
+        //             }
+        //         ]
+        //     }
+        const data = this.safeValue (response, 'data', []);
+        const timestamp = this.safeInteger (response, 'ts');
         const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const ticker = this.parseTicker (response[i]);
+        for (let i = 0; i < data.length; i++) {
+            const ticker = this.parseTicker (this.extend ({
+                'timestamp': timestamp,
+            }, data[i]));
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
