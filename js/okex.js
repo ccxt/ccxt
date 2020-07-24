@@ -3215,13 +3215,13 @@ module.exports = class okex extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (!response) {
+            return; // fallback to default error handler
+        }
         const feedback = this.id + ' ' + body;
         if (code === 503) {
             // {"message":"name resolution failed"}
             throw new ExchangeNotAvailable (feedback);
-        }
-        if (!response) {
-            return; // fallback to default error handler
         }
         //
         //     {"error_message":"Order does not exist","result":"true","error_code":"35029","order_id":"-1"}
@@ -3230,11 +3230,11 @@ module.exports = class okex extends Exchange {
         const errorCode = this.safeString2 (response, 'code', 'error_code');
         const nonEmptyMessage = ((message !== undefined) && (message !== ''));
         const nonZeroErrorCode = (errorCode !== undefined) && (errorCode !== '0');
-        if (message !== undefined) {
+        if (nonEmptyMessage) {
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
         }
-        if (errorCode !== undefined) {
+        if (nonZeroErrorCode) {
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
         }
         if (nonZeroErrorCode || nonEmptyMessage) {
