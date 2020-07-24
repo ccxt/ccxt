@@ -41,18 +41,17 @@ module.exports = class bitget extends Exchange {
                 'withdraw': false,
             },
             'timeframes': {
-                '1m': '60',
-                '3m': '180',
-                '5m': '300',
-                '15m': '900',
-                '30m': '1800',
-                '1h': '3600',
-                '2h': '7200',
-                '4h': '14400',
-                '6h': '21600',
-                '12h': '43200',
-                '1d': '86400',
-                '1w': '604800',
+                '1m': '1m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
+                '1h': '1h',
+                '2h': '2h',
+                '4h': '4h',
+                '6h': '6h',
+                '12h': '12h',
+                '1d': '1d',
+                '1w': '1w',
             },
             'hostname': 'bitget.com',
             'urls': {
@@ -499,7 +498,35 @@ module.exports = class bitget extends Exchange {
                     'spot',
                     'swap',
                 ],
-                'defaultType': 'spot', // 'account', 'spot', 'margin', 'futures', 'swap', 'option'
+                'defaultType': 'spot', // 'spot', 'swap'
+                'timeframes': {
+                    'spot': {
+                        '1m': '1min',
+                        '5m': '5min',
+                        '15m': '15min',
+                        '30m': '30min',
+                        '1h': '60min',
+                        '2h': '120min',
+                        '4h': '240min',
+                        '6h': '360min',
+                        '12h': '720min',
+                        '1d': '1day',
+                        '1w': '1week',
+                    },
+                    'swap': {
+                        '1m': '60',
+                        '5m': '300',
+                        '15m': '900',
+                        '30m': '1800',
+                        '1h': '3600',
+                        '2h': '7200',
+                        '4h': '14400',
+                        '6h': '21600',
+                        '12h': '43200',
+                        '1d': '86400',
+                        '1w': '604800',
+                    },
+                },
             },
         });
     }
@@ -1173,31 +1200,74 @@ module.exports = class bitget extends Exchange {
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const method = market['type'] + 'GetInstrumentsInstrumentIdCandles';
         const request = {
-            'instrument_id': market['id'],
-            'granularity': this.timeframes[timeframe],
+            'symbol': market['id'],
         };
-        const duration = this.parseTimeframe (timeframe);
-        if (since !== undefined) {
+        let method = undefined;
+        const type = market['type'];
+        const options = this.safeValue (this.options, 'timeframes', {});
+        const intervals = this.safeValue (options, type, {});
+        const interval = this.safeValue (intervals, this.timeframes[timeframe]);
+        if (market['spot']) {
+            method = 'dataGetMarketHistoryKline';
+            request['period'] = interval;
             if (limit !== undefined) {
-                request['end'] = this.iso8601 (this.sum (since, limit * duration * 1000));
+                request['size'] = limit; // default 150, max 10000
             }
-            request['start'] = this.iso8601 (since);
-        } else {
+        } else if (market['swap']) {
+            const duration = this.parseTimeframe (timeframe);
+            method = 'capiGetInstrumentsSymbolCandles';
+            request['granularity'] = interval;
             const now = this.milliseconds ();
-            if (limit !== undefined) {
-                request['start'] = this.iso8601 (now - limit * duration * 1000);
-                request['end'] = this.iso8601 (now);
+            if (since === undefined) {
+                if (limit !== undefined) {
+                    request['start'] = this.iso8601 (now - limit * duration * 1000);
+                    request['end'] = this.iso8601 (now);
+                } else {
+                    throw new ArgumentsRequired (this.id + ' fetchOHLCV requires a since argument or a limit argument');
+                }
             } else {
-                throw new ArgumentsRequired (this.id + ' fetchOHLCV requires either `limit` or `since` to be defined');
+                request['start'] = this.iso8601 (since);
+                if (limit === undefined) {
+                    request['end'] = this.iso8601 (now);
+                } else {
+                    request['end'] = this.iso8601 (this.sum (since, limit * duration * 1000));
+                }
             }
         }
-        let response = await this[method] (this.extend (request, params));
-        if (response['status'] !== 'ok') {
-            return response;
+        const response = await this[method] (this.extend (request, params));
+        //
+        // spot
+        //
+        //     {
+        //         "status":"ok",
+        //         "ch":"market.btc_usdt.kline.15min",
+        //         "ts":1595594183874,
+        //         "data":[
+        //             {"id":"1594694700000","amount":"283.6811","count":"234","open":"9230.00","close":"9227.15","low":"9206.66","high":"9232.33","vol":"2618015.032504000000"},
+        //             {"id":"1594695600000","amount":"457.2904","count":"238","open":"9227.15","close":"9229.46","low":"9223.80","high":"9235.14","vol":"4220734.684570000000"},
+        //             {"id":"1594696500000","amount":"501.2353","count":"255","open":"9229.46","close":"9227.78","low":"9222.69","high":"9230.74","vol":"4625779.185006000000"},
+        //         ]
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "data":{
+        //             "data":[
+        //                 ["1594693800000","9240","9241","9222","9228.5","3913370","424.003616350563"],
+        //                 ["1594694700000","9228.5","9232.5","9223.5","9227","3912710","423.976969705766"],
+        //                 ["1594695600000","9227","9235.5","9223","9229.5","4787497","518.721963260371"],
+        //             ]
+        //         },
+        //         "status":"ok",
+        //         "err_code":"00000"
+        //     }
+        //
+        let data = this.safeValue (response, 'data');
+        if (!this.isArray (data)) {
+            data = this.safeValue (data, 'data', []);
         }
-        response = response['data']['data'];
         //
         // spot markets
         //
@@ -1221,7 +1291,7 @@ module.exports = class bitget extends Exchange {
         //     ]
         //
         //
-        return this.parseOHLCVs (response, market, timeframe);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
     parseAccountBalance (response) {
@@ -2580,6 +2650,10 @@ module.exports = class bitget extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         const feedback = this.id + ' ' + body;
+        //
+        //     {"status":"fail","err_code":"01001","err_msg":"系统异常，请稍后重试"}
+        //     {"status":"error","ts":1595594160149,"err_code":"invalid-parameter","err_msg":"invalid size, valid range: [1,2000]"}
+        //
         if (code === 503) {
             // {"message":"name resolution failed"}
             throw new ExchangeNotAvailable (feedback);
