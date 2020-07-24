@@ -761,33 +761,69 @@ module.exports = class bitget extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let method = market['type'] + 'GetInstrumentsInstrumentId';
-        method += (market['type'] === 'swap') ? 'Depth' : 'Book';
         const request = {
-            'instrument_id': market['id'],
+            'symbol': market['id'],
         };
-        if (limit !== undefined) {
-            request['size'] = limit; // max 200
+        let method = undefined;
+        if (market['spot']) {
+            method = 'dataGetMarketDepth';
+            request['type'] = 'step0'; // step0, step1, step2, step3, step4, step5, do not merge depth if step0
+        } else if (market['swap']) {
+            method = 'capiGetInstrumentsSymbolDepth';
         }
-        let response = await this[method] (this.extend (request, params));
-        //
-        //     {      asks: [ ["0.02685268", "0.242571", "1"],
-        //                    ["0.02685493", "0.164085", "1"],
-        //                    ...
-        //                    ["0.02779", "1.039", "1"],
-        //                    ["0.027813", "0.0876", "1"]        ],
-        //            bids: [ ["0.02684052", "10.371849", "1"],
-        //                    ["0.02684051", "3.707", "4"],
-        //                    ...
-        //                    ["0.02634963", "0.132934", "1"],
-        //                    ["0.02634962", "0.264838", "2"]    ],
-        //       timestamp:   "2018-12-17T20:24:16.159Z"            }
-        //
-        if (response['status'] === 'ok') {
-            response = response['data'];
+        if (market['swap']) {
+            request['size'] = (limit === undefined) ? 100 : limit; // max 100
         }
-        const timestamp = this.safeString (response, 'timestamp');
-        return this.parseOrderBook (response, timestamp);
+        const response = await this[method] (this.extend (request, params));
+        //
+        // spot
+        //
+        //     {
+        //         "status":"ok",
+        //         "ch":"market.btc_usdt.depth.step0",
+        //         "ts":1595607628197,
+        //         "data":{
+        //             "id":"1595607628197",
+        //             "ts":"1595607628197",
+        //             "bids":[
+        //                 ["9534.99","15.36160000000000000000"],
+        //                 ["9534.85","0.14580000000000000000"],
+        //                 ["9534.73","0.02100000000000000000"],
+        //             ],
+        //             "asks":[
+        //                 ["9535.02","7.37160000000000000000"],
+        //                 ["9535.03","0.09040000000000000000"],
+        //                 ["9535.05","0.02180000000000000000"],
+        //             ]
+        //         }
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "data":{
+        //             "asks":[
+        //                 ["9531.5","1419",1],
+        //                 ["9532.0","43205",1],
+        //                 ["9532.5","28266",1],
+        //             ],
+        //             "bids":[
+        //                 ["9531.0","139622",1],
+        //                 ["9530.5","61386",1],
+        //                 ["9530.0","32178",1],
+        //             ],
+        //             "timestamp":"1595607809197"
+        //         },
+        //         "status":"ok",
+        //         "err_code":"00000"
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const timestamp = this.safeInteger2 (data, 'timestamp', 'ts');
+        const nonce = this.safeInteger (data, 'id');
+        const orderbook = this.parseOrderBook (data, timestamp);
+        orderbook['nonce'] = nonce;
+        return orderbook;
     }
 
     parseTicker (ticker, market = undefined) {
