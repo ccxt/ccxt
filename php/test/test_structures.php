@@ -55,12 +55,6 @@ function validate_data($array, $key, $function) {
 }
 
 class Validator {
-    public static function validate($type, $object) {
-        global $types;
-        $fields = $types[$type];
-        validate_multiple($object, $fields);
-    }
-
     public static function validate_trades($trades) {
         global $types;
         if (count($trades) <= 0) {
@@ -74,7 +68,12 @@ class Validator {
         if ($validate !== 'validate') {
             throw new Error('Call to undefined method Validator::' . $name . '()');
         }
-        static::validate($fragment, ...$arguments);
+        if (count($arguments) !== 1) {
+            throw new Error('Too many arguments passed to Validator');
+        }
+        global $types;
+        $fields = $types[$fragment];
+        validate_multiple($arguments[0], $fields);
     }
 }
 
