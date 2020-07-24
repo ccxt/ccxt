@@ -2701,26 +2701,22 @@ module.exports = class bitget extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        const feedback = this.id + ' ' + body;
+        if (!response) {
+            return; // fallback to default error handler
+        }
         //
         //     {"status":"fail","err_code":"01001","err_msg":"系统异常，请稍后重试"}
         //     {"status":"error","ts":1595594160149,"err_code":"invalid-parameter","err_msg":"invalid size, valid range: [1,2000]"}
         //
-        if (code === 503) {
-            // {"message":"name resolution failed"}
-            throw new ExchangeNotAvailable (feedback);
-        }
-        if (!response) {
-            return; // fallback to default error handler
-        }
-        const message = this.safeString (response, 'message');
-        const errorCode = this.safeString2 (response, 'code', 'error_code');
+        const message = this.safeString (response, 'err_msg');
+        const errorCode = this.safeString2 (response, 'code', 'err_code');
         if (message !== undefined) {
+            const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
             const nonEmptyMessage = (message !== '');
-            const nonZeroErrorCode = (errorCode !== undefined) && (errorCode !== '0');
+            const nonZeroErrorCode = (errorCode !== undefined) && (errorCode !== '0000');
             if (nonZeroErrorCode || nonEmptyMessage) {
                 throw new ExchangeError (feedback); // unknown message
             }
