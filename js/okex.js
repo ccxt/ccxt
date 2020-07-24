@@ -1814,7 +1814,7 @@ module.exports = class okex extends Exchange {
                 // 'match_price': '0', // Order at best counter party price? (0:no 1:yes). The default is 0. If it is set as 1, the price parameter will be ignored. When posting orders at best bid price, order_type can only be 0 (regular order).
             });
             // order_type == 4 is market order, cannot fill price
-            if (this.safeString(params, 'order_type', '0') != '4') {
+            if (this.safeString(params, 'order_type', '0') !== '4') {
                 request['price'] = this.priceToPrecision (symbol, price)
             }
             if (market['futures']) {
