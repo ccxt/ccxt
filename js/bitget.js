@@ -1340,7 +1340,7 @@ module.exports = class bitget extends Exchange {
         //     }
         //
         let data = this.safeValue (response, 'data');
-        if (!this.isArray (data)) {
+        if (!Array.isArray (data)) {
             data = this.safeValue (data, 'data', []);
         }
         return this.parseOHLCVs (data, market, timeframe, since, limit);
@@ -2710,16 +2710,18 @@ module.exports = class bitget extends Exchange {
         //
         const message = this.safeString (response, 'err_msg');
         const errorCode = this.safeString2 (response, 'code', 'err_code');
-        if (message !== undefined) {
-            const feedback = this.id + ' ' + body;
+        const feedback = this.id + ' ' + body;
+        const nonEmptyMessage = ((message !== undefined) && (message !== ''));
+        if (nonEmptyMessage) {
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+        }
+        const nonZeroErrorCode = (errorCode !== undefined) && (errorCode !== '0000');
+        if (nonZeroErrorCode) {
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
-            const nonEmptyMessage = (message !== '');
-            const nonZeroErrorCode = (errorCode !== undefined) && (errorCode !== '0000');
-            if (nonZeroErrorCode || nonEmptyMessage) {
-                throw new ExchangeError (feedback); // unknown message
-            }
+        }
+        if (nonZeroErrorCode || nonEmptyMessage) {
+            throw new ExchangeError (feedback); // unknown message
         }
     }
 };
