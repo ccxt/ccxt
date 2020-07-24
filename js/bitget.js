@@ -2716,7 +2716,7 @@ module.exports = class bitget extends Exchange {
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
         }
-        const nonZeroErrorCode = (errorCode !== undefined) && (errorCode !== '0000');
+        const nonZeroErrorCode = (errorCode !== undefined) && (errorCode !== '00000');
         if (nonZeroErrorCode) {
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
         }
