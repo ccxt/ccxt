@@ -4,6 +4,7 @@ error_reporting(E_ALL | E_STRICT);
 date_default_timezone_set('UTC');
 
 include_once 'ccxt.php';
+include_once 'test_structures.php';
 
 function style($s, $style) {
     return $style . $s . "\033[0m";
@@ -77,6 +78,7 @@ function test_ticker($exchange, $symbol) {
     usleep($delay);
     dump(green($exchange->id), green($symbol), 'fetching ticker...');
     $ticker = $exchange->fetch_ticker($symbol);
+    Validator::validate_ticker($ticker);
     dump(green($exchange->id), green($symbol), 'ticker:', implode(' ', array(
         $ticker['datetime'],
         'high: ' . $ticker['high'],
@@ -91,6 +93,7 @@ function test_order_book($exchange, $symbol) {
     usleep($delay);
     dump(green($exchange->id), green($symbol), 'fetching order book...');
     $orderbook = $exchange->fetch_order_book($symbol);
+    Validator::validate_orderbook($orderbook);
     dump(green($exchange->id), green($symbol), 'order book:', implode(' ', array(
         $orderbook['datetime'],
         'bid: '       . @$orderbook['bids'][0][0],
@@ -108,6 +111,7 @@ function test_trades($exchange, $symbol) {
 
         dump(green($symbol), 'fetching trades...');
         $trades = $exchange->fetch_trades($symbol);
+        Validator::validate_trades($trades);
         dump(green($symbol), 'fetched', green(count($trades)), 'trades');
     } else {
         dump(green($symbol), 'fetchTrades () not supported');
