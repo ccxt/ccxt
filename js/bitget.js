@@ -57,7 +57,7 @@ module.exports = class bitget extends Exchange {
             },
             'hostname': 'bitget.com',
             'urls': {
-                'logo': 'https://h5.appwebbg.com/statics/images/common/logo-ccxt1.png',
+                'logo': 'https://user-images.githubusercontent.com/51840849/88317935-a8a21c80-cd22-11ea-8e2b-4b9fac5975eb.jpg',
                 'api': {
                     'data': 'https://api.{hostname}',
                     'api': 'https://api.{hostname}',
