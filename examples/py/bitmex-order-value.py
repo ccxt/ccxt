@@ -42,5 +42,5 @@ while True:
             name = units[unit]['name']
             rounded_value = exchange.decimal_to_precision(value * multiplier, ccxt.ROUND, decimals)  # alternatively, use ccxt.TRUNCATE here
             print(num_contracts, symbol, 'contracts =', rounded_value, unit, '(' + name + ')')
-    except e:
+    except Exception as e:
         pass
