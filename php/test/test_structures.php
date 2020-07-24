@@ -43,14 +43,14 @@ function validate_multiple($array, $types) {
 
 function validate_data($array, $key, $function) {
     if (!is_array($array)) {
-        throw new AssertionError (gettype($array) . ' is not a valid array');
+        throw new AssertionError(gettype($array) . ' is not a valid array');
     }
     if (!array_key_exists($key, $array)) {
         throw new AssertionError($key . ' is not a valid key');
     }
     $value = $array[$key];
     if (!is_null($value) and !$function($value)) {
-        throw new AssertionError ($key . ' is the wrong type, expected ' . substr($function, 3) . ' but got ' . gettype($value));
+        throw new AssertionError($key . ' is the wrong type, expected ' . substr($function, 3) . ' but got ' . gettype($value));
     }
 }
 
