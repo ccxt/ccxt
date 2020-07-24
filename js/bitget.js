@@ -1119,45 +1119,57 @@ module.exports = class bitget extends Exchange {
     async fetchTrades (symbol, limit = undefined, since = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const method = market['type'] + 'GetInstrumentsInstrumentIdTrades';
-        if ((limit === undefined) || (limit > 100)) {
+        const request = {
+            'symbol': market['id'],
+        };
+        let method = undefined;
+        if (market['spot']) {
+            method = 'dataGetMarketHistoryTrade';
+        } else if (market['swap']) {
+            method = 'capiGetInstrumentsSymbolTrades';
+        }
+        if (limit !== undefined) {
+            if (market['spot']) {
+                request['size'] = limit; // default 1, max 2000
+            } else {
+                request['limit'] = limit; // default 20, max 100
+            }
             limit = 100; // maximum = default = 100
         }
-        const request = {
-            'instrument_id': market['id'],
-            'limit': limit,
-        };
         const response = await this[method] (this.extend (request, params));
         //
-        // spot markets
+        // spot
         //
-        //     [
-        //         {
-        //             time: "2018-12-17T23:31:08.268Z",
-        //             timestamp: "2018-12-17T23:31:08.268Z",
-        //             trade_id: "409687906",
-        //             price: "0.02677805",
-        //             size: "0.923467",
-        //             side: "sell"
+        //     {
+        //         "status":"ok",
+        //         "ch":"market.btc_usdt.trade.detail",
+        //         "ts":1595604968430,
+        //         "data":{
+        //             "ts":"1595604964000",
+        //             "data":[
+        //                 {"id":"1","price":"9533.81","amount":"0.7326","direction":"sell","ts":"1595604964000"},
+        //                 {"id":"2","price":"9533.67","amount":"1.1591","direction":"buy","ts":"1595604961000"},
+        //                 {"id":"3","price":"9533.67","amount":"1.5022","direction":"sell","ts":"1595604959000"},
+        //             ]
         //         }
-        //     ]
+        //     }
         //
-        // futures markets, swap markets
+        // swap
         //
-        //     [
-        //         {
-        //             trade_id: "1989230840021013",
-        //             side: "buy",
-        //             price: "92.42",
-        //             qty: "184", // missing in swap markets
-        //             size: "5", // missing in futures markets
-        //             timestamp: "2018-12-17T23:26:04.613Z"
-        //         }
-        //     ]
-        //
-        let result = this.safeValue (response, 'data', {});
-        result = this.safeValue (result, 'tradeApiDtos', []);
-        return this.parseTrades (result, market, since, limit);
+        //     {
+        //         "data":{
+        //             "tradeApiDtos":[
+        //                 {"trade_id":"670581881367954915","price":"9553.00","size":"20","side":"sell","timestamp":"1595605100004","instrument_id":"btcusd"},
+        //                 {"trade_id":"670581881367953915","price":"9553.00","size":"2066","side":"sell","timestamp":"1595605100004","instrument_id":"btcusd"},
+        //                 {"trade_id":"670581876624200915","price":"9553.00","size":"947","side":"buy","timestamp":"1595605098873","instrument_id":"btcusd"},
+        //             ]
+        //         },
+        //         "status":"ok",
+        //         "err_code":"00000"
+        //     }
+        const data = this.safeValue (response, 'data', {});
+        const trades = this.safeValue2 (data, 'tradeApiDtos', 'data', []);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m') {
