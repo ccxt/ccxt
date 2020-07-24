@@ -1013,17 +1013,26 @@ module.exports = class bitget extends Exchange {
         //
         // fetchTrades (public)
         //
-        //     spot trades
+        //     spot
         //
-        //         {
-        //             time: "2018-12-17T23:31:08.268Z",
-        //             timestamp: "2018-12-17T23:31:08.268Z",
-        //             trade_id: "409687906",
-        //             price: "0.02677805",
-        //             size: "0.923467",
-        //             side: "sell"
-        //         }
+        //     {
+        //         "id":"1",
+        //         "price":"9533.81",
+        //         "amount":"0.7326",
+        //         "direction":"sell",
+        //         "ts":"1595604964000"
+        //     }
         //
+        //     swap
+        //
+        //     {
+        //         "trade_id":"670581881367954915",
+        //         "price":"9553.00",
+        //         "size":"20",
+        //         "side":"sell",
+        //         "timestamp":"1595605100004",
+        //         "instrument_id":"btcusd"
+        //     }
         //
         // fetchOrderTrades (private)
         //
@@ -1060,7 +1069,7 @@ module.exports = class bitget extends Exchange {
                 quote = this.safeCurrencyCode (quoteId);
                 symbol = base + '/' + quote;
             } else {
-                symbol = marketId;
+                symbol = marketId.toUpperCase ();
             }
         }
         if ((symbol === undefined) && (market !== undefined)) {
@@ -1068,17 +1077,16 @@ module.exports = class bitget extends Exchange {
             base = market['base'];
             quote = market['quote'];
         }
-        const timestamp = this.parse8601 (this.safeString2 (trade, 'timestamp', 'created_at'));
+        const timestamp = this.safeInteger2 (trade, 'timestamp', 'ts');
         const price = this.safeFloat (trade, 'price');
-        let amount = this.safeFloat2 (trade, 'size', 'qty');
-        amount = this.safeFloat (trade, 'order_qty', amount);
+        const amount = this.safeFloat2 (trade, 'size', 'amount');
         let takerOrMaker = this.safeString2 (trade, 'exec_type', 'liquidity');
         if (takerOrMaker === 'M') {
             takerOrMaker = 'maker';
         } else if (takerOrMaker === 'T') {
             takerOrMaker = 'taker';
         }
-        const side = this.safeString (trade, 'side');
+        const side = this.safeString2 (trade, 'side', 'direction');
         let cost = undefined;
         if (amount !== undefined) {
             if (price !== undefined) {
@@ -1104,7 +1112,7 @@ module.exports = class bitget extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'id': this.safeString2 (trade, 'trade_id', 'ledger_id'),
+            'id': this.safeString (trade, 'trade_id'),
             'order': orderId,
             'type': undefined,
             'takerOrMaker': takerOrMaker,
