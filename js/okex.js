@@ -1798,7 +1798,7 @@ module.exports = class okex extends Exchange {
         let request = {
             'instrument_id': market['id'],
             // 'client_oid': 'abcdef1234567890', // [a-z0-9]{1,32}
-            // 'order_type': '0', // 0: Normal limit order (Unfilled and 0 represent normal limit order) 1: Post only 2: Fill Or Kill 3: Immediatel Or Cancel
+            // 'order_type': '0', // 0 = Normal limit order, 1 = Post only, 2 = Fill Or Kill, 3 = Immediatel Or Cancel, 4 = Market for futures only
         };
         const clientOrderId = this.safeString2 (params, 'client_oid', 'clientOrderId');
         if (clientOrderId !== undefined) {
@@ -1811,9 +1811,13 @@ module.exports = class okex extends Exchange {
             request = this.extend (request, {
                 'type': type, // 1:open long 2:open short 3:close long 4:close short for futures
                 'size': size,
-                'price': this.priceToPrecision (symbol, price),
                 // 'match_price': '0', // Order at best counter party price? (0:no 1:yes). The default is 0. If it is set as 1, the price parameter will be ignored. When posting orders at best bid price, order_type can only be 0 (regular order).
             });
+            const orderType = this.safeString (params, 'order_type');
+            // order_type === '4' means a market order
+            if (orderType !== '4') {
+                request['price'] = this.priceToPrecision (symbol, price);
+            }
             if (market['futures']) {
                 request['leverage'] = '10'; // or '20'
             }
