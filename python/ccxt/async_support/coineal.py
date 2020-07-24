@@ -22,7 +22,7 @@ class coineal(Exchange):
             'id': 'coineal',
             'name': 'Coineal',
             'countries': [],
-            'rateLimit': 1000,
+            'rateLimit': 250,
             'has': {
                 'fetchMarkets': True,
                 'fetchOHLCV': True,
