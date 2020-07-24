@@ -3087,12 +3087,12 @@ class okex(Exchange):
         return self.safe_string(auth, key, 'private')
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        if not response:
+            return  # fallback to default error handler
         feedback = self.id + ' ' + body
         if code == 503:
             # {"message":"name resolution failed"}
             raise ExchangeNotAvailable(feedback)
-        if not response:
-            return  # fallback to default error handler
         #
         #     {"error_message":"Order does not exist","result":"true","error_code":"35029","order_id":"-1"}
         #
@@ -3100,10 +3100,10 @@ class okex(Exchange):
         errorCode = self.safe_string_2(response, 'code', 'error_code')
         nonEmptyMessage = ((message is not None) and (message != ''))
         nonZeroErrorCode = (errorCode is not None) and (errorCode != '0')
-        if message is not None:
+        if nonEmptyMessage:
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
-        if errorCode is not None:
+        if nonZeroErrorCode:
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
         if nonZeroErrorCode or nonEmptyMessage:
             raise ExchangeError(feedback)  # unknown message

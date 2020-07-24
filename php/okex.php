@@ -3221,13 +3221,13 @@ class okex extends Exchange {
     }
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+        if (!$response) {
+            return; // fallback to default error handler
+        }
         $feedback = $this->id . ' ' . $body;
         if ($code === 503) {
             // array("$message":"name resolution failed")
             throw new ExchangeNotAvailable($feedback);
-        }
-        if (!$response) {
-            return; // fallback to default error handler
         }
         //
         //     array("error_message":"Order does not exist","result":"true","error_code":"35029","order_id":"-1")
@@ -3236,11 +3236,11 @@ class okex extends Exchange {
         $errorCode = $this->safe_string_2($response, 'code', 'error_code');
         $nonEmptyMessage = (($message !== null) && ($message !== ''));
         $nonZeroErrorCode = ($errorCode !== null) && ($errorCode !== '0');
-        if ($message !== null) {
+        if ($nonEmptyMessage) {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
         }
-        if ($errorCode !== null) {
+        if ($nonZeroErrorCode) {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
         }
         if ($nonZeroErrorCode || $nonEmptyMessage) {
