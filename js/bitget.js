@@ -498,6 +498,12 @@ module.exports = class bitget extends Exchange {
                     'spot',
                     'swap',
                 ],
+                'parseOHLCV': {
+                    'volume': {
+                        'spot': 'amount',
+                        'swap': 5,
+                    },
+                },
                 'defaultType': 'spot', // 'spot', 'swap'
                 'timeframes': {
                     'spot': {
@@ -1154,45 +1160,56 @@ module.exports = class bitget extends Exchange {
         return this.parseTrades (result, market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1m') {
         //
-        // spot markets
+        // spot
         //
         //     {
-        //         close: "0.02684545",
-        //         high: "0.02685084",
-        //         low: "0.02683312",
-        //         open: "0.02683894",
-        //         time: "2018-12-17T20:28:00.000Z",
-        //         volume: "101.457222"
+        //         "id":"1594694700000",
+        //         "amount":"283.6811",
+        //         "count":"234",
+        //         "open":"9230.00",
+        //         "close":"9227.15",
+        //         "low":"9206.66",
+        //         "high":"9232.33",
+        //         "vol":"2618015.032504000000"
         //     }
         //
+        // swap
         //
+        //     [
+        //         "1594693800000",
+        //         "9240",
+        //         "9241",
+        //         "9222",
+        //         "9228.5",
+        //         "3913370",
+        //         "424.003616350563"
+        //     ]
+        //
+        const options = this.safeValue (this.options, 'parseOHLCV', {});
+        const volume = this.safeValue (options, 'volume', {});
         if (Array.isArray (ohlcv)) {
-            const numElements = ohlcv.length;
-            const volumeIndex = (numElements > 6) ? 6 : 5;
-            const timestamp = this.safeInteger (ohlcv, 0);
-            // if (typeof timestamp === 'string') {
-            //     timestamp = this.parse8601 (timestamp);
-            // }
+            const volumeIndex = this.safeString (volume, market['type'], 'amount');
             return [
-                timestamp, // timestamp
-                this.safeFloat (ohlcv, 1),            // Open
-                this.safeFloat (ohlcv, 2),            // High
-                this.safeFloat (ohlcv, 3),            // Low
-                this.safeFloat (ohlcv, 4),            // Close
-                // this.safeFloat (ohlcv, 5),         // Quote Volume
-                // this.safeFloat (ohlcv, 6),         // Base Volume
-                this.safeFloat (ohlcv, volumeIndex),  // Volume, bitget will return base volume in the 7th element for future markets
+                this.safeInteger (ohlcv, 0),         // timestamp
+                this.safeFloat (ohlcv, 1),           // Open
+                this.safeFloat (ohlcv, 2),           // High
+                this.safeFloat (ohlcv, 3),           // Low
+                this.safeFloat (ohlcv, 4),           // Close
+                // this.safeFloat (ohlcv, 5),        // Quote Volume
+                // this.safeFloat (ohlcv, 6),        // Base Volume
+                this.safeFloat (ohlcv, volumeIndex), // Volume, bitget will return base volume in the 7th element for future markets
             ];
         } else {
+            const volumeIndex = this.safeValue (volume, market['type'], 6);
             return [
-                this.parse8601 (this.safeString (ohlcv, 'time')),
-                this.safeFloat (ohlcv, 'open'),    // Open
-                this.safeFloat (ohlcv, 'high'),    // High
-                this.safeFloat (ohlcv, 'low'),     // Low
-                this.safeFloat (ohlcv, 'close'),   // Close
-                this.safeFloat (ohlcv, 'volume'),  // Base Volume
+                this.safeInteger (ohlcv, 'id'),
+                this.safeFloat (ohlcv, 'open'),      // Open
+                this.safeFloat (ohlcv, 'high'),      // High
+                this.safeFloat (ohlcv, 'low'),       // Low
+                this.safeFloat (ohlcv, 'close'),     // Close
+                this.safeFloat (ohlcv, volumeIndex), // Base Volume
             ];
         }
     }
