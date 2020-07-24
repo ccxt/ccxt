@@ -1343,29 +1343,6 @@ module.exports = class bitget extends Exchange {
         if (!this.isArray (data)) {
             data = this.safeValue (data, 'data', []);
         }
-        //
-        // spot markets
-        //
-        //     [
-        //         {
-        //             close: "0.02683401",
-        //             high: "0.02683401",
-        //             low: "0.02683401",
-        //             open: "0.02683401",
-        //             time: "2018-12-17T23:47:00.000Z",
-        //             volume: "0"
-        //         },
-        //         {
-        //             close: "0.02684545",
-        //             high: "0.02685084",
-        //             low: "0.02683312",
-        //             open: "0.02683894",
-        //             time: "2018-12-17T20:28:00.000Z",
-        //             volume: "101.457222"
-        //         }
-        //     ]
-        //
-        //
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
