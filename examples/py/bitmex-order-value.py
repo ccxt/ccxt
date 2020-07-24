@@ -18,10 +18,10 @@ symbol = 'XBTU20'
 market = exchange.market(symbol)
 
 units = {
-    'XBT':  { 'decimals': 4, 'multiplier': 1 },  # bitcoin
-    'mXBT': { 'decimals': 3, 'multiplier': 1000 },  # milli-bitcoin
-    'μXBT': { 'decimals': 1, 'multiplier': 1000000, },  # micro-bitcoin
-    'XBt':  { 'decimals': 0, 'multiplier': 100000000 },  # satoshi
+    'XBT':  { 'decimals': 4, 'multiplier': 1, 'name': 'bitcoin' },
+    'mXBT': { 'decimals': 3, 'multiplier': 1000, 'name': 'milli-bitcoin'  },
+    'μXBT': { 'decimals': 1, 'multiplier': 1000000, 'name': 'micro-bitcoin' },
+    'XBt':  { 'decimals': 0, 'multiplier': 100000000, 'name': 'satoshi' },
 }
 
 # the following calculation depends on contract specifications
@@ -39,7 +39,8 @@ while True:
         for unit in units:
             multiplier = units[unit]['multiplier']
             decimals = units[unit]['decimals']
+            name = units[unit]['name']
             rounded_value = exchange.decimal_to_precision(value * multiplier, ccxt.ROUND, decimals)  # alternatively, use ccxt.TRUNCATE here
-            print(num_contracts, symbol, 'contracts =', rounded_value, unit)
+            print(num_contracts, symbol, 'contracts =', rounded_value, unit, '(' + name + ')')
     except e:
         pass
