@@ -20,6 +20,7 @@ module.exports = class bitget extends Exchange {
             'has': {
                 'cancelOrder': true,
                 'CORS': false,
+                'fetchAccounts': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': false,
@@ -515,6 +516,7 @@ module.exports = class bitget extends Exchange {
                     },
                 },
                 'defaultType': 'swap', // 'spot', 'swap'
+                'accountId': undefined, // '1012838157',
                 'timeframes': {
                     'spot': {
                         '1m': '1min',
@@ -1445,61 +1447,106 @@ module.exports = class bitget extends Exchange {
         return this.parseBalance (result);
     }
 
+    async fetchAccounts (params = {}) {
+        const request = {
+            'method': 'accounts',
+        };
+        const response = await this.apiGetAccountAccounts (this.extend (request, params));
+        //
+        //     {
+        //         "status":"ok",
+        //         "ts":1595679591824,
+        //         "data":[
+        //             {"id":"7420922606","type":"spot","state":"working"}
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const result = [];
+        for (let i = 0; i < data.length; i++) {
+            const account = data[i];
+            const accountId = this.safeString (account, 'id');
+            const type = this.safeStringLower (account, 'type');
+            result.push ({
+                'id': accountId,
+                'type': type,
+                'currency': undefined,
+                'info': account,
+            });
+        }
+        return result;
+    }
+
+    async findAccountByType (type) {
+        await this.loadMarkets ();
+        await this.loadAccounts ();
+        const accountsByType = this.groupBy (this.accounts, 'type');
+        const accounts = this.safeValue (accountsByType, type);
+        if (accounts === undefined) {
+            throw new ExchangeError (this.id + " findAccountByType() could not find an accountId with type '" + type + "', specify the 'accountId' parameter instead"); // eslint-disable-line quotes
+        }
+        const numAccounts = accounts.length;
+        if (numAccounts > 1) {
+            throw new ExchangeError (this.id + " findAccountByType() found more than one accountId with type '" + type + "', specify the 'accountId' parameter instead"); // eslint-disable-line quotes
+        }
+        return accounts[0];
+    }
+
+    async getAccountId (params) {
+        await this.loadMarkets ();
+        await this.loadAccounts ();
+        const defaultAccountId = this.safeString (this.options, 'accountId');
+        const accountId = this.safeString (params, 'accountId', defaultAccountId);
+        if (accountId !== undefined) {
+            return accountId;
+        }
+        const defaultType = this.safeString (this.options, 'defaultType', 'margin');
+        const type = this.safeString (params, 'type', defaultType);
+        params = this.omit (params, 'type');
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + " requires an 'accountId' parameter");
+        }
+        const account = await this.findAccountByType (type);
+        return account['id'];
+    }
+
     async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        await this.loadAccounts ();
         const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType');
         const type = this.safeString (params, 'type', defaultType);
         if (type === undefined) {
-            throw new ArgumentsRequired (this.id + " fetchBalance requires a type parameter (one of 'account', 'spot', 'margin', 'futures', 'swap')");
+            throw new ArgumentsRequired (this.id + " fetchBalance requires a type parameter (one of 'account', 'spot', 'swap')");
         }
         await this.loadMarkets ();
         let method = undefined;
+        const query = this.omit (params, 'type');
         if (type === 'spot') {
-            method = 'apiGetAccountAccounts';
+            const accountId = await this.getAccountId (params);
+            method = 'apiGetAccountsAccountIdBalance';
+            query['account_id'] = accountId;
+            query['method'] = 'balance';
         } else if (type === 'swap') {
             method = 'swapGetAccountAccounts';
         }
-        const query = this.omit (params, 'type');
         const response = await this[method] (query);
-        //
-        // account
-        //
-        //     [
-        //         {
-        //             balance:  0,
-        //             available:  0,
-        //             currency: "BTC",
-        //             hold:  0
-        //         },
-        //         {
-        //             balance:  0,
-        //             available:  0,
-        //             currency: "ETH",
-        //             hold:  0
-        //         }
-        //     ]
         //
         // spot
         //
-        //     [
-        //         {
-        //             frozen: "0",
-        //             hold: "0",
-        //             id: "2149632",
-        //             currency: "BTC",
-        //             balance: "0.0000000497717339",
-        //             available: "0.0000000497717339",
-        //             holds: "0"
-        //         },
-        //         {
-        //             frozen: "0",
-        //             hold: "0",
-        //             id: "2149632",
-        //             currency: "ICN",
-        //             balance: "0.00000000925",
-        //             available: "0.00000000925",
-        //             holds: "0"
+        //     {
+        //         "status":"ok",
+        //         "ts":1595681450932,
+        //         "data":{
+        //             "list":[
+        //                 {"balance":"0.0000000000000000","currency":"BTC","type":"trade"},
+        //                 {"balance":"0.0000000000000000","currency":"BTC","type":"frozen"},
+        //                 {"balance":"0.0000000000000000","currency":"BTC","type":"lock"},
+        //             ],
+        //             "id":"7420922606",
+        //             "type":"spot",
+        //             "state":"working"
         //         }
-        //     ]
+        //     }
         //
         // swap
         //
@@ -2650,7 +2697,7 @@ module.exports = class bitget extends Exchange {
         } else {
             request = '/' + api + '/v1' + request;
         }
-        const query = this.omit (params, this.extractParams (path));
+        let query = this.omit (params, this.extractParams (path));
         let url = this.implodeParams (this.urls['api'][api], { 'hostname': this.hostname }) + request;
         if ((api === 'data') || (api === 'capi')) {
             if (Object.keys (query).length) {
@@ -2681,7 +2728,23 @@ module.exports = class bitget extends Exchange {
                 headers['Content-Type'] = 'application/json';
             }
         } else if (api === 'api') {
-            throw new NotSupported (this.id + ' spot private signing is not implemented yet');
+            const timestamp = this.milliseconds ().toString ();
+            let auth = '';
+            query = this.keysort (query);
+            auth = this.urlencode (query);
+            const hash = this.hash (this.encode (this.secret), 'sha1');
+            let signed = auth;
+            const signature = this.hmac (this.encode (auth), this.encode (hash), 'md5');
+            if (auth.length > 0) {
+                signed += '&';
+            }
+            signed += 'sign=' + signature + '&req_time=' + timestamp + '&accesskey=' + this.apiKey;
+            if (Object.keys (query).length) {
+                url += '?' + signed;
+            }
+            if (method === 'POST') {
+                body = auth;
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
