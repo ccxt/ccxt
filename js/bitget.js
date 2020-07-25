@@ -1419,30 +1419,19 @@ module.exports = class bitget extends Exchange {
 
     parseSwapBalance (response) {
         //
-        //     {
-        //         "info": [
-        //             {
-        //                 "equity":"3.0139",
-        //                 "fixed_balance":"0.0000",
-        //                 "instrument_id":"EOS-USD-SWAP",
-        //                 "margin":"0.5523",
-        //                 "margin_frozen":"0.0000",
-        //                 "margin_mode":"crossed",
-        //                 "margin_ratio":"1.0913",
-        //                 "realized_pnl":"-0.0006",
-        //                 "timestamp":"2019-03-25T03:46:10.336Z",
-        //                 "total_avail_balance":"3.0000",
-        //                 "unrealized_pnl":"0.0145"
-        //             }
-        //         ]
-        //     }
+        // swap
         //
-        // their root field name is "info", so our info will contain their info
-        const result = { 'info': response };
-        const info = this.safeValue (response, 'info', []);
-        for (let i = 0; i < info.length; i++) {
-            const balance = info[i];
-            const marketId = this.safeString (balance, 'instrument_id');
+        //     [
+        //         {"equity":"0","fixed_balance":"0","total_avail_balance":"0","margin":"0","realized_pnl":"0","unrealized_pnl":"0","symbol":"bchusd","margin_frozen":"0","timestamp":"1595673431547","margin_mode":"fixed","forwardContractFlag":false},
+        //         {"equity":"0","fixed_balance":"0","total_avail_balance":"0","margin":"0","realized_pnl":"0","unrealized_pnl":"0","symbol":"ethusd","margin_frozen":"0","timestamp":"1595673431573","margin_mode":"fixed","forwardContractFlag":false},
+        //         {"equity":"0","fixed_balance":"0","total_avail_balance":"0","margin":"0","realized_pnl":"0","unrealized_pnl":"0","symbol":"cmt_btcsusdt","margin_frozen":"0","timestamp":"1595673431577","margin_mode":"fixed","forwardContractFlag":true},
+        //     ]
+        //
+        //
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
+            const marketId = this.safeString (balance, 'symbol');
             let symbol = marketId;
             if (marketId in this.markets_by_id) {
                 symbol = this.markets_by_id[marketId]['symbol'];
@@ -1470,8 +1459,7 @@ module.exports = class bitget extends Exchange {
             method = 'swapGetAccountAccounts';
         }
         const query = this.omit (params, 'type');
-        let response = await this[method] (query);
-        process.exit ();
+        const response = await this[method] (query);
         //
         // account
         //
@@ -1515,29 +1503,12 @@ module.exports = class bitget extends Exchange {
         //
         // swap
         //
-        //     {
-        //         "info": [
-        //             {
-        //                 "equity":"3.0139",
-        //                 "fixed_balance":"0.0000",
-        //                 "instrument_id":"EOS-USD-SWAP",
-        //                 "margin":"0.5523",
-        //                 "margin_frozen":"0.0000",
-        //                 "margin_mode":"crossed",
-        //                 "margin_ratio":"1.0913",
-        //                 "realized_pnl":"-0.0006",
-        //                 "timestamp":"2019-03-25T03:46:10.336Z",
-        //                 "total_avail_balance":"3.0000",
-        //                 "unrealized_pnl":"0.0145"
-        //             }
-        //         ]
-        //     }
+        //     [
+        //         {"equity":"0","fixed_balance":"0","total_avail_balance":"0","margin":"0","realized_pnl":"0","unrealized_pnl":"0","symbol":"bchusd","margin_frozen":"0","timestamp":"1595673431547","margin_mode":"fixed","forwardContractFlag":false},
+        //         {"equity":"0","fixed_balance":"0","total_avail_balance":"0","margin":"0","realized_pnl":"0","unrealized_pnl":"0","symbol":"ethusd","margin_frozen":"0","timestamp":"1595673431573","margin_mode":"fixed","forwardContractFlag":false},
+        //         {"equity":"0","fixed_balance":"0","total_avail_balance":"0","margin":"0","realized_pnl":"0","unrealized_pnl":"0","symbol":"cmt_btcsusdt","margin_frozen":"0","timestamp":"1595673431577","margin_mode":"fixed","forwardContractFlag":true},
+        //     ]
         //
-        if (response['status'] === 'ok') {
-            response = response['data'];
-        } else {
-            return response;
-        }
         return this.parseBalanceByType (type, response);
     }
 
