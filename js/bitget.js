@@ -1363,58 +1363,41 @@ module.exports = class bitget extends Exchange {
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
-    parseAccountBalance (response) {
+    parseSpotBalance (response) {
         //
-        // account
-        //
-        //     [
-        //         {
-        //             balance:  0,
-        //             available:  0,
-        //             currency: "BTC",
-        //             hold:  0
-        //         },
-        //         {
-        //             balance:  0,
-        //             available:  0,
-        //             currency: "ETH",
-        //             hold:  0
+        //     {
+        //         "status":"ok",
+        //         "ts":1595681450932,
+        //         "data":{
+        //             "list":[
+        //                 {"balance":"0.0000000000000000","currency":"BTC","type":"trade"},
+        //                 {"balance":"0.0000000000000000","currency":"BTC","type":"frozen"},
+        //                 {"balance":"0.0000000000000000","currency":"BTC","type":"lock"},
+        //             ],
+        //             "id":"7420922606",
+        //             "type":"spot",
+        //             "state":"working"
         //         }
-        //     ]
-        //
-        // spot
-        //
-        //     [
-        //         {
-        //             frozen: "0",
-        //             hold: "0",
-        //             id: "2149632",
-        //             currency: "BTC",
-        //             balance: "0.0000000497717339",
-        //             available: "0.0000000497717339",
-        //             holds: "0"
-        //         },
-        //         {
-        //             frozen: "0",
-        //             hold: "0",
-        //             id: "2149632",
-        //             currency: "ICN",
-        //             balance: "0.00000000925",
-        //             available: "0.00000000925",
-        //             holds: "0"
-        //         }
-        //     ]
+        //     }
         //
         const result = { 'info': response };
-        for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
+        const data = this.safeValue (response, 'data');
+        const balances = this.safeValue (data, 'list');
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['total'] = this.safeFloat (balance, 'balance');
-            account['used'] = this.safeFloat (balance, 'hold');
-            account['free'] = this.safeFloat (balance, 'available');
-            result[code] = account;
+            if (!(code in result)) {
+                const account = this.account ();
+                result[code] = account;
+            }
+            const type = this.safeValue (balance, 'type');
+            if (type === 'trade') {
+                result[code]['free'] = this.safeFloat (balance, 'balance');
+            } else if ((type === 'frozen') || (type === 'lock')) {
+                const used = this.safeFloat (result[code], 'used');
+                result[code]['used'] = this.sum (used, this.safeFloat (balance, 'balance'));
+            }
         }
         return this.parseBalance (result);
     }
@@ -1560,8 +1543,8 @@ module.exports = class bitget extends Exchange {
     }
 
     parseBalanceByType (type, response) {
-        if ((type === 'account') || (type === 'spot')) {
-            return this.parseAccountBalance (response);
+        if (type === 'spot') {
+            return this.parseSpotBalance (response);
         } else if (type === 'swap') {
             return this.parseSwapBalance (response);
         }
