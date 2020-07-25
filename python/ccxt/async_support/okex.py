@@ -2345,7 +2345,7 @@ class okex(Exchange):
         currency = None
         if code is not None:
             currency = self.currency(code)
-            request['code'] = currency['code']
+            request['currency'] = currency['id']
             method += 'Currency'
         response = await getattr(self, method)(self.extend(request, params))
         return self.parse_transactions(response, currency, since, limit, params)
@@ -2357,7 +2357,7 @@ class okex(Exchange):
         currency = None
         if code is not None:
             currency = self.currency(code)
-            request['code'] = currency['code']
+            request['currency'] = currency['id']
             method += 'Currency'
         response = await getattr(self, method)(self.extend(request, params))
         return self.parse_transactions(response, currency, since, limit, params)

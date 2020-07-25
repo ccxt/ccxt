@@ -2438,7 +2438,7 @@ class okex extends Exchange {
         $currency = null;
         if ($code !== null) {
             $currency = $this->currency($code);
-            $request['code'] = $currency['code'];
+            $request['currency'] = $currency['id'];
             $method .= 'Currency';
         }
         $response = $this->$method (array_merge($request, $params));
@@ -2452,7 +2452,7 @@ class okex extends Exchange {
         $currency = null;
         if ($code !== null) {
             $currency = $this->currency($code);
-            $request['code'] = $currency['code'];
+            $request['currency'] = $currency['id'];
             $method .= 'Currency';
         }
         $response = $this->$method (array_merge($request, $params));
