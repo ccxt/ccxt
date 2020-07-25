@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, InvalidOrder, ExchangeError, BadRequest } = require ('./base/errors');
-const { TRUNCATE } = require ('./base/functions/number');
+const { TRUNCATE, SIGNIFICANT_DIGITS } = require ('./base/functions/number');
 
 // ----------------------------------------------------------------------------
 
@@ -112,6 +112,7 @@ module.exports = class eterbase extends Exchange {
                 'secret': true,
                 'uid': true,
             },
+            'precisionMode': SIGNIFICANT_DIGITS,
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
             },
