@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, DDoSProtection, InsufficientFunds, InvalidNonce, CancelPending, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, NotSupported, BadSymbol } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
+const { TICK_SIZE, DECIMAL_PLACES, TRUNCATE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -20,7 +20,7 @@ module.exports = class bitget extends Exchange {
             'has': {
                 'cancelOrder': false,
                 'CORS': false,
-                'createOrder': false,
+                'createOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchCurrencies': true,
@@ -663,6 +663,10 @@ module.exports = class bitget extends Exchange {
                 },
             },
         });
+    }
+
+    amountToPrecision (symbol, amount) {
+        return this.decimalToPrecision (amount, TRUNCATE, this.markets[symbol]['precision']['amount'], DECIMAL_PLACES);
     }
 
     async fetchMarketsByType (type, params = {}) {
@@ -1490,7 +1494,6 @@ module.exports = class bitget extends Exchange {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + " fetchBalance requires a type parameter (one of 'account', 'spot', 'swap')");
         }
-        await this.loadMarkets ();
         let method = undefined;
         const query = this.omit (params, 'type');
         if (type === 'spot') {
@@ -1538,6 +1541,119 @@ module.exports = class bitget extends Exchange {
             return this.parseSwapBalance (response);
         }
         throw new NotSupported (this.id + " fetchBalance does not support the '" + type + "' type (the type must be one of 'account', 'spot', 'margin', 'futures', 'swap')");
+    }
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        await this.loadAccounts ();
+        const market = this.market (symbol);
+        //
+        // spot
+        //
+        //     account_id true string Account ID, obtained using the accounts method. Currency transactions use the accountid of the'spot' account; for loan asset transactions, please use the accountid of the'margin' account
+        //     amount true string A limit order indicates the quantity of the order, when a market price buy order indicates how much money to buy, and when a market price sell order indicates how much currency to sell
+        //     price false string Order price, market order does not pass this parameter
+        //     source false string Order source api
+        //     symbol true string Trading pair  btc_usdt, eth_btc ...
+        //     type true string Order Type  buy-market: buy at market price, sell-market: sell at market price, buy-limit: buy at limit price, sell-limit: sell at limit price
+        //
+        // swap
+        //
+        //     symbol String Yes Contract ID
+        //     client_oid String Yes customize order IDs to identify your orders. (Less than 50 characters without special characters,
+        //     size String Yes Quantity to buy or sell (value not equal to 0 or negative)
+        //     type String Yes 1 Open long 2Open short 3 Close long 4 Close short
+        //     order_type String Yes 0: Normal order (Unfilled and 0 imply normal limit order) 1: Post only 2: Fill or Kill 3: Immediate Or Cancel
+        //     match_price String Yes 0 Limit price 1 market price
+        //     price String No Price of each contract
+        //
+        const request = {
+            'symbol': market['id'],
+        };
+        const clientOrderId = this.safeString2 (params, 'client_oid', 'clientOrderId', this.uuid ());
+        params = this.omit (params, [ 'client_oid', 'clientOrderId' ]);
+        let method = undefined;
+        if (market['spot']) {
+            const accountId = await this.getAccountId ({
+                'type': market['type'],
+            });
+            method = 'apiPostOrderOrdersPlace';
+            request['account_id'] = accountId;
+            request['method'] = 'placeOrder';
+            request['type'] = side + '-' + type;
+            if (type === 'limit') {
+                request['amount'] = this.amountToPrecision (symbol, amount);
+                request['price'] = this.priceToPrecision (symbol, price);
+            } else if (type === 'market') {
+                // for market buy it requires the amount of quote currency to spend
+                if (side === 'buy') {
+                    let cost = this.safeFloat (params, 'amount');
+                    const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
+                    if (createMarketBuyOrderRequiresPrice) {
+                        if (price !== undefined) {
+                            if (cost === undefined) {
+                                cost = amount * price;
+                            }
+                        } else if (cost === undefined) {
+                            throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'amount' extra parameter (the exchange-specific behaviour)");
+                        }
+                    } else {
+                        cost = (cost === undefined) ? amount : cost;
+                    }
+                    request['amount'] = this.costToPrecision (symbol, cost);
+                } else if (side === 'sell') {
+                    request['amount'] = this.amountToPrecision (symbol, amount);
+                }
+                request['amount'] = this.amountToPrecision (symbol, amount);
+            }
+            // ...
+        } else if (market['swap']) {
+            request['order_type'] = '0'; // '0' = Normal order, undefined and 0 imply a normal limit order, '1' = Post only, '2' = Fill or Kill, '3' = Immediate Or Cancel
+            request['client_oid'] = clientOrderId;
+            const orderType = this.safeString (params, 'type');
+            if (orderType === undefined) {
+                throw new ArgumentsRequired (this.id + " createOrder requires a type parameter, '1' = open long, '2' = open short, '3' = close long, '4' = close short");
+            }
+            request['size'] = this.amountToPrecision (symbol, amount);
+            request['type'] = orderType;
+            // if match_price is set to '1', the price parameter will be ignored for market orders
+            if (type === 'limit') {
+                request['match_price'] = '0';
+                request['price'] = this.priceToPrecision (symbol, price);
+            } else if (type === 'market') {
+                if (side === 'buy') {
+                    request['match_price'] = '0';
+                } else if (side === 'sell') {
+                    request['match_price'] = '1';
+                }
+            }
+            method = 'swapPostOrderPlaceOrder';
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        // spot
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": "59378",
+        //     }
+        //
+        //     {
+        //         "client_oid":"oktspot79",
+        //         "error_code":"",
+        //         "error_message":"",
+        //         "order_id":"2510789768709120",
+        //         "result":true
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "client_oid":"bitget#123456",
+        //         "order_id":"513466539039522813"
+        //     }
+        //
+        return this.parseOrder (response, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -1594,6 +1710,9 @@ module.exports = class bitget extends Exchange {
             }
             if (method === 'POST') {
                 body = auth;
+                headers = {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                };
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
@@ -1604,8 +1723,19 @@ module.exports = class bitget extends Exchange {
             return; // fallback to default error handler
         }
         //
+        // spot
+        //
         //     {"status":"fail","err_code":"01001","err_msg":"系统异常，请稍后重试"}
         //     {"status":"error","ts":1595594160149,"err_code":"invalid-parameter","err_msg":"invalid size, valid range: [1,2000]"}
+        //     {"status":"error","ts":1595684716042,"err_code":"invalid-parameter","err_msg":"illegal sign invalid"}
+        //     {"status":"error","ts":1595700216275,"err_code":"bad-request","err_msg":"your balance is low!"}
+        //     {"status":"error","ts":1595700344504,"err_code":"invalid-parameter","err_msg":"invalid type"}
+        //
+        // swap
+        //
+        //     {"code":"40015","msg":"","requestTime":1595698564931,"data":null}
+        //     {"code":"40017","msg":"Order Type must not be blank","requestTime":1595698516162,"data":null}
+        //     {"code":"40301","msg":"","requestTime":1595667662503,"data":null}
         //
         const message = this.safeString (response, 'err_msg');
         const errorCode = this.safeString2 (response, 'code', 'err_code');
