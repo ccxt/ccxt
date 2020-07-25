@@ -26,6 +26,7 @@ module.exports = class bitget extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDeposits': true,
                 'fetchMarkets': true,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOrderBook': true,
                 'fetchTicker': true,
@@ -88,6 +89,7 @@ module.exports = class bitget extends Exchange {
                         'accounts/{account_id}/balance', // Get the balance of the specified account
                         'order/orders', // Query current order, history order
                         'order/deposit_withdraw', // Query assets history
+                        'order/matchresults', // Query current order, order history
                     ],
                     'post': [
                         'order/orders/place', // Place order
@@ -95,7 +97,6 @@ module.exports = class bitget extends Exchange {
                         'order/orders/batchcancel', // Bulk order cancellation
                         'order/orders/{order_id}', // Query an order details
                         'order/orders/{order_id}/matchresults', // Query the transaction details of an order
-                        'order/matchresults', // Query current order, order history
                     ],
                 },
                 'capi': {
@@ -1880,6 +1881,59 @@ module.exports = class bitget extends Exchange {
         };
     }
 
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const type = this.safeString (params, 'type', market['type']);
+        const query = this.omit (params, 'type');
+        if (type === 'swap') {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades is not supported for ' + type + ' type');
+        }
+        const request = {
+            'symbol': market['id'],
+            'method': 'matchresults',
+            // 'types': 'buy-market,sell-market,buy-limit,sell-limit',
+            'size': 100,
+        };
+        //
+        // spot
+        //
+        //     POST /api/v1/order/matchresults Query current order, order history
+        //     symbol true string trading pair  btc_usdt, eth_btc ...
+        //     types false string Query order type combination  buy-market, sell-market, buy-limit, sell-limit
+        //     start_date false string Query start date, date format yyyy-mm-dd -61 days [-61day, end-date]
+        //     end_date false string Query end date, date format yyyy-mm-dd Now [start-date, now]
+        //     from false string Query start ID order record id
+        //     direct false string Query direction ‘next’ is default , the transaction record ID is sorted from large to small prev，next
+        //     size false string Query record size 100 <=100
+        //
+        const response = await this.apiGetOrderMatchresults (this.extend (request, query));
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": [
+        //             {
+        //                 "id": 29555,
+        //                 "order_id": 59378,
+        //                 "match_id": 59335,
+        //                 "symbol": "eth_usdt",
+        //                 "type": "buy-limit",
+        //                 "source": "api",
+        //                 "price": "100.1000000000",
+        //                 "filled_amount": "0.9845000000",
+        //                 "filled_fees": "0.0019690000",
+        //                 "created_at": 1494901400487
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTrades (data, market, since, limit);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + this.implodeParams (path, params);
         if ((api === 'capi') || (api === 'swap')) {
@@ -1957,6 +2011,7 @@ module.exports = class bitget extends Exchange {
         //     {"status":"error","ts":1595703343035,"err_code":"bad-request","err_msg":"order cancel fail"}
         //     {"status":"error","ts":1595704360508,"err_code":"invalid-parameter","err_msg":"accesskey not null"}
         //     {"status":"error","ts":1595704490084,"err_code":"invalid-parameter","err_msg":"permissions not right"}
+        //     {"status":"error","ts":1595711862763,"err_code":"system exception","err_msg":"system exception"}
         //
         //
         // swap
