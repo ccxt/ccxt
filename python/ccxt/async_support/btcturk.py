@@ -19,9 +19,16 @@ class btcturk(Exchange):
             'countries': ['TR'],  # Turkey
             'rateLimit': 1000,
             'has': {
+                'cancelOrder': True,
                 'CORS': True,
-                'fetchTickers': True,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchMarkets': True,
                 'fetchOHLCV': True,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': True,
             },
             'timeframes': {
                 '1d': '1d',
