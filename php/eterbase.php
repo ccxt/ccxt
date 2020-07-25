@@ -115,6 +115,7 @@ class eterbase extends Exchange {
                 'secret' => true,
                 'uid' => true,
             ),
+            'precisionMode' => SIGNIFICANT_DIGITS,
             'options' => array(
                 'createMarketBuyOrderRequiresPrice' => true,
             ),

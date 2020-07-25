@@ -11,6 +11,7 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.decimal_to_precision import TRUNCATE
+from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS
 
 
 class eterbase(Exchange):
@@ -118,6 +119,7 @@ class eterbase(Exchange):
                 'secret': True,
                 'uid': True,
             },
+            'precisionMode': SIGNIFICANT_DIGITS,
             'options': {
                 'createMarketBuyOrderRequiresPrice': True,
             },
