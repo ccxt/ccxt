@@ -1734,7 +1734,8 @@ module.exports = class bitget extends Exchange {
         //         ]
         //     }
         //
-        return this.parseTransactions (response, currency, since, limit, params);
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTransactions (data, currency, since, limit, params);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1770,7 +1771,113 @@ module.exports = class bitget extends Exchange {
         //         ]
         //     }
         //
-        return this.parseTransactions (response, currency, since, limit, params);
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTransactions (data, currency, since, limit, params);
+    }
+
+    parseTransactionStatus (status) {
+        //
+        // deposit statuses
+        //
+        //     {
+        //         '0': 'waiting for confirmation',
+        //         '1': 'confirmation account',
+        //         '2': 'recharge success'
+        //     }
+        //
+        // withdrawal statuses
+        //
+        //     {
+        //        '-3': 'pending cancel',
+        //        '-2': 'cancelled',
+        //        '-1': 'failed',
+        //         '0': 'pending',
+        //         '1': 'sending',
+        //         '2': 'sent',
+        //         '3': 'email confirmation',
+        //         '4': 'manual confirmation',
+        //         '5': 'awaiting identity confirmation'
+        //     }
+        //
+        const statuses = {
+            '-3': 'pending',
+            '-2': 'pending',
+            '-1': 'failed',
+            '0': 'pending',
+            '1': 'pending',
+            '2': 'ok',
+            '3': 'pending',
+            '4': 'pending',
+            '5': 'pending',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // fetchDeposits, fetchWithdrawals
+        //
+        //     {
+        //         "id": 1171,
+        //         "type": "withdraw",
+        //         "currency": "usdt",
+        //         "tx_hash": "ed03094b84eafbe4bc16e7ef766ee959885ee5bcb265872baaa9c64e1cf86c2b",
+        //         "amount": 7.457467,
+        //         "address": "rae93V8d2mdoUQHwBDBdM4NHCMehRJAsbm",
+        //         "address_tag": "100040",
+        //         "fee": 0,
+        //         "state": "safe",
+        //         "created_at": 1510912472199,
+        //         "updated_at": 1511145876575
+        //     }
+        //
+        const id = this.safeString (transaction, 'id');
+        const address = this.safeString (transaction, 'address');
+        const tag = this.safeString (transaction, 'address_tag');
+        const tagFrom = undefined;
+        const tagTo = tag;
+        const addressFrom = undefined;
+        const addressTo = address;
+        let type = this.safeString (transaction, 'type');
+        if (type === 'withdraw') {
+            type = 'withdrawal';
+        } else if (type === 'deposit') {
+            type = 'deposit';
+        }
+        const currencyId = this.safeString (transaction, 'currency');
+        const code = this.safeCurrencyCode (currencyId);
+        const amount = this.safeFloat (transaction, 'amount');
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
+        const txid = this.safeString (transaction, 'tx_hash');
+        const timestamp = this.safeInteger (transaction, 'created_at');
+        const updated = this.safeInteger (transaction, 'updated_at');
+        const feeCost = this.safeFloat (transaction, 'fee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = {
+                'currency': code,
+                'cost': feeCost,
+            };
+        }
+        return {
+            'info': transaction,
+            'id': id,
+            'currency': code,
+            'amount': amount,
+            'addressFrom': addressFrom,
+            'addressTo': addressTo,
+            'address': address,
+            'tagFrom': tagFrom,
+            'tagTo': tagTo,
+            'tag': tag,
+            'status': status,
+            'type': type,
+            'updated': updated,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fee': fee,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
