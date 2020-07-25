@@ -14,7 +14,7 @@ module.exports = class bitget extends Exchange {
             'id': 'bitget',
             'name': 'BITGET',
             'countries': [ 'SG' ],
-            'version': 'v1',
+            'version': 'v3',
             'rateLimit': 1000, // up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
             'pro': false,
             'has': {
@@ -108,39 +108,46 @@ module.exports = class bitget extends Exchange {
                 },
                 'capi': {
                     'get': [
-                        'instruments/{symbol}/ticker',
-                        'instruments/{symbol}/depth', // ?size=20
-                        'instruments/{symbol}/trades', // ?limit=20
-                        'instruments/{symbol}/index',
-                        'instruments/{symbol}/candles', // ?start=2019-05-01T04:12:12.000Z&end=2019-05-01T05:12:12.000Z&granularity=60
-                        'instruments/{symbol}/open_interest',
-                        'instruments/{symbol}/price_limit',
-                        'instruments/{symbol}/mark_price',
-                        'instruments',
-                        'calOpenCount',
+                        'market/time',
+                        'market/contracts',
+                        'market/depth',
+                        'market/tickers',
+                        'market/ticker',
+                        'market/trades',
+                        'market/candles',
+                        'market/index',
+                        'market/open_interest',
+                        'market/price_limit',
+                        'market/funding_time',
+                        'market/historical_funding_rate',
+                        'market/mark_price',
+                        'market/open_count',
                     ],
                 },
                 'swap': {
                     'get': [
-                        'accounts', // ?accesskey=ak3565fe42ed3d4d03&method=accounts&req_time=1558098686700&sign=83cb5eb84a7b6e3890abf77c8fa8c519
-                        '{instrument_id}/accounts', // ?accesskey=ak170c05584dca4c85&method=singleAccount&req_time=1575356480842&sign=be76477fcbe1b7095df102ac3d513d53=83cb5eb84a7b6e3890abf77c8fa8c519
-                        '{symbol}/position', // ?accesskey=ak3565fe42ed3d4d03&method=position&req_time=1558099045557&sign=8b5d51f0f2d23f61709ed4be620a9789
-                        'orders/{symbol}/{orderId}', // ?accesskey=ak899e552618ef4500&method=getOrderDetail&req_time=1558148224422&sign=ee38a2fd36f6aca3e8886bbc31da038f
-                        'orders/{symbol}', // ?accesskey=ak899e552618ef4500&from=null&limit=5&method=orders&req_time=1558148543438&sign=55820582491bb5549ef717a0c1d8b9da&status=-1&to=5
-                        'symbol/adjustMargin', // ?accesskey=ak8623d66898904322&amount=0.001&method=adjustMargin&positionType=1&req_time=1561432607808&sign=53af39178d3d5676010b39a503abe046&type=2
-                        'fills', // ?accesskey=ak8623d66898904322&instrument_id=btcusd&method=fills&order_id=525946425993854915&req_time=1561463413324&sign=453797b90dbabdf75a7d0585411dc77f
-                        '{symbo}/settings', // ?accesskey=ak3565fe42ed3d4d03&method=settings&req_time=1558099045557&sign=8b5d51f0f2d23f61709ed4be620a9789
-                        '{symbo}/leverage', // ?leverage=10&side=1&accesskey=ak3565fe42ed3d4d03&method=leverage&req_time=1558099045557&sign=8b5d51f0f2d23f61709ed4be620a9789
-                        '{instrument_id}/modifyAutoAppendMargin', // ?accesskey=ak185723cdcfc54471&append_type=1&method=modifyAutoAppendMargin&req_time=1576291417317&side=1&sign=44fa76a445fb8f67b982298d5ca6fd93
-                        'currentPlan/{instrument_id}', // ?accesskey=ak185723cdcfc54471&dateType=1&endTime=1222222&instrument_id=ethusd&method=currentPlan&page_index=1&page_size=4&req_time=1576293950097&side=1&sign=7e49fe8bcedffd99f784f7511f35d04a&startTime=1576293950097
-                        'historyPlan/{instrument_id}', // ?accesskey=ak185723cdcfc54471&dateType=1&endTime=1222222&instrument_id=ethusd&method=historyPlan&page_index=1&page_size=4&req_time=1576293950097&side=1&sign=7e49fe8bcedffd99f784f7511f35d04a&startTime=1576293950097
+                        'account/accounts',
+                        'account/account',
+                        'account/settings',
+                        'position/allPosition',
+                        'position/singlePosition',
+                        'position/holds',
+                        'order/detail',
+                        'order/orders',
+                        'order/fills',
+                        'order/currentPlan',
+                        'order/historyPlan',
                     ],
                     'post': [
-                        'order', // ?sign=bb9c72e8b3fe8a4f066e8d629e29d8a9&req_time=1558099275296&accesskey=ak3565fe42ed3d4d03
-                        'orders', // ?sign=7cd7ea462e1dbc3312639d855c201ef8&req_time=1558146239275&accesskey=ak899e552618ef4500
-                        'cancel_order/{symbol}/{orderId}', // ?sign=9c6b152f61da109bbc41e128180e46f8&method=cancel_order&req_time=1558146612156&accesskey=ak899e552618ef4500
-                        'plan_order', // ?sign=619d0e84e0b711aeaa21d6f436fccbeb&req_time=1576292699607&accesskey=ak185723cdcfc54471
-                        'cancel_plan/{instrument_id}/{orderId}', // ?sign=948d93640053053743f5d7ec84e94168&req_time=1576293315943&accesskey=ak185723cdcfc54471
+                        'account/leverage',
+                        'account/adjustMargin',
+                        'account/modifyAutoAppendMargin',
+                        'order/placeOrder',
+                        'order/batchOrders',
+                        'order/cancel_order',
+                        'order/cancel_batch_orders',
+                        'order/plan_order',
+                        'order/cancel_plan',
                     ],
                 },
             },
@@ -157,6 +164,7 @@ module.exports = class bitget extends Exchange {
             'requiredCredentials': {
                 'apiKey': true,
                 'secret': true,
+                'password': true,
             },
             'exceptions': {
                 // http error codes
@@ -591,20 +599,20 @@ module.exports = class bitget extends Exchange {
         // swap
         //
         //     {
-        //         "instrument_id":"btcusd",
+        //         "symbol":"btcusd",
         //         "underlying_index":"BTC",
         //         "quote_currency":"USD",
         //         "coin":"BTC",
         //         "contract_val":"1",
+        //         "listing":null,
         //         "delivery":["07:00:00","15:00:00","23:00:00"],
         //         "size_increment":"0",
         //         "tick_size":"1",
         //         "forwardContractFlag":false,
-        //         "priceEndStep":"5"
+        //         "priceEndStep":5
         //     }
         //
-        //
-        const id = this.safeString2 (market, 'symbol', 'instrument_id');
+        const id = this.safeString (market, 'symbol');
         let marketType = 'spot';
         let spot = true;
         let swap = false;
@@ -689,7 +697,7 @@ module.exports = class bitget extends Exchange {
             const data = this.safeValue (response, 'data', []);
             return this.parseMarkets (data);
         } else if (type === 'swap') {
-            const response = await this.capiGetInstruments (params);
+            const response = await this.capiGetMarketContracts (params);
             //
             //     {
             //         "data":{
@@ -712,9 +720,7 @@ module.exports = class bitget extends Exchange {
             //         "err_code":"00000"
             //     }
             //
-            const data = this.safeValue (response, 'data');
-            const contractApis = this.safeValue (data, 'contractApis', []);
-            return this.parseMarkets (contractApis);
+            return this.parseMarkets (response);
         } else {
             throw new NotSupported (this.id + ' fetchMarketsByType does not support market type ' + type);
         }
@@ -771,10 +777,8 @@ module.exports = class bitget extends Exchange {
             method = 'dataGetMarketDepth';
             request['type'] = 'step0'; // step0, step1, step2, step3, step4, step5, do not merge depth if step0
         } else if (market['swap']) {
-            method = 'capiGetInstrumentsSymbolDepth';
-        }
-        if (market['swap']) {
-            request['size'] = (limit === undefined) ? 100 : limit; // max 100
+            method = 'capiGetMarketDepth';
+            request['limit'] = (limit === undefined) ? 100 : limit; // max 100
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -803,24 +807,20 @@ module.exports = class bitget extends Exchange {
         // swap
         //
         //     {
-        //         "data":{
-        //             "asks":[
-        //                 ["9531.5","1419",1],
-        //                 ["9532.0","43205",1],
-        //                 ["9532.5","28266",1],
-        //             ],
-        //             "bids":[
-        //                 ["9531.0","139622",1],
-        //                 ["9530.5","61386",1],
-        //                 ["9530.0","32178",1],
-        //             ],
-        //             "timestamp":"1595607809197"
-        //         },
-        //         "status":"ok",
-        //         "err_code":"00000"
+        //         "asks":[
+        //             ["9579.0","119865",1],
+        //             ["9579.5","90069",1],
+        //             ["9580.0","256673",1],
+        //         ],
+        //         "bids":[
+        //             ["9578.5","2417",1],
+        //             ["9577.5","3024",1],
+        //             ["9577.0","21548",1],
+        //         ],
+        //         "timestamp":"1595664767349"
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeValue (response, 'data', response);
         const timestamp = this.safeInteger2 (data, 'timestamp', 'ts');
         const nonce = this.safeInteger (data, 'id');
         const orderbook = this.parseOrderBook (data, timestamp);
@@ -898,14 +898,14 @@ module.exports = class bitget extends Exchange {
         const open = this.safeFloat (ticker, 'open');
         let bidVolume = undefined;
         let askVolume = undefined;
-        let bid = this.safeValue (ticker, 'bid', []);
+        let bid = this.safeValue (ticker, 'bid');
         if (bid === undefined) {
             bid = this.safeFloat (ticker, 'best_bid');
         } else {
             bidVolume = this.safeFloat (bid, 1);
             bid = this.safeFloat (bid, 0);
         }
-        let ask = this.safeValue (ticker, 'ask', []);
+        let ask = this.safeValue (ticker, 'ask');
         if (ask === undefined) {
             ask = this.safeFloat (ticker, 'best_ask');
         } else {
@@ -957,7 +957,7 @@ module.exports = class bitget extends Exchange {
         if (market['spot']) {
             method = 'dataGetMarketDetailMerged';
         } else if (market['swap']) {
-            method = 'capiGetInstrumentsSymbolTicker';
+            method = 'capiGetMarketTicker';
         }
         const request = {
             'symbol': market['id'],
@@ -987,30 +987,31 @@ module.exports = class bitget extends Exchange {
         // swap
         //
         //     {
-        //         "data":{
-        //             "instrument_id":"btcusd",
-        //             "last":"9574.5",
-        //             "best_ask":"9575.0",
-        //             "best_bid":"9574.0",
-        //             "high_24h":"9672",
-        //             "low_24h":"9512",
-        //             "volume_24h":"567697050",
-        //             "timestamp":"1595538450096"
-        //         },
-        //         "status":"ok",
-        //         "err_code":"00000"
+        //         "symbol":"btcusd",
+        //         "last":"9575.5",
+        //         "best_ask":"9576.0",
+        //         "best_bid":"9575.0",
+        //         "high_24h":"9646",
+        //         "low_24h":"9516",
+        //         "volume_24h":"516656839",
+        //         "timestamp":"1595664217405"
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeValue (response, 'data', response);
         return this.parseTicker (data, market);
     }
 
     async fetchTickersByType (type, symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        if (type !== 'spot') {
-            throw new NotSupported (this.id + ' fetchTickers for ' + type + ' markets is not supported on the exchange side yet');
+        let method = undefined;
+        if (type === 'spot') {
+            method = 'dataGetMarketTickers';
+        } else if (type === 'swap') {
+            method = 'capiGetMarketTickers';
         }
-        const response = await this.dataGetMarketTickers (params);
+        const response = await this[method] (params);
+        //
+        // spot
         //
         //     {
         //         "status":"ok",
@@ -1028,8 +1029,27 @@ module.exports = class bitget extends Exchange {
         //             }
         //         ]
         //     }
-        const data = this.safeValue (response, 'data', []);
-        const timestamp = this.safeInteger (response, 'ts');
+        //
+        // swap
+        //
+        //     [
+        //         {
+        //             "symbol":"btcusd",
+        //             "last":"9572",
+        //             "best_ask":"9571.5",
+        //             "best_bid":"9570.5",
+        //             "high_24h":"9646",
+        //             "low_24h":"9516",
+        //             "volume_24h":"515401635",
+        //             "timestamp":"1595664479952"
+        //         }
+        //     ]
+        //
+        const data = this.safeValue (response, 'data', response);
+        let timestamp = undefined;
+        if (!Array.isArray (response)) {
+            timestamp = this.safeInteger (response, 'ts');
+        }
         const result = {};
         for (let i = 0; i < data.length; i++) {
             const ticker = this.parseTicker (this.extend ({
@@ -1069,7 +1089,7 @@ module.exports = class bitget extends Exchange {
         //         "size":"20",
         //         "side":"sell",
         //         "timestamp":"1595605100004",
-        //         "instrument_id":"btcusd"
+        //         "symbol":"btcusd"
         //     }
         //
         // fetchOrderTrades (private)
@@ -1090,7 +1110,7 @@ module.exports = class bitget extends Exchange {
         //         }
         //
         let symbol = undefined;
-        const marketId = this.safeString (trade, 'instrument_id');
+        const marketId = this.safeString (trade, 'symbol');
         let base = undefined;
         let quote = undefined;
         if (marketId in this.markets_by_id) {
@@ -1172,15 +1192,17 @@ module.exports = class bitget extends Exchange {
         if (market['spot']) {
             method = 'dataGetMarketHistoryTrade';
         } else if (market['swap']) {
-            method = 'capiGetInstrumentsSymbolTrades';
+            method = 'capiGetMarketTrades';
         }
-        if (limit !== undefined) {
-            if (market['spot']) {
+        if (market['spot']) {
+            if (limit !== undefined) {
                 request['size'] = limit; // default 1, max 2000
-            } else {
-                request['limit'] = limit; // default 20, max 100
             }
-            limit = 100; // maximum = default = 100
+        } else if (market['swap']) {
+            if (limit === undefined) {
+                limit = 100; // default 20, max 100
+            }
+            request['limit'] = limit;
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -1202,19 +1224,19 @@ module.exports = class bitget extends Exchange {
         //
         // swap
         //
-        //     {
-        //         "data":{
-        //             "tradeApiDtos":[
-        //                 {"trade_id":"670581881367954915","price":"9553.00","size":"20","side":"sell","timestamp":"1595605100004","instrument_id":"btcusd"},
-        //                 {"trade_id":"670581881367953915","price":"9553.00","size":"2066","side":"sell","timestamp":"1595605100004","instrument_id":"btcusd"},
-        //                 {"trade_id":"670581876624200915","price":"9553.00","size":"947","side":"buy","timestamp":"1595605098873","instrument_id":"btcusd"},
-        //             ]
-        //         },
-        //         "status":"ok",
-        //         "err_code":"00000"
-        //     }
-        const data = this.safeValue (response, 'data', {});
-        const trades = this.safeValue2 (data, 'tradeApiDtos', 'data', []);
+        //     [
+        //         {"trade_id":"670833198971748613","price":"9578.50","size":"5412","side":"sell","timestamp":"1595665018790","symbol":"btcusd"},
+        //         {"trade_id":"670833194240574915","price":"9579.00","size":"3972","side":"buy","timestamp":"1595665017662","symbol":"btcusd"},
+        //         {"trade_id":"670833194240573915","price":"9579.00","size":"1227","side":"buy","timestamp":"1595665017662","symbol":"btcusd"},
+        //     ]
+        //
+        let trades = undefined;
+        if (Array.isArray (response)) {
+            trades = response;
+        } else {
+            const data = this.safeValue (response, 'data', {});
+            trades = this.safeValue2 (data, 'data', []);
+        }
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -1287,20 +1309,19 @@ module.exports = class bitget extends Exchange {
             method = 'dataGetMarketHistoryKline';
             request['period'] = interval;
             if (limit !== undefined) {
-                request['size'] = limit; // default 150, max 10000
+                request['size'] = limit; // default 150, max 1000
             }
         } else if (market['swap']) {
             const duration = this.parseTimeframe (timeframe);
-            method = 'capiGetInstrumentsSymbolCandles';
+            method = 'capiGetMarketCandles';
             request['granularity'] = interval;
             const now = this.milliseconds ();
             if (since === undefined) {
-                if (limit !== undefined) {
-                    request['start'] = this.iso8601 (now - limit * duration * 1000);
-                    request['end'] = this.iso8601 (now);
-                } else {
-                    throw new ArgumentsRequired (this.id + ' fetchOHLCV requires a since argument or a limit argument');
+                if (limit === undefined) {
+                    limit = 1000;
                 }
+                request['start'] = this.iso8601 (now - limit * duration * 1000);
+                request['end'] = this.iso8601 (now);
             } else {
                 request['start'] = this.iso8601 (since);
                 if (limit === undefined) {
@@ -1327,23 +1348,17 @@ module.exports = class bitget extends Exchange {
         //
         // swap
         //
-        //     {
-        //         "data":{
-        //             "data":[
-        //                 ["1594693800000","9240","9241","9222","9228.5","3913370","424.003616350563"],
-        //                 ["1594694700000","9228.5","9232.5","9223.5","9227","3912710","423.976969705766"],
-        //                 ["1594695600000","9227","9235.5","9223","9229.5","4787497","518.721963260371"],
-        //             ]
-        //         },
-        //         "status":"ok",
-        //         "err_code":"00000"
-        //     }
+        //     [
+        //         ["1594764900000","9255.5","9261","9251","9255.5","3958946","427.742307964305"],
+        //         ["1594765800000","9255.5","9264","9252","9258","3609496","389.832756058107"],
+        //         ["1594766700000","9258","9260","9244.5","9250.5","3738600","403.97870345085"],
+        //     ]
         //
-        let data = this.safeValue (response, 'data');
-        if (!Array.isArray (data)) {
-            data = this.safeValue (data, 'data', []);
+        let candles = response;
+        if (!Array.isArray (response)) {
+            candles = this.safeValue (response, 'data', []);
         }
-        return this.parseOHLCVs (data, market, timeframe, since, limit);
+        return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
     parseAccountBalance (response) {
@@ -1448,10 +1463,15 @@ module.exports = class bitget extends Exchange {
             throw new ArgumentsRequired (this.id + " fetchBalance requires a type parameter (one of 'account', 'spot', 'margin', 'futures', 'swap')");
         }
         await this.loadMarkets ();
-        const suffix = (type === 'account') ? 'Wallet' : 'Accounts';
-        const method = type + 'Get' + suffix;
+        let method = undefined;
+        if (type === 'spot') {
+            method = 'apiGetAccountAccounts';
+        } else if (type === 'swap') {
+            method = 'swapGetAccounts';
+        }
         const query = this.omit (params, 'type');
         let response = await this[method] (query);
+        process.exit ();
         //
         // account
         //
@@ -2653,11 +2673,11 @@ module.exports = class bitget extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let request = '/' + this.version + '/' + this.implodeParams (path, params);
-        if (api === 'capi') {
-            request = '/api/swap' + request;
+        let request = '/' + this.implodeParams (path, params);
+        if ((api === 'capi') || (api === 'swap')) {
+            request = '/api/swap/' + this.version + request;
         } else {
-            request = '/' + api + request;
+            request = '/' + api + '/v1' + request;
         }
         const query = this.omit (params, this.extractParams (path));
         let url = this.implodeParams (this.urls['api'][api], { 'hostname': this.hostname }) + request;
@@ -2665,37 +2685,6 @@ module.exports = class bitget extends Exchange {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
-        } else if (api === 'private') {
-            this.checkRequiredCredentials ();
-            const timestamp = this.numberToString (this.milliseconds ());
-            query['method'] = path;
-            let querystr = '';
-            if (Object.keys (query).length) {
-                querystr = this.urlencode (query);
-            }
-            let auth = timestamp + method + request;
-            headers = {};
-            if (method === 'GET') {
-                if (Object.keys (query).length) {
-                    const urlencodedQuery = '?' + this.urlencode (query);
-                    url += urlencodedQuery;
-                    auth += urlencodedQuery;
-                }
-                // url += '?' + queryparam + '&accesskey=' + this.apiKey + '&sign=' + sign + '&req_time=' + timestamp;
-                url += '&accesskey=' + this.apiKey + '&req_time=' + timestamp + '&sign=ccxt';
-                auth += '&accesskey=' + this.apiKey + '&req_time=' + timestamp + '&sign=ccxt';
-            } else {
-                url += '?' + querystr + '&accesskey=' + this.apiKey + '&req_time=' + timestamp + '&sign=ccxt';
-                auth += '?' + querystr + '&accesskey=' + this.apiKey + '&req_time=' + timestamp + '&sign=ccxt';
-                // if (isArray || Object.keys (query).length) {
-                //     body = this.json (query);
-                //     auth += body;
-                // }
-                headers['Content-Type'] = 'application/json';
-            }
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
-            const sign = signature;
-            headers['ACCESS-SIGN'] = sign;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
