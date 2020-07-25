@@ -31,6 +31,8 @@ module.exports = class bitget extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchDeposits': true,
+                'fetchWithdrawals': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -85,7 +87,7 @@ module.exports = class bitget extends Exchange {
                         'account/accounts', // Get all accounts of current user(即account_id)。
                         'accounts/{account_id}/balance', // Get the balance of the specified account
                         'order/orders', // Query current order, history order
-                        'dw/query/deposit_withdraw', // Query assets history
+                        'order/deposit_withdraw', // Query assets history
                     ],
                     'post': [
                         'order/orders/place', // Place order
@@ -1699,6 +1701,78 @@ module.exports = class bitget extends Exchange {
         return this.parseOrder (response, market);
     }
 
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDeposits requires a currency code argument');
+        }
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+            'method': 'deposit_withdraw',
+            'type': 'deposit',
+            'size': 12,
+        };
+        const response = await this.apiGetOrderDepositWithdraw (this.extend (request, params));
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": [
+        //             {
+        //                 "id": 1171,
+        //                 "type": "deposit",
+        //                 "currency": "usdt",
+        //                 "tx_hash": "ed03094b84eafbe4bc16e7ef766ee959885ee5bcb265872baaa9c64e1cf86c2b",
+        //                 "amount": 7.457467,
+        //                 "address": "rae93V8d2mdoUQHwBDBdM4NHCMehRJAsbm",
+        //                 "address_tag": "100040",
+        //                 "fee": 0,
+        //                 "state": "safe",
+        //                 "created_at": 1510912472199,
+        //                 "updated_at": 1511145876575
+        //             },
+        //         ]
+        //     }
+        //
+        return this.parseTransactions (response, currency, since, limit, params);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchWithdrawals requires a currency code argument');
+        }
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+            'method': 'deposit_withdraw',
+            'type': 'withdraw',
+            'size': 12,
+        };
+        const response = await this.apiGetOrderDepositWithdraw (this.extend (request, params));
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": [
+        //             {
+        //                 "id": 1171,
+        //                 "type": "withdraw",
+        //                 "currency": "usdt",
+        //                 "tx_hash": "ed03094b84eafbe4bc16e7ef766ee959885ee5bcb265872baaa9c64e1cf86c2b",
+        //                 "amount": 7.457467,
+        //                 "address": "rae93V8d2mdoUQHwBDBdM4NHCMehRJAsbm",
+        //                 "address_tag": "100040",
+        //                 "fee": 0,
+        //                 "state": "safe",
+        //                 "created_at": 1510912472199,
+        //                 "updated_at": 1511145876575
+        //             },
+        //         ]
+        //     }
+        //
+        return this.parseTransactions (response, currency, since, limit, params);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + this.implodeParams (path, params);
         if ((api === 'capi') || (api === 'swap')) {
@@ -1774,6 +1848,8 @@ module.exports = class bitget extends Exchange {
         //     {"status":"error","ts":1595700216275,"err_code":"bad-request","err_msg":"your balance is low!"}
         //     {"status":"error","ts":1595700344504,"err_code":"invalid-parameter","err_msg":"invalid type"}
         //     {"status":"error","ts":1595703343035,"err_code":"bad-request","err_msg":"order cancel fail"}
+        //     {"status":"error","ts":1595704360508,"err_code":"invalid-parameter","err_msg":"accesskey not null"}
+        //     {"status":"error","ts":1595704490084,"err_code":"invalid-parameter","err_msg":"permissions not right"}
         //
         //
         // swap
