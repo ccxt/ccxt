@@ -514,7 +514,7 @@ module.exports = class bitget extends Exchange {
                         'swap': 5,
                     },
                 },
-                'defaultType': 'spot', // 'spot', 'swap'
+                'defaultType': 'swap', // 'spot', 'swap'
                 'timeframes': {
                     'spot': {
                         '1m': '1min',
@@ -1467,7 +1467,7 @@ module.exports = class bitget extends Exchange {
         if (type === 'spot') {
             method = 'apiGetAccountAccounts';
         } else if (type === 'swap') {
-            method = 'swapGetAccounts';
+            method = 'swapGetAccountAccounts';
         }
         const query = this.omit (params, 'type');
         let response = await this[method] (query);
@@ -2685,6 +2685,32 @@ module.exports = class bitget extends Exchange {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
+        } else if (api === 'swap') {
+            this.checkRequiredCredentials ();
+            const timestamp = this.milliseconds ().toString ();
+            let auth = timestamp + method + request;
+            if (method === 'POST') {
+                body = this.json (params);
+                auth += body;
+            } else {
+                if (Object.keys (params).length) {
+                    const query = this.urlencode (this.keysort (params));
+                    url += '?' + query;
+                    auth += '?' + query;
+                }
+            }
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
+            headers = {
+                'ACCESS-KEY': this.apiKey,
+                'ACCESS-SIGN': this.decode (signature),
+                'ACCESS-TIMESTAMP': timestamp,
+                'ACCESS-PASSPHRASE': this.password,
+            };
+            if (method === 'POST') {
+                headers['Content-Type'] = 'application/json';
+            }
+        } else if (api === 'api') {
+            throw new NotSupported (this.id + ' spot private signing is not implemented yet');
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
