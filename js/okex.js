@@ -2432,7 +2432,7 @@ module.exports = class okex extends Exchange {
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
-            request['code'] = currency['code'];
+            request['currency'] = currency['id'];
             method += 'Currency';
         }
         const response = await this[method] (this.extend (request, params));
@@ -2446,7 +2446,7 @@ module.exports = class okex extends Exchange {
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
-            request['code'] = currency['code'];
+            request['currency'] = currency['id'];
             method += 'Currency';
         }
         const response = await this[method] (this.extend (request, params));
