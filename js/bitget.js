@@ -24,6 +24,7 @@ module.exports = class bitget extends Exchange {
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchCurrencies': true,
+                'fetchDeposits': true,
                 'fetchMarkets': true,
                 'fetchOHLCV': true,
                 'fetchOrderBook': true,
@@ -31,7 +32,6 @@ module.exports = class bitget extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchDeposits': true,
                 'fetchWithdrawals': true,
             },
             'timeframes': {
