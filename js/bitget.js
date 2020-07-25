@@ -18,7 +18,7 @@ module.exports = class bitget extends Exchange {
             'rateLimit': 1000, // up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
             'pro': false,
             'has': {
-                'cancelOrder': false,
+                'cancelOrder': true,
                 'CORS': false,
                 'createOrder': true,
                 'fetchAccounts': true,
@@ -1492,7 +1492,7 @@ module.exports = class bitget extends Exchange {
         const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType');
         const type = this.safeString (params, 'type', defaultType);
         if (type === undefined) {
-            throw new ArgumentsRequired (this.id + " fetchBalance requires a type parameter (one of 'account', 'spot', 'swap')");
+            throw new ArgumentsRequired (this.id + " fetchBalance requires a 'type' parameter, one of 'spot', 'swap'");
         }
         let method = undefined;
         const query = this.omit (params, 'type');
@@ -1579,12 +1579,13 @@ module.exports = class bitget extends Exchange {
             });
             method = 'apiPostOrderOrdersPlace';
             request['account_id'] = accountId;
-            request['method'] = 'placeOrder';
+            request['method'] = 'place';
             request['type'] = side + '-' + type;
             if (type === 'limit') {
                 request['amount'] = this.amountToPrecision (symbol, amount);
                 request['price'] = this.priceToPrecision (symbol, price);
             } else if (type === 'market') {
+                request['price'] = this.priceToPrecision (symbol, 0);
                 // for market buy it requires the amount of quote currency to spend
                 if (side === 'buy') {
                     let cost = this.safeFloat (params, 'amount');
@@ -1652,6 +1653,48 @@ module.exports = class bitget extends Exchange {
         //         "client_oid":"bitget#123456",
         //         "order_id":"513466539039522813"
         //     }
+        //
+        return this.parseOrder (response, market);
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        let type = undefined;
+        if (symbol === undefined) {
+            const defaultType = this.safeString2 (this.options, 'cancelOrder', 'defaultType');
+            const type = this.safeString (params, 'type', defaultType);
+            if (type === 'spot') {
+                if (symbol === undefined) {
+                    throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument for spot orders');
+                }
+            }
+        } else {
+            market = this.market (symbol);
+            type = market['type'];
+        }
+        const query = this.omit (params, 'type');
+        let method = undefined;
+        const request = {};
+        if (type === 'spot') {
+            method = 'apiPostOrderOrdersOrderIdSubmitcancel';
+            request['symbol'] = market['id'];
+            request['order_id'] = id;
+            request['method'] = 'submitcancel';
+        } else if (type === 'swap') {
+            method = 'swapPostOrderCancelOrder';
+            request['orderId'] = id;
+            request['symbol'] = market['id'];
+        }
+        const response = await this[method] (this.extend (request, query));
+        //
+        // spot
+        //
+        //     ...
+        //
+        // swap
+        //
+        //     ...
         //
         return this.parseOrder (response, market);
     }
@@ -1730,12 +1773,17 @@ module.exports = class bitget extends Exchange {
         //     {"status":"error","ts":1595684716042,"err_code":"invalid-parameter","err_msg":"illegal sign invalid"}
         //     {"status":"error","ts":1595700216275,"err_code":"bad-request","err_msg":"your balance is low!"}
         //     {"status":"error","ts":1595700344504,"err_code":"invalid-parameter","err_msg":"invalid type"}
+        //     {"status":"error","ts":1595703343035,"err_code":"bad-request","err_msg":"order cancel fail"}
+        //
         //
         // swap
         //
         //     {"code":"40015","msg":"","requestTime":1595698564931,"data":null}
+        //     {"code":"40017","msg":"Order id must not be blank","requestTime":1595702477835,"data":null}
         //     {"code":"40017","msg":"Order Type must not be blank","requestTime":1595698516162,"data":null}
         //     {"code":"40301","msg":"","requestTime":1595667662503,"data":null}
+        //     {"code":"40017","msg":"Contract code must not be blank","requestTime":1595703151651,"data":null}
+        //     {"order_id":"513468410013679613","client_oid":null,"symbol":"ethusd","result":false,"err_code":"order_no_exist_error","err_msg":"订单不存在！"}
         //
         const message = this.safeString (response, 'err_msg');
         const errorCode = this.safeString2 (response, 'code', 'err_code');
