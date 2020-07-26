@@ -7,18 +7,18 @@ const assert = require ('assert');
 function testTrade (exchange, trade, symbol, now) {
     assert (trade);
     const sampleTrade = {
-        'info':         { 'a': 1, 'b': 2, 'c': 3 }, // the original decoded JSON as is
-        'id':           '12345-67890:09876/54321',  // string trade id
-        'timestamp':    1502962946216,              // Unix timestamp in milliseconds
-        'datetime':     '2017-08-17 12:42:48.000',  // ISO8601 datetime with milliseconds
-        'symbol':       'ETH/BTC',                  // symbol
-        'order':        '12345-67890:09876/54321',  // string order id or undefined/None/null
-        'type':         'limit',                    // order type, 'market', 'limit' or undefined/None/null
-        'side':         'buy',                      // direction of the trade, 'buy' or 'sell'
-        'takerOrMaker': 'taker',                    // string, 'taker' or 'maker'
-        'price':        0.06917684,                 // float price in quote currency
-        'amount':       1.5,                        // amount of base currency
-        'cost':         0.10376526,                 // total cost (including fees), `price * amount`
+        'info': { 'a': 1, 'b': 2, 'c': 3 },    // the original decoded JSON as is
+        'id': '12345-67890:09876/54321',       // string trade id
+        'timestamp': 1502962946216,            // Unix timestamp in milliseconds
+        'datetime': '2017-08-17 12:42:48.000', // ISO8601 datetime with milliseconds
+        'symbol': 'ETH/BTC',                   // symbol
+        'order': '12345-67890:09876/54321',    // string order id or undefined/None/null
+        'type': 'limit',                       // order type, 'market', 'limit' or undefined/None/null
+        'side': 'buy',                         // direction of the trade, 'buy' or 'sell'
+        'takerOrMaker': 'taker',               // string, 'taker' or 'maker'
+        'price': 0.06917684,                   // float price in quote currency
+        'amount': 1.5,                         // amount of base currency
+        'cost': 0.10376526,                    // total cost (including fees), `price * amount`
     };
     const keys = Object.keys (sampleTrade);
     for (let i = 0; i < keys.length; i++) {

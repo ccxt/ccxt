@@ -1337,7 +1337,7 @@ class Transpiler {
 
         const pythonHeader = [
             '',
-            'import numbers',
+            'import numbers  # noqa: E402',
             'try:',
             '    basestring  # basestring was removed in Python 3',
             'except NameError:',
