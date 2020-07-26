@@ -1090,6 +1090,21 @@ module.exports = class bitget extends Exchange {
         //         "symbol":"btcusd"
         //     }
         //
+        // spot fetchMyTrades (private)
+        //
+        //     {
+        //         "id": 29555,
+        //         "order_id": 59378,
+        //         "match_id": 59335,
+        //         "symbol": "eth_usdt",
+        //         "type": "buy-limit",
+        //         "source": "api",
+        //         "price": "100.1000000000",
+        //         "filled_amount": "0.9845000000",
+        //         "filled_fees": "0.0019690000",
+        //         "created_at": 1494901400487
+        //     }
+        //
         // fetchOrderTrades (private)
         //
         //     futures trades, swap trades
@@ -1117,7 +1132,7 @@ module.exports = class bitget extends Exchange {
             base = market['base'];
             quote = market['quote'];
         } else if (marketId !== undefined) {
-            const parts = marketId.split ('-');
+            const parts = marketId.split ('_');
             const numParts = parts.length;
             if (numParts === 2) {
                 const [ baseId, quoteId ] = parts;
@@ -1693,11 +1708,19 @@ module.exports = class bitget extends Exchange {
         //
         // spot
         //
-        //     ...
+        //     {
+        //         "status": "ok",
+        //         "data": "59378"
+        //     }
         //
         // swap
         //
-        //     ...
+        //     {
+        //         "order_id":"513468410013679613",
+        //         "client_oid":"bitget#123456",
+        //         "symbol":"cmt_btcusdt",
+        //         "result":true
+        //     }
         //
         return this.parseOrder (response, market);
     }
@@ -2012,7 +2035,6 @@ module.exports = class bitget extends Exchange {
         //     {"status":"error","ts":1595704360508,"err_code":"invalid-parameter","err_msg":"accesskey not null"}
         //     {"status":"error","ts":1595704490084,"err_code":"invalid-parameter","err_msg":"permissions not right"}
         //     {"status":"error","ts":1595711862763,"err_code":"system exception","err_msg":"system exception"}
-        //
         //
         // swap
         //
