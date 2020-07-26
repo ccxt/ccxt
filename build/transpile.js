@@ -1351,7 +1351,7 @@ class Transpiler {
 
         let { python3Body, python2Body, phpBody } = this.transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
         const python = this.getPythonPreamble () + pythonHeader + python3Body;
-        const php = this.getPHPPreamble () + phpBody;
+        const php = this.getPHPPreamble ().replace (/include_once.*\n/g, '') + phpBody;
 
 
         overwriteFile (pyFile, python)
@@ -1373,7 +1373,7 @@ class Transpiler {
         createFolderRecursively (python3Folder)
         createFolderRecursively (phpFolder)
 
-        //*
+        /*
 
         const classes = this.transpileDerivedExchangeFiles ('./js/', options, pattern)
 
@@ -1386,7 +1386,7 @@ class Transpiler {
         // this process won't work anymore as it will override the definitions
         this.exportTypeScriptDeclarations ('./ccxt.d.ts', classes)
 
-        //*/
+        */
 
         this.transpileErrorHierarchy ()
 
