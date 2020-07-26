@@ -821,17 +821,8 @@ module.exports = class kucoin extends Exchange {
         const timestamp = this.milliseconds ();
         const order = {
             'id': this.safeString (data, 'orderId'),
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'price': price,
-            'cost': undefined,
-            'filled': undefined,
-            'remaining': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'fee': undefined,
-            'status': 'open',
             'clientOrderId': clientOrderId,
             'info': data,
         };
