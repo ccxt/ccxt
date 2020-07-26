@@ -2006,10 +2006,12 @@ module.exports = class bitget extends Exchange {
                 signed += '&';
             }
             signed += 'sign=' + signature + '&req_time=' + timestamp + '&accesskey=' + this.apiKey;
-            if (Object.keys (query).length) {
-                url += '?' + signed;
-            }
-            if (method === 'POST') {
+            if (method === 'GET') {
+                if (Object.keys (query).length) {
+                    url += '?' + signed;
+                }
+            } else if (method === 'POST') {
+                url += '?sign=' + signature + '&req_time=' + timestamp + '&accesskey=' + this.apiKey;
                 body = auth;
                 headers = {
                     'Content-Type': 'application/x-www-form-urlencoded',
@@ -2035,6 +2037,7 @@ module.exports = class bitget extends Exchange {
         //     {"status":"error","ts":1595704360508,"err_code":"invalid-parameter","err_msg":"accesskey not null"}
         //     {"status":"error","ts":1595704490084,"err_code":"invalid-parameter","err_msg":"permissions not right"}
         //     {"status":"error","ts":1595711862763,"err_code":"system exception","err_msg":"system exception"}
+        //     {"status":"error","ts":1595730308979,"err_code":"bad-request","err_msg":"20003"}
         //
         // swap
         //
