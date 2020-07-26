@@ -329,7 +329,7 @@ class fcoin extends Exchange {
         $result = array();
         $length = is_array($orders) ? count($orders) : 0;
         $halfLength = intval ($length / 2);
-        // .= 2 in the for loop below won't transpile
+        // += 2 in the for loop below won't transpile
         for ($i = 0; $i < $halfLength; $i++) {
             $index = $i * 2;
             $priceField = $this->sum($index, $priceKey);

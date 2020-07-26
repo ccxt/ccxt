@@ -167,6 +167,11 @@ class Transpiler {
             [ /typeof\s+(.+?)\s+\=\=\=?\s+\'undefined\'/g, '$1 is None' ],
             [ /typeof\s+(.+?)\s+\!\=\=?\s+\'undefined\'/g, '$1 is not None' ],
 
+            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'number\'/g, "isinstance($1[$2], numbers.Real)" ],
+            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'number\'/g, "isinstance($1[$2], numbers.Real)'" ],
+            [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'number\'/g, "isinstance($1, numbers.Real)" ],
+            [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'number\'/g, "isinstance($1, numbers.Real)" ],
+
             [ /([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+undefined/g, '$1[$2] is None' ],
             [ /([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+undefined/g, '$1[$2] is not None' ],
             [ /([^\s]+)\s+\=\=\=?\s+undefined/g, '$1 is None' ],
@@ -186,7 +191,8 @@ class Transpiler {
             [ /this\.binaryToBase16\s/g, 'base64.b16encode' ],
             [ /this\.base64ToBinary\s/g, 'base64.b64decode' ],
             [ /\.shift\s*\(\)/g, '.pop(0)' ],
-            [ /Number\.MAX_SAFE_INTEGER/g, 'float(\'inf\')']
+            [ /Number\.MAX_SAFE_INTEGER/g, 'float(\'inf\')'],
+            [ /function\s*(\w+\s*\([^)]+\))\s*{/g, 'def $1:'],
 
         // insert common regexes in the middle (critical)
         ].concat (this.getCommonRegexes ()).concat ([
@@ -269,6 +275,7 @@ class Transpiler {
             [ /\=\=\sTrue/g, 'is True' ], // a correction for PEP8 E712, it likes "is True", not "== True"
             [ /\sdelete\s/g, ' del ' ],
             [ /(?<!#.+)null/, 'None' ],
+            [ /assert\s*\((.+)\)(?:\s*#.*)?$/mg, 'assert $1'],
         ])
     }
 
@@ -301,6 +308,11 @@ class Transpiler {
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'string\'/g, "gettype($1[$2]) !== 'string'" ],
             [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'string\'/g, "gettype($1) === 'string'" ],
             [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'string\'/g, "gettype($1) !== 'string'" ],
+
+            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'number\'/g, "(is_float($1[$2]) || is_int($1[$2]))" ], // same as above but for number
+            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'number\'/g, "(is_float($1[$2]) || is_int($1[$2]))'" ],
+            [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'number\'/g, "(is_float($1) || is_int($1))" ],
+            [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'number\'/g, "(is_float($1) || is_int($1))" ],
 
             [ /undefined/g, 'null' ],
             [ /this\.extend\s/g, 'array_merge' ],
@@ -362,8 +374,8 @@ class Transpiler {
             [ /([^\s]+)\.toFixed\s*\(([^\)]+)\)/g, "sprintf('%.' . $2 . 'f', $1)" ],
             [ /parseFloat\s/g, 'floatval '],
             [ /parseInt\s/g, 'intval '],
-            [ / \+ /g, ' . ' ],
-            [ / \+\= /g, ' .= ' ],
+            [ / \+ (?!\d)/g, ' . ' ],
+            [ / \+\= (?!\d)/g, ' .= ' ],
             [ /([^\s\(]+(?:\s*\(.+\))?)\.toUpperCase\s*\(\)/g, 'strtoupper($1)' ],
             [ /([^\s\(]+(?:\s*\(.+\))?)\.toLowerCase\s*\(\)/g, 'strtolower($1)' ],
             [ /([^\s\(]+(?:\s*\(.+\))?)\.replace\s*\(([^\)]+)\)/g, 'str_replace($2, $1)' ],
@@ -701,6 +713,16 @@ class Transpiler {
         while (catchClauseMatches = catchClauseRegex.exec (js)) {
             allVariables.push (catchClauseMatches[1])
         }
+
+        // match all variables instantiated as function parameters
+        let functionParamRegex = /function \w+ \(([^)]+)\)/g
+        let functionParamVariables
+        while (functionParamVariables = functionParamRegex.exec (js)) {
+            const match = functionParamVariables[1]
+            const tokens = match.split (', ')
+            allVariables = allVariables.concat (tokens)
+        }
+
 
         allVariables = allVariables.map (error => this.regexAll (error, this.getCommonRegexes ()))
 
@@ -1292,6 +1314,49 @@ class Transpiler {
 
     // ============================================================================
 
+    transpileExchangeTests () {
+        this.transpileTradeStructureTests ();
+    }
+
+    // ============================================================================
+
+    transpileTradeStructureTests () {
+        const jsFile = './js/test/Exchange/test.trade.js'
+        const pyFile = './python/test/test_trade.py'
+        const phpFile = './php/test/test_trade.php'
+
+
+        log.magenta ('Transpiling from', jsFile.yellow)
+        let js = fs.readFileSync (jsFile).toString ()
+
+        js = this.regexAll (js, [
+            [ /\'use strict\';?\s+/g, '' ],
+            [ /[^\n]+require[^\n]+\n/g, '' ],
+            [ /module.exports\s+=\s+[^;]+;/g, '' ],
+        ])
+
+        const pythonHeader = [
+            '',
+            'import numbers',
+            'try:',
+            '    basestring  # basestring was removed in Python 3',
+            'except NameError:',
+            '    basestring = str',
+            '',
+            '',
+        ].join('\n')
+
+        let { python3Body, python2Body, phpBody } = this.transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
+        const python = this.getPythonPreamble () + pythonHeader + python3Body;
+        const php = this.getPHPPreamble () + phpBody;
+
+
+        overwriteFile (pyFile, python)
+        overwriteFile (phpFile, php)
+    }
+
+    // ============================================================================
+
     transpileEverything () {
 
         // default pattern is '.js'
@@ -1327,6 +1392,8 @@ class Transpiler {
         this.transpileCryptoTests ()
 
         this.transpilePythonAsyncToSync ('./python/test/test_async.py', './python/test/test.py')
+
+        this.transpileExchangeTests ();
 
         log.bright.green ('Transpiled successfully.')
     }

@@ -319,7 +319,7 @@ class buda extends Exchange {
         }
         $last = floatval ($ticker['last_price'][0]);
         $percentage = floatval ($ticker['price_variation_24h']);
-        $open = floatval ($this->price_to_precision($symbol, $last / ($percentage . 1)));
+        $open = floatval ($this->price_to_precision($symbol, $last / ($percentage + 1)));
         $change = $last - $open;
         $average = $this->sum($last, $open) / 2;
         return array(

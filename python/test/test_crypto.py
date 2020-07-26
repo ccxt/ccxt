@@ -28,16 +28,14 @@ exchange = Exchange()
 
 # ---------------------------------------------------------------------------------------------------------------------
 
-assert(hash(encode(''), 'sha256', 'hex') == 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855')
-assert(hash(encode('cheese'), 'sha256', 'hex') == '873ac9ffea4dd04fa719e8920cd6938f0c23cd678af330939cff53c3d2855f34')
+assert hash(encode(''), 'sha256', 'hex') == 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
+assert hash(encode('cheese'), 'sha256', 'hex') == '873ac9ffea4dd04fa719e8920cd6938f0c23cd678af330939cff53c3d2855f34'
 
-assert(hash(encode(''), 'md5', 'hex') == 'd41d8cd98f00b204e9800998ecf8427e')
-assert(hash(encode('sexyfish'), 'md5', 'hex') == 'c8a35464aa9d5683585786f44d5889f8')
+assert hash(encode(''), 'md5', 'hex') == 'd41d8cd98f00b204e9800998ecf8427e'
+assert hash(encode('sexyfish'), 'md5', 'hex') == 'c8a35464aa9d5683585786f44d5889f8'
 
-assert(hash(encode(''), 'sha1', 'hex') == 'da39a3ee5e6b4b0d3255bfef95601890afd80709')
-assert(hash(encode('nutella'), 'sha1', 'hex') == 'b3d60a34b744159793c483b067c56d8affc5111a')
-
-# ---------------------------------------------------------------------------------------------------------------------
+assert hash(encode(''), 'sha1', 'hex') == 'da39a3ee5e6b4b0d3255bfef95601890afd80709'
+assert hash(encode('nutella'), 'sha1', 'hex') == 'b3d60a34b744159793c483b067c56d8affc5111a'
 
 privateKey = '1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a'
 
@@ -69,7 +67,7 @@ assert(equals(ecdsa(privateKey, privateKey, 'secp256k1', None), {
 
 # ---------------------------------------------------------------------------------------------------------------------
 
-assert(exchange.hashMessage(privateKey) == '0x59ea5d98c3500c3729f95cf98aa91663f498518cc401360df2912742c232207f')
+assert exchange.hashMessage(privateKey) == '0x59ea5d98c3500c3729f95cf98aa91663f498518cc401360df2912742c232207f'
 
 assert(equals(exchange.signHash('0x59ea5d98c3500c3729f95cf98aa91663f498518cc401360df2912742c232207f', privateKey), {
     'r': '0x6f684aa41c02da83dac3039d8805ddbe79a03b1297e247c7742cab8dfc19d341',
@@ -117,13 +115,11 @@ pemKeyArray = [
 
 pemKey = "\n".join(pemKeyArray)
 
-assert(jwt({'chicken': 'salad'}, encode(pemKey), 'RS256') == 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJjaGlja2VuIjoic2FsYWQifQ.FSKD5Y6RNzkHTuHdvG3753U7QNZ-u-GUSPfP1FMjEaK0Rr_iyQTSSmHhkdYSFFnmBvrrN_l-UwKwir52WlsgmQm9HYm0kidxbj7fWwrK2E1oe0P7OjupFjv1BZxc5W69WeaHtOPWe28tiHiON1LCnax6HgfI5lcIBsESGIIBZMVeaioQn9gDVwea7JxJvAlrhDIWZowIHTIdCQocXip7g5jREWHeEIuJNug67mwnfAFxCjvTRiTd0Bw6oBwjM3FLya-RyEyWrejQOWSuC8CNWVUHISaSmEyZ7uM6wTi2m_58TaE9mQwlef32OPErPvvBpgL5pZIyQ4ymwrCIFQLBQQ')
-assert(jwt({'lil': 'xan'}, encode('betrayed'), 'HS256') == 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsaWwiOiJ4YW4ifQ.md-oFvZagA-NXmZoRNyJOQ7zwK-PWUMmMQ_LI9ZOKaM')
+assert jwt({'chicken': 'salad'}, encode(pemKey), 'RS256') == 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJjaGlja2VuIjoic2FsYWQifQ.FSKD5Y6RNzkHTuHdvG3753U7QNZ-u-GUSPfP1FMjEaK0Rr_iyQTSSmHhkdYSFFnmBvrrN_l-UwKwir52WlsgmQm9HYm0kidxbj7fWwrK2E1oe0P7OjupFjv1BZxc5W69WeaHtOPWe28tiHiON1LCnax6HgfI5lcIBsESGIIBZMVeaioQn9gDVwea7JxJvAlrhDIWZowIHTIdCQocXip7g5jREWHeEIuJNug67mwnfAFxCjvTRiTd0Bw6oBwjM3FLya-RyEyWrejQOWSuC8CNWVUHISaSmEyZ7uM6wTi2m_58TaE9mQwlef32OPErPvvBpgL5pZIyQ4ymwrCIFQLBQQ'
+assert jwt({'lil': 'xan'}, encode('betrayed'), 'HS256') == 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsaWwiOiJ4YW4ifQ.md-oFvZagA-NXmZoRNyJOQ7zwK-PWUMmMQ_LI9ZOKaM'
 
-# ---------------------------------------------------------------------------------------------------------------------
-
-assert(exchange.soliditySha3(['0x63581b9abf2b661da0ba247e0dda1b723dcff5e3', 100, 'lulwat']) == '0x1d3e95c10fc64aee6628ea59284503a4eafc6ff13c541f00753fbd2a66cea0f5')
-assert(exchange.soliditySha3([234]) == '0x61c831beab28d67d1bb40b5ae1a11e2757fa842f031a2d0bc94a7867bc5d26c2')
-assert(exchange.soliditySha3(['234']) == '0x61c831beab28d67d1bb40b5ae1a11e2757fa842f031a2d0bc94a7867bc5d26c2')
-assert(exchange.soliditySha3(['Hellonot %']) == '0x661136a4267dba9ccdf6bfddb7c00e714de936674c4bdb065a531cf1cb15c7fc')
-assert(exchange.soliditySha3(['0x407D73d8a49eeb85D32Cf465507dd71d507100c1']) == '0x4e8ebbefa452077428f93c9520d3edd60594ff452a29ac7d2ccc11d47f3ab95b')
+assert exchange.soliditySha3(['0x63581b9abf2b661da0ba247e0dda1b723dcff5e3', 100, 'lulwat']) == '0x1d3e95c10fc64aee6628ea59284503a4eafc6ff13c541f00753fbd2a66cea0f5'
+assert exchange.soliditySha3([234]) == '0x61c831beab28d67d1bb40b5ae1a11e2757fa842f031a2d0bc94a7867bc5d26c2'
+assert exchange.soliditySha3(['234']) == '0x61c831beab28d67d1bb40b5ae1a11e2757fa842f031a2d0bc94a7867bc5d26c2'
+assert exchange.soliditySha3(['Hellonot %']) == '0x661136a4267dba9ccdf6bfddb7c00e714de936674c4bdb065a531cf1cb15c7fc'
+assert exchange.soliditySha3(['0x407D73d8a49eeb85D32Cf465507dd71d507100c1']) == '0x4e8ebbefa452077428f93c9520d3edd60594ff452a29ac7d2ccc11d47f3ab95b'
