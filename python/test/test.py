@@ -225,7 +225,7 @@ def test_trades(exchange, symbol):
         # dump(green(exchange.id), green(symbol), 'fetching trades...')
         trades = exchange.fetch_trades(symbol)
         if trades:
-            testTrade(exchange, trades[0], symbol, int(time.time() * 1000))
+            test_trade(exchange, trades[0], symbol, int(time.time() * 1000))
         dump(green(exchange.id), green(symbol), 'fetched', green(len(list(trades))), 'trades')
     else:
         dump(green(exchange.id), green(symbol), 'fetch_trades() not supported')

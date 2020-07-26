@@ -20,7 +20,7 @@ except NameError:
 # ----------------------------------------------------------------------------
 
 
-def testTrade(exchange, trade, symbol, now):
+def test_trade(exchange, trade, symbol, now):
     assert trade
     sampleTrade = {
         'info': {'a': 1, 'b': 2, 'c': 3},    # the original decoded JSON as is

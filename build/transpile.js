@@ -667,6 +667,9 @@ class Transpiler {
             python3Body = python3Body.replace (orderedDictRegex, '\.ordered([' + replaced + '])')
         }
 
+        // snake case function names
+        python3Body = python3Body.replace (/def (\w+)/g, (match, group1) => 'def ' + unCamelCase (group1))
+
         // special case for Python super
         if (className) {
             python3Body = python3Body.replace (/super\./g, 'super(' + className + ', self).')
@@ -715,14 +718,14 @@ class Transpiler {
         }
 
         // match all variables instantiated as function parameters
-        let functionParamRegex = /function \w+ \(([^)]+)\)/g
+        let functionParamRegex = /function (\w+) \(([^)]+)\)/g
+        js = js.replace (functionParamRegex, (match, group1, group2) => 'function ' + unCamelCase (group1) + ' (' + group2 + ')')
         let functionParamVariables
         while (functionParamVariables = functionParamRegex.exec (js)) {
-            const match = functionParamVariables[1]
+            const match = functionParamVariables[2]
             const tokens = match.split (', ')
             allVariables = allVariables.concat (tokens)
         }
-
 
         allVariables = allVariables.map (error => this.regexAll (error, this.getCommonRegexes ()))
 

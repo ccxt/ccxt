@@ -111,7 +111,7 @@ function test_trades($exchange, $symbol) {
         dump(green($symbol), 'fetching trades...');
         $trades = $exchange->fetch_trades($symbol);
         if (count($trades) > 0) {
-            testTrade ($exchange, $trades[0], $symbol, time() * 1000);
+            test_trade($exchange, $trades[0], $symbol, time() * 1000);
         }
         dump(green($symbol), 'fetched', green(count($trades)), 'trades');
     } else {
