@@ -1945,20 +1945,21 @@ class binance(Exchange):
         if (api == 'private') or (api == 'sapi') or (api == 'wapi' and path != 'systemStatus') or (api == 'fapiPrivate'):
             self.check_required_credentials()
             query = None
+            recvWindow = self.safe_integer(self.options, 'recvWindow', 5000)
             if (api == 'sapi') and (path == 'asset/dust'):
                 query = self.urlencode_with_array_repeat(self.extend({
                     'timestamp': self.nonce(),
-                    'recvWindow': self.options['recvWindow'],
+                    'recvWindow': recvWindow,
                 }, params))
             elif path == 'batchOrders':
                 query = self.rawencode(self.extend({
                     'timestamp': self.nonce(),
-                    'recvWindow': self.options['recvWindow'],
+                    'recvWindow': recvWindow,
                 }, params))
             else:
                 query = self.urlencode(self.extend({
                     'timestamp': self.nonce(),
-                    'recvWindow': self.options['recvWindow'],
+                    'recvWindow': recvWindow,
                 }, params))
             signature = self.hmac(self.encode(query), self.encode(self.secret))
             query += '&' + 'signature=' + signature

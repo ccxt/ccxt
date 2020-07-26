@@ -2085,20 +2085,21 @@ class binance extends Exchange {
         if (($api === 'private') || ($api === 'sapi') || ($api === 'wapi' && $path !== 'systemStatus') || ($api === 'fapiPrivate')) {
             $this->check_required_credentials();
             $query = null;
+            $recvWindow = $this->safe_integer($this->options, 'recvWindow', 5000);
             if (($api === 'sapi') && ($path === 'asset/dust')) {
                 $query = $this->urlencode_with_array_repeat(array_merge(array(
                     'timestamp' => $this->nonce(),
-                    'recvWindow' => $this->options['recvWindow'],
+                    'recvWindow' => $recvWindow,
                 ), $params));
             } else if ($path === 'batchOrders') {
                 $query = $this->rawencode(array_merge(array(
                     'timestamp' => $this->nonce(),
-                    'recvWindow' => $this->options['recvWindow'],
+                    'recvWindow' => $recvWindow,
                 ), $params));
             } else {
                 $query = $this->urlencode(array_merge(array(
                     'timestamp' => $this->nonce(),
-                    'recvWindow' => $this->options['recvWindow'],
+                    'recvWindow' => $recvWindow,
                 ), $params));
             }
             $signature = $this->hmac($this->encode($query), $this->encode($this->secret));
