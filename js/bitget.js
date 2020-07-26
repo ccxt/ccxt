@@ -507,7 +507,7 @@ module.exports = class bitget extends Exchange {
                         'swap': 5,
                     },
                 },
-                'defaultType': 'swap', // 'spot', 'swap'
+                'defaultType': 'spot', // 'spot', 'swap'
                 'accountId': undefined, // '1012838157',
                 'timeframes': {
                     'spot': {
@@ -1561,6 +1561,185 @@ module.exports = class bitget extends Exchange {
         throw new NotSupported (this.id + " fetchBalance does not support the '" + type + "' type (the type must be one of 'account', 'spot', 'margin', 'futures', 'swap')");
     }
 
+    parseOrderStatus (status) {
+        const statuses = {
+            '-2': 'failed',
+            '-1': 'canceled',
+            '0': 'open',
+            '1': 'open',
+            '2': 'closed',
+            '3': 'open',
+            '4': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrderSide (side) {
+        const sides = {
+            '1': 'buy', // open long
+            '2': 'sell', // open short
+            '3': 'sell', // close long
+            '4': 'buy', // close short
+        };
+        return this.safeString (sides, side, side);
+    }
+
+    parseOrder (order, market = undefined) {
+        //
+        // createOrder
+        //
+        //     spot
+        //
+        //     {
+        //         "status":"ok",
+        //         "ts":1595792596056,
+        //         "data":671368296142774272
+        //     }
+        //
+        //     swap
+        //
+        //     ...
+        //
+        // cancelOrder
+        //
+        //     {
+        //         "result": true,
+        //         "client_oid": "oktfuture10", // missing if requested by order_id
+        //         "order_id": "2517535534836736",
+        //         // instrument_id is missing for spot/margin orders
+        //         // available in futures and swap orders only
+        //         "instrument_id": "EOS-USD-190628",
+        //     }
+        //
+        // fetchOrder, fetchOrdersByState, fetchOpenOrders, fetchClosedOrders
+        //
+        //     // spot and margin orders
+        //
+        //     {
+        //         "client_oid":"oktspot76",
+        //         "created_at":"2019-03-18T07:26:49.000Z",
+        //         "filled_notional":"3.9734",
+        //         "filled_size":"0.001", // filled_qty in futures and swap orders
+        //         "funds":"", // this is most likely the same as notional
+        //         "instrument_id":"BTC-USDT",
+        //         "notional":"",
+        //         "order_id":"2500723297813504",
+        //         "order_type":"0",
+        //         "price":"4013",
+        //         "product_id":"BTC-USDT", // missing in futures and swap orders
+        //         "side":"buy",
+        //         "size":"0.001",
+        //         "status":"filled",
+        //         "state": "2",
+        //         "timestamp":"2019-03-18T07:26:49.000Z",
+        //         "type":"limit"
+        //     }
+        //
+        //     // futures and swap orders
+        //
+        //     {
+        //         "instrument_id":"EOS-USD-190628",
+        //         "size":"10",
+        //         "timestamp":"2019-03-20T10:04:55.000Z",
+        //         "filled_qty":"10", // filled_size in spot and margin orders
+        //         "fee":"-0.00841043",
+        //         "order_id":"2512669605501952",
+        //         "price":"3.668",
+        //         "price_avg":"3.567", // missing in spot and margin orders
+        //         "status":"2",
+        //         "state": "2",
+        //         "type":"4",
+        //         "contract_val":"10",
+        //         "leverage":"10", // missing in swap, spot and margin orders
+        //         "client_oid":"",
+        //         "pnl":"1.09510794", // missing in swap, spo and margin orders
+        //         "order_type":"0"
+        //     }
+        //
+        const id = this.safeString2 (order, 'order_id', 'data');
+        const timestamp = this.parse8601 (this.safeString (order, 'timestamp'));
+        let side = this.safeString (order, 'side');
+        let type = this.safeString (order, 'type');
+        if ((side !== 'buy') && (side !== 'sell')) {
+            side = this.parseOrderSide (type);
+        }
+        if ((type !== 'limit') && (type !== 'market')) {
+            if ('pnl' in order) {
+                type = 'futures';
+            } else {
+                type = 'swap';
+            }
+        }
+        let symbol = undefined;
+        const marketId = this.safeString (order, 'instrument_id');
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+            symbol = market['symbol'];
+        } else {
+            symbol = marketId;
+        }
+        if (market !== undefined) {
+            if (symbol === undefined) {
+                symbol = market['symbol'];
+            }
+        }
+        let amount = this.safeFloat (order, 'size');
+        const filled = this.safeFloat2 (order, 'filled_size', 'filled_qty');
+        let remaining = undefined;
+        if (amount !== undefined) {
+            if (filled !== undefined) {
+                amount = Math.max (amount, filled);
+                remaining = Math.max (0, amount - filled);
+            }
+        }
+        if (type === 'market') {
+            remaining = 0;
+        }
+        let cost = this.safeFloat2 (order, 'filled_notional', 'funds');
+        const price = this.safeFloat (order, 'price');
+        let average = this.safeFloat (order, 'price_avg');
+        if (cost === undefined) {
+            if (filled !== undefined && average !== undefined) {
+                cost = average * filled;
+            }
+        } else {
+            if ((average === undefined) && (filled !== undefined) && (filled > 0)) {
+                average = cost / filled;
+            }
+        }
+        const status = this.parseOrderStatus (this.safeString (order, 'state'));
+        const feeCost = this.safeFloat (order, 'fee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            const feeCurrency = undefined;
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            };
+        }
+        const clientOrderId = this.safeString (order, 'client_oid');
+        return {
+            'info': order,
+            'id': id,
+            'clientOrderId': clientOrderId,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'average': average,
+            'cost': cost,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': fee,
+            'trades': undefined,
+        };
+    }
+
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         await this.loadAccounts ();
@@ -1653,16 +1832,9 @@ module.exports = class bitget extends Exchange {
         // spot
         //
         //     {
-        //         "status": "ok",
-        //         "data": "59378",
-        //     }
-        //
-        //     {
-        //         "client_oid":"oktspot79",
-        //         "error_code":"",
-        //         "error_message":"",
-        //         "order_id":"2510789768709120",
-        //         "result":true
+        //         "status":"ok",
+        //         "ts":1595792596056,
+        //         "data":671368296142774272
         //     }
         //
         // swap
@@ -1696,7 +1868,6 @@ module.exports = class bitget extends Exchange {
         const request = {};
         if (type === 'spot') {
             method = 'apiPostOrderOrdersOrderIdSubmitcancel';
-            request['symbol'] = market['id'];
             request['order_id'] = id;
             request['method'] = 'submitcancel';
         } else if (type === 'swap') {
