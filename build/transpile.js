@@ -1373,7 +1373,7 @@ class Transpiler {
         createFolderRecursively (python3Folder)
         createFolderRecursively (phpFolder)
 
-        /*
+        //*
 
         const classes = this.transpileDerivedExchangeFiles ('./js/', options, pattern)
 
@@ -1386,7 +1386,7 @@ class Transpiler {
         // this process won't work anymore as it will override the definitions
         this.exportTypeScriptDeclarations ('./ccxt.d.ts', classes)
 
-        */
+        //*/
 
         this.transpileErrorHierarchy ()
 
