@@ -490,7 +490,7 @@ class bytetrade extends Exchange {
         $type = $this->safe_string($trade, 'type');
         $takerOrMaker = $this->safe_string($trade, 'takerOrMaker');
         $side = $this->safe_string($trade, 'side');
-        $datetime = $this->safe_string($trade, 'datetime');
+        $datetime = $this->iso8601($timestamp); // $this->safe_string($trade, 'datetime');
         $order = $this->safe_string($trade, 'order');
         $fee = $this->safe_value($trade, 'fee');
         $symbol = null;

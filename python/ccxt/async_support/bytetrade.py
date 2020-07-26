@@ -466,7 +466,7 @@ class bytetrade(Exchange):
         type = self.safe_string(trade, 'type')
         takerOrMaker = self.safe_string(trade, 'takerOrMaker')
         side = self.safe_string(trade, 'side')
-        datetime = self.safe_string(trade, 'datetime')
+        datetime = self.iso8601(timestamp)  # self.safe_string(trade, 'datetime')
         order = self.safe_string(trade, 'order')
         fee = self.safe_value(trade, 'fee')
         symbol = None
