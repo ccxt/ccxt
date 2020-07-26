@@ -20,7 +20,7 @@ sys.path.append(root)
 # ------------------------------------------------------------------------------
 
 import ccxt.async_support as ccxt  # noqa: E402
-from test_trade import testTrade  # noqa: E402
+from test_trade import test_trade  # noqa: E402
 
 # ------------------------------------------------------------------------------
 
@@ -254,7 +254,7 @@ async def test_trades(exchange, symbol):
         # dump(green(exchange.id), green(symbol), 'fetching trades...')
         trades = await exchange.fetch_trades(symbol)
         if trades:
-            testTrade(exchange, trades[0], symbol, int(time.time() * 1000))
+            test_trade(exchange, trades[0], symbol, int(time.time() * 1000))
         dump(green(exchange.id), green(symbol), 'fetched', green(len(list(trades))), 'trades')
     else:
         dump(green(exchange.id), green(symbol), 'fetch_trades() not supported')
