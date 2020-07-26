@@ -463,7 +463,7 @@ class hollaex(Exchange):
         #         ]
         #     }
         #
-        trades = await self.safe_value(response, market['id'], [])
+        trades = self.safe_value(response, market['id'], [])
         return self.parse_trades(trades, market, since, limit)
 
     def parse_trade(self, trade, market=None):
