@@ -762,18 +762,6 @@ module.exports = class btcmarkets extends Exchange {
         return this.parseOrder (order);
     }
 
-    createPaginatedRequest (market, since = undefined, limit = undefined) {
-        limit = (limit === undefined) ? 100 : limit;
-        since = (since === undefined) ? 0 : since;
-        const request = this.ordered ({
-            'currency': market['quoteId'],
-            'instrument': market['baseId'],
-            'limit': limit,
-            'since': since,
-        });
-        return request;
-    }
-
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
