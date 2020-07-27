@@ -695,7 +695,7 @@ module.exports = class btcmarkets extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         let cost = undefined;
         if (price !== undefined) {
-            if (amount !== undefined) {
+            if (filled !== undefined) {
                 cost = price * filled;
             }
         }
