@@ -17,7 +17,7 @@ class coineal extends Exchange {
             'id' => 'coineal',
             'name' => 'Coineal',
             'countries' => array(),
-            'rateLimit' => 1000,
+            'rateLimit' => 250,
             'has' => array(
                 'fetchMarkets' => true,
                 'fetchOHLCV' => true,
@@ -62,6 +62,7 @@ class coineal extends Exchange {
                     'get' => array(
                         'open/api/all_trade',
                         'open/api/new_order',
+                        'open/api/all_order',
                         'open/api/user/account',
                         'open/api/order_info',
                     ),
@@ -699,9 +700,9 @@ class coineal extends Exchange {
             'page' => 1,
             'pageSize' => $limit,
         );
-        $response = $this->privateGetOpenApiNewOrder (array_merge($request, $params));
+        $response = $this->privateGetOpenApiAllOrder (array_merge($request, $params));
         $result = $this->safe_value($response, 'data');
-        return $this->safe_value($result, 'resultList', array());
+        return $this->safe_value($result, 'orderList', array());
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = 100, $params = array ()) {
@@ -717,100 +718,90 @@ class coineal extends Exchange {
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = 100, $params = array ()) {
         $this->load_markets();
-        $openOrders = array();
-        if ($symbol === null) {
-            $totalMarkets = is_array($this->markets) ? array_keys($this->markets) : array();
-            for ($i = 0; $i < count($totalMarkets); $i++) {
-                $market = $this->market ($totalMarkets[$i]);
-                $orderData = $this->fetch_common_orders ($market['id'], $limit, $params);
-                $parseOpenOrderResult = $this->filter_by_array($orderData, 'status', [0, 1, 3], false);
-                $openOrders = $this->array_concat($openOrders, $parseOpenOrderResult);
-            }
-            return $this->parse_orders($openOrders, null, $since, strlen($openOrders));
+        $symbolsToFetch = ($symbol !== null) ? [$symbol] : $this->symbols;
+        $ordersData = array();
+        for ($i = 0; $i < count($symbolsToFetch); $i++) {
+            $market = $this->market ($symbolsToFetch[$i]);
+            $orders = $this->fetch_common_orders ($market['id'], $limit, $params);
+            $openOrders = $this->filter_by_array($orders, 'status', [0, 1, 3], false);
+            $ordersData = $this->array_concat($ordersData, $openOrders);
         }
-        $market = $this->market ($symbol);
-        $orderData = $this->fetch_common_orders ($market['id'], $limit, $params);
         // Exchange response
         // {
         //     "code" => "0",
         //     "msg" => "suc",
         //     "data" => {
-        //         "count" => 10,
-        //         "resultList" => array(
-        //             {
-        //                 "side" => "BUY",
-        //                 "total_price" => "0.10000000",
-        //                 "created_at" => 1510993841000,
-        //                 "avg_price" => "0.10000000",
-        //                 "countCoin" => "btc",
-        //                 "source" => 1,
-        //                 "type" => 1,
-        //                 "side_msg" => "买入",
-        //                 "volume" => "1.000",
-        //                 "price" => "0.10000000",
-        //                 "source_msg" => "WEB",
-        //                 "status_msg" => "部分成交",
-        //                 "deal_volume" => "0.50000000",
-        //                 "id" => 424,
-        //                 "remain_volume" => "0.00000000",
-        //                 "baseCoin" => "eth",
-        //                 "tradeList" => array(
-        //                     array(
-        //                         "volume" => "0.500",
-        //                         "price" => "0.10000000",
-        //                         "fee" => "0.16431104",
-        //                         "ctime" => 1510996571195,
-        //                         "deal_price" => "0.10000000",
-        //                         "id" => 306,
-        //                         "type" => "买入"
-        //                     }
-        //                 ),
-        //                 "status" => 3
-        //             ),
-        //             {
-        //                 "side" => "SELL",
-        //                 "total_price" => "0.10000000",
-        //                 "created_at" => 1510993841000,
-        //                 "avg_price" => "0.10000000",
-        //                 "countCoin" => "btc",
-        //                 "source" => 1,
-        //                 "type" => 1,
-        //                 "side_msg" => "买入",
-        //                 "volume" => "1.000",
-        //                 "price" => "0.10000000",
-        //                 "source_msg" => "WEB",
-        //                 "status_msg" => "未成交",
-        //                 "deal_volume" => "0.00000000",
-        //                 "id" => 425,
-        //                 "remain_volume" => "0.00000000",
-        //                 "baseCoin" => "eth",
-        //                 "tradeList" => array(),
-        //                 "status" => 1
-        //             }
-        //         )
+        //       "count" => 10,
+        //       "resultList" => array(
+        //           {
+        //               "side" => "BUY",
+        //               "total_price" => "0.10000000",
+        //               "created_at" => 1510993841000,
+        //               "avg_price" => "0.10000000",
+        //               "countCoin" => "btc",
+        //               "source" => 1,
+        //               "type" => 1,
+        //               "side_msg" => "买入",
+        //               "volume" => "1.000",
+        //               "price" => "0.10000000",
+        //               "source_msg" => "WEB",
+        //               "status_msg" => "部分成交",
+        //               "deal_volume" => "0.50000000",
+        //               "id" => 424,
+        //               "remain_volume" => "0.00000000",
+        //               "baseCoin" => "eth",
+        //               "tradeList" => array(
+        //                   array(
+        //                       "volume" => "0.500",
+        //                       "price" => "0.10000000",
+        //                       "fee" => "0.16431104",
+        //                       "ctime" => 1510996571195,
+        //                       "deal_price" => "0.10000000",
+        //                       "id" => 306,
+        //                       "type" => "买入"
+        //                   }
+        //               ),
+        //               "status" => 3
+        //           ),
+        //           {
+        //               "side" => "SELL",
+        //               "total_price" => "0.10000000",
+        //               "created_at" => 1510993841000,
+        //               "avg_price" => "0.10000000",
+        //               "countCoin" => "btc",
+        //               "source" => 1,
+        //               "type" => 1,
+        //               "side_msg" => "买入",
+        //               "volume" => "1.000",
+        //               "price" => "0.10000000",
+        //               "source_msg" => "WEB",
+        //               "status_msg" => "未成交",
+        //               "deal_volume" => "0.00000000",
+        //               "id" => 425,
+        //               "remain_volume" => "0.00000000",
+        //               "baseCoin" => "eth",
+        //               "tradeList" => array(),
+        //               "status" => 1
+        //           }
+        //       )
         //     }
         // }
-        $allOpenOrders = $this->filter_by_array($orderData, 'status', [0, 1, 3], false);
-        return $this->parse_orders($allOpenOrders, $market, $since, $limit);
+        $market = ($symbol !== null) ? $this->market ($symbol) : null;
+        return $this->parse_orders($ordersData, $market, $since, $limit);
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = 100, $params = array ()) {
         $this->load_markets();
-        $openCloseOrders = array();
-        if ($symbol === null) {
-            $totalMarkets = is_array($this->markets) ? array_keys($this->markets) : array();
-            for ($i = 0; $i < count($totalMarkets); $i++) {
-                $market = $this->market ($totalMarkets[$i]);
-                $orderData = $this->fetch_common_orders ($market['id'], $limit, $params);
-                $parseOpenCloseOrderResult = $this->filter_by_array($orderData, 'status', [0, 1, 2, 3], false);
-                $openCloseOrders = $this->array_concat($openCloseOrders, $parseOpenCloseOrderResult);
-            }
-            return $this->parse_orders($openCloseOrders, null, $since, strlen($openCloseOrders));
+        $marketsToFetch = ($symbol !== null) ? [$symbol] : $this->symbols;
+        $ordersData = array();
+        for ($i = 0; $i < count($marketsToFetch); $i++) {
+            $market = $this->market ($marketsToFetch[$i]);
+            $orders = $this->fetch_common_orders ($market['id'], $limit, $params);
+            $allOrders = $this->filter_by_array($orders, 'status', [0, 1, 2, 3, 4], false);
+            $ordersData = $this->array_concat($ordersData, $allOrders);
         }
-        $market = $this->market ($symbol);
-        $orderData = $this->fetch_common_orders ($market['id'], $limit, $params);
-        $openCloseOrders = $this->filter_by_array($orderData, 'status', [0, 1, 2, 3], false);
-        return $this->parse_orders($openCloseOrders, $market, $since, $limit);
+        $market = ($symbol !== null) ? $this->market ($symbol) : null;
+        return $this->parse_orders($ordersData, $market, $since, $limit);
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
