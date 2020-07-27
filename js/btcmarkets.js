@@ -693,6 +693,12 @@ module.exports = class btcmarkets extends Exchange {
         const remaining = this.safeFloat (order, 'openAmount');
         const filled = amount - remaining;
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        let cost = undefined;
+        if (price !== undefined) {
+            if (amount !== undefined) {
+                cost = price * filled;
+            }
+        }
         return {
             'info': order,
             'id': this.safeString (order, 'orderId'),
@@ -704,7 +710,7 @@ module.exports = class btcmarkets extends Exchange {
             'type': type,
             'side': side,
             'price': price,
-            'cost': price * amount,
+            'cost': cost,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
