@@ -534,7 +534,7 @@ module.exports = class btcmarkets extends Exchange {
             'amount': this.priceToPrecision (symbol, amount),
             'type': type === 'limit' ? 'Limit' : 'Market',
             'side': side === 'buy' ? 'Bid' : 'Ask',
-            'clientOrderId': this.safeValue( params, 'clientOrderId'),
+            'clientOrderId': this.safeValue (params, 'clientOrderId'),
         });
         // todo: add support for "Stop Limit" "Stop" "Take Profit" order types
         const response = await this.privateV3PostOrders (this.extend (request, params));
@@ -593,10 +593,10 @@ module.exports = class btcmarkets extends Exchange {
         if (market === undefined) {
             market = this.markets_by_id[marketId];
         }
-        let symbol;
+        let symbol = undefined;
         if (market === undefined) {
             // happens for some markets like BCH-BTC
-            const [baseId, quoteId] = marketId.split('-');
+            const [baseId, quoteId] = marketId.split ('-');
             symbol = this.safeCurrencyCode (baseId, baseId) + '/' + this.safeCurrencyCode (quoteId, quoteId);
             feeCurrencyCode = (quoteId === 'AUD') ? market['quote'] : market['base'];
         } else {
@@ -662,10 +662,10 @@ module.exports = class btcmarkets extends Exchange {
         if (market === undefined) {
             market = this.markets_by_id[marketId];
         }
-        let symbol;
+        let symbol = undefined;
         if (market === undefined) {
             // happens for some markets like BCH-BTC
-            const [baseId, quoteId] = marketId.split('-');
+            const [baseId, quoteId] = marketId.split ('-');
             symbol = this.safeCurrencyCode (baseId, baseId) + '/' + this.safeCurrencyCode (quoteId, quoteId)
         } else {
             symbol = market['symbol'];
@@ -676,7 +676,7 @@ module.exports = class btcmarkets extends Exchange {
         const amount = this.safeFloat (order, 'amount');
         const remaining = this.safeFloat (order, 'openAmount');
         const filled = amount - remaining;
-        const status = this.parseOrderStatus(this.safeString (order, 'status'));
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
         return {
             'info': order,
             'id': this.safeString (order, 'orderId'),
