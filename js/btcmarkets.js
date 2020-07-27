@@ -749,17 +749,11 @@ module.exports = class btcmarkets extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        const ids = [ parseInt (id) ];
         const request = {
-            'orderIds': ids,
+            'id': id,
         };
-        const response = await this.privatePostOrderDetail (this.extend (request, params));
-        const numOrders = response['orders'].length;
-        if (numOrders < 1) {
-            throw new OrderNotFound (this.id + ' No matching order found: ' + id);
-        }
-        const order = response['orders'][0];
-        return this.parseOrder (order);
+        const response = await this.privateV3GetOrdersId (this.extend (request, params));
+        return this.parseOrder (response);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -847,14 +841,10 @@ module.exports = class btcmarkets extends Exchange {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
             const secret = this.base64ToBinary (this.secret); // or stringToBase64
-            const pathWithLeadingSlash = '/v3/' + path;
+            const pathWithLeadingSlash = '/v3' + uri;
             const auth = method + pathWithLeadingSlash + nonce;
             const signature = this.hmac (this.encode (auth), secret, 'sha512', 'base64');
-            if (method === 'GET') {
-                if (Object.keys (params).length) {
-                    url += '?' + this.urlencode (params);
-                }
-            } else {
+            if (method !== 'GET') {
                 body = this.json (params);
             }
             headers = {
