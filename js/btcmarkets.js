@@ -346,21 +346,14 @@ module.exports = class btcmarkets extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const balances = await this.privateGetAccountBalance (params);
-        const result = { 'info': balances };
-        for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
-            const currencyId = this.safeString (balance, 'currency');
+        const response = await this.privateV3GetAccountsMeBalances (params);
+        const result = { 'info': response };
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
+            const currencyId = this.safeString (balance, 'assetName');
             const code = this.safeCurrencyCode (currencyId);
-            const multiplier = 100000000;
-            let total = this.safeFloat (balance, 'balance');
-            if (total !== undefined) {
-                total /= multiplier;
-            }
-            let used = this.safeFloat (balance, 'pendingFunds');
-            if (used !== undefined) {
-                used /= multiplier;
-            }
+            const total = this.safeFloat (balance, 'balance');
+            const used = this.safeFloat (balance, 'locked');
             const account = this.account ();
             account['used'] = used;
             account['total'] = total;
