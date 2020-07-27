@@ -730,7 +730,7 @@ module.exports = class btcmarkets extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.fetchOrders (symbol, since, limit, this.extend ({ 'status': 'open' }, params))
+        return this.fetchOrders (symbol, since, limit, this.extend ({ 'status': 'open' }, params));
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
