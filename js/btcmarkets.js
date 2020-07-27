@@ -38,6 +38,7 @@ module.exports = class btcmarkets extends Exchange {
                 'api': {
                     'public': 'https://api.btcmarkets.net',
                     'private': 'https://api.btcmarkets.net',
+                    'privateV3': 'https://api.btcmarkets.net/v3',
                     'web': 'https://btcmarkets.net/data',
                 },
                 'www': 'https://btcmarkets.net',
@@ -75,25 +76,6 @@ module.exports = class btcmarkets extends Exchange {
                         'v2/order/history/{instrument}/{currency}/',
                         'v2/order/trade/history/{id}',
                         'v2/transaction/history/{currency}',
-                        'v3/orders',
-                        'v3/orders/{id}',
-                        'v3/batchorders/{ids}',
-                        'v3/trades',
-                        'v3/trades/{id}',
-                        'v3/withdrawals',
-                        'v3/withdrawals/{id}',
-                        'v3/deposits',
-                        'v3/deposits/{id}',
-                        'v3/transfers',
-                        'v3/transfers/{id}',
-                        'v3/addresses',
-                        'v3/withdrawal-fees',
-                        'v3/assets',
-                        'v3/accounts/me/trading-fees',
-                        'v3/accounts/me/withdrawal-limits',
-                        'v3/accounts/me/balances',
-                        'v3/accounts/me/transactions',
-                        'v3/reports/{id}',
                     ],
                     'post': [
                         'fundtransfer/withdrawCrypto',
@@ -105,18 +87,43 @@ module.exports = class btcmarkets extends Exchange {
                         'order/trade/history',
                         'order/createBatch', // they promise it's coming soon...
                         'order/detail',
-                        'v3/orders',
-                        'v3/batchorders',
-                        'v3/withdrawals',
-                        'v3/reports',
+                    ],
+                },
+                'privateV3': {
+                    'get': [
+                        'orders',
+                        'orders/{id}',
+                        'batchorders/{ids}',
+                        'trades',
+                        'trades/{id}',
+                        'withdrawals',
+                        'withdrawals/{id}',
+                        'deposits',
+                        'deposits/{id}',
+                        'transfers',
+                        'transfers/{id}',
+                        'addresses',
+                        'withdrawal-fees',
+                        'assets',
+                        'accounts/me/trading-fees',
+                        'accounts/me/withdrawal-limits',
+                        'accounts/me/balances',
+                        'accounts/me/transactions',
+                        'reports/{id}',
+                    ],
+                    'post': [
+                        'orders',
+                        'batchorders',
+                        'withdrawals',
+                        'reports',
                     ],
                     'delete': [
-                        'v3/orders',
-                        'v3/orders/{id}',
-                        'v3/batchorders/{ids}',
+                        'orders',
+                        'orders/{id}',
+                        'batchorders/{ids}',
                     ],
                     'put': [
-                        'v3/orders/{id}',
+                        'orders/{id}',
                     ],
                 },
                 'web': {
@@ -780,6 +787,28 @@ module.exports = class btcmarkets extends Exchange {
             const secret = this.base64ToBinary (this.secret);
             const signature = this.hmac (this.encode (auth), secret, 'sha512', 'base64');
             headers['signature'] = this.decode (signature);
+        } if (api === 'privateV3') {
+            this.checkRequiredCredentials ();
+            const nonce = this.nonce ().toString ();
+            const secret = this.base64ToBinary (this.secret);// or stringToBase64
+            const pathWithLeadingSlash = "/v3/" + path;
+            const auth =  method + pathWithLeadingSlash + nonce;
+            const signature = this.hmac (this.encode (auth), secret, 'sha512', 'base64');
+            if(method === 'GET') {
+                if (Object.keys (params).length) {
+                    url += '?' + this.urlencode (params);
+                }
+            } else {
+                body = this.json (params);
+            }
+            headers = {
+                "Accept": "application/json",
+                "Accept-Charset": "UTF-8",
+                "Content-Type": "application/json",
+                "BM-AUTH-APIKEY": this.apiKey,
+                "BM-AUTH-TIMESTAMP": nonce,
+                "BM-AUTH-SIGNATURE": signature
+            }
         } else {
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
