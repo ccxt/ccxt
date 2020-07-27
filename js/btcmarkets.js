@@ -166,11 +166,10 @@ module.exports = class btcmarkets extends Exchange {
             request['limit'] = limit;
         }
         if (since !== undefined) {
-            request['since'] = since;
+            request['after'] = since;
         }
-        const response = await this.privateGetFundtransferHistory (this.extend (request, params));
-        const transactions = response['fundTransfers'];
-        return this.parseTransactions (transactions, undefined, since, limit);
+        const response = await this.privateV3GetTransfers (this.extend (request, params));
+        return this.parseTransactions (response, undefined, since, limit);
     }
 
     parseTransactionStatus (status) {
@@ -181,59 +180,73 @@ module.exports = class btcmarkets extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
+    parseTransactionType (type) {
+        const statuses = {
+            'Withdraw': 'withdrawal',
+            'Deposit': 'deposit',
+        };
+        return this.safeString (statuses, type, type);
+    }
+
     parseTransaction (item, currency = undefined) {
-        //
-        //     {
-        //         status: 'Complete',
-        //         fundTransferId: 1904311906,
-        //         description: 'ETH withdraw from [me@email.com] to Address: 0xF123aa44FadEa913a7da99cc2eE202Db684Ce0e3 amount: 8.28965701 fee: 0.00000000',
-        //         creationTime: 1529418358525,
-        //         currency: 'ETH',
-        //         amount: 828965701,
-        //         fee: 0,
-        //         transferType: 'WITHDRAW',
-        //         errorMessage: null,
-        //         lastUpdate: 1529418376754,
-        //         cryptoPaymentDetail: {
-        //             address: '0xF123aa44FadEa913a7da99cc2eE202Db684Ce0e3',
-        //             txId: '0x8fe483b6f9523559b9ebffb29624f98e86227d2660d4a1fd4785d45e51c662c2'
-        //         }
-        //     }
-        //
-        //     {
-        //         status: 'Complete',
-        //         fundTransferId: 494077500,
-        //         description: 'BITCOIN Deposit, B 0.1000',
-        //         creationTime: 1501077601015,
-        //         currency: 'BTC',
-        //         amount: 10000000,
-        //         fee: 0,
-        //         transferType: 'DEPOSIT',
-        //         errorMessage: null,
-        //         lastUpdate: 1501077601133,
-        //         cryptoPaymentDetail: null
-        //     }
-        //
-        //     {
-        //         "fee": 0,
-        //         "amount": 56,
+        //    {
+        //         "id": "6500230339",
+        //         "assetName": "XRP",
+        //         "amount": "500",
+        //         "type": "Deposit",
+        //         "creationTime": "2020-07-27T07:52:08.640000Z",
         //         "status": "Complete",
-        //         "currency": "BCHABC",
-        //         "lastUpdate": 1542339164044,
-        //         "description": "BitcoinCashABC Deposit, P 0.00000056",
-        //         "creationTime": 1542339164003,
-        //         "errorMessage": null,
-        //         "transferType": "DEPOSIT",
-        //         "fundTransferId": 2527326972,
-        //         "cryptoPaymentDetail": null
-        //     }
+        //         "description": "RIPPLE Deposit, XRP 500",
+        //         "fee": "0",
+        //         "lastUpdate": "2020-07-27T07:52:08.665000Z",
+        //         "paymentDetail": {
+        //             "txId": "lsjflsjdfljsd",
+        //             "address": "kjasfkjsdf?dt=873874545"
+        //         }
+        //    }
         //
-        const timestamp = this.safeInteger (item, 'creationTime');
-        const lastUpdate = this.safeInteger (item, 'lastUpdate');
-        const transferType = this.safeString (item, 'transferType');
-        const cryptoPaymentDetail = this.safeValue (item, 'cryptoPaymentDetail', {});
-        const address = this.safeString (cryptoPaymentDetail, 'address');
+        //    {
+        //         "id": "500985282",
+        //         "assetName": "BTC",
+        //         "amount": "0.42570126",
+        //         "type": "Withdraw",
+        //         "creationTime": "2017-07-29T12:49:03.931000Z",
+        //         "status": "Complete",
+        //         "description": "BTC withdraw from [nick-btcmarkets@snowmonkey.co.uk] to Address: 1B9DsnSYQ54VMqFHVJYdGoLMCYzFwrQzsj amount: 0.42570126 fee: 0.00000000",
+        //         "fee": "0.0005",
+        //         "lastUpdate": "2017-07-29T12:52:20.676000Z",
+        //         "paymentDetail": {
+        //             "txId": "fkjdsfjsfljsdfl",
+        //             "address": "a;daddjas;djas"
+        //         }
+        //    }
+        //
+        //    {
+        //         "id": "505102262",
+        //         "assetName": "XRP",
+        //         "amount": "979.836",
+        //         "type": "Deposit",
+        //         "creationTime": "2017-07-31T08:50:01.053000Z",
+        //         "status": "Complete",
+        //         "description": "Ripple Deposit, X 979.8360",
+        //         "fee": "0",
+        //         "lastUpdate": "2017-07-31T08:50:01.290000Z"
+        //     }
+        const timestamp = this.parse8601 (this.safeString (item, 'creationTime'));
+        const lastUpdate = this.parse8601 (this.safeString (item, 'lastUpdate'));
+        const transferType = this.parseTransactionType (this.safeString (item, 'type'));
+        const cryptoPaymentDetail = this.safeValue (item, 'paymentDetail', {});
         const txid = this.safeString (cryptoPaymentDetail, 'txId');
+        let address = this.safeString (cryptoPaymentDetail, 'address');
+        let tag = undefined;
+        if (address !== undefined) {
+            const addressParts = address.split ('?dt=');
+            const numParts = addressParts.length;
+            if (numParts > 1) {
+                address = addressParts[0];
+                tag = addressParts[1];
+            }
+        }
         let type = undefined;
         if (transferType === 'DEPOSIT') {
             type = 'deposit';
@@ -244,7 +257,7 @@ module.exports = class btcmarkets extends Exchange {
         }
         const fee = this.safeFloat (item, 'fee');
         const status = this.parseTransactionStatus (this.safeString (item, 'status'));
-        const ccy = this.safeString (item, 'currency');
+        const ccy = this.safeString (item, 'assetName');
         const code = this.safeCurrencyCode (ccy);
         // todo: this logic is duplicated below
         let amount = this.safeFloat (item, 'amount');
@@ -252,12 +265,12 @@ module.exports = class btcmarkets extends Exchange {
             amount = amount * 1e-8;
         }
         return {
-            'id': this.safeString (item, 'fundTransferId'),
+            'id': this.safeString (item, 'id'),
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'address': address,
-            'tag': undefined,
+            'tag': tag,
             'type': type,
             'amount': amount,
             'currency': code,
@@ -845,6 +858,13 @@ module.exports = class btcmarkets extends Exchange {
             const pathWithLeadingSlash = '/v3' + uri;
             if (method !== 'GET') {
                 body = this.json (params);
+            } else {
+                const query = this.keysort (this.omit (params, this.extractParams (path)));
+                let queryString = '';
+                if (Object.keys (query).length) {
+                    queryString = this.urlencode (query);
+                    url += '?' + queryString;
+                }
             }
             const auth = method + pathWithLeadingSlash + nonce + (body ? body : "");
             const signature = this.hmac (this.encode (auth), secret, 'sha512', 'base64');
