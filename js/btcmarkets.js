@@ -790,11 +790,11 @@ module.exports = class btcmarkets extends Exchange {
         } else if (api === 'privateV3') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
-            const secret = this.base64ToBinary (this.secret);// or stringToBase64
+            const secret = this.base64ToBinary (this.secret); // or stringToBase64
             const pathWithLeadingSlash = "/v3/" + path;
-            const auth =  method + pathWithLeadingSlash + nonce;
+            const auth = method + pathWithLeadingSlash + nonce;
             const signature = this.hmac (this.encode (auth), secret, 'sha512', 'base64');
-            if(method === 'GET') {
+            if (method === 'GET') {
                 if (Object.keys (params).length) {
                     url += '?' + this.urlencode (params);
                 }
@@ -802,12 +802,12 @@ module.exports = class btcmarkets extends Exchange {
                 body = this.json (params);
             }
             headers = {
-                "Accept": "application/json",
-                "Accept-Charset": "UTF-8",
-                "Content-Type": "application/json",
-                "BM-AUTH-APIKEY": this.apiKey,
-                "BM-AUTH-TIMESTAMP": nonce,
-                "BM-AUTH-SIGNATURE": signature,
+                'Accept': 'application/json',
+                'Accept-Charset': 'UTF-8',
+                'Content-Type': 'application/json',
+                'BM-AUTH-APIKEY': this.apiKey,
+                'BM-AUTH-TIMESTAMP': nonce,
+                'BM-AUTH-SIGNATURE': signature,
             };
         } else {
             if (Object.keys (params).length) {
