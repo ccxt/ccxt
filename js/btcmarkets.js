@@ -261,27 +261,23 @@ module.exports = class btcmarkets extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.publicGetV2MarketActive (params);
+        const response = await this.publicGetV3Markets (params);
         const result = [];
-        const markets = this.safeValue (response, 'markets');
-        for (let i = 0; i < markets.length; i++) {
-            const market = markets[i];
-            const baseId = this.safeString (market, 'instrument');
-            const quoteId = this.safeString (market, 'currency');
-            const id = baseId + '/' + quoteId;
+        for (let i = 0; i < response.length; i++) {
+            const market = response[i];
+            const baseId = this.safeString (market, 'baseAssetName');
+            const quoteId = this.safeString (market, 'quoteAssetName');
+            const id = this.safeString (market, 'marketId');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const fees = this.safeValue (this.safeValue (this.options, 'fees', {}), quote, this.fees);
-            let pricePrecision = 2;
-            let amountPrecision = 4;
-            const minAmount = 0.001; // where does it come from?
+            const pricePrecision = this.safeFloat (market, 'priceDecimals');
+            const amountPrecision = this.safeFloat (market, 'amountDecimals');
+            const minAmount = this.safeFloat (market, 'minOrderAmount');
+            const maxAmount = this.safeFloat (market, 'maxOrderAmount');
             let minPrice = undefined;
             if (quote === 'AUD') {
-                if ((base === 'XRP') || (base === 'OMG')) {
-                    pricePrecision = 4;
-                }
-                amountPrecision = -Math.log10 (minAmount);
                 minPrice = Math.pow (10, -pricePrecision);
             }
             const precision = {
@@ -291,7 +287,7 @@ module.exports = class btcmarkets extends Exchange {
             const limits = {
                 'amount': {
                     'min': minAmount,
-                    'max': undefined,
+                    'max': maxAmount,
                 },
                 'price': {
                     'min': minPrice,
