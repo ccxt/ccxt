@@ -807,8 +807,8 @@ module.exports = class btcmarkets extends Exchange {
                 "Content-Type": "application/json",
                 "BM-AUTH-APIKEY": this.apiKey,
                 "BM-AUTH-TIMESTAMP": nonce,
-                "BM-AUTH-SIGNATURE": signature
-            }
+                "BM-AUTH-SIGNATURE": signature,
+            };
         } else {
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
