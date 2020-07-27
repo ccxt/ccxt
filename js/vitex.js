@@ -124,18 +124,12 @@ module.exports = class vitex extends Exchange {
                 '1': ExchangeNotAvailable, // {"code":-1000,"msg":"An unknown error occured while processing the request."}
                 '1001': RateLimitExceeded, // {"code":-1003,"msg":"Too much request weight used, current limit is 1200 request weight per 1 MINUTE. Please use the websocket for live updates to avoid polling the API."}
                 '1007': InvalidOrder, // createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
-                '-1021': InvalidNonce, // 'your time is ahead of server'
-                '-1022': AuthenticationError, // {"code":-1022,"msg":"Signature for this request is not valid."}
-                '-1100': InvalidOrder, // createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
-                '-1104': ExchangeError, // Not all sent parameters were read, read 8 parameters but was sent 9
-                '-1128': ExchangeError, // {"code":-1128,"msg":"Combination of optional parameters invalid."}
-                '-2010': ExchangeError, // generic error code for createOrder -> 'Account has insufficient balance for requested action.', {"code":-2010,"msg":"Rest API trading is not enabled."}, etc...
-                '-2011': OrderNotFound, // cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
-                '-2013': OrderNotFound, // fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'
-                '-2014': AuthenticationError, // { "code":-2014, "msg": "API-key format invalid." }
-                '-2015': AuthenticationError, // "Invalid API-key, IP, or permissions for action."
             },
         });
+    }
+
+    nonce () {
+        return this.milliseconds () - this.options['timeDifference'];
     }
 
     async fetchMarkets (params = {}) {
@@ -866,46 +860,24 @@ module.exports = class vitex extends Exchange {
         if (body.length > 0) {
             if (body[0] === '{') {
                 // check success value for wapi endpoints
-                // response in format {'msg': 'The coin does not exist.', 'success': true/false}
-                const success = this.safeValue (response, 'ok', true);
-                if (!success) {
-                    const message = this.safeString (response, 'msg');
-                    let parsedMessage = undefined;
-                    if (message !== undefined) {
-                        try {
-                            parsedMessage = JSON.parse (message);
-                        } catch (e) {
-                            // do nothing
-                            parsedMessage = undefined;
-                        }
-                        if (parsedMessage !== undefined) {
-                            response = parsedMessage;
-                        }
-                    }
-                }
+                // response in format {'msg': 'The coin does not exist.', 'code': 0}
                 const message = this.safeString (response, 'msg');
-                if (message !== undefined) {
+                const error = this.safeInteger (response, 'code');
+
+                if (message !== undefined && error !== 0) {
                     this.throwExactlyMatchedException (this.exceptions, message, this.id + ' ' + message);
                 }
-                // checks against error codes
-                const error = this.safeInteger (response, 'code');
-                if (error !== undefined) {
-                    // https://github.com/ccxt/ccxt/issues/6501
-                    if (error === 0) {
-                        return;
-                    }
-                    // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
+
+                if (error !== 0) {
+                    // a workaround for {"code": 1003,"msg":"Invalid API-key, IP, or permissions for action."}
                     // despite that their message is very confusing, it is raised by Binance
                     // on a temporary ban, the API key is valid, but disabled for a while
-                    if ((error === '-2015') && this.options['hasAlreadyAuthenticatedSuccessfully']) {
+                    if ((error === 1003) && this.options['hasAlreadyAuthenticatedSuccessfully']) {
                         throw new DDoSProtection (this.id + ' temporary banned: ' + body);
                     }
                     const feedback = this.id + ' ' + url + ' ' + body;
                     this.throwExactlyMatchedException (this.exceptions, error, feedback);
                     throw new ExchangeError (feedback);
-                }
-                if (!success) {
-                    throw new ExchangeError (this.id + ' ' + body);
                 }
             }
         }
