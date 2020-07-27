@@ -656,8 +656,7 @@ module.exports = class btcmarkets extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseV3Order(order, market = undefined) {
-        // a v3 api order
+    parseOrder (order, market = undefined) {
         const timestamp = this.parse8601 (this.safeString (order, 'creationTime'));
         const marketId = this.safeString (order, 'marketId');
         if (market === undefined) {
@@ -696,67 +695,6 @@ module.exports = class btcmarkets extends Exchange {
             'average': undefined,
             'status': status,
             'trades': undefined,
-            'fee': undefined,
-        };
-    }
-
-    parseOrder (order, market = undefined) {
-        if (order['orderId']) {
-            return this.parseV3Order(order, market);
-        }
-        const multiplier = 100000000;
-        const side = (order['orderSide'] === 'Bid') ? 'buy' : 'sell';
-        const type = (order['ordertype'] === 'Limit') ? 'limit' : 'market';
-        const timestamp = this.safeInteger (order, 'creationTime');
-        if (market === undefined) {
-            market = this.market (order['instrument'] + '/' + order['currency']);
-        }
-        let status = 'open';
-        if (order['status'] === 'Failed' || order['status'] === 'Cancelled' || order['status'] === 'Partially Cancelled' || order['status'] === 'Error') {
-            status = 'canceled';
-        } else if (order['status'] === 'Fully Matched' || order['status'] === 'Partially Matched') {
-            status = 'closed';
-        }
-        const price = this.safeFloat (order, 'price') / multiplier;
-        const amount = this.safeFloat (order, 'volume') / multiplier;
-        const remaining = this.safeFloat (order, 'openVolume', 0.0) / multiplier;
-        const filled = amount - remaining;
-        const trades = this.parseMyTrades (order['trades'], market);
-        const numTrades = trades.length;
-        let cost = filled * price;
-        let average = undefined;
-        let lastTradeTimestamp = undefined;
-        if (numTrades > 0) {
-            cost = 0;
-            for (let i = 0; i < numTrades; i++) {
-                const trade = trades[i];
-                cost = this.sum (cost, trade['cost']);
-            }
-            if (filled > 0) {
-                average = cost / filled;
-            }
-            lastTradeTimestamp = trades[numTrades - 1]['timestamp'];
-        }
-        const id = this.safeString (order, 'id');
-        const clientOrderId = this.safeString (order, 'clientRequestId');
-        return {
-            'info': order,
-            'id': id,
-            'clientOrderId': clientOrderId,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
-            'symbol': market['symbol'],
-            'type': type,
-            'side': side,
-            'price': price,
-            'cost': cost,
-            'amount': amount,
-            'filled': filled,
-            'remaining': remaining,
-            'average': average,
-            'status': status,
-            'trades': trades,
             'fee': undefined,
         };
     }
