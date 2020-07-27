@@ -139,6 +139,9 @@ module.exports = class btcmarkets extends Exchange {
             'exceptions': {
                 '3': InvalidOrder,
                 '6': DDoSProtection,
+                'InvalidPrice': InvalidOrder,
+                'InvalidAmount': InvalidOrder,
+                'MissingArgument': InvalidOrder,
                 'OrderAlreadyCancelled': InvalidOrder,
                 'OrderNotFound': OrderNotFound,
             },
