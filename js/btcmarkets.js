@@ -796,14 +796,7 @@ module.exports = class btcmarkets extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ': fetchOpenOrders requires a `symbol` argument.');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = this.createPaginatedRequest (market, since, limit);
-        const response = await this.privatePostOrderOpen (this.extend (request, params));
-        return this.parseOrders (response['orders'], market);
+        return this.fetchOrders (symbol, since, limit, this.extend ({'status': 'open'}, params))
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
