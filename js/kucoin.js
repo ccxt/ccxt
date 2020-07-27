@@ -1801,6 +1801,14 @@ module.exports = class kucoin extends Exchange {
             const payload = timestamp + method + endpoint + endpart;
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
             headers['KC-API-SIGN'] = this.decode (signature);
+            const partnerId = this.options['partnerId'];
+            if (partnerId) {
+                const partnerSecret = this.options['partnerSecret'];
+                const partnerPayload = timestamp + partnerId + this.apiKey;
+                const partnerSignature = this.hmac (this.encode (partnerPayload), this.encode (partnerSecret), 'sha256', 'base64');
+                headers['KC-API-PARTNER-SIGN'] = this.decode (partnerSignature);
+                headers['KC-API-PARTNER'] = partnerId;
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
