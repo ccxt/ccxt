@@ -587,7 +587,7 @@ class coineal(Exchange):
             else:
                 type = 'market'
         trades = self.safe_value(order, 'tradeList')
-        price = self.safe_float(order, 'total_price')
+        price = self.safe_float(order, 'avg_price')
         if type == 'limit':
             price = self.safe_float(order, 'price')
         if trades is not None:

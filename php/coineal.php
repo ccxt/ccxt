@@ -632,7 +632,7 @@ class coineal extends Exchange {
             }
         }
         $trades = $this->safe_value($order, 'tradeList');
-        $price = $this->safe_float($order, 'total_price');
+        $price = $this->safe_float($order, 'avg_price');
         if ($type === 'limit') {
             $price = $this->safe_float($order, 'price');
         }
