@@ -780,6 +780,11 @@ module.exports = class btcmarkets extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
+        let market;
+        if (symbol) {
+            market = this.market(symbol);
+            request['marketId'] = market.id;
+        }
         const response = await this.privateV3GetOrders(this.extend (request, params));
         return this.parseOrders (response);
     }
