@@ -46,10 +46,14 @@ class btcmarkets(Exchange):
                 'api': {
                     'public': 'https://api.btcmarkets.net',
                     'private': 'https://api.btcmarkets.net',
+                    'privateV3': 'https://api.btcmarkets.net/v3',
                     'web': 'https://btcmarkets.net/data',
                 },
                 'www': 'https://btcmarkets.net',
-                'doc': 'https://github.com/BTCMarkets/API',
+                'doc': [
+                    'https://api.btcmarkets.net/doc/v3#section/API-client-libraries',
+                    'https://github.com/BTCMarkets/API',
+                ],
             },
             'api': {
                 'public': {
@@ -60,6 +64,14 @@ class btcmarkets(Exchange):
                         'v2/market/{id}/tickByTime/{timeframe}',
                         'v2/market/{id}/trades',
                         'v2/market/active',
+                        'v3/markets',
+                        'v3/markets/{marketId}/ticker',
+                        'v3/markets/{marketId}/trades',
+                        'v3/markets/{marketId}/orderbook',
+                        'v3/markets/{marketId}/candles',
+                        'v3/markets/tickers',
+                        'v3/markets/orderbooks',
+                        'v3/time',
                     ],
                 },
                 'private': {
@@ -83,6 +95,43 @@ class btcmarkets(Exchange):
                         'order/trade/history',
                         'order/createBatch',  # they promise it's coming soon...
                         'order/detail',
+                    ],
+                },
+                'privateV3': {
+                    'get': [
+                        'orders',
+                        'orders/{id}',
+                        'batchorders/{ids}',
+                        'trades',
+                        'trades/{id}',
+                        'withdrawals',
+                        'withdrawals/{id}',
+                        'deposits',
+                        'deposits/{id}',
+                        'transfers',
+                        'transfers/{id}',
+                        'addresses',
+                        'withdrawal-fees',
+                        'assets',
+                        'accounts/me/trading-fees',
+                        'accounts/me/withdrawal-limits',
+                        'accounts/me/balances',
+                        'accounts/me/transactions',
+                        'reports/{id}',
+                    ],
+                    'post': [
+                        'orders',
+                        'batchorders',
+                        'withdrawals',
+                        'reports',
+                    ],
+                    'delete': [
+                        'orders',
+                        'orders/{id}',
+                        'batchorders/{ids}',
+                    ],
+                    'put': [
+                        'orders/{id}',
                     ],
                 },
                 'web': {
@@ -222,26 +271,23 @@ class btcmarkets(Exchange):
         }
 
     async def fetch_markets(self, params={}):
-        response = await self.publicGetV2MarketActive(params)
+        response = await self.publicGetV3Markets(params)
         result = []
-        markets = self.safe_value(response, 'markets')
-        for i in range(0, len(markets)):
-            market = markets[i]
-            baseId = self.safe_string(market, 'instrument')
-            quoteId = self.safe_string(market, 'currency')
-            id = baseId + '/' + quoteId
+        for i in range(0, len(response)):
+            market = response[i]
+            baseId = self.safe_string(market, 'baseAssetName')
+            quoteId = self.safe_string(market, 'quoteAssetName')
+            id = self.safe_string(market, 'marketId')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             fees = self.safe_value(self.safe_value(self.options, 'fees', {}), quote, self.fees)
-            pricePrecision = 2
-            amountPrecision = 4
-            minAmount = 0.001  # where does it come from?
+            pricePrecision = self.safe_float(market, 'priceDecimals')
+            amountPrecision = self.safe_float(market, 'amountDecimals')
+            minAmount = self.safe_float(market, 'minOrderAmount')
+            maxAmount = self.safe_float(market, 'maxOrderAmount')
             minPrice = None
             if quote == 'AUD':
-                if (base == 'XRP') or (base == 'OMG'):
-                    pricePrecision = 4
-                amountPrecision = -math.log10(minAmount)
                 minPrice = math.pow(10, -pricePrecision)
             precision = {
                 'amount': amountPrecision,
@@ -250,7 +296,7 @@ class btcmarkets(Exchange):
             limits = {
                 'amount': {
                     'min': minAmount,
-                    'max': None,
+                    'max': maxAmount,
                 },
                 'price': {
                     'min': minPrice,
@@ -685,6 +731,26 @@ class btcmarkets(Exchange):
             secret = base64.b64decode(self.secret)
             signature = self.hmac(self.encode(auth), secret, hashlib.sha512, 'base64')
             headers['signature'] = self.decode(signature)
+        elif api == 'privateV3':
+            self.check_required_credentials()
+            nonce = str(self.nonce())
+            secret = base64.b64decode(self.secret)  # or stringToBase64
+            pathWithLeadingSlash = '/v3/' + path
+            auth = method + pathWithLeadingSlash + nonce
+            signature = self.hmac(self.encode(auth), secret, hashlib.sha512, 'base64')
+            if method == 'GET':
+                if params:
+                    url += '?' + self.urlencode(params)
+            else:
+                body = self.json(params)
+            headers = {
+                'Accept': 'application/json',
+                'Accept-Charset': 'UTF-8',
+                'Content-Type': 'application/json',
+                'BM-AUTH-APIKEY': self.apiKey,
+                'BM-AUTH-TIMESTAMP': nonce,
+                'BM-AUTH-SIGNATURE': signature,
+            }
         else:
             if params:
                 url += '?' + self.urlencode(params)
