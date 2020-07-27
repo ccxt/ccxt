@@ -571,30 +571,28 @@ module.exports = class btcmarkets extends Exchange {
     }
 
     parseMyTrade (trade, market) {
-        const multiplier = 100000000;
-        const timestamp = this.safeInteger (trade, 'creationTime');
-        let side = this.safeFloat (trade, 'side');
-        side = (side === 'Bid') ? 'buy' : 'sell';
+        const timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
+        const side = (this.safeFloat (trade, 'side') === 'Bid') ? 'buy' : 'sell';
         // BTCMarkets always charge in AUD for AUD-related transactions.
         let feeCurrencyCode = undefined;
-        let symbol = undefined;
-        if (market !== undefined) {
-            feeCurrencyCode = (market['quote'] === 'AUD') ? market['quote'] : market['base'];
+        const marketId = this.safeString (trade, 'marketId');
+        if (market === undefined) {
+            market = this.markets_by_id[marketId];
+        }
+        let symbol;
+        if (market === undefined) {
+            // happens for some markets like BCH-BTC
+            const [baseId, quoteId] = marketId.split("-");
+            symbol = this.safeCurrencyCode (baseId, baseId) + "/" + this.safeCurrencyCode (quoteId, quoteId);
+            feeCurrencyCode = (quoteId === 'AUD') ? market['quote'] : market['base'];
+        } else {
             symbol = market['symbol'];
+            feeCurrencyCode = (market['quote'] === 'AUD') ? market['quote'] : market['base'];
         }
         const id = this.safeString (trade, 'id');
-        let price = this.safeFloat (trade, 'price');
-        if (price !== undefined) {
-            price /= multiplier;
-        }
-        let amount = this.safeFloat (trade, 'volume');
-        if (amount !== undefined) {
-            amount /= multiplier;
-        }
-        let feeCost = this.safeFloat (trade, 'fee');
-        if (feeCost !== undefined) {
-            feeCost /= multiplier;
-        }
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'amount');
+        const feeCost = this.safeFloat (trade, 'fee');
         let cost = undefined;
         if (price !== undefined) {
             if (amount !== undefined) {
@@ -609,7 +607,7 @@ module.exports = class btcmarkets extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'order': orderId,
             'symbol': symbol,
-            'type': undefined,
+            'type': price === undefined ? 'market' : 'limit',
             'side': side,
             'price': price,
             'amount': amount,
@@ -648,7 +646,9 @@ module.exports = class btcmarkets extends Exchange {
         // a v3 api order
         const timestamp = this.parse8601 (this.safeString (order, 'creationTime'));
         const marketId = this.safeString (order, 'marketId');
-        market = this.markets_by_id[marketId];
+        if (market === undefined) {
+            market = this.markets_by_id[marketId];
+        }
         let symbol;
         if (market === undefined) {
             // happens for some markets like BCH-BTC
@@ -805,14 +805,21 @@ module.exports = class btcmarkets extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ': fetchMyTrades requires a `symbol` argument.');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = this.createPaginatedRequest (market, since, limit);
-        const response = await this.privatePostOrderTradeHistory (this.extend (request, params));
-        return this.parseMyTrades (response['trades'], market);
+        const request = {};
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        let market;
+        if (symbol) {
+            market = this.market(symbol);
+            request['marketId'] = market.id;
+        }
+        if (since) {
+            request['after'] = since;
+        }
+        const response = await this.privateV3GetTrades(this.extend (request, params));
+        return this.parseMyTrades (response);
     }
 
     nonce () {
