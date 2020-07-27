@@ -534,10 +534,10 @@ module.exports = class btcmarkets extends Exchange {
         const market = this.market (symbol);
         const request = this.ordered ({
             'marketId': market.id,
-            'price': type === 'limit' ? this.priceToPrecision (symbol, price) : '',
+            'price': (type === 'limit') ? this.priceToPrecision (symbol, price) : '',
             'amount': this.priceToPrecision (symbol, amount),
-            'type': type === 'limit' ? 'Limit' : 'Market',
-            'side': side === 'buy' ? 'Bid' : 'Ask',
+            'type': (type === 'limit') ? 'Limit' : 'Market',
+            'side': (side === 'buy') ? 'Bid' : 'Ask',
             'clientOrderId': this.safeValue (params, 'clientOrderId'),
         });
         // todo: add support for "Stop Limit" "Stop" "Take Profit" order types
@@ -625,7 +625,7 @@ module.exports = class btcmarkets extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'order': orderId,
             'symbol': symbol,
-            'type': price === undefined ? 'market' : 'limit',
+            'type': (price === undefined) ? 'market' : 'limit',
             'side': side,
             'price': price,
             'amount': amount,
