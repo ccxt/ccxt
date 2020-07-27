@@ -631,7 +631,65 @@ module.exports = class btcmarkets extends Exchange {
         return result;
     }
 
+    parseOrderStatus (status) {
+        const statuses = {
+            'Accepted': 'open',
+            'Placed': 'open',
+            'Partially Matched': 'open',
+            'Fully Matched': 'closed',
+            'Cancelled': 'canceled',
+            'Partially Cancelled': 'canceled',
+            'Failed': 'rejected',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseV3Order(order, market = undefined) {
+        // a v3 api order
+        const timestamp = this.parse8601 (this.safeString (order, 'creationTime'));
+        const marketId = this.safeString (order, 'marketId');
+        market = this.markets_by_id[marketId];
+        let symbol;
+        if (market === undefined) {
+            // happens for some markets like BCH-BTC
+            const [baseId, quoteId] = marketId.split("-");
+            symbol = this.safeCurrencyCode (baseId, baseId) + "/" + this.safeCurrencyCode (quoteId, quoteId)
+        } else {
+            symbol = market['symbol'];
+        }
+        const side = (this.safeString (order, 'side') === 'Bid') ? 'buy' : 'sell';
+        const type = this.safeString (order, 'type').toLowerCase ();
+        const price = this.safeFloat (order, 'price');
+        const amount = this.safeFloat (order, 'amount');
+        const remaining = this.safeFloat (order, 'openAmount');
+        const filled = amount - remaining;
+        const status = this.parseOrderStatus(this.safeString (order, 'status'));
+        return {
+            'info': order,
+            'id': this.safeString (order, 'orderId'),
+            'clientOrderId': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'cost': price * amount,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'average': undefined,
+            'status': status,
+            'trades': undefined,
+            'fee': undefined,
+        };
+    }
+
     parseOrder (order, market = undefined) {
+        if (order['orderId']) {
+            return this.parseV3Order(order, market);
+        }
         const multiplier = 100000000;
         const side = (order['orderSide'] === 'Bid') ? 'buy' : 'sell';
         const type = (order['ordertype'] === 'Limit') ? 'limit' : 'market';
@@ -717,14 +775,13 @@ module.exports = class btcmarkets extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ': fetchOrders requires a `symbol` argument.');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = this.createPaginatedRequest (market, since, limit);
-        const response = await this.privatePostOrderHistory (this.extend (request, params));
-        return this.parseOrders (response['orders'], market);
+        const request = {};
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateV3GetOrders(this.extend (request, params));
+        return this.parseOrders (response);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
