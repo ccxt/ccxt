@@ -666,7 +666,7 @@ module.exports = class btcmarkets extends Exchange {
         if (market === undefined) {
             // happens for some markets like BCH-BTC
             const [baseId, quoteId] = marketId.split ('-');
-            symbol = this.safeCurrencyCode (baseId, baseId) + '/' + this.safeCurrencyCode (quoteId, quoteId)
+            symbol = this.safeCurrencyCode (baseId, baseId) + '/' + this.safeCurrencyCode (quoteId, quoteId);
         } else {
             symbol = market['symbol'];
         }
@@ -717,20 +717,20 @@ module.exports = class btcmarkets extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let market;
+        let market = undefined;
         if (symbol) {
-            market = this.market(symbol);
+            market = this.market (symbol);
             request['marketId'] = market.id;
         }
         if (since) {
             request['after'] = since;
         }
-        const response = await this.privateV3GetOrders(this.extend (request, params));
+        const response = await this.privateV3GetOrders (this.extend (request, params));
         return this.parseOrders (response);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.fetchOrders (symbol, since, limit, this.extend ({'status': 'open'}, params))
+        return this.fetchOrders (symbol, since, limit, this.extend ({ 'status': 'open' }, params))
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -744,15 +744,15 @@ module.exports = class btcmarkets extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let market;
+        let market = undefined;
         if (symbol) {
-            market = this.market(symbol);
+            market = this.market (symbol);
             request['marketId'] = market.id;
         }
         if (since) {
             request['after'] = since;
         }
-        const response = await this.privateV3GetTrades(this.extend (request, params));
+        const response = await this.privateV3GetTrades (this.extend (request, params));
         return this.parseMyTrades (response);
     }
 
