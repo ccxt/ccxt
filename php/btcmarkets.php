@@ -41,10 +41,14 @@ class btcmarkets extends Exchange {
                 'api' => array(
                     'public' => 'https://api.btcmarkets.net',
                     'private' => 'https://api.btcmarkets.net',
+                    'privateV3' => 'https://api.btcmarkets.net/v3',
                     'web' => 'https://btcmarkets.net/data',
                 ),
                 'www' => 'https://btcmarkets.net',
-                'doc' => 'https://github.com/BTCMarkets/API',
+                'doc' => array(
+                    'https://api.btcmarkets.net/doc/v3#section/API-client-libraries',
+                    'https://github.com/BTCMarkets/API',
+                ),
             ),
             'api' => array(
                 'public' => array(
@@ -55,6 +59,14 @@ class btcmarkets extends Exchange {
                         'v2/market/{id}/tickByTime/{timeframe}',
                         'v2/market/{id}/trades',
                         'v2/market/active',
+                        'v3/markets',
+                        'v3/markets/{marketId}/ticker',
+                        'v3/markets/{marketId}/trades',
+                        'v3/markets/{marketId}/orderbook',
+                        'v3/markets/{marketId}/candles',
+                        'v3/markets/tickers',
+                        'v3/markets/orderbooks',
+                        'v3/time',
                     ),
                 ),
                 'private' => array(
@@ -78,6 +90,43 @@ class btcmarkets extends Exchange {
                         'order/trade/history',
                         'order/createBatch', // they promise it's coming soon...
                         'order/detail',
+                    ),
+                ),
+                'privateV3' => array(
+                    'get' => array(
+                        'orders',
+                        'orders/{id}',
+                        'batchorders/{ids}',
+                        'trades',
+                        'trades/{id}',
+                        'withdrawals',
+                        'withdrawals/{id}',
+                        'deposits',
+                        'deposits/{id}',
+                        'transfers',
+                        'transfers/{id}',
+                        'addresses',
+                        'withdrawal-fees',
+                        'assets',
+                        'accounts/me/trading-fees',
+                        'accounts/me/withdrawal-limits',
+                        'accounts/me/balances',
+                        'accounts/me/transactions',
+                        'reports/{id}',
+                    ),
+                    'post' => array(
+                        'orders',
+                        'batchorders',
+                        'withdrawals',
+                        'reports',
+                    ),
+                    'delete' => array(
+                        'orders',
+                        'orders/{id}',
+                        'batchorders/{ids}',
+                    ),
+                    'put' => array(
+                        'orders/{id}',
                     ),
                 ),
                 'web' => array(
@@ -225,27 +274,23 @@ class btcmarkets extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
-        $response = $this->publicGetV2MarketActive ($params);
+        $response = $this->publicGetV3Markets ($params);
         $result = array();
-        $markets = $this->safe_value($response, 'markets');
-        for ($i = 0; $i < count($markets); $i++) {
-            $market = $markets[$i];
-            $baseId = $this->safe_string($market, 'instrument');
-            $quoteId = $this->safe_string($market, 'currency');
-            $id = $baseId . '/' . $quoteId;
+        for ($i = 0; $i < count($response); $i++) {
+            $market = $response[$i];
+            $baseId = $this->safe_string($market, 'baseAssetName');
+            $quoteId = $this->safe_string($market, 'quoteAssetName');
+            $id = $this->safe_string($market, 'marketId');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $fees = $this->safe_value($this->safe_value($this->options, 'fees', array()), $quote, $this->fees);
-            $pricePrecision = 2;
-            $amountPrecision = 4;
-            $minAmount = 0.001; // where does it come from?
+            $pricePrecision = $this->safe_float($market, 'priceDecimals');
+            $amountPrecision = $this->safe_float($market, 'amountDecimals');
+            $minAmount = $this->safe_float($market, 'minOrderAmount');
+            $maxAmount = $this->safe_float($market, 'maxOrderAmount');
             $minPrice = null;
             if ($quote === 'AUD') {
-                if (($base === 'XRP') || ($base === 'OMG')) {
-                    $pricePrecision = 4;
-                }
-                $amountPrecision = -log10 ($minAmount);
                 $minPrice = pow(10, -$pricePrecision);
             }
             $precision = array(
@@ -255,7 +300,7 @@ class btcmarkets extends Exchange {
             $limits = array(
                 'amount' => array(
                     'min' => $minAmount,
-                    'max' => null,
+                    'max' => $maxAmount,
                 ),
                 'price' => array(
                     'min' => $minPrice,
@@ -745,6 +790,28 @@ class btcmarkets extends Exchange {
             $secret = base64_decode($this->secret);
             $signature = $this->hmac($this->encode($auth), $secret, 'sha512', 'base64');
             $headers['signature'] = $this->decode($signature);
+        } else if ($api === 'privateV3') {
+            $this->check_required_credentials();
+            $nonce = (string) $this->nonce();
+            $secret = base64_decode($this->secret); // or stringToBase64
+            $pathWithLeadingSlash = '/v3/' . $path;
+            $auth = $method . $pathWithLeadingSlash . $nonce;
+            $signature = $this->hmac($this->encode($auth), $secret, 'sha512', 'base64');
+            if ($method === 'GET') {
+                if ($params) {
+                    $url .= '?' . $this->urlencode($params);
+                }
+            } else {
+                $body = $this->json($params);
+            }
+            $headers = array(
+                'Accept' => 'application/json',
+                'Accept-Charset' => 'UTF-8',
+                'Content-Type' => 'application/json',
+                'BM-AUTH-APIKEY' => $this->apiKey,
+                'BM-AUTH-TIMESTAMP' => $nonce,
+                'BM-AUTH-SIGNATURE' => $signature,
+            );
         } else {
             if ($params) {
                 $url .= '?' . $this->urlencode($params);
