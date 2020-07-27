@@ -534,12 +534,21 @@ module.exports = class btcmarkets extends Exchange {
         const market = this.market (symbol);
         const request = this.ordered ({
             'marketId': market.id,
-            'price': (type === 'limit') ? this.priceToPrecision (symbol, price) : '',
             'amount': this.priceToPrecision (symbol, amount),
-            'type': (type === 'limit') ? 'Limit' : 'Market',
             'side': (side === 'buy') ? 'Bid' : 'Ask',
             'clientOrderId': this.safeValue (params, 'clientOrderId'),
         });
+        if (type === 'limit') {
+            request['price'] = this.priceToPrecision (symbol, price);
+            request['type'] = 'Limit';
+        } else {
+            request['type'] = 'Market';
+        }
+        if (side === 'buy') {
+            request['side'] = 'Bid';
+        } else {
+            request['side'] = 'Ask';
+        }
         // todo: add support for "Stop Limit" "Stop" "Take Profit" order types
         const response = await this.privateV3PostOrders (this.extend (request, params));
         const id = this.safeString (response, 'orderId');
@@ -618,6 +627,12 @@ module.exports = class btcmarkets extends Exchange {
             }
         }
         const orderId = this.safeString (trade, 'orderId');
+        let type = undefined;
+        if (price === undefined) {
+            type = 'market';
+        } else {
+            type = 'limit';
+        }
         return {
             'info': trade,
             'id': id,
@@ -625,7 +640,7 @@ module.exports = class btcmarkets extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'order': orderId,
             'symbol': symbol,
-            'type': (price === undefined) ? 'market' : 'limit',
+            'type': type,
             'side': side,
             'price': price,
             'amount': amount,
@@ -674,7 +689,12 @@ module.exports = class btcmarkets extends Exchange {
         } else {
             symbol = market['symbol'];
         }
-        const side = (this.safeString (order, 'side') === 'Bid') ? 'buy' : 'sell';
+        let side = undefined;
+        if (this.safeString (order, 'side') === 'Bid') {
+            side = 'buy';
+        } else {
+            side = 'sell';
+        }
         const type = this.safeString (order, 'type').toLowerCase ();
         const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'amount');
