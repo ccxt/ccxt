@@ -810,7 +810,7 @@ module.exports = class btcmarkets extends Exchange {
             };
             if (method === 'POST') {
                 headers['Content-Type'] = 'application/json';
-                auth = uri + '\n' + nonce + '\n'; // eslint-disable-line quotes
+                auth = uri + "\n" + nonce + "\n"; // eslint-disable-line quotes
                 body = this.json (params);
                 auth += body;
             } else {
@@ -819,9 +819,9 @@ module.exports = class btcmarkets extends Exchange {
                 if (Object.keys (query).length) {
                     queryString = this.urlencode (query);
                     url += '?' + queryString;
-                    queryString += '\n'; // eslint-disable-line quotes
+                    queryString += "\n"; // eslint-disable-line quotes
                 }
-                auth = uri + '\n' + queryString + nonce + '\n'; // eslint-disable-line quotes
+                auth = uri + "\n" + nonce + "\n"; // eslint-disable-line quotes
             }
             const secret = this.base64ToBinary (this.secret);
             const signature = this.hmac (this.encode (auth), secret, 'sha512', 'base64');
