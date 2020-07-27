@@ -708,7 +708,7 @@ module.exports = class btcmarkets extends Exchange {
         } else {
             side = 'sell';
         }
-        const type = this.safeString (order, 'type').toLowerCase ();
+        const type = this.safeStringLower (order, 'type');
         const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'amount');
         const remaining = this.safeFloat (order, 'openAmount');
