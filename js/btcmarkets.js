@@ -599,7 +599,12 @@ module.exports = class btcmarkets extends Exchange {
 
     parseMyTrade (trade, market) {
         const timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
-        const side = (this.safeFloat (trade, 'side') === 'Bid') ? 'buy' : 'sell';
+        let side = undefined;
+        if (this.safeFloat (trade, 'side') === 'Bid') {
+            side = 'buy';
+        } else {
+            side = 'sell'
+        }
         // BTCMarkets always charge in AUD for AUD-related transactions.
         let feeCurrencyCode = undefined;
         const marketId = this.safeString (trade, 'marketId');
@@ -611,10 +616,18 @@ module.exports = class btcmarkets extends Exchange {
             // happens for some markets like BCH-BTC
             const [baseId, quoteId] = marketId.split ('-');
             symbol = this.safeCurrencyCode (baseId, baseId) + '/' + this.safeCurrencyCode (quoteId, quoteId);
-            feeCurrencyCode = (quoteId === 'AUD') ? market['quote'] : market['base'];
+            if (quoteId === 'AUD') {
+                feeCurrencyCode = market['quote'];
+            } else {
+                feeCurrencyCode = market['base'];
+            }
         } else {
             symbol = market['symbol'];
-            feeCurrencyCode = (market['quote'] === 'AUD') ? market['quote'] : market['base'];
+            if (market['quote'] === 'AUD') {
+                feeCurrencyCode = market['quote'];
+            } else {
+                feeCurrencyCode = market['base'];
+            }
         }
         const id = this.safeString (trade, 'id');
         const price = this.safeFloat (trade, 'price');
