@@ -41,7 +41,10 @@ module.exports = class btcmarkets extends Exchange {
                     'web': 'https://btcmarkets.net/data',
                 },
                 'www': 'https://btcmarkets.net',
-                'doc': 'https://github.com/BTCMarkets/API',
+                'doc': [
+                    'https://api.btcmarkets.net/doc/v3#section/API-client-libraries',
+                    'https://github.com/BTCMarkets/API'
+                ],
             },
             'api': {
                 'public': {
