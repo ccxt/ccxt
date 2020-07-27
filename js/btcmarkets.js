@@ -514,20 +514,17 @@ module.exports = class btcmarkets extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const multiplier = 100000000; // for price and volume
-        const orderSide = (side === 'buy') ? 'Bid' : 'Ask';
         const request = this.ordered ({
-            'currency': market['quote'],
+            'marketId': market.id,
+            'price': type === 'limit' ? this.priceToPrecision (symbol, price) : "",
+            'amount': this.priceToPrecision (symbol, amount),
+            'type': type === 'limit' ? "Limit" : "Market",
+            'side': side === 'buy' ? 'Bid' : 'Ask',
+            'clientOrderId': this.safeValue( params, 'clientOrderId'),
         });
-        request['currency'] = market['quote'];
-        request['instrument'] = market['base'];
-        request['price'] = parseInt (this.decimalToPrecision (price * multiplier, ROUND, 0));
-        request['volume'] = parseInt (this.decimalToPrecision (amount * multiplier, ROUND, 0));
-        request['orderSide'] = orderSide;
-        request['ordertype'] = this.capitalize (type);
-        request['clientRequestId'] = this.nonce ().toString ();
-        const response = await this.privatePostOrderCreate (this.extend (request, params));
-        const id = this.safeString (response, 'id');
+        // todo: add support for "Stop Limit" "Stop" "Take Profit" order types
+        const response = await this.privateV3PostOrders (this.extend (request, params));
+        const id = this.safeString (response, 'orderId');
         return {
             'info': response,
             'id': id,
@@ -540,9 +537,9 @@ module.exports = class btcmarkets extends Exchange {
             ids[i] = parseInt (ids[i]);
         }
         const request = {
-            'orderIds': ids,
+            'ids': ids,
         };
-        return await this.privatePostOrderCancel (this.extend (request, params));
+        return await this.privateV3DeleteBatchordersIds (this.extend (request, params));
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -842,11 +839,13 @@ module.exports = class btcmarkets extends Exchange {
             const nonce = this.nonce ().toString ();
             const secret = this.base64ToBinary (this.secret); // or stringToBase64
             const pathWithLeadingSlash = '/v3' + uri;
-            const auth = method + pathWithLeadingSlash + nonce;
-            const signature = this.hmac (this.encode (auth), secret, 'sha512', 'base64');
             if (method !== 'GET') {
                 body = this.json (params);
+            } else {
+                body = "";
             }
+            const auth = method + pathWithLeadingSlash + nonce + body;
+            const signature = this.hmac (this.encode (auth), secret, 'sha512', 'base64');
             headers = {
                 'Accept': 'application/json',
                 'Accept-Charset': 'UTF-8',
