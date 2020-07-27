@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, OrderNotFound, ArgumentsRequired, InvalidOrder, DDoSProtection } = require ('./base/errors');
-const { ROUND } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -140,6 +139,8 @@ module.exports = class btcmarkets extends Exchange {
             'exceptions': {
                 '3': InvalidOrder,
                 '6': DDoSProtection,
+                'OrderAlreadyCancelled': InvalidOrder,
+                'OrderNotFound': OrderNotFound,
             },
             'fees': {
                 'percentage': true,
@@ -544,7 +545,10 @@ module.exports = class btcmarkets extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        return await this.cancelOrders ([ id ]);
+        const request = {
+            'id': id,
+        };
+        return await this.privateV3DeleteOrdersId (this.extend (request, params));
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
@@ -871,6 +875,15 @@ module.exports = class btcmarkets extends Exchange {
                 this.throwExactlyMatchedException (this.exceptions, error, feedback);
                 throw new ExchangeError (feedback);
             }
+        }
+        // v3 api errors
+        if (code >= 400) {
+            const errorCode = this.safeString (response, 'code');
+            const message = this.safeString (response, 'message');
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions, errorCode, feedback);
+            this.throwExactlyMatchedException (this.exceptions, message, feedback);
+            throw new ExchangeError (feedback);
         }
     }
 };
