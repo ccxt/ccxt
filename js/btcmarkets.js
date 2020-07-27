@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, OrderNotFound, InvalidOrder, DDoSProtection } = require ('./base/errors');
+const { ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds, DDoSProtection } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -139,6 +139,7 @@ module.exports = class btcmarkets extends Exchange {
             'exceptions': {
                 '3': InvalidOrder,
                 '6': DDoSProtection,
+                'InsufficientFund': InsufficientFunds,
                 'InvalidPrice': InvalidOrder,
                 'InvalidAmount': InvalidOrder,
                 'MissingArgument': InvalidOrder,
