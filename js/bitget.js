@@ -29,6 +29,7 @@ module.exports = class bitget extends Exchange {
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOrderBook': true,
+                'fetchOrders': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -1563,13 +1564,11 @@ module.exports = class bitget extends Exchange {
 
     parseOrderStatus (status) {
         const statuses = {
-            '-2': 'failed',
-            '-1': 'canceled',
-            '0': 'open',
-            '1': 'open',
-            '2': 'closed',
-            '3': 'open',
-            '4': 'canceled',
+            'submitted': 'open',
+            'partial-filled': 'open',
+            'partial-canceled': 'canceled',
+            'filled': 'closed',
+            'canceled': 'canceled',
         };
         return this.safeString (statuses, status, status);
     }
@@ -1602,6 +1601,16 @@ module.exports = class bitget extends Exchange {
         //
         // cancelOrder
         //
+        //     spot
+        //
+        //     {
+        //         "status": "ok",
+        //         "ts": 1595818631279,
+        //         "data": 671368296142774272
+        //     }
+        //
+        //     swap
+        //
         //     {
         //         "result": true,
         //         "client_oid": "oktfuture10", // missing if requested by order_id
@@ -1609,6 +1618,27 @@ module.exports = class bitget extends Exchange {
         //         // instrument_id is missing for spot/margin orders
         //         // available in futures and swap orders only
         //         "instrument_id": "EOS-USD-190628",
+        //     }
+        //
+        // fetchOrders
+        //
+        //     spot
+        //
+        //     {
+        //         "account_id":"7420922606",
+        //         "amount":"0.1000000000000000",
+        //         "canceled_at":"1595872129618",
+        //         "created_at":"1595872089525",
+        //         "filled_amount":"0.000000000000",
+        //         "filled_cash_amount":"0.000000000000",
+        //         "filled_fees":"0.000000000000",
+        //         "finished_at":"1595872129618",
+        //         "id":"671701716584665088",
+        //         "price":"150.000000000000",
+        //         "source":"接口",
+        //         "state":"canceled",
+        //         "symbol":"eth_usdt",
+        //         "type":"buy-limit"
         //     }
         //
         // fetchOrder, fetchOrdersByState, fetchOpenOrders, fetchClosedOrders
@@ -1656,22 +1686,35 @@ module.exports = class bitget extends Exchange {
         //         "order_type":"0"
         //     }
         //
-        const id = this.safeString2 (order, 'order_id', 'data');
-        const timestamp = this.parse8601 (this.safeString (order, 'timestamp'));
+        const id = this.safeString2 (order, 'id', 'data');
+        const timestamp = this.safeInteger (order, 'created_at');
         let side = this.safeString (order, 'side');
         let type = this.safeString (order, 'type');
-        if ((side !== 'buy') && (side !== 'sell')) {
-            side = this.parseOrderSide (type);
+        if (type === 'buy-limit') {
+            type = 'limit';
+            side = 'buy';
+        } else if (type === 'sell-limit') {
+            type = 'limit';
+            side = 'sell';
+        } else if (type === 'buy-market') {
+            type = 'market';
+            side = 'buy';
+        } else if (type === 'sell-market') {
+            type = 'market';
+            side = 'sell';
         }
-        if ((type !== 'limit') && (type !== 'market')) {
-            if ('pnl' in order) {
-                type = 'futures';
-            } else {
-                type = 'swap';
-            }
-        }
+        // if ((side !== 'buy') && (side !== 'sell')) {
+        //     side = this.parseOrderSide (type);
+        // }
+        // if ((type !== 'limit') && (type !== 'market')) {
+        //     if ('pnl' in order) {
+        //         type = 'futures';
+        //     } else {
+        //         type = 'swap';
+        //     }
+        // }
         let symbol = undefined;
-        const marketId = this.safeString (order, 'instrument_id');
+        const marketId = this.safeString (order, 'symbol');
         if (marketId in this.markets_by_id) {
             market = this.markets_by_id[marketId];
             symbol = market['symbol'];
@@ -1683,8 +1726,8 @@ module.exports = class bitget extends Exchange {
                 symbol = market['symbol'];
             }
         }
-        let amount = this.safeFloat (order, 'size');
-        const filled = this.safeFloat2 (order, 'filled_size', 'filled_qty');
+        let amount = this.safeFloat (order, 'amount');
+        const filled = this.safeFloat (order, 'filled_amount');
         let remaining = undefined;
         if (amount !== undefined) {
             if (filled !== undefined) {
@@ -1695,20 +1738,14 @@ module.exports = class bitget extends Exchange {
         if (type === 'market') {
             remaining = 0;
         }
-        let cost = this.safeFloat2 (order, 'filled_notional', 'funds');
+        const cost = this.safeFloat (order, 'filled_cash_amount');
         const price = this.safeFloat (order, 'price');
-        let average = this.safeFloat (order, 'price_avg');
-        if (cost === undefined) {
-            if (filled !== undefined && average !== undefined) {
-                cost = average * filled;
-            }
-        } else {
-            if ((average === undefined) && (filled !== undefined) && (filled > 0)) {
-                average = cost / filled;
-            }
+        let average = undefined;
+        if ((filled !== undefined) && (cost !== undefined) && (filled > 0)) {
+            average = cost / filled;
         }
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
-        const feeCost = this.safeFloat (order, 'fee');
+        const feeCost = this.safeFloat (order, 'filled_fees');
         let fee = undefined;
         if (feeCost !== undefined) {
             const feeCurrency = undefined;
@@ -1834,7 +1871,7 @@ module.exports = class bitget extends Exchange {
         //     {
         //         "status":"ok",
         //         "ts":1595792596056,
-        //         "data":671368296142774272
+        //         "data":"671368296142774272"
         //     }
         //
         // swap
@@ -1879,10 +1916,7 @@ module.exports = class bitget extends Exchange {
         //
         // spot
         //
-        //     {
-        //         "status": "ok",
-        //         "data": "59378"
-        //     }
+        //     { "status": "ok", "ts": 1595818631279, "data": 671368296142774272 }
         //
         // swap
         //
@@ -1894,6 +1928,115 @@ module.exports = class bitget extends Exchange {
         //     }
         //
         return this.parseOrder (response, market);
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const type = this.safeString (params, 'type', market['type']);
+        //
+        // spot
+        //
+        // symbol true string Trading pair  btc_usdt, eth_btc ...
+        // types false string Query order type combination  buy-market: buy at market price, sell-market: sell at market price, buy-limit: buy at limit price, sell-limit: sell at limit price
+        // start_date false string Query start date, date format yyyy-mm-dd
+        // end_date false string Query end date, date format yyyy-mm-dd
+        // states true string Query order status combination, use',' to split  submitted Submitted, partial-filled partial transaction, partial-canceled partial transaction cancellation, filled fully completed transaction, canceled
+        // from false string Query start ID
+        // direct false string Query direction  prev forward, next backward
+        // size false string Query record size
+        //
+        // swap
+        // symbol String Yes Contract ID
+        // from String Yes From and to combine to which page check (default is 1)
+        // to String Yes From and to combine to which page check (default is 1)
+        // 'limit' String Yes Number of results per request. The maximum is 100; the default is 100
+        // status String Yes Status: 0 Failed (contains risk triggered revocation 1 Partially Filled 2 Fully Filled 3 = Incomplete (Open + Partially Filled) 4  Canceling
+        //
+        const request = {
+            'symbol': market['id'],
+        };
+        let method = undefined;
+        if (type === 'spot') {
+            method = 'apiGetOrderOrders';
+            request['states'] = 'submitted,partial-filled,partial-canceled,filled,canceled'; // required
+            request['method'] = 'orders';
+            // request['types'] = 'buy-limit,sell-limit,buy-market,sell-market';
+            // request['start_date'] = this.ymd (since);
+            // request['end_date'] = this.ymd (exchange.milliseconds ());
+            // request['from'] = 'order_id';
+            // request['direct'] = 'next'; // or prev
+            if (limit === undefined) {
+                request['size'] = limit;
+            }
+        } else if (type === 'swap') {
+            method = 'swapGetOrderOrders';
+            request['status'] = '0';
+            request['from'] = '1';
+            request['to'] = '1';
+            request['limit'] = '100';
+        }
+        if (since !== undefined) {
+            request['from'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const query = this.omit (params, 'type');
+        const response = await this[method] (this.extend (request, query));
+        //
+        //  spot
+        //
+        //
+        //     {
+        //         "status":"ok",
+        //         "ts":1595875165865,
+        //         "data":[
+        //             {
+        //                 "account_id":"7420922606",
+        //                 "amount":"0.1000000000000000",
+        //                 "canceled_at":"1595872129618",
+        //                 "created_at":"1595872089525",
+        //                 "filled_amount":"0.000000000000",
+        //                 "filled_cash_amount":"0.000000000000",
+        //                 "filled_fees":"0.000000000000",
+        //                 "finished_at":"1595872129618",
+        //                 "id":"671701716584665088",
+        //                 "price":"150.000000000000",
+        //                 "source":"接口",
+        //                 "state":"canceled",
+        //                 "symbol":"eth_usdt",
+        //                 "type":"buy-limit"
+        //             }
+        //         ]
+        //     }
+        //
+        // swap
+        //
+        //     [
+        //         {
+        //             "symbol":"cmt_btcusdt",
+        //             "size":"12",
+        //             "timestamp":"15582271175271",
+        //             "client_oid":"cmdtde",
+        //             "createTime":"1698475585258",
+        //             "filled_qty":"0",
+        //             "fee":"0",
+        //             "order_id":"513468410013679613",
+        //             "price":"12",
+        //             "price_avg":"0",
+        //             "status":"-1",
+        //             "type":"1",
+        //             "order_type":"0",
+        //             "totalProfits":"253"
+        //         }
+        //     ]
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOrders (data, market, undefined, limit);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
