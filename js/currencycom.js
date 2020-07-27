@@ -88,7 +88,31 @@ module.exports = class currencycom extends ccxt.currencycom {
     }
 
     handleTrades (client, message, subscription) {
+        //
+        //     {
+        //         status: 'OK',
+        //         correlationId: '1',
+        //         payload: {
+        //             aggTrades: [
+        //                 { a: 1598766162, p: '10053.2', q: '0.0', T: 1595816894580, m: false },
+        //                 { a: 1598699844, p: '10061.75', q: '0.001', T: 1595816460425, m: false },
+        //                 { a: 1598138315, p: '10100', q: '0.022', T: 1595813323689, m: true },
+        //             ]
+        //         }
+        //     }
+        //
+        const symbol = this.safeString (subscription, 'symbol');
+        const name = this.safeString (subscription, 'name');
+        const messageHash = name + ':' + symbol;
+        const market = this.market (symbol);
+        const payload = this.safeValue (message, 'payload');
+        const since = this.safeInteger (payload, 'startTime');
+        const limit = this.safeInteger (payload, 'limit');
+        const rawTrades = this.safeValue (payload, 'aggTrades', []);
         console.dir (message, { depth: null });
+        console.dir (subscription, { depth: null });
+        const trades = this.parseTrades (rawTrades, market, since, limit);
+        console.dir (trades, { depth: null });
         process.exit ();
         //
         //     [
@@ -101,23 +125,23 @@ module.exports = class currencycom extends ccxt.currencycom {
         //         "XBT/USD"
         //     ]
         //
-        const wsName = this.safeString (message, 3);
-        const name = this.safeString (message, 2);
-        const messageHash = name + ':' + wsName;
-        const market = this.safeValue (this.options['marketsByWsName'], wsName);
-        const symbol = market['symbol'];
-        let stored = this.safeValue (this.trades, symbol);
-        if (stored === undefined) {
-            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            stored = new ArrayCache (limit);
-            this.trades[symbol] = stored;
-        }
-        const trades = this.safeValue (message, 1, []);
-        const parsed = this.parseTrades (trades, market);
-        for (let i = 0; i < parsed.length; i++) {
-            stored.append (parsed[i]);
-        }
-        client.resolve (stored, messageHash);
+        // const wsName = this.safeString (message, 3);
+        // const name = this.safeString (message, 2);
+        // const messageHash = name + ':' + wsName;
+        // const market = this.safeValue (this.options['marketsByWsName'], wsName);
+        // const symbol = market['symbol'];
+        // let stored = this.safeValue (this.trades, symbol);
+        // if (stored === undefined) {
+        //     const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+        //     stored = new ArrayCache (limit);
+        //     this.trades[symbol] = stored;
+        // }
+        // const trades = this.safeValue (message, 1, []);
+        // const parsed = this.parseTrades (trades, market);
+        // for (let i = 0; i < parsed.length; i++) {
+        //     stored.append (parsed[i]);
+        // }
+        // client.resolve (stored, messageHash);
     }
 
     findTimeframe (timeframe) {
