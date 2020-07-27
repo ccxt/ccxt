@@ -684,17 +684,7 @@ module.exports = class btcmarkets extends Exchange {
     parseOrder (order, market = undefined) {
         const timestamp = this.parse8601 (this.safeString (order, 'creationTime'));
         const marketId = this.safeString (order, 'marketId');
-        if (market === undefined) {
-            market = this.markets_by_id[marketId];
-        }
-        let symbol = undefined;
-        if (market === undefined) {
-            // happens for some markets like BCH-BTC
-            const [baseId, quoteId] = marketId.split ('-');
-            symbol = this.safeCurrencyCode (baseId, baseId) + '/' + this.safeCurrencyCode (quoteId, quoteId);
-        } else {
-            symbol = market['symbol'];
-        }
+        const symbol = this.lookupSymbolFromMarketId (marketId);
         let side = undefined;
         if (this.safeString (order, 'side') === 'Bid') {
             side = 'buy';
@@ -784,6 +774,25 @@ module.exports = class btcmarkets extends Exchange {
         }
         const response = await this.privateV3GetTrades (this.extend (request, params));
         return this.parseMyTrades (response);
+    }
+
+    lookupSymbolFromMarketId (marketId) {
+        let market = undefined;
+        let symbol = undefined;
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('-');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
+        return symbol;
     }
 
     nonce () {
