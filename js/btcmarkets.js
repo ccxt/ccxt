@@ -777,6 +777,9 @@ module.exports = class btcmarkets extends Exchange {
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
+        if (!params['status']) {
+            request['status'] = 'all';
+        }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
@@ -784,6 +787,9 @@ module.exports = class btcmarkets extends Exchange {
         if (symbol) {
             market = this.market(symbol);
             request['marketId'] = market.id;
+        }
+        if (since) {
+            request['after'] = since;
         }
         const response = await this.privateV3GetOrders(this.extend (request, params));
         return this.parseOrders (response);
