@@ -533,7 +533,7 @@ module.exports = class btcmarkets extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = this.ordered ({
-            'marketId': market.id,
+            'marketId': market['id'],
             'amount': this.priceToPrecision (symbol, amount),
             'side': (side === 'buy') ? 'Bid' : 'Ask',
             'clientOrderId': this.safeValue (params, 'clientOrderId'),
@@ -757,7 +757,7 @@ module.exports = class btcmarkets extends Exchange {
         let market = undefined;
         if (symbol) {
             market = this.market (symbol);
-            request['marketId'] = market.id;
+            request['marketId'] = market['id'];
         }
         if (since) {
             request['after'] = since;
@@ -784,7 +784,7 @@ module.exports = class btcmarkets extends Exchange {
         let market = undefined;
         if (symbol) {
             market = this.market (symbol);
-            request['marketId'] = market.id;
+            request['marketId'] = market['id'];
         }
         if (since) {
             request['after'] = since;
