@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, OrderNotFound, ArgumentsRequired, InvalidOrder, DDoSProtection } = require ('./base/errors');
+const { ExchangeError, OrderNotFound, InvalidOrder, DDoSProtection } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -530,9 +530,9 @@ module.exports = class btcmarkets extends Exchange {
         const market = this.market (symbol);
         const request = this.ordered ({
             'marketId': market.id,
-            'price': type === 'limit' ? this.priceToPrecision (symbol, price) : "",
+            'price': type === 'limit' ? this.priceToPrecision (symbol, price) : '',
             'amount': this.priceToPrecision (symbol, amount),
-            'type': type === 'limit' ? "Limit" : "Market",
+            'type': type === 'limit' ? 'Limit' : 'Market',
             'side': side === 'buy' ? 'Bid' : 'Ask',
             'clientOrderId': this.safeValue( params, 'clientOrderId'),
         });
@@ -596,8 +596,8 @@ module.exports = class btcmarkets extends Exchange {
         let symbol;
         if (market === undefined) {
             // happens for some markets like BCH-BTC
-            const [baseId, quoteId] = marketId.split("-");
-            symbol = this.safeCurrencyCode (baseId, baseId) + "/" + this.safeCurrencyCode (quoteId, quoteId);
+            const [baseId, quoteId] = marketId.split('-');
+            symbol = this.safeCurrencyCode (baseId, baseId) + '/' + this.safeCurrencyCode (quoteId, quoteId);
             feeCurrencyCode = (quoteId === 'AUD') ? market['quote'] : market['base'];
         } else {
             symbol = market['symbol'];
@@ -665,8 +665,8 @@ module.exports = class btcmarkets extends Exchange {
         let symbol;
         if (market === undefined) {
             // happens for some markets like BCH-BTC
-            const [baseId, quoteId] = marketId.split("-");
-            symbol = this.safeCurrencyCode (baseId, baseId) + "/" + this.safeCurrencyCode (quoteId, quoteId)
+            const [baseId, quoteId] = marketId.split('-');
+            symbol = this.safeCurrencyCode (baseId, baseId) + '/' + this.safeCurrencyCode (quoteId, quoteId)
         } else {
             symbol = market['symbol'];
         }
@@ -773,7 +773,7 @@ module.exports = class btcmarkets extends Exchange {
             };
             if (method === 'POST') {
                 headers['Content-Type'] = 'application/json';
-                auth = uri + "\n" + nonce + "\n"; // eslint-disable-line quotes
+                auth = uri + '\n' + nonce + '\n'; // eslint-disable-line quotes
                 body = this.json (params);
                 auth += body;
             } else {
@@ -782,9 +782,9 @@ module.exports = class btcmarkets extends Exchange {
                 if (Object.keys (query).length) {
                     queryString = this.urlencode (query);
                     url += '?' + queryString;
-                    queryString += "\n"; // eslint-disable-line quotes
+                    queryString += '\n'; // eslint-disable-line quotes
                 }
-                auth = uri + "\n" + queryString + nonce + "\n"; // eslint-disable-line quotes
+                auth = uri + '\n' + queryString + nonce + '\n'; // eslint-disable-line quotes
             }
             const secret = this.base64ToBinary (this.secret);
             const signature = this.hmac (this.encode (auth), secret, 'sha512', 'base64');
@@ -804,7 +804,7 @@ module.exports = class btcmarkets extends Exchange {
                     url += '?' + queryString;
                 }
             }
-            const auth = method + pathWithLeadingSlash + nonce + (body ? body : "");
+            const auth = method + pathWithLeadingSlash + nonce + (body ? body : '');
             const signature = this.hmac (this.encode (auth), secret, 'sha512', 'base64');
             headers = {
                 'Accept': 'application/json',
