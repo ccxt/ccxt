@@ -841,10 +841,8 @@ module.exports = class btcmarkets extends Exchange {
             const pathWithLeadingSlash = '/v3' + uri;
             if (method !== 'GET') {
                 body = this.json (params);
-            } else {
-                body = "";
             }
-            const auth = method + pathWithLeadingSlash + nonce + body;
+            const auth = method + pathWithLeadingSlash + nonce + (body ? body : "");
             const signature = this.hmac (this.encode (auth), secret, 'sha512', 'base64');
             headers = {
                 'Accept': 'application/json',
