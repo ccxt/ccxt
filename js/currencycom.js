@@ -88,6 +88,8 @@ module.exports = class currencycom extends ccxt.currencycom {
     }
 
     handleTrades (client, message, subscription) {
+        console.dir (message, { depth: null });
+        process.exit ();
         //
         //     [
         //         0, // channelID
@@ -218,23 +220,27 @@ module.exports = class currencycom extends ccxt.currencycom {
         return await this.watchPublic ('/api/v1/ticker/24hr', symbol, params);
     }
 
-    // async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-    //     const name = 'trade';
-    //     const future = this.watchPublic (name, symbol, params);
-    //     return await this.after (future, this.filterBySinceLimit, since, limit, 'timestamp', true);
-    // }
+    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'payload': {},
+        };
+        if (limit !== undefined) {
+            request['payload']['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['payload']['startTime'] = since;
+        }
+        const future = this.watchPublic ('/api/v1/aggTrades', symbol, params);
+        return await this.after (future, this.filterBySinceLimit, since, limit, 'timestamp', true);
+    }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
         const name = 'book';
         const request = {};
         if (limit !== undefined) {
-            if ((limit === 10) || (limit === 25) || (limit === 100) || (limit === 500) || (limit === 1000)) {
-                request['subscription'] = {
-                    'depth': limit, // default 10, valid options 10, 25, 100, 500, 1000
-                };
-            } else {
-                throw new NotSupported (this.id + ' watchOrderBook accepts limit values of 10, 25, 100, 500 and 1000 only');
-            }
+            request['payload'] = {
+                'limit': limit,
+            };
         }
         const future = this.watchPublic ('/api/v1/depth', symbol, this.extend (request, params));
         return await this.after (future, this.limitOrderBook, symbol, limit, params);
@@ -283,131 +289,47 @@ module.exports = class currencycom extends ccxt.currencycom {
     //     return markets;
     // }
 
-    // async watchHeartbeat (params = {}) {
-    //     await this.loadMarkets ();
-    //     const event = 'heartbeat';
-    //     const url = this.urls['api']['ws']['public'];
-    //     return await this.watch (url, event);
-    // }
-
-    // handleHeartbeat (client, message) {
-    //     //
-    //     // every second (approx) if no other updates are sent
-    //     //
-    //     //     { "event": "heartbeat" }
-    //     //
-    //     const event = this.safeString (message, 'event');
-    //     client.resolve (message, event);
-    // }
-
-    // handleOrderBook (client, message, subscription) {
-    //     //
-    //     // first message (snapshot)
-    //     //
-    //     //     [
-    //     //         1234, // channelID
-    //     //         {
-    //     //             "as": [
-    //     //                 [ "5541.30000", "2.50700000", "1534614248.123678" ],
-    //     //                 [ "5541.80000", "0.33000000", "1534614098.345543" ],
-    //     //                 [ "5542.70000", "0.64700000", "1534614244.654432" ]
-    //     //             ],
-    //     //             "bs": [
-    //     //                 [ "5541.20000", "1.52900000", "1534614248.765567" ],
-    //     //                 [ "5539.90000", "0.30000000", "1534614241.769870" ],
-    //     //                 [ "5539.50000", "5.00000000", "1534613831.243486" ]
-    //     //             ]
-    //     //         },
-    //     //         "book-10",
-    //     //         "XBT/USD"
-    //     //     ]
-    //     //
-    //     // subsequent updates
-    //     //
-    //     //     [
-    //     //         1234,
-    //     //         { // optional
-    //     //             "a": [
-    //     //                 [ "5541.30000", "2.50700000", "1534614248.456738" ],
-    //     //                 [ "5542.50000", "0.40100000", "1534614248.456738" ]
-    //     //             ]
-    //     //         },
-    //     //         { // optional
-    //     //             "b": [
-    //     //                 [ "5541.30000", "0.00000000", "1534614335.345903" ]
-    //     //             ]
-    //     //         },
-    //     //         "book-10",
-    //     //         "XBT/USD"
-    //     //     ]
-    //     //
-    //     const messageLength = message.length;
-    //     const wsName = message[messageLength - 1];
-    //     const bookDepthString = message[messageLength - 2];
-    //     const parts = bookDepthString.split ('-');
-    //     const depth = this.safeInteger (parts, 1, 10);
-    //     const market = this.safeValue (this.options['marketsByWsName'], wsName);
-    //     const symbol = market['symbol'];
-    //     let timestamp = undefined;
-    //     const messageHash = 'book:' + wsName;
-    //     // if this is a snapshot
-    //     if ('as' in message[1]) {
-    //         // todo get depth from marketsByWsName
-    //         this.orderbooks[symbol] = this.orderBook ({}, depth);
-    //         const orderbook = this.orderbooks[symbol];
-    //         const sides = {
-    //             'as': 'asks',
-    //             'bs': 'bids',
-    //         };
-    //         const keys = Object.keys (sides);
-    //         for (let i = 0; i < keys.length; i++) {
-    //             const key = keys[i];
-    //             const side = sides[key];
-    //             const bookside = orderbook[side];
-    //             const deltas = this.safeValue (message[1], key, []);
-    //             timestamp = this.handleDeltas (bookside, deltas, timestamp);
-    //         }
-    //         orderbook['timestamp'] = timestamp;
-    //         orderbook['datetime'] = this.iso8601 (timestamp);
-    //         client.resolve (orderbook, messageHash);
-    //     } else {
-    //         const orderbook = this.orderbooks[symbol];
-    //         // else, if this is an orderbook update
-    //         let a = undefined;
-    //         let b = undefined;
-    //         if (messageLength === 5) {
-    //             a = this.safeValue (message[1], 'a', []);
-    //             b = this.safeValue (message[2], 'b', []);
-    //         } else {
-    //             if ('a' in message[1]) {
-    //                 a = this.safeValue (message[1], 'a', []);
-    //             } else {
-    //                 b = this.safeValue (message[1], 'b', []);
-    //             }
-    //         }
-    //         if (a !== undefined) {
-    //             timestamp = this.handleDeltas (orderbook['asks'], a, timestamp);
-    //         }
-    //         if (b !== undefined) {
-    //             timestamp = this.handleDeltas (orderbook['bids'], b, timestamp);
-    //         }
-    //         orderbook['timestamp'] = timestamp;
-    //         orderbook['datetime'] = this.iso8601 (timestamp);
-    //         client.resolve (orderbook, messageHash);
-    //     }
-    // }
-
-    // handleDeltas (bookside, deltas, timestamp) {
-    //     for (let j = 0; j < deltas.length; j++) {
-    //         const delta = deltas[j];
-    //         const price = parseFloat (delta[0]);
-    //         const amount = parseFloat (delta[1]);
-    //         timestamp = Math.max (timestamp || 0, parseInt (parseFloat (delta[2]) * 1000));
-    //         bookside.store (price, amount);
-    //     }
-    //     return timestamp;
-    // }
-
+    handleOrderBook (client, message, subscription) {
+        //
+        //     {
+        //         status: 'OK',
+        //         correlationId: '1',
+        //         payload: {
+        //             lastUpdateId: 1595815679404,
+        //             asks: [
+        //                 [ 10066.05, 0.25 ],
+        //                 [ 10066.8, 5 ],
+        //                 [ 10067, 0.31 ],
+        //             ],
+        //             bids: [
+        //                 [ 10066, 3 ],
+        //                 [ 10065.7, 0.25 ],
+        //                 [ 10065.5, 2 ],
+        //             ],
+        //         },
+        //     }
+        //
+        const symbol = this.safeString (subscription, 'symbol');
+        const name = this.safeString (subscription, 'name');
+        const messageHash = name + ':' + symbol;
+        const market = this.market (symbol);
+        const payload = this.safeValue (message, 'payload');
+        const timestamp = this.safeInteger (payload, 'lastUpdateId');
+        const snapshot = this.parseOrderBook (payload, timestamp);
+        snapshot['nonce'] = timestamp;
+        const subscriptionPayload = this.safeInteger (subscription, 'payload', {});
+        const limit = this.safeInteger (subscriptionPayload, 'limit');
+        let orderbook = this.safeValue (this.orderbooks, symbol);
+        if (orderbook === undefined) {
+            orderbook = this.orderBook ({}, limit)
+        }
+        orderbook.reset (snapshot);
+        this.orderbooks[symbol] = orderbook;
+        client.resolve (orderbook, messageHash);
+        if (messageHash in client.subscriptions) {
+            delete client.subscriptions[messageHash];
+        }
+    }
 
     // handleErrorMessage (client, message) {
     //     //
@@ -445,7 +367,6 @@ module.exports = class currencycom extends ccxt.currencycom {
     }
 
     handleMessage (client, message) {
-        console.dir (message, { depth: null });
         //
         //     {
         //         status: 'OK',
@@ -477,10 +398,10 @@ module.exports = class currencycom extends ccxt.currencycom {
                 const name = this.safeString (subscription, 'name');
                 if (name !== undefined) {
                     const methods = {
-                        'ww': this.handleTrades,
+                        '/api/v1/aggTrades': this.handleTrades,
                         '/api/v1/ticker/24hr': this.handleTicker,
                         '/api/v1/depth': this.handleOrderBook,
-                        'zz': this.handleOHCLV,
+                        '/api/v1/klines': this.handleOHCLV,
                     };
                     const method = this.safeValue (methods, name);
                     if (method === undefined) {
