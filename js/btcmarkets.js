@@ -614,7 +614,7 @@ module.exports = class btcmarkets extends Exchange {
         let symbol = undefined;
         if (market === undefined) {
             // happens for some markets like BCH-BTC
-            const [baseId, quoteId] = marketId.split ('-');
+            const [ baseId, quoteId ] = marketId.split ('-');
             symbol = this.safeCurrencyCode (baseId, baseId) + '/' + this.safeCurrencyCode (quoteId, quoteId);
             if (quoteId === 'AUD') {
                 feeCurrencyCode = market['quote'];
