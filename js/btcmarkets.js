@@ -593,10 +593,10 @@ module.exports = class btcmarkets extends Exchange {
     parseMyTrade (trade, market) {
         const timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
         let side = undefined;
-        if (this.safeFloat (trade, 'side') === 'Bid') {
+        if (this.safeString (trade, 'side') === 'Bid') {
             side = 'buy';
         } else {
-            side = 'sell'
+            side = 'sell';
         }
         // BTCMarkets always charge in AUD for AUD-related transactions.
         let feeCurrencyCode = undefined;
