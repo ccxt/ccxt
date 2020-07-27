@@ -839,7 +839,12 @@ module.exports = class btcmarkets extends Exchange {
                     url += '?' + queryString;
                 }
             }
-            const auth = method + pathWithLeadingSlash + nonce + (body ? body : '');
+            let auth = undefined;
+            if (body) {
+                auth = method + pathWithLeadingSlash + nonce + body;
+            } else {
+                auth = method + pathWithLeadingSlash + nonce;
+            }
             const signature = this.hmac (this.encode (auth), secret, 'sha512', 'base64');
             headers = {
                 'Accept': 'application/json',
