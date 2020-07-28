@@ -1333,9 +1333,59 @@ class bittrex extends Exchange {
         return $result;
     }
 
+    public function fetch_my_trades_v2($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $request = array();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['market'] = $market['id'];
+        }
+        $response = $this->accountGetOrderhistory (array_merge($request, $params));
+        $result = $this->safe_value($response, 'result', array());
+        $orders = $this->parse_orders($result, $market);
+        $trades = $this->orders_to_trades($orders);
+        if ($symbol !== null) {
+            return $this->filter_by_since_limit($trades, $since, $limit);
+        } else {
+            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit);
+        }
+    }
+
+    public function fetch_my_trades_v3($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $request = array();
+        if ($limit !== null) {
+            $request['pageSize'] = $limit;
+        }
+        if ($since !== null) {
+            $request['startDate'] = $this->ymdhms($since, 'T') . 'Z';
+        }
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            // because of this line we will have to rethink the entire v3
+            // in other words, markets define all the rest of the API
+            // and v3 $market ids are reversed in comparison to v1
+            // v3 has to be a completely separate implementation
+            // otherwise we will have to shuffle symbols and currencies everywhere
+            // which is prone to errors, as was shown here
+            // https://github.com/ccxt/ccxt/pull/5219#issuecomment-499646209
+            $request['marketSymbol'] = $market['base'] . '-' . $market['quote'];
+        }
+        $response = $this->v3GetOrdersClosed (array_merge($request, $params));
+        $orders = $this->parse_orders($response, $market);
+        $trades = $this->orders_to_trades($orders);
+        if ($symbol !== null) {
+            return $this->filter_by_since_limit($trades, $since, $limit);
+        } else {
+            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit);
+        }
+    }
+
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $orders = $this->fetch_closed_orders($symbol, $since, $limit, $params);
-        return $this->orders_to_trades($orders);
+        $method = $this->safe_string($this->options, 'fetchMyTradesMethod', 'fetch_my_trades_v3');
+        return $this->$method ($symbol, $since, $limit, $params);
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {

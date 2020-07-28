@@ -1246,9 +1246,51 @@ class bittrex(Exchange):
             result.append(self.order_to_trade(orders[i]))
         return result
 
+    async def fetch_my_trades_v2(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        request = {}
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['market'] = market['id']
+        response = await self.accountGetOrderhistory(self.extend(request, params))
+        result = self.safe_value(response, 'result', [])
+        orders = self.parse_orders(result, market)
+        trades = self.orders_to_trades(orders)
+        if symbol is not None:
+            return self.filter_by_since_limit(trades, since, limit)
+        else:
+            return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
+
+    async def fetch_my_trades_v3(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        request = {}
+        if limit is not None:
+            request['pageSize'] = limit
+        if since is not None:
+            request['startDate'] = self.ymdhms(since, 'T') + 'Z'
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            # because of self line we will have to rethink the entire v3
+            # in other words, markets define all the rest of the API
+            # and v3 market ids are reversed in comparison to v1
+            # v3 has to be a completely separate implementation
+            # otherwise we will have to shuffle symbols and currencies everywhere
+            # which is prone to errors, as was shown here
+            # https://github.com/ccxt/ccxt/pull/5219#issuecomment-499646209
+            request['marketSymbol'] = market['base'] + '-' + market['quote']
+        response = await self.v3GetOrdersClosed(self.extend(request, params))
+        orders = self.parse_orders(response, market)
+        trades = self.orders_to_trades(orders)
+        if symbol is not None:
+            return self.filter_by_since_limit(trades, since, limit)
+        else:
+            return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
+
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
-        orders = await self.fetch_closed_orders(symbol, since, limit, params)
-        return self.orders_to_trades(orders)
+        method = self.safe_string(self.options, 'fetchMyTradesMethod', 'fetch_my_trades_v3')
+        return await getattr(self, method)(symbol, since, limit, params)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         method = self.safe_string(self.options, 'fetchClosedOrdersMethod', 'fetch_closed_orders_v3')
