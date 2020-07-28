@@ -1324,12 +1324,62 @@ module.exports = class bittrex extends Exchange {
         for (let i = 0; i < orders.length; i++) {
             result.push (this.orderToTrade (orders[i]));
         }
-        return this.sortBy (result, 'timestamp');
+        return result;
+    }
+
+    async fetchMyTradesV2 (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['market'] = market['id'];
+        }
+        const response = await this.accountGetOrderhistory (this.extend (request, params));
+        const result = this.safeValue (response, 'result', []);
+        const orders = this.parseOrders (result, market);
+        const trades = this.ordersToTrades (orders);
+        if (symbol !== undefined) {
+            return this.filterBySinceLimit (trades, since, limit);
+        } else {
+            return this.filterBySymbolSinceLimit (trades, symbol, since, limit);
+        }
+    }
+
+    async fetchMyTradesV3 (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
+        }
+        if (since !== undefined) {
+            request['startDate'] = this.ymdhms (since, 'T') + 'Z';
+        }
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            // because of this line we will have to rethink the entire v3
+            // in other words, markets define all the rest of the API
+            // and v3 market ids are reversed in comparison to v1
+            // v3 has to be a completely separate implementation
+            // otherwise we will have to shuffle symbols and currencies everywhere
+            // which is prone to errors, as was shown here
+            // https://github.com/ccxt/ccxt/pull/5219#issuecomment-499646209
+            request['marketSymbol'] = market['base'] + '-' + market['quote'];
+        }
+        const response = await this.v3GetOrdersClosed (this.extend (request, params));
+        const orders = this.parseOrders (response, market);
+        const trades = this.ordersToTrades (orders);
+        if (symbol !== undefined) {
+            return this.filterBySinceLimit (trades, since, limit);
+        } else {
+            return this.filterBySymbolSinceLimit (trades, symbol, since, limit);
+        }
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const orders = await this.fetchClosedOrders (symbol, since, limit, params);
-        return this.ordersToTrades (orders);
+        const method = this.safeString (this.options, 'fetchMyTradesMethod', 'fetch_my_trades_v3');
+        return await this[method] (symbol, since, limit, params);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
