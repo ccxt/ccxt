@@ -48,6 +48,7 @@ from ccxt.base.errors import OrderImmediatelyFillable           # noqa: F401
 from ccxt.base.errors import OrderNotFillable                   # noqa: F401
 
 
+from ccxt.async_support.aax import aax                                    # noqa: F401
 from ccxt.async_support.acx import acx                                    # noqa: F401
 from ccxt.async_support.adara import adara                                # noqa: F401
 from ccxt.async_support.anxpro import anxpro                              # noqa: F401
@@ -174,6 +175,7 @@ from ccxt.async_support.zb import zb                                      # noqa
 from ccxt.async_support._1btcxe import _1btcxe                            # noqa: F401
 
 exchanges = [
+    'aax',
     'acx',
     'adara',
     'anxpro',

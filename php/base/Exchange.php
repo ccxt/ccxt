@@ -57,6 +57,7 @@ class Exchange {
     const VERSION = '1.22.97';
 
     public static $exchanges = array(
+        'aax',
         'acx',
         'adara',
         'anxpro',
