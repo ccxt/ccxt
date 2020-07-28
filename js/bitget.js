@@ -28,6 +28,7 @@ module.exports = class bitget extends Exchange {
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchTicker': true,
@@ -1569,6 +1570,13 @@ module.exports = class bitget extends Exchange {
             'partial-canceled': 'canceled',
             'filled': 'closed',
             'canceled': 'canceled',
+            '-2': 'failed',
+            '-1': 'canceled',
+            '0': 'open',
+            '1': 'open',
+            '2': 'closed',
+            '3': 'open',
+            '4': 'canceled',
         };
         return this.safeString (statuses, status, status);
     }
@@ -1597,7 +1605,10 @@ module.exports = class bitget extends Exchange {
         //
         //     swap
         //
-        //     ...
+        //     {
+        //         "client_oid":"58775e54-0592-491c-97e8-e2369025f2d1",
+        //         "order_id":"671757564085534713"
+        //     }
         //
         // cancelOrder
         //
@@ -1612,15 +1623,15 @@ module.exports = class bitget extends Exchange {
         //     swap
         //
         //     {
-        //         "result": true,
-        //         "client_oid": "oktfuture10", // missing if requested by order_id
-        //         "order_id": "2517535534836736",
-        //         // instrument_id is missing for spot/margin orders
-        //         // available in futures and swap orders only
-        //         "instrument_id": "EOS-USD-190628",
+        //         "order_id":"671757564085534713",
+        //         "client_oid":"58775e54-0592-491c-97e8-e2369025f2d1",
+        //         "symbol":"cmt_ethusdt",
+        //         "result":true,
+        //         "err_code":null,
+        //         "err_msg":null
         //     }
         //
-        // fetchOrders
+        // fetchOrders, fetchOrder
         //
         //     spot
         //
@@ -1641,7 +1652,26 @@ module.exports = class bitget extends Exchange {
         //         "type":"buy-limit"
         //     }
         //
-        // fetchOrder, fetchOrdersByState, fetchOpenOrders, fetchClosedOrders
+        //     swap
+        //
+        //     {
+        //         "symbol":"cmt_ethusdt",
+        //         "size":"1",
+        //         "timestamp":"1595885546770",
+        //         "client_oid":"f3aa81d6-9a4c-4eab-bebe-ebc19da21cf2",
+        //         "createTime":"1595885521200",
+        //         "filled_qty":"0",
+        //         "fee":"0.00000000",
+        //         "order_id":"671758053112020913",
+        //         "price":"150.00",
+        //         "price_avg":"0.00",
+        //         "status":"0",
+        //         "type":"1",
+        //         "order_type":"0",
+        //         "totalProfits":null
+        //     }
+        //
+        // fetchOrdersByState, fetchOpenOrders, fetchClosedOrders
         //
         //     // spot and margin orders
         //
@@ -1686,8 +1716,9 @@ module.exports = class bitget extends Exchange {
         //         "order_type":"0"
         //     }
         //
-        const id = this.safeString2 (order, 'id', 'data');
-        const timestamp = this.safeInteger (order, 'created_at');
+        let id = this.safeString (order, 'order_id');
+        id = this.safeString2 (order, 'id', 'data', id);
+        const timestamp = this.safeInteger2 (order, 'created_at', 'createTime');
         let side = this.safeString (order, 'side');
         let type = this.safeString (order, 'type');
         if (type === 'buy-limit') {
@@ -1719,15 +1750,15 @@ module.exports = class bitget extends Exchange {
             market = this.markets_by_id[marketId];
             symbol = market['symbol'];
         } else {
-            symbol = marketId;
+            symbol = marketId.toUpperCase ();
         }
         if (market !== undefined) {
             if (symbol === undefined) {
                 symbol = market['symbol'];
             }
         }
-        let amount = this.safeFloat (order, 'amount');
-        const filled = this.safeFloat (order, 'filled_amount');
+        let amount = this.safeFloat2 (order, 'amount', 'size');
+        const filled = this.safeFloat2 (order, 'filled_amount', 'filled_qty');
         let remaining = undefined;
         if (amount !== undefined) {
             if (filled !== undefined) {
@@ -1740,12 +1771,12 @@ module.exports = class bitget extends Exchange {
         }
         const cost = this.safeFloat (order, 'filled_cash_amount');
         const price = this.safeFloat (order, 'price');
-        let average = undefined;
-        if ((filled !== undefined) && (cost !== undefined) && (filled > 0)) {
+        let average = this.safeFloat (order, 'price_avg');
+        if ((average === undefined) && (filled !== undefined) && (cost !== undefined) && (filled > 0)) {
             average = cost / filled;
         }
-        const status = this.parseOrderStatus (this.safeString (order, 'state'));
-        const feeCost = this.safeFloat (order, 'filled_fees');
+        const status = this.parseOrderStatus (this.safeString2 (order, 'state', 'status'));
+        const feeCost = this.safeFloat2 (order, 'filled_fees', 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
             const feeCurrency = undefined;
@@ -1847,7 +1878,7 @@ module.exports = class bitget extends Exchange {
             request['client_oid'] = clientOrderId;
             const orderType = this.safeString (params, 'type');
             if (orderType === undefined) {
-                throw new ArgumentsRequired (this.id + " createOrder requires a type parameter, '1' = open long, '2' = open short, '3' = close long, '4' = close short");
+                throw new ArgumentsRequired (this.id + " createOrder requires a type parameter, '1' = open long, '2' = open short, '3' = close long, '4' = close short for " + market['type'] + ' orders');
             }
             request['size'] = this.amountToPrecision (symbol, amount);
             request['type'] = orderType;
@@ -1877,8 +1908,8 @@ module.exports = class bitget extends Exchange {
         // swap
         //
         //     {
-        //         "client_oid":"bitget#123456",
-        //         "order_id":"513466539039522813"
+        //         "client_oid":"58775e54-0592-491c-97e8-e2369025f2d1",
+        //         "order_id":"671757564085534713"
         //     }
         //
         return this.parseOrder (response, market);
@@ -1921,13 +1952,92 @@ module.exports = class bitget extends Exchange {
         // swap
         //
         //     {
-        //         "order_id":"513468410013679613",
-        //         "client_oid":"bitget#123456",
-        //         "symbol":"cmt_btcusdt",
-        //         "result":true
+        //         "order_id":"671757564085534713",
+        //         "client_oid":"58775e54-0592-491c-97e8-e2369025f2d1",
+        //         "symbol":"cmt_ethusdt",
+        //         "result":true,
+        //         "err_code":null,
+        //         "err_msg":null
         //     }
         //
         return this.parseOrder (response, market);
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const type = this.safeString (params, 'type', market['type']);
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + " fetchOrder requires a type parameter (one of 'spot', 'swap').");
+        }
+        let method = undefined;
+        const request = {};
+        if (type === 'spot') {
+            const clientOid = this.safeString (params, 'client_oid');
+            if (clientOid !== undefined) {
+                method = 'apiPostOrderOrdersClientOid';
+                request['client_oid'] = clientOid;
+            } else {
+                method = 'apiPostOrderOrdersOrderId';
+                request['order_id'] = id;
+            }
+            request['method'] = 'getOrder';
+        } else if (type === 'swap') {
+            method = 'swapGetOrderDetail';
+            request['symbol'] = market['id'];
+            request['orderId'] = id;
+        }
+        const query = this.omit (params, 'type');
+        const response = await this[method] (this.extend (request, query));
+        //
+        // spot
+        //
+        //     {
+        //         "status":"ok",
+        //         "ts":1595897886717,
+        //         "data":{
+        //             "account_id":"7420922606",
+        //             "amount":"0.1000000000000000",
+        //             "canceled_at":"1595818631541",
+        //             "created_at":"1595792595897",
+        //             "filled_amount":"0.000000000000",
+        //             "filled_cash_amount":"0.000000000000",
+        //             "filled_fees":"0.000000000000",
+        //             "finished_at":"1595818631541",
+        //             "id":"671368296142774272",
+        //             "price":"150.000000000000",
+        //             "source":"接口",
+        //             "state":"canceled",
+        //             "symbol":"eth_usdt",
+        //             "type":"buy-limit"
+        //         }
+        //     }
+        //
+        //
+        // swap
+        //
+        //     {
+        //         "symbol":"cmt_ethusdt",
+        //         "size":"1",
+        //         "timestamp":"1595896459890",
+        //         "client_oid":"58775e54-0592-491c-97e8-e2369025f2d1",
+        //         "createTime":"1595885404607",
+        //         "filled_qty":"0",
+        //         "fee":"0",
+        //         "order_id":"671757564085534713",
+        //         "price":"150",
+        //         "price_avg":"0",
+        //         "status":"-1",
+        //         "type":"1",
+        //         "order_type":"0",
+        //         "totalProfits":"0"
+        //     }
+        //
+        const data = this.safeValue (response, 'data', response);
+        return this.parseOrder (data, market);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1962,7 +2072,8 @@ module.exports = class bitget extends Exchange {
         let method = undefined;
         if (type === 'spot') {
             method = 'apiGetOrderOrders';
-            request['states'] = 'submitted,partial-filled,partial-canceled,filled,canceled'; // required
+            // request['states'] = 'submitted,partial-filled,partial-canceled,filled,canceled'; // required
+            request['states'] = 'canceled'; // required
             request['method'] = 'orders';
             // request['types'] = 'buy-limit,sell-limit,buy-market,sell-market';
             // request['start_date'] = this.ymd (since);
@@ -2018,24 +2129,27 @@ module.exports = class bitget extends Exchange {
         //
         //     [
         //         {
-        //             "symbol":"cmt_btcusdt",
-        //             "size":"12",
-        //             "timestamp":"15582271175271",
-        //             "client_oid":"cmdtde",
-        //             "createTime":"1698475585258",
+        //             "symbol":"cmt_ethusdt",
+        //             "size":"1",
+        //             "timestamp":"1595885546770",
+        //             "client_oid":"f3aa81d6-9a4c-4eab-bebe-ebc19da21cf2",
+        //             "createTime":"1595885521200",
         //             "filled_qty":"0",
-        //             "fee":"0",
-        //             "order_id":"513468410013679613",
-        //             "price":"12",
-        //             "price_avg":"0",
-        //             "status":"-1",
+        //             "fee":"0.00000000",
+        //             "order_id":"671758053112020913",
+        //             "price":"150.00",
+        //             "price_avg":"0.00",
+        //             "status":"0",
         //             "type":"1",
         //             "order_type":"0",
-        //             "totalProfits":"253"
+        //             "totalProfits":null
         //         }
         //     ]
         //
-        const data = this.safeValue (response, 'data', []);
+        let data = response;
+        if (!Array.isArray (response)) {
+            data = this.safeValue (response, 'data', []);
+        }
         return this.parseOrders (data, market, undefined, limit);
     }
 
@@ -2114,39 +2228,20 @@ module.exports = class bitget extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        //
-        // deposit statuses
-        //
-        //     {
-        //         '0': 'waiting for confirmation',
-        //         '1': 'confirmation account',
-        //         '2': 'recharge success'
-        //     }
-        //
-        // withdrawal statuses
-        //
-        //     {
-        //        '-3': 'pending cancel',
-        //        '-2': 'cancelled',
-        //        '-1': 'failed',
-        //         '0': 'pending',
-        //         '1': 'sending',
-        //         '2': 'sent',
-        //         '3': 'email confirmation',
-        //         '4': 'manual confirmation',
-        //         '5': 'awaiting identity confirmation'
-        //     }
-        //
         const statuses = {
-            '-3': 'pending',
-            '-2': 'pending',
-            '-1': 'failed',
-            '0': 'pending',
-            '1': 'pending',
-            '2': 'ok',
-            '3': 'pending',
-            '4': 'pending',
-            '5': 'pending',
+            // withdrawals
+            'WaitForOperation': 'pending', // 等待提现
+            'OperationLock': 'pending', // 初审锁定成功
+            'OperationSuccess': 'ok', // 提现成功
+            'Cancel': 'canceled', // 用户撤销
+            'Sure': 'ok', // 复审锁定成功
+            'Fail': 'failed', // 出币异常
+            'WaitForChainSure': 'ok', // 等待链上确认
+            // deposits
+            'WAIT_0': 'pending', // 待确认
+            'WAIT_1': 'pending', // 待确认
+            'DATA_CHANGE': 'pending', // 待确认中
+            'SUCCESS': 'ok', // 充值成功
         };
         return this.safeString (statuses, status, status);
     }
@@ -2360,6 +2455,7 @@ module.exports = class bitget extends Exchange {
         //     {"code":"40017","msg":"Order Type must not be blank","requestTime":1595698516162,"data":null}
         //     {"code":"40301","msg":"","requestTime":1595667662503,"data":null}
         //     {"code":"40017","msg":"Contract code must not be blank","requestTime":1595703151651,"data":null}
+        //     {"code":"40108","msg":"","requestTime":1595885064600,"data":null}
         //     {"order_id":"513468410013679613","client_oid":null,"symbol":"ethusd","result":false,"err_code":"order_no_exist_error","err_msg":"订单不存在！"}
         //
         const message = this.safeString (response, 'err_msg');
