@@ -20,21 +20,28 @@ module.exports = class bittrex extends Exchange {
             'pro': true,
             // new metainfo interface
             'has': {
+                'cancelOrder': true,
                 'CORS': false,
                 'createMarketOrder': true,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchDeposits': true,
                 'fetchDepositAddress': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
+                'fetchMarkets': true,
                 'fetchMyTrades': 'emulated',
                 'fetchOHLCV': true,
                 'fetchOrder': true,
+                'fetchOrderBook': true,
                 'fetchOpenOrders': true,
+                'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
-                'withdraw': true,
-                'fetchDeposits': true,
-                'fetchWithdrawals': true,
+                'fetchTrades': true,
                 'fetchTransactions': false,
+                'fetchWithdrawals': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': 'MINUTE_1',
@@ -109,7 +116,7 @@ module.exports = class bittrex extends Exchange {
                         'markets/{marketSymbol}/orderbook',
                         'markets/{marketSymbol}/trades',
                         'markets/{marketSymbol}/ticker',
-                        'markets/{marketSymbol}/candles',
+                        'markets/{marketSymbol}/candles/{candleInterval}/recent',
                         'markets/{marketSymbol}/candles/{candleInterval}/historical/{year}/{month}/{day}',
                         'markets/{marketSymbol}/candles/{candleInterval}/historical/{year}/{month}',
                         'markets/{marketSymbol}/candles/{candleInterval}/historical/{year}',
@@ -657,34 +664,38 @@ module.exports = class bittrex extends Exchange {
             'candleInterval': this.timeframes[timeframe],
             'marketSymbol': reverseId,
         };
-        let method = 'v3publicGetMarketsMarketSymbolCandles';
+        let method = 'v3publicGetMarketsMarketSymbolCandlesCandleIntervalRecent';
         if (since !== undefined) {
             const now = this.milliseconds ();
             const difference = Math.abs (now - since);
-            const date = this.ymd (since);
-            const parts = date.split ('-');
-            const year = this.safeInteger (parts, 0);
-            const month = this.safeInteger (parts, 1);
-            const day = this.safeInteger (parts, 2);
-            const curr_date = this.ymd (now);
-            const curr_parts = curr_date.split ('-');
-            const curr_year = this.safeInteger (curr_parts, 0);
-            const curr_month = this.safeInteger (curr_parts, 1);
-            if (timeframe === '1d' && year !== curr_year) {
-                // Current year is provided by the "recent" endpoint
-                method = 'v3publicGetMarketsMarketSymbolCandlesCandleIntervalHistoricalYear';
-                request['year'] = year;
-            } else if (timeframe === '1h' && year !== curr_year && month !== curr_month) {
-                // for Hourly candles, historic endpoint needs to be used for everything up to the current month.
-                // "recent" endpoint must be used for the current month only.
-                method = 'v3publicGetMarketsMarketSymbolCandlesCandleIntervalHistoricalYearMonth';
-                request['year'] = year;
-                request['month'] = month;
-            } else if (timeframe !== '1h' && timeframe !== '1d' && difference > 86400000) {
-                method = 'v3publicGetMarketsMarketSymbolCandlesCandleIntervalHistoricalYearMonthDay';
-                request['year'] = year;
-                request['month'] = month;
-                request['day'] = day;
+            // const duration = this.parseTimeframe (timeframe);
+            const sinceDate = this.ymd (since);
+            const sinceParts = sinceDate.split ('-');
+            const sinceYear = this.safeInteger (sinceParts, 0);
+            const sinceMonth = this.safeInteger (sinceParts, 1);
+            const sinceDay = this.safeInteger (sinceParts, 2);
+            if (timeframe === '1d') {
+                // if the since argument is beyond one year into the past
+                if (difference > 31622400000) {
+                    method = 'v3publicGetMarketsMarketSymbolCandlesCandleIntervalHistoricalYear';
+                    request['year'] = sinceYear;
+                }
+                // request['year'] = year;
+            } else if (timeframe === '1h') {
+                // if the since argument is beyond 31 days into the past
+                if (difference > 2678400000) {
+                    method = 'v3publicGetMarketsMarketSymbolCandlesCandleIntervalHistoricalYearMonth';
+                    request['year'] = sinceYear;
+                    request['month'] = sinceMonth;
+                }
+            } else {
+                // if the since argument is beyond 1 day into the past
+                if (difference > 86400000) {
+                    method = 'v3publicGetMarketsMarketSymbolCandlesCandleIntervalHistoricalYearMonthDay';
+                    request['year'] = sinceYear;
+                    request['month'] = sinceMonth;
+                    request['day'] = sinceDay;
+                }
             }
         }
         const response = await this[method] (this.extend (request, params));
