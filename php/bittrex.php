@@ -122,8 +122,10 @@ class bittrex extends Exchange {
                         'markets/{marketSymbol}/orderbook',
                         'markets/{marketSymbol}/trades',
                         'markets/{marketSymbol}/ticker',
-                        'markets/{marketSymbol}/candles',
+                        'markets/{marketSymbol}/candles/{candleInterval}/recent',
                         'markets/{marketSymbol}/candles/{candleInterval}/historical/{year}/{month}/{day}',
+                        'markets/{marketSymbol}/candles/{candleInterval}/historical/{year}/{month}',
+                        'markets/{marketSymbol}/candles/{candleInterval}/historical/{year}',
                     ),
                 ),
                 'public' => array(
@@ -668,20 +670,37 @@ class bittrex extends Exchange {
             'candleInterval' => $this->timeframes[$timeframe],
             'marketSymbol' => $reverseId,
         );
-        $method = 'v3publicGetMarketsMarketSymbolCandles';
+        $method = 'v3publicGetMarketsMarketSymbolCandlesCandleIntervalRecent';
         if ($since !== null) {
             $now = $this->milliseconds();
             $difference = abs($now - $since);
-            if ($difference > 86400000) {
-                $method = 'v3publicGetMarketsMarketSymbolCandlesCandleIntervalHistoricalYearMonthDay';
-                $date = $this->ymd($since);
-                $parts = explode('-', $date);
-                $year = $this->safe_integer($parts, 0);
-                $month = $this->safe_integer($parts, 1);
-                $day = $this->safe_integer($parts, 2);
-                $request['year'] = $year;
-                $request['month'] = $month;
-                $request['day'] = $day;
+            $sinceDate = $this->ymd($since);
+            $parts = explode('-', $sinceDate);
+            $sinceYear = $this->safe_integer($parts, 0);
+            $sinceMonth = $this->safe_integer($parts, 1);
+            $sinceDay = $this->safe_integer($parts, 2);
+            if ($timeframe === '1d') {
+                // if the $since argument is beyond one year into the past
+                if ($difference > 31622400000) {
+                    $method = 'v3publicGetMarketsMarketSymbolCandlesCandleIntervalHistoricalYear';
+                    $request['year'] = $sinceYear;
+                }
+                // $request['year'] = year;
+            } else if ($timeframe === '1h') {
+                // if the $since argument is beyond 31 days into the past
+                if ($difference > 2678400000) {
+                    $method = 'v3publicGetMarketsMarketSymbolCandlesCandleIntervalHistoricalYearMonth';
+                    $request['year'] = $sinceYear;
+                    $request['month'] = $sinceMonth;
+                }
+            } else {
+                // if the $since argument is beyond 1 day into the past
+                if ($difference > 86400000) {
+                    $method = 'v3publicGetMarketsMarketSymbolCandlesCandleIntervalHistoricalYearMonthDay';
+                    $request['year'] = $sinceYear;
+                    $request['month'] = $sinceMonth;
+                    $request['day'] = $sinceDay;
+                }
             }
         }
         $response = $this->$method (array_merge($request, $params));

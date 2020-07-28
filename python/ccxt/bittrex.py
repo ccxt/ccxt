@@ -138,8 +138,10 @@ class bittrex(Exchange):
                         'markets/{marketSymbol}/orderbook',
                         'markets/{marketSymbol}/trades',
                         'markets/{marketSymbol}/ticker',
-                        'markets/{marketSymbol}/candles',
+                        'markets/{marketSymbol}/candles/{candleInterval}/recent',
                         'markets/{marketSymbol}/candles/{candleInterval}/historical/{year}/{month}/{day}',
+                        'markets/{marketSymbol}/candles/{candleInterval}/historical/{year}/{month}',
+                        'markets/{marketSymbol}/candles/{candleInterval}/historical/{year}',
                     ],
                 },
                 'public': {
@@ -652,20 +654,34 @@ class bittrex(Exchange):
             'candleInterval': self.timeframes[timeframe],
             'marketSymbol': reverseId,
         }
-        method = 'v3publicGetMarketsMarketSymbolCandles'
+        method = 'v3publicGetMarketsMarketSymbolCandlesCandleIntervalRecent'
         if since is not None:
             now = self.milliseconds()
             difference = abs(now - since)
-            if difference > 86400000:
-                method = 'v3publicGetMarketsMarketSymbolCandlesCandleIntervalHistoricalYearMonthDay'
-                date = self.ymd(since)
-                parts = date.split('-')
-                year = self.safe_integer(parts, 0)
-                month = self.safe_integer(parts, 1)
-                day = self.safe_integer(parts, 2)
-                request['year'] = year
-                request['month'] = month
-                request['day'] = day
+            sinceDate = self.ymd(since)
+            parts = sinceDate.split('-')
+            sinceYear = self.safe_integer(parts, 0)
+            sinceMonth = self.safe_integer(parts, 1)
+            sinceDay = self.safe_integer(parts, 2)
+            if timeframe == '1d':
+                # if the since argument is beyond one year into the past
+                if difference > 31622400000:
+                    method = 'v3publicGetMarketsMarketSymbolCandlesCandleIntervalHistoricalYear'
+                    request['year'] = sinceYear
+                # request['year'] = year
+            elif timeframe == '1h':
+                # if the since argument is beyond 31 days into the past
+                if difference > 2678400000:
+                    method = 'v3publicGetMarketsMarketSymbolCandlesCandleIntervalHistoricalYearMonth'
+                    request['year'] = sinceYear
+                    request['month'] = sinceMonth
+            else:
+                # if the since argument is beyond 1 day into the past
+                if difference > 86400000:
+                    method = 'v3publicGetMarketsMarketSymbolCandlesCandleIntervalHistoricalYearMonthDay'
+                    request['year'] = sinceYear
+                    request['month'] = sinceMonth
+                    request['day'] = sinceDay
         response = getattr(self, method)(self.extend(request, params))
         #
         #     [

@@ -18,9 +18,15 @@ class coincheck extends Exchange {
             'countries' => array( 'JP', 'ID' ),
             'rateLimit' => 1500,
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => false,
-                'fetchOpenOrders' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
                 'fetchMyTrades' => true,
+                'fetchOrderBook' => true,
+                'fetchOpenOrders' => true,
+                'fetchTicker' => true,
+                'fetchTrades' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/51840849/87182088-1d6d6380-c2ec-11ea-9c64-8ab9f9b289f5.jpg',
