@@ -31,6 +31,7 @@ module.exports = class bitget extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchOrderTrades': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -2367,6 +2368,71 @@ module.exports = class bitget extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
+    }
+
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrderTrades requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const type = this.safeString (params, 'type', market['type']);
+        const query = this.omit (params, 'type');
+        let method = undefined;
+        const request = {};
+        if (type === 'spot') {
+            request['order_id'] = id;
+            request['method'] = 'matchresults';
+            method = 'apiPostOrderOrdersOrderIdMatchresults';
+        } else if (type === 'swap') {
+            request['orderId'] = id;
+            request['symbol'] = market['id'];
+            method = 'swapGetOrderFills';
+        }
+        const response = await this[method] (this.extend (request, query));
+        //
+        // spot
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": [
+        //             {
+        //                 "id": 29553,
+        //                 "order_id": 59378,
+        //                 "match_id": 59335,
+        //                 "symbol": "eth_usdt",
+        //                 "type": "buy-limit",
+        //                 "source": "api",
+        //                 "price": "100.1000000000",
+        //                 "filled_amount": "9.1155000000",
+        //                 "filled_fees": "0.0182310000",
+        //                 "created_at": 1494901400435
+        //             }
+        //         ]
+        //     }
+        //
+        // swap
+        //
+        //
+        //     [
+        //         {
+        //             "trade_id":"6667390",
+        //             "symbol":"cmt_btcusdt",
+        //             "order_id":"525946425993854915",
+        //             "price":"9839.00",
+        //             "order_qty":"3466",
+        //             "fee":"-0.0000528407360000",
+        //             "timestamp":"1561121514442",
+        //             "exec_type":"M",
+        //             "side":"3"
+        //         }
+        //     ]
+        //
+        let data = response;
+        if (!Array.isArray (data)) {
+            data = this.safeValue (response, 'data', []);
+        }
+        return await this.parseTrades (data, since, limit, this.extend (request, query));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
