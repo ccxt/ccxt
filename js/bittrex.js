@@ -116,8 +116,10 @@ module.exports = class bittrex extends Exchange {
                         'markets/{marketSymbol}/orderbook',
                         'markets/{marketSymbol}/trades',
                         'markets/{marketSymbol}/ticker',
-                        'markets/{marketSymbol}/candles',
+                        'markets/{marketSymbol}/candles/{candleInterval}/recent',
                         'markets/{marketSymbol}/candles/{candleInterval}/historical/{year}/{month}/{day}',
+                        'markets/{marketSymbol}/candles/{candleInterval}/historical/{year}/{month}',
+                        'markets/{marketSymbol}/candles/{candleInterval}/historical/{year}',
                     ],
                 },
                 'public': {
@@ -662,20 +664,37 @@ module.exports = class bittrex extends Exchange {
             'candleInterval': this.timeframes[timeframe],
             'marketSymbol': reverseId,
         };
-        let method = 'v3publicGetMarketsMarketSymbolCandles';
+        let method = 'v3publicGetMarketsMarketSymbolCandlesCandleIntervalRecent';
         if (since !== undefined) {
             const now = this.milliseconds ();
             const difference = Math.abs (now - since);
-            if (difference > 86400000) {
-                method = 'v3publicGetMarketsMarketSymbolCandlesCandleIntervalHistoricalYearMonthDay';
-                const date = this.ymd (since);
-                const parts = date.split ('-');
-                const year = this.safeInteger (parts, 0);
-                const month = this.safeInteger (parts, 1);
-                const day = this.safeInteger (parts, 2);
-                request['year'] = year;
-                request['month'] = month;
-                request['day'] = day;
+            const sinceDate = this.ymd (since);
+            const parts = sinceDate.split ('-');
+            const sinceYear = this.safeInteger (parts, 0);
+            const sinceMonth = this.safeInteger (parts, 1);
+            const sinceDay = this.safeInteger (parts, 2);
+            if (timeframe === '1d') {
+                // if the since argument is beyond one year into the past
+                if (difference > 31622400000) {
+                    method = 'v3publicGetMarketsMarketSymbolCandlesCandleIntervalHistoricalYear';
+                    request['year'] = sinceYear;
+                }
+                // request['year'] = year;
+            } else if (timeframe === '1h') {
+                // if the since argument is beyond 31 days into the past
+                if (difference > 2678400000) {
+                    method = 'v3publicGetMarketsMarketSymbolCandlesCandleIntervalHistoricalYearMonth';
+                    request['year'] = sinceYear;
+                    request['month'] = sinceMonth;
+                }
+            } else {
+                // if the since argument is beyond 1 day into the past
+                if (difference > 86400000) {
+                    method = 'v3publicGetMarketsMarketSymbolCandlesCandleIntervalHistoricalYearMonthDay';
+                    request['year'] = sinceYear;
+                    request['month'] = sinceMonth;
+                    request['day'] = sinceDay;
+                }
             }
         }
         const response = await this[method] (this.extend (request, params));
