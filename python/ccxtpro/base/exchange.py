@@ -124,6 +124,7 @@ class Exchange(BaseExchange):
         # todo: calculate the backoff using the clients cache
         backoff_delay = 0
         try:
+            # base exchange self.open starts the aiohttp Session in an async context
             self.open()
             await client.connect(self.session, backoff_delay)
             if subscribe_hash not in client.subscriptions:
