@@ -91,7 +91,6 @@ module.exports = class bitget extends Exchange {
                         'accounts/{account_id}/balance', // Get the balance of the specified account
                         'order/orders', // Query current order, history order
                         'order/deposit_withdraw', // Query assets history
-                        'order/matchresults', // Query current order, order history
                     ],
                     'post': [
                         'order/orders/place', // Place order
@@ -99,6 +98,7 @@ module.exports = class bitget extends Exchange {
                         'order/orders/batchcancel', // Bulk order cancellation
                         'order/orders/{order_id}', // Query an order details
                         'order/orders/{order_id}/matchresults', // Query the transaction details of an order
+                        'order/matchresults', // Query current order, order history
                     ],
                 },
                 'capi': {
@@ -753,7 +753,7 @@ module.exports = class bitget extends Exchange {
                 'type': undefined,
                 'name': undefined,
                 'active': undefined,
-                'fee': undefined, // todo: redesign
+                'fee': undefined,
                 'precision': undefined,
                 'limits': {
                     'amount': { 'min': undefined, 'max': undefined },
@@ -2328,7 +2328,10 @@ module.exports = class bitget extends Exchange {
             'symbol': market['id'],
             'method': 'matchresults',
             // 'types': 'buy-market,sell-market,buy-limit,sell-limit',
-            'size': 100,
+            // 'start_date': this.ymd (since),
+            // 'end_date': this.ymd (this.milliseconds ()),
+            // 'size': 100,
+            // 'direct': 'next',
         };
         //
         // spot
@@ -2342,7 +2345,7 @@ module.exports = class bitget extends Exchange {
         //     direct false string Query direction ‘next’ is default , the transaction record ID is sorted from large to small prev，next
         //     size false string Query record size 100 <=100
         //
-        const response = await this.apiGetOrderMatchresults (this.extend (request, query));
+        const response = await this.apiPostOrderMatchresults (this.extend (request, query));
         //
         //     {
         //         "status": "ok",
