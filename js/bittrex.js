@@ -1324,7 +1324,7 @@ module.exports = class bittrex extends Exchange {
         for (let i = 0; i < orders.length; i++) {
             result.push (this.orderToTrade (orders[i]));
         }
-        return result;
+        return this.sortBy (result, 'timestamp');
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
