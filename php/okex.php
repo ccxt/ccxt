@@ -2485,7 +2485,7 @@ class okex extends Exchange {
         //
         $statuses = array(
             '-3' => 'pending',
-            '-2' => 'pending',
+            '-2' => 'canceled',
             '-1' => 'failed',
             '0' => 'pending',
             '1' => 'pending',
