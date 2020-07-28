@@ -135,6 +135,7 @@ class dsx(Exchange):
                     'data unavailable': ExchangeNotAvailable,
                     'external service unavailable': ExchangeNotAvailable,
                     'nonce is invalid': InvalidNonce,  # {"success":0,"error":"Parameter: nonce is invalid"}
+                    'Incorrect volume': InvalidOrder,  # {"success": 0,"error":"Order was rejected. Incorrect volume."}
                 },
             },
             'options': {
