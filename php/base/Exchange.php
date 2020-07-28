@@ -1258,16 +1258,16 @@ class Exchange {
         return json_decode($json_string, $as_associative_array);
     }
 
-    public function print() {
-        $args = func_get_args();
-        if (is_array($args)) {
-            $array = array();
-            foreach ($args as $arg) {
-                $array[] = is_string($arg) ? $arg : json_encode($arg, JSON_PRETTY_PRINT);
-            }
-            echo implode(' ', $array), "\n";
-        }
-    }
+    // public function print() {
+    //     $args = func_get_args();
+    //     if (is_array($args)) {
+    //         $array = array();
+    //         foreach ($args as $arg) {
+    //             $array[] = is_string($arg) ? $arg : json_encode($arg, JSON_PRETTY_PRINT);
+    //         }
+    //         echo implode(' ', $array), "\n";
+    //     }
+    // }
 
     public function fetch($url, $method = 'GET', $headers = null, $body = null) {
         if ($this->enableRateLimit) {
