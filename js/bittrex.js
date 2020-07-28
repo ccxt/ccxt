@@ -668,12 +668,11 @@ module.exports = class bittrex extends Exchange {
         if (since !== undefined) {
             const now = this.milliseconds ();
             const difference = Math.abs (now - since);
-            // const duration = this.parseTimeframe (timeframe);
             const sinceDate = this.ymd (since);
-            const sinceParts = sinceDate.split ('-');
-            const sinceYear = this.safeInteger (sinceParts, 0);
-            const sinceMonth = this.safeInteger (sinceParts, 1);
-            const sinceDay = this.safeInteger (sinceParts, 2);
+            const parts = sinceDate.split ('-');
+            const sinceYear = this.safeInteger (parts, 0);
+            const sinceMonth = this.safeInteger (parts, 1);
+            const sinceDay = this.safeInteger (parts, 2);
             if (timeframe === '1d') {
                 // if the since argument is beyond one year into the past
                 if (difference > 31622400000) {
