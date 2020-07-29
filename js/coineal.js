@@ -208,7 +208,7 @@ module.exports = class coineal extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol = 'BTC/USDT', timeframe = '1m', params = {}, since = undefined, limit = undefined) {
+    async fetchOHLCV (symbol = 'BTC/USDT', timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
