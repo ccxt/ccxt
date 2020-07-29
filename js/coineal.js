@@ -9,7 +9,7 @@ module.exports = class coineal extends Exchange {
             'id': 'coineal',
             'name': 'Coineal',
             'countries': [],
-            'rateLimit': 250,
+            'rateLimit': 1000,
             'has': {
                 'fetchMarkets': true,
                 'fetchOHLCV': true,
@@ -624,7 +624,7 @@ module.exports = class coineal extends Exchange {
             }
         }
         let trades = this.safeValue (order, 'tradeList');
-        let price = this.safeFloat (order, 'total_price');
+        let price = this.safeFloat (order, 'avg_price');
         if (type === 'limit') {
             price = this.safeFloat (order, 'price');
         }
