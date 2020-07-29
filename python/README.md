@@ -1,6 +1,6 @@
 # CCXT – CryptoCurrency eXchange Trading Library
 
-[![Build Status](https://travis-ci.org/ccxt/ccxt.svg?branch=master)](https://travis-ci.org/ccxt/ccxt) [![npm](https://img.shields.io/npm/v/ccxt.svg)](https://npmjs.com/package/ccxt) [![PyPI](https://img.shields.io/pypi/v/ccxt.svg)](https://pypi.python.org/pypi/ccxt) [![NPM Downloads](https://img.shields.io/npm/dm/ccxt.svg)](https://www.npmjs.com/package/ccxt) [![Discord](https://img.shields.io/discord/690203284119617602?logo=discord&logoColor=white)](https://discord.gg/dhzSKYU) [![Supported Exchanges](https://img.shields.io/badge/exchanges-123-blue.svg)](https://github.com/ccxt/ccxt/wiki/Exchange-Markets) [![Open Collective](https://opencollective.com/ccxt/backers/badge.svg)](https://opencollective.com/ccxt)
+[![Build Status](https://travis-ci.org/ccxt/ccxt.svg?branch=master)](https://travis-ci.org/ccxt/ccxt) [![npm](https://img.shields.io/npm/v/ccxt.svg)](https://npmjs.com/package/ccxt) [![PyPI](https://img.shields.io/pypi/v/ccxt.svg)](https://pypi.python.org/pypi/ccxt) [![NPM Downloads](https://img.shields.io/npm/dm/ccxt.svg)](https://www.npmjs.com/package/ccxt) [![Discord](https://img.shields.io/discord/690203284119617602?logo=discord&logoColor=white)](https://discord.gg/dhzSKYU) [![Supported Exchanges](https://img.shields.io/badge/exchanges-122-blue.svg)](https://github.com/ccxt/ccxt/wiki/Exchange-Markets) [![Open Collective](https://opencollective.com/ccxt/backers/badge.svg)](https://opencollective.com/ccxt)
 [![Twitter Follow](https://img.shields.io/twitter/follow/ccxt_official.svg?style=social&label=CCXT)](https://twitter.com/ccxt_official)
 
 A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
@@ -52,12 +52,11 @@ Current feature list:
 
 ## Supported Cryptocurrency Exchange Markets
 
-The CCXT library currently supports the following 123 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 122 cryptocurrency exchange markets and trading APIs:
 
 | logo                                                                                                                                                                                          | id                 | name                                                                                 | ver | doc                                                                                          | certified                                                                                                                   | pro                                                                          |
 |-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------|--------------------------------------------------------------------------------------|:---:|:--------------------------------------------------------------------------------------------:|-----------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
 | [![acx](https://user-images.githubusercontent.com/1294454/30247614-1fe61c74-9621-11e7-9e8c-f1a627afa279.jpg)](https://acx.io)                                                                 | acx                | [ACX](https://acx.io)                                                                | 2   | [API](https://acx.io/documents/api_v2)                                                       |                                                                                                                             |                                                                              |
-| [![anxpro](https://user-images.githubusercontent.com/1294454/27765983-fd8595da-5ec9-11e7-82e3-adb3ab8c2612.jpg)](https://anxpro.com)                                                          | anxpro             | [ANXPro](https://anxpro.com)                                                         | *   | [API](https://anxv2.docs.apiary.io)                                                          |                                                                                                                             |                                                                              |
 | [![aofex](https://user-images.githubusercontent.com/51840849/77670271-056d1080-6f97-11ea-9ac2-4268e9ed0c1f.jpg)](https://aofex.com/#/register?key=9763840)                                    | aofex              | [AOFEX](https://aofex.com/#/register?key=9763840)                                    | *   | [API](https://aofex.zendesk.com/hc/en-us/sections/360005576574-API)                          |                                                                                                                             |                                                                              |
 | [![bcex](https://user-images.githubusercontent.com/51840849/77231516-851c6900-6bac-11ea-8fd6-ee5c23eddbd4.jpg)](https://www.bcex.top/register?invite_code=758978&lang=en)                     | bcex               | [BCEX](https://www.bcex.top/register?invite_code=758978&lang=en)                     | 1   | [API](https://github.com/BCEX-TECHNOLOGY-LIMITED/API_Docs/wiki/Interface)                    |                                                                                                                             |                                                                              |
 | [![bequant](https://user-images.githubusercontent.com/1294454/55248342-a75dfe00-525a-11e9-8aa2-05e9dca943c6.jpg)](https://bequant.io)                                                         | bequant            | [Bequant](https://bequant.io)                                                        | 2   | [API](https://api.bequant.io/)                                                               |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
@@ -226,13 +225,13 @@ console.log (ccxt.exchanges) // print all available exchanges
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.32.20/dist/ccxt.browser.js
-* unpkg: https://unpkg.com/ccxt@1.32.20/dist/ccxt.browser.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.32.21/dist/ccxt.browser.js
+* unpkg: https://unpkg.com/ccxt@1.32.21/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.32.20/dist/ccxt.browser.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.32.21/dist/ccxt.browser.js"></script>
 ```
 
 Creates a global `ccxt` object:
