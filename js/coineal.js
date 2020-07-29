@@ -9,7 +9,7 @@ module.exports = class coineal extends Exchange {
             'id': 'coineal',
             'name': 'Coineal',
             'countries': [],
-            'rateLimit': 250,
+            'rateLimit': 1000,
             'has': {
                 'fetchMarkets': true,
                 'fetchOHLCV': true,
