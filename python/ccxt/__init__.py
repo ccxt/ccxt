@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.32.20'
+__version__ = '1.32.21'
 
 # ----------------------------------------------------------------------------
 
@@ -69,7 +69,6 @@ from ccxt.base.errors import RequestTimeout                 # noqa: F401
 from ccxt.base.errors import error_hierarchy                # noqa: F401
 
 from ccxt.acx import acx                                    # noqa: F401
-from ccxt.anxpro import anxpro                              # noqa: F401
 from ccxt.aofex import aofex                                # noqa: F401
 from ccxt.bcex import bcex                                  # noqa: F401
 from ccxt.bequant import bequant                            # noqa: F401
@@ -194,7 +193,6 @@ from ccxt.zb import zb                                      # noqa: F401
 
 exchanges = [
     'acx',
-    'anxpro',
     'aofex',
     'bcex',
     'bequant',
