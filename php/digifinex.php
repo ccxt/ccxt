@@ -76,6 +76,7 @@ class digifinex extends Exchange {
                         'spot/symbols',
                         'time',
                         'trades',
+                        'trades/symbols',
                     ),
                 ),
                 'private' => array(
@@ -162,30 +163,35 @@ class digifinex extends Exchange {
         ));
     }
 
-    public function fetch_markets_by_type($type, $params = array ()) {
-        $method = 'publicGet' . $this->capitalize($type) . 'Symbols';
-        $response = $this->$method ($params);
+    public function fetch_markets($params = array ()) {
+        $options = $this->safe_value($this->options, 'fetchMarkets', array());
+        $method = $this->safe_string($options, 'method', 'fetch_markets_v2');
+        return $this->$method ($params);
+    }
+
+    public function fetch_markets_v2($params = array ()) {
+        $response = $this->publicGetTradesSymbols ($params);
         //
         //     {
-        //         "symbol_list" => [
-        //             array(
+        //         "symbol_list":[
+        //             {
         //                 "order_types":["LIMIT","MARKET"],
         //                 "quote_asset":"USDT",
         //                 "minimum_value":2,
         //                 "amount_precision":4,
         //                 "$status":"TRADING",
-        //                 "minimum_amount":0.001,
-        //                 "$symbol":"LTC_USDT",
-        //                 "margin_rate":0.3,
+        //                 "minimum_amount":0.0001,
+        //                 "$symbol":"BTC_USDT",
+        //                 "is_allow":1,
         //                 "zone":"MAIN",
-        //                 "base_asset":"LTC",
+        //                 "base_asset":"BTC",
         //                 "price_precision":2
-        //             ),
+        //             }
         //         ],
         //         "code":0
         //     }
         //
-        $markets = $this->safe_value($response, 'symbols_list', array());
+        $markets = $this->safe_value($response, 'symbol_list', array());
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
@@ -223,7 +229,9 @@ class digifinex extends Exchange {
             // $status = $this->safe_string($market, 'status');
             // $active = ($status === 'TRADING');
             //
-            $active = null;
+            $isAllowed = $this->safe_value($market, 'is_allow', 1);
+            $active = $isAllowed ? true : false;
+            $type = 'spot';
             $spot = ($type === 'spot');
             $margin = ($type === 'margin');
             $result[] = array(
@@ -245,7 +253,7 @@ class digifinex extends Exchange {
         return $result;
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets_v1($params = array ()) {
         $response = $this->publicGetMarkets ($params);
         //
         //     {
