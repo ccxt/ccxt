@@ -823,21 +823,26 @@ class kucoin extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $timestamp = $this->milliseconds();
+        $id = $this->safe_string($data, 'orderId');
         $order = array(
-            'id' => $this->safe_string($data, 'orderId'),
+            'id' => $id,
+            'clientOrderId' => $clientOrderId,
+            'info' => $data,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
             'price' => $price,
+            'amount' => null,
             'cost' => null,
+            'average' => null,
             'filled' => null,
             'remaining' => null,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'status' => null,
             'fee' => null,
-            'status' => 'open',
-            'clientOrderId' => $clientOrderId,
-            'info' => $data,
+            'trades' => null,
         );
         if (!$this->safe_value($params, 'quoteAmount')) {
             $order['amount'] = $amount;
