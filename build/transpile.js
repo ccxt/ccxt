@@ -1318,12 +1318,12 @@ class Transpiler {
     // ============================================================================
 
     transpileExchangeTests () {
-        this.transpileTradeStructureTests ();
+        this.transpileTradeTests ();
     }
 
     // ============================================================================
 
-    transpileTradeStructureTests () {
+    transpileTradeTests () {
         const jsFile = './js/test/Exchange/test.trade.js'
         const pyFile = './python/test/test_trade.py'
         const phpFile = './php/test/test_trade.php'
