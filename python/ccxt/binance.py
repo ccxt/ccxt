@@ -88,6 +88,7 @@ class binance(Exchange):
                 'test': {
                     'fapiPublic': 'https://testnet.binancefuture.com/fapi/v1',
                     'fapiPrivate': 'https://testnet.binancefuture.com/fapi/v1',
+                    'fapiPrivateV2': 'https://testnet.binancefuture.com/fapi/v2',
                     'public': 'https://testnet.binance.vision/api/v3',
                     'private': 'https://testnet.binance.vision/api/v3',
                     'v3': 'https://testnet.binance.vision/api/v3',
@@ -98,6 +99,7 @@ class binance(Exchange):
                     'sapi': 'https://api.binance.com/sapi/v1',
                     'fapiPublic': 'https://fapi.binance.com/fapi/v1',
                     'fapiPrivate': 'https://fapi.binance.com/fapi/v1',
+                    'fapiPrivateV2': 'https://fapi.binance.com/fapi/v2',
                     'public': 'https://api.binance.com/api/v3',
                     'private': 'https://api.binance.com/api/v3',
                     'v3': 'https://api.binance.com/api/v3',
@@ -280,6 +282,13 @@ class binance(Exchange):
                         'order',
                         'allOpenOrders',
                         'listenKey',
+                    ],
+                },
+                'fapiPrivateV2': {
+                    'get': [
+                        'account',
+                        'balance',
+                        'positionRisk',
                     ],
                 },
                 'v3': {
@@ -626,7 +635,9 @@ class binance(Exchange):
         type = self.safe_string(params, 'type', defaultType)
         method = 'privateGetAccount'
         if type == 'future':
-            method = 'fapiPrivateGetAccount'
+            options = self.safe_value(self.options, 'future', {})
+            fetchBalanceOptions = self.safe_value(options, 'fetchBalance', {})
+            method = self.safe_string(fetchBalanceOptions, 'method', 'fapiPrivateV2GetAccount')
         elif type == 'margin':
             method = 'sapiGetMarginAccount'
         query = self.omit(params, 'type')
@@ -668,6 +679,8 @@ class binance(Exchange):
         #
         # futures(fapi)
         #
+        #     fapiPrivateGetAccount
+        #
         #     {
         #         "feeTier":0,
         #         "canTrade":true,
@@ -707,6 +720,72 @@ class binance(Exchange):
         #         ]
         #     }
         #
+        #     fapiPrivateV2GetAccount
+        #
+        #     {
+        #         "feeTier":0,
+        #         "canTrade":true,
+        #         "canDeposit":true,
+        #         "canWithdraw":true,
+        #         "updateTime":0,
+        #         "totalInitialMargin":"0.00000000",
+        #         "totalMaintMargin":"0.00000000",
+        #         "totalWalletBalance":"0.00000000",
+        #         "totalUnrealizedProfit":"0.00000000",
+        #         "totalMarginBalance":"0.00000000",
+        #         "totalPositionInitialMargin":"0.00000000",
+        #         "totalOpenOrderInitialMargin":"0.00000000",
+        #         "totalCrossWalletBalance":"0.00000000",
+        #         "totalCrossUnPnl":"0.00000000",
+        #         "availableBalance":"0.00000000",
+        #         "maxWithdrawAmount":"0.00000000",
+        #         "assets":[
+        #             {
+        #                 "asset":"BNB",
+        #                 "walletBalance":"0.01000000",
+        #                 "unrealizedProfit":"0.00000000",
+        #                 "marginBalance":"0.01000000",
+        #                 "maintMargin":"0.00000000",
+        #                 "initialMargin":"0.00000000",
+        #                 "positionInitialMargin":"0.00000000",
+        #                 "openOrderInitialMargin":"0.00000000",
+        #                 "maxWithdrawAmount":"0.01000000",
+        #                 "crossWalletBalance":"0.01000000",
+        #                 "crossUnPnl":"0.00000000",
+        #                 "availableBalance":"0.01000000"
+        #             }
+        #         ],
+        #         "positions":[
+        #             {
+        #                 "symbol":"BTCUSDT",
+        #                 "initialMargin":"0",
+        #                 "maintMargin":"0",
+        #                 "unrealizedProfit":"0.00000000",
+        #                 "positionInitialMargin":"0",
+        #                 "openOrderInitialMargin":"0",
+        #                 "leverage":"20",
+        #                 "isolated":false,
+        #                 "entryPrice":"0.00000",
+        #                 "maxNotional":"5000000",
+        #                 "positionSide":"BOTH"
+        #             },
+        #         ]
+        #     }
+        #
+        #     fapiPrivateV2GetBalance
+        #
+        #     [
+        #         {
+        #             "accountAlias":"FzFzXquXXqoC",
+        #             "asset":"BNB",
+        #             "balance":"0.01000000",
+        #             "crossWalletBalance":"0.01000000",
+        #             "crossUnPnl":"0.00000000",
+        #             "availableBalance":"0.01000000",
+        #             "maxWithdrawAmount":"0.01000000"
+        #         }
+        #     ]
+        #
         result = {'info': response}
         if (type == 'spot') or (type == 'margin'):
             balances = self.safe_value_2(response, 'balances', 'userAssets', [])
@@ -719,14 +798,17 @@ class binance(Exchange):
                 account['used'] = self.safe_float(balance, 'locked')
                 result[code] = account
         else:
-            balances = self.safe_value(response, 'assets', [])
+            balances = response
+            if not isinstance(response, list):
+                balances = self.safe_value(response, 'assets', [])
             for i in range(0, len(balances)):
                 balance = balances[i]
                 currencyId = self.safe_string(balance, 'asset')
                 code = self.safe_currency_code(currencyId)
                 account = self.account()
+                account['free'] = self.safe_float(balance, 'availableBalance')
                 account['used'] = self.safe_float(balance, 'initialMargin')
-                account['total'] = self.safe_float(balance, 'marginBalance')
+                account['total'] = self.safe_float_2(balance, 'marginBalance', 'balance')
                 result[code] = account
         return self.parse_balance(result)
 
@@ -1951,7 +2033,7 @@ class binance(Exchange):
                 }
             else:
                 raise AuthenticationError(self.id + ' userDataStream endpoint requires `apiKey` credential')
-        if (api == 'private') or (api == 'sapi') or (api == 'wapi' and path != 'systemStatus') or (api == 'fapiPrivate'):
+        if (api == 'private') or (api == 'sapi') or (api == 'wapi' and path != 'systemStatus') or (api == 'fapiPrivate') or (api == 'fapiPrivateV2'):
             self.check_required_credentials()
             query = None
             recvWindow = self.safe_integer(self.options, 'recvWindow', 5000)
