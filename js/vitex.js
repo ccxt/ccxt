@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, DDoSProtection, AuthenticationError, RateLimitExceeded, PermissionDenied } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -34,6 +34,8 @@ module.exports = class vitex extends Exchange {
                 'fetchOrders': true,
                 'fetchMyTrades': true,
                 'fetchOpenOrders': true,
+                'fetchDeposits': true,
+                'fetchWithdrawals': true,
             },
             'timeframes': {
                 '1m': 'minute',
@@ -69,6 +71,7 @@ module.exports = class vitex extends Exchange {
                         'time',
                         'depth',
                         'trades',
+                        'trades/all',
                         'klines',
                         'markets',
                         'ticker/24hr',
@@ -291,13 +294,40 @@ module.exports = class vitex extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        // {
+        //     "code": 0,
+        //     "msg": "ok",
+        //     "data": {
+        //       "timestamp": 1588170501936,
+        //       "asks": [
+        //         [
+        //             "0.025750",
+        //             "0.0323"
+        //         ],
+        //         [
+        //             "0.026117",
+        //             "0.0031"
+        //         ]
+        //       ],
+        //       "bids": [
+        //         [
+        //             "0.024820",
+        //             "0.0004"
+        //         ],
+        //         [
+        //             "0.024161",
+        //             "0.0042"
+        //         ]
+        //       ]
+        //     }
+        //   }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit; // default 500, max 5000
+            request['limit'] = limit; // default 100
         }
         const response = await this.publicGetDepth (this.extend (request, params));
         const depth = this.safeValue (response, 'data');
@@ -316,30 +346,104 @@ module.exports = class vitex extends Exchange {
             request['limit'] = limit; // default = 500, maximum = 1000
         }
         params['symbol'] = market['id'];
-        const response = await this.publicGetTrades (this.extend (request, params));
+        const response = await this.publicGetTradesAll (this.extend (request, params));
         // {
         //     "code": 0,
         //     "msg": "ok",
-        //     "data": [
-        //       {
-        //           "timestamp": 1588214534000,
-        //           "price": "0.024933",
-        //           "amount": "0.0180",
-        //           "side": 0
-        //       },
-        //       {
-        //           "timestamp": 1588214364000,
-        //           "price": "0.024535",
-        //           "amount": "0.0127",
-        //           "side": 0
-        //       }
-        //     ]
+        //     "data": {
+        //       "height": null,
+        //       "trade": [
+        //         {
+        //           "tradeId": "d3e7529de05e94d247a4e7ef58a56b069b059d52",
+        //           "symbol": "VX_ETH-000",
+        //           "tradeTokenSymbol": "VX",
+        //           "quoteTokenSymbol": "ETH-000",
+        //           "tradeToken": "tti_564954455820434f494e69b5",
+        //           "quoteToken": "tti_06822f8d096ecdf9356b666c",
+        //           "price": "0.000228",
+        //           "quantity": "0.0001",
+        //           "amount": "0.00000002",
+        //           "time": 1586944732,
+        //           "side": 0,
+        //           "buyFee": "0.00000000",
+        //           "sellFee": "0.00000000",
+        //           "blockHeight": 260
+        //         }
+        //       ],
+        //       "total": -1
+        //     }
         //   }
         const data = this.safeValue (response, 'data');
-        return this.parseTrades (data, market, since, limit);
+        const trade = this.safeValue (data, 'trade');
+        return this.parseTrades (trade, market, since, limit);
+    }
+
+    parseTrade (trade, market) {
+        const timestamp = this.safeTimestamp (trade, 'time');
+        const price = this.safeFloat (trade, 'price');
+        const cost = this.safeFloat (trade, 'amount');
+        const sideTmp = this.safeInteger (trade, 'side');
+        const id = this.safeString (trade, 'tradeId');
+        const side = sideTmp === 1 ? 'sell' : 'buy';
+        const buyFee = this.safeFloat (trade, 'buyFee');
+        const sellFee = this.safeFloat (trade, 'sellFee');
+        const amount = this.safeFloat (trade, 'quantity');
+        const quoteTokenSymbol = this.safeString (trade, 'quoteTokenSymbol');
+        const fee = {
+            'cost': undefined,
+            'currency': this.formatSymbolToken (quoteTokenSymbol),
+        };
+        if (side === 'buy') {
+            fee['cost'] = buyFee;
+        } else {
+            fee['cost'] = sellFee;
+        }
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        return {
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'id': id,
+            'order': id,
+            'type': undefined,
+            'takerOrMaker': undefined,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
+        };
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        // {
+        //     "code": 0,
+        //     "msg": "ok",
+        //     "data": {
+        //       "t": [
+        //         1554207060
+        //       ],
+        //       "c": [
+        //         1.0
+        //       ],
+        //       "p": [
+        //         1.0
+        //       ],
+        //       "h": [
+        //         1.0
+        //       ],
+        //       "l": [
+        //         1.0
+        //       ],
+        //       "v": [
+        //         12970.8
+        //       ]
+        //     }
+        // }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -368,7 +472,46 @@ module.exports = class vitex extends Exchange {
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //     [
+        //         1591478520000,
+        //         "0.02501300",
+        //         "0.02501800",
+        //         "0.02500000",
+        //         "0.02500000",
+        //         "22.19000000",
+        //         1591478579999,
+        //         "0.55490906",
+        //         40,
+        //         "10.92900000",
+        //         "0.27336462",
+        //         "0"
+        //     ]
+        //
+        return [
+            this.safeInteger (ohlcv, 0),
+            this.safeFloat (ohlcv, 1),
+            this.safeFloat (ohlcv, 2),
+            this.safeFloat (ohlcv, 3),
+            this.safeFloat (ohlcv, 4),
+            this.safeFloat (ohlcv, 5),
+        ];
+    }
+
     async fetchBidsAsks (symbol, params = {}) {
+        // {
+        //     "code": 0,
+        //     "msg": "ok",
+        //     "data": {
+        //       "symbol": "BTC-000_USDT-000",
+        //       "bidPrice": "7600.0000",
+        //       "bidQuantity": "0.7039",
+        //       "askPrice": "7725.0000",
+        //       "askQuantity": "0.0001",
+        //       "height": null
+        //     }
+        // }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -442,33 +585,6 @@ module.exports = class vitex extends Exchange {
         return this.parseBalance (result);
     }
 
-    parseTrade (trade, market) {
-        const timestamp = this.safeInteger (trade, 'timestamp');
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'amount');
-        const sideTmp = this.safeInteger (trade, 'side');
-        const side = sideTmp === 1 ? 'sell' : 'buy';
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        return {
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'id': undefined,
-            'order': undefined,
-            'type': undefined,
-            'takerOrMaker': undefined,
-            'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': price * amount,
-            'fee': undefined,
-        };
-    }
-
     parseOrderStatus (status) {
         const statuses = {
             '3': 'open',
@@ -518,10 +634,11 @@ module.exports = class vitex extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const timestamp = this.safeInteger (order, 'createTime');
+        const timestamp = this.safeTimestamp (order, 'createTime');
         const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'quantity');
         const filled = this.safeFloat (order, 'executedQuantity');
+        const quoteTokenSymbol = this.safeString (order, 'quoteTokenSymbol');
         let remaining = undefined;
         const cost = this.safeFloat (order, 'amount');
         if (filled !== undefined) {
@@ -536,7 +653,7 @@ module.exports = class vitex extends Exchange {
         const side = sideTmp === 1 ? 'sell' : 'buy';
         const fee = {
             'cost': this.safeFloat (order, 'fee'),
-            'currency': undefined,
+            'currency': this.formatSymbolToken (quoteTokenSymbol),
         };
         return {
             'info': order,
@@ -585,6 +702,15 @@ module.exports = class vitex extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        // {
+        //     "code": 0,
+        //     "msg": "ok",
+        //     "data": {
+        //       "symbol": "VX_ETH-000",
+        //       "orderId": "c35dd9868ea761b22fc76ba35cf8357db212736ecb56399523126c515113f19d",
+        //       "status": 1
+        //     }
+        // }
         await this.loadMarkets ();
         const market = this.market (symbol);
         // the next 5 lines are added to support for testing orders
@@ -607,8 +733,14 @@ module.exports = class vitex extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        const address = this.safeValue (params, 'address');
-        const orderId = this.safeValue (params, 'orderId');
+        const address = this.safeString (params, 'address');
+        const orderId = this.safeString (params, 'orderId');
+        if (address === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders requires a address argument');
+        }
+        if (orderId === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders requires a orderId argument');
+        }
         const request = {
             'address': address,
             'orderId': orderId,
@@ -639,7 +771,8 @@ module.exports = class vitex extends Exchange {
         }
         const response = await this.publicGetOrders (this.extend (request, params));
         const data = this.safeValue (response, 'data');
-        return this.parseOrders (data, market, since, limit);
+        const orders = this.safeValue (data, 'order');
+        return this.parseOrders (orders, market, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -658,7 +791,8 @@ module.exports = class vitex extends Exchange {
         request['address'] = address;
         const response = await this.publicGetOrdersOpen (this.extend (request, params));
         const data = this.safeValue (response, 'data');
-        return this.parseOrders (data, market, since, limit);
+        const orders = this.safeValue (data, 'order');
+        return this.parseOrders (orders, market, since, limit);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -667,18 +801,27 @@ module.exports = class vitex extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        // {
+        //     "code": 0,
+        //     "msg": "ok",
+        //     "data": {
+        //       "symbol": "VX_ETH-000",
+        //       "orderId": "c35dd9868ea761b22fc76ba35cf8357db212736ecb56399523126c515113f19d",
+        //       "cancelRequest": "2d015156738071709b11e8d6fa5a700c2fd30b28d53aa6160fd2ac2e573c7595",
+        //       "status": 6
+        //     }
+        //   }
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument');
         }
-        const orderId = this.safeValue (params, 'orderId');
-        if (orderId === undefined) {
+        if (id === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder requires a orderId argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-            'orderId': orderId,
+            'orderId': this.id,
         };
         const method = 'privateDeleteOrder';
         const response = await this[method] (this.extend (request, params));
@@ -687,12 +830,13 @@ module.exports = class vitex extends Exchange {
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
-        // await this.loadMarkets ();
-        const address = this.safeValue (params, 'address');
-        const tokenId = this.safeValue (params, 'tokenId');
-        const request = {};
-        request['address'] = address;
-        request['tokenId'] = tokenId;
+        const tokenId = this.safeString (params, 'tokenId');
+        const request = {
+            'address': this.walletAddress,
+        };
+        if (tokenId === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder requires a tokenId in params');
+        }
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -710,23 +854,25 @@ module.exports = class vitex extends Exchange {
         //     ],
         //     "total": 16
         //   }
-        const records = response['data']['record'];
+        const data = this.safeValue (response, 'data');
+        const records = this.safeValue (data, 'record');
         const transactions = [];
         for (let i = 0; i < records.length; i++) {
             if (records[i]['type'] === 1) {
-                transactions.push (this.parseTransaction (records[i], 1, address, currency));
+                transactions.push (records['i']);
             }
         }
-        return transactions;
+        return this.parseTransactions (transactions, currency, since, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
-        // await this.loadMarkets ();
-        const address = this.safeValue (params, 'address');
-        const tokenId = this.safeValue (params, 'tokenId');
-        const request = {};
-        request['address'] = address;
-        request['tokenId'] = tokenId;
+        const tokenId = this.safeString (params, 'tokenId');
+        const request = {
+            'address': this.walletAddress,
+        };
+        if (tokenId === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder requires a tokenId in params');
+        }
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -744,14 +890,15 @@ module.exports = class vitex extends Exchange {
         //     ],
         //     "total": 16
         //   }
-        const records = response['data']['record'];
+        const data = this.safeValue (response, 'data');
+        const records = this.safeValue (data, 'record');
         const transactions = [];
         for (let i = 0; i < records.length; i++) {
             if (records[i]['type'] === 2) {
-                transactions.push (this.parseTransaction (records[i], 2, address, currency));
+                transactions.push (records['i']);
             }
         }
-        return transactions;
+        return this.parseTransactions (transactions, currency, since, limit);
     }
 
     parseTransactionStatusByType (status, type = undefined) {
@@ -776,7 +923,7 @@ module.exports = class vitex extends Exchange {
         return (status in statuses[type]) ? statuses[type][status] : status;
     }
 
-    parseTransaction (transaction, tmType, address, currency = undefined) {
+    parseTransaction (transaction, currency = undefined) {
         // "data": {
         //     "record": [
         //       {
@@ -790,7 +937,8 @@ module.exports = class vitex extends Exchange {
         //   }
         const currencyId = this.formatSymbolToken (this.safeString (transaction, 'tokenSymbol'));
         const code = this.safeCurrencyCode (currencyId, currency);
-        const timestamp = this.safeInteger (transaction, 'time');
+        const timestamp = this.safeTimestamp (transaction, 'time');
+        const tmType = this.safeInteger (transaction, 'type');
         const type = tmType === 1 ? 'deposit' : 'withdrawal';
         const status = 'ok';
         const amount = this.safeFloat (transaction, 'amount');
@@ -800,7 +948,7 @@ module.exports = class vitex extends Exchange {
             'txid': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'address': address,
+            'address': this.walletAddress,
             'tag': undefined,
             'type': type,
             'amount': amount,
@@ -863,11 +1011,9 @@ module.exports = class vitex extends Exchange {
                 // response in format {'msg': 'The coin does not exist.', 'code': 0}
                 const message = this.safeString (response, 'msg');
                 const error = this.safeInteger (response, 'code');
-
                 if (message !== undefined && error !== 0) {
                     this.throwExactlyMatchedException (this.exceptions, message, this.id + ' ' + message);
                 }
-
                 if (error !== 0) {
                     // a workaround for {"code": 1003,"msg":"Invalid API-key, IP, or permissions for action."}
                     // despite that their message is very confusing, it is raised by Binance
