@@ -124,6 +124,10 @@ class binance extends Exchange {
                         'margin/myTrades',
                         'margin/maxBorrowable',
                         'margin/maxTransferable',
+                        'margin/isolated/transfer',
+                        'margin/isolated/account',
+                        'margin/isolated/pair',
+                        'margin/isolated/allPairs',
                         'futures/transfer',
                         // https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
                         'capital/config/getall', // get networks for withdrawing USDT ERC20 vs USDT Omni
@@ -168,10 +172,13 @@ class binance extends Exchange {
                         'margin/loan',
                         'margin/repay',
                         'margin/order',
+                        'margin/isolated/create',
+                        'margin/isolated/transfer',
                         'sub-account/margin/enable',
                         'sub-account/margin/enable',
                         'sub-account/futures/enable',
                         'userDataStream',
+                        'userDataStream/isolated',
                         'futures/transfer',
                         // lending
                         'lending/customizedFixed/purchase',
@@ -180,10 +187,12 @@ class binance extends Exchange {
                     ),
                     'put' => array(
                         'userDataStream',
+                        'userDataStream/isolated',
                     ),
                     'delete' => array(
                         'margin/order',
                         'userDataStream',
+                        'userDataStream/isolated',
                     ),
                 ),
                 'wapi' => array(
