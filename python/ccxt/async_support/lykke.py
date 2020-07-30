@@ -278,10 +278,9 @@ class lykke(Exchange):
             'AssetPairId': market['id'],
             'OrderAction': self.capitalize(side),
             'Volume': amount,
+            'Asset': market['baseId'],
         }
-        if type == 'market':
-            query['Asset'] = market['base'] if (side == 'buy') else market['quote']
-        elif type == 'limit':
+        if type == 'limit':
             query['Price'] = price
         method = 'privatePostOrdersV2' + self.capitalize(type)
         result = await getattr(self, method)(self.extend(query, params))
