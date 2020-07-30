@@ -145,6 +145,7 @@ module.exports = class btcmarkets extends Exchange {
                 'MissingArgument': InvalidOrder,
                 'OrderAlreadyCancelled': InvalidOrder,
                 'OrderNotFound': OrderNotFound,
+                'OrderStatusIsFinal': InvalidOrder,
             },
             'fees': {
                 'percentage': true,
