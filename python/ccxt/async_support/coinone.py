@@ -25,8 +25,11 @@ class coinone(Exchange):
             'rateLimit': 667,
             'version': 'v2',
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
                 'createMarketOrder': False,
+                'createOrder': True,
+                'fetchBalance': True,
                 'fetchCurrencies': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,

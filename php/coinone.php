@@ -20,8 +20,11 @@ class coinone extends Exchange {
             'rateLimit' => 667,
             'version' => 'v2',
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => false,
                 'createMarketOrder' => false,
+                'createOrder' => true,
+                'fetchBalance' => true,
                 'fetchCurrencies' => false,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
