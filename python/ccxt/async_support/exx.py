@@ -21,9 +21,16 @@ class exx(Exchange):
             'rateLimit': 1000 / 10,
             'userAgent': self.userAgents['chrome'],
             'has': {
-                'fetchOrder': True,
-                'fetchTickers': True,
+                'cancelOrder': True,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchMarkets': True,
                 'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/37770292-fbf613d0-2de4-11e8-9f79-f2dc451b8ccb.jpg',
