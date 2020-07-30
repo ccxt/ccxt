@@ -17,8 +17,6 @@ try:
 except NameError:
     basestring = str
 
-# ----------------------------------------------------------------------------
-
 
 def test_trade(exchange, trade, symbol, now):
     assert trade
@@ -45,19 +43,19 @@ def test_trade(exchange, trade, symbol, now):
     fees = trade['fees'] if ('fees' in trade) else None
     # logical XOR
     if fee or fees:
-        assert not(fee and fees)
+        assert not (fee and fees)
 
     if fee:
-        assert ('cost' in fee) and ('currency' in fee)
+        assert('cost' in fee) and ('currency' in fee)
 
     if fees:
         assert isinstance(fees, list)
         for i in range(0, len(fees)):
             fee = fees[i]
-            assert ('cost' in fee) and ('currency' in fee)
+            assert('cost' in fee) and ('currency' in fee)
 
     id = trade['id']
-    assert (id is None) or (isinstance(id, basestring))
+    assert(id is None) or (isinstance(id, basestring))
     timestamp = trade['timestamp']
     assert isinstance(timestamp, numbers.Real) or timestamp is None
     if timestamp:

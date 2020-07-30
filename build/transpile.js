@@ -193,6 +193,7 @@ class Transpiler {
             [ /\.shift\s*\(\)/g, '.pop(0)' ],
             [ /Number\.MAX_SAFE_INTEGER/g, 'float(\'inf\')'],
             [ /function\s*(\w+\s*\([^)]+\))\s*{/g, 'def $1:'],
+            [ /assert\s*\((.+)\);/g, 'assert $1'],
 
         // insert common regexes in the middle (critical)
         ].concat (this.getCommonRegexes ()).concat ([
@@ -275,7 +276,6 @@ class Transpiler {
             [ /\=\=\sTrue/g, 'is True' ], // a correction for PEP8 E712, it likes "is True", not "== True"
             [ /\sdelete\s/g, ' del ' ],
             [ /(?<!#.+)null/, 'None' ],
-            [ /assert\s*\((.+)\);/g, 'assert $1'],
         ])
     }
 
@@ -1373,7 +1373,7 @@ class Transpiler {
         createFolderRecursively (python3Folder)
         createFolderRecursively (phpFolder)
 
-        //*
+        /*
 
         const classes = this.transpileDerivedExchangeFiles ('./js/', options, pattern)
 
@@ -1386,7 +1386,7 @@ class Transpiler {
         // this process won't work anymore as it will override the definitions
         this.exportTypeScriptDeclarations ('./ccxt.d.ts', classes)
 
-        //*/
+        */
 
         this.transpileErrorHierarchy ()
 

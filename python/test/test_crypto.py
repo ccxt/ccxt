@@ -37,6 +37,8 @@ assert hash(encode('sexyfish'), 'md5', 'hex') == 'c8a35464aa9d5683585786f44d5889
 assert hash(encode(''), 'sha1', 'hex') == 'da39a3ee5e6b4b0d3255bfef95601890afd80709'
 assert hash(encode('nutella'), 'sha1', 'hex') == 'b3d60a34b744159793c483b067c56d8affc5111a'
 
+# ---------------------------------------------------------------------------------------------------------------------
+
 privateKey = '1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a'
 
 assert(equals(ecdsa('1a', privateKey, 'p256', 'sha256'), {
@@ -117,6 +119,8 @@ pemKey = "\n".join(pemKeyArray)
 
 assert jwt({'chicken': 'salad'}, encode(pemKey), 'RS256') == 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJjaGlja2VuIjoic2FsYWQifQ.FSKD5Y6RNzkHTuHdvG3753U7QNZ-u-GUSPfP1FMjEaK0Rr_iyQTSSmHhkdYSFFnmBvrrN_l-UwKwir52WlsgmQm9HYm0kidxbj7fWwrK2E1oe0P7OjupFjv1BZxc5W69WeaHtOPWe28tiHiON1LCnax6HgfI5lcIBsESGIIBZMVeaioQn9gDVwea7JxJvAlrhDIWZowIHTIdCQocXip7g5jREWHeEIuJNug67mwnfAFxCjvTRiTd0Bw6oBwjM3FLya-RyEyWrejQOWSuC8CNWVUHISaSmEyZ7uM6wTi2m_58TaE9mQwlef32OPErPvvBpgL5pZIyQ4ymwrCIFQLBQQ'
 assert jwt({'lil': 'xan'}, encode('betrayed'), 'HS256') == 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsaWwiOiJ4YW4ifQ.md-oFvZagA-NXmZoRNyJOQ7zwK-PWUMmMQ_LI9ZOKaM'
+
+# ---------------------------------------------------------------------------------------------------------------------
 
 assert exchange.soliditySha3(['0x63581b9abf2b661da0ba247e0dda1b723dcff5e3', 100, 'lulwat']) == '0x1d3e95c10fc64aee6628ea59284503a4eafc6ff13c541f00753fbd2a66cea0f5'
 assert exchange.soliditySha3([234]) == '0x61c831beab28d67d1bb40b5ae1a11e2757fa842f031a2d0bc94a7867bc5d26c2'
