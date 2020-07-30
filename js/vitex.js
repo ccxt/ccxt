@@ -32,7 +32,7 @@ module.exports = class vitex extends Exchange {
                 'cancelOrder': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
-                'fetchMyTrades': true,
+                'fetchMyTrades': false,
                 'fetchOpenOrders': true,
                 'fetchDeposits': true,
                 'fetchWithdrawals': true,
@@ -80,6 +80,7 @@ module.exports = class vitex extends Exchange {
                         'balance',
                         'order',
                         'orders',
+                        'orders/open',
                         'deposit-withdraw',
                     ],
                 },
@@ -205,7 +206,8 @@ module.exports = class vitex extends Exchange {
         const query = this.omit (request, 'symbols');
         const response = await this.publicGetTicker24hr (this.extend (query, params));
         const data = this.safeValue (response, 'data');
-        if (data.length > 0) {
+        const dataLength = data.length;
+        if (dataLength) {
             return this.parseTicker (data[0], market);
         } else {
             throw new ExchangeError (this.id + ' fetch ticker failed ' + this.json (response));
@@ -733,17 +735,12 @@ module.exports = class vitex extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        const address = this.safeString (params, 'address');
-        const orderId = this.safeString (params, 'orderId');
-        if (address === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders requires a address argument');
-        }
-        if (orderId === undefined) {
+        if (id === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders requires a orderId argument');
         }
         const request = {
-            'address': address,
-            'orderId': orderId,
+            'address': this.walletAddress,
+            'orderId': id,
         };
         const response = await this.publicGetOrder (this.extend (request, params));
         const data = this.safeValue (response, 'data');
@@ -751,10 +748,6 @@ module.exports = class vitex extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const address = this.safeValue (params, 'address');
-        if (address === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders requires a address argument');
-        }
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
         }
@@ -762,6 +755,7 @@ module.exports = class vitex extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
+            'address': this.walletAddress,
         };
         if (since !== undefined) {
             request['startTime'] = since;
@@ -777,18 +771,14 @@ module.exports = class vitex extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const address = this.safeValue (params, 'address');
-        if (address === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders requires a address argument');
-        }
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a symbol argument');
         }
         let market = undefined;
         const request = {};
         market = this.market (symbol);
         request['symbol'] = market['id'];
-        request['address'] = address;
+        request['address'] = this.walletAddress;
         const response = await this.publicGetOrdersOpen (this.extend (request, params));
         const data = this.safeValue (response, 'data');
         const orders = this.safeValue (data, 'order');
