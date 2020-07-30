@@ -61,8 +61,8 @@ def test_trade(exchange, trade, symbol, now):
     timestamp = trade['timestamp']
     assert isinstance(timestamp, numbers.Real) or timestamp is None
     if timestamp:
-        assert timestamp > 1230940800000
-        assert timestamp < 2147483648000
+        assert timestamp > 1230940800000  # 03 Jan 2009 - first block
+        assert timestamp < 2147483648000  # 19 Jan 2038 - int32 overflows
         adjustedNow = now + 60000
         assert timestamp < adjustedNow, 'trade.timestamp is greater than or equal to current time: trade: ' + exchange.iso8601(timestamp) + ' now: ' + exchange.iso8601(now)
 

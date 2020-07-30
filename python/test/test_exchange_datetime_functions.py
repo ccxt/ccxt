@@ -35,6 +35,8 @@ assert exchange.iso8601('') is None
 assert exchange.iso8601('a') is None
 assert exchange.iso8601({}) is None
 
+# ----------------------------------------------------------------------------
+
 assert exchange.parse8601('1986-04-26T01:23:47.000Z') == 514862627000
 assert exchange.parse8601('1986-04-26T01:23:47.559Z') == 514862627559
 assert exchange.parse8601('1986-04-26T01:23:47.062Z') == 514862627062
@@ -52,6 +54,8 @@ assert exchange.parse8601() is None
 assert exchange.parse8601(None) is None
 assert exchange.parse8601({}) is None
 assert exchange.parse8601(33) is None
+
+# ----------------------------------------------------------------------------
 
 assert exchange.parse_date('1986-04-26 00:00:00') == 514857600000
 assert exchange.parse_date('1986-04-26T01:23:47.000Z') == 514862627000
