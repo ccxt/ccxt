@@ -1,7 +1,5 @@
 'use strict';
 
-// ----------------------------------------------------------------------------
-
 const assert = require ('assert');
 
 function testTrade (exchange, trade, symbol, now) {
