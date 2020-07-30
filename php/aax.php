@@ -6,6 +6,8 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use \ccxt\ExchangeError;
+use \ccxt\InvalidOrder;
 
 class aax extends Exchange {
 
@@ -19,6 +21,12 @@ class aax extends Exchange {
                 'fetchOHLCV' => true,
                 'fetchOrderBook' => true,
                 'fetchTrades' => true,
+                'fetchBalance' => true,
+                'createOrder' => true,
+                'cancelOrder' => true,
+                'fetchMyTrades' => true,
+                'fetchOpenOrders' => true,
+                'fetchClosedOrders' => true,
             ),
             'timeframes' => array(
                 '1m' => 1,
@@ -46,6 +54,47 @@ class aax extends Exchange {
                         'v2/market/trades',
                     ),
                 ),
+                'private' => array(
+                    'get' => array(
+                        'v2/user/balances',
+                        'v2/spot/trades',
+                        'v2/spot/openOrders',
+                        'v2/spot/orders',
+                    ),
+                    'post' => array(
+                        'v2/spot/orders',
+                    ),
+                    'delete' => array(
+                        'v2/spot/orders/cancel/{orderID}',
+                    ),
+                ),
+            ),
+            'exceptions' => array(
+                '400' => '\\ccxt\\BadRequest',
+                '401' => '\\ccxt\\AuthenticationError',
+                '403' => '\\ccxt\\AuthenticationError',
+                '429' => '\\ccxt\\PermissionDenied',
+                '10003' => '\\ccxt\\BadRequest',
+                '10006' => '\\ccxt\\AuthenticationError',
+                '20001' => '\\ccxt\\InsufficientFunds',
+                '20009' => '\\ccxt\\BadRequest',
+                '30004' => '\\ccxt\\BadRequest',
+                '30005' => '\\ccxt\\BadRequest',
+                '30006' => '\\ccxt\\BadRequest',
+                '30007' => '\\ccxt\\BadRequest',
+                '30008' => '\\ccxt\\BadRequest',
+                '30009' => '\\ccxt\\BadRequest',
+                '30011' => '\\ccxt\\CancelPending',
+                '30012' => '\\ccxt\\BadSymbol',
+                '30013' => '\\ccxt\\BadSymbol',
+                '30018' => '\\ccxt\\InvalidOrder',
+                '30019' => '\\ccxt\\InvalidOrder',
+                '30020' => '\\ccxt\\InvalidOrder',
+                '30023' => '\\ccxt\\InvalidOrder',
+                '30026' => '\\ccxt\\InvalidOrder',
+                '30027' => '\\ccxt\\ExchangeError',
+                '30030' => '\\ccxt\\InvalidOrder',
+                '30047' => '\\ccxt\\InvalidOrder',
             ),
             'errorMessages' => array(
                 '400' => 'There is something wrong with your request',
@@ -56,17 +105,64 @@ class aax extends Exchange {
                 '503' => 'Service is down for maintenance',
                 '504' => 'Request timeout expired',
                 '550' => 'You requested data that are not available at this moment',
+                '10003' => 'Parameter validation error',
+                '10006' => 'Session expired, please relogin',
+                '20001' => 'Insufficient balance. Please deposit to trade',
+                '20009' => 'Order amount must be positive',
+                '30004' => 'Minimum quantity is {0}',
+                '30005' => 'Quantity maximum precision is {0} decimal places',
+                '30006' => 'Price maximum precision is {0} decimal places',
+                '30007' => 'Minimum price is {0}',
+                '30008' => 'Stop price maximum precision is {0} decimal places',
+                '30009' => 'Stop Price cannot be less than {0}',
+                '30011' => 'The order is being cancelled, please wait',
+                '30012' => 'Unknown currency',
+                '30013' => 'Unknown symbol',
+                '30018' => 'Order price cannot be greater than {0}',
+                '30019' => 'Order quantity cannot be greater than {0}',
+                '30020' => 'Order price must be a multiple of {0}',
+                '30023' => 'Order failed, please try again',
+                '30026' => 'Quantity is not a multiple of {0}',
+                '30027' => 'Close position failed, it is recommended that you cancel the current order and then close the position',
+                '30028' => 'Symbol cannot be traded at this time',
+                '30030' => 'Price cannot be specified for market orders',
+                '30037' => 'Once stop limit order triggered, stop price cannot be amended',
+                '30040' => 'Order status has changed, please try again later',
+                '30047' => 'The order is closed. Can nott cancel',
+                '30049' => 'The order is being modified, please wait',
+                '40009' => 'Too many requests',
+                '50001' => 'Server side exception, please try again later',
+                '50002' => 'Server is busy, please try again later',
             ),
         ));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'];
-        $url .= '/' . $path;
+        $queryParams = '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
-        if ($query) {
-            $url .= '?' . $this->urlencode ($query);
+        if ($api === 'public' || $method === 'GET') {
+            if ($query) {
+                $queryParams .= '?' . $this->urlencode ($query);
+            }
         }
+        if ($api === 'private') {
+            $nonce = (string) $this->milliseconds ();
+            $signature = $nonce . ':' . $method . $queryParams;
+            if ($method === 'POST') {
+                if ($query) {
+                    $body = $this->json ($query);
+                    $signature .= $body;
+                }
+            }
+            $encodedHEX = $this->hmac ($this->encode ($signature), $this->encode ($this->secret), 'sha256');
+            $headers = array(
+                'X-ACCESS-KEY' => $this->apiKey,
+                'X-ACCESS-NONCE' => $nonce,
+                'X-ACCESS-SIGN' => $encodedHEX,
+            );
+        }
+        $url .= $queryParams;
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
@@ -253,40 +349,97 @@ class aax extends Exchange {
         //            "t":1592563993577
         //         )]
         //   }
-        $timestamp = $this->safe_integer($trade, (string) 't');
+        // Response From FetchMyTrdaes
+        // {
+        //        array(
+        //           {
+        //              "avgPrice":"8000",
+        //              "$base":"BTC",
+        //              "commission":"0.00000888",
+        //              "createTime":"2019-11-12T03:18:35Z",
+        //              "cumQty":"0.0148",
+        //              "filledPrice":"8000",
+        //              "filledQty":"0.0148",
+        //              "leavesQty":"0.0052",
+        //              "orderID":"wFo9ZPxAJ",
+        //              "orderQty":"0.02",
+        //              "orderStatus":2,
+        //              "orderType":2,
+        //              "$price":"8000",
+        //              "$quote":"USDT",
+        //              "rejectCode":0,
+        //              "rejectReason":null,
+        //              "$side":1,
+        //              "stopPrice":"0",
+        //              "$symbol":"BTCUSDT",
+        //              "taker":false,
+        //              "transactTime":"2019-11-12T03:16:16Z",
+        //              "updateTime":null,
+        //              "userID":"216214"
+        //           }
+        //        ),
+        //  }
+        $timestamp = $this->safe_string($trade, 't');
+        if ($timestamp === null) {
+            $timestamp = $this->safe_string($trade, 'createTime');
+            if ($timestamp !== null) {
+                $timestamp = $this->parse8601 ($timestamp);
+            }
+        }
         $symbol = null;
         if ($market !== null) {
             $symbol = $this->safe_string($market, 'symbol');
         }
-        $price = $this->safe_float($trade, 'p');
-        $amount = $this->safe_float($trade, 'q');
-        $side = 'BUY';
-        $cost = null;
-        if ($price !== null) {
-            if ($price < 0) {
-                $side = 'SELL';
-            }
-            $price = abs($price);
-            if ($amount !== null) {
-                if ($symbol !== null) {
-                    $cost = floatval ($this->cost_to_precision($symbol, $price * $amount));
-                }
+        if ($symbol === null) {
+            $base = $this->safe_string($trade, 'base');
+            $quote = $this->safe_string($trade, 'quote');
+            if ($base !== null && $quote !== null) {
+                $symbol = $base . '/' . $quote;
             }
         }
+        $price = $this->safe_float_2($trade, 'p', 'avgPrice');
+        $amount = $this->safe_float_2($trade, 'q', 'orderQty');
+        $sideType = $this->safe_integer($trade, 'side');
+        $side = null;
+        if ($sideType !== null) {
+            if ($sideType === 1) {
+                $side = 'BUY';
+            }
+            if ($sideType === 2) {
+                $side = 'SELL';
+            }
+        }
+        if ($side === null) {
+            if ($price < 0) {
+                $side = 'SELL';
+            } else {
+                $side = 'BUY';
+            }
+            $price = abs($price);
+        }
+        $cost = null;
+        if ($price !== null && $amount !== null && $symbol !== null) {
+            $cost = floatval ($this->cost_to_precision($symbol, $price * $amount));
+        }
+        $takerOrMaker = null;
+        if (is_array($trade) && array_key_exists('taker', $trade)) {
+            $takerOrMaker = $trade['taker'] ? 'taker' : 'maker';
+        }
+        $orderId = $this->safe_string($trade, 'orderID');
         return array(
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
-            'id' => null,
-            'order' => null,
+            'id' => $orderId,
+            'order' => $orderId,
             'type' => null,
             'side' => $side,
-            'takerOrMaker' => null,
+            'takerOrMaker' => $takerOrMaker,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
-            'fee' => null,
+            'fee' => $this->safe_string($trade, 'commission'),
         );
     }
 
@@ -312,5 +465,469 @@ class aax extends Exchange {
         //         )]
         //   }
         return $this->parse_trades($this->safe_value($response, 'trades'), $market, $since, $limit);
+    }
+
+    public function fetch_balance ($params = array ()) {
+        $response = $this->privateGetV2UserBalances ();
+        // FetchBalance Response
+        // {
+        //     "$code":1,
+        //     "data":array(
+        //        array(
+        //           "available":"28.44375903",
+        //           "credit":"0.00000000",
+        //           "currency":"BTC",
+        //           "unavailable":"19.96293142"
+        //        ),
+        //        array(
+        //           "available":"20.00000000",
+        //           "credit":"0.00000000",
+        //           "currency":"EOS",
+        //           "unavailable":"0.00000000"
+        //        ),
+        //     ),
+        //     "message":"success",
+        //     "ts":1573530401020
+        //  }
+        $result = array( 'info' => $response );
+        $balances = $this->safe_value($response, 'data');
+        for ($i = 0; $i < count($balances); $i++) {
+            $balance = $balances[$i];
+            $currencyId = $this->safe_string($balance, 'currency');
+            $code = $this->safe_currency_code($currencyId);
+            $account = array(
+                'free' => $this->safe_float($balance, 'available'),
+                'used' => $this->safe_float($balance, 'unavailable'),
+            );
+            $result[$code] = $account;
+        }
+        return $this->parse_balance($result);
+    }
+
+    public function parse_order_type ($type) {
+        $orderTypes = array(
+            '1' => 'market',
+            '2' => 'limit',
+            '3' => 'stop',
+            '4' => 'stop-limit',
+        );
+        return $this->safe_string($orderTypes, $type, $type);
+    }
+
+    public function parse_order_status ($status) {
+        $statuses = array(
+            '0' => 'open', // pending-new
+            '1' => 'open', // new
+            '2' => 'open', // partiallyfilled
+            '3' => 'closed', // filled
+            '4' => 'canceled', // cancel - rejected
+            '5' => 'canceled', // canceled
+            '6' => 'rejected', // rejected
+            '10' => 'canceled', // canceled
+            '11' => 'rejected', // business-rejct
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_order ($order, $market = null, $time = null) {
+        // CraeteOrder,cancelOrder Response
+        //       array(
+        //        "avgPrice":"0",
+        //        "$base":"BTC",
+        //        "clOrdID":"aax",
+        //        "commission":"0",
+        //        "createTime":null,
+        //        "cumQty":"0",
+        //        "id":null,
+        //        "isTriggered":null,
+        //        "lastPrice":"0",
+        //        "lastQty":"0",
+        //        "leavesQty":"0",
+        //        "orderID":"wJ4L366KB",
+        //        "orderQty":"0.02",
+        //        "orderStatus":0,
+        //        "$orderType":2,
+        //        "$price":"8000",
+        //        "$quote":"USDT",
+        //        "rejectCode":null,
+        //        "rejectReason":null,
+        //        "$side":1,
+        //        "stopPrice":null,
+        //        "$symbol":"BTCUSDT",
+        //        "transactTime":null,
+        //        "updateTime":null,
+        //        "timeInForce":1,
+        //        "userID":"216214"
+        //     ),
+        $timestamp = $this->safe_string($order, 'createTime');
+        if ($timestamp === null && $time !== null) {
+            $timestamp = $time;
+        } else {
+            $timestamp = $this->parse8601 ($timestamp);
+        }
+        $price = $this->safe_float($order, 'price');
+        $amount = $this->safe_float($order, 'orderQty');
+        $cost = null;
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $this->safe_string($market, 'symbol');
+        }
+        if ($symbol === null) {
+            $base = $this->safe_string($order, 'base');
+            $quote = $this->safe_string($order, 'quote');
+            if ($base !== null && $quote !== null) {
+                $symbol = $base . '/' . $quote;
+            }
+        }
+        if ($price !== null && $amount !== null && $symbol !== null) {
+            $cost = floatval ($this->cost_to_precision($symbol, $price * $amount));
+        }
+        $sideType = $this->safe_integer($order, 'side');
+        $side = null;
+        if ($sideType !== null) {
+            if ($sideType === 1) {
+                $side = 'BUY';
+            }
+            if ($sideType === 2) {
+                $side = 'SELL';
+            }
+        }
+        $remaining = $this->safe_float($order, 'leavesQty');
+        $filled = null;
+        if ($remaining !== null && $amount !== null) {
+            $filled = $amount - $remaining;
+        }
+        $orderType = $this->parse_order_type ($this->safe_string($order, 'orderType'));
+        $status = $this->parse_order_status($this->safe_string($order, 'orderStatus'));
+        return array(
+            'info' => $order,
+            'id' => $this->safe_string($order, 'orderID'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => null,
+            'symbol' => $symbol,
+            'type' => $orderType,
+            'side' => $side,
+            'price' => $price,
+            'stop_price' => $this->safe_string($order, 'stopPrice'),
+            'amount' => $amount,
+            'cost' => $cost,
+            'average' => $this->safe_float($order, 'avgPrice'),
+            'filled' => $filled,
+            'remaining' => $remaining,
+            'status' => $status,
+            'fee' => $this->safe_string($order, 'commission'),
+            'trades' => null,
+        );
+    }
+
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $type = strtoupper($type);
+        if ($type === 'STOP_LIMIT') {
+            $type = 'STOP-LIMIT';
+        }
+        $request = array(
+            // === Required ===
+            // orderType : string // can be MARKET,LIMIT,STOP,STOP-LIMIT
+            // $symbol : string
+            // orderQty : string // Buying or selling quantity
+            // $side : string // BUY or SELL
+            // === Required according to ordeType ===
+            // $price : string // limit $price in limit and stop-limit orders
+            // $stopPrice : string // Trigger $price for stop-limit order and stop order
+            // ===Optional ===
+            // clOrdID : string
+            // timeInForce :string // GTC/IOC/FOK，default is GTC
+            'orderType' => $type,
+            'symbol' => $market['id'],
+            'orderQty' => $this->amount_to_precision($symbol, $amount),
+            'side' => strtoupper($side),
+        );
+        if (($type === 'LIMIT') || ($type === 'STOP-LIMIT')) {
+            if ($price === null) {
+                throw new InvalidOrder($this->id . ' createOrder method requires a $price for a ' . $type . ' order');
+            }
+            $request['price'] = $this->price_to_precision($symbol, $price);
+        }
+        if (($type === 'STOP') || ($type === 'STOP-LIMIT')) {
+            $stopPrice = $this->safe_float($params, 'stopPrice');
+            if ($stopPrice === null) {
+                throw new InvalidOrder($this->id . ' createOrder method requires a $stopPrice extra param for a ' . $type . ' order');
+            }
+            $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
+        }
+        $response = $this->privatePostV2SpotOrders (array_merge($request, $params));
+        // Response
+        // {
+        //     "code":1,
+        //     "data":array(
+        //        "avgPrice":"0",
+        //        "base":"BTC",
+        //        "clOrdID":"aax",
+        //        "commission":"0",
+        //        "createTime":null,
+        //        "cumQty":"0",
+        //        "id":null,
+        //        "isTriggered":null,
+        //        "lastPrice":"0",
+        //        "lastQty":"0",
+        //        "leavesQty":"0",
+        //        "orderID":"wJ4L366KB",
+        //        "orderQty":"0.02",
+        //        "orderStatus":0,
+        //        "orderType":2,
+        //        "$price":"8000",
+        //        "quote":"USDT",
+        //        "rejectCode":null,
+        //        "rejectReason":null,
+        //        "$side":1,
+        //        "$stopPrice":null,
+        //        "$symbol":"BTCUSDT",
+        //        "transactTime":null,
+        //        "updateTime":null,
+        //        "timeInForce":1,
+        //        "userID":"216214"
+        //     ),
+        //     "message":"success",
+        //     "ts":1573530401264
+        //  }
+        return $this->parse_order($this->safe_value($response, 'data'), $market, $this->safe_string($response, 'ts'));
+    }
+
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
+        $market = null;
+        if ($symbol !== null) {
+            $this->load_markets();
+            $market = $this->market ($symbol);
+        }
+        $request = array(
+            'orderID' => $id,
+        );
+        $response = $this->privateDeleteV2SpotOrdersCancelOrderID (array_merge($request, $params));
+        // Response
+        // {
+        //     "code":1,
+        //     "data":array(
+        //        "avgPrice":"0",
+        //        "base":"BTC",
+        //        "clOrdID":"aax",
+        //        "commission":"0",
+        //        "createTime":"2019-11-12T03:46:41Z",
+        //        "cumQty":"0",
+        //        "$id":"114330021504606208",
+        //        "isTriggered":false,
+        //        "lastPrice":"0",
+        //        "lastQty":"0",
+        //        "leavesQty":"0",
+        //        "orderID":"wJ4L366KB",
+        //        "orderQty":"0.05",
+        //        "orderStatus":1,
+        //        "orderType":2,
+        //        "price":"8000",
+        //        "quote":"USDT",
+        //        "rejectCode":0,
+        //        "rejectReason":null,
+        //        "side":1,
+        //        "stopPrice":"0",
+        //        "$symbol":"BTCUSDT",
+        //        "transactTime":null,
+        //        "updateTime":"2019-11-12T03:46:41Z",
+        //        "timeInForce":1,
+        //        "userID":"216214"
+        //     ),
+        //     "message":"success",
+        //     "ts":1573530402029
+        //  }
+        return $this->parse_order($this->safe_value($response, 'data'), $market, $this->safe_string($response, 'ts'));
+    }
+
+    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $request = array(
+            // pageNum : Integer // optional
+            // pageSize : Integer // optional
+            // base : String // optional
+            // quote : String // optional
+            // orderId : String //optional
+            // startDate : String //optional
+            // endDate : String //optional
+            // side : String // optional
+            // orderType : String // optional
+        );
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market ($symbol);
+            $request['base'] = $market['baseId'];
+            $request['quote'] = $market['quoteId'];
+        }
+        if ($since !== null) {
+            $request['startDate'] = $this->ymd ($since, '-');
+        }
+        if ($limit !== null) {
+            $request['pageSize'] = $limit;
+        }
+        $response = $this->privateGetV2SpotTrades (array_merge($request, $params));
+        // Response
+        // {
+        //     "code":1,
+        //     "data":{
+        //        "list":array(
+        //           array(
+        //              "avgPrice":"8000",
+        //              "base":"BTC",
+        //              "commission":"0.00000888",
+        //              "createTime":"2019-11-12T03:18:35Z",
+        //              "cumQty":"0.0148",
+        //              "filledPrice":"8000",
+        //              "filledQty":"0.0148",
+        //              "id":"114322949580906499",
+        //              "leavesQty":"0.0052",
+        //              "orderID":"wFo9ZPxAJ",
+        //              "orderQty":"0.02",
+        //              "orderStatus":2,
+        //              "orderType":2,
+        //              "price":"8000",
+        //              "quote":"USDT",
+        //              "rejectCode":0,
+        //              "rejectReason":null,
+        //              "side":1,
+        //              "stopPrice":"0",
+        //              "$symbol":"BTCUSDT",
+        //              "taker":false,
+        //              "transactTime":"2019-11-12T03:16:16Z",
+        //              "updateTime":null,
+        //              "userID":"216214"
+        //           }
+        //        ),
+        //        "pageNum":1,
+        //        "pageSize":1,
+        //        "total":10
+        //     ),
+        //     "message":"success",
+        //     "ts":1573532934832
+        //  }
+        $result = $this->safe_value($response, 'data');
+        return $this->parse_trades($this->safe_value($result, 'list', array()), $market, $since, $limit);
+    }
+
+    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $request = array(
+            // pageNum : Integer // optional
+            // pageSize : Integer // optional
+            // $symbol : String // optional
+            // orderId : String // optional
+            // side : String // optional
+            // orderType : String // optional
+            // clOrdID : String //optional
+        );
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market ($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        if ($limit !== null) {
+            $request['pageSize'] = $limit;
+        }
+        $response = $this->privateGetV2SpotOpenOrders (array_merge($request, $params));
+        // Response
+        // {
+        //     "code":1,
+        //     "data":array(
+        //        "list":array(
+        //           array(
+        //              "avgPrice":"0",
+        //              "base":"BTC",
+        //              "clOrdID":"aax",
+        //              "commission":"0",
+        //              "createTime":"2019-11-12T03:41:52Z",
+        //              "cumQty":"0",
+        //              "id":"114328808516083712",
+        //              "isTriggered":false,
+        //              "lastPrice":"0",
+        //              "lastQty":"0",
+        //              "leavesQty":"0",
+        //              "orderID":"wJ3qitASB",
+        //              "orderQty":"0.02",
+        //              "orderStatus":1,
+        //              "orderType":2,
+        //              "price":"8000",
+        //              "quote":"USDT",
+        //              "rejectCode":0,
+        //              "rejectReason":null,
+        //              "side":1,
+        //              "stopPrice":"0",
+        //              "$symbol":"BTCUSDT",
+        //              "transactTime":null,
+        //              "updateTime":"2019-11-12T03:41:52Z",
+        //              "timeInForce":1,
+        //              "userID":"216214"
+        //           ),
+        //           ...
+        //        ),
+        //        "pageNum":1,
+        //        "pageSize":2,
+        //        "total":2
+        //     ),
+        //     "message":"success",
+        //     "ts":1573553718212
+        //  }
+        $result = $this->safe_value($response, 'data');
+        return $this->parse_orders($this->safe_value($result, 'list', array()), $market, $since, $limit);
+    }
+
+    public function fetch_closed_orders ($symbol = null, $since = null, $limit = 100, $params = array ()) {
+        $this->load_markets();
+        $request = array(
+            // pageNum : Integer // optional
+            // pageSize : Integer // optional
+            // $symbol : String // optional
+            // orderId : String // optional
+            // side : String // optional
+            // orderType : String // optional
+            // clOrdID : String //optional
+            // base : string // optional
+            // quote :string // optional
+            // orderStatus : Integer //optional 1 => new, 2:filled, 3:cancel
+            'orderStatus' => 2, // As using for ClosedOrders Only
+        );
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market ($symbol);
+            $request['base'] = $market['baseId'];
+            $request['quote'] = $market['quoteId'];
+        }
+        if ($limit !== null) {
+            $request['pageSize'] = $limit;
+        }
+        $response = $this->privateGetV2SpotOrders (array_merge($request, $params));
+        $result = $this->safe_value($response, 'data');
+        return $this->parse_orders($this->safe_value($result, 'list', array()), $market, $since, $limit);
+    }
+
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+        if ($response === null) {
+            return;
+        }
+        $errorCode = $this->safe_string($response, 'code');
+        if ($errorCode === null) {
+            // fetchOrderBook or fetchTrades or fetchOhlcv
+            return;
+        }
+        if ($errorCode === '1') {
+            // success
+            return;
+        }
+        $errorMessages = $this->errorMessages;
+        $message = null;
+        $message = $this->safe_string($response, 'message');
+        if ($message === null) {
+            $message = $this->safe_string($errorMessages, $errorCode, 'Unknown Error');
+        }
+        $feedback = $this->id . ' ' . $message;
+        $this->throw_exactly_matched_exception($this->exceptions, $errorCode, $feedback);
+        throw new ExchangeError($feedback);
     }
 }
