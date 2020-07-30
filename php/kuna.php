@@ -54,7 +54,7 @@ class kuna extends acx {
                         // 'EVR' => 0.01 ETH
                     ),
                     'deposit' => array(
-                        // 'UAH' => (amount) => amount * 0.001 . 5
+                        // 'UAH' => (amount) => amount * 0.001 + 5
                     ),
                 ),
             ),

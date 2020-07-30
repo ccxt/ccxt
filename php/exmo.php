@@ -373,7 +373,7 @@ class exmo extends Exchange {
                                     array( 'prov' => 'Payeer', 'dep' => '3.95%', 'wd' => '-' ),
                                     array( 'prov' => 'EX-CODE', 'dep' => '', 'wd' => '0.2%' ),
                                     array( 'prov' => 'AdvCash', 'dep' => '0%', 'wd' => '2.49%' ),
-                                    array( 'prov' => 'Visa/MasterCard (Simplex)', 'dep' => '4.5% . 0.5 USD', 'wd' => '-' ),
+                                    array( 'prov' => 'Visa/MasterCard (Simplex)', 'dep' => '4.5% + 0.5 USD', 'wd' => '-' ),
                                     array( 'prov' => 'Visa', 'dep' => '3.45%', 'wd' => '-' ),
                                     array( 'prov' => 'Frick Bank', 'dep' => '0 USD', 'wd' => '-' ),
                                 ),
@@ -382,7 +382,7 @@ class exmo extends Exchange {
                                 'group' => 'eur',
                                 'title' => 'EUR',
                                 'items' => array(
-                                    array( 'prov' => 'Visa/MasterCard', 'dep' => '4.5% . 0.5  EUR', 'wd' => '-' ),
+                                    array( 'prov' => 'Visa/MasterCard', 'dep' => '4.5% + 0.5  EUR', 'wd' => '-' ),
                                     array( 'prov' => 'EX-CODE', 'dep' => '', 'wd' => '0.2%' ),
                                     array( 'prov' => 'Visa', 'dep' => '2.95%', 'wd' => '-' ),
                                     array( 'prov' => 'Frick Internal Transfer', 'dep' => '0 EUR', 'wd' => '-' ),
@@ -408,7 +408,7 @@ class exmo extends Exchange {
                                     array( 'prov' => 'Qiwi', 'dep' => '1.49%', 'wd' => '2.49%' ),
                                     array( 'prov' => 'Yandex Money', 'dep' => '1.49%', 'wd' => '1.95 %' ),
                                     array( 'prov' => 'AdvCash', 'dep' => '0.99%', 'wd' => '0.99%' ),
-                                    array( 'prov' => 'Visa/MasterCard', 'dep' => '2.99%', 'wd' => '3.99% . 60 RUB' ),
+                                    array( 'prov' => 'Visa/MasterCard', 'dep' => '2.99%', 'wd' => '3.99% + 60 RUB' ),
                                 ),
                             ),
                             array(
@@ -424,7 +424,7 @@ class exmo extends Exchange {
                                 'items' => array(
                                     array( 'prov' => 'EX-CODE', 'dep' => '', 'wd' => '0.2%' ),
                                     array( 'prov' => 'Visa', 'dep' => '3.05%', 'wd' => '-' ),
-                                    array( 'prov' => 'Visa/MasterCard (Simplex)', 'dep' => '4.5% . 2 TRY', 'wd' => '-' ),
+                                    array( 'prov' => 'Visa/MasterCard (Simplex)', 'dep' => '4.5% + 2 TRY', 'wd' => '-' ),
                                     array( 'prov' => 'AdvCash', 'dep' => '0%', 'wd' => '-' ),
                                 ),
                             ),
@@ -435,14 +435,14 @@ class exmo extends Exchange {
                                     array( 'prov' => 'EX-CODE', 'dep' => '', 'wd' => '0.2%' ),
                                     array( 'prov' => 'Terminal', 'dep' => '2.6%', 'wd' => '-' ),
                                     array( 'prov' => 'Visa/MasterCard EasyTransfer', 'dep' => '-', 'wd' => '2.99%' ),
-                                    array( 'prov' => 'Visa/MasterCard', 'dep' => '1% . 5 UAH', 'wd' => '-' ),
+                                    array( 'prov' => 'Visa/MasterCard', 'dep' => '1% + 5 UAH', 'wd' => '-' ),
                                 ),
                             ),
                             array(
                                 'group' => 'kzt',
                                 'title' => 'KZT',
                                 'items' => array(
-                                    array( 'prov' => 'Visa/MasterCard', 'dep' => '3.5%', 'wd' => '2.99% . 450 KZT' ),
+                                    array( 'prov' => 'Visa/MasterCard', 'dep' => '3.5%', 'wd' => '2.99% + 450 KZT' ),
                                     array( 'prov' => 'EX-CODE', 'dep' => '', 'wd' => '0.2%' ),
                                     array( 'prov' => 'AdvCash', 'dep' => '0%', 'wd' => '-' ),
                                 ),

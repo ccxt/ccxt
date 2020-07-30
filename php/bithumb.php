@@ -396,7 +396,7 @@ class bithumb extends Exchange {
             }
         }
         if ($timestamp !== null) {
-            $timestamp -= 9 * 3600000; // they report UTC . 9 hours, server in Korean timezone
+            $timestamp -= 9 * 3600000; // they report UTC + 9 hours, server in Korean timezone
         }
         $type = null;
         $side = $this->safe_string($trade, 'type');
