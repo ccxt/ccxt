@@ -275,7 +275,7 @@ class Transpiler {
             [ /\=\=\sTrue/g, 'is True' ], // a correction for PEP8 E712, it likes "is True", not "== True"
             [ /\sdelete\s/g, ' del ' ],
             [ /(?<!#.+)null/, 'None' ],
-            [ /assert\s*\((.+)\)/g, 'assert $1'],
+            [ /assert\s*\((.+)\);/g, 'assert $1'],
         ])
     }
 
