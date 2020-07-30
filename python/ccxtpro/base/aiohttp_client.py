@@ -82,8 +82,10 @@ class AiohttpClient(Client):
         if not self.closed():
             await self.connection.close()
 
-    def ping_loop(self):
-        async def pinger():
+    async def ping_loop(self):
+        if self.verbose:
+            self.print(Exchange.iso8601(Exchange.milliseconds()), 'ping loop')
+        while self.keepAlive and not self.closed():
             now = Exchange.milliseconds()
             self.lastPong = now if self.lastPong is None else self.lastPong
             if (self.lastPong + self.keepAlive * self.maxPingPongMisses) < now:
@@ -98,14 +100,3 @@ class AiohttpClient(Client):
                 else:
                     await self.connection.ping()
             await sleep(self.keepAlive / 1000)
-
-        def done_callback(completed_future):
-            if self.keepAlive and not self.closed():
-                # recurse forever
-                future = ensure_future(pinger())
-                future.add_done_callback(done_callback)
-
-        if self.verbose:
-            self.print(Exchange.iso8601(Exchange.milliseconds()), 'ping loop')
-        future = ensure_future(pinger())
-        future.add_done_callback(done_callback)

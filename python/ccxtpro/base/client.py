@@ -32,7 +32,7 @@ class Client(object):
     throttle = None
     connecting = False
 
-    def __init__(self, url, on_message_callback, on_error_callback, on_close_callback, config={}):
+    def __init__(self, url, on_message_callback, on_error_callback, on_close_callback, asyncio_loop, config={}):
         defaults = {
             'url': url,
             'futures': {},
@@ -51,6 +51,7 @@ class Client(object):
                 setattr(self, key, settings[key])
         # connection-related Future
         self.connected = Future()
+        self.asyncio_loop = asyncio_loop
 
     def future(self, message_hash):
         if isinstance(message_hash, list):
@@ -94,25 +95,19 @@ class Client(object):
                 self.reject(result, message_hash)
         return result
 
-    def receive_loop(self):
-        def done_callback(completed_future):
+    async def receive_loop(self):
+        if self.verbose:
+            self.print(Exchange.iso8601(Exchange.milliseconds()), 'receive loop')
+        while not self.closed():
             try:
-                message = completed_future.result()
+                message = await self.receive()
+                # self.print(Exchange.iso8601(Exchange.milliseconds()), 'received', message)
                 self.handle_message(message)
             except Exception as e:
                 error = NetworkError(str(e))
                 if self.verbose:
                     self.print(Exchange.iso8601(Exchange.milliseconds()), 'receive_loop', 'Exception', error)
                 self.reset(error)
-            if not self.closed():
-                # recurse forever
-                future = ensure_future(self.receive())
-                future.add_done_callback(done_callback)
-
-        if self.verbose:
-            self.print(Exchange.iso8601(Exchange.milliseconds()), 'receive loop')
-        future = ensure_future(self.receive())
-        future.add_done_callback(done_callback)
 
     async def open(self, session, backoff_delay=0):
         # exponential backoff for consequent connections if necessary
@@ -128,8 +123,8 @@ class Client(object):
             if self.verbose:
                 self.print(Exchange.iso8601(Exchange.milliseconds()), 'connected')
             self.connected.resolve(self.url)
-            self.receive_loop()
-            self.ping_loop()
+            # run both loops forever
+            # await gather(self.ping_loop(), self.receive_loop())
         except TimeoutError as e:
             # connection timeout
             error = RequestTimeout('Connection timeout')
@@ -143,11 +138,11 @@ class Client(object):
                 self.print(Exchange.iso8601(Exchange.milliseconds()), 'NetworkError', error)
             self.on_error(error)
 
-    async def connect(self, session, backoff_delay=0):
+    def connect(self, session, backoff_delay=0):
         if not self.connection and not self.connecting:
             self.connecting = True
-            await self.open(session, backoff_delay)
-        return await self.connected
+            ensure_future(self.open(session, backoff_delay))
+        return self.connected
 
     def on_error(self, error):
         if self.verbose:

@@ -9,6 +9,7 @@ __version__ = '0.3.11'
 from ccxtpro.base.functions import inflate, inflate64, gunzip
 from asyncio import ensure_future
 from ccxtpro.base.aiohttp_client import AiohttpClient
+from ccxtpro.base.fast_client import FastClient
 from ccxt.async_support import Exchange as BaseExchange
 from ccxt import NotSupported
 from ccxtpro.base.order_book import OrderBook, IndexedOrderBook, CountedOrderBook
@@ -73,7 +74,7 @@ class Exchange(BaseExchange):
                     'loop': self.asyncio_loop,
                 }, self.tokenBucket))
             }, ws_options)
-            self.clients[url] = AiohttpClient(url, on_message, on_error, on_close, options)
+            self.clients[url] = FastClient(url, on_message, on_error, on_close, self.asyncio_loop, options)
         return self.clients[url]
 
     async def after(self, future, method, *args):
