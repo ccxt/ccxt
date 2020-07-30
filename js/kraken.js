@@ -222,6 +222,8 @@ module.exports = class kraken extends Exchange {
                 'EGeneral:Internal error': ExchangeNotAvailable,
                 'EGeneral:Temporary lockout': DDoSProtection,
                 'EGeneral:Permission denied': PermissionDenied,
+                'EOrder:Unknown order': InvalidOrder,
+                'EOrder:Order minimum not met': InvalidOrder,
             },
         });
     }
@@ -971,7 +973,23 @@ module.exports = class kraken extends Exchange {
         }
         return {
             'id': id,
+            'clientOrderId': clientOrderId,
             'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'lastTradeTimestamp': undefined,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': undefined,
+            'amount': undefined,
+            'cost': undefined,
+            'average': undefined,
+            'filled': undefined,
+            'remaining': undefined,
+            'status': undefined,
+            'fee': undefined,
+            'trades': undefined,
         };
     }
 
