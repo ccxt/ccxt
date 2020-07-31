@@ -80,7 +80,7 @@ module.exports = class binance extends Exchange {
                     'sapi': 'https://api.binance.com/sapi/v1',
                     'fapiPublic': 'https://fapi.binance.com/fapi/v1',
                     'fapiPrivate': 'https://fapi.binance.com/fapi/v1',
-                    'fapiPublicFuturesData': 'https://fapi.binance.com/futures/data',
+                    'fapiData': 'https://fapi.binance.com/futures/data',
                     'fapiPrivateV2': 'https://fapi.binance.com/fapi/v2',
                     'public': 'https://api.binance.com/api/v3',
                     'private': 'https://api.binance.com/api/v3',
@@ -231,7 +231,7 @@ module.exports = class binance extends Exchange {
                         'leverageBracket',
                     ],
                 },
-                'fapiPublicFuturesData': {
+                'fapiData': {
                     'get': [
                         'openInterestHist',
                         'topLongShortAccountRatio',
