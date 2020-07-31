@@ -34,7 +34,7 @@ class FastClient(AiohttpClient):
         self.socket = None
         self.ssl_pipe = None
         self.mode = EVERY_MESSAGE
-        self.max_pending = 256  # will throw an error if more messages are in the queue
+        self.max_pending = 2 ** 8  # will throw an error if more messages are in the queue
         self.lock = asyncio.Lock()
 
     async def connect(self, session, backoff_delay=0):
@@ -48,7 +48,8 @@ class FastClient(AiohttpClient):
         if hasattr(transport, '_ssl_protocol'):
             self.ssl_pipe = transport._ssl_protocol._sslpipe  # a weird memory buffer
         self.sockets[self.socket] = self
-        # self.parser.queue.extend(protocol._payload_parser.queue._buffer)
+        if not self.lock.locked():
+            await self.lock.acquire()
         if not self.running:
             ensure_future(self.selector_loop())
         type(self).running = True
@@ -60,12 +61,11 @@ class FastClient(AiohttpClient):
 
     @classmethod
     async def selector(cls):
+        await sleep(cls.poll_frequency)
         if not cls.sockets:
             cls.running = False
             return
         ready_sockets, _, errored_sockets = select.select(cls.sockets, [], cls.sockets, 0)
-        if not ready_sockets:
-            await sleep(cls.poll_frequency)
         for sock in errored_sockets:
             # TODO: handle
             pass

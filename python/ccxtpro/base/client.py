@@ -137,6 +137,8 @@ class Client(object):
             if self.verbose:
                 self.print(Exchange.iso8601(Exchange.milliseconds()), 'NetworkError', error)
             self.on_error(error)
+        finally:
+            self.connecting = False
 
     def connect(self, session, backoff_delay=0):
         if not self.connection and not self.connecting:
