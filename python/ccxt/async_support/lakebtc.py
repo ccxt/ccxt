@@ -30,9 +30,16 @@ class lakebtc(Exchange):
             'version': 'api_v2',
             'rateLimit': 1000,
             'has': {
+                'cancelOrder': True,
                 'CORS': True,
                 'createMarketOrder': False,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchMarkets': True,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
                 'fetchTickers': True,
+                'fetchTrades': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28074120-72b7c38a-6660-11e7-92d9-d9027502281d.jpg',
