@@ -33,12 +33,21 @@ class FastClient(AiohttpClient):
         self.socket = None
         self.ssl_pipe = None
         self.mode = EVERY_MESSAGE
-        self.max_pending = 2 ** 4  # will throw an error if more messages are in the queue
+        self.max_pending = 2 ** 8  # will throw an error if more messages are in the queue
         self.change_context = False
         self.transport = None
 
     def connect(self, session, backoff_delay=0):
-        super(FastClient, self).connect(session, backoff_delay)
+        future = super(FastClient, self).connect(session, backoff_delay)
+        future.add_done_callback(self.after_connection)
+        return future
+
+    def after_connection(self, future):
+        try:
+            future.result()
+        except Exception:
+            # the exception will be handled where the connection future is awaited
+            return
         self.transport = self.connection._conn.transport
         self.transport.pause_reading()
         self.socket = self.transport.get_extra_info('socket')
@@ -51,7 +60,6 @@ class FastClient(AiohttpClient):
         if not self.running:
             ensure_future(self.selector_loop())
         type(self).running = True
-        return self.connected
 
     @classmethod
     async def selector_loop(cls):
