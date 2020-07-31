@@ -44,7 +44,8 @@ class FastClient(AiohttpClient):
         self.transport.pause_reading()
         self.socket = self.transport.get_extra_info('socket')
         # https://github.com/aio-libs/aiohttp/issues/664
-        self.socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+        # https://docs.python.org/3.6/library/asyncio-protocol.html#transports
+        self.socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)  # it is set by default in py > 3.6
         if hasattr(self.transport, '_ssl_protocol'):
             self.ssl_pipe = self.transport._ssl_protocol._sslpipe  # a weird memory buffer
         self.sockets[self.socket] = self
@@ -96,10 +97,6 @@ class FastClient(AiohttpClient):
         super(FastClient, self).resolve(result, message_hash)
         self.change_context = True
 
-    def reset(self, error):
-        super(FastClient, self).reset(error)
-        self.parser.queue.clear()
-
     async def close(self, code=1000):
         if self.socket in type(self).sockets:
             del type(self).sockets[self.socket]
@@ -107,3 +104,6 @@ class FastClient(AiohttpClient):
         await super(FastClient, self).close(code)
         # try to close the socket if it has not been already closed by the line above
         self.socket.close()
+
+    async def receive_loop(self):
+        pass
