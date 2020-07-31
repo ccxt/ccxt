@@ -15,12 +15,20 @@ module.exports = class lbank extends Exchange {
             'countries': [ 'CN' ],
             'version': 'v1',
             'has': {
-                'fetchTickers': true,
-                'fetchOHLCV': true,
-                'fetchOrder': true,
-                'fetchOrders': true,
-                'fetchOpenOrders': false, // status 0 API doesn't work
+                'cancelOrder': true,
+                'createOrder': true,
+                'fetchBalance': true,
                 'fetchClosedOrders': true,
+                'fetchMarkets': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': false, // status 0 API doesn't work
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrders': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': 'minute1',
