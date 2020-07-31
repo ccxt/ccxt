@@ -811,7 +811,7 @@ module.exports = class vitex extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-            'orderId': this.id,
+            'orderId': id,
         };
         const method = 'privateDeleteOrder';
         const response = await this[method] (this.extend (request, params));
@@ -954,17 +954,19 @@ module.exports = class vitex extends Exchange {
         url += '/' + path;
         if ((api === 'private')) {
             this.checkRequiredCredentials ();
-            let query = this.urlencodeWithArrayRepeat (this.extend ({
+            let query = this.urlencodeWithArrayRepeat (this.keysort (this.extend ({
                 'timestamp': this.nonce (),
                 'key': this.apiKey,
-            }, params));
+            }, params)));
             const signature = this.hmac (this.encode (query), this.encode (this.secret));
             query += '&' + 'signature=' + signature;
             if ((method === 'GET') || (method === 'DELETE')) {
                 url += '?' + query;
             } else {
                 body = query;
-                headers['Content-Type'] = 'application/x-www-form-urlencoded';
+                headers = {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                };
             }
         } else {
             const query = this.urlencodeWithArrayRepeat (params);
