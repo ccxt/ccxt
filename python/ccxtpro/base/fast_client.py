@@ -115,7 +115,8 @@ class FastClient(AiohttpClient):
         # first close the aiohttp connection
         await super(FastClient, self).close(code)
         # try to close the socket if it has not been already closed by the line above
-        self.socket.close()
+        if self.socket:
+            self.socket.close()
 
     async def receive_loop(self):
         pass
