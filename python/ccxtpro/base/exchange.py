@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '0.3.10'
+__version__ = '0.3.18'
 
 # -----------------------------------------------------------------------------
 
@@ -150,7 +150,7 @@ class Exchange(BaseExchange):
         return future
 
     def on_error(self, client, error):
-        if self.clients[client.url].error:
+        if client.url in self.clients and self.clients[client.url].error:
             del self.clients[client.url]
 
     def on_close(self, client, error):
