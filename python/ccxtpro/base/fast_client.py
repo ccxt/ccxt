@@ -37,8 +37,8 @@ class FastClient(AiohttpClient):
         self.change_context = False
         self.transport = None
 
-    async def connect(self, session, backoff_delay=0):
-        await super(FastClient, self).connect(session, backoff_delay)
+    def connect(self, session, backoff_delay=0):
+        super(FastClient, self).connect(session, backoff_delay)
         self.transport = self.connection._conn.transport
         self.transport.pause_reading()
         self.socket = self.transport.get_extra_info('socket')
@@ -51,7 +51,7 @@ class FastClient(AiohttpClient):
         if not self.running:
             ensure_future(self.selector_loop())
         type(self).running = True
-        return await self.connected
+        return self.connected
 
     @classmethod
     async def selector_loop(cls):
