@@ -51,6 +51,7 @@ class FastClient(AiohttpClient):
         if not self.running:
             ensure_future(self.selector_loop())
         type(self).running = True
+        return await self.connected
 
     @classmethod
     async def selector_loop(cls):
