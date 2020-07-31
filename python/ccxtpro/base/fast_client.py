@@ -9,7 +9,6 @@ from asyncio import ensure_future, sleep
 import socket
 import select
 import collections
-import asyncio
 
 EVERY_MESSAGE = 0
 NO_LAG = 1
