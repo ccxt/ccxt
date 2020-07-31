@@ -18,7 +18,6 @@ module.exports = class bigone extends Exchange {
             'has': {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'createMarketOrder': false,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
@@ -780,12 +779,34 @@ module.exports = class bigone extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         side = (side === 'buy') ? 'BID' : 'ASK';
+        const uppercaseType = type.toUpperCase ();
         const request = {
             'asset_pair_name': market['id'], // asset pair name BTC-USDT, required
             'side': side, // order side one of "ASK"/"BID", required
             'amount': this.amountToPrecision (symbol, amount), // order amount, string, required
-            'price': this.priceToPrecision (symbol, price), // order price, string, required
+            // 'price': this.priceToPrecision (symbol, price), // order price, string, required
+            'type': uppercaseType,
+            // 'operator': 'GTE', // stop orders only, GTE greater than and equal, LTE less than and equal
+            // 'immediate_or_cancel': false, // limit orders only, must be false when post_only is true
+            // 'post_only': false, // limit orders only, must be false when immediate_or_cancel is true
         };
+        if (type === 'LIMIT') {
+            request['price'] = this.priceToPrecision (symbol, price);
+        } else {
+            const isStopLimit = (type === 'STOP_LIMIT');
+            const isStopMarket = (type === 'STOP_MARKET');
+            if (isStopLimit || isStopMarket) {
+                const stopPrice = this.safeFloat (params, 'stop_price');
+                if (stopPrice === undefined) {
+                    throw new ArgumentsRequired (this.id + ' createOrder requires a stop_price parameter');
+                }
+                request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
+                params = this.omit (params, 'stop_price');
+            }
+            if (isStopLimit) {
+                request['price'] = this.priceToPrecision (symbol, price);
+            }
+        }
         const response = await this.privatePostOrders (this.extend (request, params));
         //
         //    {
