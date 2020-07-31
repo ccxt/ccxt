@@ -74,8 +74,12 @@ class FastClient(AiohttpClient):
             bytes_read = await client.asyncio_loop.sock_recv_into(sock, client.buffer)
             data = client.buffer[:bytes_read]
             if client.ssl_pipe:
+                # decrypt ssl
                 _, plaintext = client.ssl_pipe.feed_ssldata(data)
                 for message in plaintext:
+                    # decode websocket protocol bytes
+                    # data may not end on a complete frame
+                    # use aiohttp's parser to take care of this
                     client.parser.feed_data(message)
             else:
                 client.parser.feed_data(data)
