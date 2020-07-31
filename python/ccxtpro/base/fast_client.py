@@ -35,7 +35,7 @@ class FastClient(AiohttpClient):
         self.ssl_pipe = None
         self.mode = EVERY_MESSAGE
         self.max_pending = 2 ** 8  # will throw an error if more messages are in the queue
-        self.lock = asyncio.Lock()
+        self.change_context = False
 
     async def connect(self, session, backoff_delay=0):
         await super(FastClient, self).connect(session, backoff_delay)
@@ -48,8 +48,6 @@ class FastClient(AiohttpClient):
         if hasattr(transport, '_ssl_protocol'):
             self.ssl_pipe = transport._ssl_protocol._sslpipe  # a weird memory buffer
         self.sockets[self.socket] = self
-        if not self.lock.locked():
-            await self.lock.acquire()
         if not self.running:
             ensure_future(self.selector_loop())
         type(self).running = True
@@ -87,20 +85,15 @@ class FastClient(AiohttpClient):
                 continue
             for message, message_length in client.parser.queue:
                 client.handle_message(message)
-                if client.mode == EVERY_MESSAGE:
-                    await client.lock
-                elif client.mode == NO_LAG:
-                    # switch context if anyone is there )
+                if client.mode == EVERY_MESSAGE and client.change_context:
+                    client.change_context = False
                     await sleep(0)
-                else:
-                    raise Exception('Invalid Mode')
+            # clear the queue so we don't read the same messages twice
             client.parser.queue.clear()
 
-    def future(self, message_hash):
-        result = super(FastClient, self).future(message_hash)
-        if self.lock.locked():
-            self.lock.release()
-        return result
+    def resolve(self, result, message_hash=None):
+        super(FastClient, self).resolve(result, message_hash)
+        self.change_context = True
 
     def reset(self, error):
         super(FastClient, self).reset(error)
