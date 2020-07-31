@@ -34,19 +34,19 @@ class FastClient(AiohttpClient):
         self.socket = None
         self.ssl_pipe = None
         self.mode = EVERY_MESSAGE
-        self.max_pending = 2 ** 8  # will throw an error if more messages are in the queue
+        self.max_pending = 2 ** 4  # will throw an error if more messages are in the queue
         self.change_context = False
+        self.transport = None
 
     async def connect(self, session, backoff_delay=0):
         await super(FastClient, self).connect(session, backoff_delay)
-        connection = self.connection._conn
-        transport = connection.transport
-        transport.pause_reading()
-        self.socket = transport.get_extra_info('socket')
+        self.transport = self.connection._conn.transport
+        self.transport.pause_reading()
+        self.socket = self.transport.get_extra_info('socket')
         # https://github.com/aio-libs/aiohttp/issues/664
         self.socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-        if hasattr(transport, '_ssl_protocol'):
-            self.ssl_pipe = transport._ssl_protocol._sslpipe  # a weird memory buffer
+        if hasattr(self.transport, '_ssl_protocol'):
+            self.ssl_pipe = self.transport._ssl_protocol._sslpipe  # a weird memory buffer
         self.sockets[self.socket] = self
         if not self.running:
             ensure_future(self.selector_loop())
@@ -78,10 +78,11 @@ class FastClient(AiohttpClient):
                     client.parser.feed_data(message)
             else:
                 client.parser.feed_data(data)
-            print('messages remaining', len(client.parser.queue))
             if len(client.parser.queue) > client.max_pending:
-                client.reset(ccxt.NetworkError('Too laggy'))
-                del cls.sockets[client.socket]
+                error_msg = 'You are taking too long to synchronously process each update on EVERY_MESSAGE mode, ' \
+                            'as a result you are receiving old updates which is effectively lagging your connection. ' \
+                            'Increase client.max_pending to increase the maximum allowed size of your buffer'
+                client.on_error(ccxt.NetworkError(error_msg))
                 continue
             for message, message_length in client.parser.queue:
                 client.handle_message(message)
@@ -98,3 +99,11 @@ class FastClient(AiohttpClient):
     def reset(self, error):
         super(FastClient, self).reset(error)
         self.parser.queue.clear()
+
+    async def close(self, code=1000):
+        if self.socket in type(self).sockets:
+            del type(self).sockets[self.socket]
+        # first close the aiohttp connection
+        await super(FastClient, self).close(code)
+        # try to close the socket if it has not been already closed by the line above
+        self.socket.close()
