@@ -243,6 +243,7 @@ declare module 'ccxt' {
                 market: 'FULL' | string;
                 limit: 'RESULT' | string;
             };
+            defaultType: 'spot' | string;
         };
         urls: {
             logo: string;
