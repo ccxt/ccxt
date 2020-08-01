@@ -1675,51 +1675,6 @@ module.exports = class bitget extends Exchange {
         //         "totalProfits":null
         //     }
         //
-        // fetchOrdersByState, fetchOpenOrders, fetchClosedOrders
-        //
-        //     // spot and margin orders
-        //
-        //     {
-        //         "client_oid":"oktspot76",
-        //         "created_at":"2019-03-18T07:26:49.000Z",
-        //         "filled_notional":"3.9734",
-        //         "filled_size":"0.001", // filled_qty in futures and swap orders
-        //         "funds":"", // this is most likely the same as notional
-        //         "instrument_id":"BTC-USDT",
-        //         "notional":"",
-        //         "order_id":"2500723297813504",
-        //         "order_type":"0",
-        //         "price":"4013",
-        //         "product_id":"BTC-USDT", // missing in futures and swap orders
-        //         "side":"buy",
-        //         "size":"0.001",
-        //         "status":"filled",
-        //         "state": "2",
-        //         "timestamp":"2019-03-18T07:26:49.000Z",
-        //         "type":"limit"
-        //     }
-        //
-        //     // futures and swap orders
-        //
-        //     {
-        //         "instrument_id":"EOS-USD-190628",
-        //         "size":"10",
-        //         "timestamp":"2019-03-20T10:04:55.000Z",
-        //         "filled_qty":"10", // filled_size in spot and margin orders
-        //         "fee":"-0.00841043",
-        //         "order_id":"2512669605501952",
-        //         "price":"3.668",
-        //         "price_avg":"3.567", // missing in spot and margin orders
-        //         "status":"2",
-        //         "state": "2",
-        //         "type":"4",
-        //         "contract_val":"10",
-        //         "leverage":"10", // missing in swap, spot and margin orders
-        //         "client_oid":"",
-        //         "pnl":"1.09510794", // missing in swap, spo and margin orders
-        //         "order_type":"0"
-        //     }
-        //
         let id = this.safeString (order, 'order_id');
         id = this.safeString2 (order, 'id', 'data', id);
         const timestamp = this.safeInteger2 (order, 'created_at', 'createTime');
@@ -1750,16 +1705,15 @@ module.exports = class bitget extends Exchange {
         // }
         let symbol = undefined;
         const marketId = this.safeString (order, 'symbol');
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-            symbol = market['symbol'];
-        } else {
-            symbol = marketId.toUpperCase ();
-        }
-        if (market !== undefined) {
-            if (symbol === undefined) {
-                symbol = market['symbol'];
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            } else {
+                symbol = marketId.toUpperCase ();
             }
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
         }
         let amount = this.safeFloat2 (order, 'amount', 'size');
         const filled = this.safeFloat2 (order, 'filled_amount', 'filled_qty');
@@ -2066,8 +2020,8 @@ module.exports = class bitget extends Exchange {
         } else if (type === 'swap') {
             method = 'swapGetOrderOrders';
             request['status'] = '3'; // 0 Failed, 1 Partially Filled, 2 Fully Filled 3 = Open + Partially Filled, 4 Canceling
-            // request['from'] = '1';
-            // request['to'] = '1';
+            request['from'] = '1';
+            request['to'] = '1';
             if (limit === undefined) {
                 request['limit'] = 100; // default 100, max 100
             }
@@ -2157,9 +2111,9 @@ module.exports = class bitget extends Exchange {
             }
         } else if (type === 'swap') {
             method = 'swapGetOrderOrders';
-            request['status'] = '3'; // 0 Failed, 1 Partially Filled, 2 Fully Filled 3 = Open + Partially Filled, 4 Canceling
-            // request['from'] = '1';
-            // request['to'] = '1';
+            request['status'] = '2'; // 0 Failed, 1 Partially Filled, 2 Fully Filled 3 = Open + Partially Filled, 4 Canceling
+            request['from'] = '1';
+            request['to'] = '1';
             if (limit === undefined) {
                 request['limit'] = 100; // default 100, max 100
             }
