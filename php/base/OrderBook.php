@@ -37,7 +37,7 @@ class OrderBook extends \ArrayObject implements \JsonSerializable {
         return $this;
     }
 
-    public function reset($snapshot) {
+    public function reset($snapshot = array()) {
         $this['asks']->index->clear();
         if (array_key_exists('asks', $snapshot) && is_array($snapshot['asks'])) {
             foreach ($snapshot['asks'] as $delta) {
