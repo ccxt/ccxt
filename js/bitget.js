@@ -71,6 +71,7 @@ module.exports = class bitget extends Exchange {
                 'test': {
                     'rest': 'https://testnet.bitget.com',
                 },
+                'referral': 'https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j',
             },
             'api': {
                 'data': {
