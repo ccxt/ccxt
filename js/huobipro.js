@@ -216,7 +216,6 @@ module.exports = class huobipro extends Exchange {
                 // https://coinmarketcap.com/currencies/penta/markets/
                 // https://en.cryptonomist.ch/blog/eidoo/the-edo-to-pnt-upgrade-what-you-need-to-know-updated/
                 'PNT': 'Penta',
-
             },
         });
     }
