@@ -30,7 +30,8 @@ module.exports = class bitget extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrders': true,
+                'fetchOpenOrders': true,
+                'fetchClosedOrders': true,
                 'fetchOrderTrades': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -90,7 +91,9 @@ module.exports = class bitget extends Exchange {
                     'get': [
                         'account/accounts', // Get all accounts of current user(即account_id)。
                         'accounts/{account_id}/balance', // Get the balance of the specified account
-                        'order/orders', // Query current order, history order
+                        'order/orders', // Query order, deprecated
+                        'order/orders/openOrders',
+                        'order/orders/history',
                         'order/deposit_withdraw', // Query assets history
                     ],
                     'post': [
@@ -1632,7 +1635,7 @@ module.exports = class bitget extends Exchange {
         //         "err_msg":null
         //     }
         //
-        // fetchOrders, fetchOrder
+        // fetchOpenOrders, fetchClosedOrders, fetchOrder
         //
         //     spot
         //
@@ -2041,61 +2044,125 @@ module.exports = class bitget extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const type = this.safeString (params, 'type', market['type']);
-        //
-        // spot
-        //
-        // symbol true string Trading pair  btc_usdt, eth_btc ...
-        // types false string Query order type combination  buy-market: buy at market price, sell-market: sell at market price, buy-limit: buy at limit price, sell-limit: sell at limit price
-        // start_date false string Query start date, date format yyyy-mm-dd
-        // end_date false string Query end date, date format yyyy-mm-dd
-        // states true string Query order status combination, use',' to split  submitted Submitted, partial-filled partial transaction, partial-canceled partial transaction cancellation, filled fully completed transaction, canceled
-        // from false string Query start ID
-        // direct false string Query direction  prev forward, next backward
-        // size false string Query record size
-        //
-        // swap
-        // symbol String Yes Contract ID
-        // from String Yes From and to combine to which page check (default is 1)
-        // to String Yes From and to combine to which page check (default is 1)
-        // 'limit' String Yes Number of results per request. The maximum is 100; the default is 100
-        // status String Yes Status: 0 Failed (contains risk triggered revocation 1 Partially Filled 2 Fully Filled 3 = Incomplete (Open + Partially Filled) 4  Canceling
-        //
         const request = {
             'symbol': market['id'],
         };
         let method = undefined;
         if (type === 'spot') {
-            method = 'apiGetOrderOrders';
-            // request['states'] = 'submitted,partial-filled,partial-canceled,filled,canceled'; // required
-            request['states'] = 'canceled'; // required
-            request['method'] = 'orders';
-            // request['types'] = 'buy-limit,sell-limit,buy-market,sell-market';
-            // request['start_date'] = this.ymd (since);
-            // request['end_date'] = this.ymd (exchange.milliseconds ());
-            // request['from'] = 'order_id';
-            // request['direct'] = 'next'; // or prev
+            method = 'apiGetOrderOrdersOpenOrders';
+            // request['from'] = this.safeString (params, 'from'); // order id
+            // request['direct'] = 'next'; // or 'prev'
+            request['method'] = 'openOrders';
             if (limit === undefined) {
-                request['size'] = limit;
+                request['size'] = limit; // default 100, max 1000
             }
         } else if (type === 'swap') {
             method = 'swapGetOrderOrders';
-            request['status'] = '0';
-            request['from'] = '1';
-            request['to'] = '1';
-            request['limit'] = '100';
+            request['status'] = '3'; // 0 Failed, 1 Partially Filled, 2 Fully Filled 3 = Open + Partially Filled, 4 Canceling
+            // request['from'] = '1';
+            // request['to'] = '1';
+            if (limit === undefined) {
+                request['limit'] = 100; // default 100, max 100
+            }
         }
-        if (since !== undefined) {
-            request['from'] = since;
+        const query = this.omit (params, 'type');
+        const response = await this[method] (this.extend (request, query));
+        //
+        //  spot
+        //
+        //
+        //     {
+        //         "status":"ok",
+        //         "ts":1595875165865,
+        //         "data":[
+        //             {
+        //                 "account_id":"7420922606",
+        //                 "amount":"0.1000000000000000",
+        //                 "canceled_at":"1595872129618",
+        //                 "created_at":"1595872089525",
+        //                 "filled_amount":"0.000000000000",
+        //                 "filled_cash_amount":"0.000000000000",
+        //                 "filled_fees":"0.000000000000",
+        //                 "finished_at":"1595872129618",
+        //                 "id":"671701716584665088",
+        //                 "price":"150.000000000000",
+        //                 "source":"接口",
+        //                 "state":"canceled",
+        //                 "symbol":"eth_usdt",
+        //                 "type":"buy-limit"
+        //             }
+        //         ]
+        //     }
+        //
+        // swap
+        //
+        //     [
+        //         {
+        //             "symbol":"cmt_ethusdt",
+        //             "size":"1",
+        //             "timestamp":"1595885546770",
+        //             "client_oid":"f3aa81d6-9a4c-4eab-bebe-ebc19da21cf2",
+        //             "createTime":"1595885521200",
+        //             "filled_qty":"0",
+        //             "fee":"0.00000000",
+        //             "order_id":"671758053112020913",
+        //             "price":"150.00",
+        //             "price_avg":"0.00",
+        //             "status":"0",
+        //             "type":"1",
+        //             "order_type":"0",
+        //             "totalProfits":null
+        //         }
+        //     ]
+        //
+        let data = response;
+        if (!Array.isArray (response)) {
+            data = this.safeValue (response, 'data', []);
         }
-        if (limit !== undefined) {
-            request['limit'] = limit;
+        return this.parseOrders (data, market, undefined, limit);
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchClosedOrders requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const type = this.safeString (params, 'type', market['type']);
+        const request = {
+            'symbol': market['id'],
+        };
+        let method = undefined;
+        if (type === 'spot') {
+            method = 'apiGetOrderOrdersHistory';
+            // Value range [((end_time) – 48h), (end_time)]
+            // the query window is 48 hours at most
+            // the window shift range is the last 30 days
+            if (since !== undefined) {
+                request['start_time'] = since;
+            }
+            // request['end_time'] = this.safeInteger (params, 'end_time');
+            // request['from'] = this.safeString (params, 'from'); // order id
+            // request['direct'] = 'next'; // or 'prev'
+            request['method'] = 'openOrders';
+            if (limit === undefined) {
+                request['size'] = limit; // default 100, max 1000
+            }
+        } else if (type === 'swap') {
+            method = 'swapGetOrderOrders';
+            request['status'] = '3'; // 0 Failed, 1 Partially Filled, 2 Fully Filled 3 = Open + Partially Filled, 4 Canceling
+            // request['from'] = '1';
+            // request['to'] = '1';
+            if (limit === undefined) {
+                request['limit'] = 100; // default 100, max 100
+            }
         }
         const query = this.omit (params, 'type');
         const response = await this[method] (this.extend (request, query));
