@@ -211,6 +211,12 @@ module.exports = class huobipro extends Exchange {
                 // https://github.com/ccxt/ccxt/issues/2873
                 'GET': 'Themis', // conflict with GET (Guaranteed Entrance Token, GET Protocol)
                 'HOT': 'Hydro Protocol', // conflict with HOT (Holo) https://github.com/ccxt/ccxt/issues/4929
+                // https://github.com/ccxt/ccxt/issues/7399
+                // https://coinmarketcap.com/currencies/pnetwork/
+                // https://coinmarketcap.com/currencies/penta/markets/
+                // https://en.cryptonomist.ch/blog/eidoo/the-edo-to-pnt-upgrade-what-you-need-to-know-updated/
+                'PNT': 'Penta',
+
             },
         });
     }
