@@ -19,6 +19,7 @@ module.exports = class bitget extends Exchange {
             'pro': false,
             'has': {
                 'cancelOrder': true,
+                'cancelOrders': true,
                 'CORS': false,
                 'createOrder': true,
                 'fetchAccounts': true,
@@ -498,6 +499,15 @@ module.exports = class bitget extends Exchange {
                     '36230': InvalidOrder, // Exceeding max position limit for underlying.
                 },
                 'broad': {
+                    // {"status":"fail","err_code":"01001","err_msg":"系统异常，请稍后重试"}
+                    'illegal sign invalid': AuthenticationError, // {"status":"error","ts":1595684716042,"err_code":"invalid-parameter","err_msg":"illegal sign invalid"}
+                    'your balance is low': InsufficientFunds, // {"status":"error","ts":1595594160149,"err_code":"invalid-parameter","err_msg":"invalid size, valid range: [1,2000]"}
+                    'invalid type': BadRequest, // {"status":"error","ts":1595700344504,"err_code":"invalid-parameter","err_msg":"invalid type"}
+                    // {"status":"error","ts":1595703343035,"err_code":"bad-request","err_msg":"order cancel fail"}
+                    'accesskey not null': AuthenticationError, // {"status":"error","ts":1595704360508,"err_code":"invalid-parameter","err_msg":"accesskey not null"}
+                    'permissions not right': PermissionDenied, // {"status":"error","ts":1595704490084,"err_code":"invalid-parameter","err_msg":"permissions not right"}
+                    'system exception': ExchangeError, // {"status":"error","ts":1595711862763,"err_code":"system exception","err_msg":"system exception"}
+                    // {"status":"error","ts":1595730308979,"err_code":"bad-request","err_msg":"20003"}
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -1113,20 +1123,23 @@ module.exports = class bitget extends Exchange {
         //
         // fetchOrderTrades (private)
         //
-        //     futures trades, swap trades
+        //     spot
         //
-        //         {
-        //             "trade_id":"197429674631450625",
-        //             "instrument_id":"EOS-USD-SWAP",
-        //             "order_id":"6a-7-54d663a28-0",
-        //             "price":"3.633",
-        //             "order_qty":"1.0000",
-        //             "fee":"-0.000551",
-        //             "created_at":"2019-03-21T04:41:58.0Z", // missing in swap trades
-        //             "timestamp":"2019-03-25T05:56:31.287Z", // missing in futures trades
-        //             "exec_type":"M", // whether the order is taker or maker
-        //             "side":"short", // "buy" in futures trades
-        //         }
+        //     ....
+        //
+        //     swap
+        //
+        //     {
+        //         "trade_id":"6667390",
+        //         "symbol":"cmt_btcusdt",
+        //         "order_id":"525946425993854915",
+        //         "price":"9839.00",
+        //         "order_qty":"3466",
+        //         "fee":"-0.0000528407360000",
+        //         "timestamp":"1561121514442",
+        //         "exec_type":"M",
+        //         "side":"3"
+        //     }
         //
         let symbol = undefined;
         const marketId = this.safeString (trade, 'symbol');
@@ -1921,6 +1934,70 @@ module.exports = class bitget extends Exchange {
         return this.parseOrder (response, market);
     }
 
+    async cancelOrders (ids, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrders requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const type = this.safeString (params, 'type', market['type']);
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + " cancelOrders requires a type parameter (one of 'spot', 'swap').");
+        }
+        const request = {};
+        let method = undefined;
+        if (type === 'spot') {
+            method = 'apiPostOrderOrdersBatchcancel';
+            request['method'] = 'batchcancel';
+            const jsonIds = this.json (ids);
+            const parts = jsonIds.split ('"');
+            request['order_ids'] = parts.join ('');
+        } else if (type === 'swap') {
+            method = 'swapPostOrderCancelBatchOrders';
+            request['symbol'] = market['id'];
+            request['ids'] = ids;
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     spot
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": {
+        //             "success": [
+        //                 "673451224205135872",
+        //             ],
+        //             "failed": [
+        //                 {
+        //                 "err-msg": "invalid record",
+        //                 "order-id": "673451224205135873",
+        //                 "err-code": "base record invalid"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        //     swap
+        //
+        //     {
+        //         "result":true,
+        //         "symbol":"cmt_btcusdt",
+        //         "order_ids":[
+        //             "258414711",
+        //             "478585558"
+        //         ],
+        //         "fail_infos":[
+        //             {
+        //                 "order_id":"258414711",
+        //                 "err_code":"401",
+        //                 "err_msg":""
+        //             }
+        //         ]
+        //     }
+        //
+        return response;
+    }
+
     async fetchOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
@@ -2453,7 +2530,7 @@ module.exports = class bitget extends Exchange {
         if (!Array.isArray (data)) {
             data = this.safeValue (response, 'data', []);
         }
-        return await this.parseTrades (data, since, limit, this.extend (request, query));
+        return await this.parseTrades (data, market, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
