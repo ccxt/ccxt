@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { BadSymbol, BadRequest, ExchangeError, NotSupported } = require ('ccxt/js/base/errors');
+const { NotSupported } = require ('ccxt/js/base/errors');
 const { ArrayCache } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -29,16 +29,6 @@ module.exports = class currencycom extends ccxt.currencycom {
             'options': {
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
-            },
-            'exceptions': {
-                'ws': {
-                    'exact': {
-                        'Event(s) not found': BadRequest,
-                    },
-                    'broad': {
-                        'Currency pair not in ISO 4217-A3 format': BadSymbol,
-                    },
-                },
             },
         });
     }
@@ -88,6 +78,9 @@ module.exports = class currencycom extends ccxt.currencycom {
     }
 
     handleTrades (client, message, subscription) {
+        let i = 1;
+        i = i + 1;
+        client.resolve (i, 'foobar');
         //
         //     {
         //         status: 'OK',
@@ -101,19 +94,15 @@ module.exports = class currencycom extends ccxt.currencycom {
         //         }
         //     }
         //
-        const symbol = this.safeString (subscription, 'symbol');
-        const name = this.safeString (subscription, 'name');
-        const messageHash = name + ':' + symbol;
-        const market = this.market (symbol);
-        const payload = this.safeValue (message, 'payload');
-        const since = this.safeInteger (payload, 'startTime');
-        const limit = this.safeInteger (payload, 'limit');
-        const rawTrades = this.safeValue (payload, 'aggTrades', []);
-        console.dir (message, { depth: null });
-        console.dir (subscription, { depth: null });
-        const trades = this.parseTrades (rawTrades, market, since, limit);
-        console.dir (trades, { depth: null });
-        process.exit ();
+        // const symbol = this.safeString (subscription, 'symbol');
+        // const name = this.safeString (subscription, 'name');
+        // const messageHash = name + ':' + symbol;
+        // const market = this.market (symbol);
+        // const payload = this.safeValue (message, 'payload');
+        // const since = this.safeInteger (payload, 'startTime');
+        // const limit = this.safeInteger (payload, 'limit');
+        // const rawTrades = this.safeValue (payload, 'aggTrades', []);
+        // const trades = this.parseTrades (rawTrades, market, since, limit);
         //
         //     [
         //         0, // channelID
@@ -213,9 +202,8 @@ module.exports = class currencycom extends ccxt.currencycom {
     }
 
     requestId () {
-        // their support said that reqid must be an int32, not documented
-        const reqid = this.sum (this.safeInteger (this.options, 'reqid', 0), 1);
-        this.options['reqid'] = reqid;
+        const reqid = this.sum (this.safeInteger (this.options, 'correlationId', 0), 1);
+        this.options['correlationId'] = reqid;
         return reqid;
     }
 
@@ -229,7 +217,7 @@ module.exports = class currencycom extends ccxt.currencycom {
             'destination': name,
             'correlationId': requestId,
             'payload': {
-                'symbol': market['id'],
+                'symbols': [ market['id'] ],
             },
         });
         const subscription = this.extend (request, {
@@ -245,145 +233,71 @@ module.exports = class currencycom extends ccxt.currencycom {
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        const request = {
-            'payload': {},
-        };
-        if (limit !== undefined) {
-            request['payload']['limit'] = limit;
-        }
-        if (since !== undefined) {
-            request['payload']['startTime'] = since;
-        }
-        const future = this.watchPublic ('/api/v1/aggTrades', symbol, params);
+        const future = this.watchPublic ('trades.subscribe', symbol, params);
         return await this.after (future, this.filterBySinceLimit, since, limit, 'timestamp', true);
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
-        const name = 'book';
-        const request = {};
-        if (limit !== undefined) {
-            request['payload'] = {
-                'limit': limit,
-            };
-        }
-        const future = this.watchPublic ('/api/v1/depth', symbol, this.extend (request, params));
+        const future = this.watchPublic ('depthMarketData.subscribe', symbol, params);
         return await this.after (future, this.limitOrderBook, symbol, limit, params);
     }
 
-    // async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-    //     await this.loadMarkets ();
-    //     const name = 'ohlc';
-    //     const market = this.market (symbol);
-    //     const wsName = this.safeValue (market['info'], 'wsname');
-    //     const messageHash = name + ':' + timeframe + ':' + wsName;
-    //     const url = this.urls['api']['ws']['public'];
-    //     const requestId = this.requestId ();
-    //     const subscribe = {
-    //         'event': 'subscribe',
-    //         'reqid': requestId,
-    //         'pair': [
-    //             wsName,
-    //         ],
-    //         'subscription': {
-    //             'name': name,
-    //             'interval': this.timeframes[timeframe],
-    //         },
-    //     };
-    //     const request = this.deepExtend (subscribe, params);
-    //     const future = this.watch (url, messageHash, request, messageHash);
-    //     return await this.after (future, this.filterBySinceLimit, since, limit, 0, true);
-    // }
-
-    // async loadMarkets (reload = false, params = {}) {
-    //     const markets = await super.loadMarkets (reload, params);
-    //     let marketsByWsName = this.safeValue (this.options, 'marketsByWsName');
-    //     if ((marketsByWsName === undefined) || reload) {
-    //         marketsByWsName = {};
-    //         for (let i = 0; i < this.symbols.length; i++) {
-    //             const symbol = this.symbols[i];
-    //             const market = this.markets[symbol];
-    //             if (!market['darkpool']) {
-    //                 const info = this.safeValue (market, 'info', {});
-    //                 const wsName = this.safeString (info, 'wsname');
-    //                 marketsByWsName[wsName] = market;
-    //             }
-    //         }
-    //         this.options['marketsByWsName'] = marketsByWsName;
-    //     }
-    //     return markets;
-    // }
-
-    handleOrderBook (client, message, subscription) {
-        //
-        //     {
-        //         status: 'OK',
-        //         correlationId: '1',
-        //         payload: {
-        //             lastUpdateId: 1595815679404,
-        //             asks: [
-        //                 [ 10066.05, 0.25 ],
-        //                 [ 10066.8, 5 ],
-        //                 [ 10067, 0.31 ],
-        //             ],
-        //             bids: [
-        //                 [ 10066, 3 ],
-        //                 [ 10065.7, 0.25 ],
-        //                 [ 10065.5, 2 ],
-        //             ],
-        //         },
-        //     }
-        //
-        const symbol = this.safeString (subscription, 'symbol');
-        const name = this.safeString (subscription, 'name');
-        const messageHash = name + ':' + symbol;
-        const market = this.market (symbol);
-        const payload = this.safeValue (message, 'payload');
-        const timestamp = this.safeInteger (payload, 'lastUpdateId');
-        const snapshot = this.parseOrderBook (payload, timestamp);
-        snapshot['nonce'] = timestamp;
-        const subscriptionPayload = this.safeInteger (subscription, 'payload', {});
-        const limit = this.safeInteger (subscriptionPayload, 'limit');
-        let orderbook = this.safeValue (this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.orderBook ({}, limit)
-        }
-        orderbook.reset (snapshot);
-        this.orderbooks[symbol] = orderbook;
-        client.resolve (orderbook, messageHash);
-        if (messageHash in client.subscriptions) {
-            delete client.subscriptions[messageHash];
+    handleDeltas (bookside, deltas) {
+        const prices = Object.keys (deltas);
+        for (let i = 0; i < prices.length; i++) {
+            const price = parseFloat (prices[i]);
+            const amount = parseFloat (deltas[price]);
+            bookside.store (price, amount);
         }
     }
 
-    // handleErrorMessage (client, message) {
-    //     //
-    //     //     {
-    //     //         errorMessage: 'Currency pair not in ISO 4217-A3 format foobar',
-    //     //         event: 'subscriptionStatus',
-    //     //         pair: 'foobar',
-    //     //         reqid: 1574146735269,
-    //     //         status: 'error',
-    //     //         subscription: { name: 'ticker' }
-    //     //     }
-    //     //
-    //     const errorMessage = this.safeValue (message, 'errorMessage');
-    //     if (errorMessage !== undefined) {
-    //         const requestId = this.safeValue (message, 'reqid');
-    //         if (requestId !== undefined) {
-    //             const broad = this.exceptions['ws']['broad'];
-    //             const broadKey = this.findBroadlyMatchedKey (broad, errorMessage);
-    //             let exception = undefined;
-    //             if (broadKey === undefined) {
-    //                 exception = new ExchangeError (errorMessage);
-    //             } else {
-    //                 exception = new broad[broadKey] (errorMessage);
-    //             }
-    //             client.reject (exception, requestId);
-    //             return false;
-    //         }
-    //     }
-    //     return true;
-    // }
+    handleOrderBook (client, message) {
+        //
+        //     {
+        //         status: 'OK',
+        //         destination: 'marketdepth.event',
+        //         payload: {
+        //             data: '{"ts":1596235401337,"bid":{"11366.85":0.2500,"11366.1":5.0000,"11365.6":0.5000,"11363.0":2.0000},"ofr":{"11366.9":0.2500,"11367.65":5.0000,"11368.15":0.5000}}',
+        //             symbol: 'BTC/USD_LEVERAGE'
+        //         }
+        //     }
+        //
+        const payload = this.safeValue (message, 'payload');
+        let data = this.safeString (payload, 'data');
+        if (data === undefined) {
+            data = payload;
+        } else {
+            data = JSON.parse (data);
+        }
+        const marketId = this.safeString (payload, 'symbol');
+        let market = undefined;
+        let symbol = undefined;
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+                symbol = market['id'];
+            } else {
+                symbol = marketId;
+            }
+        }
+        const name = 'depthMarketData.subscribe'; // this.safeString (subscription, 'destination');
+        const messageHash = name + ':' + symbol;
+        const timestamp = this.safeInteger (data, 'ts');
+        let orderbook = this.safeValue (this.orderbooks, symbol);
+        if (orderbook === undefined) {
+            orderbook = this.orderBook ();
+        }
+        orderbook.reset ({
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        });
+        const bids = this.safeValue (data, 'bid', {});
+        const asks = this.safeValue (data, 'ofr', {});
+        this.handleDeltas (orderbook['bids'], bids);
+        this.handleDeltas (orderbook['asks'], asks);
+        this.orderbooks[symbol] = orderbook;
+        client.resolve (orderbook, messageHash);
+    }
 
     signMessage (client, messageHash, message, params = {}) {
         // todo: signMessage not implemented yet
@@ -413,27 +327,49 @@ module.exports = class currencycom extends ccxt.currencycom {
         //         }
         //     }
         //
-        const subscriptionsById = this.indexBy (client.subscriptions, 'correlationId');
+        //     {
+        //         status: 'OK',
+        //         destination: 'marketdepth.event',
+        //         payload: {
+        //             data: '{"ts":1596235401337,"bid":{"11366.85":0.2500,"11366.1":5.0000,"11365.6":0.5000,"11363.0":2.0000},"ofr":{"11366.9":0.2500,"11367.65":5.0000,"11368.15":0.5000}}',
+        //             symbol: 'BTC/USD_LEVERAGE'
+        //         }
+        //     }
+        //
         const requestId = this.safeString (message, 'correlationId');
-        const status = this.safeString (message, 'status');
-        const subscription = this.safeValue (subscriptionsById, requestId);
-        if (subscription !== undefined) {
-            if (status === 'OK') {
-                const name = this.safeString (subscription, 'name');
-                if (name !== undefined) {
-                    const methods = {
-                        '/api/v1/aggTrades': this.handleTrades,
-                        '/api/v1/ticker/24hr': this.handleTicker,
-                        '/api/v1/depth': this.handleOrderBook,
-                        '/api/v1/klines': this.handleOHCLV,
-                    };
-                    const method = this.safeValue (methods, name);
-                    if (method === undefined) {
-                        return message;
-                    } else {
-                        return method.call (this, client, message, subscription);
+        if (requestId !== undefined) {
+            const subscriptionsById = this.indexBy (client.subscriptions, 'correlationId');
+            const status = this.safeString (message, 'status');
+            const subscription = this.safeValue (subscriptionsById, requestId);
+            if (subscription !== undefined) {
+                if (status === 'OK') {
+                    const name = this.safeString (subscription, 'name');
+                    if (name !== undefined) {
+                        const methods = {
+                            '/api/v1/aggTrades': this.handleTrades,
+                            '/api/v1/ticker/24hr': this.handleTicker,
+                            '/api/v1/klines': this.handleOHCLV,
+                        };
+                        const method = this.safeValue (methods, name);
+                        if (method === undefined) {
+                            return message;
+                        } else {
+                            return method.call (this, client, message, subscription);
+                        }
                     }
                 }
+            }
+        }
+        const destination = this.safeString (message, 'destination');
+        if (destination !== undefined) {
+            const methods = {
+                'marketdepth.event': this.handleOrderBook,
+            };
+            const method = this.safeValue (methods, destination);
+            if (method === undefined) {
+                return message;
+            } else {
+                return method.call (this, client, message);
             }
         }
     }
