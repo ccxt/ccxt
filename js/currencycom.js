@@ -77,60 +77,84 @@ module.exports = class currencycom extends ccxt.currencycom {
         throw new NotSupported (this.id + ' watchBalance() not implemented yet');
     }
 
+    handleTrade (trade, market = undefined) {
+        //
+        //         {
+        //             price: 11634.75,
+        //             size: 0.001,
+        //             id: 1605492357,
+        //             ts: 1596263802399,
+        //             instrumentId: 45076691096786110,
+        //             orderId: '00a02503-0079-54c4-0000-0000401fff51',
+        //             clientOrderId: '00a02503-0079-54c4-0000-482b00002f17',
+        //             buyer: false
+        //         }
+        //
+        let symbol = undefined;
+        if (market === undefined) {
+            const marketId = this.safeString (trade, 'symbol');
+            market = this.safeValue (this.markets_by_id, marketId);
+        }
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        const timestamp = this.safeInteger (trade, 'ts');
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'size');
+        const id = this.safeString2 (trade, 'id');
+        const orderId = this.safeString (trade, 'orderId');
+        const buyer = this.safeValue (trade, 'buyer');
+        const side = buyer ? 'buy' : 'sell';
+        return {
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'id': id,
+            'order': orderId,
+            'type': undefined,
+            'takerOrMaker': undefined,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': price * amount,
+            'fee': undefined,
+        };
+    }
+
     handleTrades (client, message, subscription) {
-        let i = 1;
-        i = i + 1;
-        client.resolve (i, 'foobar');
         //
         //     {
         //         status: 'OK',
-        //         correlationId: '1',
+        //         destination: 'internal.trade',
         //         payload: {
-        //             aggTrades: [
-        //                 { a: 1598766162, p: '10053.2', q: '0.0', T: 1595816894580, m: false },
-        //                 { a: 1598699844, p: '10061.75', q: '0.001', T: 1595816460425, m: false },
-        //                 { a: 1598138315, p: '10100', q: '0.022', T: 1595813323689, m: true },
-        //             ]
+        //             price: 11634.75,
+        //             size: 0.001,
+        //             id: 1605492357,
+        //             ts: 1596263802399,
+        //             instrumentId: 45076691096786110,
+        //             orderId: '00a02503-0079-54c4-0000-0000401fff51',
+        //             clientOrderId: '00a02503-0079-54c4-0000-482b00002f17',
+        //             buyer: false
         //         }
         //     }
         //
-        // const symbol = this.safeString (subscription, 'symbol');
-        // const name = this.safeString (subscription, 'name');
-        // const messageHash = name + ':' + symbol;
-        // const market = this.market (symbol);
-        // const payload = this.safeValue (message, 'payload');
-        // const since = this.safeInteger (payload, 'startTime');
-        // const limit = this.safeInteger (payload, 'limit');
-        // const rawTrades = this.safeValue (payload, 'aggTrades', []);
-        // const trades = this.parseTrades (rawTrades, market, since, limit);
-        //
-        //     [
-        //         0, // channelID
-        //         [ //     price        volume         time             side type misc
-        //             [ "5541.20000", "0.15850568", "1534614057.321597", "s", "l", "" ],
-        //             [ "6060.00000", "0.02455000", "1534614057.324998", "b", "l", "" ],
-        //         ],
-        //         "trade",
-        //         "XBT/USD"
-        //     ]
-        //
-        // const wsName = this.safeString (message, 3);
-        // const name = this.safeString (message, 2);
-        // const messageHash = name + ':' + wsName;
-        // const market = this.safeValue (this.options['marketsByWsName'], wsName);
-        // const symbol = market['symbol'];
-        // let stored = this.safeValue (this.trades, symbol);
-        // if (stored === undefined) {
-        //     const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-        //     stored = new ArrayCache (limit);
-        //     this.trades[symbol] = stored;
-        // }
-        // const trades = this.safeValue (message, 1, []);
-        // const parsed = this.parseTrades (trades, market);
-        // for (let i = 0; i < parsed.length; i++) {
-        //     stored.append (parsed[i]);
-        // }
-        // client.resolve (stored, messageHash);
+        const payload = this.safeValue (message, 'payload');
+        const parsed = this.handleTrade (payload);
+        console.log (parsed);
+        process.exit ();
+        const symbol = parsed['symbol'];
+        const name = this.safeString (subscription, 'name');
+        const messageHash = name + ':' + symbol;
+        const market = this.market (symbol);
+        let stored = this.safeValue (this.trades, symbol);
+        if (stored === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            stored = new ArrayCache (limit);
+            this.trades[symbol] = stored;
+        }
+        stored.append (parsed);
+        client.resolve (stored, messageHash);
     }
 
     findTimeframe (timeframe) {
@@ -242,6 +266,39 @@ module.exports = class currencycom extends ccxt.currencycom {
         return await this.after (future, this.limitOrderBook, symbol, limit, params);
     }
 
+    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'payload': {
+                'intervals': [
+                    this.timeframes[timeframe],
+                ],
+            },
+        };
+        const future = this.watchPublic ('OHLCMarketData.subscribe', symbol, this.extend (request, params));
+        return await this.after (future, this.filterBySinceLimit, since, limit, 0, true);
+        // await this.loadMarkets ();
+        // const name = 'ohlc';
+        // const market = this.market (symbol);
+        // const wsName = this.safeValue (market['info'], 'wsname');
+        // const messageHash = name + ':' + timeframe + ':' + wsName;
+        // const url = this.urls['api']['ws']['public'];
+        // const requestId = this.requestId ();
+        // const subscribe = {
+        //     'event': 'subscribe',
+        //     'reqid': requestId,
+        //     'pair': [
+        //         wsName,
+        //     ],
+        //     'subscription': {
+        //         'name': name,
+        //         'interval': this.timeframes[timeframe],
+        //     },
+        // };
+        // const request = this.deepExtend (subscribe, params);
+        // const future = this.watch (url, messageHash, request, messageHash);
+        // return await this.after (future, this.filterBySinceLimit, since, limit, 0, true);
+    }
+
     handleDeltas (bookside, deltas) {
         const prices = Object.keys (deltas);
         for (let i = 0; i < prices.length; i++) {
@@ -336,6 +393,21 @@ module.exports = class currencycom extends ccxt.currencycom {
         //         }
         //     }
         //
+        //     {
+        //         status: 'OK',
+        //         destination: 'internal.trade',
+        //         payload: {
+        //             price: 11634.75,
+        //             size: 0.001,
+        //             id: 1605492357,
+        //             ts: 1596263802399,
+        //             instrumentId: 45076691096786110,
+        //             orderId: '00a02503-0079-54c4-0000-0000401fff51',
+        //             clientOrderId: '00a02503-0079-54c4-0000-482b00002f17',
+        //             buyer: false
+        //         }
+        //     }
+        //
         const requestId = this.safeString (message, 'correlationId');
         if (requestId !== undefined) {
             const subscriptionsById = this.indexBy (client.subscriptions, 'correlationId');
@@ -364,6 +436,7 @@ module.exports = class currencycom extends ccxt.currencycom {
         if (destination !== undefined) {
             const methods = {
                 'marketdepth.event': this.handleOrderBook,
+                'internal.trade': this.handleTrades,
             };
             const method = this.safeValue (methods, destination);
             if (method === undefined) {
