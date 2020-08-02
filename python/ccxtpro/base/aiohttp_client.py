@@ -69,7 +69,9 @@ class AiohttpClient(Client):
         # to a ping incoming from a server, we have to disable autoping
         # with aiohttp's websockets and respond with pong manually
         # otherwise aiohttp's websockets client won't trigger WSMsgType.PONG
-        return session.ws_connect(self.url, autoping=False)
+        # call aenter here to simulate async with otherwise we get the error "await not called with future"
+        # if connecting to a non-existent endpoint
+        return session.ws_connect(self.url, autoping=False).__aenter__()
 
     def send(self, message):
         if self.verbose:

@@ -5,7 +5,7 @@ __author__ = 'Carlo Revelli'
 import ccxt
 from aiohttp.http_websocket import WebSocketReader
 from ccxtpro.base.aiohttp_client import AiohttpClient
-from asyncio import sleep
+import asyncio
 import socket
 import select
 import collections
@@ -21,9 +21,10 @@ del default_socket
 class FastClient(AiohttpClient):
     sockets = {}
     buffer_size = None
-    running = False
     poll_frequency = 0.01
     max_pending = 2 ** 16   # will throw an error if more messages are in the queue
+    lock = asyncio.Lock()
+    mode = EVERY_MESSAGE
 
     def __init__(self, url, on_message_callback, on_error_callback, on_close_callback, asyncio_loop, config={}):
         super(FastClient, self).__init__(url, on_message_callback, on_error_callback, on_close_callback, asyncio_loop, config)
@@ -40,7 +41,12 @@ class FastClient(AiohttpClient):
         self.transport = None
 
     async def receive_loop(self):
-        self.transport = self.connection._conn.transport
+        connection = self.connection._conn
+        if connection.closed:
+            # connection got terminated after the connection was made and before the receive loop ran
+            self.on_close(1006)
+            return
+        self.transport = connection.transport
         self.transport.pause_reading()
         self.socket = self.transport.get_extra_info('socket')
         # https://github.com/aio-libs/aiohttp/issues/664
@@ -49,23 +55,23 @@ class FastClient(AiohttpClient):
         if hasattr(self.transport, '_ssl_protocol'):
             self.ssl_pipe = self.transport._ssl_protocol._sslpipe  # a weird memory buffer
         self.sockets[self.socket] = self
-        if self.running:
+        if self.lock.locked():
+            # prevent multiple futures waiting on the lock
             return
-        type(self).running = True
-        while self.running:
-            await self.selector()
+        async with self.lock:
+            # prevent more than one of these loops running
+            while self.sockets:
+                await self.selector()
 
     @classmethod
     async def selector(cls):
-        await sleep(cls.poll_frequency)
+        await asyncio.sleep(cls.poll_frequency)
         if not cls.sockets:
             cls.running = False
             return
         ready_sockets, _, errored_sockets = select.select(cls.sockets, [], cls.sockets, 0)
         for sock in errored_sockets:
-            print('ERROR', sock)
-            # TODO: handle
-            pass
+            cls.sockets[sock].on_error()
 
         for sock in ready_sockets:
             client = cls.sockets[sock]
@@ -91,7 +97,7 @@ class FastClient(AiohttpClient):
                 client.handle_message(message)
                 if client.mode == EVERY_MESSAGE and client.change_context:
                     client.change_context = False
-                    await sleep(0)
+                    await asyncio.sleep(0)
             # clear the queue so we don't read the same messages twice
             client.parser.queue.clear()
 
