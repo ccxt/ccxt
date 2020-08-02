@@ -1182,7 +1182,7 @@ module.exports = class bitget extends Exchange {
         let timestamp = this.safeInteger (trade, 'created_at');
         timestamp = this.safeInteger2 (trade, 'timestamp', 'ts', timestamp);
         const price = this.safeFloat (trade, 'price');
-        let amount = this.safeFloat (trade, 'filled_amount');
+        let amount = this.safeFloat2 (trade, 'filled_amount', 'order_qty');
         amount = this.safeFloat2 (trade, 'size', 'amount', amount);
         let takerOrMaker = this.safeString2 (trade, 'exec_type', 'liquidity');
         if (takerOrMaker === 'M') {
@@ -1191,15 +1191,16 @@ module.exports = class bitget extends Exchange {
             takerOrMaker = 'taker';
         }
         let side = this.safeString2 (trade, 'side', 'direction');
-        let type = undefined;
-        if (side === undefined) {
-            const orderType = this.safeString (trade, 'type');
-            if (orderType !== undefined) {
-                const parts = orderType.split ('-');
-                side = this.safeStringLower (parts, 0);
-                type = this.safeStringLower (parts, 1);
-            }
-        }
+        const type = this.parseOrderType (side);
+        side = this.parseOrderSide (side);
+        // if (side === undefined) {
+        //     const orderType = this.safeString (trade, 'type');
+        //     if (orderType !== undefined) {
+        //         const parts = orderType.split ('-');
+        //         side = this.safeStringLower (parts, 0);
+        //         type = this.safeStringLower (parts, 1);
+        //     }
+        // }
         let cost = undefined;
         if (amount !== undefined) {
             if (price !== undefined) {
@@ -1629,12 +1630,30 @@ module.exports = class bitget extends Exchange {
 
     parseOrderSide (side) {
         const sides = {
-            '1': 'buy', // open long
-            '2': 'sell', // open short
-            '3': 'sell', // close long
-            '4': 'buy', // close short
+            'buy-market': 'buy',
+            'sell-market': 'sell',
+            'buy-limit': 'buy',
+            'sell-limit': 'sell',
+            '1': 'long', // open long
+            '2': 'short', // open short
+            '3': 'long', // close long
+            '4': 'short', // close short
         };
         return this.safeString (sides, side, side);
+    }
+
+    parseOrderType (type) {
+        const types = {
+            'buy-market': 'market',
+            'sell-market': 'market',
+            'buy-limit': 'limit',
+            'sell-limit': 'limit',
+            '1': 'open', // open long
+            '2': 'open', // open short
+            '3': 'close', // close long
+            '4': 'close', // close short
+        };
+        return this.safeString (types, type, type);
     }
 
     parseOrder (order, market = undefined) {
@@ -1720,21 +1739,9 @@ module.exports = class bitget extends Exchange {
         let id = this.safeString (order, 'order_id');
         id = this.safeString2 (order, 'id', 'data', id);
         const timestamp = this.safeInteger2 (order, 'created_at', 'createTime');
-        let side = this.safeString (order, 'side');
         let type = this.safeString (order, 'type');
-        if (type === 'buy-limit') {
-            type = 'limit';
-            side = 'buy';
-        } else if (type === 'sell-limit') {
-            type = 'limit';
-            side = 'sell';
-        } else if (type === 'buy-market') {
-            type = 'market';
-            side = 'buy';
-        } else if (type === 'sell-market') {
-            type = 'market';
-            side = 'sell';
-        }
+        const side = this.parseOrderSide (type);
+        type = this.parseOrderType (type);
         // if ((side !== 'buy') && (side !== 'sell')) {
         //     side = this.parseOrderSide (type);
         // }
@@ -1885,11 +1892,7 @@ module.exports = class bitget extends Exchange {
                 request['match_price'] = '0';
                 request['price'] = this.priceToPrecision (symbol, price);
             } else if (type === 'market') {
-                if (side === 'buy') {
-                    request['match_price'] = '0';
-                } else if (side === 'sell') {
-                    request['match_price'] = '1';
-                }
+                request['match_price'] = '1';
             }
             method = 'swapPostOrderPlaceOrder';
         }
