@@ -1126,7 +1126,18 @@ module.exports = class bitget extends Exchange {
         //
         //     spot
         //
-        //     ....
+        //     {
+        //         "id":"614164775",
+        //         "created_at":"1596298860602",
+        //         "filled_amount":"0.0417000000000000",
+        //         "filled_fees":"0.0000834000000000",
+        //         "match_id":"673491702661292033",
+        //         "order_id":"673491720340279296",
+        //         "price":"359.240000000000",
+        //         "source":"接口",
+        //         "symbol":"eth_usdt",
+        //         "type":"buy-market"
+        //     }
         //
         //     swap
         //
@@ -1168,23 +1179,39 @@ module.exports = class bitget extends Exchange {
             base = market['base'];
             quote = market['quote'];
         }
-        const timestamp = this.safeInteger2 (trade, 'timestamp', 'ts');
+        let timestamp = this.safeInteger (trade, 'created_at');
+        timestamp = this.safeInteger2 (trade, 'timestamp', 'ts', timestamp);
         const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat2 (trade, 'size', 'amount');
+        let amount = this.safeFloat (trade, 'filled_amount');
+        amount = this.safeFloat2 (trade, 'size', 'amount', amount);
         let takerOrMaker = this.safeString2 (trade, 'exec_type', 'liquidity');
         if (takerOrMaker === 'M') {
             takerOrMaker = 'maker';
         } else if (takerOrMaker === 'T') {
             takerOrMaker = 'taker';
         }
-        const side = this.safeString2 (trade, 'side', 'direction');
+        let side = this.safeString2 (trade, 'side', 'direction');
+        let type = undefined;
+        if (side === undefined) {
+            const orderType = this.safeString (trade, 'type');
+            if (orderType !== undefined) {
+                const parts = orderType.split ('-');
+                side = this.safeStringLower (parts, 0);
+                type = this.safeStringLower (parts, 1);
+            }
+        }
         let cost = undefined;
         if (amount !== undefined) {
             if (price !== undefined) {
                 cost = amount * price;
             }
         }
-        const feeCost = this.safeFloat (trade, 'fee');
+        let feeCost = this.safeFloat (trade, 'fee');
+        if (feeCost === undefined) {
+            feeCost = this.safeFloat (trade, 'filled_fees');
+        } else {
+            feeCost = -feeCost;
+        }
         let fee = undefined;
         if (feeCost !== undefined) {
             const feeCurrency = (side === 'buy') ? base : quote;
@@ -1193,19 +1220,20 @@ module.exports = class bitget extends Exchange {
                 // or a negative number (transaction fee deduction)
                 // therefore we need to invert the fee
                 // more about it https://github.com/ccxt/ccxt/issues/5909
-                'cost': -feeCost,
+                'cost': feeCost,
                 'currency': feeCurrency,
             };
         }
         const orderId = this.safeString (trade, 'order_id');
+        const id = this.safeString2 (trade, 'trade_id', 'id');
         return {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'id': this.safeString (trade, 'trade_id'),
+            'id': id,
             'order': orderId,
-            'type': undefined,
+            'type': type,
             'takerOrMaker': takerOrMaker,
             'side': side,
             'price': price,
@@ -1822,7 +1850,6 @@ module.exports = class bitget extends Exchange {
                 request['amount'] = this.amountToPrecision (symbol, amount);
                 request['price'] = this.priceToPrecision (symbol, price);
             } else if (type === 'market') {
-                request['price'] = this.priceToPrecision (symbol, 0);
                 // for market buy it requires the amount of quote currency to spend
                 if (side === 'buy') {
                     let cost = this.safeFloat (params, 'amount');
@@ -1842,7 +1869,6 @@ module.exports = class bitget extends Exchange {
                 } else if (side === 'sell') {
                     request['amount'] = this.amountToPrecision (symbol, amount);
                 }
-                request['amount'] = this.amountToPrecision (symbol, amount);
             }
             // ...
         } else if (market['swap']) {
@@ -2493,19 +2519,20 @@ module.exports = class bitget extends Exchange {
         // spot
         //
         //     {
-        //         "status": "ok",
-        //         "data": [
+        //         "status":"ok",
+        //         "ts":1596298917277,
+        //         "data":[
         //             {
-        //                 "id": 29553,
-        //                 "order_id": 59378,
-        //                 "match_id": 59335,
-        //                 "symbol": "eth_usdt",
-        //                 "type": "buy-limit",
-        //                 "source": "api",
-        //                 "price": "100.1000000000",
-        //                 "filled_amount": "9.1155000000",
-        //                 "filled_fees": "0.0182310000",
-        //                 "created_at": 1494901400435
+        //                 "id":"614164775",
+        //                 "created_at":"1596298860602",
+        //                 "filled_amount":"0.0417000000000000",
+        //                 "filled_fees":"0.0000834000000000",
+        //                 "match_id":"673491702661292033",
+        //                 "order_id":"673491720340279296",
+        //                 "price":"359.240000000000",
+        //                 "source":"接口",
+        //                 "symbol":"eth_usdt",
+        //                 "type":"buy-market"
         //             }
         //         ]
         //     }
