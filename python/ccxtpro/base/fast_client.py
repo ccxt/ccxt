@@ -66,9 +66,6 @@ class FastClient(AiohttpClient):
     @classmethod
     async def selector(cls):
         await asyncio.sleep(cls.poll_frequency)
-        if not cls.sockets:
-            cls.running = False
-            return
         ready_sockets, _, errored_sockets = select.select(cls.sockets, [], cls.sockets, 0)
         for sock in errored_sockets:
             cls.sockets[sock].on_error()
