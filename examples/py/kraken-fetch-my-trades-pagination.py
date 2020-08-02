@@ -41,6 +41,7 @@ while True:
 print('-----------------------------------------------------------------')
 print(len(all_trades), 'trades fetched')
 first = exchange.safe_value(all_trades, 0)
-last = exchange.safe_value(all_trades, len(all_trades) - 1)
-print('First:', first['datetime'])
-print('Last:', last['datetime'])
+if first:
+    last = exchange.safe_value(all_trades, len(all_trades) - 1)
+    print('First:', first['datetime'])
+    print('Last:', last['datetime'])
