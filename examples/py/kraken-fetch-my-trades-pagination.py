@@ -21,16 +21,11 @@ exchange.load_markets()
 
 exchange.rateLimit = 10000  # set a higher value if you get rate-limiting errors
 
-symbol = None
-since = None
-limit = 50
 all_trades = []
-
-i = 0
+offset = 0
 while True:
-    offset = 0
     params = {'ofs': offset}
-    trades = exchange.fetch_my_trades(symbol, since, limit, params)
+    trades = exchange.fetch_my_trades(symbol=None, since=None, limit=None, params)
     print('-----------------------------------------------------------------')
     print(exchange.iso8601(exchange.milliseconds()), 'Fetched', len(trades), 'trades')
     if len(trades) < 1:
