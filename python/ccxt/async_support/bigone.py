@@ -748,11 +748,11 @@ class bigone(Exchange):
             # 'immediate_or_cancel': False,  # limit orders only, must be False when post_only is True
             # 'post_only': False,  # limit orders only, must be False when immediate_or_cancel is True
         }
-        if type == 'LIMIT':
+        if uppercaseType == 'LIMIT':
             request['price'] = self.price_to_precision(symbol, price)
         else:
-            isStopLimit = (type == 'STOP_LIMIT')
-            isStopMarket = (type == 'STOP_MARKET')
+            isStopLimit = (uppercaseType == 'STOP_LIMIT')
+            isStopMarket = (uppercaseType == 'STOP_MARKET')
             if isStopLimit or isStopMarket:
                 stopPrice = self.safe_float(params, 'stop_price')
                 if stopPrice is None:

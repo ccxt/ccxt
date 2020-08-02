@@ -793,11 +793,11 @@ class bigone extends Exchange {
             // 'immediate_or_cancel' => false, // limit orders only, must be false when post_only is true
             // 'post_only' => false, // limit orders only, must be false when immediate_or_cancel is true
         );
-        if ($type === 'LIMIT') {
+        if ($uppercaseType === 'LIMIT') {
             $request['price'] = $this->price_to_precision($symbol, $price);
         } else {
-            $isStopLimit = ($type === 'STOP_LIMIT');
-            $isStopMarket = ($type === 'STOP_MARKET');
+            $isStopLimit = ($uppercaseType === 'STOP_LIMIT');
+            $isStopMarket = ($uppercaseType === 'STOP_MARKET');
             if ($isStopLimit || $isStopMarket) {
                 $stopPrice = $this->safe_float($params, 'stop_price');
                 if ($stopPrice === null) {
