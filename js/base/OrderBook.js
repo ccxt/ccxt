@@ -80,7 +80,7 @@ class OrderBook {
         )
     }
 
-    reset (snapshot) {
+    reset (snapshot = {}) {
         this.asks.index.clear ()
         if (snapshot.asks) {
             for (let i = 0; i < snapshot.asks.length; i++) {

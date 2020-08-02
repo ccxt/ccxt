@@ -1,6 +1,6 @@
 {
   "name": "ccxt.pro",
-  "version": "0.3.11",
+  "version": "0.3.19",
   "description": "A professional tool for algorithmic cryptocurrency trading",
   "main": "./ccxt.pro.js",
   "unpkg": "dist/ccxt.pro.browser.js",
@@ -34,7 +34,7 @@
   },
   "types": "./ccxt.pro.d.ts",
   "dependencies": {
-    "ccxt": "^1.32.14",
+    "ccxt": "^1.32.41",
     "ws": "^7.2.1"
   },
   "devDependencies": {
