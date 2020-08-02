@@ -2453,15 +2453,6 @@ module.exports = class bitget extends Exchange {
         if (type === 'swap') {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades is not supported for ' + type + ' type');
         }
-        const request = {
-            'symbol': market['id'],
-            'method': 'matchresults',
-            // 'types': 'buy-market,sell-market,buy-limit,sell-limit',
-            // 'start_date': this.ymd (since),
-            // 'end_date': this.ymd (this.milliseconds ()),
-            // 'size': 100,
-            // 'direct': 'next',
-        };
         //
         // spot
         //
@@ -2474,6 +2465,23 @@ module.exports = class bitget extends Exchange {
         //     direct false string Query direction ‘next’ is default , the transaction record ID is sorted from large to small prev，next
         //     size false string Query record size 100 <=100
         //
+        const request = {
+            'symbol': market['id'],
+            'method': 'matchresults',
+            // 'types': 'buy-market,sell-market,buy-limit,sell-limit',
+            // 'start_date': this.ymd (since),
+            // 'end_date': this.ymd (this.milliseconds ()),
+            // 'size': 100,
+            // 'direct': 'next',
+        };
+        if (since !== undefined) {
+            request['start_date'] = this.ymd (since);
+            const end = this.sum (since, 2 * 24 * 60 * 60 * 1000);
+            request['end_date'] = this.ymd (end);
+        }
+        if (limit !== undefined) {
+            request['size'] = limit; // default 100, max 100
+        }
         const response = await this.apiPostOrderMatchresults (this.extend (request, query));
         //
         //     {
