@@ -5,7 +5,7 @@ __author__ = 'Carlo Revelli'
 import ccxt
 from aiohttp.http_websocket import WebSocketReader
 from ccxtpro.base.aiohttp_client import AiohttpClient
-from asyncio import ensure_future, sleep
+from asyncio import sleep
 import socket
 import select
 import collections
@@ -13,19 +13,22 @@ import collections
 EVERY_MESSAGE = 0
 NO_LAG = 1
 
+default_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+DEFAULT_BUFFER_SIZE = default_socket.getsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF)
+del default_socket
+
 
 class FastClient(AiohttpClient):
     sockets = {}
     buffer_size = None
     running = False
     poll_frequency = 0.01
+    max_pending = 2 ** 16   # will throw an error if more messages are in the queue
 
     def __init__(self, url, on_message_callback, on_error_callback, on_close_callback, asyncio_loop, config={}):
         super(FastClient, self).__init__(url, on_message_callback, on_error_callback, on_close_callback, asyncio_loop, config)
-        if not hasattr(self, 'buffer_size') or self.buffer_size is None:
-            default_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.buffer_size = default_socket.getsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF)
-            del default_socket
+        if self.buffer_size is None:
+            self.buffer_size = DEFAULT_BUFFER_SIZE
         self.buffer = bytearray(self.buffer_size)
         queue = collections.UserList()
         queue.feed_data = lambda *args: queue.append(args)
@@ -33,21 +36,10 @@ class FastClient(AiohttpClient):
         self.socket = None
         self.ssl_pipe = None
         self.mode = EVERY_MESSAGE
-        self.max_pending = 2 ** 8  # will throw an error if more messages are in the queue
         self.change_context = False
         self.transport = None
 
-    def connect(self, session, backoff_delay=0):
-        future = super(FastClient, self).connect(session, backoff_delay)
-        future.add_done_callback(self.after_connection)
-        return future
-
-    def after_connection(self, future):
-        try:
-            future.result()
-        except Exception:
-            # the exception will be handled where the connection future is awaited
-            return
+    async def receive_loop(self):
         self.transport = self.connection._conn.transport
         self.transport.pause_reading()
         self.socket = self.transport.get_extra_info('socket')
@@ -57,14 +49,11 @@ class FastClient(AiohttpClient):
         if hasattr(self.transport, '_ssl_protocol'):
             self.ssl_pipe = self.transport._ssl_protocol._sslpipe  # a weird memory buffer
         self.sockets[self.socket] = self
-        if not self.running:
-            ensure_future(self.selector_loop())
+        if self.running:
+            return
         type(self).running = True
-
-    @classmethod
-    async def selector_loop(cls):
-        while cls.running:
-            await cls.selector()
+        while self.running:
+            await self.selector()
 
     @classmethod
     async def selector(cls):
@@ -74,6 +63,7 @@ class FastClient(AiohttpClient):
             return
         ready_sockets, _, errored_sockets = select.select(cls.sockets, [], cls.sockets, 0)
         for sock in errored_sockets:
+            print('ERROR', sock)
             # TODO: handle
             pass
 
@@ -117,6 +107,3 @@ class FastClient(AiohttpClient):
         # try to close the socket if it has not been already closed by the line above
         if self.socket:
             self.socket.close()
-
-    async def receive_loop(self):
-        pass
