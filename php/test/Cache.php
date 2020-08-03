@@ -12,7 +12,7 @@ function equals($a, $b) {
     return json_encode($a) === json_encode($b);
 }
 
-// --------------------------------------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 $cache = new ArrayCache (3);
 
@@ -38,7 +38,7 @@ $cache->append (1);
 
 assert (equals ($cache, [1]));
 
-// --------------------------------------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 $cache = new ArrayCache (1);
 
@@ -46,3 +46,17 @@ $cache->append (1);
 $cache->append (2);
 
 assert (equals ($cache, [2]));
+
+// ----------------------------------------------------------------------------
+
+$cache = new ArrayCacheBySymbolById ();
+
+$object1 = array( 'symbol' => 'BTC/USDT', 'id' => 'abcdef', 'i' => 1 );
+$object2 = array( 'symbol' => 'ETH/USDT', 'id' => 'qwerty', 'i' => 2 );
+$object3 = array( 'symbol' => 'BTC/USDT', 'id' => 'abcdef', 'i' => 3 );
+
+$cache->append ($object1);
+$cache->append ($object2);
+$cache->append ($object3); // should update index 0
+
+assert (equals ($cache, array( $object3, $object2 )));

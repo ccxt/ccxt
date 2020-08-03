@@ -11,14 +11,14 @@ sys.path.append(root)
 
 # ----------------------------------------------------------------------------
 
-from ccxtpro.base.cache import ArrayCache  # noqa: F402
+from ccxtpro.base.cache import ArrayCache, ArrayCacheBySymbolById  # noqa: F402
 
 
 def equals(a, b):
     return a == b
 
 
-# --------------------------------------------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 
 cache = ArrayCache(3)
 
@@ -44,7 +44,7 @@ cache.append(1)
 
 assert equals(cache, [1])
 
-# --------------------------------------------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 
 cache = ArrayCache(1)
 
@@ -52,3 +52,17 @@ cache.append(1)
 cache.append(2)
 
 assert equals(cache, [2])
+
+# ----------------------------------------------------------------------------
+
+cache = ArrayCacheBySymbolById()
+
+object1 = {'symbol': 'BTC/USDT', 'id': 'abcdef', 'i': 1}
+object2 = {'symbol': 'ETH/USDT', 'id': 'qwerty', 'i': 2}
+object3 = {'symbol': 'BTC/USDT', 'id': 'abcdef', 'i': 3}
+
+cache.append(object1)
+cache.append(object2)
+cache.append(object3)  # should update index 0
+
+assert equals(cache, [object3, object2])
