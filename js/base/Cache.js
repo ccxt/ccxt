@@ -30,9 +30,12 @@ class ArrayCache extends Array {
 
 class ArrayCacheBySymbolById extends ArrayCache {
 
+    match (a, b) {
+        return ((a['symbol'] === b['symbol']) && (a['id'] === b['id']))
+    }
+
     append (item) {
-        const index = this.findIndex ((stored) =>
-            ((stored['symbol'] === item['symbol']) && (stored['id'] === item['id'])))
+        const index = this.findIndex ((stored) => match (stored, item))
         if (index >= 0) {
             this[index] = item
         } else {
