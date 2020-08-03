@@ -15,8 +15,12 @@ class ArrayCache extends Array {
         throw new Error ('Cannot push to a cache, please use append instead')
     }
 
-    append (item) {
+    superPush (item) {
         super.push (item)
+    }
+
+    append (item) {
+        this.superPush (item)
         // maxSize may be 0 when initialized by a .filter() copy-construction
         if (this.maxSize && (this.length > this.maxSize)) {
             this.shift ()
@@ -55,7 +59,7 @@ class ArrayCacheBySymbolById extends ArrayCache {
                 const deleteReference = this.pop ()
                 delete byId[deleteReference.id]
             }
-            super.append (item)
+            this.superPush (item)
         }
     }
 }
