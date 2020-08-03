@@ -68,11 +68,15 @@ class FastClient(AiohttpClient):
         await asyncio.sleep(cls.poll_frequency)
         ready_sockets, _, errored_sockets = select.select(cls.sockets, [], cls.sockets, 0)
         for sock in errored_sockets:
-            cls.sockets[sock].on_error()
+            cls.sockets[sock].on_error(ccxt.NetworkError)
 
         for sock in ready_sockets:
             client = cls.sockets[sock]
             bytes_read = await client.asyncio_loop.sock_recv_into(sock, client.buffer)
+            if bytes_read == 0:
+                # connection has been terminated
+                client.on_error(ccxt.NetworkError)
+                continue
             data = client.buffer[:bytes_read]
             if client.ssl_pipe:
                 # decrypt ssl
