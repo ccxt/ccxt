@@ -1,6 +1,7 @@
 'use strict';
 
 class ArrayCache extends Array {
+
     constructor (maxSize = undefined) {
         super ()
         Object.defineProperty (this, 'maxSize', {
@@ -27,6 +28,23 @@ class ArrayCache extends Array {
     }
 }
 
+class ArrayCacheBySymbolById extends ArrayCache {
+
+    match (a, b) {
+        return ((a['symbol'] === b['symbol']) && (a['id'] === b['id']))
+    }
+
+    append (item) {
+        const index = this.findIndex ((stored) => match (stored, item))
+        if (index >= 0) {
+            this[index] = item
+        } else {
+            super.append (item)
+        }
+    }
+}
+
 module.exports = {
     ArrayCache,
+    ArrayCacheBySymbolById,
 }

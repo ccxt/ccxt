@@ -1,6 +1,6 @@
 'use strict';
 
-const { ArrayCache } = require ('../../base/Cache')
+const { ArrayCache, ArrayCacheBySymbolById } = require ('../../base/Cache')
 const assert = require ('assert');
 
 function equals (a, b) {
@@ -20,7 +20,7 @@ function equals (a, b) {
     return true
 }
 
-// --------------------------------------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 let cache = new ArrayCache (3);
 
@@ -46,7 +46,7 @@ cache.append (1);
 
 assert (equals (cache, [1]));
 
-// --------------------------------------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 cache = new ArrayCache (1);
 
@@ -54,3 +54,17 @@ cache.append (1);
 cache.append (2);
 
 assert (equals (cache, [2]));
+
+// ----------------------------------------------------------------------------
+
+cache = new ArrayCacheBySymbolById ();
+
+const object1 = { 'symbol': 'BTC/USDT', 'id': 'abcdef', 'i': 1 };
+const object2 = { 'symbol': 'ETH/USDT', 'id': 'qwerty', 'i': 2 };
+const object3 = { 'symbol': 'BTC/USDT', 'id': 'abcdef', 'i': 3 };
+
+cache.append (object1);
+cache.append (object2);
+cache.append (object3); // should update index 0
+
+assert (equals (cache, [ object3, object2 ]));

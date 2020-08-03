@@ -29,6 +29,8 @@ class ArrayCache(list):
         return list(self) == other
 
     def __getattribute__(self, item):
+        if item == 'append':
+            return object.__getattribute__(self, item)
         deque = super(list, self).__getattribute__('_deque')
         return getattr(deque, item)
 
@@ -45,3 +47,23 @@ class ArrayCache(list):
             return [deque[i] for i in range(start, stop, step)]
         else:
             return deque[item]
+
+    def append(self, item):
+        deque = super(list, self).__getattribute__('_deque')
+        deque.append(item)
+
+
+class ArrayCacheBySymbolById(ArrayCache):
+
+    @staticmethod
+    def match(a, b):
+        return (a['symbol'] == b['symbol']) and (a['id'] == b['id'])
+
+    def append(self, item):
+        deque = super(list, self).__getattribute__('_deque')
+        found_indices = [i for i, v in enumerate(deque) if ArrayCacheBySymbolById.match(v, item)]
+        if len(found_indices):
+            first_match = found_indices[0]
+            deque[first_match] = item
+        else:
+            deque.append(item)
