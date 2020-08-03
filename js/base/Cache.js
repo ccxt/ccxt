@@ -51,7 +51,7 @@ class ArrayCacheBySymbolById extends ArrayCache {
             }
         } else {
             byId[item.id] = item
-            if (this.lengtxh === this.maxSize) {
+            if (this.length === this.maxSize) {
                 const deleteReference = this.pop ()
                 delete byId[deleteReference.id]
             }
