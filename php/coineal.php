@@ -216,7 +216,7 @@ class coineal extends Exchange {
         ];
     }
 
-    public function fetch_ohlcv ($symbol = 'BTC/USDT', $timeframe = '1m', $params = array (), $since = null, $limit = null) {
+    public function fetch_ohlcv ($symbol = 'BTC/USDT', $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array(

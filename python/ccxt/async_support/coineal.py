@@ -212,7 +212,7 @@ class coineal(Exchange):
             float(ohlcv[5]),
         ]
 
-    async def fetch_ohlcv(self, symbol='BTC/USDT', timeframe='1m', params={}, since=None, limit=None):
+    async def fetch_ohlcv(self, symbol='BTC/USDT', timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         request = {
