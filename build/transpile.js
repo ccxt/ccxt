@@ -81,19 +81,16 @@ class CCXTProTranspiler extends Transpiler {
                 ... imports,
                 'from ccxtpro.base.cache import ArrayCache, ArrayCacheBySymbolById',
             ]
-            console.log ('ArrayCache + ArrayCacheBySymbolById', imports)
         } else if (importArrayCache) {
             imports = [
                 ... imports,
                 'from ccxtpro.base.cache import ArrayCache',
             ]
-            console.log ('ArrayCache', imports)
         } else if (importArrayCacheBySymbolById) {
             imports = [
                 ... imports,
                 'from ccxtpro.base.cache import ArrayCacheBySymbolById',
             ]
-            console.log ('ArrayCacheBySymbolById', imports)
         }
         return [
             "# -*- coding: utf-8 -*-",
