@@ -1,4 +1,3 @@
-import weakref
 import collections
 
 
