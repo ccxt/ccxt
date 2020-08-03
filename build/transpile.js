@@ -72,14 +72,28 @@ class CCXTProTranspiler extends Transpiler {
         // ]
     }
 
-
     createPythonClassHeader (ccxtImports, bodyAsString) {
         let imports = ccxtImports
-        if (bodyAsString.includes ('ArrayCache')) {
+        const importArrayCache = bodyAsString.match (/\bArrayCache\b/i)
+        const importArrayCacheBySymbolById = bodyAsString.match (/\bArrayCacheBySymbolById\b/i)
+        if (importArrayCache && importArrayCacheBySymbolById) {
             imports = [
-                ... ccxtImports,
+                ... imports,
+                'from ccxtpro.base.cache import ArrayCache, ArrayCacheBySymbolById',
+            ]
+            console.log ('ArrayCache + ArrayCacheBySymbolById', imports)
+        } else if (importArrayCache) {
+            imports = [
+                ... imports,
                 'from ccxtpro.base.cache import ArrayCache',
             ]
+            console.log ('ArrayCache', imports)
+        } else if (importArrayCacheBySymbolById) {
+            imports = [
+                ... imports,
+                'from ccxtpro.base.cache import ArrayCacheBySymbolById',
+            ]
+            console.log ('ArrayCacheBySymbolById', imports)
         }
         return [
             "# -*- coding: utf-8 -*-",
