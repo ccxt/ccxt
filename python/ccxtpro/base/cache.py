@@ -55,9 +55,13 @@ class ArrayCache(list):
 
 class ArrayCacheBySymbolById(ArrayCache):
 
+    @staticmethod
+    def match(a, b):
+        return (a['symbol'] == b['symbol']) and (a['id'] == b['id'])
+
     def append(self, item):
         deque = super(list, self).__getattribute__('_deque')
-        found_indices = [i for i, v in enumerate(deque) if (v['symbol'] == item['symbol']) and (v['id'] == item['id'])]
+        found_indices = [i for i, v in enumerate(deque) if ArrayCacheBySymbolById.match(v, item)]
         if len(found_indices):
             first_match = found_indices[0]
             deque[first_match] = item
