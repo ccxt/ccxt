@@ -3,23 +3,33 @@
 namespace ccxtpro;
 
 class ArrayCacheBySymbolById extends ArrayCache {
+    public $hashmap;
 
-    public function match($a, $b) {
-        return ($a['id'] === $b['id']) && ($a['symbol'] === $b['symbol']);
+    public function __construct($max_size = null) {
+        parent::__construct($max_size);
+        $this->hashmap = array();
     }
 
     public function append($item) {
-        $first_match_index = null;
-        for ($k = 0; $k < $this->deque->count(); $k++) {
-            if ($this->match($this->deque[$k], $item)) {
-                $first_match_index = $k;
-                break;
+         $default_get = function ($array, $value) {
+            if (isset($array[$value])) {
+                return $array[$value];
+            } else {
+                return array();
             }
-        }
-        if (is_null($first_match_index)) {
-            parent::append($item);
+        };
+        $by_ids = $default_get($this->hashmap, $item['symbol']);
+        if (array_key_exists($item['id'], $this->hashmap)) {
+            $reference = &$by_ids[$item['id']];
+            # updates the reference lol php
+            $reference = $item;
         } else {
-            $this->deque->set($first_match_index, $item);
+            $by_ids[$item['id']] = $item;
+            if ($this->max_size && count($this) == $this->max_size) {
+                $delete_reference = &$this->deque->pop();
+                unset($by_ids[$delete_reference['id']]);
+            }
+            $this->deque->push($item);
         }
     }
 }
