@@ -30,15 +30,31 @@ class ArrayCache extends Array {
 
 class ArrayCacheBySymbolById extends ArrayCache {
 
-    match (a, b) {
-        return ((a['symbol'] === b['symbol']) && (a['id'] === b['id']))
+    constructor (maxSize = undefined) {
+        super (maxSize)
+        Object.defineProperty (this, 'hashMap', {
+            __proto__: null, // make it invisible
+            value: {},
+            writable: true,
+        })
     }
 
     append (item) {
-        const index = this.findIndex ((stored) => match (stored, item))
-        if (index >= 0) {
-            this[index] = item
+        const byId = this.hashMap[item.symbol] = this.hashMap[item.symbol] || {}
+        if (item.id in byId) {
+            const reference = byId[item.id]
+            for (const prop in reference) {
+                delete reference[prop]
+            }
+            for (const prop in item) {
+                reference[prop] = item[prop]
+            }
         } else {
+            byId[item.id] = item
+            if (this.length === this.maxSize) {
+                const deleteReference = this.pop ()
+                delete byId[deleteReference.id]
+            }
             super.append (item)
         }
     }

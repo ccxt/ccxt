@@ -51,7 +51,7 @@ class ArrayCache(list):
 class ArrayCacheBySymbolById(ArrayCache):
     def __init__(self, max_size=None):
         super(ArrayCacheBySymbolById, self).__init__(max_size)
-        self._hashmap = collections.defaultdict(lambda: {})
+        self._hashmap = {}
 
     def __getattribute__(self, item):
         methods = ArrayCacheBySymbolById.__dict__
@@ -64,7 +64,7 @@ class ArrayCacheBySymbolById(ArrayCache):
         return super(ArrayCacheBySymbolById, self).__getattribute__(item)
 
     def append(self, item):
-        by_id = self._hashmap[item['symbol']]
+        by_id = self._hashmap.setdefault(item['symbol'], {})
         if item['id'] in by_id:
             reference = by_id[item['id']]
             reference.clear()

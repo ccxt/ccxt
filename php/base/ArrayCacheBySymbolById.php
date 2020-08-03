@@ -11,25 +11,26 @@ class ArrayCacheBySymbolById extends ArrayCache {
     }
 
     public function append($item) {
-         $default_get = function ($array, $value) {
-            if (isset($array[$value])) {
-                return $array[$value];
-            } else {
-                return array();
-            }
-        };
-        $by_ids = $default_get($this->hashmap, $item['symbol']);
-        if (array_key_exists($item['id'], $this->hashmap)) {
-            $reference = &$by_ids[$item['id']];
-            # updates the reference lol php
-            $reference = $item;
+        if (array_key_exists($item['symbol'], $this->hashmap)) {
+            $by_id = $this->hashmap[$item['symbol']];
         } else {
-            $by_ids[$item['id']] = $item;
-            if ($this->max_size && count($this) == $this->max_size) {
-                $delete_reference = &$this->deque->pop();
-                unset($by_ids[$delete_reference['id']]);
-            }
-            $this->deque->push($item);
+            $by_id = array();
         }
+        if (array_key_exists($item['id'], $by_id)) {
+            $prev_ref = &$by_id[$item['id']];
+            # updates the reference
+            $prev_ref = $item;
+        } else {
+            $by_id[$item['id']] = &$item;
+            $size = $this->deque->count();
+            if ($size === $this->max_size) {
+                $delete_reference = $this->deque[$size - 1];
+                unset($delete_reference['id'], $by_id);
+            }
+            # this allows us to effectively pass by reference
+            parent::append(null);
+            $this->deque[$this->deque->count() - 1] = &$item;
+        }
+        $this->hashmap[$item['symbol']] = $by_id;
     }
 }

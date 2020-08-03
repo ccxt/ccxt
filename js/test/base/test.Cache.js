@@ -8,7 +8,7 @@ function equals (a, b) {
         return false
     }
     for (const prop in a) {
-        if (Array.isArray (a[prop])) {
+        if (Array.isArray (a[prop]) || typeof a[prop] === 'object') {
             if (!equals (a[prop], b[prop])) {
                 return false
             }
