@@ -22,9 +22,8 @@ class ArrayCacheBySymbolById extends ArrayCache {
             $prev_ref = $item;
         } else {
             $by_id[$item['id']] = &$item;
-            $size = $this->deque->count();
-            if ($size === $this->max_size) {
-                $delete_reference = $this->deque[$size - 1];
+            if ($this->deque->count() === $this->max_size) {
+                $delete_reference = $this->deque->pop();
                 unset($delete_reference['id'], $by_id);
             }
             # this allows us to effectively pass by reference
