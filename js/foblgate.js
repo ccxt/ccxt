@@ -47,7 +47,7 @@ module.exports = class foblgate extends Exchange {
                     'private': 'https://api2.foblgate.com',
                     // 'private': 'http://localhost:8080',
                 },
-                'www': 'https://www.foblgate.com', 
+                'www': 'https://www.foblgate.com',
                 'doc': 'https://api-document.foblgate.com',
                 'fees': 'https://www.foblgate.com/fees',
             },
@@ -57,7 +57,7 @@ module.exports = class foblgate extends Exchange {
                         'ccxt/marketList',
                         'ccxt/orderBook',
                         // 'ccxt/trades',
-                    ]
+                    ],
                 },
                 'private': {
                     'post': [
@@ -112,13 +112,13 @@ module.exports = class foblgate extends Exchange {
         //     ETH: { total: 0, used: 0, free: 0 },
         //     info: {}
         // }
-        return this.parseBalance(response);
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
-            'pairName': symbol
+            'pairName': symbol,
         };
         if (limit !== undefined) {
             request['count'] = limit;
@@ -244,7 +244,7 @@ module.exports = class foblgate extends Exchange {
         if (response === undefined) {
             return; // fallback to default error handler
         }
-        let code = this.safeValue (response, 'code');
+        const code = this.safeValue (response, 'code');
         if (code !== undefined) {
             if (code === '0') {
                 return;
@@ -254,5 +254,4 @@ module.exports = class foblgate extends Exchange {
             throw new ExchangeError (feedback); // unknown message
         }
     }
-
 };
