@@ -68,3 +68,23 @@ cache.append (object2);
 cache.append (object3); // should update index 0
 
 assert (equals (cache, [ object3, object2 ]));
+
+const maxLength = 5;
+
+cache = new ArrayCacheBySymbolById (maxLength);
+
+for (let i = 1; i <= 10; i++) {
+    cache.append ({
+        'symbol': 'BTC/USDT',
+        'id': i.toString (),
+        'i': i,
+    });
+}
+
+assert (equals (cache, [
+    { 'symbol': 'BTC/USDT', 'id': '6', 'i': 6 },
+    { 'symbol': 'BTC/USDT', 'id': '7', 'i': 7 },
+    { 'symbol': 'BTC/USDT', 'id': '8', 'i': 8 },
+    { 'symbol': 'BTC/USDT', 'id': '9', 'i': 9 },
+    { 'symbol': 'BTC/USDT', 'id': '10', 'i': 10 },
+]));
