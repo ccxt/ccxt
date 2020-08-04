@@ -24,7 +24,7 @@ class ArrayCacheBySymbolById extends ArrayCache {
             $by_id[$item['id']] = &$item;
             if ($this->deque->count() === $this->max_size) {
                 $delete_reference = $this->deque->shift();
-                unset($delete_reference['id'], $by_id);
+                unset($by_id[$delete_reference['id']]);
             }
             # this allows us to effectively pass by reference
             parent::append(null);
