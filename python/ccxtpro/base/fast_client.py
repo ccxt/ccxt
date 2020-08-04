@@ -3,20 +3,11 @@
 __author__ = 'Carlo Revelli'
 
 from ccxtpro.base.aiohttp_client import AiohttpClient
-import ccxt
 import asyncio
-from asyncio.tasks import _current_tasks, sleep
-import socket
-import select
 import collections
-import time
 
 EVERY_MESSAGE = 0
 NO_LAG = 1
-
-default_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-DEFAULT_BUFFER_SIZE = default_socket.getsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF)
-del default_socket
 
 
 class FastClient(AiohttpClient):
