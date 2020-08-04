@@ -60,3 +60,39 @@ $cache->append ($object2);
 $cache->append ($object3); // should update index 0
 
 assert (equals ($cache, array( $object3, $object2 )));
+
+$maxLength = 5;
+
+$cache = new ArrayCacheBySymbolById ($maxLength);
+
+for ($i = 1; $i < 11; $i++) {
+    $cache->append (array(
+        'symbol' => 'BTC/USDT',
+        'id' => (string) $i,
+        'i' => $i,
+    ));
+}
+
+assert (equals ($cache, array(
+    array( 'symbol' => 'BTC/USDT', 'id' => '6', 'i' => 6 ),
+    array( 'symbol' => 'BTC/USDT', 'id' => '7', 'i' => 7 ),
+    array( 'symbol' => 'BTC/USDT', 'id' => '8', 'i' => 8 ),
+    array( 'symbol' => 'BTC/USDT', 'id' => '9', 'i' => 9 ),
+    array( 'symbol' => 'BTC/USDT', 'id' => '10', 'i' => 10 ),
+)));
+
+for ($i = 1; $i < 11; $i++) {
+    $cache->append (array(
+        'symbol' => 'BTC/USDT',
+        'id' => (string) $i,
+        'i' => $i + 10,
+    ));
+}
+
+assert (equals ($cache, array(
+    array( 'symbol' => 'BTC/USDT', 'id' => '6', 'i' => 16 ),
+    array( 'symbol' => 'BTC/USDT', 'id' => '7', 'i' => 17 ),
+    array( 'symbol' => 'BTC/USDT', 'id' => '8', 'i' => 18 ),
+    array( 'symbol' => 'BTC/USDT', 'id' => '9', 'i' => 19 ),
+    array( 'symbol' => 'BTC/USDT', 'id' => '10', 'i' => 20 ),
+)));
