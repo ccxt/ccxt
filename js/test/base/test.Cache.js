@@ -73,7 +73,7 @@ const maxLength = 5;
 
 cache = new ArrayCacheBySymbolById (maxLength);
 
-for (let i = 1; i <= 10; i++) {
+for (let i = 1; i < 11; i++) {
     cache.append ({
         'symbol': 'BTC/USDT',
         'id': i.toString (),
@@ -89,7 +89,7 @@ assert (equals (cache, [
     { 'symbol': 'BTC/USDT', 'id': '10', 'i': 10 },
 ]));
 
-for (let i = 1; i <= 10; i++) {
+for (let i = 1; i < 11; i++) {
     cache.append ({
         'symbol': 'BTC/USDT',
         'id': i.toString (),
