@@ -459,6 +459,7 @@ module.exports = class poloniex extends Exchange {
             const code = this.safeCurrencyCode (id);
             const active = (currency['delisted'] === 0) && !currency['disabled'];
             const numericId = this.safeInteger (currency, 'id');
+            const fee = this.safeFloat (currency, 'txFee');
             result[code] = {
                 'id': id,
                 'numericId': numericId,
@@ -466,7 +467,7 @@ module.exports = class poloniex extends Exchange {
                 'info': currency,
                 'name': currency['name'],
                 'active': active,
-                'fee': this.safeFloat (currency, 'txFee'), // todo: redesign
+                'fee': fee,
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -482,7 +483,7 @@ module.exports = class poloniex extends Exchange {
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': currency['txFee'],
+                        'min': fee,
                         'max': Math.pow (10, precision),
                     },
                 },
