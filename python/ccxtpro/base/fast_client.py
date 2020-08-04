@@ -26,7 +26,7 @@ class FastClient(AiohttpClient):
             while self.stack:
                 self.handle_message(self.stack.popleft())
                 if self.mode == EVERY_MESSAGE and self.change_context:
-                    await sleep(0)
+                    await asyncio.sleep(0)
                     self.change_context = False
 
         def wrapper(func):
