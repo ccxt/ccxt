@@ -953,7 +953,7 @@ class coinbasepro extends Exchange {
         $request = array(
             'id' => $account['id'],
         );
-        $response = $this->privateGetCoinbaseAccountsIdAddresses (array_merge($request, $params));
+        $response = $this->privatePostCoinbaseAccountsIdAddresses (array_merge($request, $params));
         $address = $this->safe_string($response, 'address');
         $tag = $this->safe_string($response, 'destination_tag');
         return array(

@@ -948,7 +948,7 @@ module.exports = class coinbasepro extends Exchange {
         const request = {
             'id': account['id'],
         };
-        const response = await this.privateGetCoinbaseAccountsIdAddresses (this.extend (request, params));
+        const response = await this.privatePostCoinbaseAccountsIdAddresses (this.extend (request, params));
         const address = this.safeString (response, 'address');
         const tag = this.safeString (response, 'destination_tag');
         return {

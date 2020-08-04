@@ -893,7 +893,7 @@ class coinbasepro(Exchange):
         request = {
             'id': account['id'],
         }
-        response = self.privateGetCoinbaseAccountsIdAddresses(self.extend(request, params))
+        response = self.privatePostCoinbaseAccountsIdAddresses(self.extend(request, params))
         address = self.safe_string(response, 'address')
         tag = self.safe_string(response, 'destination_tag')
         return {
