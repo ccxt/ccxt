@@ -16,10 +16,17 @@ class southxchange(Exchange):
             'countries': ['AR'],  # Argentina
             'rateLimit': 1000,
             'has': {
+                'cancelOrder': True,
                 'CORS': True,
                 'createDepositAddress': True,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchMarkets': True,
                 'fetchOpenOrders': True,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
                 'fetchTickers': True,
+                'fetchTrades': True,
                 'withdraw': True,
             },
             'urls': {

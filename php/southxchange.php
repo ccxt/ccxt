@@ -16,10 +16,17 @@ class southxchange extends Exchange {
             'countries' => array( 'AR' ), // Argentina
             'rateLimit' => 1000,
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => true,
                 'createDepositAddress' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
+                'fetchMarkets' => true,
                 'fetchOpenOrders' => true,
+                'fetchOrderBook' => true,
+                'fetchTicker' => true,
                 'fetchTickers' => true,
+                'fetchTrades' => true,
                 'withdraw' => true,
             ),
             'urls' => array(
