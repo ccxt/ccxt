@@ -48,7 +48,7 @@ module.exports = class foblgate extends Exchange {
                     // 'private': 'http://localhost:8080',
                 },
                 'www': 'https://www.foblgate.com', 
-                'doc': 'http://api-document.foblgate.com',
+                'doc': 'https://api-document.foblgate.com',
                 'fees': 'https://www.foblgate.com/fees',
             },
             'api': {
