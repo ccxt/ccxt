@@ -52,7 +52,7 @@ module.exports = class foblgate extends Exchange {
                 'fees': 'https://www.foblgate.com/fees',
             },
             'api': {
-				'public': {
+                'public': {
                     'post': [
                         'ccxt/marketList',
                         'ccxt/orderBook',
@@ -61,9 +61,9 @@ module.exports = class foblgate extends Exchange {
                 },
                 'private': {
                     'post': [
-						'ccxt/balance',
-						'ccxt/orderPlace',
-						'ccxt/orderCancel',
+                        'ccxt/balance',
+                        'ccxt/orderPlace',
+                        'ccxt/orderCancel',
                     ],
                 },
             },
