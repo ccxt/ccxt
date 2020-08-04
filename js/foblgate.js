@@ -70,7 +70,6 @@ module.exports = class foblgate extends Exchange {
             'requiredCredentials': {
                 'uid': true,
             },
-            // 'precisionMode': SIGNIFICANT_DIGITS,
             'exceptions': {
                 '400': BadRequest,
                 '401': AuthenticationError,
