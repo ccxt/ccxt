@@ -4,7 +4,7 @@
 
 const ccxt = require ('ccxt');
 const { AuthenticationError, ExchangeError, RateLimitExceeded } = require ('ccxt/js/base/errors');
-const { ArrayCache } = require ('./base/Cache');
+const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -575,12 +575,10 @@ module.exports = class bitmex extends ccxt.bitmex {
         }
     }
 
-    async watchMyTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
         const authenticate = this.authenticate ();
-        const table = 'execution';
-        const messageHash = table + ':' + market['id'];
+        const messageHash = 'execution';
         const url = this.urls['api']['ws'];
         const request = {
             'op': 'subscribe',
@@ -593,43 +591,77 @@ module.exports = class bitmex extends ccxt.bitmex {
     }
 
     handleMyTrades (client, message) {
-        const table = 'execution';
-        const rawData = this.safeValue (message, 'data', []);
-        const data = this.filterTrades (rawData);
-        const dataByMarketIds = this.groupBy (data, 'symbol');
-        const marketIds = Object.keys (dataByMarketIds);
-        for (let i = 0; i < marketIds.length; i++) {
-            const marketId = marketIds[i];
-            if (marketId in this.markets_by_id) {
-                const market = this.markets_by_id[marketId];
-                const messageHash = table + ':' + marketId;
-                const symbol = market['symbol'];
-                const myTrades = this.parseTrades (data, market);
-                if (this.myTrades === undefined) {
-                    this.myTrades = {};
-                }
-                let stored = this.safeValue (this.myTrades, symbol);
-                if (stored === undefined) {
-                    const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-                    stored = new ArrayCache (limit);
-                    this.myTrades[symbol] = stored;
-                }
-                for (let j = 0; j < myTrades.length; j++) {
-                    stored.append (myTrades[j]);
-                }
-                client.resolve (stored, messageHash);
-            }
+        //
+        //     {
+        //         "table":"execution",
+        //         "action":"insert",
+        //         "data":[
+        //             {
+        //                 "execID":"0193e879-cb6f-2891-d099-2c4eb40fee21",
+        //                 "orderID":"00000000-0000-0000-0000-000000000000",
+        //                 "clOrdID":"",
+        //                 "clOrdLinkID":"",
+        //                 "account":2,
+        //                 "symbol":"XBTUSD",
+        //                 "side":"Sell",
+        //                 "lastQty":1,
+        //                 "lastPx":1134.37,
+        //                 "underlyingLastPx":null,
+        //                 "lastMkt":"XBME",
+        //                 "lastLiquidityInd":"RemovedLiquidity",
+        //                 "simpleOrderQty":null,
+        //                 "orderQty":1,
+        //                 "price":1134.37,
+        //                 "displayQty":null,
+        //                 "stopPx":null,
+        //                 "pegOffsetValue":null,
+        //                 "pegPriceType":"",
+        //                 "currency":"USD",
+        //                 "settlCurrency":"XBt",
+        //                 "execType":"Trade",
+        //                 "ordType":"Limit",
+        //                 "timeInForce":"ImmediateOrCancel",
+        //                 "execInst":"",
+        //                 "contingencyType":"",
+        //                 "exDestination":"XBME",
+        //                 "ordStatus":"Filled",
+        //                 "triggered":"",
+        //                 "workingIndicator":false,
+        //                 "ordRejReason":"",
+        //                 "simpleLeavesQty":0,
+        //                 "leavesQty":0,
+        //                 "simpleCumQty":0.001,
+        //                 "cumQty":1,
+        //                 "avgPx":1134.37,
+        //                 "commission":0.00075,
+        //                 "tradePublishIndicator":"DoNotPublishTrade",
+        //                 "multiLegReportingType":"SingleSecurity",
+        //                 "text":"Liquidation",
+        //                 "trdMatchID":"7f4ab7f6-0006-3234-76f4-ae1385aad00f",
+        //                 "execCost":88155,
+        //                 "execComm":66,
+        //                 "homeNotional":-0.00088155,
+        //                 "foreignNotional":1,
+        //                 "transactTime":"2017-04-04T22:07:46.035Z",
+        //                 "timestamp":"2017-04-04T22:07:46.035Z"
+        //             }
+        //         ]
+        //     }
+        //
+        const messageHash = this.safeString (message, 'table');
+        const data = this.safeValue (message, 'data', []);
+        const dataByExecType = this.groupBy (data, 'execType');
+        const rawTrades = this.safeValue (dataByExecType, 'Trade', []);
+        const trades = this.parseTrades (rawTrades);
+        if (this.myTrades === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            this.myTrades = new ArrayCacheBySymbolById (limit);
         }
-    }
-
-    filterTrades (data) {
-        const trades = [];
-        for (let i = 0; i < data.length; i++) {
-            if (data[i]['ordStatus'] === 'Filled' || data[i]['ordStatus'] === 'PartiallyFilled') {
-                trades.push (data[i]);
-            }
+        const stored = this.myTrades;
+        for (let j = 0; j < trades.length; j++) {
+            stored.append (trades[j]);
         }
-        return trades;
+        client.resolve (stored, messageHash);
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
@@ -750,7 +782,6 @@ module.exports = class bitmex extends ccxt.bitmex {
         //         ]
         //     }
         //
-        // --------------------------------------------------------------------
         const table = this.safeString (message, 'table');
         const interval = table.replace ('tradeBin', '');
         const timeframe = this.findTimeframe (interval);
