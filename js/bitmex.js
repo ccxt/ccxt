@@ -661,7 +661,10 @@ module.exports = class bitmex extends ccxt.bitmex {
         for (let j = 0; j < trades.length; j++) {
             stored.append (trades[j]);
         }
-        client.resolve (stored, messageHash);
+        const numTrades = trades.length;
+        if (numTrades > 0) {
+            client.resolve (stored, messageHash);
+        }
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
