@@ -15,8 +15,8 @@ class FastClient(AiohttpClient):
     switcher = None
     mode = EVERY_MESSAGE
 
-    def __init__(self, url, on_message_callback, on_error_callback, on_close_callback, asyncio_loop, config={}):
-        super(FastClient, self).__init__(url, on_message_callback, on_error_callback, on_close_callback, asyncio_loop, config)
+    def __init__(self, url, on_message_callback, on_error_callback, on_close_callback, config={}):
+        super(FastClient, self).__init__(url, on_message_callback, on_error_callback, on_close_callback, config)
         # instead of using the deque in aiohttp we implement our own for speed
         # https://github.com/aio-libs/aiohttp/blob/1d296d549050aa335ef542421b8b7dad788246d5/aiohttp/streams.py#L534
         self.stack = collections.deque()

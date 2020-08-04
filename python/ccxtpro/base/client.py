@@ -32,7 +32,7 @@ class Client(object):
     throttle = None
     connecting = False
 
-    def __init__(self, url, on_message_callback, on_error_callback, on_close_callback, asyncio_loop, config={}):
+    def __init__(self, url, on_message_callback, on_error_callback, on_close_callback, config={}):
         defaults = {
             'url': url,
             'futures': {},
@@ -51,7 +51,6 @@ class Client(object):
                 setattr(self, key, settings[key])
         # connection-related Future
         self.connected = Future()
-        self.asyncio_loop = asyncio_loop
 
     def future(self, message_hash):
         if isinstance(message_hash, list):

@@ -73,7 +73,7 @@ class Exchange(BaseExchange):
                     'loop': self.asyncio_loop,
                 }, self.tokenBucket))
             }, ws_options)
-            self.clients[url] = FastClient(url, on_message, on_error, on_close, self.asyncio_loop, options)
+            self.clients[url] = FastClient(url, on_message, on_error, on_close, options)
         return self.clients[url]
 
     async def after(self, future, method, *args):
