@@ -30,7 +30,7 @@ class OrderBook(dict):
         self['bids'].limit(n)
         return self
 
-    def reset(self, snapshot):
+    def reset(self, snapshot={}):
         self['asks']._index.clear()
         for ask in snapshot.get('asks', []):
             self['asks'].storeArray(ask)
