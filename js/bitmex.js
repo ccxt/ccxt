@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { AuthenticationError, ExchangeError, NotSupported, RateLimitExceeded } = require ('ccxt/js/base/errors');
+const { AuthenticationError, ExchangeError, RateLimitExceeded } = require ('ccxt/js/base/errors');
 const { ArrayCache } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -13,12 +13,13 @@ module.exports = class bitmex extends ccxt.bitmex {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
+                'watchBalance': true,
+                'watchMyTrades': true,
+                'watchOHLCV': true,
+                'watchOrderBook': true,
                 'watchTicker': true,
                 'watchTickers': false,
                 'watchTrades': true,
-                'watchOrderBook': true,
-                'watchOHLCV': true,
-                'watchMyTrades': true,
             },
             'urls': {
                 'api': {
@@ -308,7 +309,121 @@ module.exports = class bitmex extends ccxt.bitmex {
 
     async watchBalance (params = {}) {
         await this.loadMarkets ();
-        throw new NotSupported (this.id + ' watchBalance() not implemented yet');
+        const authenticate = this.authenticate ();
+        const messageHash = 'margin';
+        const url = this.urls['api']['ws'];
+        const request = {
+            'op': 'subscribe',
+            'args': [
+                messageHash,
+            ],
+        };
+        return await this.afterDropped (authenticate, this.watch, url, messageHash, this.extend (request, params), messageHash);
+    }
+
+    handleBalance (client, message) {
+        //
+        //     {
+        //         table: 'margin',
+        //         action: 'partial',
+        //         keys: [ 'account' ],
+        //         types: {
+        //             account: 'long',
+        //             currency: 'symbol',
+        //             riskLimit: 'long',
+        //             prevState: 'symbol',
+        //             state: 'symbol',
+        //             action: 'symbol',
+        //             amount: 'long',
+        //             pendingCredit: 'long',
+        //             pendingDebit: 'long',
+        //             confirmedDebit: 'long',
+        //             prevRealisedPnl: 'long',
+        //             prevUnrealisedPnl: 'long',
+        //             grossComm: 'long',
+        //             grossOpenCost: 'long',
+        //             grossOpenPremium: 'long',
+        //             grossExecCost: 'long',
+        //             grossMarkValue: 'long',
+        //             riskValue: 'long',
+        //             taxableMargin: 'long',
+        //             initMargin: 'long',
+        //             maintMargin: 'long',
+        //             sessionMargin: 'long',
+        //             targetExcessMargin: 'long',
+        //             varMargin: 'long',
+        //             realisedPnl: 'long',
+        //             unrealisedPnl: 'long',
+        //             indicativeTax: 'long',
+        //             unrealisedProfit: 'long',
+        //             syntheticMargin: 'long',
+        //             walletBalance: 'long',
+        //             marginBalance: 'long',
+        //             marginBalancePcnt: 'float',
+        //             marginLeverage: 'float',
+        //             marginUsedPcnt: 'float',
+        //             excessMargin: 'long',
+        //             excessMarginPcnt: 'float',
+        //             availableMargin: 'long',
+        //             withdrawableMargin: 'long',
+        //             timestamp: 'timestamp',
+        //             grossLastValue: 'long',
+        //             commission: 'float'
+        //         },
+        //         foreignKeys: {},
+        //         attributes: { account: 'sorted' },
+        //         filter: { account: 1455728 },
+        //         data: [
+        //             {
+        //                 account: 1455728,
+        //                 currency: 'XBt',
+        //                 riskLimit: 1000000000000,
+        //                 prevState: '',
+        //                 state: '',
+        //                 action: '',
+        //                 amount: 263542,
+        //                 pendingCredit: 0,
+        //                 pendingDebit: 0,
+        //                 confirmedDebit: 0,
+        //                 prevRealisedPnl: 0,
+        //                 prevUnrealisedPnl: 0,
+        //                 grossComm: 0,
+        //                 grossOpenCost: 0,
+        //                 grossOpenPremium: 0,
+        //                 grossExecCost: 0,
+        //                 grossMarkValue: 0,
+        //                 riskValue: 0,
+        //                 taxableMargin: 0,
+        //                 initMargin: 0,
+        //                 maintMargin: 0,
+        //                 sessionMargin: 0,
+        //                 targetExcessMargin: 0,
+        //                 varMargin: 0,
+        //                 realisedPnl: 0,
+        //                 unrealisedPnl: 0,
+        //                 indicativeTax: 0,
+        //                 unrealisedProfit: 0,
+        //                 syntheticMargin: null,
+        //                 walletBalance: 263542,
+        //                 marginBalance: 263542,
+        //                 marginBalancePcnt: 1,
+        //                 marginLeverage: 0,
+        //                 marginUsedPcnt: 0,
+        //                 excessMargin: 263542,
+        //                 excessMarginPcnt: 1,
+        //                 availableMargin: 263542,
+        //                 withdrawableMargin: 263542,
+        //                 timestamp: '2020-08-03T12:01:01.246Z',
+        //                 grossLastValue: 0,
+        //                 commission: null
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (message, 'data');
+        this.balance = this.extend (this.balance, this.parseBalances (data));
+        const messageHash = this.safeString (message, 'table');
+        client.resolve (this.balance, messageHash);
     }
 
     handleTrades (client, message) {
@@ -909,6 +1024,7 @@ module.exports = class bitmex extends ccxt.bitmex {
                 'tradeBin1h': this.handleOHLCV,
                 'tradeBin1d': this.handleOHLCV,
                 'execution': this.handleMyTrades,
+                'margin': this.handleBalance,
             };
             const method = this.safeValue (methods, table);
             if (method === undefined) {
