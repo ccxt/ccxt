@@ -450,6 +450,7 @@ class poloniex(Exchange):
             code = self.safe_currency_code(id)
             active = (currency['delisted'] == 0) and not currency['disabled']
             numericId = self.safe_integer(currency, 'id')
+            fee = self.safe_float(currency, 'txFee')
             result[code] = {
                 'id': id,
                 'numericId': numericId,
@@ -457,7 +458,7 @@ class poloniex(Exchange):
                 'info': currency,
                 'name': currency['name'],
                 'active': active,
-                'fee': self.safe_float(currency, 'txFee'),  # todo: redesign
+                'fee': fee,
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -473,7 +474,7 @@ class poloniex(Exchange):
                         'max': None,
                     },
                     'withdraw': {
-                        'min': currency['txFee'],
+                        'min': fee,
                         'max': math.pow(10, precision),
                     },
                 },

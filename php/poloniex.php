@@ -464,6 +464,7 @@ class poloniex extends Exchange {
             $code = $this->safe_currency_code($id);
             $active = ($currency['delisted'] === 0) && !$currency['disabled'];
             $numericId = $this->safe_integer($currency, 'id');
+            $fee = $this->safe_float($currency, 'txFee');
             $result[$code] = array(
                 'id' => $id,
                 'numericId' => $numericId,
@@ -471,7 +472,7 @@ class poloniex extends Exchange {
                 'info' => $currency,
                 'name' => $currency['name'],
                 'active' => $active,
-                'fee' => $this->safe_float($currency, 'txFee'), // todo => redesign
+                'fee' => $fee,
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
@@ -487,7 +488,7 @@ class poloniex extends Exchange {
                         'max' => null,
                     ),
                     'withdraw' => array(
-                        'min' => $currency['txFee'],
+                        'min' => $fee,
                         'max' => pow(10, $precision),
                     ),
                 ),
