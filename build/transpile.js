@@ -72,13 +72,24 @@ class CCXTProTranspiler extends Transpiler {
         // ]
     }
 
-
     createPythonClassHeader (ccxtImports, bodyAsString) {
         let imports = ccxtImports
-        if (bodyAsString.includes ('ArrayCache')) {
+        const importArrayCache = bodyAsString.match (/\bArrayCache\b/i)
+        const importArrayCacheBySymbolById = bodyAsString.match (/\bArrayCacheBySymbolById\b/i)
+        if (importArrayCache && importArrayCacheBySymbolById) {
             imports = [
-                ... ccxtImports,
+                ... imports,
+                'from ccxtpro.base.cache import ArrayCache, ArrayCacheBySymbolById',
+            ]
+        } else if (importArrayCache) {
+            imports = [
+                ... imports,
                 'from ccxtpro.base.cache import ArrayCache',
+            ]
+        } else if (importArrayCacheBySymbolById) {
+            imports = [
+                ... imports,
+                'from ccxtpro.base.cache import ArrayCacheBySymbolById',
             ]
         }
         return [
@@ -150,7 +161,7 @@ class CCXTProTranspiler extends Transpiler {
         const phpFile = './php/test/Cache.php'
         const pyImports = [
             '',
-            'from ccxtpro.base.cache import ArrayCache  # noqa: F402',
+            'from ccxtpro.base.cache import ArrayCache, ArrayCacheBySymbolById  # noqa: F402',
             '',
         ].join ('\n')
         this.transpileTest (jsFile, pyFile, phpFile, pyImports)
